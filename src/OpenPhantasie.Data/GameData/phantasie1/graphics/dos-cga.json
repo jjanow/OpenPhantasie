@@ -1,0 +1,53 @@
+{
+  "_schema": "phantasie.graphics-pack/v1",
+  "_note": "DOS CGA Phantasie I art (tools/scripts/extract_dos_map_tiles.py -> tiles/, extract_dos_town_picture.py -> ui/town.png), CGA palette 1 high intensity. Expected layout under root: tiles/tiles.json, tiles/overworld/fog.png + pat-NN-NAME.png, tiles/dungeon/glyph-XX-NAME.png, ui/town.png (rows 0..8 and 191..199 blank: the game draws the menu bar and town name); optional (s157, extract_dos_defeat_pictures.py): ui/defeat-temple.png, ui/defeat-demon.png, ui/defeat-ghost.png, ui/defeat-figures/NN.png (the party-defeat screens, CGA palette 0 high as OV1 sets it). Never the default (auto_select false): only an explicit choice selects it. DOS shows no monster/portrait/title art here, so those names resolve to nothing in this pack (no borrowing from Amiga). Overworld: per-cell patterns chosen by the map_tiles rule (asset-manifest.json), not whole-region pictures.",
+  "id": "dos-cga",
+  "game": "phantasie1",
+  "platform": "dos",
+  "name": "DOS (CGA)",
+  "auto_select": false,
+  "root": "reverse-engineering/dos/extracted",
+  "requires": ["tiles/tiles.json", "ui/town.png"],
+  "screen": { "width": 320, "height": 200, "pixel_aspect": [1, 1], "background": "#000000" },
+  "palette": ["#000000", "#55FFFF", "#FF55FF", "#FFFFFF"],
+  "font": "remaster-5x7",
+  "defeat_pictures": {
+    "_note": "s157 static (endgame.md section 4): I DOS's party-defeat screens, drawn on DOS's 5.00-s line clock (dos-screens.json defeat) whichever layout is on (the Amiga's sequence needs amiga.json defeat_screen and its door, not here). OV1 0x2af sets CGA palette 0 (COM 0x3abd(0)); 'YOUR PARTY HAS BEEN DEFEATED' on black; then defeat.temple (CEMEN.IBM with the doorway blanked in buffer A, OV1 0x2fd..0x378: no wipe on screen) and a ghost per member with 'YOU HAVE ARRIVED AT THE ASTRAL PLANE'; defeat.demon (CEMEN.IBM as stored, the face) and the ghosts again with 'THE GREAT DEMON APPEARS AND SPEAKS:'; per member its fate before its line: defeat.figure.<race> (PRT1IBM.PAT, OV1 0x787; UNDEAD race 15) or its slot cleared (OV1 0x747). Row: OV1 0x5fe clears text rows 19..23, ghosts at y 156, gap (320 - 32n)/(n+1) rounded down to 4. Line: OV1 0x24c centres it on text row 24 (yellow, pen 3). palette: the screen shows CGA palette 0 high while these screens are up (the pack's palette 1 elsewhere).",
+    "row_y": 156, "slot_align": 4, "clear_top": 152, "clear_bottom": 191, "text_y": 192, "text_colour": "#FFFF55",
+    "palette": ["#000000", "#55FF55", "#FF5555", "#FFFF55"]
+  },
+  "town_screen": { "bar_rows": 9, "name_x": 160, "name_y": 191, "name_colour": "#FFFFFF", "message_y": 191 },
+  "pictures": {
+    "town.backdrop": "ui/town.png",
+    "defeat.temple": "ui/defeat-temple.png",
+    "defeat.demon": "ui/defeat-demon.png",
+    "defeat.ghost": "ui/defeat-ghost.png",
+    "overworld.fog": "tiles/overworld/fog.png",
+    "overworld.pattern.0": "tiles/overworld/pat-00-class0.png",
+    "overworld.pattern.1": "tiles/overworld/pat-01-class1.png",
+    "overworld.pattern.2": "tiles/overworld/pat-02-class2.png",
+    "overworld.pattern.3": "tiles/overworld/pat-03-class3.png",
+    "overworld.pattern.4": "tiles/overworld/pat-04-town.png",
+    "overworld.pattern.5": "tiles/overworld/pat-05-dungeon.png",
+    "overworld.pattern.6": "tiles/overworld/pat-06-class6-path.png",
+    "overworld.pattern.7": "tiles/overworld/pat-07-class7-bridge.png",
+    "overworld.pattern.8": "tiles/overworld/pat-08-class8.png",
+    "overworld.pattern.9": "tiles/overworld/pat-09-class9.png",
+    "overworld.pattern.10": "tiles/overworld/pat-10-water.png",
+    "overworld.pattern.11": "tiles/overworld/pat-11-pool.png",
+    "overworld.pattern.12": "tiles/overworld/pat-12-party.png",
+    "overworld.pattern.13": "tiles/overworld/pat-13-inn.png",
+    "overworld.pattern.14": "tiles/overworld/pat-14-realm.png",
+    "dungeon.glyph.230": "tiles/dungeon/glyph-e6-wall.png",
+    "dungeon.glyph.231": "tiles/dungeon/glyph-e7-floor.png",
+    "dungeon.glyph.232": "tiles/dungeon/glyph-e8-event.png",
+    "dungeon.glyph.233": "tiles/dungeon/glyph-e9-lock-v.png",
+    "dungeon.glyph.234": "tiles/dungeon/glyph-ea-lock-h.png",
+    "dungeon.glyph.235": "tiles/dungeon/glyph-eb-exit.png",
+    "dungeon.glyph.236": "tiles/dungeon/glyph-ec-stairs.png",
+    "dungeon.glyph.237": "tiles/dungeon/glyph-ed-party.png"
+  },
+  "picture_sets": [
+    { "name": "defeat.figure.{n}", "dir": "ui/defeat-figures", "prefix": "{n:D2}.", "ext": ".png" }
+  ]
+}

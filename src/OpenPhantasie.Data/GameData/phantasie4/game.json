@@ -1,0 +1,22 @@
+{
+ "_schema": "phantasie.game/v1",
+ "_source": "Built by tools/scripts/build_p4_gamedata.py from Phantasie IV, X68000 Star Craft 1991 Ver.1.02 (reverse-engineering/x68000/phantasie4/, FORMAT.md)",
+ "_note": "The tables this folder holds and their sizes, read by OpenPhantasie.Data GameTables.Load (09-trilogy.md T6). IV has no MESS message files (its location texts are in the event files: dungeons.json messages and strings/), so message_areas is 0. rule-tables.json holds IV's own tables (creation and ancestry, training, towns, combat, outdoor, Hall). No campaign yet.",
+ "game": "p4",
+ "platform": "x68000",
+ "counts": {
+  "monsters": 84,
+  "items": 157,
+  "spells": 65,
+  "classes": 10,
+  "races": 35,
+  "overworld_regions": 24,
+  "dungeon_levels": 21,
+  "message_areas": 0,
+  "scrolls": 5,
+  "towns": 21,
+  "elementals": 3
+ },
+ "spell_cost_rule": null,
+ "_spell_cost_rule": "Costs per spell from the manual (D4-044); the code's are code_magic_point_cost."
+}

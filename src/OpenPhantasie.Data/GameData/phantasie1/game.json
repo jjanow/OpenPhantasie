@@ -1,0 +1,20 @@
+{
+  "_schema": "phantasie.game/v1",
+  "_note": "The shared tables this folder holds and their sizes (OpenPhantasie.Data GameTables.Load; Phase 09 T3). The full Phantasie I game data is loaded by GameDataRepository.Load, which keeps its own constants; a test pins the two together.",
+  "game": "p1",
+  "platform": "dos",
+  "counts": {
+    "monsters": 80,
+    "items": 181,
+    "spells": 55,
+    "classes": 6,
+    "races": 15,
+    "overworld_regions": 18,
+    "dungeon_levels": 10,
+    "message_areas": 10,
+    "scrolls": 20,
+    "towns": 12,
+    "elementals": 3
+  },
+  "spell_cost_rule": "dos-slot-mod-4"
+}

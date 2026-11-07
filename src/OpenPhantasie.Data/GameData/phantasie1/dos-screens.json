@@ -1,0 +1,52 @@
+{
+  "_schema": "phantasie.dos-screens/v1",
+  "_note": "s154: the DOS presentation the remaster's path with AMIGA SCREENS off follows, whatever graphics pack is drawn (so not in a graphics pack: amiga.json's map_message is the Amiga's requesters). Static [C] (reverse-engineering/dos/logic-specs/message-and-text.md 'Text boxes, key waits and timed lines', endgame.md 4 'Timing') + DOSBox-X s154. map_boxes: the string ids whose lines DOS prints in its centred band (OV2 0xda83 / 0xdad1 / 0xdb41 = COM 0x2e5f / 0x2ead / 0x2f1d), each waiting for a key (COM 0x37a0); keys on the overworld, dungeon_keys in the dungeon; splits: an id DOS shows on two rows (0x722f, 0xdad1). Core's own window marks (MESS text, damage reports, location pages) wait too; they need no list. defeat: OV1 0x24c's 0xe81c(500) = COM 0x3bf8(500): each line of the party defeat holds 500 hundredths of a second; a key ends the line's wait early (key_ends_line).",
+  "game": "p1",
+  "map_boxes": {
+    "keys": [
+      "core.encounter.a_night_encounter",
+      "core.encounter.x_on_watch",
+      "core.encounter.x_on_watch_hears",
+      "core.encounter.black_knights_flee",
+      "core.encounter.x_hears_monsters",
+      "core.encounter.you_surprise_them",
+      "core.encounter.monsters_surprise_you",
+      "core.overworld.the_river_styx",
+      "core.overworld.that_is_the_ocean"
+    ],
+    "dungeon_keys": [
+      "core.dungeon.that_is_the_wall",
+      "core.dungeon.x_fails",
+      "core.dungeon.x_succeeds",
+      "core.dungeon.x_picks_the_lock",
+      "core.dungeon.stairs_from_level_x_to_x",
+      "core.dungeon.no_one_can_pick_the_lock",
+      "core.script.smoke_fills_the_air",
+      "core.script.a_spell_is_cast",
+      "core.script.party_gets_some_gold",
+      "core.script.some_gold_is_taken",
+      "core.script.the_party_is_moved",
+      "core.script.you_hear_a_noise",
+      "core.script.monsters_appear"
+    ],
+    "splits": {
+      "core.encounter.x_on_watch_hears": ["core.encounter.x_on_watch", "core.encounter.and_hears_the_monsters"]
+    }
+  },
+  "_pages_note": "s156 static [C] + DOSBox-X: the places of the map's boxes on DOS's 40 x 25 grid (8 x 8 cells). band_top_row: COM 0x2e5f / 0x2ead / 0x2f1d fill rows 9..(10 + n) full width, the n rows centred as stored ((40 - length) / 2, a sign's padding counted) on rows 10.., a ruled row above and below (live s154 / s156: white 2-px rules at y 73-74 and 93-94 for one row; s45's Red Pony sign: two rows, rules at 73-74 and 101-102, its padded 39-character rows from columns 2 and 9; three rows inferred [~]). text_top_row: 0x2a95 fills rows 4..(5 + n), the 40-character records from column 0 on rows 5.. (live s156, DNG9's gate text: rules at y 33-34 and 69-70 for three records). reports: OV2 0xb9d1(column, row, last column, last row) and the print_at calls after it: the trap 0x3097 / 0x30a9 (6..33, title (13, 8), rows from column 7 (0x3125...), row 10 per the spec), ops 1-4 0x25d1 (6..34, (16, 8), (7, 10)), swimming 0x6956 (1..38, (14, 8), (2, 10)), the pool 0x658d (8..29, (12, 8), (9, 10)), the wilderness inn 0x6749 (5..32, (13, 8), (6, 10)); every one rows 7..16; the frame a 2-px white line inset in the edge cells (live s43 swim / s45 inn shots).",
+  "pages": {
+    "band_top_row": 9,
+    "text_top_row": 4,
+    "reports": {
+      "core.dungeon.in_the_trap": { "columns": [6, 33], "rows": [7, 16], "title": [13, 8], "first": [7, 10] },
+      "core.script.report": { "columns": [6, 34], "rows": [7, 16], "title": [16, 8], "first": [7, 10] },
+      "core.dungeon.swimming": { "columns": [1, 38], "rows": [7, 16], "title": [14, 8], "first": [2, 10] },
+      "core.pool.a_magical_pool": { "columns": [8, 29], "rows": [7, 16], "title": [12, 8], "first": [9, 10] },
+      "core.inn.in_the_inn": { "columns": [5, 32], "rows": [7, 16], "title": [13, 8], "first": [6, 10] }
+    }
+  },
+  "defeat": {
+    "line_hundredths": 500,
+    "key_ends_line": true
+  }
+}

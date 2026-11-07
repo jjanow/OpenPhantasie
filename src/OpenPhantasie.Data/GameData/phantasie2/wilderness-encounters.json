@@ -1,0 +1,22 @@
+{
+ "_source": "PHANT.PRG data 0x1fefe (16 bytes) [C] (logic-specs/encounters.md section 4): the same table as Phantasie I's COM DS 0x1a5c, read by the day branch of night_watch_encounter 0xfe38.",
+ "_note": "Day monster (0-based) = 12*(tile % 10) + 2*pair_table[tile / 10 + r / 25] + 2r/100 (r = rand / 327).",
+ "pair_table": [
+  4,
+  1,
+  2,
+  3,
+  3,
+  4,
+  2,
+  4,
+  3,
+  5,
+  5,
+  4,
+  4,
+  0,
+  0,
+  1
+ ]
+}

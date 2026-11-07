@@ -1,0 +1,1159 @@
+{
+ "_schema": "phantasie.import-profiles/v1",
+ "_note": "Versions the importer knows (docs/plan/10-importer.md section 3, Appendix A/B). A supported profile matches when every key file of each disk is found by name (case-insensitive, matched on the path's tail; '*' = any name) and sha1. Same names, other hashes = 'unknown build' (not imported: the extractors read fixed offsets). mutable_files: files play rewrites, with their pristine sha1 (a mismatch = a played copy). images: whole-image fingerprints (reference dumps, and versions recognised by hash only). status: supported (has a pipeline), planned (pipeline being written), recognised (named, not imported).",
+ "profiles": [
+  {
+   "id": "p1-dos-1987",
+   "game": "phantasie1",
+   "title": "Phantasie I (DOS, SSI 1987)",
+   "platform": "dos",
+   "status": "supported",
+   "feeds": [
+    "tables",
+    "art:dos-cga"
+   ],
+   "disks": [
+    {
+     "label": "game disk",
+     "key_files": [
+      {
+       "name": "PHANTASI.COM",
+       "size": 34816,
+       "sha1": "9d5d4bf41e0342091264231ed3c535949fb2111c"
+      },
+      {
+       "name": "OV1.OVR",
+       "size": 25703,
+       "sha1": "672632f4292cbbee86af27107a2e6e393ab5c4e2"
+      },
+      {
+       "name": "OV2.OVR",
+       "size": 32963,
+       "sha1": "334456689e017fd7e2fb134d57801ea349ea47da"
+      },
+      {
+       "name": "TWNS.INT",
+       "size": 12987,
+       "sha1": "82532a99586d62c5b2a33060038e9755cbddecbf"
+      },
+      {
+       "name": "PAT",
+       "size": 450,
+       "sha1": "0d2a8b41008609482390f16feb02389b11d30c49"
+      },
+      {
+       "name": "PELNOR.IBM",
+       "size": 16384,
+       "sha1": "fc8415d91dc1e3ce5c14887f9b3f7be22885aa05"
+      },
+      {
+       "name": "SCROLLS.DTX",
+       "size": 16000,
+       "sha1": "389814ca45f5c4c60aa5919fafb7f1efe8d360e8"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "PHANTASI.COM",
+    "OV1.OVR",
+    "OV2.OVR",
+    "TWNS.INT"
+   ],
+   "mutable_files": [
+    {
+     "name": "TWNS.DAT",
+     "size": 3492,
+     "sha1": "02b894b0e3062550645d8af7038ad69cc4d40b7d"
+    },
+    {
+     "name": "GUILD.DAT",
+     "size": 6204,
+     "sha1": "332b0ae35ec735928c3a4a7fc94d871bb6a2ffd6"
+    },
+    {
+     "name": "SACK.DAT",
+     "size": 120,
+     "sha1": "b110a88a11436b215220486c1081dec2fb0f389a"
+    },
+    {
+     "name": "DNG.SAV",
+     "size": 6386,
+     "sha1": "032ca136dcd1db2b085f27e5cfff90d20fe6701c"
+    },
+    {
+     "name": "DNGX.SAV",
+     "size": 2500,
+     "sha1": "6cfed8d692b0a1890d5957e00f3c422b332ae827"
+    },
+    {
+     "name": "OUT1.DAT",
+     "size": 1024,
+     "sha1": "0f19a43c9039d860d7932b6e4d79edc20f3e17d3"
+    },
+    {
+     "name": "OUT2.DAT",
+     "size": 1024,
+     "sha1": "0a95ee7b77940d7fc62a4d946510094aca53300c"
+    },
+    {
+     "name": "OUT3.DAT",
+     "size": 1024,
+     "sha1": "77830607c56c98d99f5fd1d2bb03c8e33a03c07a"
+    },
+    {
+     "name": "OUT4.DAT",
+     "size": 1024,
+     "sha1": "1d7df6ba371363356de5089faf1683184c637988"
+    },
+    {
+     "name": "OUT5.DAT",
+     "size": 1024,
+     "sha1": "8a594c8bdc2fd797a2e6039b46435bf8534838dd"
+    },
+    {
+     "name": "OUT6.DAT",
+     "size": 1024,
+     "sha1": "0b30aba9120445defe291b841d605e39b1782ca2"
+    },
+    {
+     "name": "OUT7.DAT",
+     "size": 1024,
+     "sha1": "09ef05e4e2577ddecae9354d38eb750aad3c05ca"
+    },
+    {
+     "name": "OUT8.DAT",
+     "size": 1024,
+     "sha1": "6c60e9c99c2975760144ebf54ca0726be2db4120"
+    },
+    {
+     "name": "OUT9.DAT",
+     "size": 1024,
+     "sha1": "0abb3c03035d88530f69705a7cbf08093724bf66"
+    },
+    {
+     "name": "OUT10.DAT",
+     "size": 1024,
+     "sha1": "d838e7c099b9dca02028e8844bbcd2187887e943"
+    },
+    {
+     "name": "OUT11.DAT",
+     "size": 1024,
+     "sha1": "5793fd735cde89ea793d941ea76abedaa86308e4"
+    },
+    {
+     "name": "OUT12.DAT",
+     "size": 1024,
+     "sha1": "c2b2071f1fad61e63f1268771e3b6c63661c171a"
+    },
+    {
+     "name": "OUT13.DAT",
+     "size": 1024,
+     "sha1": "5e1c3b15b15d415a968714c2ece2f19ddb637f01"
+    },
+    {
+     "name": "OUT14.DAT",
+     "size": 1024,
+     "sha1": "7e2c55aa13932b45199013d0030a6f9f9e0f0c58"
+    },
+    {
+     "name": "OUT15.DAT",
+     "size": 1024,
+     "sha1": "ac9641b371615d9c5993d1cf7ede7fa5951787ea"
+    },
+    {
+     "name": "OUT16.DAT",
+     "size": 1024,
+     "sha1": "7aba93b33ac1d14b1a3ff5e5c6bc3034abd5b839"
+    },
+    {
+     "name": "OUT18.DAT",
+     "size": 1024,
+     "sha1": "efc2e4e1618a83d7ff5ea8a01dc9d0556faaf077"
+    },
+    {
+     "name": "OUT19.DAT",
+     "size": 1024,
+     "sha1": "b0a1627ea13922b83ad38099c042f438749a046d"
+    }
+   ],
+   "images": [
+    {
+     "sha1": "40eeb75aaaa46382caeb256cfb0c7930ce78d6c2",
+     "size": 368640,
+     "note": "reference dump (.ima)"
+    },
+    {
+     "sha1": "89b33da4356b780182ce0ef6a310040bdb82ce14",
+     "size": 170670,
+     "note": "reference dump (.zip)"
+    }
+   ]
+  },
+  {
+   "id": "p1-dos-bonus-1991",
+   "game": "phantasie1",
+   "title": "Phantasie I (DOS, Bonus v1.1, WizardWorks 1991)",
+   "platform": "dos",
+   "status": "recognised",
+   "reason": "its PHANTASI.EXE differs from the 1987 PHANTASI.COM the extractors read (not diffed yet)",
+   "name_markers": [
+    "PHANTASI.EXE",
+    "OV1.OVR",
+    "TWNS.INT"
+   ],
+   "images": [
+    {
+     "sha1": "87bc9e6a9a28c0290ce31dd305bc6477735ed0d6",
+     "size": 368640
+    }
+   ]
+  },
+  {
+   "id": "p1-amiga-1.0",
+   "game": "phantasie1",
+   "title": "Phantasie I (Amiga v1.0, 1987)",
+   "platform": "amiga",
+   "status": "supported",
+   "feeds": [
+    "art:amiga"
+   ],
+   "disks": [
+    {
+     "label": "game disk",
+     "key_files": [
+      {
+       "name": "game",
+       "size": 193804,
+       "sha1": "fc3ce94d649684ea3003b404f662dec74ddd5e9e"
+      },
+      {
+       "name": "tamb.dat",
+       "size": 2850,
+       "sha1": "a2e342a5ed03642bc0d15c3d001aaf613f36e6ff"
+      },
+      {
+       "name": "twns.int",
+       "size": 13000,
+       "sha1": "d1d6e5d4b9243f48b08eceb8cb3652527b5b92c4"
+      },
+      {
+       "name": "mstr1.pat",
+       "size": 68016,
+       "sha1": "f959eb9858b8bfa0018a1a0913cc2227a12cc3d8"
+      },
+      {
+       "name": "maps.int",
+       "size": 9360,
+       "sha1": "8dc6438f33f0ad92dd65bef8a8dbc77f73dea81a"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "game",
+    "tamb.dat",
+    "mstr1.pat"
+   ],
+   "images": [
+    {
+     "sha1": "110e9768b9b3cf9d0b913aa1b4b89b0d9c469df9",
+     "size": 901120,
+     "note": "reference dump (.adf)"
+    },
+    {
+     "sha1": "b8749a43f979df9f013108543d4286c74abd5a97",
+     "size": 308134,
+     "note": "reference dump (.zip)"
+    }
+   ]
+  },
+  {
+   "id": "kickstart-1.3",
+   "game": "shared",
+   "title": "Amiga Kickstart 1.3 ROM (34.5)",
+   "platform": "amiga",
+   "status": "supported",
+   "feeds": [
+    "font:topaz-8"
+   ],
+   "disks": [
+    {
+     "label": "ROM",
+     "key_files": [
+      {
+       "name": "*",
+       "size": 262144,
+       "sha1": "891e9a547772fe0c6c19b610baf8bc4ea7fcb785"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "p2-st-1.0",
+   "game": "phantasie2",
+   "title": "Phantasie II (Atari ST v1.0)",
+   "platform": "atari-st",
+   "status": "supported",
+   "feeds": [
+    "tables",
+    "art:atari-st"
+   ],
+   "disks": [
+    {
+     "label": "disk 1",
+     "key_files": [
+      {
+       "name": "PHANT.PRG",
+       "size": 155785,
+       "sha1": "1386c07157720536852d853d1a80d8237e9a8592"
+      },
+      {
+       "name": "START.PRG",
+       "size": 2567,
+       "sha1": "e79d928c3628f58b40062016a73cf25366202c91"
+      },
+      {
+       "name": "TWNS.INT",
+       "size": 13900,
+       "sha1": "b5c4b95f38e72b0c06d4029729dc67ba2d055cb5"
+      },
+      {
+       "name": "MAPS.INT",
+       "size": 8840,
+       "sha1": "16c993df0bb09e14e9779a6e989255bc34b7d484"
+      }
+     ]
+    },
+    {
+     "label": "disk 2",
+     "key_files": [
+      {
+       "name": "MESS1",
+       "size": 3816,
+       "sha1": "a79a457aee5f9dd516e7069ed1991e17a9ceb36f"
+      },
+      {
+       "name": "DNG1",
+       "size": 2048,
+       "sha1": "d66c960e905f1aeefac1f237f202c691b843806b"
+      },
+      {
+       "name": "SCROLLS.DTX",
+       "size": 16384,
+       "sha1": "85d6b76fc51ec026a0f05ffbf31941c15876165d"
+      },
+      {
+       "name": "MSTR2.PAT",
+       "size": 76832,
+       "sha1": "35f226c1272653df753ee20ca121f153722580df"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "PHANT.PRG",
+    "START.PRG",
+    "MAPS.INT"
+   ],
+   "images": [
+    {
+     "sha1": "7d7d7a5dbe765c5e5adf6e8793699e43521700b7",
+     "size": 883088
+    },
+    {
+     "sha1": "096af7614f3b629c5a6c98f392d41c835a5ee682",
+     "size": 883970
+    },
+    {
+     "sha1": "0168c78aaf7a600500e07e0db27d6bb672698da1",
+     "size": 368640
+    },
+    {
+     "sha1": "d1f04b95b4ed951ad32cb7b84c367bc1ddb3b14e",
+     "size": 368640
+    }
+   ]
+  },
+  {
+   "id": "p2-apple2",
+   "game": "phantasie2",
+   "title": "Phantasie II (Apple II; the Memorial Set's II)",
+   "platform": "apple2",
+   "status": "supported",
+   "feeds": [
+    "tables",
+    "art:apple2"
+   ],
+   "disks": [
+    {
+     "label": "side A",
+     "key_files": [
+      {
+       "name": "PHANTASIE II",
+       "size": 1391,
+       "sha1": "e3bf65987558b4caa9e168ce2423069523c5a96c"
+      },
+      {
+       "name": "TOWN2",
+       "size": 17744,
+       "sha1": "91e11d161248267e6e32ef7aea895b225b666a1a"
+      },
+      {
+       "name": "OUTDOORS2",
+       "size": 18641,
+       "sha1": "a2696aeaa5d81b5cd5ffc0f65cc2fca1f9fbcb70"
+      },
+      {
+       "name": "ITEM",
+       "size": 1792,
+       "sha1": "7363b7fa87effc14767818ac262c2a95abb3f5ec"
+      },
+      {
+       "name": "TINFO",
+       "size": 1730,
+       "sha1": "41823569aa91b7e2d1ab96a505e672c5d9d3406a"
+      },
+      {
+       "name": "TF2",
+       "size": 2500,
+       "sha1": "929067298c167d519ce465880b5d2d6ff828f83d"
+      },
+      {
+       "name": "SHAPES",
+       "size": 2932,
+       "sha1": "86db875875b15de40ce5e0104cb3aaf95df6c701"
+      },
+      {
+       "name": "ICE DRAGON",
+       "size": 8192,
+       "sha1": "350fe9e8611530f49d2a6ffc1dc03c5516e51d0e"
+      },
+      {
+       "name": "INFO",
+       "size": 238,
+       "sha1": "af28cae4a9795a4f62e150980c16275037124d72"
+      }
+     ]
+    },
+    {
+     "label": "side B",
+     "key_files": [
+      {
+       "name": "DUNGON2",
+       "size": 19580,
+       "sha1": "e75b3f5dc2604f939a590742e7a83cabee42629d"
+      },
+      {
+       "name": "DNG1",
+       "size": 6140,
+       "sha1": "2f14a667931485f2161a0768a3dd57a3387c8806"
+      },
+      {
+       "name": "DNG8",
+       "size": 6140,
+       "sha1": "0f53c5e5f35e343ceaa02318a09b82bd4bfdd28a"
+      },
+      {
+       "name": "SCROLLL0",
+       "size": 1000,
+       "sha1": "5afc9da7e2c88e184b38909335c96687357d6884"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "TOWN2",
+    "OUTDOORS2"
+   ],
+   "images": [
+    {
+     "sha1": "ffad268effaff2c501d5c3eb45f7db1a6998e088",
+     "size": 143360
+    },
+    {
+     "sha1": "c766716e1c7e20e1c80402df0c3df838299e4d8a",
+     "size": 143360
+    },
+    {
+     "sha1": "37dfa92285776b261605221f85fcf3fb6adc4842",
+     "size": 233452,
+     "note": "WOZ flux image of the original disk: not readable (13-sector GCR with SSI protection); import the 4am crack .dsk pair"
+    },
+    {
+     "sha1": "b395fd5175d875063dd5bfcaee040457ea1cd603",
+     "size": 233452,
+     "note": "WOZ flux image of the original disk: not readable (13-sector GCR with SSI protection); import the 4am crack .dsk pair"
+    }
+   ]
+  },
+  {
+   "id": "p3-dos-1988",
+   "game": "phantasie3",
+   "title": "Phantasie III (DOS, SSI 1988)",
+   "platform": "dos",
+   "status": "supported",
+   "feeds": [
+    "tables"
+   ],
+   "disks": [
+    {
+     "label": "game disk",
+     "key_files": [
+      {
+       "name": "MAIN.EXE",
+       "size": 152564,
+       "sha1": "b85cd0eaab25884af4e90d298407e42a288b5ede"
+      },
+      {
+       "name": "CREATURE.DAT",
+       "size": 3072,
+       "sha1": "a6341c8b7c4bb4bb473682f5267df4ad30850803"
+      },
+      {
+       "name": "DNGS.DAT",
+       "size": 46464,
+       "sha1": "20bfda72d55ee07801764ed33a3c00fb46804d9f"
+      },
+      {
+       "name": "WORLD.DAT",
+       "size": 3750,
+       "sha1": "3b4aaa861bf40760eb9dd727593ba159094f6ac0"
+      },
+      {
+       "name": "PLNS.DAT",
+       "size": 658,
+       "sha1": "5f851b3ffdd8e7663ba3b9e97452692f81f7220a"
+      },
+      {
+       "name": "INITARMS.DAT",
+       "size": 3328,
+       "sha1": "56a360b7b000150cba73c546d5030522be54641b"
+      },
+      {
+       "name": "SCROLLS.DAT",
+       "size": 19950,
+       "sha1": "643f7bbfb2ec53920103fe0ce2472030d20b7565"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "MAIN.EXE",
+    "DNGS.DAT",
+    "WORLD.DAT"
+   ],
+   "images": [
+    {
+     "sha1": "6307862a0e46d3da86bec630f89d2915559cf369",
+     "size": 368640,
+     "note": "reference dump (SSI 1988)"
+    },
+    {
+     "sha1": "1170478efe9bb98fae0f4ada180e0fe5e44159ed",
+     "size": 368640,
+     "note": "WizardWorks 1991"
+    }
+   ]
+  },
+  {
+   "id": "p3-amiga-1.0",
+   "game": "phantasie3",
+   "title": "Phantasie III (Amiga v1.0, 1987)",
+   "platform": "amiga",
+   "status": "supported",
+   "feeds": [
+    "art:amiga"
+   ],
+   "disks": [
+    {
+     "label": "game disk",
+     "key_files": [
+      {
+       "name": "PhantasieIII",
+       "size": 174928,
+       "sha1": "40548339ddbcbc3be8c2a17055f322211b538150"
+      },
+      {
+       "name": "monsinfo.dat",
+       "size": 3072,
+       "sha1": "a6341c8b7c4bb4bb473682f5267df4ad30850803"
+      },
+      {
+       "name": "D/m0",
+       "size": 896,
+       "sha1": "b7cfea849f37d08467e065b02c7b8abb856ed290"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "PhantasieIII",
+    "monsinfo.dat"
+   ],
+   "images": [
+    {
+     "sha1": "e4c128de73f5ebae4f83efadf3c15ffd6a109c60",
+     "size": 901120,
+     "note": "reference dump (.adf)"
+    }
+   ]
+  },
+  {
+   "id": "p4-x68000-1.02",
+   "game": "phantasie4",
+   "title": "Phantasie IV (X68000 Ver.1.02)",
+   "platform": "x68000",
+   "status": "supported",
+   "feeds": [
+    "tables",
+    "strings:ja",
+    "art:x68000"
+   ],
+   "disks": [
+    {
+     "label": "disk 1",
+     "key_files": [
+      {
+       "name": "P4.X",
+       "size": 341164,
+       "sha1": "2a7e8ce31693524e11f896f30a3950a73c70ec48"
+      },
+      {
+       "name": "P4.SND",
+       "size": 16000,
+       "sha1": "9ff80524abfd2c4941b176300c3d6b10d37db591"
+      },
+      {
+       "name": "VDATA",
+       "size": 6609,
+       "sha1": "82d268e44a397db7e0ce6a6386091bc61d41f0a6"
+      },
+      {
+       "name": "TABL",
+       "size": 2130,
+       "sha1": "aed9290319305193de884a4a16c01843b517c29f"
+      }
+     ]
+    },
+    {
+     "label": "disk 2",
+     "key_files": [
+      {
+       "name": "DATM",
+       "size": 5880,
+       "sha1": "a4912cb4f4ed43bc9ab34754fbefa398b4dc3fbd"
+      },
+      {
+       "name": "MOUT",
+       "size": 12600,
+       "sha1": "9e9f0cc61c3409381c3fcf9b99390472980475f5"
+      },
+      {
+       "name": "SCR1",
+       "size": 1085,
+       "sha1": "af66cc14b29b85df3aecdd29f813f24335159031"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "P4.X",
+    "TABL",
+    "MOUT",
+    "DATM"
+   ],
+   "images": [
+    {
+     "sha1": "3f458eec2e33bf47d0be3c7c0327ba92828478b8",
+     "size": 1261824
+    },
+    {
+     "sha1": "281afb0d30e3b9d784cab27445afff393ddce029",
+     "size": 1261824
+    }
+   ]
+  },
+  {
+   "id": "p1-apple2",
+   "game": "phantasie1",
+   "title": "Phantasie I (Apple II)",
+   "platform": "apple2",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "42cae93c68cfb5bf7a52de3d695b876aac393736",
+     "size": 143360
+    },
+    {
+     "sha1": "5823879b2fa8f7471023b3b494fd2d686315bc26",
+     "size": 143360
+    },
+    {
+     "sha1": "5ddc4bbd45d380105302a49b351a5c28647799ed",
+     "size": 234816
+    },
+    {
+     "sha1": "2c9ad81a049c342eb097fc2916c6b2f7ef694211",
+     "size": 234819
+    }
+   ]
+  },
+  {
+   "id": "p3-apple2",
+   "game": "phantasie3",
+   "title": "Phantasie III (Apple II)",
+   "platform": "apple2",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "b7ae3f30298c41fd9a2abfa2bcd566cf4051a39a",
+     "size": 143360
+    },
+    {
+     "sha1": "51446a1e54c1ef84c13bb480d559f9b240b5b4e1",
+     "size": 143360
+    },
+    {
+     "sha1": "da829c612540f772012cc2bc11674a16ac72d4f4",
+     "size": 143360
+    },
+    {
+     "sha1": "4aac758b75a1e1d682e9477ebebb611a1b159dbc",
+     "size": 143360
+    }
+   ]
+  },
+  {
+   "id": "p1-st",
+   "game": "phantasie1",
+   "title": "Phantasie I (Atari ST)",
+   "platform": "atari-st",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "81090efe59010c517f92b374206b86deb08b93ff",
+     "size": 819200
+    },
+    {
+     "sha1": "62f71840b671b2e10675cc839bf289956f6a4e53",
+     "size": 737280
+    },
+    {
+     "sha1": "48cf671aa017a5f4d8540d32e19edb15cdada3b2",
+     "size": 792086
+    },
+    {
+     "sha1": "6721ad525b7d32475a5235bfb0daa8cf20c459c5",
+     "size": 749856
+    },
+    {
+     "sha1": "74d1bce3b531dddabf73065280ecd1f573ba25cb",
+     "size": 1897860
+    }
+   ]
+  },
+  {
+   "id": "p3-st",
+   "game": "phantasie3",
+   "title": "Phantasie III (Atari ST)",
+   "platform": "atari-st",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "304d422a3e91ca9f78aad637c51453625f668847",
+     "size": 737280
+    }
+   ]
+  },
+  {
+   "id": "p1-atari8bit",
+   "game": "phantasie1",
+   "title": "Phantasie I (Atari 8-bit)",
+   "platform": "atari8bit",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "a93d5f5350dfabb4d39abfded255378b64be24c2",
+     "size": 92176
+    },
+    {
+     "sha1": "fe5adccc9876e1b9568009fb5850f58449199385",
+     "size": 92176
+    },
+    {
+     "sha1": "850d849dd63643847dbc0c91956c49586e90f4cf",
+     "size": 92176
+    },
+    {
+     "sha1": "8170ed9b118b1fff34286f611601c7ad02c5c941",
+     "size": 92176
+    }
+   ]
+  },
+  {
+   "id": "p2-atari8bit",
+   "game": "phantasie2",
+   "title": "Phantasie II (Atari 8-bit)",
+   "platform": "atari8bit",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "c9b7461427a23765831081f72b3ff1f7e9c2d48a",
+     "size": 92176
+    },
+    {
+     "sha1": "1a64f62011da91e190ba20fee232c35f97f47974",
+     "size": 92176
+    },
+    {
+     "sha1": "2abc0ca74b70dd81c81be1cc8298f29c4a7ad948",
+     "size": 92176
+    },
+    {
+     "sha1": "aee550286d4c24bc0f38793ad3b8a58b9e60549d",
+     "size": 92176
+    }
+   ]
+  },
+  {
+   "id": "p1-c64",
+   "game": "phantasie1",
+   "title": "Phantasie I (C64)",
+   "platform": "c64",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "9b46f52dc155c3f2585b61fa14a0d575ad6bf30a",
+     "size": 174848
+    },
+    {
+     "sha1": "1f6cda627716c7a2d75a5cafd593cff1e1649feb",
+     "size": 174848
+    },
+    {
+     "sha1": "be66cf9d9aca3072ef2013c062b8c5d3a77635cf",
+     "size": 174848
+    },
+    {
+     "sha1": "a29d02baa60bb50c15d58d93a5979c395127c0bd",
+     "size": 174848
+    }
+   ]
+  },
+  {
+   "id": "p2-c64",
+   "game": "phantasie2",
+   "title": "Phantasie II (C64)",
+   "platform": "c64",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "3c69be20e0a9106c5ccb1402564cc3305a938254",
+     "size": 174848
+    },
+    {
+     "sha1": "27d27c679519ff366c949d836cf1a2e5d9157609",
+     "size": 174848
+    },
+    {
+     "sha1": "9d6c9d848e2be80857711be14ce01d723911b6ed",
+     "size": 174848
+    }
+   ]
+  },
+  {
+   "id": "p3-c64",
+   "game": "phantasie3",
+   "title": "Phantasie III (C64)",
+   "platform": "c64",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "440db1ba6d4b8cd87a324be3a05232dcf3a03eff",
+     "size": 174848
+    },
+    {
+     "sha1": "3993a0c86f4b91f9502dde4af7f24cd20cb2c86c",
+     "size": 174848
+    },
+    {
+     "sha1": "48437d833f99cd56188a14dcbd0670d6b8f159a9",
+     "size": 174848
+    },
+    {
+     "sha1": "bdfe269c7f4190a1d6494f18df8e7a391da46754",
+     "size": 174848
+    },
+    {
+     "sha1": "61be8fa4b53fb30bfe744267f0aa0235507e2618",
+     "size": 174848
+    }
+   ]
+  },
+  {
+   "id": "p1-msx2",
+   "game": "phantasie1",
+   "title": "Phantasie I (MSX2)",
+   "platform": "msx2",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "00f86b4baa57b2378ae60c4cb66207a026e111be",
+     "size": 737280
+    }
+   ]
+  },
+  {
+   "id": "p2-msx2",
+   "game": "phantasie2",
+   "title": "Phantasie II (MSX2)",
+   "platform": "msx2",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "f1ac4dbe51977a594fb396c39290941d7f16ee03",
+     "size": 737280
+    }
+   ]
+  },
+  {
+   "id": "p3-msx2",
+   "game": "phantasie3",
+   "title": "Phantasie III (MSX2)",
+   "platform": "msx2",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "f5694994b35d6550de89fd9de39d0e53f8943822",
+     "size": 737280
+    },
+    {
+     "sha1": "6511beda64953ab063bea4c0bd25e11823b4b9b9",
+     "size": 737280
+    }
+   ]
+  },
+  {
+   "id": "p4-msx2",
+   "game": "phantasie4",
+   "title": "Phantasie IV (MSX2)",
+   "platform": "msx2",
+   "status": "recognised",
+   "reason": "IV is imported from the X68000 only (its English patch is keyed by X68000 ids)",
+   "images": [
+    {
+     "sha1": "d38b9de3a630e443d0deeaa7f89bf5c9833fde99",
+     "size": 737280
+    },
+    {
+     "sha1": "7542c7608e85c0755e13b718b98051ee312c4ab3",
+     "size": 737280
+    },
+    {
+     "sha1": "94a7a928152c47bbed0a2990f7e380547b08789f",
+     "size": 737280
+    },
+    {
+     "sha1": "8c023e8e924d2e91e4da33336f2753c8bd28331c",
+     "size": 737280
+    }
+   ]
+  },
+  {
+   "id": "p1-pc88",
+   "game": "phantasie1",
+   "title": "Phantasie I (PC-88)",
+   "platform": "pc88",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "23012af327b15753ad0b13cf704d6a8545d7f5bf",
+     "size": 346080
+    },
+    {
+     "sha1": "892fe8bf8ff7b691aae45eb0b005c983d21c4bf2",
+     "size": 348848
+    }
+   ]
+  },
+  {
+   "id": "p2-pc88",
+   "game": "phantasie2",
+   "title": "Phantasie II (PC-88)",
+   "platform": "pc88",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "124e5403bec4c8b65413b47b0fce606d91b49db2",
+     "size": 348848
+    },
+    {
+     "sha1": "271803cb620d16a8d43a788421b1fa091d8d7c34",
+     "size": 348848
+    },
+    {
+     "sha1": "b1cdd304e82a5e82b0ed6c79461b9a48703e31bd",
+     "size": 348848
+    }
+   ]
+  },
+  {
+   "id": "p3-pc88",
+   "game": "phantasie3",
+   "title": "Phantasie III (PC-88)",
+   "platform": "pc88",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "78937911c34df1b06206a4320d5bb086e78f4ac2",
+     "size": 345568
+    },
+    {
+     "sha1": "a5afe30093e84ac5ba16d68b0b0759cf857c05d5",
+     "size": 348848
+    },
+    {
+     "sha1": "31851ccac0cb2de059eda15e3c893920800b2961",
+     "size": 348848
+    }
+   ]
+  },
+  {
+   "id": "p4-pc88",
+   "game": "phantasie4",
+   "title": "Phantasie IV (PC-88)",
+   "platform": "pc88",
+   "status": "recognised",
+   "reason": "IV is imported from the X68000 only (its English patch is keyed by X68000 ids)",
+   "images": [
+    {
+     "sha1": "1f778bad497fe332941ce672ca225cf9223e2eb7",
+     "size": 348848
+    },
+    {
+     "sha1": "ec67217339edf0b149e07fd6d065aa3f8f59fd68",
+     "size": 348848
+    },
+    {
+     "sha1": "12303f8008bed337b1ac736be623512bfa8467dd",
+     "size": 348848
+    }
+   ]
+  },
+  {
+   "id": "p1-pc98",
+   "game": "phantasie1",
+   "title": "Phantasie I (PC-98)",
+   "platform": "pc98",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "3b527a461ffcc6c5372f18644c379b3e3f97406f",
+     "size": 697008
+    },
+    {
+     "sha1": "a90e6d87916d73d748c24f089f7c0679675095e5",
+     "size": 697008
+    }
+   ]
+  },
+  {
+   "id": "p2-pc98",
+   "game": "phantasie2",
+   "title": "Phantasie II (PC-98)",
+   "platform": "pc98",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "d1addb2402b52ad2fe965aa9c622e480e5439a4d",
+     "size": 697008
+    },
+    {
+     "sha1": "770be69d5e6c35517146859e8e0ec6c90a264ceb",
+     "size": 697008
+    },
+    {
+     "sha1": "a548c1330c376da08b5268d0646d62eeea021430",
+     "size": 697008
+    }
+   ]
+  },
+  {
+   "id": "p3-pc98",
+   "game": "phantasie3",
+   "title": "Phantasie III (PC-98)",
+   "platform": "pc98",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "a5b4d1260ddaf7196bdf376750be18625ff3c582",
+     "size": 1086448
+    },
+    {
+     "sha1": "22f4c7d8143109a4ec9d8a9ef822226260b6e9dc",
+     "size": 1080448
+    },
+    {
+     "sha1": "03a5c359e141a7cd3f98f3b6a8024bd1c20e4675",
+     "size": 1086448
+    }
+   ]
+  },
+  {
+   "id": "p4-pc98",
+   "game": "phantasie4",
+   "title": "Phantasie IV (PC-98)",
+   "platform": "pc98",
+   "status": "recognised",
+   "reason": "IV is imported from the X68000 only (its English patch is keyed by X68000 ids)",
+   "images": [
+    {
+     "sha1": "1cc635da46bfbec0faabfcf449d575e77dcf7f0f",
+     "size": 1261568
+    },
+    {
+     "sha1": "8a97eb5c8c32f4e136d2433b69587041619545aa",
+     "size": 1261568
+    }
+   ]
+  },
+  {
+   "id": "p1-x1",
+   "game": "phantasie1",
+   "title": "Phantasie I (X1)",
+   "platform": "x1",
+   "status": "recognised",
+   "reason": "no importer for this version yet",
+   "images": [
+    {
+     "sha1": "bca1f085513e4a33f0a8ac648c05954df4cf4f8f",
+     "size": 348848
+    },
+    {
+     "sha1": "5443436262270e298f92883e1f03a884deebddae",
+     "size": 348848
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,157 @@
+{
+ "_source": "Phase 09 T1.3 rules profile for Phantasie II (Atari ST v1.0 numbers; the combined I + II rulebook is the source of truth). Only decoded [C] values or rules the manual states. Values marked [?] in _open are placeholders the profile format requires.",
+ "_gold": "Manual: the combined I + II rulebook's general rules (CB p.6) give 65,000 GP carried and 65,000 per bank account, as I (09-trilogy-manual-p2.md 'Caps and limits'). ST [C] static (logic-specs/encounters.md section 8): both clamp at 65,535 (clamp 0x0dfa4; callers: bank withdraw 0x0df74, sale 0x0eb44, dungeon gold 0x11d98, town-entry split into @262 0x0bef8; combat victory 0x0a43e; the gold entry box 0x01272 refuses > 65,535), as DOS I. Conflict repeats I's D-048: DIFFERENCES-II.md D2-019 (user s80: manual, as I); the caps below are the manual's, the ST's 65,535 is the rules option p2.gold-cap = st.",
+ "_guild": "TWNS.INT Guild template = 22 character slots + FIRE/WATER/EARTH (FORMAT.md section 9.5) [C]. The ST (logic-specs/encounters.md section 8) Guild menu enables 'New member' while any of the 22 slots has @92 = 0 (guild_menu 0x003ea -> 0x0ebf6) and N)EW takes the first such slot (create_character 0x0c93a), so N)EW fills all 22 [C], seen live (s80). guild_max_characters = 21 is the combined rulebook's C64 number (CB p.20), the same choice as I (D-002); Apple: 37 (CB p.5). Conflict repeats D-002: DIFFERENCES-II.md D2-020 (user s80: manual, as I); the ST's 22 (guild_by_platform.atari-st) is the rules option p2.guild-size = st.",
+ "_original_platform": "The platform whose code is II's rules source (s71): the Original (Atari ST) preset reads guild_by_platform under this key.",
+ "original_platform": "atari-st",
+ "_starting_gold": "256 GP in the bank [C] (logic-specs/encounters.md section 8): create_character 0x0cc2a writes 256 to @262; the manual agrees (combined rulebook general rules, 09-trilogy-manual-p2.md).",
+ "game": "p2",
+ "party_gold_cap": 65000,
+ "bank_gold_cap": 65000,
+ "guild_slot_count": 22,
+ "guild_max_characters": 21,
+ "starting_gold": 256,
+ "_equipment_slots": "Manual tables (same as I): shields 1-20, armour 21-40, weapons 41-100.",
+ "equipment_slots": [
+  {
+   "id": "shield",
+   "first_item": 1,
+   "last_item": 20
+  },
+  {
+   "id": "armor",
+   "first_item": 21,
+   "last_item": 40
+  },
+  {
+   "id": "weapon",
+   "first_item": 41,
+   "last_item": 100
+  }
+ ],
+ "guild_by_platform": {
+  "atari-st": {
+   "slots": 22,
+   "max_characters": 22,
+   "_source": "[C] static. TWNS.INT Guild template: 22 character records + 3 elementals (25 x 318 B GUILD.DAT); 'New member' stays enabled while one of the 22 slots is free (0x0ebf6) and N)EW takes the first free one (0x0c93a). Live s80: greyed at 22 occupied, enabled at 21 (encounters.md section 8)."
+  }
+ },
+ "_training": "D2-012 (NOT A CONFLICT: the manual gives no formula; II's numbers apply). PHANT.PRG guild_train 0x0cdde [C] (00-function-map.md section 5.1): s = sum / divisor, F = 1.8^level, F = 1.0 when level == 0 (new in II), target = (F - 0.8) * 1000 / (s + 1e-5). FIGHTER and PRIEST changed from I; the other four as in I. Training gold for level 0 -> 1 is 0 (live s78). Constants are FFP singles on the ST.",
+ "_training_deltas": "training.md: the price's 20 - CHA is not clamped (section 1 item 5, as Amiga I); a level-up marks every unknown spell of level 1 .. L + 1 (section 2 item 2, seen live); an HP re-roll >= the old maximum becomes the new maximum (section 2 item 3). D2-013 (user s79: manual, as I) is a rules option, not data: p2.training-cost and p2.hit-dice.",
+ "training": {
+  "level_factor_one_when": "level_zero",
+  "charisma_clamp": false,
+  "spell_marks": "up_to_new_level",
+  "hp_tie": "new_maximum",
+ "arithmetic": "motorola_ffp",
+  "classes": [
+   {
+    "class": "THIEF",
+    "weights": {
+     "STR": 1,
+     "DEX": 2
+    },
+    "divisor": 19.8,
+   "divisor_ffp": "9E666645"
+   },
+   {
+    "class": "MONK",
+    "weights": {
+     "STR": 1,
+     "INT": 1,
+     "DEX": 1
+    },
+    "divisor": 49.5,
+   "divisor_ffp": "C6000046"
+   },
+   {
+    "class": "RANGER",
+    "weights": {
+     "STR": 1,
+     "INT": 1,
+     "CHA": 1
+    },
+    "divisor": 52.8,
+   "divisor_ffp": "D3333346"
+   },
+   {
+    "class": "FIGHTER",
+    "weights": {
+     "STR": 2,
+     "DEX": 1
+    },
+    "divisor": 33.0,
+   "divisor_ffp": "84000046"
+   },
+   {
+    "class": "PRIEST",
+    "weights": {
+     "STR": 1,
+     "INT": 2
+    },
+    "divisor": 36.3,
+   "divisor_ffp": "91333346"
+   },
+   {
+    "class": "WIZARD",
+    "weights": {
+     "INT": 2,
+     "LUCK": 1
+    },
+    "divisor": 42.9,
+   "divisor_ffp": "AB999946"
+   }
+  ]
+ },
+ "_terrain": "logic-specs/terrain.md [C][L] (PHANT.PRG overworld_step 0x6022). Every roll is rand / 327 (0..100). Classes 7 (dark voids) and 11 (mist) share one path (0x6338): while the trip's fight flag is clear, r <= 8 fights the 0-based monster 12*T + r'/34 (T = the cell's digit; undead, devils and one insect) and sets the flag (cleared on leaving a town, dungeon -> wilderness and a party wipe, as I). Class 8 is molten lava: every living member takes r*T/10 + 1, digit 0 harmless (D2-007). Class 10 swims (I's rule). Other classes roll r < 6 for a random encounter. Mist = 11 and voids = 7 is the picture reading [~] (D2-008, D2-014).",
+ "terrain": {
+  "roll": "rand_327",
+  "random_encounter_below": 6,
+  "classes": {
+   "7": {
+    "kind": "terrain_fight",
+    "fight_roll_max": 8,
+    "monster_per_digit": 12,
+    "monster_offset": 0,
+    "monster_spread": 34
+   },
+   "8": {
+    "kind": "lava",
+    "damage_divisor": 10
+   },
+   "10": {
+    "kind": "swim"
+   },
+   "11": {
+    "kind": "terrain_fight",
+    "fight_roll_max": 8,
+    "monster_per_digit": 12,
+    "monster_offset": 0,
+    "monster_spread": 34
+   }
+  }
+ },
+ "_toss_rock": "logic-specs/toss-rock.md [C] live: TOSS bonus @62 = 2*L + 4*DEX + STR + 10 (+15 DWARF, +30 GNOME), recomputed at every level-up (L = the level being left); TOSS grows by skill-coefficient column 6. A toss tries 3 slots for a living target; damage = max(0, trunc(12*rnd/100) - armor) + trunc(rnd*@28/100), at least 1. Used by the p2.rock-throwing module in any game.",
+ "toss_rock": {
+  "bonus_base": 10,
+  "bonus_per_level": 2,
+  "bonus_per_dex": 4,
+  "bonus_per_str": 1,
+  "race_bonus": {
+   "DWARF": 15,
+   "GNOME": 30
+  },
+  "coefficient_column": 6,
+  "rock_damage": 12,
+  "target_tries": 3
+ },
+ "_encounters": "logic-specs/encounters.md section 1 [C] static (PHANT.PRG build_monster_groups 0x0a72e, night_watch_encounter 0xfe38, dungeon 0x10b60): every roll is rand / 327 (0..100); L and the reaction sum are divided by the group count (0xad68, as Amiga I); groups fit on the sprite height (size table word 1, sum of height + 3 < 135); the dungeon wandering monster is r/33 + 12*T + b - 8 (I: T once); the day encounter has no Black Knights roll (I: r > 91); no DNG6 TROLKIN override; the first monster id is clamped to 0..79 (0xa742).",
+ "encounters": {
+  "roll": "rand_327",
+  "level_and_reaction": "average",
+  "group_fit": "sprite_height",
+  "dungeon_tier_factor": 12,
+  "day_black_knights": false,
+  "clamp_first_monster": true
+ }
+}

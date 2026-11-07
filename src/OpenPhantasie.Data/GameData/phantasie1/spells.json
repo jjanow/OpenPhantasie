@@ -1,0 +1,454 @@
+{
+  "_schema": "phantasie.spells/v1",
+  "_source": "names.json spell order + magic-spells.md / combat-resolution.md; MP cost from OV2.OVR static decode; notes refreshed s41",
+  "_todo": [
+    "[C] MP cost = (DOS slot % 4) + 1 \u2014 OV2.OVR @ 0x47da / COM picker 0x160e; slot = index except DIVINE I (dos_slot 57 \u2192 2 MP, s41)",
+    "[C] FIREFLASH\u2026FLAMEBOLT tier params recovered from OV2 cast switch (magic-spells.md); remaster FIREFLASH = D-029",
+    "[C] HEALING heal = ((6*tier^2+4)*rng0_99)/100, floor 1 in combat (0x027d) and field (0x4930); town OV1 0x261a has no floor (D-010: manual everywhere)",
+    "[C] CHARM\u2026AWAKEN combat effects decoded s31/s33 (OV2 jump table 0x9d1, combat-resolution.md \u00a7Combat spell effects); values live in Core CombatSpells; SUMMON ELEMENTAL templates in elementals.json",
+    "[C] MONSTER EVAL. / VISION / DIVINE I decoded s41 (OV2 0x4790, magic-spells.md \u00a7Wilderness/dungeon cast dispatch, \u00a7DIVINE I)"
+  ],
+  "spells": [
+    {
+      "id": "p1:0",
+      "index": 0,
+      "category": "E",
+      "effect_summary": "Restore HP (scales with level).",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] heal = ((6*tier^2+4)*rng0_99)/100 (tier=1), floor 1 (combat 0x027d, field 0x4930), clamp to HP max; rng = rand/328 (OV2 0x655b). Town OV1 0x261a: rand/(32767/c), no floor (D-010: manual ranges everywhere)"
+    },
+    {
+      "id": "p1:1",
+      "index": 1,
+      "category": "E",
+      "effect_summary": "Restore HP (scales with level).",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] heal = ((6*tier^2+4)*rng0_99)/100 (tier=2), floor 1 (combat 0x027d, field 0x4930), clamp to HP max; rng = rand/328 (OV2 0x655b). Town OV1 0x261a: rand/(32767/c), no floor (D-010: manual ranges everywhere)"
+    },
+    {
+      "id": "p1:2",
+      "index": 2,
+      "category": "E",
+      "effect_summary": "Restore HP (scales with level).",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] heal = ((6*tier^2+4)*rng0_99)/100 (tier=3), floor 1 (combat 0x027d, field 0x4930), clamp to HP max; rng = rand/328 (OV2 0x655b). Town OV1 0x261a: rand/(32767/c), no floor (D-010: manual ranges everywhere)"
+    },
+    {
+      "id": "p1:3",
+      "index": 3,
+      "category": "E",
+      "effect_summary": "Restore HP (scales with level).",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] heal = ((6*tier^2+4)*rng0_99)/100 (tier=4), floor 1 (combat 0x027d, field 0x4930), clamp to HP max; rng = rand/328 (OV2 0x655b). Town OV1 0x261a: rand/(32767/c), no floor (D-010: manual ranges everywhere)"
+    },
+    {
+      "id": "p1:4",
+      "index": 4,
+      "category": "C/A",
+      "effect_summary": "Fire damage to a monster group.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] DOS dmg = rng0_99*9*INT/2000 + 1, one monster (OV2 0x321). Remaster D-029: 1 + rng*(max-1)*min(INT,18)/(99*18), max 10"
+    },
+    {
+      "id": "p1:5",
+      "index": 5,
+      "category": "C/A",
+      "effect_summary": "Fire damage to a monster group.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] DOS dmg = rng0_99*29*INT/2000 + 1, one monster (OV2 0x321). Remaster D-029: 1 + rng*(max-1)*min(INT,18)/(99*18), max 30"
+    },
+    {
+      "id": "p1:6",
+      "index": 6,
+      "category": "C/A",
+      "effect_summary": "Fire damage to a monster group.",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] DOS dmg = rng0_99*58*INT/2000 + 1, one monster (OV2 0x321). Remaster D-029: 1 + rng*(max-1)*min(INT,18)/(99*18), max 60"
+    },
+    {
+      "id": "p1:7",
+      "index": 7,
+      "category": "C/A",
+      "effect_summary": "Fire damage to a monster group.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] DOS dmg = rng0_99*100*INT/2000 + 1, one monster (OV2 0x321). Remaster D-029: 1 + rng*(max-1)*min(INT,18)/(99*18), max 100"
+    },
+    {
+      "id": "p1:8",
+      "index": 8,
+      "category": "C/P",
+      "effect_summary": "Speeds party (counters SLOWED).",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] party weapon-hit eff = min(255, attack @30 * (100+10)/100) (OV2 0x0498); cancels SLOWED"
+    },
+    {
+      "id": "p1:9",
+      "index": 9,
+      "category": "C/P",
+      "effect_summary": "Speeds party (counters SLOWED).",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] party weapon-hit eff = min(255, attack @30 * (100+25)/100) (OV2 0x0498); cancels SLOWED"
+    },
+    {
+      "id": "p1:10",
+      "index": 10,
+      "category": "C/P",
+      "effect_summary": "Speeds party (counters SLOWED).",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] party weapon-hit eff = min(255, attack @30 * (100+45)/100) (OV2 0x0498); cancels SLOWED"
+    },
+    {
+      "id": "p1:11",
+      "index": 11,
+      "category": "C/P",
+      "effect_summary": "Speeds party (counters SLOWED).",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] party weapon-hit eff = min(255, attack @30 * (100+70)/100) (OV2 0x0498); cancels SLOWED"
+    },
+    {
+      "id": "p1:12",
+      "index": 12,
+      "category": "C/P",
+      "effect_summary": "Raises party damage; cancels WEAKNESS.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] party weapon-dmg eff = min(255, @28 + @240 + 2); cancels WEAKNESS"
+    },
+    {
+      "id": "p1:13",
+      "index": 13,
+      "category": "C/P",
+      "effect_summary": "Raises party damage; cancels WEAKNESS.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] party weapon-dmg eff = min(255, @28 + @240 + 4); cancels WEAKNESS"
+    },
+    {
+      "id": "p1:14",
+      "index": 14,
+      "category": "C/P",
+      "effect_summary": "Raises party damage; cancels WEAKNESS.",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] party weapon-dmg eff = min(255, @28 + @240 + 7); cancels WEAKNESS"
+    },
+    {
+      "id": "p1:15",
+      "index": 15,
+      "category": "C/P",
+      "effect_summary": "Raises party damage; cancels WEAKNESS.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] party weapon-dmg eff = min(255, @28 + @240 + 11); cancels WEAKNESS"
+    },
+    {
+      "id": "p1:16",
+      "index": 16,
+      "category": "C/P",
+      "effect_summary": "Raises party defense/AC.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] party armor eff = min(255, armor + 1)"
+    },
+    {
+      "id": "p1:17",
+      "index": 17,
+      "category": "C/P",
+      "effect_summary": "Raises party defense/AC.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] party armor eff = min(255, armor + 3)"
+    },
+    {
+      "id": "p1:18",
+      "index": 18,
+      "category": "C/P",
+      "effect_summary": "Raises party defense/AC.",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] party armor eff = min(255, armor + 6)"
+    },
+    {
+      "id": "p1:19",
+      "index": 19,
+      "category": "C/P",
+      "effect_summary": "Raises party defense/AC.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] party armor eff = min(255, armor + 10)"
+    },
+    {
+      "id": "p1:20",
+      "index": 20,
+      "category": "C/A",
+      "effect_summary": "Confuses a monster group.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] per group, caster @16 vs group CV roll (OV2 0x1382 mode 1; remaster D-028 level term): special gate +0x1e x 80% (remaster IV = 0%, D-014)"
+    },
+    {
+      "id": "p1:21",
+      "index": 21,
+      "category": "C/A",
+      "effect_summary": "Confuses a monster group.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] per group, caster @16 vs group CV roll (OV2 0x1382 mode 1; remaster D-028 level term): special gate +0x1e x 60% (remaster IV = 0%, D-014)"
+    },
+    {
+      "id": "p1:22",
+      "index": 22,
+      "category": "C/A",
+      "effect_summary": "Confuses a monster group.",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] per group, caster @16 vs group CV roll (OV2 0x1382 mode 1; remaster D-028 level term): special gate +0x1e x 40% (remaster IV = 0%, D-014)"
+    },
+    {
+      "id": "p1:23",
+      "index": 23,
+      "category": "C/A",
+      "effect_summary": "Confuses a monster group.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] per group, caster @16 vs group CV roll (OV2 0x1382 mode 1; remaster D-028 level term): special gate +0x1e x 5% (remaster IV = 0%, D-014)"
+    },
+    {
+      "id": "p1:24",
+      "index": 24,
+      "category": "C/A",
+      "effect_summary": "Lowers a group's damage.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] per group roll (OV2 0x1382 mode 3, D-028): attack power x 80%"
+    },
+    {
+      "id": "p1:25",
+      "index": 25,
+      "category": "C/A",
+      "effect_summary": "Lowers a group's damage.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] per group roll (OV2 0x1382 mode 3, D-028): attack power x 60%"
+    },
+    {
+      "id": "p1:26",
+      "index": 26,
+      "category": "C/A",
+      "effect_summary": "Lowers a group's damage.",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] per group roll (OV2 0x1382 mode 3, D-028): attack power x 40%"
+    },
+    {
+      "id": "p1:27",
+      "index": 27,
+      "category": "C/A",
+      "effect_summary": "Lowers a group's damage.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] per group roll (OV2 0x1382 mode 3, D-028): attack power x 20%"
+    },
+    {
+      "id": "p1:28",
+      "index": 28,
+      "category": "C/A",
+      "effect_summary": "Impedes movement; easier to hit.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] per group roll (OV2 0x1382 mode 2, D-028): defense x 85% (remaster Magic.BoundDefense, D-013)"
+    },
+    {
+      "id": "p1:29",
+      "index": 29,
+      "category": "C/A",
+      "effect_summary": "Impedes movement; easier to hit.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] per group roll (OV2 0x1382 mode 2, D-028): defense x 70% (remaster Magic.BoundDefense, D-013)"
+    },
+    {
+      "id": "p1:30",
+      "index": 30,
+      "category": "C/A",
+      "effect_summary": "Impedes movement; easier to hit.",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] per group roll (OV2 0x1382 mode 2, D-028): defense x 55% (remaster Magic.BoundDefense, D-013)"
+    },
+    {
+      "id": "p1:31",
+      "index": 31,
+      "category": "C/A",
+      "effect_summary": "Impedes movement; easier to hit.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] per group roll (OV2 0x1382 mode 2, D-028): defense x 45% (remaster Magic.BoundDefense, D-013)"
+    },
+    {
+      "id": "p1:32",
+      "index": 32,
+      "category": "C/A",
+      "effect_summary": "Psychic damage.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] every monster: (rng0_99*5)/100, no armor, floor 1 (monster-damage routine OV2 0x1597)"
+    },
+    {
+      "id": "p1:33",
+      "index": 33,
+      "category": "C/A",
+      "effect_summary": "Psychic damage.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] every monster: (rng0_99*11)/100, no armor, floor 1 (monster-damage routine OV2 0x1597)"
+    },
+    {
+      "id": "p1:34",
+      "index": 34,
+      "category": "C/A",
+      "effect_summary": "Psychic damage.",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] every monster: (rng0_99*41)/100, no armor, floor 1 (monster-damage routine OV2 0x1597)"
+    },
+    {
+      "id": "p1:35",
+      "index": 35,
+      "category": "C/A",
+      "effect_summary": "Psychic damage.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] every monster: (rng0_99*81)/100, no armor, floor 1 (monster-damage routine OV2 0x1597)"
+    },
+    {
+      "id": "p1:36",
+      "index": 36,
+      "category": "C/A",
+      "effect_summary": "Fire damage (stronger line).",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] every monster: (rng0_99*7)/100 - armor, floor 1 (monster-damage routine OV2 0x1597)"
+    },
+    {
+      "id": "p1:37",
+      "index": 37,
+      "category": "C/A",
+      "effect_summary": "Fire damage (stronger line).",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] every monster: (rng0_99*15)/100 - armor, floor 1 (monster-damage routine OV2 0x1597)"
+    },
+    {
+      "id": "p1:38",
+      "index": 38,
+      "category": "C/A",
+      "effect_summary": "Fire damage (stronger line).",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] every monster: (rng0_99*31)/100 - armor, floor 1 (monster-damage routine OV2 0x1597)"
+    },
+    {
+      "id": "p1:39",
+      "index": 39,
+      "category": "C/A",
+      "effect_summary": "Fire damage (stronger line).",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] every monster: (rng0_99*66)/100 - armor, floor 1 (monster-damage routine OV2 0x1597)"
+    },
+    {
+      "id": "p1:40",
+      "index": 40,
+      "category": "C/A",
+      "effect_summary": "Charm monsters (fight goes on in DOS).",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] OV2 0x9d1 handler (s31): DOS reaction +15, GREETINGS allowed again, fight goes on. Remaster D-022: ends the fight like GREETINGS"
+    },
+    {
+      "id": "p1:41",
+      "index": 41,
+      "category": "C/A",
+      "effect_summary": "Sleep targets.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] DOS 0x1501: per monster slept unless rand < L^2, for the rest of the round. Remaster D-020: per-group caster roll, lasting sleep"
+    },
+    {
+      "id": "p1:42",
+      "index": 42,
+      "category": "C/A",
+      "effect_summary": "Escape from combat.",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] DOS: rand0_99 < 3*level + 50 \u2192 combat ends next round, no treasure, kill XP kept (0x07b8). Remaster D-023: always works, ends at once"
+    },
+    {
+      "id": "p1:43",
+      "index": 43,
+      "category": "E",
+      "effect_summary": "Resurrect a dead member.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] town OV1 0x2693 / OV2 0x113b: first DEAD member (party order, CON > 0) with roll < 50 + 5*(caster lvl - target lvl) \u2192 OK, HP max; 4 MP even on failure. OV2 side writes [C] s41: order := 4 (no action this round; Core clears the order), previous-order mirror := 4 (next default PARRY; not modeled), 0x43ae target list + [0x6490]++ survivor count (derived from status in Core)"
+    },
+    {
+      "id": "p1:44",
+      "index": 44,
+      "category": "C/P",
+      "effect_summary": "Caster becomes a superhuman fighter.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] caster weapon-hit eff 255, dmg eff 25, armor eff 10 (s31)"
+    },
+    {
+      "id": "p1:45",
+      "index": 45,
+      "category": "C/A",
+      "effect_summary": "Frighten group off.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] DOS: encounter level L -= 6, no message. Remaster D-021: L -6 then MONSTERS RUN (not the Black Lord)"
+    },
+    {
+      "id": "p1:46",
+      "index": 46,
+      "category": "C/A",
+      "effect_summary": "Monsters dissolve; combat over (gold lost, XP kept).",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] rand <= 110 - 10*L \u2192 MONSTERS START DISSOLVING, combat over, gold 0, XP + front group (living-1)*XP (s31)"
+    },
+    {
+      "id": "p1:47",
+      "index": 47,
+      "category": "C/P",
+      "effect_summary": "Summon a Guild-prepped elemental as member 7.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] no roll, no message; needs an elemental prepped in slot 7 at the Guild and 6 non-DEAD members (combat-resolution.md \u00a7SUMMON ELEMENTAL, s33)"
+    },
+    {
+      "id": "p1:48",
+      "index": 48,
+      "category": "C/A",
+      "effect_summary": "Undead dissolve (XP) or flee.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] front group, if undead (DOS XP mod 7 = 0; remaster monster-traits.json, D-024): dissolves (adds XP) or runs, caster level roll (s31)"
+    },
+    {
+      "id": "p1:49",
+      "index": 49,
+      "category": "C/P",
+      "effect_summary": "Caster becomes a superhuman fighter (weaker than NINJA II).",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] caster weapon-hit eff 200, dmg eff 20, armor eff 8 (s31)"
+    },
+    {
+      "id": "p1:50",
+      "index": 50,
+      "category": "C/A",
+      "effect_summary": "Wake the party.",
+      "magic_point_cost": 3,
+      "effect_coefficients_note": "[C] every non-DEAD member := OK, PARTY AWAKENS (OV2 0x3eff, s31)"
+    },
+    {
+      "id": "p1:51",
+      "index": 51,
+      "category": "N/WD",
+      "effect_summary": "Shows the area's monster level (no roll).",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] OV2 0x4860 (s41): no roll; wilderness L = 2*(tile%10 + 1) max 12, dungeon L = 2*tier(buf 0x4e7) + 2; prints MONSTERS ARE AT LEVEL L"
+    },
+    {
+      "id": "p1:52",
+      "index": 52,
+      "category": "N/W",
+      "effect_summary": "Reveal the wilderness around the party.",
+      "magic_point_cost": 1,
+      "effect_coefficients_note": "[C] OV2 0x48b3 (s41): wilderness only; un-fogs radius r = (MP left*100 + 500)/400 square around the party (reveal 0x566b), current region only; dungeon: nothing, MP spent"
+    },
+    {
+      "id": "p1:53",
+      "index": 53,
+      "category": "N/T",
+      "effect_summary": "Fast-travel between towns.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C structure] town OV1 0x275b: pick a town, town entry (aging) there; cancel keeps the MP spent. Field cast: no effect"
+    },
+    {
+      "id": "p1:54",
+      "index": 54,
+      "category": "endgame",
+      "effect_summary": "Granted after final boss (Phantasie II tease); no effect.",
+      "magic_point_cost": 2,
+      "effect_coefficients_note": "[C] DOS slot 57 (known flag @210), 2 MP; no effect in town (OV1 0x254e), field (OV2 0x4790) or combat (cast_id 54 has no handler) (s41)",
+      "dos_slot": 57
+    }
+  ]
+}

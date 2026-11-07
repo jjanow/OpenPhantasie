@@ -1,0 +1,5 @@
+{
+  "_source": "PHANTASI.COM DS 0x1a5c (16 bytes, unpacked image), read by OV2 0x731a in the day branch of the random wilderness encounter 0x70ed [C] (s39)",
+  "_note": "Day monster (0-based) = 12*(tile % 10) + 2*pair_table[tile / 10 + rand0_99 / 25] + rand0_99*2/100 (75 % of day encounters). Pair: 0 undead/devils, 1 slimes, 2 insects, 3 animals, 4 humanoids, 5 magic users. Terrain names per class are [~] (visual, P0.7 s41: 0 open land, 1 forest, 2 hills, 3 mountains, 6 path, 8/9 desert?; map-tile-graphics.md); the class numbers and costs are [C].",
+  "pair_table": [4, 1, 2, 3, 3, 4, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1]
+}

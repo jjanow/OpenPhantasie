@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- First-run importer (docs/plan/10-importer.md): reads the player's own copy of each game (disk images, zips,
+       folders) and builds the GameData tables, art and raw audio files into the import folder. No MonoGame. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>OpenPhantasie.Importer</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenPhantasie.Core\OpenPhantasie.Core.csproj" />
+    <ProjectReference Include="..\OpenPhantasie.Data\OpenPhantasie.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Profiles\profiles.json" LogicalName="OpenPhantasie.Importer.profiles.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenPhantasie.Importer.Tests" />
+  </ItemGroup>
+
+</Project>

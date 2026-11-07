@@ -1,0 +1,8 @@
+{
+  "_schema": "phantasie.graphics-index/v1",
+  "_note": "T1.5 graphics packs of Phantasie I. A pack is offered only when its original files (extracts) are present. default_order: the packs that may become the default, first available wins (Amiga; user 2026-10-25). DOS CGA is never drawn by default: it has auto_select false and is not listed in default_order; only an explicit choice (the later T5 option) selects it. fallback_order (user, s158): when no default_order pack is present (a DOS-only import), the first available of these is drawn, so art follows what was imported.",
+  "game": "phantasie1",
+  "default_order": ["amiga"],
+  "fallback_order": ["dos-cga"],
+  "packs": ["amiga.json", "dos-cga.json"]
+}

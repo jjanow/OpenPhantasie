@@ -1,0 +1,2111 @@
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using OpenPhantasie.Core;
+using OpenPhantasie.Data;
+
+namespace OpenPhantasie.Client;
+
+/// <summary>On-screen HUD, mode panels, inventory / bestiary overlays.</summary>
+public static partial class UiOverlays
+{
+    // Virtual 320×200 regions — keep mode art out of chrome.
+    public const int ContentTop = 14;
+    public const int ContentBottom = 164;
+    public const int HelpY = 168;
+    public const int MessageY = 182;
+
+    private static readonly Color PanelBg = new(16, 22, 36, 235);
+    private static readonly Color PanelEdge = new(90, 110, 150);
+    private static readonly Color TitleGold = new(220, 200, 120);
+    private static readonly Color BodyText = new(190, 200, 220);
+    private static readonly Color DimText = new(130, 145, 170);
+    private static readonly Color Accent = new(120, 200, 140);
+
+    /// <param name="statusLine">
+    /// Null hides the top status line (the manual's wilderness / dungeon screen, D-077); empty shows the plain one
+    /// (mode, gold, party, scale); text replaces the scale with it (region / position, <c>Game1.FieldStatus</c>).
+    /// </param>
+    /// <param name="messageKeys">The message is a command list (combat orders): its key tokens are clickable, and what the
+    /// 52-column line cuts off goes on a second line so every choice can be clicked. The shell sets it only once the mouse
+    /// is used, so the keyboard screen is unchanged.</param>
+    public static void DrawHud(
+        SpriteBatch batch,
+        Texture2D pixel,
+        GameSession session,
+        ClientSettings settings,
+        string message,
+        string help,
+        string? statusLine = "",
+        bool messageKeys = false)
+    {
+        Fill(batch, pixel, new Rectangle(0, 0, 320, 12), new Color(6, 8, 14));
+        Fill(batch, pixel, new Rectangle(0, 166, 320, 34), new Color(6, 8, 14));
+        HLine(batch, pixel, 0, 12, 320, PanelEdge);
+        HLine(batch, pixel, 0, 166, 320, PanelEdge);
+
+        if (statusLine is not null)
+        {
+            var gold = session.Party.GoldCarried;
+            var alive = session.Party.Members.Count(m => m.HpCur > 0);
+            var mode = UiText.Name(session.Mode).ToUpperInvariant();
+            PixelFont.Draw(batch, pixel, 4, 3, statusLine.Length > 0
+                    ? UiText.F("ui.x_gold_x_party_x_x", mode, gold, alive, session.Party.Members.Count, statusLine)
+                    : UiText.F("ui.x_gold_x_party_x_x_2", mode, gold, alive, session.Party.Members.Count, settings.IntegerScale),
+                TitleGold);
+        }
+
+        // The key help, then the message, each whole (s99): a line longer than the 52 columns goes on, at a word, on the
+        // next line, and the band's rows close up to 8 pixels when the two need four lines.
+        var helpLines = Lines(help ?? "", 52);
+        var messageLines = Lines(message ?? "", 52);
+        var (helpY, messageY, pitch) = HudRows(helpLines.Count, messageLines.Count);
+        for (var i = 0; i < helpLines.Count; i++)
+        {
+            PixelFont.Draw(batch, pixel, 4, helpY + i * pitch, helpLines[i], DimText);
+            HitTokens(helpLines[i], 4, helpY + i * pitch, commandList: true, maxChars: 52);
+        }
+        for (var i = 0; i < messageLines.Count; i++)
+        {
+            PixelFont.Draw(batch, pixel, 4, messageY + i * pitch, messageLines[i], BodyText);
+            if (messageKeys)
+                HitTokens(messageLines[i], 4, messageY + i * pitch, commandList: true, maxChars: 52);
+        }
+    }
+
+    /// <summary>
+    /// Tops of the help and message lines in the bottom band and their pitch: <see cref="HelpY"/> / <see cref="MessageY"/>
+    /// as always while each is one line; one after the other at 9 pixels for three lines, at 8 for four (rows 166..199).
+    /// </summary>
+    public static (int Help, int Message, int Pitch) HudRows(int helpLines, int messageLines)
+    {
+        if (helpLines <= 1 && messageLines <= 1)
+            return (HelpY, MessageY, PixelFont.LineHeight);
+        if (helpLines == 1 && messageLines == 2)
+            return (HelpY, MessageY, PixelFont.LineHeight); // the message's second line at 191, as before
+        var pitch = helpLines + messageLines <= 3 ? PixelFont.LineHeight : 8;
+        var top = pitch == 8 ? 167 : HelpY;
+        return (top, top + Math.Max(1, helpLines) * pitch, pitch);
+    }
+
+    /// <summary>
+    /// HUD for the full-screen overworld map, which fills rows 15..194 as on the Amiga: only the message, at the top,
+    /// on as many lines as it needs (location signs run to three); no help line.
+    /// </summary>
+    public static void DrawMapHud(SpriteBatch batch, Texture2D pixel, string message)
+    {
+        var lines = (message ?? "").Split('\n')
+            .SelectMany(l => l.Length == 0 ? [""] : Enumerable.Range(0, (l.Length + 51) / 52).Select(i => l.Substring(i * 52, Math.Min(52, l.Length - i * 52))))
+            .ToList();
+        var height = Math.Max(1, lines.Count) * PixelFont.LineHeight + 4;
+        Fill(batch, pixel, new Rectangle(0, 0, 320, Math.Max(14, height)), new Color(6, 8, 14));
+        for (var i = 0; i < lines.Count; i++)
+            PixelFont.Draw(batch, pixel, 4, 3 + i * PixelFont.LineHeight, lines[i], BodyText);
+    }
+
+    /// <summary>The manual's wilderness command list (WILDERNESS TRAVEL, D-076/D-077).</summary>
+    public static string[] FieldCommands =>
+    [
+        UiText.S("ui.c_ast_h_ealth"),
+        UiText.S("ui.i_nspect_u_se_potion"),
+        UiText.S("ui.t_ime_lag"),
+        UiText.S("ui.3_n_e_s_w_move"),
+    ];
+
+    /// <summary>The dungeon's command line: the wilderness one plus L)OOK (manual DUNGEON EXPLORATION).</summary>
+    public static string[] DungeonFieldCommands =>
+    [
+        UiText.S("ui.c_ast_h_ealth"),
+        UiText.S("ui.i_nspect_u_se_potion"),
+        UiText.S("ui.t_ime_lag_l_ook"),
+        UiText.S("ui.3_n_e_s_w_move"),
+    ];
+
+    /// <summary>
+    /// The command list for <paramref name="mode"/>; without T)IME LAG when <paramref name="timeLagCommand"/> is false (the
+    /// D-073 QoL switch moved it into the Options tab).
+    /// </summary>
+    public static string[] FieldCommandsFor(GameMode mode, bool timeLagCommand = true)
+    {
+        var dungeon = mode == GameMode.Dungeon;
+        var commands = dungeon ? DungeonFieldCommands : FieldCommands;
+        if (timeLagCommand)
+            return commands;
+        if (dungeon)
+        {
+            commands[2] = UiText.S("ui.l_ook");
+            return commands;
+        }
+        return [.. commands.Where((_, i) => i != 2)];
+    }
+
+    /// <summary>
+    /// Where the party pictures go beside the wilderness / dungeon map: two rows of cards, three to a row 51 pixels wide
+    /// (s99: an eight-letter name fits whole; the maps end by x 160).
+    /// </summary>
+    public static readonly Rectangle FieldPartyArea = new(162, ContentTop + 2, 156, 2 * PartyStripLayout.CardHeight + PartyStripLayout.CardGap);
+
+    /// <summary>The sidebar's cards when they do not all fit (a summoned elemental's 32×48 portrait, nine-letter names).</summary>
+    public static ScrollBox FieldPartyScroll { get; } = new();
+
+    /// <summary>Top of the command list, under <see cref="FieldPartyArea"/>.</summary>
+    public static int FieldCommandsTop => FieldPartyArea.Bottom + 2;
+
+    /// <summary>
+    /// D-077 (manual WILDERNESS TRAVEL): beside the map, "pictures of the party members and a list of command options".
+    /// Used by the wilderness and the dungeon screen (the dungeon map replaces the wilderness map).
+    /// </summary>
+    public static void DrawFieldSidebar(
+        SpriteBatch batch, Texture2D pixel, AssetCatalog assets, GameSession session, bool timeLagCommand = true)
+    {
+        // III: the wilderness / dungeon roster shows each member's body-area stick figure (manual: "In the Wilderness ...
+        // shown in a stick figure diagram under the character's status"; Amiga roster 0x93e0 → 0x9694), not the portrait.
+        DrawPartyStrip(batch, pixel, assets, session, FieldPartyArea, maxCardWidth: 52, bodyFigures: true, gap: 1,
+            scroll: FieldPartyScroll);
+        var commands = FieldCommandsFor(session.Mode, timeLagCommand);
+        for (var i = 0; i < commands.Length; i++)
+        {
+            PixelFont.Draw(batch, pixel, FieldPartyArea.X + 6, FieldCommandsTop + i * PixelFont.LineHeight, commands[i],
+                BodyText);
+            HitTokens(commands[i], FieldPartyArea.X + 6, FieldCommandsTop + i * PixelFont.LineHeight, commandList: false);
+        }
+    }
+
+    /// <summary>
+    /// The party strip inside <paramref name="area"/>: every member incl. a summoned elemental (slot 7), laid out by
+    /// <see cref="PartyStripLayout"/> as portrait cards or, where those don't fit, one-line rows. <paramref name="shown"/>
+    /// leaves members out of the row (II's combat row, <see cref="CombatRowShows"/>); a card's digit stays its party number.
+    /// <paramref name="evenRow"/> spaces one row of cards as the ST's combat row (<see cref="PartyStripLayout.ComputeEvenRow"/>).
+    /// The cards are as tall as the pictures and names need (<see cref="PlanPartyStrip"/>), so a caller sizes
+    /// <paramref name="area"/> with <see cref="PartyStripHeight"/>.
+    /// </summary>
+    public static void DrawPartyStrip(
+        SpriteBatch batch,
+        Texture2D pixel,
+        AssetCatalog assets,
+        GameSession session,
+        Rectangle area,
+        int maxCardWidth = 56,
+        bool cardDigits = false,
+        Func<Character, bool>? deathMark = null,
+        Func<Character, bool>? shown = null,
+        bool evenRow = false,
+        bool bodyFigures = false,
+        int gap = PartyStripLayout.CardGap,
+        ScrollBox? scroll = null,
+        Action<Character, Rectangle>? overPortrait = null,
+        Func<Character, Texture2D?>? portraitFor = null)
+    {
+        var party = session.Party.Members;
+        var (layout, members, portraitHeight, _) = PlanPartyStrip(assets, session, area, maxCardWidth, shown, evenRow, bodyFigures, gap);
+        if (scroll is not null)
+            layout = ScrollCards(batch, pixel, assets, session, area, maxCardWidth, shown, bodyFigures, gap, scroll, layout);
+        for (var i = 0; i < layout.Cards.Count; i++)
+        {
+            if (layout.Cards[i].IsEmpty)
+                continue; // scrolled out of view
+            var ch = members[i];
+            var number = party.IndexOf(ch) + 1;
+            if (cardDigits && number <= 9)
+                Hits?.Add(new HitRegion(layout.Cards[i]) { Click = [HitTest.Digit(number)] }); // the member's number key
+            var r = layout.Cards[i];
+            var elemental = ReferenceEquals(ch, session.Party.Elemental);
+            var hpColor = HpColor(ch);
+            var hp = $"{ch.HpCur}/{ch.HpMax}";
+
+            if (layout.Lines)
+            {
+                var room = PartyStripLayout.CharsFitting(r.Width - 2) - hp.Length - 1;
+                PixelFont.Draw(batch, pixel, r.X, r.Y, Fit(ch.Name, Math.Max(1, room)), elemental ? ElementalEdge : Color.White);
+                PixelFont.Draw(batch, pixel, r.Right - PixelFont.Measure(hp) - 2, r.Y, hp, hpColor);
+                continue;
+            }
+
+            DrawPanel(batch, pixel, r, PanelBg, elemental ? ElementalEdge : PanelEdge);
+            var portrait = portraitFor?.Invoke(ch) // II's pose on the row (s156)
+                           ?? (elemental ? assets.PortraitElemental : assets.GetPortraitIdle((int)ch.Race));
+            var px = r.X + (r.Width - PartyStripLayout.PortraitSize) / 2;
+            var portraitRect = new Rectangle(px, r.Y + 2, PartyStripLayout.PortraitSize, portraitHeight);
+            if (ShowsBodyFigure(assets, session, ch, bodyFigures) && assets.BodyFigure is { } figure)
+                DrawBodyFigure(batch, pixel, assets, figure, ch, portraitRect.Location);
+            else if (portrait is not null)
+                DrawPortrait(batch, portrait, portraitRect);
+            else
+                Fill(batch, pixel, portraitRect, elemental ? new Color(90, 50, 30) : new Color(40, 50, 70));
+            // II: the ST's mark on a member dying this round, at portrait + (8,13) (0x18a02; CombatPresenter.DeathMarkMs).
+            if (deathMark is not null && deathMark(ch) && assets.PortraitDeathMark is { } mark)
+                batch.Draw(mark, new Rectangle(portraitRect.X + 8, portraitRect.Y + 13, mark.Width, mark.Height), Color.White);
+            overPortrait?.Invoke(ch, portraitRect);
+
+            // The whole name, on a second line when the card is too narrow for it (s99); the HP under the last line.
+            var nameTop = PartyStripLayout.NameTop(r, portraitHeight);
+            foreach (var name in PartyStripLayout.NameLines(ch.Name, r.Width))
+            {
+                PixelFont.Draw(batch, pixel, r.X + Math.Max(2, (r.Width - PixelFont.Measure(name)) / 2), nameTop, name,
+                    Color.White);
+                nameTop += PixelFont.LineHeight;
+            }
+            foreach (var part in PartyStripLayout.HpLines(hp, r.Width))
+            {
+                PixelFont.Draw(batch, pixel, r.X + Math.Max(2, (r.Width - PixelFont.Measure(part)) / 2), nameTop, part, hpColor);
+                nameTop += PixelFont.LineHeight;
+            }
+        }
+    }
+
+    /// <summary>The cards <see cref="DrawPartyStrip"/> lays out, with the portrait box and name lines they were sized for.</summary>
+    public sealed record PartyStripPlan(PartyCardLayout Layout, List<Character> Members, int PortraitHeight, int NameLines)
+    {
+        /// <summary>Bottom of the lowest card (the area's top when there are none).</summary>
+        public int Bottom(Rectangle area) => Layout.Cards.Count == 0 ? area.Y : Layout.Cards.Max(c => c.Bottom);
+    }
+
+    /// <summary>
+    /// The party strip's layout in <paramref name="area"/>: the portrait box as tall as the tallest picture a card shows
+    /// (<see cref="StripPortraitHeight"/>), then a second name line on every card when some name does not fit its card.
+    /// </summary>
+    public static PartyStripPlan PlanPartyStrip(AssetCatalog assets, GameSession session, Rectangle area,
+        int maxCardWidth = 56, Func<Character, bool>? shown = null, bool evenRow = false, bool bodyFigures = false,
+        int gap = PartyStripLayout.CardGap)
+    {
+        var members = shown is null ? session.Party.Members.ToList() : session.Party.Members.Where(shown).ToList();
+        var portraitHeight = StripPortraitHeight(assets, session, members, bodyFigures);
+        var names = members.Select(m => m.Name).ToList();
+        var hps = members.Select(m => $"{m.HpCur}/{m.HpMax}").ToList();
+        PartyCardLayout Lay(int lines) => evenRow
+            ? PartyStripLayout.ComputeEvenRow(members.Count, area, maxCardWidth, portraitHeight, lines)
+            : PartyStripLayout.Compute(members.Count, area, maxCardWidth, portraitHeight, lines, gap);
+        var nameLines = 1;
+        var layout = Lay(nameLines);
+        for (var needed = PartyStripLayout.NameLinesNeeded(layout, names, hps); needed > nameLines;
+             needed = PartyStripLayout.NameLinesNeeded(layout, names, hps))
+            layout = Lay(nameLines = needed);
+        return new PartyStripPlan(layout, members, portraitHeight, nameLines);
+    }
+
+    /// <summary>
+    /// The cards of a strip whose whole cards do not fit <paramref name="area"/> (III's wilderness sidebar with a summoned
+    /// elemental): laid out in rows with room for the bar, the rows <paramref name="scroll"/> shows moved to the top of the
+    /// area, the others empty (not drawn), and the bar drawn. A strip that fits comes back as it was.
+    /// </summary>
+    private static PartyCardLayout ScrollCards(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, GameSession session,
+        Rectangle area, int maxCardWidth, Func<Character, bool>? shown, bool bodyFigures, int gap, ScrollBox scroll,
+        PartyCardLayout layout)
+    {
+        if (!layout.Lines && layout.Cards.All(area.Contains))
+        {
+            scroll.Set(0, 1);
+            return layout;
+        }
+        var narrower = new Rectangle(area.X, area.Y, area.Width - ScrollBox.BarWidth - 1, 1000);
+        var cards = PlanPartyStrip(assets, session, narrower, maxCardWidth, shown, false, bodyFigures, gap).Layout.Cards;
+        var rowTops = cards.Select(c => c.Y).Distinct().Order().ToList();
+        var pitch = rowTops.Count > 1 ? rowTops[1] - rowTops[0] : cards[0].Height + gap;
+        var visible = Math.Max(1, (area.Height + gap) / pitch);
+        scroll.Set(rowTops.Count, visible);
+        HitScrollArea(scroll, area);
+        var shownCards = cards.Select(c =>
+        {
+            var row = rowTops.IndexOf(c.Y) - scroll.Offset;
+            return row < 0 || row >= visible ? Rectangle.Empty : c with { Y = area.Y + row * pitch };
+        }).ToList();
+        DrawScrollBar(batch, pixel, scroll, area);
+        return new PartyCardLayout(false, shownCards);
+    }
+
+    /// <summary>
+    /// Height the party strip's cards take in an area <paramref name="width"/> wide with room for every row it needs
+    /// (the fewest rows whose cards are wide enough): what a caller sizes its strip area by.
+    /// </summary>
+    public static int PartyStripHeight(AssetCatalog assets, GameSession session, int width, int maxCardWidth = 56,
+        Func<Character, bool>? shown = null, bool evenRow = false, bool bodyFigures = false)
+    {
+        var area = new Rectangle(0, 0, width, 1000);
+        return PlanPartyStrip(assets, session, area, maxCardWidth, shown, evenRow, bodyFigures).Bottom(area);
+    }
+
+    private static readonly Color ElementalEdge = new(220, 140, 70);
+
+    /// <summary>
+    /// Rows of the portrait box on a party card (s99, user: make the cards taller, nothing cropped): the pack's tallest
+    /// portrait (<see cref="AssetCatalog.PortraitHeight"/>; III Amiga's 32×48 full figures), or 32 for III's wilderness /
+    /// dungeon cards, which show the 32-row body figure instead.
+    /// </summary>
+    public static int StripPortraitHeight(AssetCatalog assets, GameSession session, IEnumerable<Character> members,
+        bool bodyFigures = false) =>
+        members.Select(m => ShowsBodyFigure(assets, session, m, bodyFigures)
+                ? PartyStripLayout.PortraitSize
+                : PortraitRows(ReferenceEquals(m, session.Party.Elemental) ? assets.PortraitElemental
+                    : assets.GetPortraitIdle((int)m.Race)))
+            .Append(PartyStripLayout.PortraitSize)
+            .Max();
+
+    /// <summary>Rows <paramref name="portrait"/> takes on a 32-pixel-wide card (32 without a picture).</summary>
+    private static int PortraitRows(Texture2D? portrait) => portrait is null
+        ? PartyStripLayout.PortraitSize
+        : (portrait.Height * PartyStripLayout.PortraitSize + portrait.Width - 1) / portrait.Width;
+
+    /// <summary>III's wilderness / dungeon card shows <paramref name="m"/>'s body figure rather than a portrait.</summary>
+    private static bool ShowsBodyFigure(AssetCatalog assets, GameSession session, Character m, bool bodyFigures) =>
+        bodyFigures && !ReferenceEquals(m, session.Party.Elemental) && m.BodyCondition is not null && assets.BodyFigure is not null;
+
+    /// <summary>
+    /// A portrait in <paramref name="box"/>, never cut or stretched out of shape (s99). A picture of the box's aspect (I,
+    /// II) fills it exactly as before; a shorter one is drawn at the box's width from its top; a taller one (III's 32×48
+    /// elemental on a 32×32 body-figure card) is shrunk by the smallest whole factor that fits it whole, centred.
+    /// </summary>
+    public static void DrawPortrait(SpriteBatch batch, Texture2D portrait, Rectangle box) =>
+        batch.Draw(portrait, PortraitTarget(portrait.Width, portrait.Height, box), Color.White);
+
+    /// <summary>Where <see cref="DrawPortrait"/> puts a <paramref name="width"/>×<paramref name="height"/> picture in <paramref name="box"/>.</summary>
+    public static Rectangle PortraitTarget(int width, int height, Rectangle box)
+    {
+        var rows = width * box.Height / Math.Max(1, box.Width);
+        if (height == rows)
+            return box;
+        if (height < rows)
+            return new Rectangle(box.X, box.Y, box.Width, height * box.Width / Math.Max(1, width));
+        var factor = Math.Max((width + box.Width - 1) / box.Width, (height + box.Height - 1) / box.Height);
+        var (w, h) = (width / factor, height / factor);
+        return new Rectangle(box.X + (box.Width - w) / 2, box.Y + (box.Height - h) / 2, w, h);
+    }
+
+    /// <summary>
+    /// III's body-area stick figure (Amiga <c>0x9694</c>, the pack's <see cref="BodyFigureLayout"/>) with its top-left at
+    /// <paramref name="at"/>: the box in the figure's background, then each piece in its area's state; a Gone area clears
+    /// its rectangle. Nothing but the box for a Dead member (the roster <c>0x93e0</c> skips the figure at status 0).
+    /// </summary>
+    public static void DrawBodyFigure(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, BodyFigureLayout figure,
+        Character member, Point at)
+    {
+        var background = VirtualScreen.ParseColor(figure.Background);
+        Fill(batch, pixel, new Rectangle(at.X, at.Y, figure.Width, figure.Height), background);
+        foreach (var step in figure.Plan(member.BodyCondition?.Areas, member.Status == CharacterStatus.Dead))
+        {
+            if (step.Slot is not { } slot)
+                Fill(batch, pixel, new Rectangle(at.X + step.X, at.Y + step.Y, step.Width, step.Height), background);
+            else if (assets.GetBodyPiece(slot) is { } tex)
+                batch.Draw(tex, new Vector2(at.X + step.X, at.Y + step.Y), Color.White);
+        }
+    }
+
+    /// <summary>
+    /// II's combat row (ST <c>0x18176</c>, FORMAT.md §10.3): only the non-DEAD members (status 0; SLEEP stays, II has no
+    /// other status), in party order. A member who died this round keeps its slot until its "DIES" sequence is over
+    /// (<c>0x18a02</c>: the mark, sound 15, 500 ms, the sound's end; s136 <see cref="CombatPresenter.KeepsRowSlot"/>); then
+    /// <c>0x185d6(1)</c> rebuilds the row without it. Every row build filters the same way (encounter
+    /// start, victory, a resurrection in combat), so the dead stay off later fights and a resurrected member is back.
+    /// </summary>
+    public static bool CombatRowShows(Character member, Func<Character, bool> hasDeathMark) =>
+        member.Status != CharacterStatus.Dead || hasDeathMark(member);
+
+    /// <summary>The combat strip's <c>shown</c> filter: II drops the dead (<see cref="CombatRowShows"/>); I, III and IV keep everyone.</summary>
+    public static Func<Character, bool>? CombatRowFilter(GameId game, Func<Character, bool> hasDeathMark) =>
+        game == GameId.P2 ? m => CombatRowShows(m, hasDeathMark) : null;
+
+    private static Color HpColor(Character ch) =>
+        ch.HpCur <= 0 ? new Color(200, 70, 70)
+        : ch.HpCur * 2 < ch.HpMax ? new Color(220, 160, 60)
+        : Accent;
+
+    public static void DrawGuild(
+        SpriteBatch batch,
+        Texture2D pixel,
+        AssetCatalog assets,
+        GameSession session)
+    {
+        Fill(batch, pixel, new Rectangle(0, ContentTop, 320, ContentBottom - ContentTop), new Color(22, 30, 48));
+
+        // Soft title art behind the panel (cover1 is a valid extract; logo.png is not).
+        if (assets.TitleCover is not null)
+            batch.Draw(assets.TitleCover,
+                new Rectangle(0, ContentTop, 320, ContentBottom - ContentTop),
+                Color.White * 0.18f);
+
+        DrawPanel(batch, pixel, new Rectangle(8, 20, 304, 140), new Color(14, 20, 34, 220), PanelEdge);
+
+        // Taller cards (III's 32×48 portraits, a name on two lines) take their extra rows from the gaps of the title
+        // block above them; past 16 rows the title and its subtitle share one line.
+        var cardHeight = Math.Max(PartyStripLayout.CardHeight, PartyStripHeight(assets, session, 280));
+        var extra = cardHeight - PartyStripLayout.CardHeight;
+        var hint = session.Roster.Occupied.Any() ? UiText.S("ui.a_add_to_party_n_new") : UiText.S("ui.n_creates_a_new_member");
+        int hintY, stripTop;
+        if (extra <= 16)
+        {
+            var lift = extra;
+            PixelFont.Draw(batch, pixel, 100, 28 - lift / 4, UiText.S("ui.phantasie"), TitleGold, scale: 2);
+            PixelFont.Draw(batch, pixel, 86, 48 - lift / 2, UiText.S("ui.adventurers_guild"), TitleGold);
+            hintY = 60 - lift * 5 / 8;
+            stripTop = 74 - lift;
+        }
+        else
+        {
+            var title = UiText.S("ui.phantasie");
+            var subtitle = UiText.S("ui.adventurers_guild");
+            var x = 160 - (PixelFont.Measure(title) * 2 + 12 + PixelFont.Measure(subtitle)) / 2;
+            PixelFont.Draw(batch, pixel, x, 22, title, TitleGold, scale: 2);
+            PixelFont.Draw(batch, pixel, x + PixelFont.Measure(title) * 2 + 12, 29, subtitle, TitleGold);
+            hintY = 39;
+            stripTop = 48;
+        }
+        PixelFont.Draw(batch, pixel, 160 - PixelFont.Measure(hint) / 2, hintY, hint, DimText);
+        HitTokens(hint, 160 - PixelFont.Measure(hint) / 2, hintY, commandList: true);
+
+        DrawPartyStrip(batch, pixel, assets, session, new Rectangle(20, stripTop, 280, cardHeight + 2));
+
+        // Two columns of three so a full party fits the panel, race and class in full (s99: no "HALFL"); an entry wider than
+        // its column goes on, never cut, on the column's next line, and the list scrolls when that runs past the panel.
+        const int columnChars = 24;
+        var listTop = stripTop + cardHeight + 5;
+        var members = session.Party.Members;
+        var columns = Enumerable.Range(0, 2).Select(c => members.Skip(c * 3).Take(3)
+            .SelectMany(ch => Lines(UiText.F("ui.x_x_x_l_x", ch.Name, UiText.Name(ch.Race).ToUpperInvariant(),
+                UiText.Name(ch.Class).ToUpperInvariant(), ch.Level),
+                columnChars)).ToList()).ToList();
+        var rows = (159 - listTop - PixelFont.GlyphHeight) / PixelFont.LineHeight + 1;
+        var list = new Rectangle(14, listTop - 1, 296, rows * PixelFont.LineHeight);
+        GuildListScroll.Set(columns.Max(c => c.Count), rows);
+        GuildListScroll.TopFor(members.Count);
+        HitScrollArea(GuildListScroll, list);
+        for (var c = 0; c < columns.Count; c++)
+            for (var r = 0; r < rows && GuildListScroll.Offset + r < columns[c].Count; r++)
+                PixelFont.Draw(batch, pixel, 16 + c * 148, listTop + r * PixelFont.LineHeight,
+                    columns[c][GuildListScroll.Offset + r], BodyText);
+        DrawScrollBar(batch, pixel, GuildListScroll, list);
+    }
+
+    /// <summary>The Guild screen's member list (<see cref="DrawGuild"/>), when its entries need more lines than fit.</summary>
+    public static ScrollBox GuildListScroll { get; } = new();
+
+    // Town screen (s98, user: never crop scenes): the whole town picture 1:1 on the whole screen, as every original shows
+    // it (DOS s49 capture: bar, picture, name; the ST's PELNOR.PIC with its GEM bar and name scroll). The remaster's bar
+    // goes over the picture's own bar rows and the name where the pack's original puts it (TownScreenLayout); the status
+    // and help lines are not drawn, and a message shows on a one-line band for a few seconds (DrawTownHud).
+    /// <summary>Source rows of the town picture the dimmed Armory backdrop shows (decoration behind the panels).</summary>
+    private const int TownPictureSourceTop = 11;
+    private static readonly Color DosWhite = new(255, 255, 255);
+    private static readonly Color DosBlack = new(0, 0, 0);
+
+    /// <summary>
+    /// The town menu, full-screen: the town picture 1:1, the DOS bar with its highlight over the picture's top
+    /// <see cref="TownScreenLayout.BarRows"/> rows, the name, and an open Bank / Option / Inn list under the bar.
+    /// </summary>
+    public static void DrawTownMenu(
+        SpriteBatch batch,
+        Texture2D pixel,
+        AssetCatalog assets,
+        GameSession session,
+        TownMenu menu,
+        string? openDoor = null,
+        bool originalFont = false,
+        bool dosBar = true)
+    {
+        var layout = assets.TownScreen;
+        const int barTop = 0;
+        var barHeight = Math.Max(PixelFont.LineHeight, layout.BarRows);
+        var pictureTop = barTop + barHeight;
+        Fill(batch, pixel, new Rectangle(0, 0, 320, ScreenBottom), DosBlack);
+        if (assets.TownBackdropFor(session.CurrentTownId) is { } picture)
+            batch.Draw(picture, new Rectangle(0, 0, picture.Width, picture.Height), Color.White);
+        // III: the building being entered shows its open door (D/w3 piece over the same street square, 0xacc8).
+        if (openDoor is not null && assets.TownDoorsFor(session.CurrentTownId) is { } doors && layout.Doors?.TryGetValue(openDoor, out var at) == true)
+        {
+            var square = new Rectangle(at.X, at.Y, layout.DoorSize, layout.DoorSize);
+            batch.Draw(doors, square, square, Color.White);
+        }
+        // s156: III Amiga's own bar (File / Guild / Options, DrawTownMenuBar) goes over the picture's top rows instead.
+        if (dosBar)
+            Fill(batch, pixel, new Rectangle(0, barTop, 320, barHeight), DosBlack); // the picture's own bar rows
+        var labelY = barTop + (barHeight - PixelFont.GlyphHeight) / 2;
+
+        // The bar spreads the seven labels across the width; the highlight is inverse video.
+        IReadOnlyList<string> labels = dosBar ? TownMenu.BarText : [];
+        var textWidth = labels.Sum(PixelFont.Measure);
+        var gap = (320 - textWidth) / (labels.Count + 1);
+        var x = gap;
+        var subX = 0;
+        for (var i = 0; i < labels.Count; i++)
+        {
+            var w = PixelFont.Measure(labels[i]);
+            var selected = i == menu.BarCursor;
+            var label = new Rectangle(x - 2, labelY - 1, w + 3, PixelFont.GlyphHeight + 2);
+            if (menu.Place == TownPlace.Menu)
+                HitCursorRow(label, menu.BarCursor, i, Keys.Left, Keys.Right);
+            else
+                Hits?.Add(new HitRegion(label) { Click = [Keys.Back] }); // a list is open: the bar closes it first
+            if (selected)
+            {
+                Fill(batch, pixel, label, DosWhite);
+                subX = x - 2;
+            }
+            PixelFont.Draw(batch, pixel, x, labelY, labels[i], selected ? DosBlack : DosWhite);
+            x += w + gap;
+        }
+
+        var name = session.CurrentTown?.Name ?? UiText.F("ui.town_x", session.CurrentTownId);
+        // III Amiga: centred by 8-px cells (an odd gap half a cell left), black in the dim towns 16–17 (0x7e54).
+        var nameColour = assets.IsDimTown(session.CurrentTownId) && layout.DimNameColour is { } dimInk
+            ? dimInk
+            : layout.NameColourFor(session.CurrentTownId, session.FreshStart); // II ST: per town (pen = town number)
+        using (PixelFont.With(originalFont ? TownTextFont(layout) : null)) // I Amiga: z6font (h80:0x818, s135)
+            PixelFont.Draw(batch, pixel, TownNameLeft(layout, name, session.FreshStart), layout.NameY,
+                name, VirtualScreen.ParseColor(nameColour));
+
+        var sub = openDoor is null ? menu.SubLabels : []; // the Bank list opens once the door has shown
+        if (Hits is { } hits)
+            hits.Wheel = sub.Count > 0 ? (Keys.Up, Keys.Down) : (Keys.Left, Keys.Right);
+        if (sub.Count > 0)
+        {
+            var width = sub.Max(PixelFont.Measure) + 8;
+            var left = Math.Min(subX, 320 - width - 2);
+            var box = new Rectangle(left, pictureTop, width, sub.Count * PixelFont.LineHeight + 4);
+            Fill(batch, pixel, box, DosBlack);
+            for (var i = 0; i < sub.Count; i++)
+            {
+                var y = box.Y + 2 + i * PixelFont.LineHeight;
+                var selected = i == menu.SubCursor;
+                HitCursorRow(new Rectangle(box.X + 2, y - 1, width - 4, PixelFont.LineHeight), menu.SubCursor, i, Keys.Up, Keys.Down);
+                if (selected)
+                    Fill(batch, pixel, new Rectangle(box.X + 2, y - 1, width - 4, PixelFont.LineHeight), DosWhite);
+                PixelFont.Draw(batch, pixel, box.X + 4, y, sub[i], selected ? DosBlack : DosWhite);
+            }
+        }
+    }
+
+    /// <summary>
+    /// s154: I Amiga's "LEAVING %s" (h29 <c>+0x168</c>): the town picture, the line at the name's row centred on 320 in the
+    /// pack's town font (h80 <c>+0x818</c>: the line cleared first, so no name; z6font: x 106 for PELNOR), in
+    /// <paramref name="ink"/>; a click goes nowhere.
+    /// </summary>
+    public static void DrawTownLeaving(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, TownScreenLayout layout, int townId,
+        string line, Color ink)
+    {
+        Fill(batch, pixel, new Rectangle(0, 0, 320, ScreenBottom), DosBlack);
+        if (assets.TownBackdropFor(townId) is { } picture)
+            batch.Draw(picture, new Rectangle(0, 0, picture.Width, picture.Height), Color.White);
+        using var font = PixelFont.With(TownTextFont(layout));
+        Fill(batch, pixel, new Rectangle(0, layout.NameY, 320, PixelFont.GlyphHeight), DosBlack);
+        PixelFont.Draw(batch, pixel, TownLeavingLeft(line), layout.NameY, line, ink);
+        Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, ScreenBottom), new BackdropTag()));
+    }
+
+    /// <summary>s154: "LEAVING %s" with the name in the pack's field (I Amiga: the record's 10 characters, blanks counted).</summary>
+    public static string TownLeavingLine(TownScreenLayout layout, string name) =>
+        UiText.F("p1town.leaving_x", layout.FieldName(name));
+
+    /// <summary>s154: the leaving line's left edge in the current font: centred on 320 (h80 <c>+0x892</c>).</summary>
+    public static int TownLeavingLeft(string line) => Math.Max(0, (320 - PixelFont.Measure(line)) / 2);
+
+    /// <summary>The pack's font for the town line (<see cref="TownScreenLayout.Font"/>), or null for the pack's own.</summary>
+    public static IFontSource? TownTextFont(TownScreenLayout layout) => FontSources.Named(layout.Font, layout.FontFile);
+
+    /// <summary>How long a town message stays on its band (<see cref="DrawTownHud"/>).</summary>
+    public const double TownMessageSeconds = 4.0;
+
+    /// <summary>
+    /// Left edge of the town name: centred on the pack's name x, padded to its name field first (I Amiga: 10 characters,
+    /// so every name starts at 130), moved by III's cell centring (<see cref="TownScreenLayout.NameShift"/>).
+    /// </summary>
+    public static int TownNameLeft(TownScreenLayout layout, string name, bool freshStart) =>
+        Math.Clamp(layout.NameXFor(freshStart) - PixelFont.Measure(layout.FieldName(name)) / 2 + layout.NameShift(name.Length), 0, 320);
+
+    /// <summary>
+    /// Top of the town screen's one-line band: the pack's <see cref="TownScreenLayout.MessageY"/> (the
+    /// picture's own blank rows); without one the bottom line, or above the name when the name is down there.
+    /// </summary>
+    public static int TownBandTop(TownScreenLayout layout) =>
+        layout.MessageY ??
+        (layout.NameY >= ScreenBottom - 2 * BandHeight ? Math.Max(0, layout.NameY - BandHeight - 2) : ScreenBottom - BandHeight);
+
+    /// <summary>The town band's one-line height: down to the screen's bottom (at most <see cref="BandHeight"/>).</summary>
+    public static int TownBandHeight(TownScreenLayout layout) => Math.Min(BandHeight, ScreenBottom - TownBandTop(layout));
+
+    private const int BandHeight = 10;
+
+    /// <summary>
+    /// The town screen's only chrome besides the bar (s98): no status line and no help line, so the picture shows whole.
+    /// <paramref name="message"/> (when not null) shows on a one-line band for <see cref="TownMessageSeconds"/> after it
+    /// changes (Game1). With <paramref name="help"/> (the mouse rests on the band's rows or below) the band shows the key
+    /// help instead, its key tokens clickable as on the help line.
+    /// </summary>
+    public static void DrawTownHud(SpriteBatch batch, Texture2D pixel, TownScreenLayout layout, string? message, string? help,
+        bool originalFont = false)
+    {
+        var text = help ?? message;
+        if (string.IsNullOrEmpty(text))
+            return;
+        // A message (not the key help) in the pack's town font behind AMIGA SCREENS: I Amiga's h80:0x818 (s135).
+        using var font = PixelFont.With(originalFont && help is null ? TownTextFont(layout) : null);
+        // A text longer than the band's line goes on, whole, on lines above it (s99), the band growing upward. On a
+        // pack's own blank rows (MessageY) the band is the picture's black and covers no art for one line (the DOS name
+        // line gives way to the message while it shows); elsewhere it is a dark veil over the picture's bottom.
+        var lines = Lines(text, 52);
+        var onBlankRows = layout.MessageY is not null;
+        var top = TownBandTop(layout) - (lines.Count - 1) * PixelFont.LineHeight;
+        Fill(batch, pixel, new Rectangle(0, top, 320, TownBandHeight(layout) + (lines.Count - 1) * PixelFont.LineHeight),
+            onBlankRows ? DosBlack : new Color(6, 8, 14, 230));
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var y = top + (onBlankRows ? 1 : 2) + i * PixelFont.LineHeight;
+            // On the pack's own line a message is centred, as the ST (0x4082) and Amiga I (h80:0x892) print it.
+            var x = onBlankRows && help is null ? Math.Max(4, (320 - PixelFont.Measure(lines[i])) / 2) : 4;
+            PixelFont.Draw(batch, pixel, x, y, lines[i], help is not null ? DimText : BodyText);
+            if (help is not null)
+                HitTokens(lines[i], 4, y, commandList: true, maxChars: 52);
+        }
+    }
+
+    /// <summary>Inside the Armory (town bar → Armory): the stock list, the shopper and the party.</summary>
+    public static void DrawArmory(
+        SpriteBatch batch,
+        Texture2D pixel,
+        AssetCatalog assets,
+        GameSession session,
+        IReadOnlyList<(int Id, string Name, int Qty, int Price)> stock,
+        int cursor,
+        int shopper)
+    {
+        if (assets.TownBackdropFor(session.CurrentTownId) is { } shopBackdrop)
+            batch.Draw(shopBackdrop,
+                new Rectangle(0, ContentTop, 320, ContentBottom - ContentTop),
+                new Rectangle(0, TownPictureSourceTop, 320, ContentBottom - ContentTop),
+                Color.White * 0.40f);
+        else
+            Fill(batch, pixel, new Rectangle(0, ContentTop, 320, ContentBottom - ContentTop), new Color(36, 60, 44));
+
+        // s99 (user: never lose content to fit): the whole party as full portrait cards across the top (I had fallen back
+        // to one-line rows from three members on), the stock in two columns under it, in a box that scrolls when it
+        // has more rows than fit. The key help the side panel repeated is on the help line.
+        const int maxCard = 52;
+        var cardHeight = Math.Max(PartyStripLayout.CardHeight, PartyStripHeight(assets, session, 304, maxCard));
+        var partyPanel = new Rectangle(4, 16, 312, cardHeight + 6);
+        DrawPanel(batch, pixel, partyPanel, PanelBg, PanelEdge);
+        DrawPartyStrip(batch, pixel, assets, session, new Rectangle(8, 19, 304, cardHeight), maxCardWidth: maxCard,
+            cardDigits: true);
+
+        var stockPanel = new Rectangle(4, partyPanel.Bottom + 2, 312, ContentBottom - partyPanel.Bottom - 2);
+        DrawPanel(batch, pixel, stockPanel, PanelBg, PanelEdge);
+        var town = session.CurrentTown;
+        var headerY = stockPanel.Y + 4;
+        PixelFont.Draw(batch, pixel, 10, headerY, UiText.F("ui.x_armory", town?.Name ?? UiText.F("ui.town_x", session.CurrentTownId)), TitleGold);
+        var shopperName = session.Party.Members.Count > 0
+            ? session.Party.Members[Math.Clamp(shopper, 0, session.Party.Members.Count - 1)].Name : "-";
+        var gold = UiText.F("ui.gold_x_shopper_x", session.Party.GoldCarried, shopperName);
+        PixelFont.Draw(batch, pixel, stockPanel.Right - 6 - PixelFont.Measure(gold), headerY, gold, DimText);
+
+        var rowsTop = headerY + 10;
+        if (stock.Count == 0)
+        {
+            PixelFont.Draw(batch, pixel, 10, rowsTop, UiText.S("ui.no_stock"), DimText);
+            return;
+        }
+        string Row(int i) => UiText.F("ui.x_x_x_x_x_g", i == cursor ? ">" : " ", stock[i].Name, stock[i].Qty, stock[i].Price);
+        // Two columns (filled top to bottom) when every row fits half the panel, else one.
+        var columnWidth = (stockPanel.Width - 12) / 2;
+        var columns = Enumerable.Range(0, stock.Count).All(i => PixelFont.Measure(Row(i)) <= columnWidth - 6) ? 2 : 1;
+        if (columns == 1)
+            columnWidth = stockPanel.Width - 12;
+        var visible = (stockPanel.Bottom - 3 - rowsTop - PixelFont.GlyphHeight) / PixelFont.LineHeight + 1;
+        var total = (stock.Count + columns - 1) / columns; // rows of the list
+        var box = ArmoryScroll;
+        box.Set(total, visible);
+        box.Follow(cursor % total);
+        var area = new Rectangle(8, rowsTop - 1, stockPanel.Width - 8, visible * PixelFont.LineHeight);
+        HitScrollArea(box, area);
+        for (var c = 0; c < columns; c++)
+            for (var r = 0; r < visible && box.Offset + r < total; r++)
+            {
+                var i = c * total + box.Offset + r;
+                if (i >= stock.Count)
+                    break;
+                var x = 10 + c * columnWidth;
+                var y = rowsTop + r * PixelFont.LineHeight;
+                PixelFont.Draw(batch, pixel, x, y, Row(i), i == cursor ? Color.Yellow : BodyText);
+                Hits?.Add(new Rectangle(x - 2, y - 1, columnWidth - 4, PixelFont.LineHeight), new ArmoryRowTag(i));
+            }
+        DrawScrollBar(batch, pixel, box, area);
+        if (Hits is { } hits)
+            hits.Wheel = (Keys.Up, Keys.Down);
+    }
+
+    /// <summary>The Armory's stock list (<see cref="DrawArmory"/>), when it has more rows than fit.</summary>
+    public static ScrollBox ArmoryScroll { get; } = new();
+
+    public static void DrawCombat(
+        SpriteBatch batch,
+        Texture2D pixel,
+        AssetCatalog assets,
+        GameSession session,
+        ClientSettings settings,
+        CombatPresenter presenter,
+        GameDataRepository data)
+    {
+        DrawCombatScreen(batch, pixel, assets, session, settings, presenter, data);
+        if (presenter.P2Run?.ActiveBox is { } box && presenter.P2Lines?.Invoke()?.EndBoxes is { } boxes)
+            DrawP2EndBox(batch, pixel, boxes, box.Rows); // over everything, as the ST's objc_draw
+        // s156: a rock's miss (0x18c6c): the rock sprite at its spot of the 320×200 screen, over everything.
+        if (presenter.P2Run?.Sparkle is { Target: null } && presenter.P2Lines?.Invoke()?.Sparkle is { } miss
+            && assets.Get(miss.Rock) is { } rock)
+            batch.Draw(rock, new Rectangle(miss.RockMissX, miss.RockMissY, rock.Width, rock.Height), Color.White);
+    }
+
+    /// <summary>
+    /// s156, II ST's pose (<c>0x186de</c> / <c>0x188fc</c>, FORMAT.md 7.3): the attacking picture <paramref name="attacking"/>,
+    /// or its silhouette in the pack's <see cref="StCombatLines.SilhouettePens"/> of the combat palette.
+    /// </summary>
+    private static Texture2D? P2PoseArt(AssetCatalog assets, CombatPresenter presenter, string attacking, bool silhouette)
+    {
+        if (!silhouette)
+            return assets.Get(attacking);
+        if (presenter.P2Lines?.Invoke()?.SilhouettePens is not { } pens || assets.Pack is not { } pack
+            || !pack.Palettes.TryGetValue("combat", out var combat) || combat.Count <= Math.Max(pens[0], pens[1]))
+            return assets.Get(attacking);
+        return assets.GetSilhouette(attacking, VirtualScreen.ParseColor(combat[0]), VirtualScreen.ParseColor(combat[pens[0]]),
+            VirtualScreen.ParseColor(combat[pens[1]]));
+    }
+
+    /// <summary>II's member pose on the row now (s156), or null (the idle portrait).</summary>
+    private static Texture2D? P2MemberPose(AssetCatalog assets, CombatPresenter presenter, Character member,
+        GameSession session) =>
+        !ReferenceEquals(member, session.Party.Elemental) // the elemental keeps its own picture
+        && presenter.P2Run?.Pose is { Member: { } posing } pose && ReferenceEquals(posing, member)
+            ? P2PoseArt(assets, presenter, PictureNames.PortraitAttacking((int)member.Race), pose.Silhouette)
+            : null;
+
+    /// <summary>
+    /// II ST's end-of-fight box (s138, FORMAT.md 7.3a; OUT.RSC tree 40 / 41 at (12, 75) on the 320×200 screen): the fill
+    /// with its border drawn inward, each row's characters in the ST's 8-px cells from <see cref="StEndBoxes.Layout"/>
+    /// (the remaster's glyphs centred in each cell: TOS's 8×8 font is not on the disks `[~]`).
+    /// </summary>
+    public static void DrawP2EndBox(SpriteBatch batch, Texture2D pixel, StEndBoxes boxes, IReadOnlyList<string> rows)
+    {
+        var layout = boxes.Layout(rows);
+        var rect = new Rectangle(layout.X, layout.Y, layout.Width, layout.Height);
+        Fill(batch, pixel, rect, VirtualScreen.ParseColor(boxes.BorderColour));
+        Fill(batch, pixel, new Rectangle(rect.X + boxes.Border, rect.Y + boxes.Border, rect.Width - 2 * boxes.Border,
+            rect.Height - 2 * boxes.Border), VirtualScreen.ParseColor(boxes.FillColour));
+        var ink = VirtualScreen.ParseColor(boxes.TextColour);
+        var dy = Math.Max(0, (boxes.Cell - PixelFont.GlyphHeight) / 2);
+        foreach (var (x, y, text) in layout.Rows)
+            for (var i = 0; i < text.Length; i++)
+            {
+                var glyph = text[i].ToString();
+                if (glyph == " ")
+                    continue;
+                var dx = Math.Max(0, (boxes.Cell - PixelFont.Measure(glyph)) / 2);
+                PixelFont.Draw(batch, pixel, x + boxes.Cell * i + dx, y + dy, glyph, ink);
+            }
+    }
+
+    /// <summary>
+    /// s158: II ST's alert box (<see cref="P2AlertBox"/>, AES <c>form_alert</c>; FORMAT.md 7.4) as <see cref="StAlertLook"/>
+    /// lays it out on the 320×200 screen: the outline, the box with its one-pixel border, the lines and the button(s) in
+    /// <paramref name="fill"/> / <paramref name="ink"/> (VDI 0 / 1 of the palette the mode shows); the remaster's glyphs
+    /// centred in the 8-px cells (TOS's font is not on the disks `[~]`). The button is drawn selected while
+    /// <paramref name="held"/> is over it. A click on a button is Return; the rest of the screen takes no click.
+    /// </summary>
+    public static void DrawStAlert(SpriteBatch batch, Texture2D pixel, StAlertLook look, StAlert alert, Color fill,
+        Color ink, Point? held = null)
+    {
+        var layout = look.Layout(alert);
+        static Rectangle R((int X, int Y, int W, int H) r) => new(r.X, r.Y, r.W, r.H);
+        var outline = R(layout.Outline);
+        var box = R(layout.Box);
+        Fill(batch, pixel, outline, fill);
+        Outline(batch, pixel, outline, ink); // OUTLINED: a line 3 px outside the box
+        Outline(batch, pixel, box, ink); // the root's own border, 1 px inward
+        foreach (var (x, y, text) in layout.Lines)
+            DrawCells(batch, pixel, look.Cell, x, y, text, ink);
+        Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, ScreenBottom), new BackdropTag()));
+        foreach (var (x, y, w, h, text) in layout.Buttons)
+        {
+            var inner = new Rectangle(x, y, w, h);
+            var frame = new Rectangle(x - look.ButtonBorder, y - look.ButtonBorder, w + 2 * look.ButtonBorder,
+                h + 2 * look.ButtonBorder);
+            var down = held is { } p && frame.Contains(p);
+            Fill(batch, pixel, frame, ink);
+            Fill(batch, pixel, inner, down ? ink : fill);
+            var start = x + Math.Max(0, (w - look.Cell * text.Length) / 2);
+            DrawCells(batch, pixel, look.Cell, start, y, text, down ? fill : ink);
+            Hits?.Add(new HitRegion(frame) { Click = [Keys.Enter] });
+        }
+    }
+
+    /// <summary>One remaster glyph centred in each <paramref name="cell"/>-px cell of a text from (x, y).</summary>
+    private static void DrawCells(SpriteBatch batch, Texture2D pixel, int cell, int x, int y, string text, Color ink)
+    {
+        var dy = Math.Max(0, (cell - PixelFont.GlyphHeight) / 2);
+        for (var i = 0; i < text.Length; i++)
+        {
+            var glyph = text[i].ToString();
+            if (glyph == " ")
+                continue;
+            var dx = Math.Max(0, (cell - PixelFont.Measure(glyph)) / 2);
+            PixelFont.Draw(batch, pixel, x + cell * i + dx, y + dy, glyph, ink);
+        }
+    }
+
+    private static void DrawCombatScreen(
+        SpriteBatch batch,
+        Texture2D pixel,
+        AssetCatalog assets,
+        GameSession session,
+        ClientSettings settings,
+        CombatPresenter presenter,
+        GameDataRepository data)
+    {
+        Fill(batch, pixel, new Rectangle(0, ContentTop, 320, ContentBottom - ContentTop), new Color(42, 18, 18));
+        // Taller cards (III's 32×48 portraits, a name on two lines, s99): the title line moves up, the panel down to the
+        // content's bottom, and the rank and menu rows close up a pixel each. What still does not fit scrolls: the log
+        // (newest at the bottom) and the menu on the right.
+        var shown = CombatRowFilter(session.Game, presenter.KeepsRowSlot);
+        var evenRow = session.Game == GameId.P2; // the ST spreads the rebuilt row over the screen (0x181ca)
+        var cardHeight = Math.Max(PartyStripLayout.CardHeight, PartyStripHeight(assets, session, 304, 52, shown, evenRow));
+        var tall = cardHeight > PartyStripLayout.CardHeight;
+        var panel = new Rectangle(4, 16, 312, tall ? ContentBottom - 16 : 144);
+        var titleY = tall ? 18 : 22;
+        var strip = tall ? new Rectangle(8, 26, 304, cardHeight) : new Rectangle(8, 34, 304, 56);
+        var top = strip.Bottom + 2; // ranks / log on the left, the menu on the right
+        var rankStep = tall ? 13 : 14;
+        var menuTop = top + (tall ? 9 : 10);
+        var inside = panel.Bottom - 1; // the panel's bottom edge
+        DrawPanel(batch, pixel, panel, new Color(24, 10, 10, 230), new Color(160, 80, 80));
+
+        // s136: II's round is paced by its Speed (COMBAT SPEED), not I's T)IME LAG.
+        var heading = presenter.P2Lines?.Invoke() is not null
+            ? UiText.F("ui.combat_speed_x", presenter.FieldSpeed switch
+            {
+                AmigaCombatSpeed.Fast => UiText.S("options.combat_speed.fast"),
+                AmigaCombatSpeed.Slow => UiText.S("options.combat_speed.slow"),
+                _ => UiText.S("options.combat_speed.normal"),
+            })
+            : UiText.F("ui.combat_time_lag_x", settings.TimeLag);
+        PixelFont.Draw(batch, pixel, 10, titleY, heading, TitleGold);
+        PixelFont.Draw(batch, pixel, 190, titleY, UiText.S("ui.shift_skip"), DimText);
+
+        // s110 (III Amiga): a spell flash on a member is drawn over its portrait after the whole strip, so no later card
+        // covers the part that runs past the portrait (the Amiga blits it over the screen).
+        var flash = presenter.FlashShown;
+        Point? flashAt = null;
+        DrawPartyStrip(batch, pixel, assets, session, strip, maxCardWidth: 52,
+            cardDigits: presenter.AsksHealTarget, deathMark: presenter.HasDeathMark, shown: shown, evenRow: evenRow,
+            overPortrait: (ch, r) =>
+            {
+                if (flash is { } f && ReferenceEquals(f.Flash.Member, ch))
+                    flashAt = r.Location;
+            },
+            portraitFor: presenter.P2Run is null ? null : ch => P2MemberPose(assets, presenter, ch, session));
+        if (flash is { } onMember && flashAt is { } memberAt && presenter.FlashRun is { } memberRun)
+            DrawCombatFlash(batch, assets, memberRun.Layout, onMember, memberAt);
+
+        // Left column: the rank list "RANK n : k NAME(S)", each rank with its monster's picture at its own size (s99, user:
+        // no art squeezed) and its line beside it, wrapped; every rank, in a box that scrolls by pixels (the wheel, the
+        // bar, Home / End) when the pictures run past it. The log under it keeps its last rows.
+        var rx = tall ? 166 : 156;
+        var logRows = tall ? 2 : 3;
+        var rankBox = new Rectangle(8, top, rx - 10, inside - logRows * PixelFont.LineHeight - top - 1);
+        if (session.Combat is not null || presenter.P2RankRows is not null)
+            DrawRankBox(batch, pixel, assets, session.Combat, presenter, rankBox);
+
+        // The log: every line whole (wrapped to the column), the newest at the bottom; it scrolls back (PgUp / PgDn, the
+        // wheel, the bar) when there are more lines than room.
+        var logChars = (rx - 18) / PixelFont.Advance;
+        var logTop = rankBox.Bottom + 2;
+        var logLines = presenter.Log.SelectMany(l => Lines(l, logChars)).ToList();
+        var logBox = presenter.LogScroll;
+        var following = logBox.Offset >= logBox.MaxOffset;
+        logBox.Set(logLines.Count, logRows);
+        if (following)
+            logBox.End();
+        var logArea = new Rectangle(8, logTop - 1, rx - 10, logRows * PixelFont.LineHeight);
+        HitScrollArea(logBox, logArea);
+        for (var i = 0; i < logRows && logBox.Offset + i < logLines.Count; i++)
+            PixelFont.Draw(batch, pixel, 10, logTop + i * PixelFont.LineHeight, logLines[logBox.Offset + i], BodyText);
+        DrawScrollBar(batch, pixel, logBox, logArea);
+
+        // Right column: PARTY OPTIONS menu, the spell list or the orders list, in a box that scrolls when its rows run
+        // past the panel (the highlighted row always in view).
+        var menuChars = (panel.Right - 4 - rx) / PixelFont.Advance;
+        var menuRows = (inside - menuTop - PixelFont.GlyphHeight) / 8 + 1;
+        var menuArea = new Rectangle(rx - 1, menuTop - 1, 314 - rx, menuRows * 8);
+        var menuBox = presenter.MenuScroll;
+        string? title = null;
+        var rows = new List<(string Text, Color Color, Action<Rectangle>? Hit)>();
+        var cursorRow = -1;
+        if (presenter.Phase == CombatPhase.PartyOptions)
+        {
+            title = UiText.S("ui.party_options");
+            var menu = CombatText.PartyOptionMenu;
+            for (var i = 0; i < menu.Count; i++)
+            {
+                var on = i == presenter.OptionCursor;
+                var index = i;
+                if (on)
+                    cursorRow = rows.Count;
+                foreach (var part in Lines((on ? "> " : "  ") + menu[i].Label, menuChars))
+                    rows.Add((part, on ? Color.Yellow : BodyText,
+                        r => HitCursorRow(r, presenter.OptionCursor, index, Keys.Up, Keys.Down)));
+            }
+            if (Hits is { } hits)
+                hits.Wheel = (Keys.Up, Keys.Down);
+        }
+        else if (presenter.SpellChoices(session) is { Count: > 0 } spells)
+        {
+            // "WHICH SPELL?": the combat-castable spells (D-035), narrowed by the digits typed so far; every one listed.
+            title = UiText.F("ui.which_spell_x", presenter.SpellDigits);
+            foreach (var id in spells)
+            {
+                Keys[] keys = [.. (id + 1).ToString().Select(c => HitTest.Digit(c - '0')), Keys.Enter];
+                foreach (var part in Lines(UiText.F("ui.x_x_x_mp", id + 1, data.GetSpell(id).Name,
+                             Magic.MagicPointCost(id, SpellSlots.For(session.Options))), menuChars))
+                    rows.Add((part, BodyText, presenter.SpellDigits.Length == 0 // the spell's number, then Return
+                        ? r => Hits?.Add(new HitRegion(r) { Click = keys }) : null));
+            }
+        }
+        else if (presenter.Phase is CombatPhase.Orders or CombatPhase.Resolving && session.Combat is not null)
+        {
+            title = UiText.S("ui.orders");
+            var members = session.Party.Members;
+            var nameWidth = Math.Max(8, members.Take(7).Max(m => m.Name.Length));
+            for (var i = 0; i < members.Count && i < 7; i++)
+            {
+                if (!CombatPresenter.IsOrderable(members[i]))
+                    continue; // sleepers etc. are left off the list (OV2 0x6ab9)
+                var on = i == presenter.OrderMember;
+                if (on)
+                    cursorRow = rows.Count;
+                var text = $"{(on ? ">" : " ")}{i + 1} {members[i].Name.PadRight(nameWidth)} {presenter.OrderLabelFor(session, i)}";
+                foreach (var part in Lines(text, menuChars))
+                    rows.Add((part, on ? Color.Yellow : BodyText, null));
+            }
+        }
+        if (title is null)
+            return;
+        PixelFont.Draw(batch, pixel, rx, top, title, TitleGold);
+        menuBox.Set(rows.Count, menuRows);
+        if (cursorRow >= 0)
+            menuBox.Follow(cursorRow);
+        HitScrollArea(menuBox, menuArea);
+        for (var i = 0; i < menuRows && menuBox.Offset + i < rows.Count; i++)
+        {
+            var (text, color, hit) = rows[menuBox.Offset + i];
+            var rowY = menuTop + i * 8;
+            PixelFont.Draw(batch, pixel, rx, rowY, text, color);
+            hit?.Invoke(new Rectangle(rx - 1, rowY - 1, menuArea.Width, 8));
+        }
+        DrawScrollBar(batch, pixel, menuBox, menuArea);
+    }
+
+    /// <summary>
+    /// A modal Core prompt (<see cref="SessionPrompts"/>): its text lines, then the answers with the DOS highlight on
+    /// <paramref name="cursor"/> (<see cref="PromptMenu"/>) — YES/NO side by side, a menu numbered one per line, any key for
+    /// CONTINUE. Lines longer than the panel are cut (DOS lines are ≤ 40 chars).
+    /// </summary>
+    /// <summary>Pixels the rank box scrolls per step (a key, a wheel notch).</summary>
+    public const int RankScrollStep = 6;
+
+    /// <summary>
+    /// The combat rank list in <paramref name="box"/>: per living rank its first monster's idle picture 1:1 (a coloured
+    /// block without one) and the rank line wrapped beside it, the row as tall as the taller; all of it clipped to the box
+    /// and scrolled by <see cref="CombatPresenter.RankScroll"/> in <see cref="RankScrollStep"/>-pixel steps. "WHICH
+    /// RANK?" takes a click on a row.
+    /// </summary>
+    private static void DrawRankBox(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, CombatEncounter? combat,
+        CombatPresenter presenter, Rectangle box)
+    {
+        // s156: while II's round plays, the ranks as they stood before it, less the monsters erased so far (0x186de mode 0).
+        List<string> lines;
+        List<IReadOnlyList<Monster>> living;
+        if (presenter.P2RankRows is { } p2Rows)
+        {
+            living = p2Rows.ToList();
+            lines = living.Select((r, i) => UiText.F("combattext.rank_x_x_x_s", i + 1, r.Count, r[0].Name)).ToList();
+        }
+        else if (combat is not null)
+        {
+            lines = CombatText.RankLines(combat).ToList();
+            living = combat.Ranks.Where(r => !r.IsWiped).Select(r => (IReadOnlyList<Monster>)r.Living.ToList()).ToList();
+        }
+        else
+            return;
+        var pose = presenter.P2Run?.Pose is { Monster: not null } p ? p : null;
+        var sparkle = presenter.P2Run?.Sparkle is { Target: not null } sp ? sp : null;
+        var sparkleLayout = presenter.P2Lines?.Invoke()?.Sparkle;
+        var inner = new Rectangle(box.X, box.Y, box.Width - ScrollBox.BarWidth - 2, box.Height);
+        var rows = new List<(Texture2D? Picture, Point Size, IReadOnlyList<string> Text, int Height)>();
+        for (var i = 0; i < lines.Count && i < living.Count; i++)
+        {
+            var picture = assets.GetMonsterIdle(living[i][0].Id);
+            // s156: II's attack pose / silhouette on the rank's picture (the ST poses the monster's own slot `[~]`).
+            if (pose is { Monster: { } posing } && living[i].Contains(posing)
+                && P2PoseArt(assets, presenter, PictureNames.MonsterAttacking(posing.Id), pose.Silhouette) is { } posed)
+                picture = posed;
+            var size = picture is null ? new Point(12, 12) : new Point(picture.Width, picture.Height);
+            var text = Lines(lines[i], Math.Max(1, (inner.Width - size.X - 6) / PixelFont.Advance));
+            rows.Add((picture, size, text, Math.Max(size.Y, 3 + text.Count * PixelFont.LineHeight) + 2));
+        }
+        var scroll = presenter.RankScroll;
+        var total = rows.Sum(r => r.Height);
+        scroll.Set((total + RankScrollStep - 1) / RankScrollStep, Math.Max(1, box.Height / RankScrollStep));
+        if (scroll.Offset * RankScrollStep > Math.Max(0, total - box.Height))
+            scroll.ScrollTo((Math.Max(0, total - box.Height) + RankScrollStep - 1) / RankScrollStep);
+        HitScrollArea(scroll, box);
+        var y = box.Y - scroll.Offset * RankScrollStep;
+        var tops = new List<int>();
+        Clipped(batch, box, () =>
+        {
+            for (var r = 0; r < rows.Count; r++)
+            {
+                var (picture, size, text, height) = rows[r];
+                tops.Add(y);
+                var art = new Rectangle(box.X + 2, y, size.X, size.Y);
+                if (picture is not null)
+                    batch.Draw(picture, art, Color.White);
+                else
+                    Fill(batch, pixel, art, new Color(90, 40, 40));
+                // s110 (III Amiga): a spell flash on a monster of this rank, over the rank's one picture `[~]` (the Amiga
+                // draws each monster and flashes the one hit).
+                if (presenter.FlashShown is { Flash.Monster: { } hit } shownFlash && presenter.FlashRun is { } run
+                    && living[r].Contains(hit))
+                    DrawCombatFlash(batch, assets, run.Layout, shownFlash, art.Location);
+                // s156: II's sparkle (0x18b16) at its random spot inside the picture: x + rand(w − 16), y + rand(h − 16).
+                if (sparkle is { Target: { } target } && sparkleLayout is { } sl && living[r].Contains(target)
+                    && assets.Get(sparkle.Rock ? sl.Rock : sl.Spell) is { } sprite)
+                    batch.Draw(sprite, new Rectangle(art.X + StCombatSparkle.Offset(sparkle.RollX, art.Width - sl.Size),
+                        art.Y + StCombatSparkle.Offset(sparkle.RollY, art.Height - sl.Size), sprite.Width, sprite.Height),
+                        Color.White);
+                for (var k = 0; k < text.Count; k++)
+                {
+                    var lineY = y + 3 + k * PixelFont.LineHeight;
+                    if (lineY >= box.Y && lineY + PixelFont.GlyphHeight <= box.Bottom) // a line shows whole or not at all
+                        PixelFont.Draw(batch, pixel, art.Right + 4, lineY, text[k], Color.White);
+                }
+                y += height;
+            }
+        });
+        if (presenter.AsksRank)
+            for (var i = 0; i < rows.Count; i++)
+                if (Rectangle.Intersect(new Rectangle(box.X, tops[i], inner.Width, rows[i].Height), box) is { IsEmpty: false } hit)
+                    Hits?.Add(new HitRegion(hit) { Click = [HitTest.Digit(i + 1)] });
+        DrawScrollBar(batch, pixel, scroll, box);
+    }
+
+    /// <summary>
+    /// A combat spell flash (III Amiga <c>0x1b814</c>, <see cref="CombatFlashRun"/>): its first frames drawn over each other
+    /// at <paramref name="picture"/> + the flash's offset (masked blits: colour 0 transparent).
+    /// </summary>
+    private static void DrawCombatFlash(SpriteBatch batch, AssetCatalog assets, CombatFlashLayout layout,
+        (CombatFlashRun.Flash Flash, int Frames) shown, Point picture)
+    {
+        for (var i = 0; i < shown.Frames && i < layout.Pictures.Count; i++)
+            if (assets.Get(layout.Pictures[i]) is { } sparkle)
+                batch.Draw(sparkle, new Rectangle(picture.X + shown.Flash.X, picture.Y + shown.Flash.Y, sparkle.Width,
+                    sparkle.Height), Color.White);
+    }
+
+    /// <summary>
+    /// A prompt's text lines as the panel draws them: blank lines dropped, each wrapped to <paramref name="maxChars"/>
+    /// columns at word breaks; all of them (s99: a panel with more lines than fit scrolls, <see cref="PromptScroll"/>).
+    /// </summary>
+    public static List<string> PromptLines(IEnumerable<string> lines, int maxChars) =>
+        lines.Where(l => !string.IsNullOrWhiteSpace(l)).SelectMany(l => Wrap(l, maxChars)).ToList();
+
+    /// <summary>A prompt panel's text when it has more lines than the screen holds (PgUp / PgDn, the wheel, the bar).</summary>
+    public static ScrollBox PromptScroll { get; } = new();
+
+    /// <summary>Rows (text + answers) a centred prompt panel holds between the top and the help band.</summary>
+    public const int PromptPanelRows = 12;
+
+    /// <summary>
+    /// The side-by-side answers ("&gt;YES  NO") in rows of at most <paramref name="maxChars"/> columns: each answer's row
+    /// and its columns. One row as always when they fit; else they go on, whole, on the next row.
+    /// </summary>
+    public static (List<string> Rows, List<(int Row, int Start, int End)> Spots) SideBySide(IReadOnlyList<string> options,
+        int cursor, int maxChars)
+    {
+        var rows = new List<string> { "" };
+        var spots = new List<(int, int, int)>();
+        for (var i = 0; i < options.Count; i++)
+        {
+            var token = (i == cursor ? ">" : " ") + options[i];
+            if (rows[^1].Length > 0 && rows[^1].Length + 2 + token.Length > maxChars)
+                rows.Add("");
+            if (rows[^1].Length > 0)
+                rows[^1] += "  ";
+            spots.Add((rows.Count - 1, rows[^1].Length, rows[^1].Length + token.Length));
+            rows[^1] += token;
+        }
+        return (rows, spots);
+    }
+
+    public static void DrawPrompt(SpriteBatch batch, Texture2D pixel, SessionPrompt prompt, int cursor)
+    {
+        const int maxChars = 48;
+        // A line longer than the panel wraps at a word (III's DOS sentences run to 80 chars), never cut (s98).
+        var lines = PromptLines(prompt.Lines, maxChars);
+        var single = prompt.Options.Count == 1;
+        var sideBySide = prompt.IsYesNo || prompt.IsShares || prompt.Hotkeys is not null;
+        if (!single && !sideBySide && prompt.Options.Count > PromptListRows)
+        {
+            DrawPromptGrid(batch, pixel, prompt, cursor, lines, maxChars);
+            return;
+        }
+        var (pairRows, pairSpots) = SideBySide(prompt.Options, cursor, maxChars);
+        var answers = single ? [UiText.S("ui.press_enter")]
+            : sideBySide ? pairRows
+            : prompt.Options.Select((o, i) => $"{(i == cursor ? ">" : " ")}{i + 1} {o}").SelectMany(a => Lines(a, maxChars)).ToList();
+        var shown = ScrollPromptText(lines, answers.Count, atEnd: prompt.Kind == SessionPromptKind.PartyDefeat);
+        var height = 16 + (shown + answers.Count) * 10 + 4;
+        var top = PromptPanelTop(shown, height);
+        var panel = new Rectangle(8, top, 304, height);
+        DrawPanel(batch, pixel, panel, PanelBg, PanelEdge);
+        var y = top + 8 + shown * 10 + 4;
+        HitPrompt(prompt, cursor, single, sideBySide, y, pairSpots); // under the text's scroll bar
+        DrawPromptText(batch, pixel, lines, shown, top);
+        for (var i = 0; i < answers.Count; i++)
+        {
+            var on = !single && !sideBySide && i == cursor;
+            PixelFont.Draw(batch, pixel, 14, y, answers[i], on ? Color.Yellow : BodyText);
+            y += 10;
+        }
+    }
+
+    /// <summary>
+    /// How many of <paramref name="lines"/> a prompt panel shows above <paramref name="answerRows"/> answer rows: all of
+    /// them when they fit <see cref="PromptPanelRows"/>, else the rest of the panel, scrolled by <see cref="PromptScroll"/>
+    /// (back to the top for each new text).
+    /// </summary>
+    private static int ScrollPromptText(IReadOnlyList<string> lines, int answerRows, bool atEnd = false)
+    {
+        var shown = Math.Min(lines.Count, Math.Max(2, PromptPanelRows - answerRows));
+        PromptScroll.Set(lines.Count, Math.Max(1, shown));
+        if (PromptScroll.TopFor(string.Join("\n", lines).GetHashCode()) && atEnd)
+            PromptScroll.End(); // the defeat report opens on its last blows and the banner; Up / PgUp go back
+        return shown;
+    }
+
+    /// <summary>A prompt panel's top: centred on its text as always, moved up when its foot would reach the help band.</summary>
+    private static int PromptPanelTop(int textRows, int height) =>
+        Math.Max(ContentTop + 2, Math.Min(TextPanelTop(textRows), ContentBottom - height));
+
+    /// <summary>The scrolled prompt text from the panel's first line (and its bar); the y under the last line shown.</summary>
+    private static int DrawPromptText(SpriteBatch batch, Texture2D pixel, IReadOnlyList<string> lines, int shown, int top)
+    {
+        var y = top + 8;
+        var area = new Rectangle(12, y - 1, 296, shown * 10);
+        HitScrollArea(PromptScroll, area);
+        for (var i = 0; i < shown && PromptScroll.Offset + i < lines.Count; i++)
+        {
+            PixelFont.Draw(batch, pixel, 14, y, lines[PromptScroll.Offset + i], TitleGold);
+            y += 10;
+        }
+        DrawScrollBar(batch, pixel, PromptScroll, area);
+        return top + 8 + shown * 10;
+    }
+
+    /// <summary>
+    /// Phantasie II's party-defeat scene (ST <c>0x12bea</c>, FORMAT.md §10.3/§10.4; <see cref="DefeatScene"/>) behind the
+    /// defeat prompts: <c>DECOR.PIC</c> (the temple) with the door at (123,14) — closed under the banner, sinking into the
+    /// floor (<paramref name="frame"/>) — then the "Sorry, we've run out of Demons" sign at (139,39) on the 5th defeat of
+    /// the run, or the Great Demon's face at (123,19); and the portrait row of <paramref name="row"/> (ghosts, then each
+    /// member's fate). Drawn full-screen 1:1 in ST coordinates, over the status, help and message lines: the whole of DECOR
+    /// (155 rows, stairs and the guards' platform included), the row at y 158 and <paramref name="line"/> on the bottom line
+    /// (<see cref="DefeatScenePager"/>), as the ST screen shows them (s98, user: never crop scenes; s97 had cut DECOR at the
+    /// door's floor line to keep the remaster's status line). A click anywhere is Return. False (nothing drawn) when the
+    /// pack has no DECOR picture.
+    /// </summary>
+    public static bool DrawDefeatScene(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, SessionPromptKind kind,
+        DefeatSceneFrame frame, IReadOnlyList<DefeatPortrait> row, string? line = null, bool awaitsReturn = true,
+        Color? lineColour = null, int? centredTop = null, bool clickIsReturn = true)
+    {
+        if (assets.Decor is not { } decor)
+            return false;
+        Fill(batch, pixel, new Rectangle(0, 0, 320, ScreenBottom), DosBlack);
+        var h = Math.Min(decor.Height, DefeatScene.DecorRows);
+        batch.Draw(decor, new Rectangle(0, 0, decor.Width, h), new Rectangle(0, 0, decor.Width, h), Color.White);
+        if (frame.ShowBehindDoor && kind != SessionPromptKind.PartyDefeat)
+        {
+            var (behind, bx, by) = kind == SessionPromptKind.DefeatDemonSign
+                ? (assets.DecorSorrySign, 139, 39)
+                : (assets.DecorDemonFace, 123, 19);
+            DrawDecorPart(batch, behind, bx, by, behind?.Height ?? 0);
+        }
+        if (frame.DoorHeight > 0)
+            DrawDecorPart(batch, assets.DecorDoor, 123, frame.DoorY, frame.DoorHeight);
+        DrawDefeatRow(batch, assets, row);
+        if (line is not null && centredTop is int textTop)
+        {
+            // I Amiga (s153): h80 +0x84a centres the line on 320 at its TopEdge in the layout's pen; it fits one row.
+            var text = line.Trim();
+            PixelFont.Draw(batch, pixel, (320 - PixelFont.Measure(text)) / 2, textTop, text, lineColour ?? DefeatTextGreen);
+        }
+        else if (line is not null)
+        {
+            // A line too long for the bottom line wraps upward over the row's foot, never cut (s98).
+            var parts = Wrap(line, 50).ToList();
+            var top = DefeatScene.TextTop + 1 - (parts.Count - 1) * 10;
+            if (parts.Count > 1)
+                Fill(batch, pixel, new Rectangle(0, top - 1, 320, DefeatScene.TextTop + 1 - top), DosBlack);
+            for (var i = 0; i < parts.Count; i++)
+                PixelFont.Draw(batch, pixel, 4, top + i * 10, parts[i], DefeatTextGreen);
+            if (awaitsReturn) // Return shows the next line or, on the last, goes on (the ST went on by itself)
+                PixelFont.Draw(batch, pixel, 310, DefeatScene.TextTop + 1, ">", DimText);
+        }
+        if (clickIsReturn) // I Amiga's screens take the button's press and release themselves (s153)
+            Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, ScreenBottom), new BackdropTag()) { Click = [Keys.Enter] });
+        return true;
+    }
+
+    /// <summary>
+    /// s157: Phantasie I DOS's party-defeat outcome with the pack's DOS pictures (<see cref="P1DosDefeatScene"/>; OV1
+    /// <c>0x2af</c>): the whole temple screen (the face once <see cref="DosDefeatFrame.Face"/>), the row cleared
+    /// (<c>0x5fe</c>), each slot's ghost or figure at the layout's places, a destroyed member's text cells cleared
+    /// (<c>0x747</c>), and the line centred on the bottom row. False when the pictures are missing.
+    /// </summary>
+    public static bool DrawDosDefeatScene(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, DefeatPicturesLayout layout,
+        DosDefeatFrame frame, IReadOnlyList<DefeatPortrait> row)
+    {
+        var screen = assets.Get(frame.Face ? PictureNames.DefeatDemon : PictureNames.DefeatTemple);
+        if (screen is null)
+            return false;
+        Fill(batch, pixel, new Rectangle(0, 0, 320, ScreenBottom), DosBlack);
+        batch.Draw(screen, new Rectangle(0, 0, screen.Width, screen.Height), Color.White);
+        var rowRect = new Rectangle(0, layout.ClearTop, 320, layout.ClearBottom - layout.ClearTop + 1);
+        Fill(batch, pixel, rowRect, DosBlack);
+        var ghost = assets.Get(PictureNames.DefeatGhost);
+        for (var i = 0; i < row.Count; i++)
+        {
+            var x = layout.SlotX(row.Count, i);
+            var picture = row[i].Kind switch
+            {
+                DefeatPortraitKind.Ghost => ghost,
+                DefeatPortraitKind.Race => assets.Get(PictureNames.DefeatFigure(row[i].RaceId)),
+                _ => null,
+            };
+            if (picture is not null)
+                batch.Draw(picture, new Rectangle(x, layout.RowY, picture.Width, picture.Height), Color.White);
+            else if (row[i].Kind == DefeatPortraitKind.Cleared)
+                Fill(batch, pixel, new Rectangle(Math.Max(0, (x / 8 - 1) * 8), layout.ClearTop, 48, rowRect.Height), DosBlack);
+        }
+        Fill(batch, pixel, new Rectangle(0, layout.TextY, 320, ScreenBottom - layout.TextY), DosBlack);
+        if (frame.Line is { } line)
+        {
+            var text = line.Trim();
+            PixelFont.Draw(batch, pixel, (320 - PixelFont.Measure(text)) / 2, layout.TextY, text,
+                VirtualScreen.ParseColor(layout.TextColour));
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Phantasie III's party-defeat scene (Amiga root <c>0x1dc16</c>, <see cref="AstralScene"/>), full-screen 1:1 over the
+    /// status, help and message lines (s98, user: never crop scenes): line <paramref name="lineIndex"/> of the outcome
+    /// page. The first two lines print on the cleared screen at text rows 12–13, wrapped and centred; from the third the
+    /// whole Astral Plane picture shows with the party's portraits <paramref name="row"/> under it and the line on text row
+    /// 24 (a line too long for one row wraps upward from there, never cut). A click anywhere is Return. False when the
+    /// pack has no Astral Plane picture.
+    /// </summary>
+    public static bool DrawAstralScene(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, int lineIndex, string? line,
+        IReadOnlyList<DefeatPortrait> row, bool awaitsReturn = true, Color? lineColour = null)
+    {
+        if (assets.SceneAstralPlane is not { } picture)
+            return false;
+        Fill(batch, pixel, new Rectangle(0, 0, 320, ScreenBottom), DosBlack);
+        var parts = line is null ? [] : Wrap(line, 52).ToList();
+        if (lineIndex < AstralScene.PictureFromLine)
+        {
+            for (var i = 0; i < parts.Count; i++)
+                PixelFont.Draw(batch, pixel, (320 - PixelFont.Measure(parts[i])) / 2, AstralScene.IntroTextTop + 1 + i * 10,
+                    parts[i], DosWhite);
+        }
+        else
+        {
+            batch.Draw(picture, new Rectangle(0, 0, picture.Width, picture.Height), Color.White);
+            for (var i = 0; i < row.Count; i++)
+            {
+                var portrait = row[i].Kind switch
+                {
+                    DefeatPortraitKind.Grave => assets.PortraitGrave,
+                    DefeatPortraitKind.Race => assets.GetPortraitIdle(row[i].RaceId),
+                    _ => null,
+                };
+                if (portrait is not null)
+                    batch.Draw(portrait, new Rectangle(i * AstralScene.SlotWidth, AstralScene.RowTop, portrait.Width,
+                        portrait.Height), Color.White);
+            }
+            var top = AstralScene.TextTop - (parts.Count - 1) * 10;
+            if (parts.Count > 1) // the rows above text row 24 hold the portraits' feet: give the extra lines a backing
+                Fill(batch, pixel, new Rectangle(0, top - 1, 320, AstralScene.TextTop - top), DosBlack);
+            for (var i = 0; i < parts.Count; i++)
+                PixelFont.Draw(batch, pixel, 4, top + i * 10, parts[i], lineColour ?? DosWhite); // undead: colour 14
+        }
+        if (awaitsReturn)
+            PixelFont.Draw(batch, pixel, 310, lineIndex < AstralScene.PictureFromLine ? 190 : AstralScene.TextTop, ">", DimText);
+        Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, ScreenBottom), new BackdropTag()) { Click = [Keys.Enter] });
+        return true;
+    }
+
+    /// <summary>
+    /// Phantasie III's gods' reward (Amiga root <c>0x1ee82</c>, <see cref="GodsRewardScene"/>), full-screen 1:1: page
+    /// <paramref name="page"/>. Pages 0-1 are the intro lines on the cleared screen (wrapped, never cut); page 2 the whole
+    /// god's picture with the party's portraits under it and "Press a key"; page 3 the speech on the parchment (rows that
+    /// run past its foot scroll, <see cref="DrawScrollFrame"/>). A click anywhere is Return. False when the pack has no
+    /// picture for this outcome or no parchment. <paramref name="flash"/>: the intro's sparkle shown now
+    /// (<see cref="RewardSceneClock.FlashAt"/>), its first frames drawn over each other on top of the text (Amiga
+    /// <c>0x1b814</c>: masked blits, colour 0 transparent).
+    /// </summary>
+    public static bool DrawRewardScene(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, RewardScene scene, int page,
+        IReadOnlyList<string> pages, IReadOnlyList<ScrollFrameLayout.Edge>? edges, string pressKey,
+        (RewardFlashLayout.Flash Flash, int Frames)? flash = null)
+    {
+        if (assets.SceneReward(scene.Good) is not { } picture || assets.ScrollFrame is not { } frame || edges is null)
+            return false;
+        Fill(batch, pixel, new Rectangle(0, 0, 320, ScreenBottom), DosBlack);
+        Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, ScreenBottom), new BackdropTag()) { Click = [Keys.Enter] });
+        if (page < GodsRewardScene.PicturePage)
+        {
+            var parts = Wrap(pages[page], 52).ToList();
+            var top = Math.Min(GodsRewardScene.IntroTop[page], 190 - parts.Count * 10);
+            for (var i = 0; i < parts.Count; i++)
+                PixelFont.Draw(batch, pixel, 4, top + i * 10, parts[i], DosWhite);
+            PixelFont.Draw(batch, pixel, 310, 190, ">", DimText);
+            if (flash is { } shown && assets.RewardScene?.Flash is { } layout)
+                for (var i = 0; i < shown.Frames && i < layout.Pictures.Count; i++)
+                    if (assets.Get(layout.Pictures[i]) is { } sparkle)
+                        batch.Draw(sparkle, new Rectangle(shown.Flash.X, shown.Flash.Y, sparkle.Width, sparkle.Height), Color.White);
+        }
+        else if (page == GodsRewardScene.PicturePage)
+        {
+            batch.Draw(picture, new Rectangle(0, 0, picture.Width, picture.Height), Color.White);
+            for (var i = 0; i < scene.PartyRaces.Count; i++)
+                if (assets.GetPortraitIdle((int)scene.PartyRaces[i]) is { } portrait)
+                    batch.Draw(portrait, new Rectangle(i * GodsRewardScene.SlotWidth, GodsRewardScene.RowTop, portrait.Width,
+                        portrait.Height), Color.White);
+            PixelFont.Draw(batch, pixel, GodsRewardScene.PressKeyX, GodsRewardScene.PressKeyY, pressKey, DosWhite);
+        }
+        else
+            DrawScrollFrame(batch, pixel, assets, frame, edges, GodsRewardScene.SpeechLines(scene, pressKey));
+        return true;
+    }
+
+    /// <summary>
+    /// A keep question in the pack's own window (III Amiga, <see cref="KeepWindowsLayout"/>, FORMAT.md §2.3): the box
+    /// filled, the frame (<c>0x31e6</c>: the outer colour from the top-left to x1 − 1 / y1 − 1, the inner one pixel in and
+    /// down to x1 / y1, drawn top, bottom, left, right), the lines at their origins (a line too wide for the box goes on
+    /// at a word on the next row; never cut), and the OK / CANCEL buttons, the second state while
+    /// <paramref name="held"/> is over one. A click on OK presses O, on CANCEL C; elsewhere does nothing. False (nothing
+    /// drawn) when the pack lacks the buttons. <paramref name="inDungeon"/>: the buttons show in the pack's
+    /// <see cref="KeepWindowsLayout.DungeonPalette"/> (the Amiga's dungeon palette stays in force, s125 seen).
+    /// </summary>
+    public static bool DrawKeepWindow(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, KeepWindowsLayout layout,
+        KeepWindowsLayout.Window window, IReadOnlyList<string> lines, Point? held, bool inDungeon = false)
+    {
+        var palette = inDungeon ? layout.DungeonPalette : null;
+        if (assets.GetInPalette(PictureNames.Button("ok"), layout.ButtonPalette, palette) is not { } ok
+            || assets.GetInPalette(PictureNames.Button("cancel"), layout.ButtonPalette, palette) is not { } cancel)
+            return false;
+        var (x0, y0, x1, y1) = (window.Box[0], window.Box[1], window.Box[2], window.Box[3]);
+        // Each line whole (s99): a wrapped row pushes the next line down, and text that would reach the buttons grows
+        // the box downward (moved up if it would leave the screen) — the original's lines always fit.
+        var rows = new List<(int X, int Y, string Text)>();
+        var (tx, ty) = window.Text[0];
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var next = rows.Count == 0 ? ty : rows[^1].Y + 10;
+            (tx, ty) = i < window.Text.Count ? (window.Text[i].X, Math.Max(window.Text[i].Y, next)) : (tx, next);
+            foreach (var row in Lines(lines[i], Math.Max(1, (x1 - 3 - tx) / PixelFont.Advance)))
+            {
+                rows.Add((tx, ty, row));
+                ty += 10;
+            }
+        }
+        var buttonsTop = Math.Min(window.Ok.Y, window.Cancel.Y);
+        var grow = rows.Count == 0 ? 0 : Math.Max(0, rows[^1].Y + 10 + 2 - buttonsTop);
+        var lift = Math.Max(0, y1 + grow - (ScreenBottom - 1));
+        y0 -= lift;
+        y1 += grow - lift;
+        var (ok0, cancel0) = ((window.Ok.X, window.Ok.Y + grow - lift), (window.Cancel.X, window.Cancel.Y + grow - lift));
+        DrawWindowFrame(batch, pixel, layout, x0, y0, x1, y1);
+        var ink = VirtualScreen.ParseColor(layout.TextColour);
+        foreach (var (x, y, text) in rows)
+            PixelFont.Draw(batch, pixel, x, y - lift, text, ink);
+        DrawWindowButtons(batch, assets, layout, ok, cancel, ok0, cancel0, held, palette);
+        return true;
+    }
+
+    /// <summary>
+    /// An Amiga window's box and frame (<c>0x3904</c> / <c>0x31e6</c>: filled, the outer colour from the top-left to
+    /// x1 − 1 / y1 − 1, the inner one pixel in and down to x1 / y1); clicks outside the buttons do nothing.
+    /// </summary>
+    private static void DrawWindowFrame(SpriteBatch batch, Texture2D pixel, KeepWindowsLayout layout, int x0, int y0, int x1, int y1) =>
+        DrawWindowFrame(batch, pixel, VirtualScreen.ParseColor(layout.FillColour), VirtualScreen.ParseColor(layout.FrameColours[0]),
+            VirtualScreen.ParseColor(layout.FrameColours[1]), x0, y0, x1, y1);
+
+    private static void DrawWindowFrame(SpriteBatch batch, Texture2D pixel, Color fill, Color outer, Color inner,
+        int x0, int y0, int x1, int y1)
+    {
+        Fill(batch, pixel, new Rectangle(x0, y0, x1 - x0 + 1, y1 - y0 + 1), fill);
+        Fill(batch, pixel, new Rectangle(x0, y0, x1 - x0, 1), outer);
+        Fill(batch, pixel, new Rectangle(x0 + 1, y0 + 1, x1 - x0 - 1, 1), inner);
+        Fill(batch, pixel, new Rectangle(x0, y1 - 1, x1 - x0, 1), outer);
+        Fill(batch, pixel, new Rectangle(x0 + 1, y1, x1 - x0, 1), inner);
+        Fill(batch, pixel, new Rectangle(x0, y0, 1, y1 - y0), outer);
+        Fill(batch, pixel, new Rectangle(x0 + 1, y0 + 1, 1, y1 - y0 - 2), inner);
+        Fill(batch, pixel, new Rectangle(x1 - 1, y0, 1, y1 - y0), outer);
+        Fill(batch, pixel, new Rectangle(x1, y0 + 1, 1, y1 - y0), inner);
+        Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, ScreenBottom), new BackdropTag()));
+    }
+
+    /// <summary>The OK / CANCEL buttons (the second state while <paramref name="held"/> is over one); a click is O / C.</summary>
+    private static void DrawWindowButtons(SpriteBatch batch, AssetCatalog assets, KeepWindowsLayout layout, Texture2D ok,
+        Texture2D cancel, (int X, int Y) okAt, (int X, int Y) cancelAt, Point? held, string? palette = null)
+    {
+        void Button(Texture2D up, string name, (int X, int Y) at, Keys key)
+        {
+            var area = new Rectangle(at.X, at.Y, layout.ButtonWidth, layout.ButtonHeight);
+            var picture = held is { } p && area.Contains(p)
+                && assets.GetInPalette(PictureNames.Button(name, chosen: true), layout.ButtonPalette, palette) is { } down
+                ? down : up;
+            batch.Draw(picture, new Rectangle(at.X, at.Y, picture.Width, picture.Height), Color.White);
+            Hits?.Add(new HitRegion(area) { Click = [key] });
+        }
+        Button(ok, "ok", okAt, Keys.O);
+        Button(cancel, "cancel", cancelAt, Keys.C);
+    }
+
+    /// <summary>
+    /// A list window of the original's (III Amiga Bank / Trade, s117, <see cref="AmigaWindowView"/>): the box and frame, each
+    /// row at its place in the pack's list colours (yellow = a value or the pick; a row too wide for the box is cut at the
+    /// frame, never wrapped into the next row), a click on a pickable row presses its key, and OK / CANCEL. False when the
+    /// pack lacks the buttons.
+    /// </summary>
+    public static bool DrawAmigaWindow(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, KeepWindowsLayout layout,
+        AmigaWindowView view, Point? held)
+    {
+        if (assets.Get(PictureNames.Button("ok")) is not { } ok || assets.Get(PictureNames.Button("cancel")) is not { } cancel)
+            return false;
+        var w = view.Window;
+        var (x0, y0, x1, y1) = (w.Box[0], w.Box[1], w.Box[2], w.Box[3]);
+        // A row wider than the box widens it to the right (up to the screen's edge), never cut (s99).
+        var widest = view.Rows.Count == 0 ? 0 : view.Rows.Max(r => r.X + PixelFont.Measure(r.Text) + 3);
+        x1 = Math.Max(x1, Math.Min(319, widest));
+        // Rows that would reach the buttons grow the box (and push the buttons) down, never cut (s99).
+        var lastRow = view.Rows.Count == 0 ? 0 : view.Rows.Max(r => r.Y);
+        var grow = Math.Max(0, lastRow + 10 - Math.Min(w.Ok.Y, w.Cancel.Y));
+        var lift = Math.Max(0, y1 + grow - (ScreenBottom - 1));
+        DrawWindowFrame(batch, pixel, layout, x0, y0 - lift, x1, y1 + grow - lift);
+        var normal = VirtualScreen.ParseColor(layout.ListColours[0]);
+        var bright = VirtualScreen.ParseColor(layout.ListColours[1]);
+        for (var i = 0; i < view.Rows.Count; i++)
+        {
+            var row = view.Rows[i];
+            PixelFont.Draw(batch, pixel, row.X, row.Y - lift, row.Text, row.Highlight ? bright : normal);
+        }
+        foreach (var (index, key) in view.Picks)
+        {
+            var row = view.Rows[index];
+            Hits?.Add(new HitRegion(new Rectangle(row.X - 1, row.Y - lift - 1, x1 - 2 - row.X, 8)) { Click = [key] });
+        }
+        DrawWindowButtons(batch, assets, layout, ok, cancel, (w.Ok.X, w.Ok.Y + grow - lift), (w.Cancel.X, w.Cancel.Y + grow - lift),
+            held);
+        return true;
+    }
+
+    /// <summary>The ST scene's text colour (green on black, <c>p2-defeat-great-demon.png</c>).</summary>
+    private static readonly Color DefeatTextGreen = new(96, 224, 96);
+
+    /// <summary>The top <paramref name="rows"/> rows of a DECOR part at ST (x, y), clipped to DECOR's rows.</summary>
+    private static void DrawDecorPart(SpriteBatch batch, Texture2D? part, int x, int y, int rows)
+    {
+        if (part is null)
+            return;
+        var ph = Math.Min(Math.Min(rows, part.Height), DefeatScene.DecorRows - y);
+        if (ph > 0)
+            batch.Draw(part, new Rectangle(x, y, part.Width, ph), new Rectangle(0, 0, part.Width, ph), Color.White);
+    }
+
+    /// <summary>Bottom of the virtual 320×200 screen.</summary>
+    public const int ScreenBottom = 200;
+
+    /// <summary>Top of the defeat scene's portrait row: the ST's y 158 (FORMAT.md §10.3), under the whole of DECOR.</summary>
+    public const int DefeatRowTop = DefeatScene.RowTop;
+
+    private static void DrawDefeatRow(SpriteBatch batch, AssetCatalog assets, IReadOnlyList<DefeatPortrait> row)
+    {
+        for (var i = 0; i < row.Count; i++)
+        {
+            var picture = row[i].Kind switch
+            {
+                DefeatPortraitKind.Ghost => assets.PortraitGhost,
+                DefeatPortraitKind.Race => assets.GetPortraitIdle(row[i].RaceId),
+                _ => null,
+            };
+            if (picture is not null)
+                DrawPortrait(batch, picture, new Rectangle(DefeatScene.SlotX(row.Count, i), DefeatRowTop,
+                    DefeatScene.PortraitSize, DefeatScene.PortraitSize));
+        }
+    }
+
+    /// <summary>A numbered prompt menu shows one answer per line up to this many (I's menus never have more).</summary>
+    private const int PromptListRows = 6;
+    private const int PromptGridColumns = 3;
+    private const int PromptGridCellChars = 16;
+
+    /// <summary>
+    /// A menu with more answers than <see cref="PromptListRows"/> (II's DNG8 door: "PUSH BUTTON 1 … 9", message 71) in
+    /// rows of <see cref="PromptGridColumns"/>, numbered, the highlight on <paramref name="cursor"/>; every answer shows
+    /// and can be clicked.
+    /// </summary>
+    private static void DrawPromptGrid(SpriteBatch batch, Texture2D pixel, SessionPrompt prompt, int cursor,
+        IReadOnlyList<string> lines, int maxChars)
+    {
+        // Three columns while every answer fits its cell, else one answer per line (s99: none is cut).
+        var columns = prompt.Options.Select((o, i) => $" {i + 1} {o}").All(t => t.Length <= PromptGridCellChars - 1)
+            ? PromptGridColumns : 1;
+        var cellChars = columns == 1 ? maxChars : PromptGridCellChars;
+        var rows = (prompt.Options.Count + columns - 1) / columns;
+        var shown = ScrollPromptText(lines, rows);
+        var height = 16 + (shown + rows) * 10 + 4;
+        var top = PromptPanelTop(shown, height);
+        DrawPanel(batch, pixel, new Rectangle(8, top, 304, height), PanelBg, PanelEdge);
+        if (Hits is { } hits)
+            hits.Add(new HitRegion(ModalArea, new BackdropTag()) { Click = [] });
+        var y = DrawPromptText(batch, pixel, lines, shown, top);
+        y += 4;
+        for (var i = 0; i < prompt.Options.Count; i++)
+        {
+            var cellY = y + i / columns * 10;
+            var column = i % columns * cellChars;
+            var text = $"{(i == cursor ? ">" : " ")}{i + 1} {prompt.Options[i]}";
+            PixelFont.Draw(batch, pixel, 14 + column * PixelFont.Advance, cellY, text, i == cursor ? Color.Yellow : BodyText);
+            HitCursorRow(TextSpan(14, cellY, column, column + cellChars - 1), cursor, i, Keys.Up, Keys.Down);
+        }
+        if (Hits is { } wheel)
+            wheel.Wheel = (Keys.Up, Keys.Down);
+    }
+
+    /// <summary>
+    /// The prompt's answers as mouse targets, laid out as <see cref="DrawPrompt"/> draws them: hover moves the highlight
+    /// the way the arrows do (<see cref="PromptMenu"/>), a click adds Return; a one-answer box takes a click anywhere.
+    /// </summary>
+    private static void HitPrompt(SessionPrompt prompt, int cursor, bool single, bool sideBySide, int answersY,
+        IReadOnlyList<(int Row, int Start, int End)> pairSpots)
+    {
+        if (Hits is not { } hits)
+            return;
+        hits.Add(new HitRegion(ModalArea, new BackdropTag()) { Click = single ? [Keys.Enter] : [] });
+        if (single)
+            return;
+        if (sideBySide)
+        {
+            for (var i = 0; i < pairSpots.Count; i++)
+            {
+                var (row, start, end) = pairSpots[i];
+                HitCursorRow(TextSpan(14, answersY + row * 10, start, Math.Min(end, 47)), cursor, i, Keys.Left, Keys.Right);
+            }
+            return;
+        }
+        for (var i = 0; i < Math.Min(6, prompt.Options.Count); i++)
+            HitCursorRow(TextSpan(14, answersY + i * 10, 0, 48), cursor, i, Keys.Up, Keys.Down);
+        hits.Wheel = (Keys.Up, Keys.Down);
+    }
+
+    /// <summary>Top of a <see cref="DrawTextPanel"/> panel of <paramref name="lineCount"/> lines (its line i is at top + 8 + 10·i).</summary>
+    public static int TextPanelTop(int lineCount) =>
+        Math.Max(ContentTop + 2, (ContentTop + ContentBottom - (16 + lineCount * 10)) / 2);
+
+    /// <summary>A centred modal text panel (DOS save dialog): first line in gold, the rest in body text.</summary>
+    public static void DrawTextPanel(SpriteBatch batch, Texture2D pixel, IReadOnlyList<string> lines) =>
+        DrawTextPanel(batch, pixel, lines, typing: null);
+
+    /// <summary>
+    /// <see cref="DrawTextPanel(SpriteBatch, Texture2D, IReadOnlyList{string})"/> with a <paramref name="typing"/> grid
+    /// under the text (one panel line per grid row); null draws exactly the plain panel.
+    /// </summary>
+    public static void DrawTextPanel(SpriteBatch batch, Texture2D pixel, IReadOnlyList<string> lines, TypingGrid? typing,
+        ListPage? page = null)
+    {
+        const int maxChars = 48;
+        // Each line whole (s99): a line longer than the panel goes on, at a word, on the next row; a panel with more rows
+        // than the screen holds scrolls (PgUp / PgDn where the dialog leaves them free, the wheel, the bar).
+        var gridRows = typing?.Rows.Count ?? 0;
+        var (rows, shown, top, height) = TextPanelLayout(lines, gridRows);
+        DrawPanel(batch, pixel, new Rectangle(8, top, 304, height), PanelBg, PanelEdge);
+        int? LineTop(int line) => TextPanelLineTop(lines, line, gridRows);
+        HitPanel(lines, 14, top + 8, 10, maxChars, LineTop);
+        var area = new Rectangle(12, top + 7, 296, shown * 10);
+        HitScrollArea(TextPanelScroll, area);
+        var y = top + 8;
+        for (var i = 0; i < shown && TextPanelScroll.Offset + i < rows.Count; i++)
+        {
+            var (text, line) = rows[TextPanelScroll.Offset + i];
+            PixelFont.Draw(batch, pixel, 14, y, text, line == 0 ? TitleGold : BodyText);
+            y += 10;
+        }
+        DrawScrollBar(batch, pixel, TextPanelScroll, area);
+        // A dialog's own page of a longer list: a bar beside its rows shows where the page is (the arrows and the wheel
+        // page it, as the help line says).
+        if (page is not null && !TextPanelScroll.CanScroll && LineTop(page.FirstLine) is int pageTop)
+        {
+            var pageBox = new ScrollBox();
+            pageBox.Set(page.Total, page.Shown);
+            pageBox.ScrollTo(page.Offset);
+            var track = ScrollBox.Track(new Rectangle(12, pageTop - 1, 296, Math.Min(page.Shown, lines.Count - page.FirstLine) * 10));
+            Fill(batch, pixel, track, ScrollTrack);
+            Fill(batch, pixel, pageBox.Thumb(track), ScrollThumb);
+        }
+        if (typing is not null)
+            DrawTypingGrid(batch, pixel, typing, 14, y);
+    }
+
+    /// <summary>
+    /// A text panel's rows (each line wrapped, with the line it belongs to), how many show, the panel's top and height;
+    /// sets <see cref="TextPanelScroll"/> for them (a new panel starts at its top).
+    /// </summary>
+    public static (List<(string Text, int Line)> Rows, int Shown, int Top, int Height) TextPanelLayout(
+        IReadOnlyList<string> lines, int gridRows = 0)
+    {
+        const int maxChars = 48;
+        var rows = lines.SelectMany((l, i) => Lines(l, maxChars).Select(r => (Text: r, Line: i))).ToList();
+        var shown = Math.Min(rows.Count, Math.Max(1, PromptPanelRows + 1 - gridRows));
+        TextPanelScroll.Set(rows.Count, shown);
+        TextPanelScroll.TopFor(HashCode.Combine(lines.Count > 0 ? lines[0] : "", lines.Count));
+        var height = 16 + (shown + gridRows) * 10;
+        var top = Math.Max(ContentTop + 2, (ContentTop + ContentBottom - height) / 2);
+        return (rows, shown, top, height);
+    }
+
+    /// <summary>Where a text panel draws line <paramref name="line"/>'s first row, or null when it is scrolled out of view.</summary>
+    public static int? TextPanelLineTop(IReadOnlyList<string> lines, int line, int gridRows = 0)
+    {
+        var (rows, shown, top, _) = TextPanelLayout(lines, gridRows);
+        var row = rows.FindIndex(r => r.Line == line) - TextPanelScroll.Offset;
+        return row >= 0 && row < shown ? top + 8 + row * 10 : null;
+    }
+
+    /// <summary>A modal text panel's rows (<see cref="DrawTextPanel(SpriteBatch, Texture2D, IReadOnlyList{string}, TypingGrid?, ListPage?)"/>) when they run past the screen.</summary>
+    public static ScrollBox TextPanelScroll { get; } = new();
+
+    /// <summary>
+    /// A text scroll on the pack's parchment (III Amiga <c>0x1e2c2</c>): the whole screen, the frame pieces at
+    /// <paramref name="edges"/> (picked once per reading, <see cref="ScrollFrameLayout.Pick"/>), the inside filled, the
+    /// lines from the inside's top-left in the frame's text colour (the first line, the scroll's name, too). A
+    /// <paramref name="footer"/> (III's event page: "Press a key" / "Press a number", Amiga <c>0x1d9dc</c>) sits at text
+    /// cell (14, 23) and the rows scroll above it; such a page opens on its newest rows (the Amiga scrolls the inside so
+    /// the latest text shows), and with <paramref name="anyKey"/> a click anywhere is Return ("Press a key").
+    /// </summary>
+    public static void DrawScrollFrame(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, ScrollFrameLayout frame,
+        IReadOnlyList<ScrollFrameLayout.Edge> edges, IReadOnlyList<string> lines, string? footer = null, bool anyKey = false)
+    {
+        Fill(batch, pixel, new Rectangle(0, 0, 320, 200), Color.Black);
+        foreach (var e in edges)
+            if (assets.GetScrollFramePiece(e.Slot) is { } piece)
+                batch.Draw(piece, new Vector2(e.Column * frame.Cell, e.Row * frame.Cell), Color.White);
+        var inside = new Rectangle(frame.Fill[0], frame.Fill[1], frame.Fill[2], frame.Fill[3]);
+        Fill(batch, pixel, inside, VirtualScreen.ParseColor(frame.FillColour));
+        var ink = VirtualScreen.ParseColor(frame.TextColour);
+        var maxChars = Math.Max(1, (inside.Width - 4) / PixelFont.Advance);
+        // Each line whole, wrapped at a word when wider than the parchment, and the rows scroll past its foot (s99).
+        var rows = lines.SelectMany((l, i) => Lines(l, maxChars).Select(r => (Text: r, Line: i))).ToList();
+        var shown = Math.Max(1, Math.Min(rows.Count, (inside.Height - 2 - (footer is null ? 0 : FooterRoom)) / 10));
+        ScrollFrameScroll.Set(rows.Count, shown);
+        if (ScrollFrameScroll.TopFor(string.Join("\n", lines).GetHashCode()) && footer is not null)
+            ScrollFrameScroll.End(); // the event page follows its newest rows
+        int? LineTop(int line)
+        {
+            var row = rows.FindIndex(r => r.Line == line) - ScrollFrameScroll.Offset;
+            return row >= 0 && row < shown ? inside.Y + 2 + row * 10 : null;
+        }
+        HitPanel(lines, inside.X + 2, inside.Y + 2, 10, maxChars, LineTop);
+        if (anyKey)
+            Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, ScreenBottom), new BackdropTag()) { Click = [Keys.Enter] });
+        var area = new Rectangle(inside.X, inside.Y + 1, inside.Width, shown * 10);
+        HitScrollArea(ScrollFrameScroll, area);
+        for (var i = 0; i < shown && ScrollFrameScroll.Offset + i < rows.Count; i++)
+            PixelFont.Draw(batch, pixel, inside.X + 2, inside.Y + 2 + i * 10, rows[ScrollFrameScroll.Offset + i].Text, ink);
+        DrawScrollBar(batch, pixel, ScrollFrameScroll, area);
+        if (footer is not null)
+            PixelFont.Draw(batch, pixel, FooterColumn * frame.Cell, FooterRow * frame.Cell, footer, ink);
+    }
+
+    /// <summary>III's event-page footer at text cell (14, 23) (Amiga <c>0x1d9dc</c>), and the room kept free for it.</summary>
+    private const int FooterColumn = 14, FooterRow = 23, FooterRoom = 12;
+
+    /// <summary>The parchment's rows (<see cref="DrawScrollFrame"/>) when they run past its foot.</summary>
+    public static ScrollBox ScrollFrameScroll { get; } = new();
+
+    /// <summary>The typing grid's rows from (x, y), 10 pixels a row; each cell is a mouse target that presses its key.</summary>
+    private static void DrawTypingGrid(SpriteBatch batch, Texture2D pixel, TypingGrid grid, int x, int y)
+    {
+        // Over the panel's own targets: a click between cells does nothing (an "any key" panel would take it as Return).
+        Hits?.Add(new Rectangle(x - 2, y - 1, TypingGrid.RowColumns * PixelFont.Advance + 4, grid.Rows.Count * 10), new BackdropTag());
+        foreach (var row in grid.Rows)
+        {
+            foreach (var cell in row)
+            {
+                PixelFont.Draw(batch, pixel, x + cell.X, y, cell.Label, Accent);
+                Hits?.Add(new HitRegion(new Rectangle(x + cell.X - 1, y - 1, cell.Width, 10)) { Click = [cell.Key] });
+            }
+            y += 10;
+        }
+    }
+
+    /// <summary>
+    /// A full-screen remaster menu (T5.0 main menu and Options): the first line is the title (double size, centred), the
+    /// rest one per 10 rows, and <paramref name="help"/> on the bottom row. Drawn over everything.
+    /// </summary>
+    public static void DrawMenuScreen(SpriteBatch batch, Texture2D pixel, IReadOnlyList<MenuLine> lines, string help) =>
+        DrawMenuScreen(batch, pixel, lines, help, top: 30, helpY: 186);
+
+    /// <summary>
+    /// The Options screen: its list (a little higher than a plain menu screen) and below it a box describing the row under
+    /// the cursor, wrapped to the box; a longer text scrolls ([ / ], the wheel over the box, its bar) and starts at its top
+    /// for each row.
+    /// </summary>
+    public static void DrawOptionsScreen(SpriteBatch batch, Texture2D pixel, OptionsScreen options)
+    {
+        DrawMenuScreen(batch, pixel, options.Lines(), options.Help, top: OptionsLayout.ListTop, helpY: OptionsLayout.HelpY);
+        var area = new Rectangle(OptionsLayout.DetailX, OptionsLayout.DetailTop, OptionsLayout.DetailWidth, OptionsLayout.DetailHeight);
+        DrawPanel(batch, pixel, area, PanelBg, PanelEdge);
+        var lines = new List<(string Text, Color Color)>();
+        foreach (var paragraph in options.Detail())
+        {
+            var color = paragraph.Style switch
+            {
+                MenuLineStyle.Header => TitleGold,
+                MenuLineStyle.Dim => DimText,
+                _ => BodyText,
+            };
+            foreach (var part in Wrap(paragraph.Text, OptionsLayout.DetailColumns))
+                lines.Add((part, color));
+        }
+        var box = options.DetailBox;
+        box.Set(lines.Count, OptionsLayout.DetailLines);
+        box.TopFor(options.DetailKey);
+        HitScrollArea(box, area);
+        for (var i = 0; i < OptionsLayout.DetailLines && box.Offset + i < lines.Count; i++)
+            PixelFont.Draw(batch, pixel, area.X + 4, area.Y + 3 + i * PixelFont.LineHeight, lines[box.Offset + i].Text,
+                lines[box.Offset + i].Color);
+        DrawScrollBar(batch, pixel, box, new Rectangle(area.X, area.Y + 1, area.Width - 1, area.Height - 2));
+    }
+
+    private static void DrawMenuScreen(
+        SpriteBatch batch, Texture2D pixel, IReadOnlyList<MenuLine> lines, string help, int top, int helpY)
+    {
+        Fill(batch, pixel, new Rectangle(0, 0, 320, 200), new Color(10, 14, 24));
+        DrawPanel(batch, pixel, new Rectangle(6, 4, 308, 192), PanelBg, PanelEdge);
+        if (Hits is { } hits)
+        {
+            hits.Add(new Rectangle(0, 0, 320, 200), new BackdropTag());
+            hits.Wheel = (Keys.Up, Keys.Down);
+        }
+        var y = top;
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            if (i == 0 && line.Style == MenuLineStyle.Title)
+            {
+                PixelFont.Draw(batch, pixel, 160 - PixelFont.Measure(line.Text), 10, line.Text, TitleGold, scale: 2); // centred at scale 2
+                continue;
+            }
+            var color = line.Style switch
+            {
+                MenuLineStyle.Title or MenuLineStyle.Header => TitleGold,
+                MenuLineStyle.Selected => Accent,
+                MenuLineStyle.Dim => DimText,
+                _ => BodyText,
+            };
+            PixelFont.Draw(batch, pixel, 14, y, line.Text, color);
+            Hits?.Add(TextSpan(14, y, line.Text, 0, 49), new MenuLineTag(i, line.Text));
+            y += 10;
+        }
+        PixelFont.Draw(batch, pixel, 14, helpY, help, DimText);
+    }
+
+    public static void DrawInventory(
+        SpriteBatch batch,
+        Texture2D pixel,
+        GameSession session,
+        GameDataRepository data,
+        int selectedIndex,
+        bool compareMode)
+    {
+        DrawPanel(batch, pixel, new Rectangle(8, 18, 240, 142), PanelBg, PanelEdge);
+        if (Hits is { } hits)
+        {
+            hits.Add(ModalArea, new BackdropTag());
+            hits.Wheel = (Keys.Up, Keys.Down);
+        }
+        PixelFont.Draw(batch, pixel, 14, 24, UiText.S("ui.inventory_v"), TitleGold);
+        PixelFont.Draw(batch, pixel, 14, 34, UiText.S("ui.arrows_select_enter_compare"), DimText);
+
+        // Every member's lines and items in one list that scrolls with the cursor (s99: it used to stop at the panel's
+        // foot, leaving later members out). Rows keep their pitches: 10 for a member's two lines, 9 for an item.
+        var rows = new List<(string Text, int X, int Height, Color Color, int Index, Character Owner, int ItemId)>();
+        var idx = 0;
+        foreach (var ch in session.Party.Members)
+        {
+            rows.Add((UiText.F("ui.x_hp_x_x", ch.Name, ch.HpCur, ch.HpMax), 14, 10, Color.White, -1, ch, -1));
+            rows.Add((UiText.F("ui.eq_w_x_a_x_s", ch.WornWeapon, ch.WornArmor, ch.WornShield), 18, 10, DimText, -1, ch, -1));
+            foreach (var (id, name) in ch.InventoryItemIds
+                         .Where(id => id != 0) // empty slot (s58)
+                         .Select(id => (id, name: ItemName(data, id)))
+                         .OrderBy(t => t.name, StringComparer.OrdinalIgnoreCase))
+            {
+                var selected = idx == selectedIndex;
+                rows.Add(($"{(selected ? ">" : " ")}{name}", 20, 9, selected ? Color.Yellow : BodyText, idx, ch, id));
+                idx++;
+            }
+        }
+        var compare = compareMode && rows.FirstOrDefault(r => r.Index == selectedIndex) is { ItemId: >= 0 } picked
+            ? picked : default;
+        const int listTop = 48;
+        const int lastRowTop = 145; // as before: no row starts below it
+        int FitsFrom(int first)
+        {
+            var (n, y) = (0, listTop);
+            for (var i = first; i < rows.Count && y <= lastRowTop; i++, n++)
+                y += rows[i].Height;
+            return Math.Max(1, n);
+        }
+        var box = ItemListScroll;
+        box.Set(rows.Count, FitsFrom(box.Offset));
+        box.Follow(Math.Max(0, rows.FindIndex(r => r.Index == selectedIndex)));
+        box.Set(rows.Count, FitsFrom(box.Offset));
+        var area = new Rectangle(12, listTop - 1, 234, lastRowTop + 9 - listTop);
+        HitScrollArea(box, area);
+        var rowY = listTop;
+        for (var i = box.Offset; i < box.Offset + box.Visible && i < rows.Count; i++)
+        {
+            var row = rows[i];
+            PixelFont.Draw(batch, pixel, row.X, rowY, row.Text, row.Color);
+            if (row.Index >= 0)
+                Hits?.Add(new Rectangle(18, rowY - 1, 190, 9), new InventoryRowTag(row.Index));
+            rowY += row.Height;
+        }
+        DrawScrollBar(batch, pixel, box, area);
+
+        if (compare.Owner is not null)
+        {
+            var entry = data.Items.FirstOrDefault(i => i.Id == compare.ItemId);
+            PixelFont.Draw(batch, pixel, 14, 148,
+                UiText.F("ui.cmp_pts_x_vs_worn_w", entry?.Points?.ToString() ?? "?", compare.Owner.WornWeapon),
+                Accent);
+        }
+    }
+
+    /// <summary>The item overlay's list (<see cref="DrawInventory"/>).</summary>
+    public static ScrollBox ItemListScroll { get; } = new();
+
+    /// <summary>The bestiary's list (<see cref="DrawBestiary"/>): the arrows, the wheel and its bar scroll it.</summary>
+    public static ScrollBox BestiaryScroll { get; } = new();
+
+    public static void DrawBestiary(
+        SpriteBatch batch,
+        Texture2D pixel,
+        AssetCatalog assets,
+        GameDataRepository data,
+        QoLProgress qol)
+    {
+        DrawPanel(batch, pixel, new Rectangle(8, 18, 280, 142), new Color(28, 16, 16, 240), new Color(160, 90, 90));
+        if (Hits is { } hits)
+        {
+            hits.Add(ModalArea, new BackdropTag());
+            hits.Wheel = (Keys.Up, Keys.Down);
+        }
+        PixelFont.Draw(batch, pixel, 14, 24, UiText.S("ui.bestiary_b"), new Color(220, 140, 140));
+        PixelFont.Draw(batch, pixel, 14, 34, UiText.F("ui.x_recorded", qol.SeenMonsterIds.Count), DimText);
+
+        var seen = data.Monsters.Where(m => qol.SeenMonsterIds.Contains(m.Id)).OrderBy(m => m.Name).ToList();
+        const int listTop = 48;
+        const int listBottom = 157;
+        if (seen.Count == 0)
+        {
+            PixelFont.Draw(batch, pixel, 14, listTop, UiText.S("ui.no_encounters_yet_fight_to_unlock"), DimText);
+            return;
+        }
+
+        // Each monster's picture 1:1 (s99: no art scaled down or out of shape), its row as tall as the picture needs;
+        // as many rows as fit from the scroll offset.
+        int RowHeight(int i) => Math.Max(38, (assets.GetMonsterIdle(seen[i].Id)?.Height ?? 34) + 4);
+        var box = BestiaryScroll;
+        box.Set(seen.Count, 1);
+        var fits = 0;
+        for (var h = 0; box.Offset + fits < seen.Count && h + RowHeight(box.Offset + fits) <= listBottom - listTop; fits++)
+            h += RowHeight(box.Offset + fits);
+        box.Set(seen.Count, Math.Max(1, fits));
+        var area = new Rectangle(12, listTop, 272, listBottom - listTop);
+        HitScrollArea(box, area);
+        var y = listTop;
+        for (var i = box.Offset; i < box.Offset + Math.Max(1, fits) && i < seen.Count; i++)
+        {
+            var m = seen[i];
+            var sprite = assets.GetMonsterIdle(m.Id);
+            var pictureWidth = sprite?.Width ?? 32;
+            if (sprite is not null)
+                batch.Draw(sprite, new Rectangle(14, y, sprite.Width, sprite.Height), Color.White);
+            else
+                Fill(batch, pixel, new Rectangle(14, y, 32, 34), new Color(60, 30, 30));
+            var textX = Math.Max(52, 14 + pictureWidth + 6);
+            PixelFont.Draw(batch, pixel, textX, y + 4, m.Name, Color.White);
+            PixelFont.Draw(batch, pixel, textX, y + 16,
+                UiText.F("ui.cv_x_hp_x_lv_x", m.CombatRating, m.HpBase, m.Level),
+                new Color(180, 150, 150));
+            y += RowHeight(i);
+        }
+        DrawScrollBar(batch, pixel, box, area);
+    }
+
+    /// <summary>The rows <see cref="DrawTooltip"/> clears: the help line (167…<see cref="MessageY"/> − 2) for one line, up to the message for two.</summary>
+    public static Rectangle TooltipBand(int lines) =>
+        lines > 1 ? new Rectangle(0, 167, 320, MessageY - 167) : new Rectangle(0, 167, 320, MessageY - 1 - 167);
+
+    public static void DrawTooltip(SpriteBatch batch, Texture2D pixel, string text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        // Tooltip shares the help strip during combat; a longer one takes a second line, closed up above the message.
+        var lines = Lines(text, 52);
+        var pitch = lines.Count > 1 ? 7 : 0;
+        var top = lines.Count > 1 ? HelpY - 1 : HelpY;
+        Hits?.Add(new Rectangle(0, top - 1, 320, 10 + pitch * (lines.Count - 1))); // covers the help line's keys
+        // Clear the help line under it (s114: a one-line tooltip was drawn over the round's key help, both unreadable).
+        Fill(batch, pixel, TooltipBand(lines.Count), new Color(6, 8, 14));
+        for (var i = 0; i < lines.Count; i++)
+            PixelFont.Draw(batch, pixel, 4, top + i * (pitch + 1), lines[i], new Color(200, 220, 255));
+    }
+
+    public static void DrawAutoMapOverlay(
+        SpriteBatch batch,
+        Texture2D pixel,
+        DungeonLevel level,
+        DungeonState state,
+        QoLProgress qol,
+        int ox,
+        int oy,
+        int cell)
+    {
+        _ = (ox, oy, cell);
+        const int mapOx = 222;
+        const int mapOy = 16;
+        const int ms = 2;
+        var w = level.GridWidth * ms + 4;
+        var h = Math.Min(level.GridHeight * ms + 4, ContentBottom - mapOy - 2);
+        DrawPanel(batch, pixel, new Rectangle(mapOx - 2, mapOy - 2, w, h), new Color(0, 0, 0, 200), PanelEdge);
+
+        foreach (var (x, y) in qol.VisitedCells(state.LevelId))
+        {
+            if (!level.InBounds(x, y)) continue;
+            var py = mapOy + y * ms;
+            if (py >= ContentBottom - 2) continue;
+            var walk = level.Get(x, y) != 0;
+            var c = walk ? new Color(70, 90, 70) : new Color(40, 40, 50);
+            batch.Draw(pixel, new Rectangle(mapOx + x * ms, py, ms, ms), c);
+        }
+
+        batch.Draw(pixel,
+            new Rectangle(mapOx + state.X * ms, mapOy + state.Y * ms, ms, ms),
+            Color.Cyan);
+    }
+
+    public static List<(int Id, string Name, int Qty, int Price)> BuildTownStock(
+        GameSession session,
+        GameDataRepository data)
+    {
+        var town = session.CurrentTown;
+        var list = new List<(int, string, int, int)>();
+        if (town is null) return list;
+
+        for (var id = TownState.FirstListedItemId; id < town.Stock.Length; id++)
+        {
+            var qty = town.Stock[id];
+            if (qty <= 0) continue;
+            var item = data.Items.FirstOrDefault(i => i.Id == id);
+            if (item is null) continue;
+            var price = TownMenus.ListBuyPrice(
+                new ItemCatalogEntry { Id = id, Name = item.Name, ValueFactor = item.ValueFactor },
+                town);
+            list.Add((id, item.Name, qty, price));
+        }
+
+        return list;
+    }
+
+    private static string ItemName(GameDataRepository data, int id)
+    {
+        var item = data.Items.FirstOrDefault(i => i.Id == id);
+        return item?.Name ?? $"#{id}";
+    }
+
+    /// <summary><paramref name="s"/> cut with "." to <paramref name="maxChars"/> layout columns (the font's widths; one character stays).</summary>
+    private static string Fit(string s, int maxChars) =>
+        string.IsNullOrEmpty(s) ? "" : PixelFont.Fit(s, maxChars * PixelFont.Advance, minChars: 1);
+
+
+    /// <summary>The screen the current Draw batches on (set by the shell), or null (tests, headless): no clipping then.</summary>
+    public static VirtualScreen? Screen { get; set; }
+
+    /// <summary>
+    /// Run <paramref name="draw"/> with everything it draws cut off at <paramref name="clip"/>'s edges (a box scrolled by
+    /// pixels, its content running past top and bottom). The batch is ended and begun again around it.
+    /// </summary>
+    public static void Clipped(SpriteBatch batch, Rectangle clip, Action draw)
+    {
+        if (Screen is not { } screen)
+        {
+            draw();
+            return;
+        }
+        batch.End();
+        screen.BeginLayoutClipped(batch, clip);
+        draw();
+        batch.End();
+        screen.BeginLayout(batch);
+    }
+
+    private static readonly Color ScrollTrack = new(40, 48, 66);
+    private static readonly Color ScrollThumb = new(150, 160, 190);
+
+    /// <summary>
+    /// <paramref name="box"/> as the wheel's target over <paramref name="area"/>; register it before the box's rows so their
+    /// own clicks stay on top.
+    /// </summary>
+    public static void HitScrollArea(ScrollBox box, Rectangle area)
+    {
+        if (box.CanScroll)
+            Hits?.Add(area, new ScrollAreaTag(box));
+    }
+
+    /// <summary>
+    /// The bar of <paramref name="box"/> on the right edge of <paramref name="area"/> (<see cref="ScrollBox.Track"/>) when it
+    /// has more rows than fit: the track, the thumb, and a mouse target over the track (a click jumps, a drag follows).
+    /// Nothing is drawn when everything fits.
+    /// </summary>
+    public static void DrawScrollBar(SpriteBatch batch, Texture2D pixel, ScrollBox box, Rectangle area)
+    {
+        if (!box.CanScroll)
+            return;
+        var track = ScrollBox.Track(area);
+        Fill(batch, pixel, track, ScrollTrack);
+        Fill(batch, pixel, box.Thumb(track), ScrollThumb);
+        // A slightly wider target than the 3-pixel bar, so it can be hit.
+        Hits?.Add(new Rectangle(track.X - 2, track.Y, track.Width + 3, track.Height), new ScrollBarTag(box, track));
+    }
+
+    private static void DrawPanel(SpriteBatch batch, Texture2D pixel, Rectangle r, Color fill, Color edge)
+    {
+        Fill(batch, pixel, r, fill);
+        HLine(batch, pixel, r.X, r.Y, r.Width, edge);
+        HLine(batch, pixel, r.X, r.Bottom - 1, r.Width, edge);
+        VLine(batch, pixel, r.X, r.Y, r.Height, edge);
+        VLine(batch, pixel, r.Right - 1, r.Y, r.Height, edge);
+    }
+
+    private static void Fill(SpriteBatch batch, Texture2D pixel, Rectangle r, Color c) =>
+        batch.Draw(pixel, r, c);
+
+    private static void HLine(SpriteBatch batch, Texture2D pixel, int x, int y, int w, Color c) =>
+        batch.Draw(pixel, new Rectangle(x, y, w, 1), c);
+
+    private static void VLine(SpriteBatch batch, Texture2D pixel, int x, int y, int h, Color c) =>
+        batch.Draw(pixel, new Rectangle(x, y, 1, h), c);
+}

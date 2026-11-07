@@ -1,0 +1,22 @@
+{
+ "_schema": "phantasie.game/v1",
+ "_source": "Built by tools/scripts/build_p3_gamedata.py from Phantasie III, DOS SSI 1988 (reverse-engineering/dos/phantasie3/extracted/, FORMAT.md)",
+ "_note": "The tables this folder holds and their sizes, read by OpenPhantasie.Data GameTables.Load (09-trilogy.md T4). III has no MESS message files (its dungeon texts are in each DNGS record: dungeons.json messages), so message_areas is 0 and there is no messages.json. rule-tables.json holds III's own tables (skills, body areas, training curves, social classes, class kit, wilderness encounters, dungeon entries). Played by Core's Phantasie3Campaign (09-trilogy.md T4).",
+ "game": "p3",
+ "platform": "dos",
+ "counts": {
+  "monsters": 80,
+  "items": 181,
+  "spells": 57,
+  "classes": 6,
+  "races": 18,
+  "overworld_regions": 4,
+  "dungeon_levels": 11,
+  "message_areas": 0,
+  "scrolls": 19,
+  "towns": 17,
+  "elementals": 3
+ },
+ "spell_cost_rule": null,
+ "_spell_cost_rule": "Costs come from the manual's spell table, filled per spell; #53 (empty) and #57 Divine Aid have none [?]."
+}

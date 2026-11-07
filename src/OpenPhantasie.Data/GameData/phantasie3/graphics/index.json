@@ -1,0 +1,11 @@
+{
+  "_schema": "phantasie.graphics-index/v1",
+  "_note": "T1.5 graphics packs of Phantasie III. Art source: the Amiga v1.0 (03c-phantasie3-re.md; never the DOS CGA art on screen). The only pack so far and the default.",
+  "game": "phantasie3",
+  "default_order": [
+    "amiga"
+  ],
+  "packs": [
+    "amiga.json"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "_schema": "phantasie.graphics-index/v1",
+  "_note": "T1.5 graphics packs of Phantasie II. II had no DOS or Amiga port; its art comes from the Atari ST (user s71), the default (D2-014: the ST fill patterns are shown), or from the Apple II (s158, the Memorial Set's II; shapes and the title picture only). default_order keeps the ST first; with only the Apple II files present the Apple II pack is the default.",
+  "game": "phantasie2",
+  "default_order": [
+    "atari-st",
+    "apple2"
+  ],
+  "packs": [
+    "atari-st.json",
+    "apple2.json"
+  ]
+}

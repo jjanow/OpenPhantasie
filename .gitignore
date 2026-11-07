@@ -1,0 +1,40 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+artifacts/
+**/Content/bin/
+**/Content/obj/
+TestResults/
+
+# IDE / OS
+.vs/
+.idea/
+*.user
+*.suo
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Python
+**/__pycache__/
+*.pyc
+
+# Never commit game files: disk images, ROMs, or an import folder
+*.adf
+*.ima
+*.img
+*.st
+*.stx
+*.dim
+*.xdf
+*.hdm
+*.d64
+*.d88
+*.dsk
+*.woz
+*.atr
+*.rom
+*.A500
+import/
+import.tmp/

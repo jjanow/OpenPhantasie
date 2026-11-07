@@ -1,0 +1,436 @@
+{
+  "_schema": "phantasie.graphics-pack/v1",
+  "_note": "Amiga Phantasie I art (tools/scripts/extract_amiga_graphics.py + extract_amiga_map_graphics.py). Paths are relative to root; the map layout's images (overworld.region.N, overworld.icon.KIND, overworld.party, dungeon.glyph.N, dungeon.compass) come from maps/maps.json. logo.png (ui.logo) is the About Phantasie requester's 176 x 80 Image (s156). Pixel aspect 1:1 = the remaster's square pixels.",
+  "id": "amiga",
+  "game": "phantasie1",
+  "platform": "amiga",
+  "name": "Amiga",
+  "auto_select": true,
+  "root": "reverse-engineering/amiga/extracted",
+  "requires": ["monsters"],
+  "screen": { "width": 320, "height": 200, "pixel_aspect": [1, 1], "background": "#10121C" },
+  "palette": [],
+  "font": "remaster-5x7",
+  "map_layout": {
+    "_note": "party_hidden_under_prompts (s153, static, FORMAT.md \"Overworld / dungeon map graphics\"): the overworld party is a hardware sprite (h77 +0xdfe); every question over the map is an h86 requester (+0x32a menus: A TOWN. / A DUNGEON. / AN INN.  ENTER?, the HEARS and SLEEPING MONSTERS menus, KEEP IT?), and h86 +0 / its wait +0x132 MoveSprite it to y 200 (off the screen) before Request and back after EndRequest. Drawn behind AMIGA SCREENS.",
+    "format": "amiga-maps/v1", "file": "maps/maps.json", "party_hidden_under_prompts": true
+  },
+  "palettes": {
+    "map": ["#000000", "#EE0000", "#228800", "#EEBB00", "#0088BB", "#EE00EE", "#2222EE", "#0088AA", "#666666", "#AA4400", "#446600", "#EE8800", "#44EE22", "#888888", "#2266AA", "#EEEEEE"],
+    "town": ["#000000", "#EE0000", "#EE2244", "#880000", "#EEEE00", "#226644", "#00EE00", "#AA2200", "#00EEEE", "#00AAEE", "#0044EE", "#666666", "#444444", "#AAAAAA", "#888888", "#EEEEEE"]
+  },
+  "colour_cycle": {
+    "_note": "s128, FS-UAE + static read: the overworld water shimmers. h77 +0x178 (called from the input wait loop h80 +0x1ac while no IDCMP message waits) rotates the three colour words h78 +6 / +8 / +a (08B, 08A, 26A) every 200000 us of CurrentTime (h80 +0xd2a, h78 +2 = 0x30D40) and SetRGB4s them into pens h78 +0xc = 4, 7, 14: the colour of pen 4 moves to 7, 7 to 14, 14 to 4. On only between h62 +0 (h2 +0x196, the wilderness) and h62 +0xa (town, dungeon, other states). 0.2 s = 12 VBL at 60 Hz here (a wall-clock timer, not VBLs; 60 because the pack's title, combat and sound layouts take this vbl_hz when they name none, and I is NTSC as its victory screen and title tune); measured on FS-UAE ~0.22 s a step (the loop polls it). runs_while input_wait (s153): h77 +0x178's only caller is h80 +0x1ac, so it pauses while anything else runs (a requester-23 box, an h86 requester, a step); on the next idle poll it takes one step at once when 0.2 s have passed since the last (no catching up), and h80 +0xd2a keeps CurrentTime's seconds mod 8 (clock_wrap_seconds: a step comes early at each multiple).",
+    "palette": "map",
+    "registers": [4, 7, 14],
+    "period_vbl": 12,
+    "vbl_hz": 60,
+    "runs_while": "input_wait",
+    "clock_wrap_seconds": 8,
+    "pictures": ["overworld.region.", "overworld.icon."]
+  },
+  "town_screen": {
+    "_note": "Name (s120 FS-UAE capture, reverse-engineering/amiga/FORMAT.md \"Town screen text\"): the 10-character space-padded field centred on 320, top row 185, pen 2 of the town palette 0x1947C (0xE24 x17). font (s135): h80:0x818 prints name and messages with Text() on the window's RastPort, whose font is z6font 6 (PELNOR pixel-equal on parity/shots/p1-amiga-town-pelnor-exact.png); drawn behind AMIGA SCREENS.",
+    "bar_rows": 11, "name_x": 160, "name_y": 185, "name_field": 10, "name_colour": "#EE2244", "message_y": 184,
+    "font": "amiga-z6font-6",
+    "_leaving_note": "s154 static [C] (FORMAT.md 'Screens', LEAVING): h5 +0xde calls h29 +0x168 when the town loop returns: sprintf 'LEAVING %s' (h30 +0x2c) of the record's 10-character name, h80 +0x818(text, 4) (the line cleared, the text centred: x 106 for PELNOR, pen 4 of 0x1947C = EE0, shot p1-amiga-town-leaving-pelnor), the auto-save if h30 +0x2a is set (off at boot), then h92 +0 (rts) and the overworld's load; no wait of its own. leaving_seconds: s154 film (FS-UAE NTSC, two leaves at 60 fps, capture_s154_leaving.md): the line shows 0.16-0.17 s after the click for 2 film frames (1-3 Amiga frames) [~], then the whole screen is black 2.1-2.35 s (the map's load, not modelled: no disk waits on the map) before the map.",
+    "leaving_colour": "#EEEE00",
+    "leaving_seconds": 0.033,
+    "_leaving_black_note": "s156: the black after the line, from s154's two filmed leaves (capture_s154_leaving.md: everything black at 0.193 / 0.205 s, the overworld whole at 2.543 / 2.343 s after the click: 2.35 / 2.14 s), the mean [~] (the map's load from disk likely; the auto-save's time in it not measured). The pointer shows for the first 1.6-1.8 s of it, then vanishes [?]: the remaster's own pointer is not changed.",
+    "leaving_black_seconds": 2.24
+  },
+  "title_sequence": {
+    "_note": "The Amiga boot (reverse-engineering/amiga/FORMAT.md 'Title' and 'Title tune'): s/startup-sequence runs game; main (hunk 2 +0x38) calls h77 +0x2de: cover1 is blitted, palette h69 +0xb4 set, tamb.dat (the title tune) plays until it ends or a key / mouse button (IDCMP RAWKEY / MOUSEBUTTONS, h80 +0x4e4) stops it [C]. tamb.dat is an ST Dosound script read by the Amiga player h89 +0x304 (Paula, a 16-byte ramp waveform, Delay(n*6/5) ticks of 1/50 s): 338 steps, 2678 ticks = 53.56 s [C], so cover1 lasts the tune (a key ends both). Its period factor 1.7897732 is the NTSC Paula clock over the ST PSG clock, so clock_hz is NTSC [~]. Then cover2 (credits) and main's Delay(250) = 5 s (dos.library ticks are 1/50 s on PAL and NTSC) [C]; the Amiga ignores keys there, the remaster lets a key end it.",
+    "canvas": [320, 200],
+    "background": "#000000",
+    "tune": { "format": "amiga-dosound", "file": "../unpacked/PHANT/tamb.dat", "until_step": 1, "clock_hz": 3579545 },
+    "steps": [
+      { "picture": "title.cover", "until_tune_ends": true },
+      { "picture": "title.credits", "seconds": 5 }
+    ]
+  },
+  "ending_scene": {
+    "_note": "The victory screen (h32 +0x6d0, s127 static; FORMAT.md 'Defeat and ending pictures'): final.pic blitted on black, the 16 pens of the combat table h69 +0x94 (x17) set one at a time 10 WaitTOF apart (h77 +0x288), Delay(120); the ghost (h69 +0x994) in each OK member's slot of the row at y 158 (h32 +0x36e: n OK members, gap (320 - 32n)/(n + 1); a slot's x is that of the next OK member, the ghosts go to slots 0..n-1), Zeus' raised arm (h69 +0x3694, 32x37) at (160, 48); per OK member its portrait over its slot and Delay(120); the 7 speech lines centred on row 192 in pen 5 (h80 +0x84a), each 180 ticks or a key (h62 +0x576); then pens 15..0 to black (the summoned elemental: the Amiga's loops take every record, DOS and the remaster at most 6 [~]), 10 WaitTOF apart. VBL rate 60 Hz (NTSC) [~], as the title tune. Sounds (s128, sounds below, sound_effects): 22 before the black, 25 on black before the fade-in, 1 between the ghosts and the arm, 21 after each portrait, 24 and 22 between the last line and the fade-out; the player h89 +0x304 blocks, so each holds the screen for its length [C] (s130 live capture: the screen is cleared to pen 0 before sound 22, as the remaster [C]; the disk read / guild.dat write times, the per-step sound overhead, FORMAT.md). s130 live capture (reverse-engineering/amiga/working/capture_s130_victory.md): a line is 180 polls of Delay(1) + a port check, 21.87 ms each (3.93 s) [C]; disk waits [~] (head position, patched path): final.pic read 3.45 s after sound 22, guild.dat written 5.95 s after sound 24, the town reloaded 3.06 s after the fade-out ends (live black 3.40 s from the last lit pen at 73.33, town at 76.73; the fade runs 16 x 10 VBLs from 71.00); keys (queued_keys) [C]: presses and releases queue in the input port, each sound drains it, a key in a sound ends it at a step, a line takes one queued event; the speech in the Amiga's own line breaks (game 0xc68a..). s153 live at 60 fps with sound (capture_s153_sounds.md) [C]: h77 +0xcfe waits a WaitTOF before each blit (blit_vbl), so the ghosts land one a frame, the arm the frame sound 1 ends, portrait 0 one frame later, each portrait one frame before its sound 21 (first ghost -> arm 0.25 s with six members); a click is two input events (the press ends a line, the release the next); an event after a sound has already been cut stays queued (the player reads one message a step). Disk waits refitted s153 on that run with the new sound holds: final.pic 3.50 s after 22's hold, guild.dat 6.09 s after 24's, the town 3.47 s after the fade-out (s130's run: 3.06).",
+    "palette": ["#000000", "#AA4422", "#EE0000", "#EE6600", "#EEAA00", "#EEEE00", "#00EE00", "#008800", "#888844", "#00EEEE", "#00AAEE", "#0044EE", "#EEBBBB", "#888888", "#EE22AA", "#EEEEEE"],
+    "vbl_hz": 60, "fade_vbl": 10, "hold_ticks": 120,
+    "ghost": "ending.ghost", "arm": "ending.arm", "arm_x": 160, "arm_y": 48,
+    "row_top": 158, "slot_size": 32, "grant_ticks": 120,
+    "font": "amiga-z6font-6",
+    "text_y": 192, "text_pen": 5, "line_ticks": 180, "line_poll_seconds": 0.02187, "queued_keys": true, "blit_vbl": 1,
+    "disk": { "picture_read": 3.5, "save": 6.09, "save_after_sounds": 1, "town_load": 3.47 },
+    "speech": ["core.endgame.zeus_1", "core.endgame.zeus_2", "amiga.endgame.zeus_3", "amiga.endgame.zeus_4",
+      "amiga.endgame.zeus_5", "core.endgame.zeus_6", "core.endgame.zeus_7"],
+    "sounds": { "before_black": 22, "on_black": 25, "before_arm": 1, "after_portrait": 21, "after_speech": [24, 22] }
+  },
+  "combat_field": {
+    "_note": "I Amiga's combat screen (s132; reverse-engineering/amiga/FORMAT.md 'The combat screen', static [C]; capture reverse-engineering/amiga/working/capture_s132_combat.md). Screen pixels, pens of the combat table h69 +0x94 (x17). h53 +0x2fc: field (3,14)-(316,196) pen 0, frame h77 +0x6dc(0, 11, 319, 186, 1) = 3 px pen 1 round (0,11)-(319,199); party row y 150 (h54 +0x1e6), 32x32, gap (320 - 32n)/(n + 1); groups stacked from y 147 (3 rows above the row, 3 between). Line h53 +0xb80(text, n): sound n (blocks), text centred pen 3 TopEdge 185, then h3 polls (h62 +0x576, 21.87 ms each, s130) unless strlen <= 3; h3 = 10 at boot, the Speed menu 1 / 30 / 80 (h65 +0x27e). Attack frame Delay(18), caster silhouette Delay(18) (Fast: 1). Member death: grave (h54 +0xe) at slot + (8, 13), sound 15, 30 polls, the row re-laid. Sounds 17 at a fight's first set-up, 18 at each round's end. Set-up (s135): every round starts with h53 +0x2fc, whose fill and blits each wait a WaitTOF (setup_frame_seconds, NTSC): field cleared, then the row member by member, then the monsters; a fight's first one (h53 +0x274) BltClears the whole screen (the bar too) and plays sound 17 on the black first, then h44 +0xca's round set-up runs again (s136/s138: that second set-up is a surprise opening's round 1 end; live s138 [C]: black 1.08 s, the first set-up's frame last, the bar black from the BltClear until the Party Options wait, 0.82-0.85 s after the end set-up = sound 18; a click cuts 17). Requesters (h84): 21 orders (moved to Top 23), 24 order buttons, 26 rank, 23 messages. Font (s134): the window's z6font 6 (fonts/z6font/6, TextAttr h78 +0x36: h77 +0x138 OpenDiskFont, +0x150 SetFont on the window's RastPort; every h84 IntuiText of these requesters names it); the line, orders rows, FIGHT and spell rows pixel-equal to -04 / -07 / -09.",
+    "palette": ["#000000", "#AA4422", "#EE0000", "#EE6600", "#EEAA00", "#EEEE00", "#00EE00", "#008800", "#888844", "#00EEEE", "#00AAEE", "#0044EE", "#EEBBBB", "#888888", "#EE22AA", "#EEEEEE"],
+    "frame": [0, 11, 320, 189], "frame_width": 3, "frame_pen": 1,
+    "field": [3, 14, 314, 183],
+    "party_y": 150, "slot": 32, "group_gap": 3,
+    "line_y": 185, "line_pen": 3, "font": "amiga-z6font-6",
+    "grave": "combat.grave", "grave_offset": [8, 13],
+    "tick_seconds": 0.02, "attack_ticks": 18, "flash_ticks": 18, "fast_flash_ticks": 1,
+    "setup_frame_seconds": 0.0166667,
+    "poll_seconds": 0.02187, "speed_polls": [1, 30, 80], "start_polls": 10, "short_line": 3, "death_polls": 30,
+    "_shape_load_note": "s154 static [C] + s153 live [~]: after FIGHT h71 +0x1050 calls h53 +0xd5e: each group whose monster id is not in the 3-slot cache (h54 +2, initial 200 = empty, kept for the program run; a miss takes the first slot this fight does not use) is read from MSTR1.PAT and MSTR2.PAT (h53 +0xccc: Open / Seek / Read 0xc80 B / Close, no Delay): pure disk time while the map stays. One figure for a fight with any read: the mean of s153's three live loads 3.62 / 3.77 / 2.77 s (capture_s153_sounds.md; head position and the drive decide, not the group count) [~]. No read at all when every group is cached.",
+    "shape_load_seconds": 3.39, "shape_cache_slots": 3,
+    "sounds": { "fight_start": 17, "round_end": 18, "member_death": 15 },
+    "sparkle": { "_note": "s133 static [C] (FORMAT.md 'The combat screen'): h53 +0xab8 before each monster's damage of FIREFLASH (h35 +0x4bc) / MINDBLAST / FLAMEBOLT (h38 +0x1a6 / +0x1f6; FLAMEBOLT's amount before armour): damage / 32 + 1 times sound 30 (h89 +0x1cc, blocks), the hardware sprite h69 +0x154 (16x16, colour 1 = EE0) at monster x + rnd(w - 16), y + rnd(h - 16) (+0xa54, rnd = h53 +0xa0e), Delay(18), off. Seen live s134 (screen pixels; 3 sparkles for 78 damage). s153 (static + live with sound, capture_s153_sounds.md): h77 +0xf2a waits 4 WaitTOFs before the sprite shows (on_frames), +0x108e 3 taking it off (off_frames, the sprite up for the first): live CASTS line -> 10 polls -> sound 30 -> sprite 0.18 s, sprite up 0.37 s, the damage line 0.03 s after it goes.",
+      "picture": "combat.sparkle", "size": 16, "ticks": 18, "damage_step": 32, "sound": 30,
+      "on_frames": 4, "off_frames": 3 },
+    "line_sounds": [
+      { "key": "core.combat.x_awakens", "party": [0], "monster": [10] },
+      { "key": "core.combat.x_casts_a_spell", "party": [1], "monster": [9], "monster_no_wait": true, "flash": true,
+        "_note": "D-079 (user s138): a monster's cast prints a one-space line on the Amiga (h38 +0x480: sound 9, strlen <= 3 so no polls); the remaster keeps DOS's text with sound 9 and no wait, as II (s137)." },
+      { "key": "core.combat.x_breathes", "party": [], "monster": [9, 13], "flash": true },
+      { "key": "core.combat.x_hits", "party": [3], "monster": [5] },
+      { "key": "core.combat.x_misses", "party": [4], "monster": [8] },
+      { "key": "core.combat.magic_drained", "party": [6], "monster": [6] },
+      { "key": "core.combat.a_stunning_blow", "party": [7], "monster": [7] },
+      { "key": "core.combat.monsters_run", "party": [2], "monster": [2] },
+      { "key": "core.combat.party_awakens", "party": [0], "monster": [0] },
+      { "key": "core.combat.x_is_slept", "party": [14], "monster": [11] },
+      { "key": "core.magic.x_is_resurrected", "party": [12], "monster": [], "then_blank": true,
+        "_note": "s154 static [C]: in a round (state 5) h38 +0x428 re-lays the row (h53 +0x46e, not drawn by the remaster until the next set-up [~]), then +0xb80(text, 12): 12 before the line and its polls, then +0xb80(' ', -1): the line cleared, no sound, no wait. Outside a fight (any other state) the text goes to requester 23 (h44 +0x466) and 12 plays after the box." },
+      { "key": "core.combat.x_dies", "party": [], "monster": [16], "no_wait": true }
+    ],
+    "menu_bar": {
+      "_note": "s132 capture (p1-amiga-combat-01 / -02 / -03): at rest the bar is the screen title in pen 13 (h81 ' Info', ' Party Options   Speed'); with the right button held Intuition draws the menu strip: titles pen 15, the pulled-down title on a pen-15 box (Party Options x 58-185, Speed 186-247, rows 0-8) in pen 0, the item box pen 0 with a pen-15 border (1 row, 2 px sides; Party Options (55,9)-(192,84), Speed (183,9)-(260,44)), item text pen 15 from row 13, 10 rows apart. Speed's '*' is part of 'Normal''s text (h81 '*Normal'), it never moves. Info's box not seen [~]. Font (s134): topaz 8, the screen's NewScreen.Font (TextAttr h78 +0x22) and the items' IntuiTexts (h81 +0x36 / +0x4a), Kickstart ROM; title_x / item_x are pen x (topaz glyphs carry blank columns), every title and item pixel-equal to -01 / -02 / -03.",
+      "rows": 10, "bar_pen": 0, "text_pen": 13, "text_y": 1, "font": "amiga-topaz-8",
+      "box_pen": 0, "border_pen": 15, "item_pen": 15, "highlight_pen": 15, "highlight_text_pen": 0,
+      "menus": [
+        { "title": "p1field.menu.info", "title_x": 12, "highlight": [8, 0, 40, 9], "items": [] },
+        { "title": "p1field.menu.party_options", "title_x": 67, "highlight": [58, 0, 128, 10],
+          "items": ["p1field.item.beg_mercy", "p1field.item.threaten", "p1field.item.greetings", "p1field.item.fight",
+            "p1field.item.flee", "p1field.item.show_names", "p1field.item.party_health"],
+          "box": [55, 9, 138, 76], "item_height": 10, "item_x": 69, "item_y": 12 },
+        { "title": "p1field.menu.speed", "title_x": 195, "highlight": [186, 0, 62, 10],
+          "items": ["p1field.item.fast", "p1field.item.normal", "p1field.item.slow"],
+          "box": [183, 9, 78, 36], "item_height": 10, "item_x": 189, "item_y": 12 }
+      ]
+    },
+    "orders": {
+      "box": [33, 23, 255, 110], "fill_pen": 10, "border_pen": 13,
+      "row_x": 41, "row_y": 49, "row_step": 8, "row_pen": 15,
+      "fight": [42, 114, 235, 9], "fight_fill_pen": 15, "fight_border_pen": 2, "fight_text": [132, 116], "fight_text_pen": 0,
+      "fight_label": "p1field.fight",
+      "choice_box": [33, 131, 255, 43],
+      "choice_buttons": [[43, 139, 70, 9], [126, 139, 70, 9], [209, 139, 70, 9], [43, 157, 70, 9], [126, 157, 70, 9], [209, 157, 70, 9]],
+      "prompt_box": [33, 131, 255, 29], "prompt_text": [82, 144], "prompt_text_pen": 0,
+      "rank_buttons": [[193, 142, 11, 9], [205, 142, 11, 9], [217, 142, 11, 9]], "rank_border_pen": 1
+    },
+    "spell_list": {
+      "_note": "s133: Cast (h71 +0x73a). Requester 12 'SPELLS AVAILABLE:' (h23 +0x570) lists every known spell in slot order, 6 a page, scroll gadgets 2 / 3 ghosted when they cannot move, EXIT = PARRY; HEALING I-IV then ask 'ON WHOM:' in requester 6 (h62 +0x508, every member in record order). Pens are the screen's: the struct pens go through h77 +0x112e (table h69 +0x19c) for requesters 0-19. GRELRIGHT / GRELBOTTOM gadgets sit at W - 1 + LeftEdge, H - 1 + TopEdge. Places checked on parity/shots/p1-amiga-combat-07 and -15 to -19 (s134 live: pages, requester 6). tone (s134): h23 +0x734 plays sound 31 (h89 +0xd2, the script h90 +5) after each gadget event of requester 12 (a live row, a scroll gadget that can move, EXIT); requester 6 plays none. FORMAT.md 'The spell list'.",
+      "spells": {
+        "box": [46, 57, 228, 111], "fill_pen": 2, "border_pen": 10, "title": [61, 69], "title_pen": 0,
+        "list_frame": [53, 85, 185, 55], "list_frame_pen": 0, "list_fill": [54, 86, 183, 53], "list_fill_pen": 11,
+        "row": [58, 90, 176, 7], "row_step": 8, "rows": 6, "row_pen": 15, "row_back_pen": 11,
+        "exit": [175, 149, 64, 9], "exit_border_pen": 1, "button_fill_pen": 15, "button_text_pen": 0,
+        "exit_label": "p1field.exit", "exit_text": [20, 2],
+        "scroll_up": [247, 87, 18, 9], "scroll_down": [247, 129, 18, 9], "scroll_border_pen": 12, "glyph_at": [6, 2],
+        "up_glyph": ["..##", ".####", "######", "..##", "..##"], "down_glyph": ["..##", "..##", "######", ".####", "..##"],
+        "ghost_pen": 0, "ghost_step": 4, "tone": 31
+      },
+      "target": {
+        "box": [43, 46, 233, 107], "fill_pen": 0, "border_pen": 1, "title": [50, 59], "title_pen": 15,
+        "row": [49, 74, 224, 7], "row_step": 8, "rows": 7, "row_pen": 15, "row_back_pen": 0,
+        "exit": [204, 135, 64, 9], "exit_border_pen": 1, "button_fill_pen": 15, "button_text_pen": 0,
+        "exit_label": "p1field.exit", "exit_text": [20, 2]
+      }
+    },
+    "message": { "box": [33, 67, 255, 47], "fill_pen": 10, "border_pen": 12, "text_pen": 15, "text_x": 41,
+      "center_columns": 40, "rows_y": [80, 88, 96],
+      "extra_ticks": [60, 120, 180], "ticks_per_second": 60, "clock_wrap_seconds": 8,
+      "_list_ticks_note": "s154 static [C] (FORMAT.md 'The combat screen', Show names): h44 +0x138c blanks slots 101-103, writes 'RANK %1d : %1d  %s(S)' (h45 +0xee) for each living rank into the next slot (h23 +0xd28: not centred, from the top row) and shows requester 23 through h80 +0x546(0x17, h3 + 360) at +0x1468.",
+      "list_ticks": 360,
+      "keys": ["core.combat.monsters_take_gold", "core.combat.monsters_surrender",
+        "core.combat.monsters_greet_you", "core.combat.monsters_dont_respond", "core.combat.monsters_killed",
+        "core.combat.each_survivor_gets", "core.combat.x_xp_and_x_gp", "core.combat.x_experience_points_and_x_gold",
+        "core.treasure.x_spots_an_item"],
+      "outside_round_keys": ["core.combat.monsters_run"],
+      "sounds_before": { "core.combat.monsters_run": 2 },
+      "joins": [["core.combat.each_survivor_gets", "core.combat.x_xp_and_x_gp"]] }
+  },
+  "map_message": {
+    "_note": "s139 static [C] (FORMAT.md 'The map screen's requester 23'): the wilderness encounter h74 +0 (only caller the wilderness step h59 +0x3be) opens requester 23 (combat_field.message's box, rows, centring and whole seconds; keys and clicks swallowed) over the map, pens 10 / 12 / 15 of the map palette (shot p1-amiga-combat-33). h74 +0x6c A NIGHT ENCOUNTER; +0x168 %s IS ON WATCH (not heard; none for a DEAD watcher); +0x1b6 (+0x4d4, two rows) %s IS ON WATCH / AND HEARS THE MONSTERS; +0x1ee BLACK KNIGHTS SEE YOU AND FLEE!; +0x436 %s HEARS MONSTERS (heard, no menu); +0x4b2 YOU SURPRISE THEM!; +0x51c MONSTERS SURPRISE YOU!. The text was Core's (DOS's, ' !' where the Amiga has '!') until s157; since s157 the box prints the Amiga's (texts, below). The remaster's D-058 flashes (A DAY ENCOUNTER, the dungeon's AN ENCOUNTER) are no box (the Amiga has none; user s140: shown without a wait): the Client prints them on the combat screen's line. dungeon_keys (s140 static [C], FORMAT.md 'The dungeon's requester 23'): h41's eleven calls to h44 +0x466, over the dungeon map (same palette, h56 +0xed6): +0x1a6 THAT IS A WALL (Core/DOS: THAT IS THE WALL; the box prints the Amiga's since s157, texts); +0x1ea '%s %s' for %s FAILS / %s SUCCEEDS (trap disarm) and %s PICKS THE LOCK; +0xe1a STAIRS FROM LEVEL %-2d TO %-2d; +0xe68 NO ONE CAN PICK THE LOCK; script ops 1 +0x15ae SMOKE FILLS THE AIR, 3 +0x1870 A SPELL IS CAST, 7 +0x18d6 THE PARTY GETS SOME GOLD, 9 +0x1914 SOME OF YOUR GOLD IS TAKEN, 12 +0x1976 THE PARTY IS MOVED, 14 +0x1a10 YOU HEAR A NOISE IN THE DISTANCE, 17 +0x1a6e MONSTERS APPEAR.",
+    "palette": "map",
+    "keys": ["core.encounter.a_night_encounter", "core.encounter.x_on_watch", "core.encounter.x_on_watch_hears",
+      "core.encounter.black_knights_flee", "core.encounter.x_hears_monsters", "core.encounter.you_surprise_them",
+      "core.encounter.monsters_surprise_you"],
+    "dungeon_keys": ["core.dungeon.that_is_the_wall", "core.dungeon.x_fails", "core.dungeon.x_succeeds",
+      "core.dungeon.x_picks_the_lock", "core.dungeon.stairs_from_level_x_to_x", "core.dungeon.no_one_can_pick_the_lock",
+      "core.script.smoke_fills_the_air", "core.script.a_spell_is_cast", "core.script.party_gets_some_gold",
+      "core.script.some_gold_is_taken", "core.script.the_party_is_moved", "core.script.you_hear_a_noise",
+      "core.script.monsters_appear"],
+    "splits": { "core.encounter.x_on_watch_hears": ["core.encounter.x_on_watch", "core.encounter.and_hears_the_monsters"] },
+    "_texts_note": "s157 (user decision): the box prints the Amiga's own text where it differs from Core's (DOS's), checked against the program file game's strings: h75 +0x47 'BLACK KNIGHTS SEE YOU AND FLEE!', +0xc0 'YOU SURPRISE THEM!', +0xd3 'MONSTERS SURPRISE YOU!' (DOS: a blank before '!'), h42 +0x5d 'THAT IS A WALL' (DOS: 'THAT IS THE WALL'). Core's text still picks the key and stays on the log; AMIGA SCREENS off prints DOS's text.",
+    "texts": { "core.encounter.black_knights_flee": "p1field.box.black_knights_flee",
+      "core.encounter.you_surprise_them": "p1field.box.you_surprise_them",
+      "core.encounter.monsters_surprise_you": "p1field.box.monsters_surprise_you",
+      "core.dungeon.that_is_the_wall": "p1field.box.that_is_a_wall" },
+    "_sounds_note": "s141 static [C] (FORMAT.md 'The dungeon's requester 23'): h41 plays these just before the box (h89 blocks, so the box opens when the sound ends; with the Sound switch off no sound and no wait): +0x19a h89 +0xe0, the default beep h90 +0x10 (pack sound 32), before THAT IS A WALL; +0xb50 29 before %s FAILS; +0x1862 28 before A SPELL IS CAST; +0x1968 16 before THE PARTY IS MOVED; +0x1a02 26 before YOU HEAR A NOISE IN THE DISTANCE. The overworld's boxes (h74) have none (its 27 is the BLACK KNIGHTS menu's).",
+    "sounds": { "core.dungeon.that_is_the_wall": 32, "core.dungeon.x_fails": 29, "core.script.a_spell_is_cast": 28,
+      "core.script.the_party_is_moved": 16, "core.script.you_hear_a_noise": 26 },
+    "_menu_bar_note": "s155 static [C] (FORMAT.md 'Fonts', the map's menu bar; film capture_s154_leaving.md, exact ashots p1-amiga-map-out01 / -map-menu-info / -options / -speed): the map's input wait h80 +0xb48 prints the bar as the IntuiText h81 +0x4a (FrontPen 13, BackPen 0, JAM2, TopEdge 1, topaz 8 = TextAttr h78 +0x22): ' Info' at LeftEdge 4, ' Options   Speed      ' at 59 (so Info / Options / Speed at pen x 12 / 67 / 147), then sets Speed's LeftEdge (h81 +0x2c4) to 137 and SetMenuStrips Info (h81 +0x270: L 2, W 55) -> Options (+0x33c: L 57, W 80) -> Speed (+0x2c0: L 137, W 62), H 10; the fight's wait h80 +0xbfe uses the same Info / Speed menus with Party Options and Speed at 185. Held: titles pen 15, the lit title's box pen 15 rows 0-8 (Info x 3-57, Options 58-137, Speed 138-199), item boxes pen 0 with a pen-15 border 2 px at the sides (Info x 0-147 rows 9-24, Options 55-172 rows 9-64, Speed 135-212 rows 9-44, measured), items pen 15 at y 13 + 10k (Info x 14, Options 69, Speed 141: fitted on the rows clear of the pointer; About Phantasie, Inspect and Fast lie partly under it). Options › Look is ghosted on the overworld: Intuition clears the item's pixels to pen 0 where x % 4 = 3 on even rows and x % 4 = 1 on odd rows (ghost_pattern, fitted to -options). The items' strings are h81's (' About Phantasie ', ' Inspect ', ' Health ', ' Cast Spell ', ' Use potions ', ' Look ', ' Fast ', '*Normal ', ' Slow '). actions: what each does in the remaster (the bound key of the same command; Speed sets the game's COMBAT SPEED, the Amiga's one Speed word h3 +0); About Phantasie has no remaster window (nothing) [~].",
+    "menu_bar": {
+      "rows": 10, "bar_pen": 0, "text_pen": 13, "text_y": 1, "font": "amiga-topaz-8",
+      "box_pen": 0, "border_pen": 15, "item_pen": 15, "highlight_pen": 15, "highlight_text_pen": 0,
+      "ghost_pattern": ["...#", ".#.."], "ghosted_outdoors": ["look"],
+      "menus": [
+        { "title": "p1field.menu.info", "title_x": 12, "highlight": [3, 0, 55, 9],
+          "items": ["p1map.item.about"], "actions": ["about"],
+          "box": [0, 9, 148, 16], "item_height": 10, "item_x": 14, "item_y": 12 },
+        { "title": "p1map.menu.options", "title_x": 67, "highlight": [58, 0, 80, 9],
+          "items": ["p1map.item.inspect", "p1map.item.health", "p1map.item.cast_spell", "p1map.item.use_potions", "p1map.item.look"],
+          "actions": ["inspect", "health", "cast", "use_potion", "look"],
+          "box": [55, 9, 118, 56], "item_height": 10, "item_x": 69, "item_y": 12 },
+        { "title": "p1field.menu.speed", "title_x": 147, "highlight": [138, 0, 62, 9],
+          "items": ["p1field.item.fast", "p1field.item.normal", "p1field.item.slow"], "actions": ["fast", "normal", "slow"],
+          "box": [135, 9, 78, 36], "item_height": 10, "item_x": 141, "item_y": 12 }
+      ]
+    },
+    "_line_note": "s155 static [C] (FORMAT.md 'The map's message line'): the dungeon's message line h41 +0x10c6 = h80 +0x84a(text, pen 3, 192): any y but 185 gives TopEdge 192 and the 53-blank clear (h81 +0x45f) at LeftEdge 0 (185 would give 51 blanks at 8, the fight's line); the JAM2 IntuiText h81 +0x5e (BackPen 0, z6font TextAttr h78 +0x36) centred on 320 by IntuiTextLength (h80 +0x892). Its callers: a message cell (h41 +0x83c / +0x8da -> +0x1052: the MESS id's first record, skipped when it is the last one shown), the redraw after a requester (h65 +0x1a6: the dungeon's last message again; the overworld branch h56 +0x860 prints none), op 12 (' ', the line cleared). The overworld prints no line: no h47 / h59 / h65 / h74 path reaches h80 +0x818 / +0x84a (s155 transitive check; h38's '%s TAKES %d DAMAGE' takes the line only with mode 2, which no caller passes: the trap, ops 1-4 and the swim pass 1). The remaster prints its own lines (MOVED TO, blocked moves, refusals, outcomes) here on both maps.",
+    "line": { "top_edge": 192, "pen": 3, "clear_x": 0, "clear_cells": 53, "centre_width": 320, "record_cells": 40 },
+    "_overworld_frame_note": "s156 static [C]: the overworld's redraw h56 +0x860 ends with h77 +0x6dc(1, 12, 317, 183, 13) (h56 +0x8b8): SetAPen 13, Move(1, 12), PolyDraw of 13 points: (318, 12) (318, 197) (1, 197) (1, 13) (317, 13) (317, 196) (2, 196) (2, 14) (316, 14) (316, 195) (3, 195) (3, 14) (1, 12): three nested outlines x 1-318 / 2-317 / 3-316, y 12-197 / 13-196 / 14-195 (the ashots show rows 12-14 and x 1-3 / 316-318). Drawn under the remaster's message line (which the Amiga never prints on the overworld).",
+    "overworld_frame": { "box": [1, 12, 318, 186], "thickness": 3, "pen": 13 },
+    "_dungeon_frame_note": "s158 static [C] + live (parity/shots/p1-amiga-dungeon-entry-frame.png): the dungeon screen's set-up h56 +0xe7c calls the same h77 +0x6dc(7, 13, 170, 155, 10): three nested pen-10 outlines x 7-177 / 8-176 / 9-175, y 13-170 / 14-169 / 15-168 (the overworld's w + 1 / h + 3), #446600 on the map palette around the dungeon map (x 10-174, y 16-167). h69 +0x2af4 (the compass) is blitted at (214, 68) after it.",
+    "dungeon_frame": { "box": [7, 13, 171, 158], "thickness": 3, "pen": 10 },
+    "window": {
+      "_note": "s144 static [C] (FORMAT.md 'Requester 21 on the map'; s143 film capture_s143_dungeon_boxes.md): requester 21 (h84 +0x48f6: Left 33, Top 45, 255 x 110, backfill pen 10, two pen-13 borders, ReqText = ITxt 184 pen 3 at (73, 8) in topaz 8, row gadgets 11-17 at (7, 25 + 8k) 241 x 7 with z6font ITexts pen 15 at (1, 1), OK gadget 1 GRELRIGHT / GRELBOTTOM (-245, -18) 235 x 9 with a pen-15 face, two pen-2 borders and ITxt 185 pen 0 at (90, 2), its text h72 +0x179 '   O K'). The damage report (h71 +0x112e: the title into slot 156, ReqText := ITxt 184; h86 +0(0x15) Request, +0x132 waits for a GADGETUP of a RELVERIFY gadget = OK or a row, keys are replied and dropped [C]; the remaster also lets a key stand for the click [~]). A MESS text with no menu (h41 +0x11e4, called by the event +0x1624, op 11 / 19 +0x195a / +0x1b64, the trap +0xbae, a description cell +0xa58): ReqText and ReqBorder := 0, OK unlinked (+0x136a gadget 17's NextGadget := 0), the row list cut after n rows, Height := 8n + 33, Top := 22, rows = the message's 40-byte records, not centred; h80 +0x546(0x15, (n + 1) * 120) = 2(n + 1) whole seconds, keys swallowed, the 8-s clock cut (s143: the gold window 3.57 s, the gas window >= 4.13 s); a click on a row is a GADGETUP and ends it early (static; s153 modelled with row_gadget, not filmed [~]). Afterwards Top 45, Height 110, the border and OK are put back. Screen coordinates below (GRELRIGHT / GRELBOTTOM counted from the last pixel, as the fight's FIGHT button).",
+      "box": [33, 45, 255, 110], "fill_pen": 10, "border_pen": 13,
+      "row_x": 41, "row_y": 71, "row_step": 8, "row_pen": 15, "rows": 7,
+      "title": [106, 53], "title_pen": 3, "title_font": "amiga-topaz-8",
+      "ok": [42, 136, 235, 9], "ok_fill_pen": 15, "ok_border_pen": 2, "ok_text": [132, 138], "ok_text_pen": 0,
+      "ok_label": "p1field.ok",
+      "text_top": 22, "text_height_base": 33, "text_ticks_per_row": 120, "text_extra_rows": 1,
+      "_row_gadget_note": "s153 static [C]: gadgets 11-17 at (7, 25 + 8k), 241 x 7, IText at (1, 1): relative to a row's text. RELVERIFY: a click on a row of the timed MESS window is a GADGETUP and ends h80 +0x546's wait.",
+      "row_gadget": [-1, -1, 241, 7],
+      "_titles_note": "s154 static [C]: the titles h71 +0x112e puts in slot 156 for the reports Core logs with DOS's text: h72 +0x131 '  SWIMMING:' (h71 +0xe88), h42 +0x1a2 '   REPORT:' (h41 ops 1-4 +0x1792), h42 +0x105 'IN THE TRAP:' (+0xa78), h72 +0xa5 'A MAGICAL POOL' (h71 +0xa50), h72 +0xdf '  IN THE INN' (h71 +0xca2; DOS 'IN THE INN:'). The leading blanks place the text: the title IText sits at a fixed (73, 8).",
+      "titles": {
+        "core.dungeon.swimming": "p1map.title.swimming",
+        "core.script.report": "p1map.title.report",
+        "core.dungeon.in_the_trap": "p1map.title.in_the_trap",
+        "core.pool.a_magical_pool": "p1map.title.magical_pool",
+        "core.inn.in_the_inn": "p1map.title.in_the_inn"
+      },
+      "_row_texts_note": "s156 static [C]: report rows whose Amiga text differs from Core's (DOS's): the magical pool's h72 +0xb4 '%-10.9s IS CHANGED' (h71 +0xa50..+0xc88) has a blank before IS, DOS's none; the name (padded to 10 in both) is read back from Core's row.",
+      "row_texts": {
+        "core.pool.x_is_changed": "p1map.row.is_changed"
+      },
+      "_health_note": "s154 static [C]: the map's Options > Health (h50 +0x420): h51 +0x75 'HEALTH REPORT:' into slot 156, ReqText := ITxt 184, the rows cleared, h51 +0x84 '   O K', one row per member ' %-10.9s%-6.5sHP%4d/%-4dMP%4d/%-3d ' (h51 +0x8b; status DEAD / OK / SLEEP from h12 +0xb78), then h86 +0(0x15) at +0x54a: requester 21 at Top 45 waiting for OK. In a fight (Party Options > Party health, h44 +0x1478) the same window at the fight's Top 23 (h71 +0x106), rows '%-10.9s%c HP%4d/%-4dA:%-3.2dMP%4d/%-3d ' (h45 +0x116), h86 +0(0x15) at +0x1570.",
+      "health_title": "p1map.title.health_report",
+      "health_row": "p1map.health_row",
+      "_fight_top_note": "s158 live (FS-UAE, parity/shots/p1-amiga-combat-party-health-before-orders.png): Party health shows at Top 45, as on the map. h71 +0x102 sets requester 21's Top to 23 only while the orders requester is up and +0x2a0 puts 45 back; with the orders up the Party Options picks do nothing (filmed), so Party health never meets Top 23 (s154 read it as the fight's Top).",
+      "fight_top": 45,
+      "menu": {
+        "_note": "s153 static [C] (FORMAT.md 'Requester 21 on the map'): a MESS menu (button count 2-20). h41 +0x1440 Requests requester 21 as the text window (no wait), takes each label as the next 11 characters of the text stream (3 when the count byte > 7) into a 12-byte cell, and +0x1f6 shows requester 25 (h84 +0x4ab6: Left 33, Width 255, backfill pen 12, Top := h43 +0 = 8n + 55 = the text window's bottom, Height := 18 * ceil(k / 3) + 7, ReqBorder := 0, the gadget list cut after button k) through h86 +0(0x19), which waits for a GADGETUP of a RELVERIFY gadget and returns its id (answer = id - 10). Buttons = gadgets 93-102 (ids 11-20) at the stored places below (relative), 70 x 9, Border 70 pen 15 (the face), Borders 68 / 69 pen 2 at (-2, -2) 74 x 13 and (-1, -1) 72 x 11, IText 202 + i pen 0 at (2, 2) in z6font ('%s' of the cell, h42 +0x72). Keys are replied and dropped (the remaster keeps its keys too [~]). Not filmed (s143 saw the gold menu's two buttons, no shot) [~].",
+        "left": 33, "width": 255, "fill_pen": 12, "row_height": 18, "height_base": 7, "per_row": 3,
+        "buttons": [[10, 8], [93, 8], [176, 8], [10, 26], [93, 26], [176, 26], [10, 44], [93, 44], [176, 44], [93, 62]],
+        "button_size": [70, 9], "button_fill_pen": 15, "button_border_pen": 2, "label": [2, 2], "label_pen": 0
+      }
+    }
+  },
+  "map_requesters": {
+    "_note": "s154 static [C] (FORMAT.md 'Requesters 0, 22 and 14'): the structs at h84 +0x3fc6 + n * 0x70 with their Borders (+0x186a + 16i), ITexts (+0x1d2a + 20i) and Gadgets (+0x2dba + 44i). Pens are screen pens: h2 +0x6c / +0x144 run h77 +0x112e after the town (h5), which remaps the pens of requesters 0-19 (BackFill), Borders 0-52 and ITexts 0-171 through h69 +0x19c (0>0 1>12 2>1 3>14 4>3 5>10 6>2 7>9 8>4 9>7 10>6 11>13 12>8 13>11 14>5 15>15); h2 +0x12e runs h77 +0x1230 (h69 +0x1ac, the inverse) before the town, so the town shows the stored pens. menu = requester 0 as h86 +0x32a fills it from 'lines|..[button|..]' (callers h59 +0x350 A TOWN, +0x408 STYX, +0x418 OCEAN, h41 +0x32e A DUNGEON, h71 +0xcb0 AN INN, h74 +0x342 SLEEPING, +0x472 HEARS): the slot pointers 0-4 rotated twice for one or two lines, once for three (+0x502), so the lines start on row 2 / 2 / 1; line x = (23 - len) * 3 + 10, label x = (10 - len) * 3 + 2; one button: gadget 0 at x 47, gadget 1 unlinked; two: gadget 0 at x 11 then gadget 1 (82, 53). Map pens: fill 5>10, borders 2>1, rows 15, buttons 15 / 2>1, labels 0 (shot p1-amiga-combat-00). black_knights = requester 22 (h65 +0x168(0x16, 2, 4)): its own backfill / Borders 60-61 / IText 194 are past the remap, its button Borders 0 / 1 / 4 are not (shot p1-amiga-black-knights). sheet = requester 14 in the town (stored pens on the town palette h69 +0x54, shot p1-amiga-guild-inspect-sheet); its buttons GRELRIGHT | GRELBOTTOM, here relative to the box's top left (x = 240 + LeftEdge, y = 138 + TopEdge). Texts: the Amiga's (UI strings p1field.req.* / p1field.sheet.*), not Core's DOS text.",
+    "palette": "map",
+    "pen_remap": [0, 12, 1, 14, 3, 10, 2, 9, 4, 7, 6, 13, 8, 11, 5, 15],
+    "pen_remap_note": "s156: h69 +0x19c, the table h77 +0x112e puts requesters 0-19, Borders 0-52 and ITexts 0-171 through after the town (stored pen -> screen pen). The sheet (stored pens, town palette) is drawn over the map through it on the map palette (h50 +0x7b2); the menu (screen pens, map palette) in the town through its inverse on town_palette.",
+    "town_palette": "town",
+    "font": "amiga-z6font-6",
+    "title_font": "amiga-topaz-8",
+    "menu": {
+      "box": [81, 63, 158, 73],
+      "fill_pen": 10,
+      "borders": [{ "rect": [3, 3, 152, 67], "pen": 1 }, { "rect": [2, 2, 154, 69], "pen": 1 }],
+      "rows_y": [11, 18, 25, 32, 39],
+      "row_pen": 15,
+      "row_left": 10,
+      "row_cells": 23,
+      "half_cell": 3,
+      "first_row": [2, 2, 1],
+      "one_button": [47, 53],
+      "two_buttons": [[11, 53], [82, 53]],
+      "button_size": [64, 9],
+      "button_face_pen": 15,
+      "button_border_pen": 1,
+      "label_pen": 0,
+      "label_left": 2,
+      "label_y": 2,
+      "label_cells": 10
+    },
+    "menus": {
+      "0xe": "p1field.req.town_enter",
+      "0x1c": "p1field.req.dungeon_enter",
+      "0x16": "p1field.req.inn_enter",
+      "0x10": "p1field.req.sleeping_monsters",
+      "0x11": "p1field.req.hears_monsters",
+      "0x1d": "p1field.req.exit_take_it",
+      "0x1e": "p1field.req.save_dungeon_map",
+      "0x1f": "p1field.req.hears_go_back",
+      "0x1b": "p1field.req.you_find_keep_it"
+    },
+    "kinds_note": "s156 static [C]: the dungeon's h86 questions (h41 +0x15e: sprintf('%s[YES|NO]', text) -> h86 +0x32a; +0x11c: sprintf('%s %s', name, text) first): 'AN EXIT. TAKE IT?' (+0x41c), 'WOULD YOU LIKE TO SAVE|THE DUNGEON MAP?' (+0x444), name + ' |SPOTS A TRAP.||DISARM IT?' (+0xae6), name + ' |HEARS MONSTERS.||GO BACK?' (+0xfbe): the line '%s ' keeps its blank (centred by strlen), three '|' = no rotation, rows 0-3. 'YOU FIND %s.|KEEP IT?[YES|NO]' (h44 +0xfe4, h45 +0xcf, the item's h12 +0x7aa name): from the dungeon's op 6 (h41 +0x1716) over the dungeon and after a fight (h44 +0x942 / +0x956, before h53 +0x2a4 leaves the fight screen: over the fight field). The trap's buttons carry D-052's manual labels (DISARM / LEAVE) where the Amiga has YES / NO. kinds = a prompt with no DOS menu id (SessionPromptKind name) -> its h86 text.",
+    "kinds": {
+      "DungeonTrap": "p1field.req.spots_a_trap"
+    },
+    "about_note": "s156 static [C]: Info > About Phantasie (MENUPICK menu 0 item 0 in h80 +0x152's loop: +0x2c2 on the map, +0x2ae (+0xf08 first) in the town) runs h80 +0xcb4: AllocMem 0x1b80, reads logo.pic into it (h20 +0), points the Image h81 +0x22 (176 x 80 x 4, PlanePick 0xff) at it, h86 +0(0x1b) shows requester 27 and waits for a GADGETUP, then frees it. Requester 27 (h84 +0x4b96): (69, 57) 182 x 86, backfill 0, Borders 73-75 (0, 0) 182 x 86 pen 15, (1, 1) 180 x 84 pen 15, (2, 2) 178 x 82 pen 0 (past the remap), gadget 103 at (3, 3) 176 x 80 (GADGHNONE | GADGIMAGE, RELVERIFY, id 1) rendering the Image: a click on the picture closes it, keys are dropped (the remaster: a key too). The picture shows in the screen's palette (the map's).",
+    "about": {
+      "box": [69, 57, 182, 86], "fill_pen": 0,
+      "borders": [
+        { "rect": [0, 0, 182, 86], "pen": 15 },
+        { "rect": [1, 1, 180, 84], "pen": 15 },
+        { "rect": [2, 2, 178, 82], "pen": 0 }
+      ],
+      "picture": "ui.logo", "picture_box": [3, 3, 176, 80]
+    },
+    "town_note": "s156 static [C]: the town's h86 questions, drawn with the stored pens (h77 +0x1230 ran before the town: pen_remap's inverse) on town_palette. guild_add_move = h26 +0xc2a: h84 +0x1bc 'NOT IN THE TOWN|IT TAKES 2 MONTH|TO GET HERE[YES|NO]' through h26 +0x6e (h89 +0xe0 first); training_cost = h26 +0x1e8: sprintf(h27 +0x8a 'IT WILL COST|%d GOLD[AGREE|NOT]'). The town's OK / SORRY alerts (h84 +0x1a8..+0x1dc, h27, h6 +0xb4) stay the remaster's message line [~].",
+    "town": {
+      "guild_add_move": "p1field.req.not_in_town",
+      "training_cost": "p1field.req.it_will_cost"
+    },
+    "oks": {
+      "core.overworld.the_river_styx": "p1field.req.river_styx",
+      "core.overworld.that_is_the_ocean": "p1field.req.the_ocean", "core.inn.you_cant_afford_it": "p1field.req.cant_afford"
+    },
+    "black_knights_menu": 15,
+    "black_knights": {
+      "box": [46, 70, 227, 60],
+      "fill_pen": 0,
+      "borders": [{ "rect": [0, 0, 227, 60], "pen": 8 }, { "rect": [1, 1, 225, 58], "pen": 8 }],
+      "title": "p1field.req.black_knights",
+      "title_at": [49, 19],
+      "title_pen": 12,
+      "buttons": [
+        { "box": [11, 42, 64, 9], "label": "p1field.req.run", "text": [23, 2], "face_pen": 15, "border_pen": 1, "text_pen": 0 },
+        { "box": [83, 42, 64, 9], "label": "p1field.req.fight", "text": [17, 2], "face_pen": 15, "border_pen": 1, "text_pen": 0 },
+        { "box": [155, 42, 64, 9], "label": "p1field.req.surrender", "text": [5, 2], "face_pen": 15, "border_pen": 1, "text_pen": 0 }
+      ]
+    },
+    "sheet": {
+      "palette": "town",
+      "box": [39, 30, 241, 139],
+      "fill_pen": 0,
+      "borders": [{ "rect": [0, 0, 241, 139], "pen": 3 }, { "rect": [1, 1, 239, 137], "pen": 3 }],
+      "name_at": [7, 7],
+      "name_pen": 9,
+      "level_at": [7, 20],
+      "level_pen": 6,
+      "rows": [
+        { "at": [7, 31], "text": "p1field.sheet.strength" }, { "at": [7, 40], "text": "p1field.sheet.intelligence" },
+        { "at": [7, 49], "text": "p1field.sheet.dexterity" }, { "at": [7, 58], "text": "p1field.sheet.constitution" },
+        { "at": [7, 67], "text": "p1field.sheet.charisma" }, { "at": [7, 76], "text": "p1field.sheet.luck" },
+        { "at": [121, 31], "text": "p1field.sheet.age" }, { "at": [121, 40], "text": "p1field.sheet.hit_points" },
+        { "at": [121, 49], "text": "p1field.sheet.magic" }, { "at": [121, 58], "text": "p1field.sheet.gold_in_bank" },
+        { "at": [121, 67], "text": "p1field.sheet.ex_pts" }, { "at": [121, 76], "text": "p1field.sheet.score" }
+      ],
+      "row_pen": 4,
+      "runes_y": 87,
+      "runes": [
+        { "x": 7, "text": "p1field.sheet.runes" }, { "x": 55, "text": "p1field.sheet.air" }, { "x": 85, "text": "p1field.sheet.earth" },
+        { "x": 127, "text": "p1field.sheet.fire" }, { "x": 163, "text": "p1field.sheet.water" }, { "x": 205, "text": "p1field.sheet.god" }
+      ],
+      "runes_pen": 1,
+      "buttons": [
+        { "box": [9, 100, 64, 9], "label": "p1field.sheet.spells", "text": [14, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 },
+        { "box": [89, 100, 64, 9], "label": "p1field.sheet.equipment", "text": [5, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 },
+        { "box": [169, 100, 64, 9], "label": "p1field.sheet.skills", "text": [14, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 },
+        { "box": [9, 121, 64, 9], "label": "p1field.sheet.potions", "text": [11, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 },
+        { "box": [169, 121, 64, 9], "label": "p1field.sheet.exit", "text": [20, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 }
+      ],
+      "rolled_note": "s156 static [C]: Guild > New's rolled character (h23 +0xc08, only caller h5 +0xc32): gadget 41's NextGadget := 43, 43's := 0 (two buttons, ids 1 / 3), IText 143 := slot 0x99 'PURGE', 145 := slot 0x9a ' KEEP ' (both LeftEdge 14, TopEdge 2, pen 0), IText 123 (the name) := the blank slot 0x9b; h29 +0x93e fills the rest, h86 +0(14) shows it; answer 3 = KEEP, else PURGE (roll again).",
+      "pages_note": "s156 static [C]: the sheet's buttons (h29 +0xcca: 1 -> +0xe90, 2 -> +0xee2, 3 -> +0xd46, 4 -> +0xfb6). SKILLS (+0xd46) writes '%3u' of record +0x1e / +0x20 / +0x30 / +0x28 into slots 0x32-0x35 ('ATTACK 255 ', 'PARRY  255 ', 'SWIM   255 ', 'LISTEN 255 ') at column 7 and of +0x24 / +0x26 / +0x22 / +0x2c into 0x36-0x39 ('SPOT TRAP   255 ', 'DISARM TRAP 255 ', 'FIND ITEM   255 ', 'PICK LOCK   255 ') at column 12 (h23 +0x3b0), then h86 +0(9): requester 9 (h84 +0x43b6: (72, 69) 176 x 62, backfill 0, Borders pen 15 at (0, 0) / (1, 1), ITexts 49-56 pen 4 at (6, 6 + 9k) / (82, 6 + 9k), EXIT = gadget 3 at GREL (-71, -17)). EQUIPMENT (+0xee2) puts sprintf('%-13.12sPTS:%-2u', h12 +0x7aa name, h8 +0x1f6 points) of the weapon +0x56, armor +0x54, shield +0x52 into slots 0x3a-0x3c and shows requester 10 (h84 +0x4426: same box and borders, backfill 7, ITexts 57-59 pen 0 at (29, 12 / 21 / 30)). POTIONS (+0xfb6) counts the nine carried items (+0xde): 101-110 healing, 111-120 magic, 121-140 scrolls, 151+ treasures, 141-150 the letter 'A' + (id - 141) at position id - 141 of ten blanks; +0x842 writes '%-3d' over slot 0x3d 'XX HL POTIONS XX MG POTIONS' and 0x3e 'XX SCROLL(S)  XX TREASURES ' at columns 0 / 14, blanks IText 62 (row 3) unless a ring is held and IText 63 (row 4, 'THE WAND OF NIKADEMUS') unless position 9 (id 150) is set, cuts the buffer to 9 and writes it into slot 0x3f 'RINGS:   ' at column 7, then requester 11 (h84 +0x4496: same box, backfill 7, ITexts 60-63 pen 15 at (9, 8 / 16 / 25 / 34)). That last write has no NUL and runs past the template's end into 'THE WAND OF NIKADEMUS' (the next slot): the Amiga's row reads 'RINGS: ' + the nine letters + 'ND OF NIKADEMUS' (static, not filmed [~]; the remaster prints 'RINGS: ' + the letters). SPELLS (+0xe90) is the fight's spell list (requester 12, combat_field.spell_list) with the title 'SPELLS AVAILABLE:' and h23 +0x570(record +0x60, 1); not drawn here (the remaster's page stands in) [~]. Pens are stored pens (the town's); over the map they go through pen_remap.",
+      "pages": {
+        "equipment": { "box": [72, 69, 176, 62], "fill_pen": 7, "borders": [ { "rect": [0, 0, 176, 62], "pen": 15 }, { "rect": [1, 1, 174, 60], "pen": 15 } ],
+          "rows": [ { "at": [29, 12], "pen": 0 }, { "at": [29, 21], "pen": 0 }, { "at": [29, 30], "pen": 0 } ], "exit": { "box": [104, 44, 64, 9], "label": "p1field.sheet.exit", "text": [20, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 } },
+        "skills": { "box": [72, 69, 176, 62], "fill_pen": 0, "borders": [ { "rect": [0, 0, 176, 62], "pen": 15 }, { "rect": [1, 1, 174, 60], "pen": 15 } ],
+          "rows": [ { "at": [6, 6], "pen": 4 }, { "at": [6, 15], "pen": 4 }, { "at": [6, 24], "pen": 4 }, { "at": [6, 33], "pen": 4 },
+                    { "at": [82, 6], "pen": 4 }, { "at": [82, 15], "pen": 4 }, { "at": [82, 24], "pen": 4 }, { "at": [82, 33], "pen": 4 } ], "exit": { "box": [104, 44, 64, 9], "label": "p1field.sheet.exit", "text": [20, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 } },
+        "potions": { "box": [72, 69, 176, 62], "fill_pen": 7, "borders": [ { "rect": [0, 0, 176, 62], "pen": 15 }, { "rect": [1, 1, 174, 60], "pen": 15 } ],
+          "rows": [ { "at": [9, 8], "pen": 15 }, { "at": [9, 16], "pen": 15 }, { "at": [9, 25], "pen": 15 }, { "at": [9, 34], "pen": 15 } ], "exit": { "box": [104, 44, 64, 9], "label": "p1field.sheet.exit", "text": [20, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 } }
+      },
+      "rolled_buttons": [
+        { "box": [9, 100, 64, 9], "label": "p1field.sheet.purge", "text": [14, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 },
+        { "box": [169, 100, 64, 9], "label": "p1field.sheet.keep", "text": [14, 2], "face_pen": 15, "border_pen": 2, "text_pen": 0 }
+      ]
+    }
+  },
+  "cue_sounds": {
+    "_note": "s153 static (FORMAT.md 'Sound effects', the h89 callers): step = h65 +0x158 plays the tone h89 +0xd2 (pack sound 31) when the map's input routine (h65 +0, called by h47 +0x7a) returns a direction, so every overworld / dungeon step (live s153: a 0.064 s tone after each step click); overworld_entry = h59 +0x342 (19) before 'A TOWN.  ENTER?' and h41 +0x320 (19) before 'A DUNGEON.  ENTER?'; black_knights = h74 +0x204 (27) before the BLACK KNIGHTS menu (h65 +0x168). The Amiga blocks for each (tone 0.075 s, 19 0.43 s, 27 1.34 s: the sound model's holds) before the step or menu. s154 static [C]: h65 +0 returns any code 0-8 (moves 5-8, the Options picks 0-4) and +0x158 plays the tone first, so a refused move (OCEAN / STYX requester, the dungeon wall's beep 32 and box) gets it too; built s154 (P1MapHolds): the move runs after the tone's hold, 19 / 27's question shows after its hold, no input meanwhile (a move pressed then is made after); 0 with the Sound switch off. s156: the tone before the Options picks 0-4 (Game1.MapOptionAfterTone). resurrected (s156): h38 +0x2ea outside a round (state != 5) shows requester 23 '%s IS RESURRECTED' (h44 +0x466), then 12 (+0x466); played after the remaster's camp cast result (Core's FieldCues.FieldResurrected), the box's own hold not drawn [~].",
+    "step": 31, "overworld_entry": 19, "black_knights": 27, "resurrected": 12,
+    "_sheet_tone_note": "s158 static [C]: h89 +0xd2 (pack 31) after each answer of the character sheet's requester 14 (h29 +0xcf4, EXIT too), after each view's EXIT (+0xe86 SKILLS / requester 9, +0xf52 EQUIPMENT / 10, +0x934 POTIONS / 11), after each gadget of SPELLS' requester 12 (h23 +0x734: a row, a live scroll gadget, EXIT) and after Guild > New's PURGE / KEEP (h23 +0xc56). The player blocks: the Amiga acts after the tone; the remaster shows the new step at once and holds input for the tone [~].",
+    "sheet_tone": 31,
+    "_transport_note": "s158 static [C]: the town's TRANSPORTATION (h8 +0x12bc: 'TRANSPORT TO WHICH TOWN?', h26 +0xc72's list) plays 22 at +0xe4a once a town is picked (+0xe0a -> +0xe30), then fades the screen: each pen to 0 (h77 +0x288) with 10 WaitTOF (16 pens), 100 WaitTOF, each pen back (h69 +0x54) with 7 WaitTOF, then h5 +0x2e0 enters the new town. The remaster plays 22 with its hold; the fade is not drawn [~].",
+    "transport": 22,
+    "alerts": {
+      "_note": "s158 static [C]: h26 +0x6e(text) plays h89 +0xe0 (pack 32, the default beep) and then h86 +0x32a's requester 0; h26 +0x1a8 the same before 'YOU NEED %ld MORE'. The remaster shows these as its message line (the move question as requester 0, s156): the beep plays with the line or the requester, matched from the line's start in the modes listed (P2AlertBeeps, II ST's shape). The wilderness inn's 'YOU CAN'T AFFORD IT[SORRY]' (h71 +0xe76) and the requester 0 / 23 texts of h86 +0x32a called straight have no beep.",
+      "sound": 32,
+      "lines": [
+        { "key": "core.guild.party_is_full", "modes": ["town", "guild"], "amiga": "h5 +0xd44 -> h26 +0xc1c: THERE IS NO ROOM[SORRY] (Guild > Add, six members)" },
+        { "key": "core.guild.move_not_in_town", "modes": ["town", "guild"], "amiga": "h5 +0xd5a -> h26 +0xc2a: NOT IN THE TOWN|IT TAKES 2 MONTH|TO GET HERE[YES|NO] (Guild > Add's move question, requester 0)" },
+        { "key": "core.armory.not_enough_gold", "modes": ["town", "guild"], "amiga": "h8 +0x128 -> h26 +0x46: YOU CAN NOT AFFORD IT[SORRY] (the Armory)" },
+        { "key": "core.armory.ninth_item", "modes": ["town", "guild"], "amiga": "h8 +0xe6 / +0x184 -> h26 +0x0(0): HE HAS NINE ITEMS[SORRY] (h26 +0x0(1), HE'S JUST BOUGHT NINTH ITEM, has no beep)" },
+        { "key": "core.guild.learn_no_more", "modes": ["town", "guild"], "amiga": "h23 +0x40a: YOU CAN NOT LEARN|ANY MORE[SORRY]" },
+        { "key": "core.guild.learn_cant_afford", "modes": ["town", "guild"], "amiga": "h23 +0x450: YOU CAN NOT AFFORD IT[SORRY] (Guild > Spells)" },
+        { "key": "core.guild.learn_learned", "modes": ["town", "guild"], "amiga": "h23 +0x474: YOU HAVE LEARNED[O.K.]" },
+        { "key": "core.guild.learn_failed", "modes": ["town", "guild"], "amiga": "h23 +0x474: YOU HAVE FAILED[SORRY]" },
+        { "key": "core.guild.train_cant_afford", "modes": ["town", "guild"], "amiga": "h26 +0x220: YOU CAN NOT AFFORD IT[SORRY] (training, the cost agreed)" },
+        { "key": "core.guild.you_need_x_more_xp", "modes": ["town", "guild"], "amiga": "h26 +0x1a8: the beep straight, then 'YOU NEED %ld MORE|EXPERIENCE POINTS| |GO AND LEARN![O.K.]'" },
+        { "key": "core.guild.no_one_wise_enough", "modes": ["town", "guild"], "amiga": "h5 +0x1400 -> h26 +0x54: NO ONE IS WISE ENOUGH|TO TEACH YOU[SORRY]" },
+        { "key": "core.town.you_must_assemble_a_group", "modes": ["town", "guild"], "amiga": "h29 +0x1d0: YOU MUST ASSEMBLE|A GROUP[SORRY]" },
+        { "key": "core.aging.x_has_died", "modes": ["town", "guild"], "amiga": "h5 +0x42a: '%8s HAS DIED[SORRY]'" },
+        { "key": "core.aging.x_has_aged", "modes": ["town", "guild"], "amiga": "h5 +0x46e: '%8s HAS AGED[OK]'" },
+        { "key": "core.magic.not_enough_mp", "modes": ["overworld", "dungeon"], "amiga": "h50 +0x8c4: NOT ENOUGH MAGIC[SORRY] (the map's Cast Spell, magic below 4)" }
+      ]
+    }
+  },
+  "defeat_screen": {
+    "_note": "s153 (static h32 +0 / +0x55c / +0x340, live FS-UAE with sound: reverse-engineering/amiga/working/capture_s153_sounds.md; FORMAT.md 'The party defeat'): the Amiga runs the defeat screens by itself, no key needed. Black while decor.pic loads (picture_read [~]: 3.0 s live, 5.4 s the first time), then decor.pic, the closed door (h69 +0x1814 at (123, 14)) and the combat palette at once; each line (+0x340: h80 +0x84a pen 5, TopEdge 192, then h62 +0x576(180)) waits 180 polls (3.93 s) or a key / click; 'YOUR PARTY HAS BEEN DEFEATED', the ghost (h69 +0x994) in every member's slot (+0x36e(0): all records, one blit a frame), sound 23, 'YOU HAVE ARRIVED AT THE ASTRAL PLANE', the door sinks 90 steps (4 WaitTOF + the blit's: live 7.17 s) over a raw Paula tone (h89 +0x7ca, period 6000: raw_tone, s154), Delay(180), sound 20, the face (h69 +0xb94 at (123, 19)), 'THE GREAT DEMON APPEARS AND SPEAKS:', per member sound 21 then its fate (portrait or cleared slot) and its line, then h62 +0x576(300) (6.56 s) and back. Live (2 members, no keys) from decor.pic on: line 1 0, ghosts 3.93, line 2 4.55, the door 8.65-15.82 (0.15 s after the line's wait: door_lead_seconds), face 20.38 (0.17 s more than Delay(180) + 20: door_tail_seconds), line 3 20.40, fates 25.12 / 29.85, back 40.37. The 5th defeat's sign (h33 +0 counter == 5: h69 +0x32d4 at (139, 39), 180 polls): sign, s154.",
+    "picture_read": 3.0, "line_polls": 180, "poll_seconds": 0.02187, "end_polls": 300, "door_seconds": 7.17,
+    "after_door_ticks": 180, "ghost_sound": 23, "demon_sound": 20, "fate_sound": 21, "text_y": 192, "text_pen": 5,
+    "blit_vbl": 1, "vbl_hz": 60,
+    "door_lead_seconds": 0.15, "door_tail_seconds": 0.17,
+    "_s154_note": "s154 static [C] (h32 +0x5e2..+0x6c6, h89 +0x7ca / +0x954): the raw tone = the effects' 16-byte ramp (h91 +0x278) on channel 0 at period 0x1770 (not scaled), volume 60, cycles 0, started right after line 2's wait and stopped at once (FINISH, IOF_QUICK) after the door's 90th step; the lines in z6font (h80 +0x84a, the victory speech's routine); the sign: h33 +0 (DATA, 0 at load, never saved) += 1 after the door, == 5 -> the sign (h69 +0x32d4, kind 6, 48 x 40) at (139, 39) and h62 +0x576(180), then Delay(180); the face blit covers it. s156: the Client counts the defeat screens of its program run, as h33 +0 (a load keeps counting); the sign not filmed [~].",
+    "font": "amiga-z6font-6",
+    "raw_tone": { "channel": 0, "period": 6000, "volume": 60 },
+    "sign": { "defeat": 5, "x": 139, "y": 39, "polls": 180 }
+  },
+  "sound_effects": {
+    "_note": "The Amiga's sounds (reverse-engineering/amiga/FORMAT.md 'Sound effects') [C] static s128: h89 +0xee(n) plays entry n of the 30 longs at h91 +0x1f4 (set by h89 +0x0): an ST Dosound script in hunk 90 (DATA, file 0x29798), played like tamb.dat by h89 +0x304 (the 16-byte ramp on Paula), which blocks until the script ends or a key / click ends it at a step. Offsets below are in the program file game. 27 is h90 +0x24d joined six times (+0x158). The default h90 +0x10 (a 7-tick beep) serves 1, 2, 6, 7, 9, 11-14, 24, 26, 28, 29. 30 is not a table entry: the combat sparkle's script h90 +0x299, which h89 +0x1cc plays directly (s133; 2 steps, 3 + 1 ticks). 31 is not a table entry either: h90 +5, which h89 +0xd2 plays directly (s134; 1 step, A 0x22d volume 15, 3 ticks): the spell list's tone after each pick. 32 is not a table entry (s141): h89 +0xe0 plays the default h90 +0x10 directly (the dungeon wall's beep, map_message.sounds; the same script as 1). Wired: the victory screen (ending_scene.sounds), the combat screen (combat_field), the map boxes (map_message.sounds), the defeat screens (defeat_screen, s153) and the step tone / entry / BLACK KNIGHTS menus (cue_sounds, s153). Callers not wired: FORMAT.md. Hold (s153 live with sound, capture_s153_sounds.md [~]): each step costs its Delay + channel_overhead_seconds per channel it sends (the player writes, FINISHes and WaitIOs each sent channel: 07 fe scripts send 2, 07 fc 3), each call call_overhead_seconds more; fitted on 25 (125 two-channel steps, 3.43 s), 21 (15 three-channel steps, 0.79 s) and 1 (0.155 s), checked on 3 (0.22-0.23), 8 (0.09-0.10), 10 (~0.21), 16 (0.28), 17 (black 1.08), 18 (0.80-0.81), 22 (0.60-0.62), 31 (0.06 audible), all within a frame. (s130's per-step 7 ms + 75 ms a call put one-step sounds 0.07 s long.)",
+    "format": "amiga-dosound", "file": "../unpacked/PHANT/game", "clock_hz": 3579545,
+    "step_overhead_seconds": 0, "channel_overhead_seconds": 0.0037, "call_overhead_seconds": 0.0075,
+    "sounds": {
+      "0": ["0x299f9"], "1": ["0x297a8"], "2": ["0x297a8"], "3": ["0x297b3"], "4": ["0x297be"],
+      "5": ["0x297d6"], "6": ["0x297a8"], "7": ["0x297a8"], "8": ["0x297c9"], "9": ["0x297a8"],
+      "10": ["0x29a1a"], "11": ["0x297a8"], "12": ["0x297a8"], "13": ["0x297a8"], "14": ["0x297a8"],
+      "15": ["0x29807"], "16": ["0x297fa"], "17": ["0x29937"], "18": ["0x298d4"], "19": ["0x297e3"],
+      "20": ["0x29b0d"], "21": ["0x29aaa"], "22": ["0x29a9f"], "23": ["0x29a40"], "24": ["0x297a8"],
+      "25": ["0x29b6f"], "26": ["0x297a8"], "27": ["0x299e5", "0x299e5", "0x299e5", "0x299e5", "0x299e5", "0x299e5"], "28": ["0x297a8"], "29": ["0x297a8"],
+      "30": ["0x29a31"],
+      "31": ["0x2979d"],
+      "32": ["0x297a8"]
+    }
+  },
+  "pictures": {
+    "title.cover": "ui/cover1.png",
+    "title.credits": "ui/cover2.png",
+    "town.backdrop": "ui/pelnor-town.png",
+    "ui.decor": "ui/decor.png",
+    "ending.final": "ui/final.png",
+    "ending.ghost": "ui/ending-ghost.png",
+    "ending.arm": "ui/ending-arm.png",
+    "combat.grave": "ui/combat-grave.png",
+    "combat.sparkle": "ui/combat-sparkle.png",
+    "decor.door": "ui/decor-door.png",
+    "decor.demon-face": "ui/decor-demon-face.png",
+    "decor.sorry-sign": "ui/decor-sorry-sign.png",
+    "ui.logo": "ui/logo.png",
+    "portrait.ghost": "ui/ending-ghost.png"
+  },
+  "picture_sets": [
+    { "name": "monster.{n}.idle", "dir": "monsters/idle", "prefix": "{n:D2}-", "ext": ".png" },
+    { "name": "monster.{n}.attacking", "dir": "monsters/attacking", "prefix": "{n:D2}-", "ext": ".png" },
+    { "name": "portrait.{n}.idle", "dir": "portraits/idle", "prefix": "{n:D2}-", "ext": ".png" },
+    { "name": "portrait.{n}.attacking", "dir": "portraits/attacking", "prefix": "{n:D2}-", "ext": ".png" }
+  ]
+}

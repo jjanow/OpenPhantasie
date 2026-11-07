@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>OpenPhantasie.Core.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="OpenPhantasie.Tests" />
+  </ItemGroup>
+
+  <!-- OriginalDataFact / OriginalDataTheory: tests that need the games' own data, skipped without it (public repo). -->
+  <ItemGroup>
+    <Compile Include="..\Shared\OriginalData.cs" Link="Shared\OriginalData.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OpenPhantasie.Core\OpenPhantasie.Core.csproj" />
+    <ProjectReference Include="..\..\src\OpenPhantasie.Data\OpenPhantasie.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- P1.4: every DOS save fixture, linked (not copied) from the RE tree. -->
+    <None Include="..\..\reverse-engineering\dos\extracted\samples\*" LinkBase="Fixtures\samples" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\reverse-engineering\dos\original-files\TWNS.DAT" Condition="Exists('..\..\reverse-engineering\dos\original-files\TWNS.DAT')" Link="Fixtures\master\TWNS.DAT" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\reverse-engineering\dos\original-files\TWNS.INT" Condition="Exists('..\..\reverse-engineering\dos\original-files\TWNS.INT')" Link="Fixtures\master\TWNS.INT" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\reverse-engineering\atari-st\phantasie2\parity\transfer-data\*.dat" LinkBase="Fixtures\p2-transfer" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

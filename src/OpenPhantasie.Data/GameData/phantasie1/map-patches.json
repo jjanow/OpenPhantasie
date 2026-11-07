@@ -1,0 +1,14 @@
+{
+  "_source": "Remaster decisions, not extracted data. Applied to overworld.json at load (GameDataRepository.LoadOverworld) and to the Amiga map pictures (tools/scripts/extract_amiga_map_graphics.py).",
+  "_note": "tile = the visible tile id; a fogged cell keeps its fog (+120).",
+  "overworld": [
+    {
+      "region": 13, "x": 17, "y": 19, "tile": 40,
+      "why": "D-060 (user s53, manual): APPLETON's town record points at this cell, but DOS has an inn tile (41) here, so the town could not be walked into."
+    },
+    {
+      "region": 13, "x": 4, "y": 14, "tile": 41,
+      "why": "D-060 (user s53/s54): the inn that sat on APPLETON's cell moves here, on the path beside the OUT13 dungeon entrance (3,14)."
+    }
+  ]
+}

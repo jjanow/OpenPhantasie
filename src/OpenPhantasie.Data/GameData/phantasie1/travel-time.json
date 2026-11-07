@@ -1,0 +1,8 @@
+{
+  "_source": "OV2.OVR 0x5f88..0x5fa7 (wilderness step) and 0x6827 (wilderness inn), both via the adder 0x6528 [C] (s36)",
+  "_note": "Travel-time units added to [0x63f2]; 256 units = one DAY OUT day; town entry ages every party slot by (time >> 8) / 7. Index = terrain class (tile / 10); classes not listed use step_cost_other. The DOS inn value is not used by the remaster (D-008: +1 age unit instead).",
+  "_d055": "D-055 (user s42, manual p.25): path (class 6) is faster than every other terrain. DOS charges it 60 like classes 4..9; the remaster charges 30 (value confirmed by the user s57). DOS table: [75, 150, 225, 300] then 60 for everything else.",
+  "step_cost_by_terrain_class": [75, 150, 225, 300, 60, 60, 30],
+  "step_cost_other": 60,
+  "wilderness_inn_dos": 1000
+}

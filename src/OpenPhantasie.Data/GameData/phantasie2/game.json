@@ -1,0 +1,22 @@
+{
+ "_schema": "phantasie.game/v1",
+ "_source": "Built by tools/scripts/build_p2_gamedata.py from Phantasie II, Atari ST v1.0 (reverse-engineering/atari-st/phantasie2/extracted/, FORMAT.md)",
+ "_note": "The tables this folder holds and their sizes, read by OpenPhantasie.Data GameTables.Load (and GameDataRepository.Load for play, with Core's Phantasie2Campaign; 09-trilogy.md T3). Its Atari ST graphics pack is graphics/atari-st.json (not built by this script).",
+ "game": "p2",
+ "platform": "atari-st",
+ "counts": {
+  "monsters": 80,
+  "items": 181,
+  "spells": 56,
+  "classes": 6,
+  "races": 16,
+  "overworld_regions": 17,
+  "dungeon_levels": 8,
+  "message_areas": 8,
+  "scrolls": 14,
+  "towns": 12,
+  "elementals": 3
+ },
+ "spell_cost_rule": null,
+ "_spell_cost_rule": "I: (DOS slot % 4) + 1 for every spell (OV2). II uses the same rule on its own slots [C] (magic-divine.md section 1: DIVINE II slot 56 = 1 MP, DIVINE I slot 57 = 2 MP); every spells.json cost is filled, but the checked rule stays null because the loader's slot map (SpellId.DosSlot) only knows I's numbering."
+}

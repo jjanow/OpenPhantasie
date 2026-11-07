@@ -1,0 +1,9 @@
+{
+  "_source": "Remaster rule data, not in the DOS monster table. Indices are monsters.json 'index' (names repeat: ORANGE DRAGON). See DIFFERENCES.md.",
+  "_fields": {
+    "undead": "D-024 (user: manual) — DISPELL UNDEAD affects these. Manual p.15: skeletons, zombies, ghosts and others returned from the grave. DOS used per-monster XP % 7 == 0, which also hit BANTIR (1), DEMON (48), HIGH DEMON (60).",
+    "never_flees": "D-021 (user: manual + recommended rule) — a successful FEAR only lowers L (DOS L -= 6) and never makes these run, so the FEAR + DISSOLVE Black Lord win stays (endgame.md)."
+  },
+  "undead": [0, 13, 14, 24, 25, 37, 49, 50, 64],
+  "never_flees": [72]
+}

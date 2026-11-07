@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>OpenPhantasie.Data</RootNamespace>
+    <!-- THE switch for the committed GameData (10-importer.md 4.3, GameDataLocator): true = a dev build that may fall
+         back to the GameData and art committed in this private repo; false (the public repo) = every game needs the
+         player's import. -->
+    <OpenPhantasieBuiltInGameData Condition="'$(OpenPhantasieBuiltInGameData)' == ''">false</OpenPhantasieBuiltInGameData>
+    <DefineConstants Condition="'$(OpenPhantasieBuiltInGameData)' != 'true'">$(DefineConstants);OPENPHANTASIE_NO_BUILTIN_GAMEDATA</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenPhantasie.Core\OpenPhantasie.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="GameData\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

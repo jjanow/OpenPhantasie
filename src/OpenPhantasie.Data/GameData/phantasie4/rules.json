@@ -1,0 +1,48 @@
+{
+ "_source": "Phase 09 T1.3 rules profile for Phantasie IV (X68000 numbers; the PC-98 manual is the source of truth). Only decided or decoded values. IV's training, terrain and encounter rules do not fit the I / II blocks; their tables are in rule-tables.json for Core's IV rules.",
+ "_gold": "D4-031 (user s81: manual 65,000 for the party and each account on every path; option uncapped).",
+ "_guild": "10 guild slots (_gmb, guils = 10 x 190 B) [C]; the party is 6 (+ the elemental in slot 6).",
+ "_starting_gold": "0 here: IV's starting gold is social class x 256 into the account (rule-tables.json creation gold_per_social), added by IV's creation rule.",
+ "_equipment_slots": "_equip [C]: shield 1-8, armour 9-27, melee weapon 28-63, bow 64-75, thrown weapon 76-84.",
+ "original_platform": "x68000",
+ "game": "p4",
+ "party_gold_cap": 65000,
+ "bank_gold_cap": 65000,
+ "guild_slot_count": 10,
+ "guild_max_characters": 10,
+ "starting_gold": 0,
+ "equipment_slots": [
+  {
+   "id": "shield",
+   "first_item": 1,
+   "last_item": 8
+  },
+  {
+   "id": "armor",
+   "first_item": 9,
+   "last_item": 27
+  },
+  {
+   "id": "weapon",
+   "first_item": 28,
+   "last_item": 63
+  },
+  {
+   "id": "bow",
+   "first_item": 64,
+   "last_item": 75
+  },
+  {
+   "id": "thrown",
+   "first_item": 76,
+   "last_item": 84
+  }
+ ],
+ "guild_by_platform": {
+  "x68000": {
+   "slots": 10,
+   "max_characters": 10,
+   "_source": "[C] guils = 10 records (FORMAT.md 6.1)"
+  }
+ }
+}

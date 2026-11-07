@@ -1,0 +1,53 @@
+{
+ "_source": "Phase 09 T1.3 rules profile for Phantasie III (DOS SSI 1988 numbers; the III manual is the source of truth). Only decided or decoded values. III's training, terrain and encounter rules do not fit the I / II blocks (training / terrain / encounters are left out); their tables are in rule-tables.json for Core's III rules.",
+ "_gold": "D3-026 (user s81: manual 65,000 per party and per account; DOS has no cap, an option).",
+ "_guild": "D3-029 (user s81): no roster limit by default (manual 'dozens'); built as a rules option by Core's III rules. The numbers below are DOS's: 20 records, the 3 elementals in slots 0-2, so 17 characters (logic-specs/elementals.md). guild_by_platform.dos records the same.",
+ "_starting_gold": "0 here: III's starting gold is social class * 256 (rule-tables.json social_classes), added by III's creation rule (FORMAT.md section 5.1).",
+ "_equipment_slots": "Manual (III PDF 6 / pr.6, 11-12) and DOS (ovl2 0x37f1) [C]: shield 1-20, armour 21-40, bow 41-60, melee weapon 61-100.",
+ "_elementals": "Manual (III PDF 11 / pr.16, Q12: 'does not count as a member') and DOS (ovl2 0x3a0a) [C] agree: an elemental joins once the party has one character, and a character can still be added afterwards (the elemental stays last). drop_keeps: DOS ovl2 0x3c92 [C] (s97): dropping a character keeps the loaded elemental (it moves up and stays last) until no character is left; the manual is silent. logic-specs/elementals.md section 2.",
+ "elementals": {
+  "min_members": 1,
+  "blocks_add": false,
+  "drop_keeps": true
+ },
+ "_dungeon_save_per_dungeon": "DOS writes one saved map per dungeon, DNP<letter> / DNG<letter> (ovl4 0x62d; live s82: the archives wrote DNPA / DNGA) [C]; logic-specs/dungeon-events.md section 1. The manual is silent on the files.",
+ "dungeon_save_per_dungeon": true,
+ "_drop_gold_share": "Guild Drop Member pays the dropped character party_gold / characters (32-bit divide, the count taken before the Drop, the elemental not counted) into his bank account and takes it from the party gold: DOS ovl2 0x3c92 and Amiga 0xd448 [C] (s98). Apple II's Drop (town lines 3500-3520) moves no gold. The manual is silent (Guild: 'Drop From Party'), so not a conflict. logic-specs/town.md section 2.",
+ "drop_gold_share": true,
+ "original_platform": "dos",
+ "game": "p3",
+ "party_gold_cap": 65000,
+ "bank_gold_cap": 65000,
+ "guild_slot_count": 17,
+ "guild_max_characters": 17,
+ "starting_gold": 0,
+ "equipment_slots": [
+  {
+   "id": "shield",
+   "first_item": 1,
+   "last_item": 20
+  },
+  {
+   "id": "armor",
+   "first_item": 21,
+   "last_item": 40
+  },
+  {
+   "id": "bow",
+   "first_item": 41,
+   "last_item": 60
+  },
+  {
+   "id": "weapon",
+   "first_item": 61,
+   "last_item": 100
+  }
+ ],
+ "guild_by_platform": {
+  "dos": {
+   "slots": 17,
+   "max_characters": 17,
+   "_source": "[C] static: roster FAR:0xe820 x 20 records, creation needs a count below 20, a new data disk starts with Air / Mist / Mud in slots 0-2 (root 0xa856, ovl2 0x3f04)."
+  }
+ }
+}

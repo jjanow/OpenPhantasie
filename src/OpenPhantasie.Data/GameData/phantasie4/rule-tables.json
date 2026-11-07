@@ -1,0 +1,1693 @@
+{
+ "_schema": "phantasie.p4-rule-tables/v1",
+ "_source": "Phantasie IV, X68000 Star Craft 1991 Ver.1.02 (reverse-engineering/x68000/phantasie4/, FORMAT.md): TABL, P4.X tables (addresses per block), the logic specs and DIFFERENCES-IV.md. Data for Core's IV rules (src/OpenPhantasie.Core/Phantasie4/); nothing here is a formula.",
+ "player_classes": 8,
+ "creation": {
+  "_note": "ancestry.md [C]. race_ability_mod: 34 rows (races 0-33); class_ability_mod: 8 player classes; sub_bonus_pseudo_rows: what _sub_bonus subtracts for a Hall person of class 8 (Sage) / 9 (Lord), the first bytes of TABL 0x14A (ancestry.md 5.2) [C]. combine_5x5 rows/cols = races 0-4, -1 = none; combine_pairs = the nine packed keys (a > b). inheritance_exponent[i] applies when avg >= 18 - 0.5 i; new_person_exponent 0.6. random_race_lists (P4.X stores a count, then the races; the count is dropped here): 0 = plain normal list, 1 = plain 25 % list, 2 = plain 25 % list when a Hill Giant or Gargoyle is in the guild, 3 / 4 = ancestor-1 lists. class_mask_by_race: 8 chars, Thief..Gargoyle. stride_race / stride_class = _moverate (D4-012: stride_manual_overrides). social: rand(100) for races 0-4 else rand(75); <= 29 Peasant, <= 59 Laborer, <= 89 Craftsman, else Noble (D4-010: social_bias_manual).",
+  "sub_bonus_pseudo_rows": {
+   "8": [
+    6,
+    6,
+    7,
+    7,
+    8
+   ],
+   "9": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
+  },
+  "combine_pairs": [
+   {
+    "a": 6,
+    "b": 5,
+    "result": 24
+   },
+   {
+    "a": 7,
+    "b": 0,
+    "result": 25
+   },
+   {
+    "a": 9,
+    "b": 7,
+    "result": 26
+   },
+   {
+    "a": 10,
+    "b": 1,
+    "result": 28
+   },
+   {
+    "a": 11,
+    "b": 0,
+    "result": 30
+   },
+   {
+    "a": 11,
+    "b": 8,
+    "result": 27
+   },
+   {
+    "a": 12,
+    "b": 4,
+    "result": 31
+   },
+   {
+    "a": 12,
+    "b": 10,
+    "result": 29
+   },
+   {
+    "a": 14,
+    "b": 13,
+    "result": 32
+   }
+  ],
+  "random_race_rare_chance": 26,
+  "stride_manual_overrides": {
+   "_note": "D4-012 (user s81: manual pp. 12-16): Halfling 5, Orc 8",
+   "3": 5,
+   "11": 8
+  },
+  "gargoyle_classes_manual": {
+   "_note": "D4-013 (user s81: manual pp. 17-18): a Gargoyle may also be a Thief or Fighter",
+   "race": 16,
+   "mask": "10010001"
+  },
+  "social": {
+   "thresholds": [
+    29,
+    59,
+    89
+   ],
+   "die_base_races": 100,
+   "die_other_races": 75,
+   "base_races": 5,
+   "hall_super_hero_gives": 7,
+   "hall_dark_lord_gives": 8
+  },
+  "social_bias_manual": {
+   "_note": "D4-010 (user s82): Elves and Dwarves roll rand(100) + 10, capped at 100",
+   "races": [
+    1,
+    2
+   ],
+   "bonus": 10,
+   "cap": 100
+  },
+  "luck": {
+   "_note": "rand(6) + 8 = 9..14 [C]",
+   "die": 6,
+   "add": 8
+  },
+  "gold_per_social": 256,
+  "starting_spells": {
+   "_note": "spell numbers by class (ancestry.md 7 item 7) [C]",
+   "Monk": [
+    5,
+    28
+   ],
+   "Ranger": [
+    1,
+    5
+   ],
+   "Priest": [
+    1,
+    46
+   ],
+   "Wizard": [
+    5,
+    9
+   ],
+   "Gargoyle": [
+    9
+   ]
+  },
+  "starting_item": {
+   "_note": "everyone except Shadow Warriors carries Darts (79) [C]",
+   "item": 79,
+   "except_class": 6
+  },
+  "fliers": {
+   "_note": "record +B8 for Pixie, Sprite, Gargoyle, Sprixie [~]",
+   "races": [
+    5,
+    6,
+    16,
+    24
+   ]
+  },
+  "divine_aid_spell": 63,
+  "nikademus_hall_slot": 2,
+  "nikademus_counts_as_race": {
+   "_note": "D4-001 (user s81): for the race combination Nikademus counts as Human",
+   "race": 0
+  },
+  "max_descendants": 99
+ },
+ "aging": {
+  "_note": "towns.md 2.2, ancestry.md 7 [C]. Age in 1/26 years (+1E). X68000 aging factor F = Luck x factor (cap 255): Elf x19, Dwarf / Halfling / Gnome x2.5, Human / Pixie / Sprite x1, races >= 7 / 2.5; grown older at trunc(age / 256) >= 0.7 F, dies at >= F; starting age = trunc(260 + 256 F (0.1 + (rand(100) - 1) / 4000)). One town entry adds trunc(days / 0x700) to every age.",
+  "factor_by_race": {
+   "2": 19.0,
+   "1": 2.5,
+   "3": 2.5,
+   "4": 2.5,
+   "0": 1.0,
+   "5": 1.0,
+   "6": 1.0,
+   "other": 0.4
+  },
+  "factor_cap": 255,
+  "decline_at": 0.7,
+  "days_per_age_unit": 1792,
+  "decline_factor": {
+   "msx2": 0.8,
+   "x68000": 0.0
+  }
+ },
+ "lifespans_manual": {
+  "_note": "D4-033 (user s81: manual p. 30 lifespans; exact values and spread set at build, s83): death age in years = base x (0.9 + 0.04 x (Luck - 9)), i.e. +/-10 % over Luck 9..14 (Luck above 14 or below 9 keeps the 0.9..1.1 clamp); grown older at 70 % of it (the code's point). Bases from the manual: Elf about 2,000, Dwarf and Gnome 200, Human 80, every other race (Halflings, the monster races and the mixed races included, as the manual says 'the others') 45, the middle of 40-50, so the spread stays inside 40-50.",
+  "base_years": {
+   "2": 2000,
+   "1": 200,
+   "4": 200,
+   "0": 80,
+   "other": 45
+  },
+  "spread_min": 0.9,
+  "spread_per_luck": 0.04,
+  "luck_min": 9,
+  "luck_max": 14,
+  "decline_at": 0.7
+ },
+ "hp_growth": {
+  "_note": "TABL 0x000, 8 player classes x 15 levels [C]; D4-019 (user s82): Thief = lowest other class at that level - 1, floor 1 (thief_hp_manual)"
+ },
+ "magic_level": {
+  "_note": "TABL 0x14A (+36) [C]"
+ },
+ "skill_growth": {
+  "_note": "TABL 0x1C2 [C]: [skill][class][level 0..14]; _calsk: v = (old + G[min(L, 14)]) / 2 + bonus, min 1, rounded (skills.md 2)"
+ },
+ "spells_granted": {
+  "_note": "TABL 0x6EA [C]: [class][level 0..14] = spell numbers made learnable at that level. D4-016 (user s81): Fighters only their first 4 (fighter_spell_limit_manual); D4-015 (user s82): Priests to level 35, levels 31-35 each grant 6 of the missing spells in number order (priest_manual)."
+ },
+ "fighter_spell_limit_manual": 4,
+ "priest_manual": {
+  "max_level": 35,
+  "first_extra_level": 31,
+  "spells_per_level": 6
+ },
+ "max_level": {
+  "_note": "_calpow stops at 30; the hall refuses level >= 31 or Score >= 125 [C]",
+  "level": 30,
+  "score_gate": 125
+ },
+ "training": {
+  "_note": "training.md [C]: need = trunc(1350 (1.8^L - 0.8) / r), r = sum / divisor (L = 0: - 3333); cost = trunc(L^2.2 (20 - Cha)^2 T / 100), cap 25,000; level-up gold = social^social x L x 30 into the account. Ability weights: Str, Int, Dex, Con, Cha, Luck. Experience over ~1.8^25 is the open overflow [?] (computed in double here).",
+  "weights": [
+   [
+    1,
+    0,
+    2,
+    0,
+    0,
+    0
+   ],
+   [
+    1,
+    1,
+    1,
+    0,
+    0,
+    0
+   ],
+   [
+    1,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    2,
+    0,
+    1,
+    0,
+    0,
+    0
+   ],
+   [
+    1,
+    2,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    2,
+    0,
+    0,
+    0,
+    1
+   ],
+   [
+    0,
+    1,
+    1,
+    0,
+    0,
+    1
+   ],
+   [
+    1,
+    0,
+    1,
+    1,
+    0,
+    0
+   ]
+  ],
+  "divisors": [
+   19.8,
+   49.5,
+   52.8,
+   33.0,
+   36.3,
+   42.9,
+   75.0,
+   48.0
+  ],
+  "cost_cap": 25000,
+  "gold_per_level": 30,
+  "magic_quota_class_term": [
+   1,
+   2,
+   3,
+   1,
+   5,
+   6,
+   7,
+   8
+  ],
+  "magic_price_base": 9000
+ },
+ "towns": {
+  "_note": "towns.md [C]",
+  "inn_heal_points": 2,
+  "outdoor_inn_cost": 256,
+  "outdoor_inn_hours": 1000,
+  "ship_cost": 1500,
+  "bank_cap": 65000,
+  "town_inn_days_manual": 14,
+  "magic_training_age_units": 2,
+  "join_from_other_town_age_units": 4,
+  "transport_groups": {
+   "_note": "spells-noncombat.md (_twnt 0x44EE2): caster's town -> group of towns",
+   "groups": [
+    [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12
+    ],
+    [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     17,
+     18
+    ],
+    [
+     14,
+     17,
+     18,
+     21
+    ],
+    [
+     17,
+     18
+    ]
+   ],
+   "town_group": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0,
+    "10": 0,
+    "11": 0,
+    "12": 0,
+    "14": 1,
+    "17": 2,
+    "18": 2,
+    "21": 3
+   }
+  }
+ },
+ "shop_random_items": {
+  "_note": "_gen_itm (32 B) [C]; _igen picks entry rand(2 min(m, 12) + 5) (1-based index into this list), m = the SUM of the party's levels (s102: _igen adds the level bytes)"
+ },
+ "resale_manual": {
+  "_note": "D4-020 (user s82): a sold item is resold at trunc(paid x 1.25), no town factor",
+  "numerator": 5,
+  "denominator": 4
+ },
+ "item_points_manual": {
+  "_note": "D4-018 (user s81): Long Sword 14 points",
+  "40": 14
+ },
+ "gold_caps": {
+  "_note": "D4-031 (user s81: manual 65,000 on every path; option uncapped). X68000: bank 65,000, sell 65,535, loot 999,999,999, level-up into the account 65,535 [C]",
+  "manual": 65000,
+  "x68000_sell": 65535,
+  "x68000_loot": 999999999,
+  "x68000_level_gold": 65535
+ },
+ "potions": {
+  "_note": "items.md 3 [C]; D4-035 (user s82: manual Tables 2-3)",
+  "manual_hp": [
+   1,
+   4,
+   9,
+   16,
+   25,
+   35,
+   49,
+   64,
+   81,
+   100
+  ],
+  "manual_heal_points": [
+   1,
+   1,
+   1,
+   2,
+   2,
+   2,
+   3,
+   3,
+   3,
+   4
+  ],
+  "spoil_above": 90,
+  "spoil_damage_die": 8
+ },
+ "combat": {
+  "_note": "combat.md [C]",
+  "crit_threshold_by_item": {
+   "35": 35,
+   "36": 35,
+   "74": 35,
+   "59": 75,
+   "62": 50,
+   "75": 50,
+   "63": 40,
+   "84": 40,
+   "83": 25
+  },
+  "slash_from": 150,
+  "attack_from": 75,
+  "aim_penalty": 15,
+  "lunge_penalty": 30,
+  "manual_strikes": {
+   "_note": "D4-042 (user s82: manual p. 43): Attack strikes twice, Slash 3-4 times (n = trunc(Hm / 75) + 1). User s84: lower accuracy for more damage: each strike rolls Hm - hit_penalty to hit (Slash's Hm not divided by n) and Attack does full damage (no -1); Slash does 1-2 less than Attack as the manual says (user s86: -(n - 2)); penalties chosen by Claude at the user's request.",
+   "attack": 2,
+   "hit_penalty": {
+    "attack": 10,
+    "slash": 20
+   }
+  },
+  "arrow_flame": {
+   "hit": [
+    50,
+    100
+   ],
+   "damage": [
+    15,
+    25
+   ]
+  },
+  "weakness_factor": [
+   0.8,
+   0.6,
+   0.4,
+   0.2
+  ],
+  "fire_flash_n": [
+   10,
+   30,
+   60,
+   100
+  ],
+  "mind_blast_n": [
+   8,
+   18,
+   30,
+   44
+  ],
+  "healing_manual_n": [
+   9,
+   27,
+   57,
+   99
+  ],
+  "annihilate": {
+   "_note": "Remaster effect for spell 64 under p4.annihilate = divine (user s117, D4-071; no original has one): every monster takes M x base_per_mp + rand(M x spread_per_mp) - 1, M = the caster's MP at the cast.",
+   "base_per_mp": 2,
+   "spread_per_mp": 2
+  },
+  "shock_wave": [
+   7,
+   15,
+   24,
+   35
+  ],
+  "flameball_n": [
+   18,
+   25,
+   35,
+   43
+  ],
+  "flameball_radius_manual": [
+   1.0,
+   2.0,
+   2.5,
+   3.0
+  ],
+  "spell_pages_code": {
+   "_note": "s152: _getmagic(member, 0)'s five category pages (FORMAT.md 6.9 'Combat spell list'): table 0x44AC8 {first, last} into 0x44AE2 (0-based), as spell numbers in the page's order [C]"
+  },
+  "protection": [
+   1,
+   3,
+   6,
+   10
+  ],
+  "speed": [
+   2,
+   5
+  ],
+  "strength": [
+   2,
+   4,
+   7,
+   11
+  ],
+  "ninja_stride": [
+   11,
+   14
+  ],
+  "auto_spells_manual": {
+   "_note": "D4-046 (user s82: manual p. 32)",
+   "attack": [
+    5,
+    6,
+    7,
+    8,
+    11,
+    12,
+    14,
+    20,
+    38,
+    43,
+    48,
+    59,
+    60,
+    61,
+    62
+   ],
+   "defence": [
+    1,
+    2,
+    3,
+    4,
+    9,
+    10,
+    13,
+    16,
+    17,
+    18,
+    19,
+    40
+   ]
+  },
+  "monster_hp": {
+   "_note": "D4-055 (user s82: MSX2 by default) [C] FORMAT.md 6.4: msx2 = trunc(b (rand(10) + 4) / 10 + 0.5); x68000: roll 1 trunc(0.5 b + 0.5), 2 trunc(1.5 b + 0.5), 3-10 trunc(1.8 b); both capped at trunc(1.8 b)",
+   "cap": 1.8
+  },
+  "treasure": {
+   "dungeon_chance": 45,
+   "outdoor_level_add": 18,
+   "dungeon_extra_below": 65
+  },
+  "night_attack_chance": 37,
+  "battle": {
+   "_note": "combat.md 1, 7, 8.1 [C] (s98 static reading): the 7 x 7 field (square = 7 row + column, row 0 at the top). _e_terrain (0x26E0C) picks the field by the outdoor terrain type of the party's square (tile / 10); a type with no entry (lava, the River of Hell, places) calls no _e_on_* routine [C] (never reached: no encounter roll there). Each field: _e_obstacle(kind, count, passable) calls, count = rand(die) + add, each on a free square rand(35) + 6 (7-41); passable obstacles can be walked over, the others only flown over. Outdoor first monster type (_emons): rand(die) - 1 + 12 x area level (_al) + add; then with rand(100) < override_below it becomes rand(override_die) - 1 + override_add (mist / Netherworld 49 %, the sea 64 %: Swashbuckler 76, else Pirate 75). Location maps: _denc names the type; no obstacles.",
+   "fields": {
+    "ship": {
+     "types": [
+      0,
+      1,
+      13
+     ],
+     "obstacles": [
+      [
+       1,
+       6,
+       1,
+       true
+      ]
+     ],
+     "monster": {
+      "die": 1,
+      "add": 75,
+      "area_level_times": 0,
+      "override_below": 65,
+      "override_die": 1,
+      "override_add": 76
+     }
+    },
+    "desert": {
+     "types": [
+      2
+     ],
+     "obstacles": [
+      [
+       2,
+       2,
+       0,
+       true
+      ],
+      [
+       3,
+       4,
+       2,
+       false
+      ],
+      [
+       4,
+       2,
+       0,
+       true
+      ]
+     ],
+     "monster": {
+      "die": 4,
+      "add": 8,
+      "area_level_times": 12
+     }
+    },
+    "hill": {
+     "types": [
+      3,
+      4
+     ],
+     "obstacles": [
+      [
+       5,
+       2,
+       0,
+       true
+      ],
+      [
+       6,
+       3,
+       -1,
+       true
+      ],
+      [
+       7,
+       6,
+       0,
+       false
+      ]
+     ],
+     "monster": {
+      "die": 10,
+      "add": 2,
+      "area_level_times": 12
+     }
+    },
+    "forest": {
+     "types": [
+      5
+     ],
+     "obstacles": [
+      [
+       8,
+       11,
+       4,
+       true
+      ],
+      [
+       9,
+       11,
+       4,
+       false
+      ],
+      [
+       6,
+       5,
+       0,
+       true
+      ]
+     ],
+     "monster": {
+      "die": 10,
+      "add": 0,
+      "area_level_times": 12
+     }
+    },
+    "grass": {
+     "types": [
+      6
+     ],
+     "obstacles": [
+      [
+       2,
+       6,
+       -1,
+       true
+      ],
+      [
+       6,
+       6,
+       -1,
+       true
+      ]
+     ],
+     "monster": {
+      "die": 8,
+      "add": 2,
+      "area_level_times": 12
+     }
+    },
+    "mist": {
+     "types": [
+      8,
+      12
+     ],
+     "obstacles": [
+      [
+       10,
+       25,
+       -1,
+       false
+      ]
+     ],
+     "monster": {
+      "die": 12,
+      "add": 60,
+      "area_level_times": 0,
+      "override_below": 50,
+      "override_die": 2,
+      "override_add": 60
+     }
+    },
+    "nether": {
+     "types": [
+      11
+     ],
+     "obstacles": [
+      [
+       5,
+       5,
+       -1,
+       true
+      ],
+      [
+       7,
+       5,
+       -1,
+       true
+      ],
+      [
+       10,
+       3,
+       -1,
+       false
+      ]
+     ],
+     "monster": {
+      "die": 12,
+      "add": 60,
+      "area_level_times": 0,
+      "override_below": 50,
+      "override_die": 2,
+      "override_add": 60
+     }
+    }
+   },
+   "obstacle_squares": {
+    "die": 35,
+    "add": 6
+   },
+   "_exits_note": "_init_edge: outdoors every edge square is an exit; in a location map or a sea fight every edge is a wall except one side exit rand(14) - 1 of side_exits [square, edge index].",
+   "groups": {
+    "_note": "_enc_mons [C]: up to 3 groups; group size rand(n), n = DATM +14, but n = party +0B (average level) when +14 > +0B + 1; another group follows when rand(100) <= +34, of type companions[rand(2) - 1]. _emlevel / _emnice = the mean of the groups' +1E / +28 (min level 1).",
+    "max": 3
+   },
+   "wake_monster_below": 15,
+   "monster_flee_below_percent": 30,
+   "event_monsters": {
+    "_note": "_monevf 0x20CDC [C] (s110): an encounter whose first DATM type is a key is an event fight (_evmon): its monsters never flee (_b_chkflee), and winning it by end 101 (all killed) or 103 (melted) sets that story flag. 72 Lord Castlebaum, 73 Kor, 83 Arathamus.",
+    "72": 12,
+    "73": 9,
+    "83": 59
+   }
+  }
+ },
+ "outdoor_terrain": {
+  "_note": "outdoor.md 2 [C]: by terrain type (tile / 10). hours per step (table 0x42D60); encounter per mille (0x42FB2; null = no check); blocked: 1 rapids, 10, 19 open sea always; 9 River of Hell needs Charon's Raft (132) and Staff (133); 13 shining sea until story flag 0x15C.",
+  "names": [
+   "water",
+   "rapids",
+   "desert",
+   "hills",
+   "mountains",
+   "forest",
+   "grassland",
+   "lava",
+   "mist",
+   "River of Hell",
+   "deep River of Hell",
+   "Netherworld ground [~]",
+   "Netherworld ground [~]",
+   "shining sea",
+   "town",
+   "inn",
+   "dungeon",
+   "pool",
+   "Charon",
+   "open sea"
+  ],
+  "_name_ids_note": "the name printed on entering a new terrain (_omain, table 0x42D30): index type + 1 for types 0-10, else 0 (an empty string) [C]",
+  "hours": [
+   36,
+   36,
+   8,
+   20,
+   20,
+   14,
+   6,
+   20,
+   12,
+   48,
+   48,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8
+  ],
+  "encounter_per_mille": [
+   60,
+   60,
+   25,
+   30,
+   30,
+   50,
+   40,
+   null,
+   60,
+   0,
+   0,
+   60,
+   60,
+   0,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "blocked": [
+   1,
+   10,
+   19
+  ],
+  "needs_charon_items": {
+   "type": 9,
+   "items": [
+    132,
+    133
+   ]
+  },
+  "area_level_by_map": [
+   4,
+   3,
+   2,
+   1,
+   1,
+   0,
+   0,
+   2,
+   0,
+   1,
+   0,
+   0,
+   2,
+   2,
+   2,
+   5,
+   5,
+   5,
+   5,
+   6,
+   6,
+   8,
+   7,
+   5
+  ],
+  "swim_damage": {
+   "die": 5,
+   "add": 1
+  },
+  "lava_damage_die": 5,
+  "ship_storm_below": 15,
+  "storm_moves": 10,
+  "levitation_manual": {
+   "_note": "D4-039 (user s82: manual p. 55): aloft for 5 x the slowest member's stride (steps), wilds and dungeons",
+   "stride_multiple": 5
+  },
+  "navigation_manual": {
+   "_note": "D4-040 (user s84 reading of manual p. 21 'do not use below 50 %'): advice with a risk: the best navigator always steers; below drift_below each step also drifts off course on a (drift_below - skill) % roll, besides the code's own drift roll",
+   "drift_below": 50
+  },
+  "overview": {
+   "_note": "Display only (s108, FORMAT.md 6.9 'Outdoor map'): the 3 x 3 block of maps the M overview shows (_omaps 0x42ECC, 9 a block, row-major) [C]. The block (_cblock) stays while the party walks across map edges if the new map is in it, else it changes (_omove: block 0 <-> 1 when stepping off its outer column); a jump (pool, Charon, _tele, The Box) sets block_by_map (_mvb 0x43732, by map 0-24) [C]. From netherworld_from on, only the party's own map is shown; every other cell shows hidden_map (_omap_load: entry != _cmapn -> 16) [C].",
+   "netherworld_from": 16,
+   "hidden_map": 16
+  }
+ },
+ "dungeon_monster_level_by_map": [
+  1,
+  1,
+  4,
+  2,
+  4,
+  3,
+  2,
+  2,
+  4,
+  0,
+  5,
+  6,
+  10,
+  8,
+  0,
+  0,
+  7,
+  10,
+  12,
+  6,
+  6
+ ],
+ "magic_bag": {
+  "_note": "spells-noncombat.md (0x44E52) [C]",
+  "cost": 100
+ },
+ "services": {
+  "_note": "s102: the town buildings, the guild and the out-of-combat menus (towns.md 3, 6; training.md 4.1, 4.2, 5; spells-noncombat.md). [C] unless noted.",
+  "roster_slots": 10,
+  "party_max": 6,
+  "elementals": {
+   "_note": "_party: E cycles Earth / Mist / Air spirit / Do not summon; starts on 3 (_par+14)",
+   "choices": 4,
+   "default": 3
+  },
+  "party_strategy": {
+   "_note": "_party_info: A attitude (4), B flight (4); _party resets both to 1 (_par+15E / +15F = story flags 0x3E / 0x3F)",
+   "choices": [
+    4,
+    4
+   ],
+   "reset": [
+    1,
+    1
+   ]
+  },
+  "member_strategy": {
+   "_note": "_page2: +2A..+2E = A..E, 0-based; creation 2, 0, 2, 3, 3",
+   "choices": [
+    3,
+    2,
+    5,
+    7,
+    6
+   ],
+   "creation": [
+    2,
+    0,
+    2,
+    3,
+    3
+   ]
+  },
+  "mp_growth_percent_per_point": {
+   "_note": "_inn: max MP + 1 if rand(100) <= (magic level - max MP) x 20 (training.md 4.2)",
+   "value": 20
+  },
+  "level_row_wrap": {
+   "_note": "_calpow: learnable-spell row x = L + 1, x mod 15 above 15 (training.md 4.1); row -1 (L = 29) reads the previous class's level-15 row, for Thieves the three TABL bytes before the table (0x6E7)",
+   "period": 15
+  },
+  "spell_places": {
+   "_note": "_getmagic places 5-7 (spells-noncombat.md; table 0x44AC8 / 0x44AE2) [C]; D4-061 manual pp. 54-55: Identify / Magic Bag anywhere, Healing / Resurrection anywhere, Transportation and #65 town only, Levitation / Monster Evaluation / #63 in the wilds or dungeons",
+   "x68000": {
+    "outdoors": [
+     1,
+     2,
+     3,
+     4,
+     13,
+     40,
+     15,
+     49,
+     50
+    ],
+    "dungeon": [
+     1,
+     2,
+     3,
+     4,
+     13,
+     40,
+     15,
+     49,
+     50,
+     63
+    ],
+    "town": [
+     1,
+     2,
+     3,
+     4,
+     13,
+     40,
+     15,
+     47,
+     50,
+     65
+    ]
+   },
+   "manual": {
+    "outdoors": [
+     1,
+     2,
+     3,
+     4,
+     13,
+     40,
+     15,
+     49,
+     50,
+     63
+    ],
+    "dungeon": [
+     1,
+     2,
+     3,
+     4,
+     13,
+     40,
+     15,
+     49,
+     50,
+     63
+    ],
+    "town": [
+     1,
+     2,
+     3,
+     4,
+     40,
+     15,
+     47,
+     50,
+     65
+    ]
+   },
+   "targeted": [
+    1,
+    2,
+    3,
+    4,
+    40
+   ]
+  },
+  "identify_lines": {
+   "_note": "_ident_mi (0x2DA08) [C]: the Item Appraisal text of each item id 0-156",
+   "by_item": [
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4557a"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4557a"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x45598"
+    ],
+    [
+     "p4x.0x45598"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x45598"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x45598"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x45598"
+    ],
+    [
+     "p4x.0x45598"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x45598"
+    ],
+    [
+     "p4x.0x45598"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45511",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x4551c",
+     "p4x.0x45529"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x45564"
+    ],
+    [
+     "p4x.0x45564"
+    ],
+    [
+     "p4x.0x45564"
+    ],
+    [
+     "p4x.0x45564"
+    ],
+    [
+     "p4x.0x45564"
+    ],
+    [
+     "p4x.0x455b6"
+    ],
+    [
+     "p4x.0x455b6"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x455cc"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x455eb"
+    ],
+    [
+     "p4x.0x45546"
+    ],
+    [
+     "p4x.0x4560f"
+    ],
+    [
+     "p4x.0x45679"
+    ],
+    [
+     "p4x.0x4568f"
+    ],
+    [
+     "p4x.0x45651"
+    ],
+    [
+     "p4x.0x45679"
+    ],
+    [
+     "p4x.0x4568f"
+    ],
+    [
+     "p4x.0x456b8"
+    ],
+    [
+     "p4x.0x456d8"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x45631"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x45704"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4571e"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ],
+    [
+     "p4x.0x4573c"
+    ]
+   ]
+  },
+  "box": {
+   "_note": "_use_box [C]: The Box moves the party to outdoor map 21 (6, 14); a ship the party is aboard is left moored",
+   "map": 21,
+   "x": 6,
+   "y": 14,
+   "lines": [
+    "p4x.0x4268a",
+    "p4x.0x426ab",
+    "p4x.0x426c8",
+    "p4x.0x426e9"
+   ]
+  },
+  "town_name_ids": {
+   "_note": "_towns (0x3DA64) by map number 0-21 [C]"
+  },
+  "magic_hall_page": 13,
+  "shop_page": 6,
+  "party_info_kinds": {
+   "_note": "_p_item: pack ids by kind, first id of each (shields, armour, weapons, missiles, potions, treasures)",
+   "first_ids": [
+    1,
+    9,
+    28,
+    64,
+    85,
+    129
+   ]
+  },
+  "ending": {
+   "_note": "ending.md 1-2: scores by ending flag f0..f4 (_par+158..15C = story flags 0x38..0x3C); 175 makes every member Noble (3), 200 / 225 Lord (9); every member: HP / MP full, Charisma at least 20, Okay, wounds cleared; Score +09 = ending score + rounded average level (byte)",
+   "first_flag": 56,
+   "scores": [
+    125,
+    150,
+    175,
+    200,
+    225
+   ],
+   "noble_at": 175,
+   "noble": 3,
+   "lord_from": 200,
+   "lord": 9,
+   "min_charisma": 20,
+   "_messages_note": "_endmsg(n): blocks of lines (table 0x40C00 {first, last}, line ids 0x40C58); _ending's order per ending; _common_proc (200, 225) shows block 7 then, per member, '<origin> of <name> Lord' (0x41450 / 0x41459); block 5 is never shown",
+   "sequences": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     3,
+     4
+    ],
+    [
+     0,
+     6,
+     7,
+     8,
+     9
+    ],
+    [
+     0,
+     7,
+     10
+    ]
+   ],
+   "lord_title_block": 7,
+   "final_lines": [
+    "p4x.0x412c9",
+    "p4x.0x412e7"
+   ],
+   "score_ids": [
+    "p4x.0x413d5",
+    "p4x.0x413e4"
+   ],
+   "code_ids": [
+    "p4x.0x413ec",
+    "p4x.0x413fb",
+    "p4x.0x41400"
+   ],
+   "postcard_lines": [
+    "p4x.0x41300",
+    "p4x.0x4131e",
+    "p4x.0x4133f",
+    "p4x.0x41360",
+    "",
+    "p4x.0x41374"
+   ],
+   "_postcard_note": "s158: _endstory's lines 2-7 of its table 0x40D1C (0x41373 is an empty string: \"\" = a blank row); then _spc_wait (0xAB88), the save question (line 8, save_question) in font 1, _sdbeep, _confirm.",
+   "save_question": "p4x.0x4139f",
+   "of_id": "p4x.0x41450",
+   "lord_id": "p4x.0x41459",
+   "banquet_before_blocks": [
+    4,
+    7
+   ],
+   "cell_before_block": 9,
+   "_pictures_note": "s108 (ending.md 1): _endset draws Pendragon's street with END1 before block 0; _banquet (END2, the banquet) runs before blocks 4 and 7 (_common_proc calls it before 7); _arathamus (END3, Arathamus in his cell) before block 9 [C]."
+  }
+ },
+ "manual_amounts": {
+  "_note": "Rules the user decided for the manual (s82) where the manual gives no number and no platform has one; amounts set by the user s84 (DIFFERENCES-IV.md). null = [?]: a question for the user; Core's manual path refuses to guess. The ship's life (4000 sea steps) and Teleportation's destination are rules options (p4.ship-life, p4.teleport), not amounts.",
+  "ship_wreck_chance_per_sea_fight": 5,
+  "spot_item_identify_at": 50,
+  "examine_search_bonus": 20,
+  "flameball_strong_armour_at": 10,
+  "beg_items_per_member": 1,
+  "dissolve_rounds": 3,
+  "identify_chance_base": 50,
+  "identify_chance_per_level": 5,
+  "monster_eval_wrong_base": 50,
+  "monster_eval_wrong_per_level": 5,
+  "monster_eval_wrong_min": 10,
+  "monster_eval_wrong_by": 1
+ },
+ "hall": {
+  "_note": "FAME as shipped, slots 0-2 (extracted/hall-initial.json, FORMAT.md 6.3) [C]; 11 slots",
+  "slots": 11
+ }
+}

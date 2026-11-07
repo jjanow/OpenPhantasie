@@ -1,0 +1,16 @@
+{
+ "_source": "logic-specs/terrain.md section 2 step 4 [C][L] (PHANT.PRG 0x612c -> 0xef62): terrain class 0..3 costs (class + 1) * 75, every other class 60 (lava, mist, dark voids, water and the path alike).",
+ "_d2_040": "D2-040 (user s81: manual, as I's D-055): the rulebook's Apple-section terrain legend (CB p.18) says path travel 'takes less time relative to the other types of terrain', so the path (class 6) costs 30. The ST charges it 60 like water, mist and lava ([75, 150, 225, 300] then 60): rules option p2.path-time = st plays that table.",
+ "_wilderness_inn_dos": "D2-042: a wilderness inn stay (tile 41) adds 1000 through the step adder (PHANT.PRG 0xfa38 -> 0xef62, towns.md 2), as DOS I. Used only under p2.wild-inn-time = st; the manual's default ages two weeks instead.",
+ "step_cost_by_terrain_class": [
+  75,
+  150,
+  225,
+  300,
+  60,
+  60,
+  30
+ ],
+ "step_cost_other": 60,
+ "wilderness_inn_dos": 1000
+}

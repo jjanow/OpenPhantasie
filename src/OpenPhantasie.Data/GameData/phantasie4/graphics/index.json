@@ -1,0 +1,7 @@
+{
+  "_schema": "phantasie.graphics-index/v1",
+  "_note": "T6.4 graphics packs of Phantasie IV. Only the X68000 (the rules source) so far, and only its title pictures (s102, the title splash); the rest of IV's art is T6.4.",
+  "game": "phantasie4",
+  "default_order": ["x68000"],
+  "packs": ["x68000.json"]
+}

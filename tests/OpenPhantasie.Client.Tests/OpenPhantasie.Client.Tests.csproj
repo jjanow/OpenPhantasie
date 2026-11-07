@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>OpenPhantasie.Client.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="OpenPhantasie.Tests" />
+  </ItemGroup>
+
+  <!-- OriginalDataFact / OriginalDataTheory: tests that need the games' own data, skipped without it (public repo). -->
+  <ItemGroup>
+    <Compile Include="..\Shared\OriginalData.cs" Link="Shared\OriginalData.cs" />
+  </ItemGroup>
+
+  <!-- Headless: only pure Client helpers are tested (no Game / GraphicsDevice is created). -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OpenPhantasie.Client\OpenPhantasie.Client.csproj" />
+    <ProjectReference Include="..\..\src\OpenPhantasie.Core\OpenPhantasie.Core.csproj" />
+    <ProjectReference Include="..\..\src\OpenPhantasie.Data\OpenPhantasie.Data.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,134 @@
+{
+  "_schema": "phantasie.graphics-pack/v1",
+  "_note": "Apple II Phantasie II art (v2/5/86; tools/scripts/extract_a2_p2_graphics.py + build_a2_p2_asset_manifest.py, reverse-engineering/apple2/phantasie2/GRAPHICS.md). Every picture is an Applesoft shape (SHAPES) drawn at the game's SCALE / HCOLOR and turned into colour by an NTSC artifact model [~], except the title picture (ICE DRAGON). The Apple's text is the ROM font (not on the disks): the remaster 5x7 font stands in. Screen kept at the remaster's 320 x 200 layout: Apple pictures (280 x 192 hi-res pixels) are drawn 1:1 in it. Map: the Apple draws its 20 x 26 map rotated against the remaster's 26 x 20 grid (FORMAT.md overworld); here the tiles follow the remaster's grid, 22 x 20 cells of 7 x 6. A tile's colour fringes depend on its screen column on the Apple: the pack uses the even-column look.",
+  "id": "apple2",
+  "game": "phantasie2",
+  "platform": "apple2",
+  "name": "Apple II",
+  "auto_select": true,
+  "root": "reverse-engineering/apple2/phantasie2/extracted/graphics",
+  "requires": [
+    "monsters",
+    "overworld/tiles",
+    "dungeon"
+  ],
+  "screen": {
+    "width": 320,
+    "height": 200,
+    "pixel_aspect": [
+      1,
+      1
+    ],
+    "background": "#000000"
+  },
+  "font": "remaster-5x7",
+  "_tile_maps": "OUTDOORS2 5030-5040: map byte b < 120 draws shape 37 + b / 10 (7 x 6 cell); b >= 120 is fog, not drawn (black tiles 120-255). DUNGON2 5025-5062: only cells next to the party are drawn; 4 x 4 marks: bytes 0-1 wall (31), 185-199 (32), 200-214 (33), 215-217 drawn in HCOLOR 0 (nothing: glyph 0), 218-220 (35), 221-255 (36), every other byte erases the cell (glyph 0); the party is the XDRAW cursor 30. Glyph numbers are the shape numbers.",
+  "tile_maps": {
+    "overworld_tile": [
+      7,
+      6
+    ],
+    "overworld_view": [
+      22,
+      20
+    ],
+    "dungeon_glyph": [
+      4,
+      4
+    ],
+    "dungeon_unseen": 0,
+    "dungeon_party": 30,
+    "dungeon_default": 0,
+    "dungeon_cells": [
+      [
+        0,
+        1,
+        31
+      ],
+      [
+        185,
+        199,
+        32
+      ],
+      [
+        200,
+        214,
+        33
+      ],
+      [
+        215,
+        217,
+        0
+      ],
+      [
+        218,
+        220,
+        35
+      ],
+      [
+        221,
+        255,
+        36
+      ]
+    ]
+  },
+  "title_sequence": {
+    "_note": "PHANTASIE II (boot program): a text page (SSI PRESENTS / PHANTASIE II / DESCENT INTO THE NETHERWORLD, ROM font), then ICE DRAGON on hi-res page 2 with HPLOT lightning flashing on page 1 (random lines, lines 50-96), then the 'HIT ANY KEY TO CONTINUE' rows POKEd in (243-257) and a wait for a key; a key at any point goes on (line 300). The pauses are BASIC FOR loops (time not decoded [?]) and the lightning is random, so only the last screen is shown, until a key.",
+    "canvas": [
+      280,
+      192
+    ],
+    "background": "#000000",
+    "steps": [
+      {
+        "picture": "title.credits"
+      }
+    ]
+  },
+  "pictures": {
+    "title.cover": "screens/ice-dragon.png",
+    "title.credits": "screens/title.png",
+    "combat.sparkle": "effects/23-spell-sparkle.png",
+    "combat.rock": "effects/59-rock.png",
+    "overworld.party": "overworld/party.png"
+  },
+  "_portraits": "portrait.{race}: the party figure (TOWN2 2350-2356: races 7+ shape 26, DWARF / HALFLING / GNOME / PIXIE / SPRITE 25, HUMAN / ELF 19, or 27 for a MONK / PRIEST / WIZARD, which a race-keyed picture cannot show) with the arm overlay 20 (idle) or 22 (attacking). The figures by body and pose are in figures/.",
+  "picture_sets": [
+    {
+      "name": "monster.{n}.idle",
+      "dir": "monsters/idle",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "monster.{n}.attacking",
+      "dir": "monsters/attacking",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "portrait.{n}.idle",
+      "dir": "portraits/idle",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "portrait.{n}.attacking",
+      "dir": "portraits/attacking",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "overworld.tile.{n}",
+      "dir": "overworld/tiles",
+      "prefix": "{n:D3}.",
+      "ext": ".png"
+    },
+    {
+      "name": "dungeon.cell.{n}",
+      "dir": "dungeon",
+      "prefix": "glyph-{n}.",
+      "ext": ".png"
+    }
+  ]
+}

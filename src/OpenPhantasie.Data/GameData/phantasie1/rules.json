@@ -1,0 +1,53 @@
+{
+  "_source": "Phase 09 T1.3 rules profile: the constants that differ between the games (09-trilogy-matrix.md §2 rows marked 'each'). Constants that are the same in every game stay in Core code; DOS file-format facts stay in the codecs.",
+  "_gold": "Manual p.10: 'A party can carry up to 65,000 GPs' and 'A bank account for a single character can hold a maximum of 65,000 GPs' (D-048). DOS clamps both at 65,535 (COM 0x2e5d); the excess is lost.",
+  "_guild": "D-002: the manual's Guild holds 21 characters; DOS fills all 22 GUILD.DAT records, so the roster keeps 22 slots and original 22-character saves still load. Guild numbers slots+1..slots+3 are the elementals.",
+  "_guild_by_platform": "T1.3 rest: what each original platform's Guild held (slots = record slots, max_characters = most characters N)EW fills). The remaster plays guild_slot_count / guild_max_characters above (D-002); this table only records the originals (RulesProfile.ForPlatform applies one). A platform or value no source states is left out [?]: Atari 8-bit, Atari ST, Mac and MSX (the combined I+II rulebook scan has no text layer, the text-layer I+II rulebook's Atari/Mac notes are silent, the Japanese MSX manual's OCR is unreadable), the Amiga's fillable maximum and the C64's slot count.",
+  "_starting_gold": "Each new character starts with 256 GP in the bank (OV1 0x0BAC creation; manual: 256 GP each).",
+  "game": "p1",
+  "party_gold_cap": 65000,
+  "bank_gold_cap": 65000,
+  "guild_slot_count": 22,
+  "guild_max_characters": 21,
+  "starting_gold": 256,
+  "_original_platform": "The platform whose code is I's rules source: the Original (DOS) preset reads guild_by_platform under this key (D-002).",
+  "original_platform": "dos",
+  "_equipment_slots": "09 T2 (inventory-actions.md §2): the worn-item slots and the item ids each takes. Manual p.11: one weapon, armor and shield at a time; p.21-22 tables: shields 1-20, armor 21-40, weapons 41-100 (DOS kind letters S/A/W, OV1 0x17df).",
+  "equipment_slots": [
+    { "id": "shield", "first_item": 1, "last_item": 20 },
+    { "id": "armor", "first_item": 21, "last_item": 40 },
+    { "id": "weapon", "first_item": 41, "last_item": 100 }
+  ],
+  "_training": "Guild training XP target constants (town-menus.md §Training, DOS OV1 0x11ea..0x12ab [C]): s = sum / divisor; F = 1.8^level, F = 1.0 when XP == 0. Play uses TownMenus.TrainingTarget (exact DOS doubles); this block states the same rule as profile data and a test pins the two together.",
+  "training": {
+    "level_factor_one_when": "experience_zero",
+    "_deltas": "charisma_clamp: DOS clamps the price's 20 - CHA at 0 (OV1 0x13a1). spell_marks: a level-up marks the new level's spells only (OV1 0x9ee). hp_tie: an HP re-roll equal to the old maximum gives +1 (town-menus.md: roll > old).",
+    "charisma_clamp": true,
+    "spell_marks": "new_level",
+    "hp_tie": "plus_one",
+    "classes": [
+      { "class": "THIEF", "weights": { "STR": 1, "DEX": 2 }, "divisor": 19.8 },
+      { "class": "MONK", "weights": { "STR": 1, "INT": 1, "DEX": 1 }, "divisor": 49.5 },
+      { "class": "RANGER", "weights": { "STR": 1, "INT": 1, "CHA": 1 }, "divisor": 52.8 },
+      { "class": "FIGHTER", "weights": { "STR": 1, "DEX": 1 }, "divisor": 16.5 },
+      { "class": "PRIEST", "weights": { "STR": 1, "INT": 1 }, "divisor": 18.1 },
+      { "class": "WIZARD", "weights": { "INT": 2, "LUCK": 1 }, "divisor": 42.9 }
+    ]
+  },
+  "_terrain": "Wilderness terrain classes with a rule of their own (overworld-movement.md, OV2 0x5ea2): class 7 a certain fight once per trip against monster 12*T + 9 (0-based; tile 74 WARRIOR, 75 GREAT TROLL), class 10 swimming, class 11 the magical pool (the campaign). Every other class rolls Core's 0..99 random-encounter roll, < 6. Towns 40, inns 41, dungeons (class 5) and digits 6/7/8 are the step's own.",
+  "terrain": {
+    "roll": "percent",
+    "random_encounter_below": 6,
+    "classes": {
+      "7": { "kind": "fixed_fight_once_per_trip", "monster_per_digit": 12, "monster_offset": 9 },
+      "10": { "kind": "swim" },
+      "11": { "kind": "special_site" }
+    }
+  },
+  "guild_by_platform": {
+    "dos": { "slots": 22, "max_characters": 22, "_source": "[C] GUILD.DAT is 22 x 282 bytes; DOSBox s9 filled 22 and silently refused the 23rd (D-002). The DOS manuals state no DOS number: the SSI US manual carries the Apple rulebook's 37, the WizardWorks manual's 21 is in its C64 section." },
+    "amiga": { "slots": 22, "_source": "[~] inferred from file layout: guild.dat is 7050 bytes = 25 x 282, character records 0-21 plus FIRE/WATER/EARTH elementals at 22-24 (DOS takes the elementals from TWNS.INT instead). Fillable maximum not tested in an emulator [?]." },
+    "apple2": { "slots": 37, "max_characters": 37, "_source": "Rulebook G)UILD: 'As many as 37 characters can be generated' (SSI US, UK and I+II rulebooks; DIFFERENCES.md D-002 note: the sample Guild list numbers the elementals 38-40)." },
+    "c64": { "max_characters": 21, "_source": "C64 supplement (source-of-truth manual, first page; also the UK and WizardWorks C64 sections): 'A maximum of 21 characters can be generated, and not 37 characters as in the Apple version.' Slot count [?]." }
+  }
+}

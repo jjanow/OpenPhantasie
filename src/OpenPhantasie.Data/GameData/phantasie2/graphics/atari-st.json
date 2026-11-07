@@ -1,0 +1,889 @@
+{
+  "_schema": "phantasie.graphics-pack/v1",
+  "_note": "Atari ST Phantasie II art (tools/scripts/extract_st_p2_graphics.py + build_st_p2_asset_manifest.py; the same manifest as reverse-engineering/atari-st/phantasie2/extracted/graphics/pack.json, pinned by a test). Paths are relative to root. The map layout is amiga-maps/v1-compatible (one icon cell per kind); II draws several dungeon/castle icons per region, listed in maps.json icon_cells. Its overworld patterns (maps.json patterns: pattern number = cell class, terrain.md section 5) become overworld.pattern.N: the ST fill patterns that draw lava (8), mist (11) and dark voids (7), D2-014. Text uses the TOS system font (not on the disks), so no font file. Colour 0 is opaque in every sprite (the game blits with vro_cpyfm replace). The ST switches between four palettes per screen (FORMAT.md section 10.1, listed in palettes); every PNG already holds its own screen's colours, and the remaster layout mixes pictures of several ST screens (portraits beside the map), so no palette is forced on the frame (no top-level palette, as the Amiga pack). colour_cycle: the VBL routine 0x1382e rotates registers 4 -> 7 -> 14 of the map palette every 14 VBLs (byte 0x13863), installed only when the wilderness loop starts (0x7410) and removed on town, dungeon, encounter and defeat (0x137e6 callers), so only the overworld pictures shimmer (water, part of lava); vbl_hz 60: the US release on a US ST (NTSC TOS, os_conf bit 0 clear; a PAL TOS would run 50; decided s109). The ST has no map legend.",
+  "id": "atari-st",
+  "game": "phantasie2",
+  "platform": "atari-st",
+  "name": "Atari ST",
+  "auto_select": true,
+  "root": "reverse-engineering/atari-st/phantasie2/extracted/graphics",
+  "requires": [
+    "monsters"
+  ],
+  "screen": {
+    "width": 320,
+    "height": 200,
+    "pixel_aspect": [
+      1,
+      1
+    ],
+    "background": "#000000"
+  },
+  "palettes": {
+    "start": [
+      "#000000",
+      "#B64824",
+      "#FF0000",
+      "#919191",
+      "#FFB600",
+      "#FFFF00",
+      "#6D0000",
+      "#910000",
+      "#B60024",
+      "#00FFFF",
+      "#B6B6B6",
+      "#0048FF",
+      "#242424",
+      "#484848",
+      "#6D6D6D",
+      "#FFFFFF"
+    ],
+    "town": [
+      "#000000",
+      "#009100",
+      "#DAB600",
+      "#6D6D24",
+      "#006D00",
+      "#910000",
+      "#6D2400",
+      "#484848",
+      "#919191",
+      "#6D6D6D",
+      "#006DB6",
+      "#48B6FF",
+      "#B6B6B6",
+      "#DA0000",
+      "#482400",
+      "#FFFFFF"
+    ],
+    "map": [
+      "#000000",
+      "#FF0000",
+      "#249100",
+      "#FFDA00",
+      "#0091DA",
+      "#FF00FF",
+      "#2424FF",
+      "#0091B6",
+      "#6D6D6D",
+      "#B64800",
+      "#486D00",
+      "#FF9100",
+      "#48FF24",
+      "#919191",
+      "#246DB6",
+      "#FF0000"
+    ],
+    "combat": [
+      "#000000",
+      "#B64824",
+      "#FF0000",
+      "#FF6D00",
+      "#FFB600",
+      "#FFFF00",
+      "#00FF00",
+      "#009100",
+      "#919148",
+      "#00FFFF",
+      "#00B6FF",
+      "#0048FF",
+      "#FFDADA",
+      "#919191",
+      "#FF24B6",
+      "#FFFFFF"
+    ]
+  },
+  "colour_cycle": {
+    "palette": "map",
+    "registers": [
+      4,
+      7,
+      14
+    ],
+    "period_vbl": 14,
+    "vbl_hz": 60,
+    "pictures": [
+      "overworld.region.",
+      "overworld.icon.",
+      "overworld.party"
+    ]
+  },
+  "font": "remaster-5x7",
+  "map_layout": {
+    "format": "amiga-maps/v1",
+    "file": "maps/maps.json"
+  },
+  "town_screen": {
+    "bar_rows": 10,
+    "name_x": 156,
+    "name_y": 24,
+    "name_colour": "#000000",
+    "message_y": 192,
+    "name_colours": {
+      "0": "#000000",
+      "1": "#FFFFFF",
+      "2": "#009100",
+      "3": "#006DB6",
+      "4": "#006D00",
+      "5": "#6D2400",
+      "6": "#6D6D24",
+      "7": "#910000",
+      "8": "#484848",
+      "9": "#482400",
+      "10": "#6D6D6D",
+      "11": "#006DB6",
+      "12": "#B6B6B6"
+    },
+    "fresh_name_x": 151
+  },
+  "title_sequence": {
+    "_note": "START.PRG (reverse-engineering/atari-st/phantasie2/FORMAT.md 10.2): black palette, Dosound(0x1b3) starts the title tune (a YM2149 register script TOS plays at 50 Hz from Timer C, 285 waits, 3231 ticks = 64.6 s, the script [C], TOS's timing [~]; FORMAT.md 7.1), which runs on under both pictures, COVER1 to the screen, the start palette, 251 Vsyncs (dbf from 250), COVER2 over it at line 65 (title-credits.png is the composite), then Pexec PHANT.PRG [C]. No key is read. The credits stay up while PHANT.PRG loads and then until the tune ends: PHANT.PRG's start-up (0xec36) waits at 0xb8f2 (Speed 10 >= 9) on Dosound(-1) until the running script has ended, and only then shows its 'insert your Data Disk' page [C] (s156, static + Hatari trace; atari-st/phantasie2/parity/capture_s156_title.md). So the composite lasts until the tune's end (until_tune_ends, counted from the tune's start) and the tune never plays into PHANT.PRG's screens; in the remaster a key still ends a picture early. The VBL rate is the colour cycle's vbl_hz (60: the US release on a US ST's NTSC TOS, decided s109). s158: the first (blank) step is the 1.96 s START.PRG spends reading COVER1 on the black palette after Dosound has started the tune (Hatari's FDC, EmuTOS US: VBL 217 -> 335, capture_s156_title.md) [~] (emulated floppy timing).",
+    "canvas": [
+      320,
+      200
+    ],
+    "background": "#000000",
+    "tune": {
+      "format": "atari-st-dosound",
+      "file": "../../unpacked/disk1/START.PRG",
+      "offset": 463,
+      "clock_hz": 2000000
+    },
+    "steps": [
+      {
+        "blank": true,
+        "seconds": 1.96
+      },
+      {
+        "picture": "title.cover",
+        "vbl": 251
+      },
+      {
+        "picture": "title.credits",
+        "until_tune_ends": true
+      }
+    ]
+  },
+  "sound_effects": {
+    "_note": "0xb80e(n): YM silenced (0xba02), then XBIOS 32 Dosound(table[n]); TOS plays it at 50 Hz, the game goes on (at Speed >= 9 the next sound waits for it, 0xb8f2). 33 is no table entry: 0xb7e6's fixed script 0x21ab0, a click (24 callers, among them the OK form 0xae1a). repeats (s136): 0xb92a builds the script from the body's bytes up to its 0xff, count times, then the tail's 30 bytes (0x21a32). 34 (s139) is no table entry either: 0xb7fa = 0xb8b0(0x21ada), the default script played straight (the wall, every alert's beep; FORMAT.md 7.4). 35 (s156): 0xb9ce = 0xb8b0(0x21c48), the spell sparkle's noise burst (combat_lines.sparkle; 0xb9e2 silences it after the sprite's 300 ms). Wired: the ending's sound 32 and its pages' click, the combat lines (combat_lines), the moments outside combat (field_sounds).",
+    "format": "atari-st-dosound",
+    "file": "../../unpacked/disk1/PHANT.PRG",
+    "clock_hz": 2000000,
+    "sounds": {
+      "0": [
+        "0x21bc2"
+      ],
+      "2": [
+        "0x21bee"
+      ],
+      "3": [
+        "0x21a6c"
+      ],
+      "4": [
+        "0x21a8c"
+      ],
+      "5": [
+        "0x21aa8"
+      ],
+      "6": [
+        "0x21af6"
+      ],
+      "7": [
+        "0x21af6"
+      ],
+      "8": [
+        "0x21a9a"
+      ],
+      "10": [
+        "0x21c0e"
+      ],
+      "11": [
+        "0x21c28"
+      ],
+      "12": [
+        "0x21af6"
+      ],
+      "13": [
+        "0x21af6"
+      ],
+      "14": [
+        "0x21c46"
+      ],
+      "15": [
+        "0x21b28"
+      ],
+      "16": [
+        "0x21b18"
+      ],
+      "17": [
+        "0x21b60"
+      ],
+      "18": [
+        "0x21b48"
+      ],
+      "19": [
+        "0x21b04"
+      ],
+      "20": [
+        "0x21cc2"
+      ],
+      "21": [
+        "0x21caa"
+      ],
+      "22": [
+        "0x21c8c"
+      ],
+      "23": [
+        "0x21c7a"
+      ],
+      "24": [
+        "0x21ce6"
+      ],
+      "25": [
+        "0x21cf8"
+      ],
+      "26": [
+        "0x21d4e"
+      ],
+      "28": [
+        "0x21d72"
+      ],
+      "29": [
+        "0x21d8c"
+      ],
+      "30": [
+        "0x21da6"
+      ],
+      "31": [
+        "0x21db8"
+      ],
+      "32": [
+        "0x21dd4"
+      ],
+      "33": [
+        "0x21acc"
+      ],
+      "34": [
+        "0x21af6"
+      ],
+      "35": [
+        "0x21c64"
+      ]
+    },
+    "repeats": {
+      "1": {
+        "body": "0x21bdc",
+        "count": 10,
+        "tail": "0x21a4e",
+        "tail_length": 30
+      },
+      "9": {
+        "body": "0x21b70",
+        "count": 10,
+        "tail": "0x21a4e",
+        "tail_length": 30
+      },
+      "27": {
+        "body": "0x21b82",
+        "count": 6,
+        "tail": "0x21a4e",
+        "tail_length": 30
+      }
+    }
+  },
+  "combat_lines": {
+    "_note": "0x18cc2(text, n): sound n (n >= 0; at Speed >= sound_wait_speed it first waits for the running sound, unless the last was no_wait_after), the text, then Speed ms unless the text has short_text characters or fewer or hold is false (a key ends the hold). attack (s156, 0x186a8 = pose mode 1): the actor's attacking picture for attack_pose_ms first (no key, every Speed), then the idle one (a member's swing 0x86fe and rock 0x7748, a monster's swing 0x8ac4; a rock's own MISSES has none). pose (mode 2, 0x18f7a): the actor's silhouette (silhouette_pens of the combat palette: the attacking picture's shape in the first, the rest of its rectangle in the second) pose_ms when Speed > pose_speed, else pose_fast_ms, then the attack pose (the member's cast 0x79fc, the monster's special 0x8d8c). erase (mode 0, 0x9b06): the monster's picture cleared before its line. pre: sounds played first without a line (a breath: the special's blank line, sound 9). death: the member's mark, death.sound, death.hold_ms, wait for the sound, the row re-laid (0x18a02). round_end_sound: 0x18416 at each of combat_round's seven exits, after the round's last line and before combat_victory's boxes. sparkle: 0x18b16 before a damage spell's (or a rock's) damage line on a monster, amount / per + 1 times: sound, the sprite (spell: amount >= 0; rock: the rock's damage, negative) at a random 16x16 spot inside the monster's picture (x + rand(w - 16), y + rand(h - 16)), hold_ms (no key), the sound silenced (0xb9e2); rock_miss: 0x18c6c after a rock's MISSES, the rock sprite at the screen spot, hold_ms, no sound. Lines not listed: no sound [?], the Speed hold.",
+    "speed_ms": {
+      "fast": 5,
+      "normal": 10,
+      "slow": 1000
+    },
+    "sound_wait_speed": 9,
+    "no_wait_after": 18,
+    "short_text": 3,
+    "pose_ms": 300,
+    "pose_fast_ms": 10,
+    "pose_speed": 9,
+    "attack_pose_ms": 300,
+    "silhouette_pens": [
+      15,
+      0
+    ],
+    "fight_start_sound": 17,
+    "round_end_sound": 18,
+    "sparkle": {
+      "sound": 35,
+      "spell": "combat.sparkle",
+      "rock": "combat.rock",
+      "per": 32,
+      "size": 16,
+      "hold_ms": 300,
+      "rock_miss": [
+        100,
+        10
+      ]
+    },
+    "death": {
+      "sound": 15,
+      "hold_ms": 500
+    },
+    "lines": {
+      "core.combat.x_awakens": {
+        "member": {
+          "sound": 0
+        },
+        "monster": {
+          "sound": 10
+        }
+      },
+      "core.combat.party_awakens": {
+        "any": {
+          "sound": 0
+        }
+      },
+      "core.combat.x_throws_a_rock": {
+        "member": {
+          "sound": 3,
+          "attack": true
+        }
+      },
+      "core.combat.x_hits": {
+        "member": {
+          "sound": 3,
+          "attack": true
+        },
+        "monster": {
+          "sound": 5,
+          "attack": true
+        }
+      },
+      "core.combat.x_misses": {
+        "member": {
+          "sound": 4,
+          "attack": true
+        },
+        "monster": {
+          "sound": 8,
+          "attack": true
+        }
+      },
+      "core.combat.x_casts_a_spell": {
+        "member": {
+          "sound": 1,
+          "pose": true
+        },
+        "monster": {
+          "sound": 9,
+          "hold": false,
+          "pose": true
+        }
+      },
+      "core.combat.x_breathes": {
+        "monster": {
+          "sound": 13,
+          "pre": [
+            9
+          ],
+          "pose": true
+        }
+      },
+      "core.magic.x_is_healed": {
+        "member": {
+          "sound": -1
+        }
+      },
+      "core.magic.x_is_resurrected": {
+        "member": {
+          "sound": 12
+        }
+      },
+      "core.combat.x_is_slept": {
+        "member": {
+          "sound": 14
+        },
+        "monster": {
+          "sound": 11
+        }
+      },
+      "core.combat.x_takes_x_damage": {
+        "member": {
+          "sound": -1
+        },
+        "monster": {
+          "sound": -1
+        }
+      },
+      "core.combat.x_dies": {
+        "member": {
+          "sound": -1,
+          "death": true,
+          "hold": false
+        },
+        "monster": {
+          "sound": 16,
+          "erase": true
+        }
+      },
+      "core.combat.magic_drained": {
+        "any": {
+          "sound": 6
+        }
+      },
+      "core.combat.a_stunning_blow": {
+        "any": {
+          "sound": 7
+        }
+      },
+      "core.combat.monsters_are_charmed": {
+        "any": {
+          "sound": -1
+        }
+      },
+      "core.combat.monsters_start_dissolving": {
+        "any": {
+          "sound": -1
+        }
+      },
+      "core.combat.monsters_run": {
+        "any": {
+          "sound": 2
+        }
+      },
+      "core.combat.armor_reduced": {
+        "any": {
+          "sound": -1
+        }
+      },
+      "core.combat.party_slowed": {
+        "any": {
+          "sound": -1
+        }
+      }
+    },
+    "end_boxes": {
+      "_note": "0xa25a(text) -> 0xa124: tree 40, the text centred in center_columns (0x17266: floor((35 - len) / 2) spaces first) into object 1, then 0x16dce(40, 12, 75, Speed + one_line.hold_ms): the background saved, objc_draw, evnt_multi (a key, a click or the timer ends it), the combat screen redrawn (0x18446). 0xa272(a, b) -> 0xa1c2: tree 41, a in object 1 (upper row), b in object 2 (lower row), Speed + two_line.hold_ms. pairs: [upper, lower] string ids shown as one two-line box (0xa3da: 'EACH SURVIVOR GETS' over '%ld XP AND %ld GP'; 0xa4fa: 'PLUTO'S MINION IS KILLED !' over '%s TAKES AN AMULET'; both seen live s82). outside_round_keys: lines that are boxes only outside a round (the morale check's 'MONSTERS RUN' 0xa066; in a round the spell's line, sound 2). sounds: played before the box (0xb80e: 0xa05a plays 2 before 'MONSTERS RUN'); the other boxes have none. Font: TOS 8x8 not drawn, the remaster's glyphs centred in the 8-px cells [~].",
+      "palette": "combat",
+      "x": 12,
+      "y": 75,
+      "cell": 8,
+      "center_columns": 35,
+      "border": 2,
+      "border_pen": 0,
+      "fill_pen": 3,
+      "text_pen": 0,
+      "one_line": {
+        "columns": 38,
+        "rows": 5,
+        "text_cells": [
+          [
+            2,
+            2
+          ]
+        ],
+        "hold_ms": 1000
+      },
+      "two_line": {
+        "columns": 37,
+        "rows": 6,
+        "text_cells": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "hold_ms": 1500
+      },
+      "keys": [
+        "core.combat.monsters_take_gold",
+        "core.combat.monsters_dont_respond",
+        "core.combat.monsters_surrender",
+        "core.combat.monsters_greet_you",
+        "core.combat.monsters_killed"
+      ],
+      "outside_round_keys": [
+        "core.combat.monsters_run"
+      ],
+      "pairs": [
+        [
+          "core.combat.each_survivor_gets",
+          "core.combat.x_xp_and_x_gp"
+        ],
+        [
+          "core.p2.plutos_minion_is_killed",
+          "core.p2.x_takes_an_amulet"
+        ]
+      ],
+      "sounds": {
+        "core.combat.monsters_run": 2
+      }
+    }
+  },
+  "field_sounds": {
+    "_note": "Core's FieldCues moment -> sound of sound_effects (FORMAT.md 7.4, [C] static; traced live in Hatari s140 (capture_s140_sounds.md)). Each play goes through 0xb8f2: at Speed >= wait_speed_ms (normal 10 / slow 1000) it waits for the running sound, at fast (5) it cuts it off. defeat_scene (s140): the defeat scene's sounds, at its own Speed. alerts (s140): the boxes 0x1628 / 0x1668 that beep first. click (s140, s141): 0xb7e6 after a GEM pick: town menu-bar picks (0x294), the Guild's menu picks (0x4d2 -> 0x56a), a list window's exit (0x1964a / form_do sites), pick_member's cancel (0x674), the transport picker (0x25b4) and every key or command of the field loop (0x16fea -> 0x1719a). cue_delays (s141): a cue whose sound follows a timed box. 0x42d4 (0xb9b4) has no caller.",
+    "wait_speed_ms": 9,
+    "cues": {
+      "overworld.town_prompt": 19,
+      "overworld.dungeon_prompt": 19,
+      "dungeon.wall": 34,
+      "dungeon.disarm_fails": 29,
+      "dungeon.event.spell_cast": 28,
+      "dungeon.event.party_moved": 16,
+      "dungeon.event.noise": 26,
+      "town.transport": 22,
+      "field.resurrected": 12,
+      "town.cast_done": 34
+    },
+    "cue_delays": {
+      "field.resurrected": {
+        "_note": "0x92ce 0xa18c: the box (shown ~95 ms after the call), its hold Speed + hold_ms (0x16dce -> 0x16cbe, a key ends it), the party-view redraw 0x17210 (after_ms, measured 355 ms on Hatari s141 [~]), then sound 12 (0x92d8).",
+        "hold_ms": 1000,
+        "plus_speed": true,
+        "after_ms": 355
+      }
+    },
+    "defeat_scene": {
+      "_note": "0x12678 sets Speed [0x1fefa] := 20 (restored at 0x127ae): every 0xb80e waits for the running sound. 0x12bea: 'YOUR PARTY HAS BEEN DEFEATED' (0x12a16: the line, 3000 ms or a key), the ghost row (0x12b5e(0)), ghosts (0x12d5e), 'YOU HAVE ARRIVED AT THE ASTRAL PLANE' (3000 ms), door (0x12d86) then the door's 90 steps of 4 VBL, (5th defeat: the sign, 3000 ms), 3000 ms, demon (0x12e36), the face, 'THE GREAT DEMON APPEARS AND SPEAKS:'; then fate (0x126d2) before each member's fate, DESTROYED included. Traced live s141 (Hatari): 23 3060 ms after line 1 (ghosts_after_ms: the line's hold), 22 3090 ms after the astral line, the door 6.87 s (413 VBL at 60 Hz, drawing included), 20 3010 ms after it; each fate line follows its 21 within 15 ms, and 21 waits for the running sound (20 ~5.3 s, 21 ~3.9 s).",
+      "speed_ms": 20,
+      "ghosts": 23,
+      "door": 22,
+      "demon": 20,
+      "fate": 21,
+      "ghosts_after_ms": 3000
+    },
+    "alerts": {
+      "_note": "0xb7fa (the default script, 34) before the box; a key matches a shown line from its start, in the modes listed. Matched against the remaster's lines [~]. s158: box = the disks' form_alert string drawn for the line (its printf holes filled from the line's own values, in turn); cue_boxes: a cue's box; look: how the boxes are drawn.",
+      "sound": 34,
+      "lines": [
+        {
+          "key": "core.guild.party_is_full",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 0 'There is no room': guild_add, six members (0xd500 -> 0x2356)"
+        },
+        {
+          "key": "core.armory.not_enough_gold",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 1 'You can not afford it': shop_menu (0xc276 -> 0x15e0)"
+        },
+        {
+          "key": "core.guild.learn_cant_afford",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 1: the guild's spell learning 0x974 (0x9d6)"
+        },
+        {
+          "key": "core.guild.train_cant_afford",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 1: training's cost agreed, gold short (0x188a)"
+        },
+        {
+          "key": "core.p2.you_are_improved",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 2 'You are improved': use_item (0xe2b4 -> 0x1616)"
+        },
+        {
+          "key": "core.town.you_must_assemble_a_group",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 3 'You must assemble a group' (0xdc60 -> 0x28cc)"
+        },
+        {
+          "key": "core.guild.learn_learned",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 4 'You've learned': 0x974 (0x9ea / 0x9f6)"
+        },
+        {
+          "key": "core.guild.no_one_wise_enough",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 5 'No one is wise enough to teach You': guild_train (0xce22 -> 0x15f2)"
+        },
+        {
+          "key": "core.guild.move_not_in_town",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 6 'Not in the town / it takes 2 months / to get here' YES / NO: guild_add (0xd51a -> 0x2366)"
+        },
+        {
+          "key": "core.guild.learn_no_more",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 7 'You can't learn any more': 0x974 (0x98a)"
+        },
+        {
+          "key": "core.magic.x_drinks_healing_x_x",
+          "modes": [
+            "town"
+          ],
+          "st": "PHANT.RSC 9 'D O N E !': use_item, a healing potion drunk (0xe164 -> 0x15ce)"
+        },
+        {
+          "key": "core.magic.x_drinks_magic_x_x",
+          "modes": [
+            "town"
+          ],
+          "st": "PHANT.RSC 9 'D O N E !': use_item, a magic potion drunk (0xe1de -> 0x15ce)"
+        },
+        {
+          "key": "core.p2.unusable",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "dialog_only": true,
+          "st": "PHANT.RSC 10 'UNUSABLE': use_item (0xe07e -> 0x1604); only a line the Use item dialog returns (the Armory's I-rule 'UNUSABLE' after a buy has the same text and no ST alert)"
+        },
+        {
+          "key": "core.guild.learn_failed",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 11 'You've failed': 0x974 (0x9f2 / 0x9f6)"
+        },
+        {
+          "key": "core.armory.ninth_item",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "PHANT.RSC 12 'He has nine items': shop_menu, a shopper with nine items (0xc24c -> 0x1586(0)); the box after the ninth buy (0x1586(1), 'He's just bought ninth item') has no beep"
+        },
+        {
+          "key": "core.aging.x_has_died",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "0x1668 '%8s has died': town_aging 0xba9a (0xbc14)"
+        },
+        {
+          "key": "core.aging.x_has_aged",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "0x1668 '%8s has aged': town_aging 0xba9a (0xbc4e)"
+        },
+        {
+          "key": "core.guild.you_need_x_more_xp",
+          "modes": [
+            "town",
+            "guild",
+            "title"
+          ],
+          "st": "0xb7fa straight (0x1814), then form_alert 'You need %ld more experience points' (confirm_cost 0x17e4)"
+        },
+        {
+          "key": "core.magic.not_enough_mp",
+          "modes": [
+            "overworld",
+            "dungeon"
+          ],
+          "st": "OUT.RSC 0 'Not enough Magic': the field cast (0x6fb8), magic +18 below the cost"
+        }
+      ],
+      "look": {
+        "_note": "AES form_alert, measured on EmuTOS 1.4 in Hatari (parity/shots/p2-endgame-wand-improved.png, p2-endgame-wand-unusable.png, p2-train-*.png; EmuTOS's form_alert comes from DRI's GEM AES as TOS's does) [~]: root box (widest line + 2) x (lines + 4) cells, its 1-px border inward, OUTLINED 3 px outside; centred in area (x, y, w, h); lines from cell (1, 1); one blank row, then the buttons (widest label + 1 cells each, button_gap cells apart, the row centred on whole cells), the default button's border 3 px outside. Colours: VDI 0 (fill) = register fill_pen, VDI 1 (lines, text) = register ink_pen of the palette the game mode shows. Font: TOS's 8x8 is not on the disks: the remaster's glyphs centred in the 8-px cells [~].",
+        "cell": 8,
+        "outline": 3,
+        "button_border": 3,
+        "button_gap": 2,
+        "area": [
+          0,
+          9,
+          320,
+          191
+        ],
+        "fill_pen": 0,
+        "ink_pen": 15,
+        "palettes": {
+          "town": "town",
+          "guild": "town",
+          "title": "town",
+          "overworld": "map",
+          "dungeon": "map"
+        }
+      }
+    },
+    "click": 33
+  },
+  "transport_fade": {
+    "_note": "0x260a: 0x4082(' ', 6, 15) blanks the message line, sound 22 (0xb80e), registers 0..15 := 0 (XBIOS 7 Setcolor) each followed by out_vbl Vsyncs (XBIOS 37), hold_vbl Vsyncs, registers 0..15 := palette (the town palette 0x23a62) each followed by in_vbl Vsyncs, then 0xb9e2: Dosound(0x21a32) silences sound 22 (385 ticks, 7.7 s, longer than the fade) and waits (0xb8f2). No key is read. Traced live s141 (Hatari, EmuTOS US = 60 Hz VBL, measured against the 200 Hz timer): out 160, hold 100, in 112 VBL, 6180 ms from the first blackout to the silence; 22 starts 2 VBL before the first blackout.",
+    "palette": "town",
+    "vbl_hz": 60,
+    "out_vbl": 10,
+    "hold_vbl": 100,
+    "in_vbl": 7,
+    "silences_sound": true
+  },
+  "pictures": {
+    "title.cover": "screens/cover1.png",
+    "title.credits": "screens/title-credits.png",
+    "town.backdrop": "screens/pelnor.png",
+    "ui.decor": "screens/decor.png",
+    "decor.door": "decor/door.png",
+    "decor.demon-face": "decor/demon-face.png",
+    "decor.sorry-sign": "decor/sorry-sign.png",
+    "portrait.ghost": "ui/empty-portrait.png",
+    "portrait.death-mark": "ui/ghost-mark.png",
+    "combat.sparkle": "combat/sparkle.png",
+    "combat.rock": "combat/rock.png",
+    "ending.final": "screens/final2.png",
+    "ending.crowd.0": "screens/crowd-0.png",
+    "ending.crowd.1": "screens/crowd-1.png",
+    "ending.crowd.2": "screens/crowd-2.png"
+  },
+  "ending_scene": {
+    "_note": "0x12f2a: intro page (10 lines by v_gtext at (2, 50 + 10i), VDI 3 = register 2 of the map palette the dungeon left, the OK form until OK; italic and TOS's 8x8 font not drawn [~]); final2.pic on black; registers 0..15 := combat, 10 Vsync each (vbl_hz 60, as the colour cycle); bottom lines (0x12a16: v_justified centred on 160, y 192, 310 wide, VDI 5 = register 6; each 3000 ms or a key) 'Filmon speaks:', 'Presenting ...'; evnt_timer 2000; per record 0..n-1 (n = OK members): its idle portrait on the door spot (150,75), its title line, the other pose (PARTY2), sound 32 (s135: Dosound, not waited for), crowd frames 0/1 x10 at (40,127) 330 ms apart, its portrait in row slot d7 (y 158, I's gap rule) and crowd frame 2; the door spot cleared; the wand lines and a blank line; closing page (21 lines at (2, 4 + 8i), VDI 4 = register 4, OK form); registers 15..0 := 0, 10 Vsync each.",
+    "palette": [
+      "#000000",
+      "#B64824",
+      "#FF0000",
+      "#FF6D00",
+      "#FFB600",
+      "#FFFF00",
+      "#00FF00",
+      "#009100",
+      "#919148",
+      "#00FFFF",
+      "#00B6FF",
+      "#0048FF",
+      "#FFDADA",
+      "#919191",
+      "#FF24B6",
+      "#FFFFFF"
+    ],
+    "vbl_hz": 60,
+    "fade_vbl": 10,
+    "tick_hz": 1000,
+    "hold_ticks": 2000,
+    "row_top": 158,
+    "slot_size": 32,
+    "grant_ticks": 0,
+    "row_by_record": true,
+    "stage": [
+      150,
+      75
+    ],
+    "crowd": {
+      "frames": [
+        "ending.crowd.0",
+        "ending.crowd.1",
+        "ending.crowd.2"
+      ],
+      "x": 40,
+      "y": 127,
+      "flashes": 10,
+      "flash_ticks": 330,
+      "sound": 32
+    },
+    "text_y": 192,
+    "text_pen": 6,
+    "line_ticks": 3000,
+    "justify_width": 310,
+    "intro_page": {
+      "palette": [
+        "#000000",
+        "#FF0000",
+        "#249100",
+        "#FFDA00",
+        "#0091DA",
+        "#FF00FF",
+        "#2424FF",
+        "#0091B6",
+        "#6D6D6D",
+        "#B64800",
+        "#486D00",
+        "#FF9100",
+        "#48FF24",
+        "#919191",
+        "#246DB6",
+        "#FF0000"
+      ],
+      "x": 2,
+      "y": 50,
+      "line_gap": 10,
+      "text_pen": 2,
+      "button_pen": 15,
+      "sound": 33
+    },
+    "closing_page": {
+      "x": 2,
+      "y": 4,
+      "line_gap": 8,
+      "text_pen": 4,
+      "button_pen": 15,
+      "sound": 33
+    }
+  },
+  "picture_sets": [
+    {
+      "name": "monster.{n}.idle",
+      "dir": "monsters/idle",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "monster.{n}.attacking",
+      "dir": "monsters/attacking",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "portrait.{n}.idle",
+      "dir": "portraits/idle",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "portrait.{n}.attacking",
+      "dir": "portraits/attacking",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    }
+  ]
+}

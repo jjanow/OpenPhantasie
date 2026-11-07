@@ -1,0 +1,181 @@
+{
+  "_schema": "phantasie.amiga.asset-manifest/v1",
+  "_note": "Monster sprite paths (Amiga) + DOS map tile rules (map_tiles: the client uses only the dungeon cell -> glyph rule; the DOS CGA images are the DOS graphics pack, graphics/dos-cga.json, never drawn by default). Amiga map graphics: reverse-engineering/amiga/extracted/maps/maps.json; full Amiga manifest lives under reverse-engineering/amiga/extracted/",
+  "_source_manifest": "reverse-engineering/amiga/extracted/asset-manifest.json",
+  "map_tiles": {
+    "_source": "DOS PAT + OV2.OVR (OV2 0x54fa overworld cell draw, 0x53c5 party, 0x21df/0x588a dungeon glyphs) [C]; spec reverse-engineering/dos/logic-specs/map-tile-graphics.md; images from tools/scripts/extract_dos_map_tiles.py",
+    "root": "reverse-engineering/dos/extracted/tiles",
+    "palette": [
+      "#000000",
+      "#55FFFF",
+      "#FF55FF",
+      "#FFFFFF"
+    ],
+    "overworld": {
+      "tile_width": 12,
+      "tile_height": 10,
+      "_rule": "raw >= fog_threshold -> fog image; else tile_overrides, then region_overrides (by class), then pattern = tile / 10",
+      "fog_threshold": 120,
+      "fog_image": "overworld/fog.png",
+      "party_pattern": 12,
+      "tile_overrides": [
+        {
+          "tile": 41,
+          "pattern": 13
+        }
+      ],
+      "region_overrides": [
+        {
+          "regions": [
+            18,
+            19
+          ],
+          "classes": [
+            6,
+            7
+          ],
+          "pattern": 14
+        }
+      ],
+      "patterns": [
+        {
+          "index": 0,
+          "image": "overworld/pat-00-class0.png"
+        },
+        {
+          "index": 1,
+          "image": "overworld/pat-01-class1.png"
+        },
+        {
+          "index": 2,
+          "image": "overworld/pat-02-class2.png"
+        },
+        {
+          "index": 3,
+          "image": "overworld/pat-03-class3.png"
+        },
+        {
+          "index": 4,
+          "image": "overworld/pat-04-town.png"
+        },
+        {
+          "index": 5,
+          "image": "overworld/pat-05-dungeon.png"
+        },
+        {
+          "index": 6,
+          "image": "overworld/pat-06-class6-path.png"
+        },
+        {
+          "index": 7,
+          "image": "overworld/pat-07-class7-bridge.png"
+        },
+        {
+          "index": 8,
+          "image": "overworld/pat-08-class8.png"
+        },
+        {
+          "index": 9,
+          "image": "overworld/pat-09-class9.png"
+        },
+        {
+          "index": 10,
+          "image": "overworld/pat-10-water.png"
+        },
+        {
+          "index": 11,
+          "image": "overworld/pat-11-pool.png"
+        },
+        {
+          "index": 12,
+          "image": "overworld/pat-12-party.png"
+        },
+        {
+          "index": 13,
+          "image": "overworld/pat-13-inn.png"
+        },
+        {
+          "index": 14,
+          "image": "overworld/pat-14-realm.png"
+        }
+      ]
+    },
+    "dungeon": {
+      "glyph_width": 5,
+      "glyph_height": 4,
+      "_rule": "first range with min <= cell <= max picks the glyph (OV2 0x21df)",
+      "party_glyph": 237,
+      "cell_ranges": [
+        {
+          "min": 0,
+          "max": 1,
+          "glyph": 230
+        },
+        {
+          "min": 2,
+          "max": 184,
+          "glyph": 231
+        },
+        {
+          "min": 185,
+          "max": 199,
+          "glyph": 234
+        },
+        {
+          "min": 200,
+          "max": 214,
+          "glyph": 233
+        },
+        {
+          "min": 215,
+          "max": 217,
+          "glyph": 235
+        },
+        {
+          "min": 218,
+          "max": 220,
+          "glyph": 236
+        },
+        {
+          "min": 221,
+          "max": 255,
+          "glyph": 232
+        }
+      ],
+      "glyphs": [
+        {
+          "glyph": 230,
+          "image": "dungeon/glyph-e6-wall.png"
+        },
+        {
+          "glyph": 231,
+          "image": "dungeon/glyph-e7-floor.png"
+        },
+        {
+          "glyph": 232,
+          "image": "dungeon/glyph-e8-event.png"
+        },
+        {
+          "glyph": 233,
+          "image": "dungeon/glyph-e9-lock-v.png"
+        },
+        {
+          "glyph": 234,
+          "image": "dungeon/glyph-ea-lock-h.png"
+        },
+        {
+          "glyph": 235,
+          "image": "dungeon/glyph-eb-exit.png"
+        },
+        {
+          "glyph": 236,
+          "image": "dungeon/glyph-ec-stairs.png"
+        },
+        {
+          "glyph": 237,
+          "image": "dungeon/glyph-ed-party.png"
+        }
+      ]
+    }
+  }
+}
