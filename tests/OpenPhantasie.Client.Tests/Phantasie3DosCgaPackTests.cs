@@ -71,6 +71,23 @@ public class Phantasie3DosCgaPackTests
         Assert.Empty(Amiga().TileMaps!.TileSwaps); // the swaps are DOS's (the Amiga's 0x9b92 draws byte n as tile n)
     }
 
+    [OriginalDataFact]
+    public void View_DosStopsTheColumnsOneEarlier_NeverPastTheMap()
+    {
+        // s170 ovl3 0x13ac / 0x1470: the centre stops at rows - 4; 0x154e / 0x1612: at columns - 5 (the Amiga: - 4 both).
+        var t = Dos.TileMaps!;
+        Assert.Equal((5, 4), t.ViewCentreMargin);
+        Assert.Null(Amiga().TileMaps!.ViewCentreMargin);
+        var (cols, rows) = t.ViewCounters[Phantasie3Campaign.Scandor];
+        Assert.Equal(41, Game1.OverworldViewMaxOrigin(50, 9, cols, t.ViewCentreMargin!.Value.Columns)); // columns 41-49
+        Assert.Equal(66, Game1.OverworldViewMaxOrigin(75, 9, rows, t.ViewCentreMargin.Value.Rows));     // rows 66-74
+        Assert.Equal(42, Game1.OverworldViewMaxOrigin(50, 9, cols));                                    // the Amiga's 42-50
+        (cols, rows) = t.ViewCounters[Phantasie3Campaign.Netherworld];
+        Assert.Equal(22, Game1.OverworldViewMaxOrigin(31, 9, cols, 5)); // columns 22-30
+        Assert.Equal(7, Game1.OverworldViewMaxOrigin(16, 9, rows, 4));  // rows 7-15
+        Assert.Equal(0, Game1.OverworldViewMaxOrigin(9, 9, 9, 5)); // a plane: the whole 9 x 9 always shows
+    }
+
     private static GraphicsPack Amiga() => Catalog.Find("amiga")!;
 
     [OriginalDataFact]
@@ -161,6 +178,9 @@ public class Phantasie3DosCgaPackTests
         Assert.Equal([12, 14], f.Right);
         Assert.Equal([96, 8], f.PictureAt);
         Assert.Null(Amiga().ScrollFrame!.PictureAt); // the Amiga's Scroll IV is a whole screen
+        // s170 root 0x1b4: 0x284:0x7a1(DS:0x2699, 10, 23, 2, 3), the caption under the map in red on the yellow page.
+        Assert.Equal(new ScrollFrameLayout.Caption("useitem.scroll_picture_caption", 80, 184, "#FF5555"), f.PictureCaption);
+        Assert.Null(Amiga().ScrollFrame!.PictureCaption);
         for (var g = 0; g < 15; g++)
             Assert.EndsWith($"shapes/glyph8-{g:00}.png", Dos.Resolve(PictureNames.ScrollFramePiece(g))!.Replace('\\', '/'));
         var edges = f.Pick(n => n - 1); // the last choice everywhere
@@ -187,6 +207,28 @@ public class Phantasie3DosCgaPackTests
         // The frames: colour 0 transparent (an OR blit), the rest opaque.
         foreach (var name in r.Pictures.Concat(c.Pictures))
             Assert.Contains("shapes/frame24-", Dos.Resolve(name)!.Replace('\\', '/'));
+        // s170 0x284:0x19c: DOS ORs every frame onto the screen; the Amiga's 0x1b814 masks.
+        Assert.Equal((FlashBlend.Or, FlashBlend.Or), (c.Blend, r.Blend));
+        Assert.Equal((FlashBlend.Mask, FlashBlend.Mask), (Amiga().CombatFlash!.Blend, Amiga().RewardScene!.Flash!.Blend));
+    }
+
+    [OriginalDataFact]
+    public void OrBlit_OfTwoPaletteColours_IsTheIndexOr_AndThePerChannelMax()
+    {
+        // s170: the Client draws the OR blit as a max blend; on CGA's palettes (channels 0x00 / 0x55 / 0xFF) the bitwise
+        // OR of two colours is their per-channel max and the colour of the ORed indices (green 1 | red 2 = yellow 3).
+        foreach (var palette in Dos.Palettes.Values)
+        {
+            var colours = palette.Select(VirtualScreen.ParseColor).Select(c => (c.R, c.G, c.B)).ToList();
+            for (var a = 0; a < 4; a++)
+            for (var b = 0; b < 4; b++)
+            {
+                var or = FlashBlends.Or(colours[a], colours[b]);
+                Assert.Equal(colours[a | b], or);
+                Assert.Equal((Math.Max(colours[a].R, colours[b].R), Math.Max(colours[a].G, colours[b].G),
+                    Math.Max(colours[a].B, colours[b].B)), ((int)or.R, (int)or.G, (int)or.B));
+            }
+        }
     }
 
     [OriginalDataFact]

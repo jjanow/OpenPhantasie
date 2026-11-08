@@ -45,12 +45,36 @@ Tools (all `python3 -I`, run from the repo root):
     the low 3 bits, 154–409 the top 5. Bytes 5g..5g+4 (g = 0–50) take their top bits from value 154 + 51k + 50 − g
     (k = 0–4); with A = value 103 + g, B = 52 + g, C = 1 + g their low bits are A >> 2, B >> 2, C >> 2 for k = 0–2,
     then bit 1 (k = 3) and bit 0 (k = 4) of A, B, C (A highest). Byte 255 = value 409 over value 0's low 3 bits.
-  - Track 0 sector 12 has an address field and no data field on all four disks: a 16-sector `D5 AA 96` sector (6-and-2,
-    the boot sector a 16-sector ROM loads) sits in its gap. It lies inside the `RDOS 2.1` file, which nothing reads;
-    the reader leaves it zero (so does the 4am `.dsk`). I's track 0 also has a `D4 AA B7` sector-0 address field
-    before that boot sector. Every other sector of tracks 0–34 decodes with good checksums (the reader reads each
-    track twice round, so a sector across the bit stream's end is found too); whatever SSI's protection check reads
-    does not stop the files being read.
+  - **Track 0 sector 12 has no 5-and-3 data field on any of the four disks** (s170: mastered that way, not a
+    reader miss, a bit slip or a wrap). The slot after its address field holds the **16-sector boot sector** instead,
+    so the disk also boots on a 16-sector (P5A) ROM. Bit offsets in track 0's stream (every `D5 AA` mark there listed;
+    the sector spacing is the usual ~3920 bits):
+
+    | disk | track bits | sector 12 address | `D5 AA 96` | its `D5 AA AD` | next address (sector 6) |
+    |---|---|---|---|---|---|
+    | II side A | 52208 | 28121 | 28458 | 28586 (58 nibbles on) | 32045 |
+    | II side B | 52234 | 19593 | 19929 | 20057 (58) | 23516 |
+    | I boot | 50936 | 21838 | 22585 | 22770 (113) | 25749 |
+    | I dungeon | 50908 | 32797 | 33542 | 33726 (113) | 36743 |
+
+    I's slot also has a `D4 AA B7` sector-0 address field before the boot sector. The `D5 AA 96` address field is
+    malformed on purpose: track 0, sector 0, checksum bad (II: volume 154, checksum 221; I: 255 / 204), I's epilogue
+    `EE EE`, II's `DA AD`; the boot ROM checks neither. Its data field is good 6-and-2 (343 nibbles, chain ends at 0,
+    epilogue `DE AA` on II, `EE EE` on I) and the same 256 bytes on all four disks (sha1
+    `362cf27b277f6ea39c97b98bfe56e5f7a2edadb8`): `01`, then a loader that copies itself from $0800 to $0200 and reads
+    the 13-sector track with its own code (it compares `D5`, `AA`, `B5` / `AD` and counts `LDY #$9A`, the 154 low-bit
+    values of 5-and-3). `WozImage`'s 5-and-3 read of sector 12 meets the 6-and-2 field (II) or no data mark within its
+    window (I) and fails; RDOS's RWTS presumably does too (its search window not traced). Logical sector 12 lies inside the
+    `RDOS 2.1` file (sectors 0–25: the DOS tracks 0–1), which nothing reads; the reader leaves it zero (so does the 4am
+    `.dsk`). Every other sector of tracks 0–34 decodes with good checksums; the reader reads each track twice round, so
+    a sector across the bit stream's end is found too (II side A's sector 2 data field starts at 51980 of 52208).
+    Whatever SSI's protection check reads does not stop the files being read.
+  - **16-sector disks** (s170): `WozImage` also reads 6-and-2 (`D5 AA 96` address with `DE AA` epilogue, `D5 AA AD`
+    data, 342 + 1 values, `DE AA`; values 86–341 are bytes 0–255's top 6 bits, value i % 86 holds byte i's low 2 bits,
+    swapped, at bit 2 * (i / 86)). The disk's format is the one that decodes more sectors over the whole disk, so the
+    SSI disks' single (bad-checksum) boot sector keeps them 13-sector. A 16-sector disk comes out as a DOS-order `.dsk`
+    (logical l = physical `0 13 11 9 7 5 3 1 14 12 10 8 6 4 2 15`[l]), so a 16-sector crack such as the Memorial Set's
+    pair, as a `.woz`, reads like its `.dsk` (tested with the 4am pair written out as 16-sector `.woz`).
   - Decoded in the 4am layout (sector s of track t at `t * 4096 + s * 256`), every sector of tracks 1–34 equals the 4am
     `.dsk` except the patches its notes list: II side A T14 S7 `$19` `20 A0 08 B0` (the crack: `BD 88 C0 90`); I side A
     T33 S12 the same bytes and T34 S2 `$0F` `C6` (crack `A9`); I side B T34 S5 `$0F` `C6`. Track 0 differs (the

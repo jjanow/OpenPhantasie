@@ -99,9 +99,12 @@ public sealed class VirtualScreen : IDisposable
             ? null
             : Matrix.CreateScale(LayoutScale(spec).X, LayoutScale(spec).Y, 1f);
 
-    /// <summary>Begin a layout-space batch on this screen (point sampling, the pack's layout transform).</summary>
-    public void BeginLayout(SpriteBatch spriteBatch) =>
-        spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: LayoutTransform);
+    /// <summary>
+    /// Begin a layout-space batch on this screen (point sampling, the pack's layout transform); <paramref name="blend"/>:
+    /// another blend state than the default alpha blend (s170: III DOS's OR blit, <see cref="UiOverlays.OrBlit"/>).
+    /// </summary>
+    public void BeginLayout(SpriteBatch spriteBatch, BlendState? blend = null) =>
+        spriteBatch.Begin(blendState: blend, samplerState: SamplerState.PointClamp, transformMatrix: LayoutTransform);
 
     private static readonly RasterizerState Scissor = new() { CullMode = CullMode.None, ScissorTestEnable = true };
 
@@ -109,13 +112,14 @@ public sealed class VirtualScreen : IDisposable
     /// <see cref="BeginLayout"/> drawing only inside <paramref name="clip"/> (layout pixels): a scrolling box's content
     /// shows up to its edges and no further.
     /// </summary>
-    public void BeginLayoutClipped(SpriteBatch spriteBatch, Rectangle clip)
+    public void BeginLayoutClipped(SpriteBatch spriteBatch, Rectangle clip, BlendState? blend = null)
     {
         var (sx, sy) = ((float)VirtualWidth / LayoutWidth, (float)VirtualHeight / LayoutHeight);
         _device.ScissorRectangle = Rectangle.Intersect(
             new Rectangle((int)(clip.X * sx), (int)(clip.Y * sy), (int)Math.Ceiling(clip.Width * sx), (int)Math.Ceiling(clip.Height * sy)),
             new Rectangle(0, 0, VirtualWidth, VirtualHeight));
-        spriteBatch.Begin(samplerState: SamplerState.PointClamp, rasterizerState: Scissor, transformMatrix: LayoutTransform);
+        spriteBatch.Begin(blendState: blend, samplerState: SamplerState.PointClamp, rasterizerState: Scissor,
+            transformMatrix: LayoutTransform);
     }
 
     public VirtualScreen(GraphicsDevice device, ScreenSpec spec, int scale, ScreenPalette? palette = null)

@@ -1751,6 +1751,9 @@ public partial class Game1 : Game
                     }
                     UiOverlays.DrawScrollFrame(_spriteBatch, _pixel, _assets, pictureFrame, _scrollEdges, []);
                     _spriteBatch.Draw(scrollPicture, new Rectangle(px, py, scrollPicture.Width, scrollPicture.Height), Color.White);
+                    if (pictureFrame.PictureCaption is { } caption) // s170: useitem.scroll_picture_caption under the map (root 0x1b4)
+                        PixelFont.Draw(_spriteBatch, _pixel, caption.X, caption.Y, UiText.S(caption.Text),
+                            VirtualScreen.ParseColor(caption.Colour));
                 }
                 else
                     _spriteBatch.Draw(scrollPicture, new Rectangle(0, 0, 320, 200), Color.White);
@@ -3199,8 +3202,15 @@ public partial class Game1 : Game
             {
                 FillBackdrop(pixel, new Color(10, 10, 14));
                 var level = session.Dungeon.Level ?? _dungeonView!.GetLevel(session.Dungeon.LevelId);
+                // s170: the original's own glyph map (III Amiga / DOS) already shows the cells the party has seen, so
+                // the remaster's auto-map box is not drawn over it: it covered the sidebar's second member card (black on
+                // the CGA pack, whose palette has no grey). Neither original draws such a box.
+                var tileDungeon = false;
                 if (assets.TileMaps is { } tileMaps && assets.GetDungeonCell(tileMaps.UnseenGlyph) is not null)
+                {
                     DrawTileDungeon(session.Dungeon, level, tileMaps, assets, pixel, 4, oy);
+                    tileDungeon = true;
+                }
                 else if (assets.Maps is { } maps && _data?.MapTiles is { } glyphRule)
                 {
                     if (_settings.MapOnly)
@@ -3255,7 +3265,7 @@ public partial class Game1 : Game
 
                 UiOverlays.DrawFieldSidebar(_spriteBatch!, pixel, assets, session, !_settings.Game(session.Game).TimeLagInOptions);
 
-                if (_settings.AutoMapVisible)
+                if (_settings.AutoMapVisible && !tileDungeon)
                     UiOverlays.DrawAutoMapOverlay(
                         _spriteBatch!, pixel, level, session.Dungeon, _qol, ox, oy, scale);
                 break;
@@ -3456,7 +3466,9 @@ public partial class Game1 : Game
     // column past its east edge, its last row's cell being the 0xF9 the code writes there (0x1eb3e…0x1ec74). Past the
     // map the Amiga reads on (s108 [C]): a column past the east edge is the next row's first cell (PastMapTile). The
     // planes (9×9) always show the whole plane. III DOS CGA (s160): the same 9×9 of 16×16, tile 89 on the party's cell,
-    // and six Scandor tiles drawn as others (the pack's tile_swaps, ovl3 0x0).
+    // and six Scandor tiles drawn as others (the pack's tile_swaps, ovl3 0x0); s170: its view's centre stops at
+    // columns − 5 and rows − 4 (view_centre_margin, ovl3 0x13ac…0x1612), so Scandor ends at columns 41–49 and the
+    // Netherworld at 22–30: DOS never shows a cell past the map.
     private void DrawTileOverworld(GameSession session, OverworldRegion region, TileMapLayout tiles, AssetCatalog assets,
         Texture2D pixel, int left, int top)
     {
@@ -3467,8 +3479,9 @@ public partial class Game1 : Game
         (int Columns, int Rows)? counters =
             tiles.ViewCounters.TryGetValue(session.Overworld.RegionId, out var counted) ? counted : null;
         var x0 = Math.Clamp(session.Overworld.X - cols / 2, 0,
-            OverworldViewMaxOrigin(region.GridWidth, cols, counters?.Columns));
-        var y0 = Math.Clamp(session.Overworld.Y - rows / 2, 0, OverworldViewMaxOrigin(region.GridHeight, rows, counters?.Rows));
+            OverworldViewMaxOrigin(region.GridWidth, cols, counters?.Columns, tiles.ViewCentreMargin?.Columns));
+        var y0 = Math.Clamp(session.Overworld.Y - rows / 2, 0,
+            OverworldViewMaxOrigin(region.GridHeight, rows, counters?.Rows, tiles.ViewCentreMargin?.Rows));
         HitMapView(left, top, cols, rows, tw, th, x0, y0);
         _spriteBatch!.Draw(pixel, new Rectangle(left, top, cols * tw, rows * th), Color.Black);
         for (var vy = 0; vy < rows; vy++)
@@ -3507,10 +3520,14 @@ public partial class Game1 : Game
     /// <paramref name="view"/>-cell view. <paramref name="counter"/> (the pack's <see cref="TileMapLayout.ViewCounters"/>):
     /// the Amiga stops the view's centre at <c>counter − ⌊view / 2⌋</c> (<c>0x9912</c> / <c>0x9a92</c>), so the view's last
     /// row / column is the counter's (III Scandor: columns 50 = one past the map, rows 74 = the map's last). Without one
-    /// the window stays on the map. A map no larger than the view starts at 0.
+    /// the window stays on the map. A map no larger than the view starts at 0. s170: <paramref name="margin"/> (the pack's
+    /// <see cref="TileMapLayout.ViewCentreMargin"/>) stops the centre at <c>counter − margin</c> instead (III DOS's
+    /// columns: 50 − 5 = 45, so Scandor's view ends at column 49, ovl3 <c>0x1612</c>).
     /// </summary>
-    public static int OverworldViewMaxOrigin(int size, int view, int? counter) =>
-        size <= view ? 0 : counter is { } n ? Math.Max(0, n - (view - 1)) : size - view;
+    public static int OverworldViewMaxOrigin(int size, int view, int? counter, int? margin = null) =>
+        size <= view ? 0
+        : counter is { } n ? Math.Max(0, margin is { } m ? n - m - view / 2 : n - (view - 1))
+        : size - view;
 
     /// <summary>
     /// What the Amiga shows on a view cell past a <paramref name="width"/> × <paramref name="height"/> map (FORMAT.md §4,

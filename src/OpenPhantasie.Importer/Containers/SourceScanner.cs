@@ -234,15 +234,16 @@ public static class SourceScanner
             return true;
         }
 
-        // Apple II .woz flux image (the original SSI disks): decoded to the 13-sector image RdosVolume reads. The
-        // container keeps the .woz's own sha1, so image fingerprints still name it.
+        // Apple II .woz flux image: decoded to a 140K image (the original SSI disks: 13-sector, in the 4am layout;
+        // a 16-sector disk such as a crack: a DOS-order .dsk) that RdosVolume reads. The container keeps the .woz's
+        // own sha1, so image fingerprints still name it.
         if (WozImage.IsWoz(data))
         {
             if (WozImage.TryDecode(data) is { } woz && RdosVolume.TryOpen(woz.Image) is { } wozRdos)
             {
-                // Track 0 is RDOS's boot / DOS track (on SSI's disks its sector 12 has no data field: the 16-sector
-                // boot sector sits there); a sector missing elsewhere may be inside a game file.
-                var lost = woz.Missing.Where(m => m.Track > 0).ToList();
+                // On a 13-sector disk track 0 is RDOS's boot / DOS track (on SSI's disks its sector 12 has no data
+                // field: the 16-sector boot sector sits there); a sector missing elsewhere may be inside a game file.
+                var lost = woz.Missing.Where(m => m.Track > 0 || woz.SectorsPerTrack != WozImage.SectorsPerTrack).ToList();
                 if (lost.Count > 0)
                     notes.Add($"{description}: {lost.Count} sector(s) of the .woz did not decode (track.sector "
                         + string.Join(", ", lost.Take(8).Select(m => $"{m.Track}.{m.Sector}")) + "); they read as zeros");

@@ -65,7 +65,7 @@ Paired with an Amiga function by shared strings: **47**. Amiga `PhantasieIII`: 7
 | Module | Addr | Size | Name | Evidence | Amiga (shared strings) |
 |---|---|---|---|---|---|
 | root | `0x0000` | 191 | load_town_graphics | DS:0x2678/lit "dtown.cmp"; dtown.cmp |  |
-| root | `0x00eb` | 668 | read_scroll | DS:0x268e/lit "shapes.cga"; DS:0x2699/lit "Geography of Scandor"; S510 "\D\SXX"; DS:0x26ae/lit "scrolls.dat"; SCROLLS.DAT records, Scroll IV = map picture (logic-specs/planes.md §7) |  |
+| root | `0x00eb` | 668 | read_scroll | DS:0x268e/lit "shapes.cga"; DS:0x2699/lit "[original text]"; S510 "\D\SXX"; DS:0x26ae/lit "scrolls.dat"; SCROLLS.DAT records, Scroll IV = map picture (logic-specs/planes.md §7) |  |
 | root | `0x03e6` | 45 | dos_error_box | S550 "A dos error has occurred. Plea"; S550 |  |
 | root | `0x0757` | 71 |  | rec 1 fields |  |
 | root | `0x0802` | 522 | draw_party_roster_line | S19/idx "DEAD"; S30/idx "(Back)"; rec 4 fields (rank,hp,status); S19 status, S30 rank labels, rec +0x08 | `0x093e0` (2) |

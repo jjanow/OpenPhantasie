@@ -1236,16 +1236,18 @@ public static partial class UiOverlays
 
     /// <summary>
     /// A combat spell flash (III Amiga <c>0x1b814</c>, <see cref="CombatFlashRun"/>): its first frames drawn over each other
-    /// at <paramref name="picture"/> + the flash's offset (masked blits: colour 0 transparent).
+    /// at <paramref name="picture"/> + the flash's offset (the Amiga's masked blits: colour 0 transparent; s170: III DOS
+    /// ORs them onto the screen, the layout's <see cref="CombatFlashLayout.Blend"/>).
     /// </summary>
     private static void DrawCombatFlash(SpriteBatch batch, AssetCatalog assets, CombatFlashLayout layout,
-        (CombatFlashRun.Flash Flash, int Frames) shown, Point picture)
-    {
-        for (var i = 0; i < shown.Frames && i < layout.Pictures.Count; i++)
-            if (assets.Get(layout.Pictures[i]) is { } sparkle)
-                batch.Draw(sparkle, new Rectangle(picture.X + shown.Flash.X, picture.Y + shown.Flash.Y, sparkle.Width,
-                    sparkle.Height), Color.White);
-    }
+        (CombatFlashRun.Flash Flash, int Frames) shown, Point picture) =>
+        Blended(batch, layout.Blend, () =>
+        {
+            for (var i = 0; i < shown.Frames && i < layout.Pictures.Count; i++)
+                if (assets.Get(layout.Pictures[i]) is { } sparkle)
+                    batch.Draw(sparkle, new Rectangle(picture.X + shown.Flash.X, picture.Y + shown.Flash.Y, sparkle.Width,
+                        sparkle.Height), Color.White);
+        });
 
     /// <summary>
     /// A prompt's text lines as the panel draws them: blank lines dropped, each wrapped to <paramref name="maxChars"/>
@@ -1514,9 +1516,13 @@ public static partial class UiOverlays
                 PixelFont.Draw(batch, pixel, 4, top + i * 10, parts[i], DosWhite);
             PixelFont.Draw(batch, pixel, 310, 190, ">", DimText);
             if (flash is { } shown && assets.RewardScene?.Flash is { } layout)
-                for (var i = 0; i < shown.Frames && i < layout.Pictures.Count; i++)
-                    if (assets.Get(layout.Pictures[i]) is { } sparkle)
-                        batch.Draw(sparkle, new Rectangle(shown.Flash.X, shown.Flash.Y, sparkle.Width, sparkle.Height), Color.White);
+                Blended(batch, layout.Blend, () => // s170: III DOS ORs the frames (0x1537), the Amiga masks them
+                {
+                    for (var i = 0; i < shown.Frames && i < layout.Pictures.Count; i++)
+                        if (assets.Get(layout.Pictures[i]) is { } sparkle)
+                            batch.Draw(sparkle, new Rectangle(shown.Flash.X, shown.Flash.Y, sparkle.Width, sparkle.Height),
+                                Color.White);
+                });
         }
         else if (page == GodsRewardScene.PicturePage)
         {
@@ -2232,9 +2238,65 @@ public static partial class UiOverlays
         }
         batch.End();
         screen.BeginLayoutClipped(batch, clip);
+        var outer = _clip;
+        _clip = clip;
+        try
+        {
+            draw();
+        }
+        finally
+        {
+            _clip = outer;
+        }
+        batch.End();
+        if (outer is { } o)
+            screen.BeginLayoutClipped(batch, o);
+        else
+            screen.BeginLayout(batch);
+    }
+
+    /// <summary>The clip of the <see cref="Clipped"/> draw running now, or null.</summary>
+    private static Rectangle? _clip;
+
+    /// <summary>
+    /// s170: III DOS's OR blit (root <c>0x284:0x19c</c>): the screen's colour ORed with the frame's. In CGA's palettes every
+    /// channel is 0x00, 0x55 or 0xFF, so the OR is the per-channel maximum (<see cref="FlashBlends.Or"/>): colour 0 leaves the
+    /// screen as it is, green 1 over red 2 gives yellow 3, as the index OR.
+    /// </summary>
+    public static readonly BlendState OrBlit = new()
+    {
+        Name = "OrBlit",
+        ColorBlendFunction = BlendFunction.Max,
+        AlphaBlendFunction = BlendFunction.Max,
+        ColorSourceBlend = Blend.One,
+        ColorDestinationBlend = Blend.One,
+        AlphaSourceBlend = Blend.One,
+        AlphaDestinationBlend = Blend.One,
+    };
+
+    /// <summary>
+    /// Run <paramref name="draw"/> with <paramref name="blend"/>'s blend state (<see cref="FlashBlend.Or"/>:
+    /// <see cref="OrBlit"/>; a masked blit draws as everything else does), keeping the clip of a <see cref="Clipped"/>
+    /// draw around it. The batch is ended and begun again around it.
+    /// </summary>
+    public static void Blended(SpriteBatch batch, FlashBlend blend, Action draw)
+    {
+        if (blend != FlashBlend.Or || Screen is not { } screen)
+        {
+            draw();
+            return;
+        }
+        batch.End();
+        if (_clip is { } c)
+            screen.BeginLayoutClipped(batch, c, OrBlit);
+        else
+            screen.BeginLayout(batch, OrBlit);
         draw();
         batch.End();
-        screen.BeginLayout(batch);
+        if (_clip is { } back)
+            screen.BeginLayoutClipped(batch, back);
+        else
+            screen.BeginLayout(batch);
     }
 
     private static readonly Color ScrollTrack = new(40, 48, 66);

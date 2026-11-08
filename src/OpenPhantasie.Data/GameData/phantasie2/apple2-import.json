@@ -1,7 +1,7 @@
 {
  "_schema": "openphantasie.p2-apple2-import/v1",
- "_source": "Remaster data for a Phantasie II import from the Apple II copy (profile p2-apple2), applied by the importer (OpenPhantasie.Importer.Pipelines.P2Apple2.A2StValues). Numbers, the compass word map and the manual's spell names; no text from the game disks.",
- "_note": "User s159 (DIFFERENCES-II D2-046..D2-050): an Apple-only import plays the Atari ST's world, monster numbers, town data and cells whatever the source; it keeps the Apple's own text with its scroll compass words turned to the ST orientation, and takes spell names from the manual's list.",
+ "_source": "Remaster data for a Phantasie II import from the Apple II copy (profile p2-apple2), applied by the importer (OpenPhantasie.Importer.Pipelines.P2Apple2.A2StValues). Numbers, the compass word map and the spell names (the manual's list, the two divine spells the ST's); no text from the game disks.",
+ "_note": "User s159 (DIFFERENCES-II D2-046..D2-050): an Apple-only import plays the Atari ST's world, monster numbers, town data and cells whatever the source; it keeps the Apple's own text with its scroll compass words turned to the ST orientation, and takes spell names from the manual's list; the two divine spells the manual leaves unnamed take the ST's DIVINE II / DIVINE I (user s170, from_st).",
  "_st_cells": "Every number where the Apple's data differs from the ST's (tools/scripts/diff_a2_p2_vs_st.py, reverse-engineering/apple2/phantasie2/FORMAT.md section 5), as a path into the GameData file the Apple import builds (ST shape): a string is an object key, a number an array index, an object picks the array element whose fields match; byte = an offset into a hex string. A cell holding the Apple value gets the ST value; fog = a map tile whose fog (tile + 120) is kept. D2-009's cells need nothing (the Apple already has the manual's values). OUT1's feature record 14 at (25, 0) (ST dest_y 32, Apple 0) is unused (record 13 sits on the same blocked cell and is found first) and takes the ST value too, keyed by its index (s169), so every number equals the ST's.",
  "st_cells": [
   {
@@ -774,13 +774,13 @@
   },
   {
    "slot": 56,
-   "name": "DIVINE #57",
-   "remaster": true
+   "name": "DIVINE II",
+   "from_st": true
   },
   {
    "slot": 57,
-   "name": "DIVINE #58",
-   "remaster": true
+   "name": "DIVINE I",
+   "from_st": true
   }
  ]
 }

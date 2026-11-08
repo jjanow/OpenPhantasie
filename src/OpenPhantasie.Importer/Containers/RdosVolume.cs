@@ -49,7 +49,7 @@ public sealed class RdosVolume
     }
 
     /// <summary>DOS 3.3 → the 4am image's order (<c>tools/scripts/a2_rdos.py</c> <c>from_dos33_order</c>).</summary>
-    private static readonly int[] Dos33ToImage = [0, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 15];
+    internal static readonly int[] Dos33ToImage = [0, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 15];
 
     public static byte[] FromDos33Order(byte[] image)
     {

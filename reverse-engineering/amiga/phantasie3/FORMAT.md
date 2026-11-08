@@ -235,7 +235,7 @@ started with the page and stopped when the page changes; silent with the Sound s
 | `D/w2.cmp` | a temple with a red demon: the gates of the Astral Plane | party defeat `0x1dc16`: "[original text]…" / "…arrived at the gates…", then the picture (X of `D/WX.cmp`, string 35, set to `'2'` at `0x1dc70`); drawn behind III's defeat outcome; screen layout in §6.1 |
 | `D/w1.cmp` | Zeus on clouds (art rows 0–120) | reward scene `0x1ee82(outcome)`: outcome 2 (Nikademus killed, good) → `'1'` (§3.1); DOS ovl4 `0x0000`, `endgame.md` §3 |
 | `D/w0.cmp` | demon (Pluto) on a throne in lava (art rows 0–120) | the same, outcome 3 (Lord Wood killed, evil) → `'0'`; called from the event fight `0x1da5c` when the fight returns 2 / 3 |
-| `D/s6` | **Scroll IV**: the map "Geography of Scandor" | `0x1f7ee` loads and unpacks `D/s6` when the scroll has no text; the other `D/s<n>` are 1152-B texts |
+| `D/s6` | **Scroll IV**: the map "[original text]" | `0x1f7ee` loads and unpacks `D/s6` when the scroll has no text; the other `D/s<n>` are 1152-B texts |
 | `Graphics/dlgbttns.cmp` | OK / CANCEL / MORE / YES / NO buttons (two states) | cut by `0x8012`: 5 × 2 buttons of 64×18 |
 
 ### 3.1 The gods' reward scene (root `0x1ee82`) `[C]` static s102

@@ -176,7 +176,7 @@ Using a scroll item (ids 121–140, town only) shows text from `SCROLLS.DAT` (19
 | 123 | Scroll III | 4 |
 | 124 | Scroll III | 3, 4, 5 |
 | 125 | Scroll III | 4 |
-| 126 | Scroll IV | the map picture "Geography of Scandor" (`SHAPES.CGA`, no text) |
+| 126 | Scroll IV | the map picture "[original text]" (`SHAPES.CGA`, no text) |
 | 127 / 128 | Scroll V / VI | 5 / 6 |
 | 129 | Scroll VII | 7, 8, 9 (three pages: "The Universe" …) |
 | 130 | Scroll VII | 8 (text cut at byte 869) |

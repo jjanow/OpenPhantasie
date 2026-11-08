@@ -631,13 +631,13 @@ and `strings/fallback.en.json`).
   event scripts differ, and they do not (level bytes 0–1739 agree): the labels differ, the outcomes do not `[~]`.
 - **Remaster:** ST text (built). Apple-only import (s160): names, scrolls and dungeon text are the Apple's (scroll compass
   turned, D2-046). Spell names: the manual's list (CB p.12: HEALING 1 ... SUMMONS ELEMENTAL, MONSTER EVALUATION ...,
-  `apple2-import.json`); the two divine spells, which the manual does not name, are "DIVINE #57" / "DIVINE #58"
-  (remaster wording `[~]`). s169 search: no Apple file holds a spell name (both 4am sides and the Memorial Set pair, with
+  `apple2-import.json`); the two divine spells, which the manual does not name, take the ST's names DIVINE II (#57) /
+  DIVINE I (#58) (user s170). s169 search: no Apple file holds a spell name (both 4am sides and the Memorial Set pair, with
   the high bit stripped: no DIVINE but DNG3's "[original text]", no FIREFLASH, VISION, EVALUATION);
   the Apple asks "WHICH SPELL?" by number and refuses #57 / #58 by number (OUTDOORS2 lines 6950-6970). The manual says
   only "DIVINE SPELLS (#58+)" (CB p.14) and "divine spells (#55 and above)". The ST's spell table names them: slot
-  56 (#57) DIVINE II, slot 57 (#58) DIVINE I (`reverse-engineering/atari-st/phantasie2/FORMAT.md` section 3). Whether
-  the Apple import takes the ST's two names is the user's call `[U]`. String tables: the 217 verbatim ids and the 95 in the Apple's own wording come from the
+  56 (#57) DIVINE II, slot 57 (#58) DIVINE I (`reverse-engineering/atari-st/phantasie2/FORMAT.md` section 3); the Apple
+  import takes those two (user s170: "Take the ST names for the Divine spells"). String tables: the 217 verbatim ids and the 95 in the Apple's own wording come from the
   player's Apple programs (`p2-apple2` alternatives in `en.sources.json`, the own-wording ones from
   `tools/scripts/p2_apple2_own_wording.json`, applied to II only and only while II's tables are the Apple's, so I keeps
   DOS I's lines and an ST import keeps the ST's); the 18 it lacks take the remaster's wording
@@ -646,7 +646,7 @@ and `strings/fallback.en.json`).
   party size is in, as the Apple prints it: WIN line 3116 `PRINT "...THESE "PO + 1" BRAVE ADVEN-"` with `PO = PEEK(SA +
   1203)`, the party's last index (DEAD members count), so the own-wording line is "WE ARE ALL DOOMED. THESE {0} BRAVE
   ADVEN-" and Core fills {0} with the party's member count (the ST's line has no number and ignores it). A summoned
-  elemental at the ceremony counts as a member `[~]` (the Apple has no elementals). Seen in the Client (s169, Xvfb,
+  elemental at the ceremony is not counted (the Apple has no elementals; s170). Seen in the Client (s169, Xvfb,
   Apple-only import): the 18-character MONSTER EVALUATION fits whole in the wilderness cast window
   (`parity/shots/s169-p2-apple2-field-cast-monster-evaluation.png`). It is never in a fight's spell window: it is a
   wilderness / dungeon spell (`N/WD`), the remaster's II fight list holds the combat-castable spells (D-063's

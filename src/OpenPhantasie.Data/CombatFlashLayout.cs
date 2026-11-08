@@ -24,6 +24,9 @@ public sealed record CombatFlashLayout(
     int YJitter, int YAdd, int? Sound, int SoundFrame, int PartyXPerSlot, int PartyXAdd, int PartyY, int PortraitXPerSlot,
     IReadOnlyList<int> PortraitTopByRank)
 {
+    /// <summary>s170: how the frames meet the screen (<see cref="FlashBlend"/>; III DOS ORs them, root <c>0x284:0x19c</c>).</summary>
+    public FlashBlend Blend { get; init; }
+
     /// <summary>VBLs one frame of a flash lasts.</summary>
     public int FrameVbl => Wait + WaitExtraVbl;
 
@@ -79,7 +82,10 @@ public sealed record CombatFlashLayout(
             throw Bad("bad sound");
         return new CombatFlashLayout(pictures, dto.Wait, dto.WaitExtraVbl, hz.Value, dto.UnitX, dto.XJitter, dto.RightAdd,
             dto.XMax ?? int.MaxValue, dto.YJitter, dto.YAdd, dto.Sound, dto.SoundFrame, dto.PartyXPerSlot, dto.PartyXAdd,
-            dto.PartyY, dto.PortraitXPerSlot, tops);
+            dto.PartyY, dto.PortraitXPerSlot, tops)
+        {
+            Blend = FlashBlends.Parse(dto.Blend, manifestPath, "combat_flash"),
+        };
     }
 
     internal sealed class Dto
@@ -101,5 +107,38 @@ public sealed record CombatFlashLayout(
         [JsonPropertyName("party_y")] public int PartyY { get; set; }
         [JsonPropertyName("portrait_x_per_slot")] public int PortraitXPerSlot { get; set; }
         [JsonPropertyName("portrait_top_by_rank")] public List<int>? PortraitTopByRank { get; set; }
+        public string? Blend { get; set; }
     }
+}
+
+/// <summary>
+/// How a flash's frames are drawn onto the screen (manifest <c>blend</c>): <see cref="Mask"/> (the default; III Amiga's
+/// <c>0x1b814</c> masked blits: colour 0 shows what lies under, every other colour covers it) or <see cref="Or"/> (III
+/// DOS's <c>0x1537</c> through <c>0x284:0x19c</c> / <c>0x3b2:0x4b7</c>: every screen word ORed with the frame's, so colour
+/// 0 leaves the screen as it is and other colours mix with what lies under: green 1 OR red 2 = yellow 3).
+/// </summary>
+public enum FlashBlend
+{
+    Mask,
+    Or,
+}
+
+/// <summary>Reading <see cref="FlashBlend"/> from a manifest.</summary>
+public static class FlashBlends
+{
+    /// <summary><c>null</c> / <c>"mask"</c> → <see cref="FlashBlend.Mask"/>, <c>"or"</c> → <see cref="FlashBlend.Or"/>.</summary>
+    public static FlashBlend Parse(string? value, string manifestPath, string where) => value switch
+    {
+        null or "mask" => FlashBlend.Mask,
+        "or" => FlashBlend.Or,
+        _ => throw new InvalidDataException($"{manifestPath}: {where}: blend is \"mask\" or \"or\"."),
+    };
+
+    /// <summary>
+    /// The colour an OR blit leaves where <paramref name="screen"/> lies under <paramref name="frame"/>, per channel
+    /// (CGA's palettes hold only 0x00, 0x55 and 0xFF per channel, so the bitwise OR of two palette colours is their
+    /// per-channel maximum and the same colour as the OR of their indices: the Client draws it with a max blend).
+    /// </summary>
+    public static (byte R, byte G, byte B) Or((byte R, byte G, byte B) screen, (byte R, byte G, byte B) frame) =>
+        ((byte)(screen.R | frame.R), (byte)(screen.G | frame.G), (byte)(screen.B | frame.B));
 }

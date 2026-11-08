@@ -39,6 +39,7 @@
     "cast.x_knows_no_spells": "...",
     "useitem.x_carries_nothing": "... anything.",
     "useitem.scroll_picture": "(A picture: ... Scandor.)",
+    "useitem.scroll_picture_caption": "...",
     "core.p3.ocean": "...",
     "core.p3.river_styx": "...",
     "core.p3.will_you_enter": "{0} ...",

@@ -836,6 +836,14 @@ public sealed record TileMapLayout(
         new Dictionary<int, (int Columns, int Rows)>();
 
     /// <summary>
+    /// s170: how far short of <see cref="ViewCounters"/> the view's centre stops, per axis (columns, rows), or null: the
+    /// Amiga's rule, centre ≤ counter − ⌊view / 2⌋ on both axes (<c>0x985e</c>…<c>0x9a92</c>). III DOS's step routines
+    /// (ovl3 <c>0x13ac</c> / <c>0x1470</c> north / south: rows − 4; <c>0x154e</c> / <c>0x1612</c> west / east: columns − 5,
+    /// <c>reverse-engineering/dos/phantasie3/FORMAT.md</c> section 10) stop the columns one earlier: (5, 4).
+    /// </summary>
+    public (int Columns, int Rows)? ViewCentreMargin { get; init; }
+
+    /// <summary>
     /// Map bytes the pack's version draws as another tile in a region: (region, map byte) → tile (III DOS, ovl3
     /// <c>0x0</c>: on Scandor six tiles are swapped, <c>reverse-engineering/dos/phantasie3/FORMAT.md</c> section 10). Only
     /// the picture changes; the map byte the game plays is the same.
@@ -879,10 +887,13 @@ public sealed record TileMapLayout(
             r => r is [var region, var from, _] ? (region, from)
                 : throw new InvalidDataException($"{manifestPath}: tile_maps tile_swaps entries are [region, map byte, tile]."),
             r => r[2]);
+        if (dto.ViewCentreMargin is not (null or [>= 0, >= 0]))
+            throw new InvalidDataException($"{manifestPath}: tile_maps view_centre_margin is [columns, rows].");
         return new TileMapLayout(tile[0], tile[1], view[0], view[1], glyph[0], glyph[1],
             dto.DungeonUnseen, dto.DungeonParty, dto.DungeonDefault, ranges)
         {
             PastMap = past, ViewCounters = counters, TileSwaps = swaps,
+            ViewCentreMargin = dto.ViewCentreMargin is [var mc, var mr] ? (mc, mr) : null,
         };
     }
 
@@ -897,6 +908,7 @@ public sealed record TileMapLayout(
         [JsonPropertyName("dungeon_cells")] public List<int[]>? DungeonCells { get; set; }
         [JsonPropertyName("past_map")] public List<int[]>? PastMap { get; set; }
         [JsonPropertyName("view_counters")] public List<int[]>? ViewCounters { get; set; }
+        [JsonPropertyName("view_centre_margin")] public int[]? ViewCentreMargin { get; set; }
         [JsonPropertyName("tile_swaps")] public List<int[]>? TileSwaps { get; set; }
     }
 }
@@ -990,6 +1002,15 @@ public sealed record ScrollFrameLayout(
     /// </summary>
     public IReadOnlyList<int>? PictureAt { get; init; }
 
+    /// <summary>
+    /// s170: the line printed under the picture of <see cref="PictureAt"/> (III DOS: Scroll IV's caption, the literal
+    /// DS:<c>0x2699</c>, root <c>0x1b4</c>: <c>0x284:0x7a1(text, 10, 23, 2, 3)</c>), or null.
+    /// </summary>
+    public Caption? PictureCaption { get; init; }
+
+    /// <summary>A line on the page: the string id <see cref="Text"/> at pixel <see cref="X"/>, <see cref="Y"/> in <see cref="Colour"/>.</summary>
+    public sealed record Caption(string Text, int X, int Y, string Colour);
+
     /// <summary>One edge cell: its column, row (0 = top, <see cref="Rows"/> + 1 = bottom) and piece slot.</summary>
     public readonly record struct Edge(int Column, int Row, int Slot);
 
@@ -1026,10 +1047,14 @@ public sealed record ScrollFrameLayout(
             throw new InvalidDataException($"{manifestPath}: bad scroll_frame.");
         if (dto.PictureAt is not (null or [>= 0, >= 0]))
             throw new InvalidDataException($"{manifestPath}: bad scroll_frame.picture_at.");
+        if (dto.PictureCaption is { } pc && (string.IsNullOrWhiteSpace(pc.Text) || pc.At is not [>= 0, >= 0]
+            || string.IsNullOrWhiteSpace(pc.Colour)))
+            throw new InvalidDataException($"{manifestPath}: bad scroll_frame.picture_caption.");
         return new ScrollFrameLayout(dto.Cell, dto.Columns, dto.Rows, dto.Fill, dto.FillColour ?? "#000000",
             dto.TextColour ?? "#FFFFFF", dto.TopCorners!, dto.BottomCorners!, dto.Top!, dto.Bottom!, dto.Left!, dto.Right!)
         {
             PictureAt = dto.PictureAt,
+            PictureCaption = dto.PictureCaption is { } c ? new Caption(c.Text!, c.At![0], c.At[1], c.Colour!) : null,
         };
     }
 
@@ -1044,10 +1069,18 @@ public sealed record ScrollFrameLayout(
         [JsonPropertyName("top_corners")] public List<int>? TopCorners { get; set; }
         [JsonPropertyName("bottom_corners")] public List<int>? BottomCorners { get; set; }
         [JsonPropertyName("picture_at")] public int[]? PictureAt { get; set; }
+        [JsonPropertyName("picture_caption")] public CaptionDto? PictureCaption { get; set; }
         public List<int>? Top { get; set; }
         public List<int>? Bottom { get; set; }
         public List<int>? Left { get; set; }
         public List<int>? Right { get; set; }
+    }
+
+    internal sealed class CaptionDto
+    {
+        public string? Text { get; set; }
+        public int[]? At { get; set; }
+        public string? Colour { get; set; }
     }
 }
 

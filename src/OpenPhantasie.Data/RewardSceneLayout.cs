@@ -29,6 +29,7 @@ public sealed record RewardSceneLayout(RewardFlashLayout? Flash, TitleTune? Tune
             {
                 Sound = f.Sound,
                 SoundFrame = f.SoundFrame,
+                Blend = FlashBlends.Parse(f.Blend, manifestPath, "reward_scene.flash"),
             };
         }
         TitleTune? tune = null;
@@ -67,6 +68,7 @@ public sealed record RewardSceneLayout(RewardFlashLayout? Flash, TitleTune? Tune
         [JsonPropertyName("vbl_hz")] public int? VblHz { get; set; }
         public int? Sound { get; set; }
         [JsonPropertyName("sound_frame")] public int SoundFrame { get; set; }
+        public string? Blend { get; set; }
     }
 }
 
@@ -95,6 +97,9 @@ public sealed record RewardFlashLayout(
 
     /// <summary>The frame the sound starts with: <c>0x1b814</c> calls it before drawing frame 1 (the second), after frame 0's wait.</summary>
     public int SoundFrame { get; init; }
+
+    /// <summary>s170: how the frames meet the screen (<see cref="FlashBlend"/>; III DOS ORs them, root <c>0x284:0x19c</c>).</summary>
+    public FlashBlend Blend { get; init; }
 
     /// <summary>VBLs one frame of <paramref name="flash"/> lasts.</summary>
     public int FrameVbl(Flash flash) => flash.Wait + WaitExtraVbl;

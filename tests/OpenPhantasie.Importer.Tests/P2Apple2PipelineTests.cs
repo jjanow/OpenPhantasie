@@ -177,15 +177,15 @@ public class P2Apple2PipelineTests
         var warning = ImportRunner.PlayedWarning(r.Detection);
         Assert.Contains("fog is already lifted", warning);
         Assert.DoesNotContain("fights", warning);
-        // D2-050: spell names from the manual's list (CB p.12); the divine spells in the remaster's wording.
+        // D2-050: spell names from the manual's list (CB p.12); the two divine spells take the ST's names (user s170).
         var spells = Out("spells.json")["spells"]!.AsArray();
         Assert.Equal(56, spells.Count);
         Assert.Equal("HEALING 1", (string)spells[0]!["name"]!);
         Assert.Equal("SUMMONS ELEMENTAL", (string)spells[47]!["name"]!);
         Assert.Equal("MONSTER EVALUATION", (string)spells[51]!["name"]!);
         Assert.Equal("TRANSPORTATION", (string)spells[53]!["name"]!);
-        Assert.Equal(("DIVINE #58", 57), ((string)spells[54]!["name"]!, (int)spells[54]!["dos_slot"]!));
-        Assert.Equal(("DIVINE #57", 56), ((string)spells[55]!["name"]!, (int)spells[55]!["dos_slot"]!));
+        Assert.Equal(("DIVINE I", 57), ((string)spells[54]!["name"]!, (int)spells[54]!["dos_slot"]!));
+        Assert.Equal(("DIVINE II", 56), ((string)spells[55]!["name"]!, (int)spells[55]!["dos_slot"]!));
         Assert.DoesNotContain(spells, s => ((string)s!["name"]!).StartsWith("SPELL ", StringComparison.Ordinal));
         Assert.Equal("HEALING 1", (string)Out("names.json")["spells"]![0]!["name"]!);
     }
@@ -642,7 +642,11 @@ public class P2Apple2PipelineTests
             s.LeaveGuild();
             Assert.Equal(GameMode.Town, s.Mode);
 
-            // D2-050: the Filmon ending's line 14 in the Apple's words with its party size (WIN line 3116, PO + 1).
+            // D2-050: the Filmon ending's line 14 in the Apple's words with its party size (WIN line 3116, PO + 1); a
+            // summoned elemental (none on the Apple) is not counted (s170).
+            var elemental = new Character { Name = "FIRE ELEMENTAL", Status = CharacterStatus.Ok };
+            s.Party.Elemental = elemental;
+            s.Party.Members.Add(elemental);
             Phantasie2Campaign.ResolveEnding(s);
             var scene = Assert.IsType<VictoryScene>(s.PendingVictoryScene);
             Assert.Equal("WE ARE ALL DOOMED. THESE 1 BRAVE ADVEN-", scene.ClosingPage[13]);

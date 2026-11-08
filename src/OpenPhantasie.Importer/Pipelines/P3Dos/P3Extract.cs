@@ -460,7 +460,7 @@ public sealed class P3Extract
             ["_source"] = "SCROLLS.DAT 19 x 1050 B NUL-terminated [C] (FORMAT.md section 9.4); item -> records = read_scroll " +
                           "root 0xeb [C] (planes.md section 7); 38-character lines [~]",
             ["_notes"] = Strs([
-                "Item 126 (Scroll IV) shows the map picture 'Geography of Scandor' (SHAPES.CGA), not text.",
+                "Item 126 (Scroll IV) shows the map picture (SHAPES.CGA; caption: string useitem.scroll_picture_caption), not text.",
                 "Items 122 / 124 / 129 show three consecutive records (pages). Item 130 shows record 8, whose " +
                 "text is cut at byte 869 (planes.md section 7); the duplicate III / VII items are partial copies.",
             ]),

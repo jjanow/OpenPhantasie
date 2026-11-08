@@ -543,7 +543,7 @@ the CGA palette select. Its callers, with the screen each starts:
 | ovl4 `0x7dd` (`dungeon_enter_save`), `0xc5d` (`dungeon_step`), `0x147a` (after an event page) | 1 | the dungeon map (and its windows) |
 | root `0x1081e` (`0x1080a`, the combat field: clear, palette, field `0x103bf`, the groups `0x11525`) | 1 | the fight's field, its pictures and lines |
 | root `0xf9dd` (`combat_select_member`) | 0 | the orders screen ("Selecting combat options") |
-| root `0x1eba` / `0x240c` (`party_death_astral_plane`) | 1, then 0 | the Astral Plane picture and its lines; 0 before the scene ends |
+| root `0x1eba` / `0x240c` (`party_death_astral_plane`) | 1, then 0 | the Astral Plane: its three intro lines, the picture and one line per member all in 1; after the last member's line and its wait `0x452(200)` the screen is cleared (`0x3b2:0x50c`, 16 KB of 0 at `B800:0`) and only then palette 0 (s170 `[C]`), so nothing shows in 0 before the next screen |
 | ovl4 `0x3e` (`endgame_gods`) | 1 | the gods' intro, its flashes, Zeus / Pluto |
 | root `0x4b7` (the text page `0x4a3`, below) | 0 | scroll pages, Scroll IV, dungeon event pages, the god's speech |
 
@@ -574,7 +574,7 @@ mark (the four `PICS.CMP` screens end exactly where the next starts) `[C]`.
 | `0x01b0` | 240 | fifteen 8×8 glyphs (16 B) at FAR `0xe6ca`: the **text page's frame** (the Amiga's `scroll.csh` 54–68) | root `0x0636(n, x, y)` (glyph `n` at 8-px column `x`, pixel row `y`, opaque) from the page routine `0x4a3`, below `[C]` |
 | `0x02a0` | 9,600 | 25 party pictures 32×48 (384 B): 12 race pairs (idle, attacking) + the grave (24) | same cells as Amiga `heros.cmp`; race → picture by the byte table DS:`0x9ea` (img `0x295ea`) = Amiga `0x239a0`: Human 0, Dwarf 2, Elf 4, Gnome / Halfling 6, (Random 0), Gnoll 14, Goblin / Kobold / Orc 16, Lizard Man 10, Minotaur 12, Ogre 14, Pixie / Sprite 8, Troll 20, Elemental 22, Undead 18, entry 18 = 24 (the grave) `[C]` data |
 | `0x2820` | 112 | dungeon map glyphs 8×5 (2 B × 5 rows, 16 B a slot) | ovl4 `0x5a8(x, y, g)`: glyph `g` 46..52 → slot 1, 2, 3, 6, 5, 4, 0 (jump table `0x5f7`) `[C]` |
-| `0x2890` | 5,040 | Scroll IV's map "Geography of Scandor", 120×168 | root `0x0124` (`read_scroll`, item 126): on the text page (below), blit at (96, 8) (12 words, 8, 15 words, 168) `[C]` |
+| `0x2890` | 5,040 | Scroll IV's map "[original text]", 120×168 | root `0x0124` (`read_scroll`, item 126): on the text page (below), blit at (96, 8) (12 words, 8, 15 words, 168) `[C]` |
 | `0x3c40` | 768 | the body-area figure: 4 states × 12 pieces × 16 B (8×8) | root `0x0dcf` / `0x0eb5`, below `[C]` |
 
 **Dungeon glyphs** (ovl4 `0x21bb`, the cell → glyph map): map byte 0 / 1 → 46 (also the not-seen fill, ovl4 `0x7ff`),
@@ -601,7 +601,7 @@ glyphs 5, 10 and 13 are never drawn). The text, when given, at cell (1, 1) in co
 row, ink, paper)`). Later scroll pages fill (8, 8)–(311, 191) in 3 and call it with `first` 0 (no frame redrawn). The
 event page puts "Press a key" / "Press a number" (FAR `0x1b20` + 4·n) at cell (14, 23), colour 0 on 3, and its lines from
 cell (1, 1) down, one row each (FAR `0xac` counts them). Scroll IV: the page, the map at (96, 8), "Geography of
-Scandor" (DS:`0x2699`) at cell (10, 23) in colour 2 on 3, a key. The altar page (`screens-s82/s82_altar_menu.png`)
+Scandor" (DS:`0x2699`) at cell (10, 23) in colour 2 on 3 (root `0x1b4`), a key (`0x284:0x35e`). The altar page (`screens-s82/s82_altar_menu.png`)
 shows it: yellow inside, the red / black frame, black text.
 
 **The flash** (root `0x1537(x, y, giant)`, s169 `[C]`): x (in 8-px bytes) += rnd mod 3, + 2 when `giant`, at most 36; y
@@ -613,7 +613,10 @@ frame 1, and after each frame the wait `0x452(FAR 0xb5e8)`; then the rectangle r
 `+0x48`), `damage_character` (`0xbca4`, when its flag is set: (6·slot, 140, 1)), and the gods' intro (ovl4 `0x396`:
 50 flashes at (rnd mod 36, rnd mod 120, 0); with argument 1 the wait word goes 1 down every 5 flashes from flash 0,
 not below 1, with 0 one up, not above 8; it starts at 7 (ovl4 `0x4a`) and is 6 after the scene, as in a fight). The
-same numbers as the Amiga's `0x1b814` except the member's x (DOS 6·slot, the Amiga max(0, 6·slot − 1)).
+same numbers as the Amiga's `0x1b814` except the member's x (DOS 6·slot, the Amiga max(0, 6·slot − 1)) and the blit
+(the Amiga masks: colour 0 shows what lies under, the others cover it). In CGA's palettes every channel is 0x00, 0x55 or
+0xFF, so the OR of two colours is their per-channel maximum (the pack's `blend: "or"`, drawn as a max blend; s170, seen
+in the remaster on Xvfb, not in DOSBox: a cyan sparkle over the magenta monster turns white where they meet).
 
 **The wait** (root `0x452(w)`, s169 `[C]`): `0x284:0x30b(max(1, ⌊100·w / 60⌋))`, a busy loop of that many units,
 `FAR:0xdd94` loops each; the start-up (`0x284:0x2ae0…0x2b41`) counts loops over 4 BIOS ticks (`0x40:0x6c`, 219.7 ms)
@@ -634,14 +637,33 @@ cells (54 of the 3,750 Scandor cells differ from `WORLD.DAT`; at the 25: 187 →
 170 → 181 once and 170 kept six times (DOS draws 181)). So a few Scandor cells look different on the two machines;
 each pack draws its own machine's.
 
-**View size and edges** (s169 `[C]`): the view reads map byte (cy + r − 4) · columns + cx + c − 4 unchecked (FAR
-`0x487e` / `0x9f8` the centre cell, `0x9814` / `0x97ec` the party's view row / column), with columns FAR `0x97c8` and
-rows FAR `0xcce` as `load_plane_map` (root `0x125d`) sets them: Scandor **50 × 74** (also the start-up, ovl1 `0x873`),
-the Netherworld **31 × 15**, the Light and Dark planes 9 × 8 (a 9 × 9 map: the view never scrolls). A step north (ovl3
-`0x13ac`): if 0 ≤ cy ≤ 4, or rows − 4 ≤ cy ≤ rows − 1 with the party's view row above 4, only the party moves in the
-view; else the view scrolls (cy − 1); the other directions (from ovl3 `0x1470`) are taken to mirror it `[~]` (not
-read). The Amiga's counters and rule (amiga FORMAT.md section 4), so DOS's Scandor view also ends at columns 42–50, column 50 being the next row's first cell. What the bytes
-past the last map byte hold on DOS (Scandor's (50, 74), the Netherworld's (31, 15)) is not traced `[?]`.
+**View size and edges** (s169, s170 `[C]`): the view (ovl3 `0x12f1`) reads map byte (cy + r − 4) · columns + cx + c
+− 4 unchecked from the map pointer FAR `0x488a` (FAR `0x487e` / `0x9f8` the centre cell cy / cx, `0x9814` / `0x97ec` the
+party's view row vr / column vc, `0x4884` / `0x4882` its map cell), with columns FAR `0x97c8` and rows FAR `0xcce` as
+`load_plane_map` (root `0x125d`) sets them: Scandor **50 × 74** (also the start-up, ovl1 `0x873`; the map pointer FAR
+`0xddae`, `WORLD.DAT`'s 3,750 bytes), the Netherworld **31 × 15** (496 bytes read, 31 × 16, then 0xF9 written at bytes
+496 and 497 as on the Amiga), the Light and Dark planes 9 × 8 (81 bytes, a 9 × 9 map: the view never scrolls). The four
+steps (each only while the centre is on the map, 0 ≤ c ≤ size − 1; the party's map cell moves with the party):
+
+| Step | Party moves in the view (no scroll) | Else | Clamps after |
+|---|---|---|---|
+| north ovl3 `0x13ac` | cy ≤ 4: vr − 1; or rows − 4 ≤ cy ≤ rows − 1 and vr > 4: vr − 1 | cy − 1 | cy, vr, y ≥ 0 |
+| south `0x1470` | cy ≤ 4 and vr < 4: vr + 1; or rows − 4 ≤ cy ≤ rows − 1: vr + 1 | cy + 1 | cy, y ≤ rows; vr ≤ 8 |
+| west `0x154e` | cx ≤ 4: vc − 1; or **columns − 5** ≤ cx ≤ columns − 1 and vc > 4: vc − 1 | cx − 1 | cx, vc, x ≥ 0 |
+| east `0x1612` | cx ≤ 4 and vc < 4: vc + 1; or **columns − 5** ≤ cx ≤ columns − 1: vc + 1 | cx + 1 | cx, x ≤ columns − 1; vc ≤ 8 |
+
+So the centre stops at rows − 4 but at **columns − 5** (the Amiga: counter − 4 on both, amiga FORMAT.md section 4):
+DOS's Scandor view ends at **columns 41–49** and rows 66–74 (the Amiga's at 42–50, one column past the map), the
+Netherworld's at columns 22–30 and rows 7–15. The east step runs with columns − 1 while the plane (FAR `0xcc4`) and 3 is
+not 0 (the Light and Dark planes; `columns` is put back after), so there the party stops at column 7 (column 8 is
+tile 249 on both planes). Every writer of the view words places a consistent view: the start-up (ovl1 `0x780`: Pendragon
+(24, 37), centre on the party, vr = vc = 4), the Astral Plane's town (root `0x1d5b`: centre = the town, vr = vc = 4;
+all 14 towns lie in 5..44 × 5..69), the planes (root `0x1300`: Light / Dark centre (4, 4), party (4, 1); `0x13bc`: the
+Netherworld centre (7, 4), party (7, 3)) and a loaded game (root `0x8052…`, the saved words); nothing else writes the
+party's map cell FAR `0x4882` / `0x4884` (scanned in root and the four overlays). So **DOS never reads a byte
+past a map** (s170 `[C]`): Scandor's last view cell is byte 74 · 50 + 49 = 3,749, the Netherworld's 15 · 31 + 30 = 495.
+The remaster draws the view from the party's cell with the pack's `view_counters` and `view_centre_margin` [5, 4]
+(the Amiga pack: none, counter − 4), equal to these steps.
 
 **Monster pictures** (root `0x10b8b` → `0x7e89`): picture index = record byte 27, minus 1 when above 27 (so 27 and 28,
 Troll Baby and Forest Elf, both show index 27); index < 41 → normal picture at `768 · index`; 41..46 → giant at

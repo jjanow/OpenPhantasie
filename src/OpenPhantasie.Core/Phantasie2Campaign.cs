@@ -416,8 +416,9 @@ public sealed class Phantasie2Campaign : ICampaign
             HeaderLines = [speaks, GameText.S("core.p2.presenting_heroes")],
             Titles = titles,
             // The party size as {0}: the ST's lines take none; the Apple's "THESE "PO + 1" BRAVE ADVEN-" (WIN line 3116,
-            // PO = the last party index, PEEK(SA + 1203)) prints it, so its own-wording line holds {0} (D2-050).
-            ClosingPage = [.. FilmonClosingIds.Select(id => GameText.F(id, members.Count))],
+            // PO = the last party index, PEEK(SA + 1203)) prints it, so its own-wording line holds {0} (D2-050). The Apple
+            // has no elementals; the remaster's summoned one is not an adventurer and is left out of the count (s170).
+            ClosingPage = [.. FilmonClosingIds.Select(id => GameText.F(id, session.Party.Adventurers.Count()))],
         };
         // Remaster record (user s72, not ST data; s149): every member at Filmon's ceremony destroyed the orb, the deed IV's
         // Hall reads as "completed II" (ancestry.md section 8.4). Recorded before the roster write so the save keeps it.

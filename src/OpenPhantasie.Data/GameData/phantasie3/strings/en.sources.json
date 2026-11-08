@@ -749,6 +749,18 @@
     ]
    }
   ],
+  "useitem.scroll_picture_caption": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      89878,
+      20
+     ]
+    ]
+   }
+  ],
   "core.p3.ocean": [
    {
     "from": "p3-dos-1988",
