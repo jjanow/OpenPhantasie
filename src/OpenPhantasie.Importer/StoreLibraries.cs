@@ -4,7 +4,7 @@ namespace OpenPhantasie.Importer;
 
 /// <summary>
 /// The usual Steam and GOG library folders on this machine (10-importer.md 4.2), offered as shortcuts. Only where to
-/// look: what is in them is found by content (the Memorial Set's layout is unknown), never by folder names.
+/// look: what is in them is found by content (10-importer.md 4.2), never by folder names.
 /// </summary>
 public static partial class StoreLibraries
 {

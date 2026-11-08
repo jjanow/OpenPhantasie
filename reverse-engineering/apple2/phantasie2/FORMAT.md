@@ -29,7 +29,8 @@ Tools (all `python3 -I`, run from the repo root):
 - **Crack patches** (4am notes): side A `T0E,S07` = logical sector 189 = the first sector of `SSI.INIT2`, plus boot /
   RWTS sectors on track 0 of both sides. So `SSI.INIT2` differs from the original and is not a key file; every other
   file should equal the original `[~]` (the `.woz` images are not decoded: 13-sector 5-and-3 GCR with SSI's protection,
-  `[?]`). The Memorial Set's II container (cracked `.dsk`, `.woz`, other) is not known `[?]` (10-importer decision 5).
+  `[?]`). The Memorial Set's II (s166) is a cracked `.dsk` pair in DOS 3.3 sector order (another crack: track 0 / RDOS differ),
+  unplayed: `reverse-engineering/apple2/original-images/SOURCES.txt`.
 - **The reference dump is a played copy** `[C]`: `CHAR2` holds a roster, `TWN21`–`TWN210` differ from their template,
   and 15 of the 17 `OUTT` files were rewritten (756 B instead of the shipped 768 B, fog partly lifted; section 3.6).
 
@@ -119,7 +120,8 @@ Regions 1, 2, 3, 5, 6, 7, 8, 11, 12, 17, 18, 22, 26, 27, 28, 30, 31 (the ST's se
   pages, 20+ = 3), so text-cell args differ (OUT6, 18, 26, 28, 30) while the text agrees.
 - **Play rewrites the file** (OUTDOORS2 7700–7710 `STORE W$,2050,756` on leaving), changing only the fog. The shipped
   size is 768 B: only OUT26 and OUT30 still have it in the reference dump, and both are fully fogged as on the ST;
-  the shipped fog of the other 15 is not on this disk `[?]` (the ST starts 15 regions fogged, OUT1 / OUT2 open).
+  the shipped fog of the other 15 is on the Memorial Set's unplayed disk (s166, all 17 at 768 B; cells not yet compared
+  with the ST's start fog `[~]`).
 
 **Orientation** `[C]`: the Apple draws CX across and CY down (`DRAW … AT 140 + 7·CX, 2 + 6·CY`, line 5040) and moves
 N = CY − 1, E = CX + 1 (lines 5220–5260). In ST terms Apple north = ST east, Apple east = ST south: **the Apple map is

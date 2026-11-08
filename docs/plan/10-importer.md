@@ -223,23 +223,24 @@ come from, and I's 682 ids and the shared `p3*` / `p4` areas are not tagged.
 |---|---|---|---|---|
 | I | **DOS SSI 1987** (`dos/…/phantasie-1987-ssi-360k.ima`, files in `dos/original-files/`) | every I table (b, c) + DOS CGA pack | `re_common`, `extract_monsters` / `_items` / `_names` / `_towns` / `_maps` / `_elementals` / `_level_tables`, `decrypt_messages`, `decrypt_scrolls`, `extract_dungeon_events`, `build_item_descriptions`, `extract_dos_map_tiles`, `extract_dos_town_picture` | supported (parity reference) |
 | I | DOS Bonus v1.1 (WizardWorks 1991) | nothing: `PHANTASI.EXE`, not `.COM`; the extractors read DS offsets of the `.COM` image | — | recognised, not supported until diffed |
-| I | Memorial Set DOS I (Steam app 2702050, GOG product 1919929332; DOSBox) | as DOS 1987 if its key files match Appendix B `[?]` | as DOS 1987 | layout and build unknown |
+| I | Memorial Set DOS I (Steam app 2702050, GOG product 1919929332; DOSBox): the **Bonus Edition Ver 1.0 9/21/90**, every game file = Bonus v1.1's (s166, `dos/original-images/memorial-set-gog/README.md`) | nothing (as Bonus v1.1) | — | recognised as `p1-dos-bonus-1991`, not supported |
 | I | **Amiga v1.0 1987** (`.adf`, also `.zip`) | Amiga pack: art, map pictures, title tune, sounds. The map pictures need I's DOS `overworld.json` | `amiga_gfx_common`, `extract_amiga_graphics`, `extract_amiga_map_graphics`, `build_amiga_asset_manifest`, `extract_amiga_fonts` (topaz 8 needs the Kickstart 1.3 ROM) (disk unpack: amitools `xdftool`) | supported for art only; its data files (`dng*`, `mess*`, `out*.dat`, `twns.*`, `scrolls.dtx`) have no extractor, so Amiga alone can't build I's tables |
 | I | C64 en / de (`.d64`) | files only | `extract_c64_d64.py` | recognised, no extractor |
 | I | Apple II, Atari ST (v2.0 en, v1.0 de), Atari 8-bit, MSX2, PC-88, PC-98, X1 | — | — | recognised by hash only |
 | II | **Atari ST v1.0** (Pasti `.stx`; TOSEC `.st` has byte-identical program and data files) | every II table + ST pack + title tune | `stx_to_st`, FAT12 unpack (mtools today), `st_prg`, `extract_st_phantasie2`, `extract_st_p2_maps` / `_dungeons` / `_scrolls` / `_towns`, `build_p2_gamedata`, `extract_st_p2_graphics`, `build_st_p2_asset_manifest` | supported |
-| II | **Apple II** v1.0 2/5/86 (4am `.dsk`; original `.woz` not decoded): the Memorial Set's II | reference extract (s158): monsters, items, names, creation tables, towns, wilderness, dungeons + messages, scrolls; Apple II art pack | `a2_rdos`, `a2_applesoft`, `extract_a2_p2_tables`, `diff_a2_p2_vs_st`, `extract_a2_p2_graphics`, `build_a2_p2_asset_manifest` (`reverse-engineering/apple2/phantasie2/FORMAT.md`) | supported (s158 C# port, `p2-apple2`, 7.2 / 7.5): the Apple's text, the ST's numbers (D2-046…050, decided s159, built s160). Gaps: no spell names on the Apple (the manual's list is shipped); the shipped wilderness fog is not on the (played) reference dump |
+| II | **Apple II** v1.0 2/5/86 (4am `.dsk`; original `.woz` not decoded): the Memorial Set's II | reference extract (s158): monsters, items, names, creation tables, towns, wilderness, dungeons + messages, scrolls; Apple II art pack | `a2_rdos`, `a2_applesoft`, `extract_a2_p2_tables`, `diff_a2_p2_vs_st`, `extract_a2_p2_graphics`, `build_a2_p2_asset_manifest` (`reverse-engineering/apple2/phantasie2/FORMAT.md`) | supported (s158 C# port, `p2-apple2`, 7.2 / 7.5): the Apple's text, the ST's numbers (D2-046…050, decided s159, built s160). Gaps: no spell names on the Apple (the manual's list is shipped). The Memorial Set's disks (s166, unplayed, shipped fog) are in DOS 3.3 sector order and not found until remapped (7.4) |
 | II | C64 v1.0 / v1.2, Atari 8-bit, MSX2, PC-88, PC-98 | — | — | recognised by hash only |
 | III | **DOS SSI 1988** (`.ima`) | every III table + DOS CGA pack (s160; drawn when no Amiga III pack is imported) | `extract_dos_p3_common` (EXEPACK unpack), `extract_dos_p3_tables` / `_dungeons` / `_rules` / `_scrolls` / `_towns` / `_world`, `build_p3_gamedata` | supported |
 | III | DOS WizardWorks 1991 (`.ima`) | as 1988 `[~]`: its unpacked folder holds only the extra `.BAT` files, so the data files are taken to be the same | as 1988 | check by key-file hashes |
-| III | Memorial Set DOS III | as above if the key files match `[?]` | as 1988 | layout unknown |
+| III | Memorial Set DOS III (s166) | as 1988: every game file byte-identical | as 1988 | supported (found as `p3-dos-1988`) |
 | III | **Amiga v1.0 1987** (`.adf`) | Amiga pack: art, tunes, sounds. Needs the DOS III files too (map previews read `WORLD.DAT` / `PLNS.DAT`; `monsinfo.dat` = DOS `CREATURE.DAT`, same sha1) | `extract_amiga_p3_common`, `extract_amiga_p3_graphics` | supported for art only, with DOS III |
 | III | Apple II `[cr]`, C64 v1.1, Atari ST, MSX2, PC-88, PC-98 | — | — | recognised by hash only |
 | IV | **X68000 Ver.1.02** (`.dim`) | every IV table, `ja.json`, X68000 pack, tunes, voices | `x68k_dim`, `x68k_x`, `extract_x68k_p4_tables` / `_creation` / `_text`, `x68k_p4_events`, `build_p4_gamedata`, `x68k_p4_pkh`, `x68k_p4_pix`, `x68k_p4_fonts`, `x68k_p4_panels`, `x68k_p4_anim` | supported |
 | IV | PC-98 (`.hdm`), MSX2 (`.dsk`, + 2008 patch images), PC-88 (`.d88`) | nothing; IV's string ids are X68000 addresses | — (`msx2_p4_dis.py` is a disassembler) | not supported |
 
-Consequence: a player with only the Memorial Set can build I's and III's tables but gets **no default art** for either
-game (DOS CGA is never the default: `phantasie1/graphics/index.json`, user 2026-10-25) and **cannot build II** at all.
+Consequence (s166, checked on the GOG install): a player with only the Memorial Set can build III's tables; I's is the
+Bonus build (no pipeline) and II's disks need the sector-order remap (7.4). Neither I nor III gets **default art** from it
+(the DOS CGA is never the default: `phantasie1/graphics/index.json`, user 2026-10-25).
 (Since s158 / s160 the CGA packs are drawn when no Amiga pack is imported: `fallback_order` in both indexes; s158 added
 the Apple II II importer.)
 
@@ -297,9 +298,9 @@ game rewrites. II's pipeline already avoids this (both ST sets are played copies
 - **Multi-disk games** (ST II disk 1 + 2, X68000 IV disk 1 + 2, Amiga III one disk) are grouped by version; a missing
   disk is named ("Phantasie II (Atari ST): disk 2 not found").
 - **Steam / GOG**: the Client offers the usual library folders as a shortcut (Steam: `steamapps/common` of each library
-  in `libraryfolders.vdf`; GOG: the Galaxy games folder). The Memorial Set's folder and file layout is not public
-  (store pages say DOSBox for I / III and an Apple II emulator for II, no file list), so detection is by content only,
-  never by a fixed path `[?]`.
+  in `libraryfolders.vdf`; GOG: the Galaxy games folder). The Memorial Set's layout is known since s166
+  (`reverse-engineering/dos/original-images/memorial-set-gog/README.md`); detection stays by content, never by a fixed
+  path.
 
 ### 4.3 Output location
 
@@ -416,8 +417,8 @@ the "fresh repo" item, not of the importer itself. **Built s158** (8.2): such te
    The Atari ST copy stays supported.
 3. **IV patch:** keep the X68000 ids; only the X68000 build is supported for IV for now.
 4. **Importer language:** C# (`OpenPhantasie.Importer`); players need no Python.
-5. **Memorial Set layout:** the user will paste a file listing later. Until then detect files by content (fingerprints),
-   not by folder names.
+5. **Memorial Set layout:** detect files by content (fingerprints), not by folder names. The GOG installer is kept and
+   unpacked since s166 (`reverse-engineering/dos/original-images/memorial-set-gog/`).
 6. **Played DOS I copy:** import it as it is and warn the player what was lost (fog already lifted, fixed fights spent).
 
 Public repo: built fresh, pushed to GitHub as **private** `jjanow/OpenPhantasie`; the user makes it public.
@@ -525,7 +526,11 @@ run or earlier) the ST's tables win and the Apple adds only `apple2.json` + its 
 ### 7.4 Left to do
 
 - **II Apple II:** run in the Client (s163, 7.5): the ending and the Mystic seen; MONSTER EVALUATION in a fight's spell
-  window not seen. `.woz` reading (13-sector GCR) if the Memorial Set ships those.
+  window not seen. The Memorial Set ships `.dsk` (no `.woz`), but in DOS 3.3 sector order: Memorial sector s = 4am
+  sector `[0,13,11,9,7,5,3,1,14,12,10,8,6,4,2,15][s]`; remapped, they are found as `p2-apple2` (s166). The reader
+  should try both orders. Its unplayed `OUTTn` / `TWN2n` / `CHAR2` could become the pristine hashes.
+- **I Bonus Edition** (the Memorial Set's I, s166): `PHANTASI.EXE`, `OV1.OVR`, `OV2.OVR` and `IBMCOVER` differ from 1987;
+  diff them before a pipeline reads this build.
 - **Recipe re-runs** (4.4) and the CLI's `--check` (4.1): built s163.
 - **Played-copy hashes for I Amiga `OUT*.DAT`** (3.3 row): eleven pristine sha1s in the profile (s163); `OUT1` / `5` /
   `9` / `10` / `11` / `13` / `14` have none (the only dump played them).
@@ -700,6 +705,8 @@ Xvfb lists all four games and starts I with the imported Amiga art.
 | apple2 | `phantasie2/4am-crack/phantasie2-4am-side-b.dsk` | 143360 | `c766716e1c7e20e1c80402df0c3df838299e4d8a` |
 | apple2 | `phantasie2/woz-original/phantasie2-disk1-side-a.woz` | 233452 | `37dfa92285776b261605221f85fcf3fb6adc4842` |
 | apple2 | `phantasie2/woz-original/phantasie2-disk1-side-b.woz` | 233452 | `b395fd5175d875063dd5bfcaee040457ea1cd603` |
+| apple2 | `phantasie2/memorial-set-gog/PHANT2A.DSK` (DOS 3.3 sector order) | 143360 | `e21f26ddefd9d6d4fa1b966cece09cedfb42966b` |
+| apple2 | `phantasie2/memorial-set-gog/PHANT2B.DSK` | 143360 | `2f5d2bce122ffa417ac4c2b2873881f386c58991` |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_1_of_3_Side_A.dsk` | 143360 | `b7ae3f30298c41fd9a2abfa2bcd566cf4051a39a` |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_1_of_3_Side_B.dsk` | 143360 | `51446a1e54c1ef84c13bb480d559f9b240b5b4e1` |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_2_of_3_Side_A_Dungeon.dsk` | 143360 | `da829c612540f772012cc2bc11674a16ac72d4f4` |
@@ -739,6 +746,7 @@ Xvfb lists all four games and starts I with the imported Amiga art.
 | dos | `phantasie1/bonus-v1.1-1991-wizardworks/phantasie-bonus-v1.1-1991-wizardworks-360k.ima` | 368640 | `87bc9e6a9a28c0290ce31dd305bc6477735ed0d6` |
 | dos | `phantasie3/phantasie3-1988-ssi-360k.ima` | 368640 | `6307862a0e46d3da86bec630f89d2915559cf369` |
 | dos | `phantasie3/wizardworks-1991/phantasie3-1991-wizardworks-360k.ima` | 368640 | `1170478efe9bb98fae0f4ada180e0fe5e44159ed` |
+| dos | `memorial-set-gog/setup_phantasie_memorial_set_1.0c_(69737).exe` (GOG installer; unpacked I / III folders in `phantasie1/` / `phantasie3/memorial-set-gog/`, `SHA256SUMS` there) | 14594240 | `87e2cd6cc3103869748d3a16972f94dc170e530d` |
 | msx2 | `phantasie1/Phantasie (1988)(Bothtec)(JP).dsk` | 737280 | `00f86b4baa57b2378ae60c4cb66207a026e111be` |
 | msx2 | `phantasie2/Phantasie II - Story of Ferronrah (1988)(Bothtec)(JP).dsk` | 737280 | `f1ac4dbe51977a594fb396c39290941d7f16ee03` |
 | msx2 | `phantasie3/… (Disk 1 of 2)(Scenario Disk).dsk` | 737280 | `f5694994b35d6550de89fd9de39d0e53f8943822` |
