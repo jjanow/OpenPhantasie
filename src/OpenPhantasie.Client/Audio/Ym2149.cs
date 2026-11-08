@@ -13,9 +13,19 @@ namespace OpenPhantasie.Client.Audio;
 /// the output is <c>WARP / (1 + 1 / (gA + gB + gC))</c>: David Savinkoff's circuit model as Hatari's <c>sound.c</c>
 /// (<c>YM2149_BuildModelVolumeTable</c>, FOURTH2 = 1.19, WARP = 5/3) builds it from Paulo Simoes' 16 × 16 × 16 table
 /// measured on a real STF (<c>ym2149_fixed_vol.h</c>); within about 8 % of that table from level 4 up, levels 1–3 10–23 %
-/// high (all below 0.5 % of full scale; atari-st FORMAT.md 7.1).
-/// <see cref="Ym2149Mixing.Linear"/>: the three DAC levels averaged (the s108 model). The output is averaged over each
-/// output sample, with the DC removed. No MonoGame types: tests render it headless.</para>
+/// high (all below 0.5 % of full scale; s162: no II script writes a fixed level 1–3, so only the envelope's lowest steps
+/// meet that `[~]`; atari-st FORMAT.md 7.1).</para>
+/// <para>s163, the STF's low-pass after the tied outputs, from Atari's 1040STF / 1040STFM sheet (C070787 rev. C,
+/// Dec 1986, sheet 1) `[C]`: C10 0.1 µF across R8 1 kΩ at the tied ANALOG A / B / C, then C11 100 µF into Q1 2N3904's
+/// base (R9 10 kΩ to ground, R10 5.1 kΩ to +12 V, emitter R12 470 Ω). While the chip pulls down, C10 discharges into
+/// R8 ∥ R9 ∥ R10 ∥ hFE · R12 = 759 Ω: <see cref="PullDownCornerHz"/> ≈ 2.1 kHz (hFE 100 is Hatari's estimate `[~]`;
+/// 50 … ∞ moves the corner by under 2 %). While it pulls up, the chip's own source resistance (≈ 284 Ω, Hatari's
+/// estimate from Paulo Simoes' measured tables `[~]`) is in parallel: <see cref="PullUpCornerHz"/> ≈ 7.7 kHz. Modelled
+/// as Hatari's selective one-pole (the corner picked by whether the input is above or below the output), but at the
+/// chip's own step rate (clock / 8, where the input is constant between steps, so the step is exact) with the
+/// corners above; on <see cref="Ym2149Mixing.StCircuit"/> only.</para>
+/// <para><see cref="Ym2149Mixing.Linear"/>: the three DAC levels averaged (the s108 model, no low-pass). The output is
+/// averaged over each output sample, with the DC removed. No MonoGame types: tests render it headless.</para>
 /// </summary>
 public sealed class Ym2149
 {
@@ -27,6 +37,26 @@ public sealed class Ym2149
 
     private readonly Ym2149Mixing _mixing;
 
+    /// <summary>R8 1 kΩ ∥ R9 10 kΩ ∥ R10 5.1 kΩ ∥ (R12 470 Ω · hFE 100): the load on C10 (C070787 sheet 1).</summary>
+    public const double StLoadOhms = 1.0 / (1.0 / 1000 + 1.0 / 10000 + 1.0 / 5100 + 1.0 / (470 * 100));
+
+    /// <summary>The YM2149's pull-up while it drives the output high, 1 kΩ · (65119 − 46602) / 65119 (Hatari's estimate
+    /// from Simoes' psgstrep / psgquart maxima `[~]`).</summary>
+    public const double YmPullUpOhms = 1000.0 * (65119 - 46602) / 65119;
+
+    /// <summary>C10 0.1 µF.</summary>
+    public const double C10Farads = 0.1e-6;
+
+    /// <summary>The low-pass corner while R8 pulls the output down: 1 / (2π · C10 · 759 Ω) ≈ 2097 Hz.</summary>
+    public const double PullDownCornerHz = 1.0 / (2 * Math.PI * C10Farads * StLoadOhms);
+
+    /// <summary>The corner while the chip pulls up: 1 / (2π · C10 · (759 Ω ∥ 284 Ω)) ≈ 7694 Hz.</summary>
+    public const double PullUpCornerHz = 1.0 / (2 * Math.PI * C10Farads * (StLoadOhms * YmPullUpOhms / (StLoadOhms + YmPullUpOhms)));
+
+    private readonly bool _lowPass;
+    private readonly double _alphaUp, _alphaDown;
+    private double _lp;
+
     private readonly int[] _reg = new int[16];
     private readonly int[] _toneCount = new int[3];
     private readonly bool[] _tone = new bool[3];
@@ -37,12 +67,17 @@ public sealed class Ym2149
     private int _lfsr = 1;
     private bool _noise, _envHolding, _envAttack;
 
-    public Ym2149(double clockHz, int sampleRate, Ym2149Mixing mixing = Ym2149Mixing.StCircuit)
+    /// <param name="stLowPass">s163: the STF's C10 low-pass (on <see cref="Ym2149Mixing.StCircuit"/> only); off only for
+    /// tests.</param>
+    public Ym2149(double clockHz, int sampleRate, Ym2149Mixing mixing = Ym2149Mixing.StCircuit, bool stLowPass = true)
     {
         _mixing = mixing;
         if (clockHz <= 0 || sampleRate <= 0)
             throw new ArgumentOutOfRangeException(nameof(clockHz));
         _stepsPerSample = clockHz / 8 / sampleRate;
+        _lowPass = stLowPass && mixing == Ym2149Mixing.StCircuit;
+        _alphaUp = 1 - Math.Exp(-2 * Math.PI * PullUpCornerHz * 8 / clockHz);
+        _alphaDown = 1 - Math.Exp(-2 * Math.PI * PullDownCornerHz * 8 / clockHz);
     }
 
     /// <summary>Level <paramref name="step"/> (0–31) of the DAC, 0 … 1.</summary>
@@ -136,9 +171,13 @@ public sealed class Ym2149
             var vol = _reg[8 + ch];
             step[ch] = !(toneOn && noiseOn) ? 0 : (vol & 0x10) != 0 ? EnvLevel : FixedStep(vol & 15, _mixing);
         }
-        return _mixing == Ym2149Mixing.StCircuit
-            ? (float)StOutput(step[0], step[1], step[2])
-            : (Dac[step[0]] + Dac[step[1]] + Dac[step[2]]) / 3f;
+        if (_mixing != Ym2149Mixing.StCircuit)
+            return (Dac[step[0]] + Dac[step[1]] + Dac[step[2]]) / 3f;
+        var x = StOutput(step[0], step[1], step[2]);
+        if (!_lowPass)
+            return (float)x;
+        _lp += (x >= _lp ? _alphaUp : _alphaDown) * (x - _lp);
+        return (float)_lp;
     }
 
     /// <summary>A fixed level's 5-bit step: 2v + 1, 0 = off; with the ST circuit 1 stays 1 (Hatari <c>YmVolume4to5</c>,

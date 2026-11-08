@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using OpenPhantasie.Core;
 using OpenPhantasie.Data;
+using OpenPhantasie.Importer;
 
 namespace OpenPhantasie.Client;
 
@@ -111,7 +112,7 @@ public partial class Game1 : Game
     private readonly Dictionary<GameId, IReadOnlyList<(string Id, string Name)>> _packLists = new();
 
     /// <summary>The town's current shopper (manual p.11: "who is shopping? Give the character's number"; 1–6 changes it).</summary>
-    /// <summary>The current shopper = DOS's one member-list cursor (WHO WILL WITHDRAW? / SHOP? / USE?, s58).</summary>
+    /// <summary>The current shopper = DOS's one member-list cursor (`towndlg.who_will_withdraw` / SHOP? / USE?, s58).</summary>
     private readonly MemberCursor _members = new();
     private WithdrawDialog _withdrawDialog = null!;
     private readonly DosDepositDialog _dosDepositDialog = new();
@@ -122,7 +123,7 @@ public partial class Game1 : Game
 
     /// <summary>The feedback bar's message and help as an open prompt last set them; null once put back (s134).</summary>
     private (string Message, string Help)? _promptFeedback;
-    private List<string> _defeatCause = new(); // the step's lines shown above "YOUR PARTY HAS BEEN DEFEATED"
+    private List<string> _defeatCause = new(); // the step's lines shown above `core.defeat.your_party_has_been_defeated`
     private long _fightMark; // log position before the step that started the current fight (AfterFightEnded)
     private readonly PromptMenu _promptMenu = new();
     private List<(int Id, string Name, int Qty, int Price)> _townStock = new();
@@ -152,7 +153,11 @@ public partial class Game1 : Game
         Window.AllowUserResizing = true;
         _graphics.PreferredBackBufferWidth = ClientSettings.VirtualWidth * 3;
         _graphics.PreferredBackBufferHeight = ClientSettings.VirtualHeight * 3;
+        _effects.A500Filter = () => _session is null || A500FilterOn(_session.Game); // s160: AMIGA AUDIO FILTER
     }
+
+    /// <summary>s160: the game's AMIGA AUDIO FILTER switch (<see cref="GameSettings.A500Filter"/>; on before settings load).</summary>
+    private bool A500FilterOn(GameId game) => _settings?.Game(game).A500Filter ?? true;
 
     protected override void Initialize()
     {
@@ -192,6 +197,8 @@ public partial class Game1 : Game
             StartPhantasie4(() => P4Preview.StartEnding(ending, _settings.Game(GameId.P4).NewGameOptions(GameId.P4)));
         else if (_titlePreview is null && !MainMenuScreen.Games.Any(MainMenuScreen.IsPlayable))
             _import.Open(firstRun: true); // s158: nothing imported yet: ask for the player's copy first
+        else if (_titlePreview is null && ImportRunner.StaleVersions(importRoot).Count > 0)
+            _import.OpenRefresh(); // s163: versions built by an older recipe are re-run from their files (4.4)
         base.Initialize();
         // After base.Initialize (LoadContent): the splash needs the graphics device.
         if (_titlePreview is GameId preview)
@@ -332,6 +339,8 @@ public partial class Game1 : Game
                 OpenP1Question(_session, question); // s154: a map question's requester on demand
             else if (game == GameId.P1 && TestParty.DungeonCell(Environment.GetCommandLineArgs()) is { } cell)
                 TestParty.EnterDungeon(_session, cell); // s141: a dungeon step's boxes on demand
+            else if (game == GameId.P3 && TestParty.DungeonCell(Environment.GetCommandLineArgs()) is { } p3Cell)
+                TestParty.EnterP3Dungeon(_session, p3Cell); // s163: III's dungeon windows (traps, doors) on demand
             else if (game is GameId.P1 or GameId.P2 && TestParty.CombatMonster(Environment.GetCommandLineArgs()) is int monster)
                 TestParty.StartFight(_session, monster, TestParty.CombatSurprise(Environment.GetCommandLineArgs()));
             else if (game == GameId.P3 && TestParty.CombatMonster(Environment.GetCommandLineArgs()) is int p3Monster)
@@ -340,6 +349,8 @@ public partial class Game1 : Game
                 TestParty.EnterP3TownWithPool(_session); // s144: the D3-071 "Shares for NAME :" prompts
             else if (game == GameId.P2 && Environment.GetCommandLineArgs().Contains(TestParty.P2VictorySwitch))
                 TestParty.RunP2Ending(_session);
+            else if (Environment.GetCommandLineArgs().Contains(TestParty.FieldDeadSwitch))
+                TestParty.FieldWithDeadMember(_session); // s163: a field Resurrection on demand
         }
         _packs = GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(game));
         UseGraphicsPack(ChosenPack(game));
@@ -364,6 +375,7 @@ public partial class Game1 : Game
         CloseMapMessages();
         _p1OkSpec = null;
         _p1About = false;
+        _p1TownHeld = null;
         CloseDosPages();
         _combatUi.Cancel();
         _showInventory = _showBestiary = _inventoryCompare = false;
@@ -475,7 +487,7 @@ public partial class Game1 : Game
         Audio.TuneRenderer? renderer;
         try
         {
-            renderer = Audio.TuneRenderer.For(tune);
+            renderer = Audio.TuneRenderer.For(tune, a500Filter: A500FilterOn(game));
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
         {
@@ -517,7 +529,9 @@ public partial class Game1 : Game
             {
             }
             // s135: II's crowd sound (0xb80e(32)) and OK clicks (0xb7e6) with the Sound switch on and the pack's ST sounds.
-            _victory = new VictoryScreen(layout, scene, times, _settings.Sound && _assets.Pack.StDosoundEffects is not null);
+            // s163: and the next 32 waiting for the last (0xb8f2), from the sound's length.
+            _victory = new VictoryScreen(layout, scene, times, _settings.Sound && _assets.Pack.StDosoundEffects is not null,
+                P2SoundSeconds);
             _victoryStart = now;
             _victorySoundsStarted = 0;
         }
@@ -592,7 +606,7 @@ public partial class Game1 : Game
             {
                 try
                 {
-                    if (Audio.TuneRenderer.For(tune) is { } renderer)
+                    if (Audio.TuneRenderer.For(tune, a500Filter: _session is null || A500FilterOn(_session.Game)) is { } renderer)
                         _rewardTune = Audio.TunePlayer.TryStart(renderer);
                 }
                 catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
@@ -978,6 +992,7 @@ public partial class Game1 : Game
         UpdateP1DosDefeat(_updateSeconds); // s154: I DOS's defeat lines run by themselves (5.00 s each)
         UpdateP1CueSounds(); // s153: the map's step tone, 19 / 27 before their menus
         UpdateP1SheetTone(); // s158: the tone after the sheet's answers, its views' EXIT and PURGE / KEEP
+        UpdateP1ScrollBeep(); // s162: the printout question's beep as a scroll is read in town
         UpdateCombatEffects();
         if (_delayedCues.Count > 0 && (_input.NewKeys(keys).Any() || _mouse.AnyPressed))
             CutDelayedCues(); // s141: a key or a click ends a timed box's hold
@@ -1055,7 +1070,8 @@ public partial class Game1 : Game
             return;
         }
 
-        // s140: II ST's TRANSPORTATION fade reads no key (0x260a: Setcolor and Vsync only); keys pressed meanwhile are dropped.
+        // s140: II ST's TRANSPORTATION fade reads no key (0x260a: Setcolor and Vsync only; s162: I Amiga's h26 +0xe30 the
+        // same); keys pressed meanwhile are dropped.
         if (TransportFading)
         {
             _input.EndFrame(keys, pad);
@@ -1063,8 +1079,8 @@ public partial class Game1 : Game
             return;
         }
 
-        // s158: II ST's alert box (form_alert) owns the frame's keys while up: Return / Space / Esc or a click on its
-        // button closes it; nothing under it sees the keys (the field loop's click included).
+        // s158: II ST's alert box (form_alert) owns the frame's keys while up: Return (s160: only Return, as the AES form
+        // loop) or a click on its button closes it; nothing under it sees the keys (the field loop's click included).
         if (_session is not null && _p2Alert.HandleKeys(_input.NewKeys(keys)))
         {
             _input.EndFrame(keys, pad);
@@ -1141,6 +1157,7 @@ public partial class Game1 : Game
         }
 
         _withdrawDialog.AmigaKeys = AmigaBankWindows; // s157: III's withdraw in the Bank's window style takes O / C
+        _guildAddDialog.AmigaWindow = ConfirmInWindow; // s162: III's Add move question in window 1 takes O / C
         _inspectDialog.AmigaSpellRows = P1SheetSpellList?.Rows; // s158: I Amiga's SPELLS view is requester 12
         if (_session is not null && _data is not null && (OpenModal ?? OpenModalDialog(keys, pad)) is { } modal)
         {
@@ -1150,6 +1167,7 @@ public partial class Game1 : Game
                 modalKeys.RemoveAll(k => k is Keys.PageUp or Keys.PageDown
                     && (UiOverlays.TextPanelScroll.CanScroll ? UiOverlays.TextPanelScroll : UiOverlays.ScrollFrameScroll).HandleKey(k));
             var modalLine = modal.HandleKeys(modalKeys, _session);
+            OfferPurgeQuestion(_session); // s160: III's purge pick waits for S407 (the list is closed while it asks)
             if (!modal.IsOpen && ClicksOnClose(modal, _session.Mode, modalKeys))
                 PlayClick(); // s141: II ST's town lists and dialogs click as they return (0x1964a / form_do sites, 0x674)
             if (modalLine is { } line)
@@ -1245,9 +1263,13 @@ public partial class Game1 : Game
                 // s153: I Amiga's event menu shows its text in requester 21 only, not on the line.
                 // s154: I DOS's timed defeat lines show in their panel only (no key asked, no line ahead of its time).
                 var dosDefeat = _p1DosDefeat?.Kind == open.Kind;
-                SetFeedback(dosDefeat ? "" : _promptNote.Length > 0 ? _promptNote
-                    : P1MapMenuFor(open) is not null || P1MapRequesterFor(open) is not null ? "" : FirstLine(open),
+                SetFeedback(dosDefeat || AmigaDisarmWindowFor(open) is not null ? "" // s163: window 6 holds its title
+                    : _promptNote.Length > 0 ? _promptNote
+                    : P1MapMenuFor(open) is not null || P1MapRequesterFor(open) is not null ? ""
+                    : _confirm.Owns(open) && KeepWindowFor(open) is not null ? "" // s158 / s160: the text is in window 1
+                    : FirstLine(open),
                     dosDefeat ? "" : KeepWindowFor(open) is not null ? UiText.S("game.keep_window_ok_cancel")
+                    : AmigaDisarmWindowFor(open) is not null ? UiText.S("p3combat.member_window_help")
                     : AmigaShareWindowFor(open) is not null
                         ? UiText.F("p3town.bank_window_shares_help", open.Options[0], open.Options[^1])
                     : EventPageFor(open) is { } page ? (page.AnyKey ? UiText.S("game.event_page_any_key") : UiText.S("game.event_page_number"))
@@ -1455,6 +1477,8 @@ public partial class Game1 : Game
             // The scene is the whole ST screen; its text goes one line at a time on the bottom line, no box (s98).
             var shown = Shown(prompt);
             var scene = false;
+            if (_confirm.Owns(prompt))
+                UiOverlays.Hits?.Clear(); // s160: III's Are-you-sure question over the street / Guild: only its answers click
             if (DrawP1DefeatScreen(prompt))
             {
                 scene = true; // s153: I Amiga's defeat screens (P1DefeatScreen), no box
@@ -1582,6 +1606,14 @@ public partial class Game1 : Game
                 scene = UiOverlays.DrawAmigaWindow(_spriteBatch, _pixel, _assets!, _assets!.KeepWindows!, shareView,
                     _mouse.LeftDown ? _mouse.Position : null);
             }
+            // s163: III's "Who will disarm the trap?" in the Amiga's window 6 (0x127ce(92)).
+            else if (AmigaDisarmWindowFor(prompt) is { } disarmView)
+            {
+                _defeatSceneLines = null;
+                _defeatPager.Reset();
+                scene = UiOverlays.DrawAmigaWindow(_spriteBatch, _pixel, _assets!, _assets!.KeepWindows!, disarmView,
+                    _mouse.LeftDown ? _mouse.Position : null, inDungeon: _session?.Dungeon is not null);
+            }
             // III's keep questions in the Amiga's own OK / CANCEL windows (FORMAT.md §2.3; user s103).
             else if (KeepWindowFor(prompt) is { } keep)
             {
@@ -1639,6 +1671,16 @@ public partial class Game1 : Game
             // s154: I Amiga's character sheet (requester 14) for Inspect's sheet in the town, under AMIGA SCREENS.
             else if (ReferenceEquals(modal, _inspectDialog) && P1SheetFor(_session) is { } sheet)
                 UiOverlays.DrawP1Requester(_spriteBatch, _pixel, _assets!.Pack!.MapRequesters!, sheet);
+            // s162: III's Add move question (S445) in the Amiga's window 1 (0xd24c → 0xaae2), the list stepped aside.
+            else if (ReferenceEquals(modal, _guildAddDialog) && _guildAddDialog is { Confirming: true, AmigaWindow: true }
+                     && ConfirmWindowLayout() is { } addWindow
+                     && UiOverlays.DrawKeepWindow(_spriteBatch, _pixel, _assets!, _assets!.KeepWindows!, addWindow,
+                         GuildAddDialog.MoveConfirmPromptFor(_session.Game).Lines, _mouse.LeftDown ? _mouse.Position : null))
+            {
+            }
+            // s163: the scroll's printout questions in the town's Use item as requester 0.
+            else if (P1UseItemRequesterFor(modal, _session) is { } useItemQuestion)
+                UiOverlays.DrawP1Requester(_spriteBatch, _pixel, _assets!.Pack!.MapRequesters!, useItemQuestion);
             // s156: the Guild's h86 questions (Add's move, Training's cost) as requester 0.
             else if (P1TownRequesterFor(modal, _session) is { } townQuestion)
                 UiOverlays.DrawP1Requester(_spriteBatch, _pixel, _assets!.Pack!.MapRequesters!, townQuestion);
@@ -1674,19 +1716,12 @@ public partial class Game1 : Game
             UiOverlays.Hits?.Clear();
             UiOverlays.DrawP1Requester(_spriteBatch, _pixel, _assets!.Pack!.MapRequesters!, okScene, _assets);
         }
-        // s158: the town bar's File › Load / Save question in window 1 (0xaae2) over the street; OK / CANCEL take clicks.
-        if (_barConfirm.Shown && ConfirmWindowLayout() is { } confirmWindow)
-        {
-            UiOverlays.Hits?.Clear();
-            UiOverlays.DrawKeepWindow(_spriteBatch, _pixel, _assets!, _assets!.KeepWindows!, confirmWindow, _barConfirm.Lines,
-                _mouse.LeftDown ? _mouse.Position : null);
-        }
         // III Amiga's message box (window 7, s135) over everything; only its OK takes a click.
         if (_amigaMessage.Shown && _assets?.KeepWindows is { Message: { } messageWindow } messageLayout)
         {
             UiOverlays.Hits?.Clear();
             UiOverlays.DrawMessageWindow(_spriteBatch, _pixel, _assets, messageLayout, messageWindow, _amigaMessage.Text,
-                _mouse.LeftDown ? _mouse.Position : null);
+                _mouse.LeftDown ? _mouse.Position : null, inDungeon: _session.Mode == GameMode.Dungeon);
         }
         // s158: II ST's alert box (form_alert) over everything; only its button takes a click.
         if (_p2Alert.Current is { } stAlert && _assets?.Pack?.FieldSounds?.Alerts?.Look is { } alertLook)
@@ -1694,7 +1729,7 @@ public partial class Game1 : Game
             UiOverlays.Hits?.Clear();
             var (fill, ink) = StAlertColours(alertLook, _session.Mode);
             UiOverlays.DrawStAlert(_spriteBatch, _pixel, alertLook, stAlert, fill, ink,
-                _mouse.LeftDown ? _mouse.Position : null);
+                _mouse.LeftDown ? _mouse.Position : null, FontSources.ForRole(_assets.Pack, UiOverlays.P2AlertFontRole));
         }
         _spriteBatch.End();
         _screen.EndAndPresent(_spriteBatch, _pixel);
@@ -1809,9 +1844,9 @@ public partial class Game1 : Game
         }
 
         if (_input.Pressed(GameAction.Save, keys, pad))
-            SaveGame();
+            SaveOrAsk(s); // s160: III's town asks first
         if (_input.Pressed(GameAction.Load, keys, pad))
-            LoadGame();
+            LoadOrAsk(s);
         return false;
     }
 
@@ -1848,10 +1883,10 @@ public partial class Game1 : Game
         switch (choice)
         {
             case GameMenuChoice.Save:
-                SaveGame();
+                SaveOrAsk(s); // s160: III's town asks first (DOS III Options root 0x8348)
                 break;
             case GameMenuChoice.Load:
-                LoadGame();
+                LoadOrAsk(s);
                 break;
             case GameMenuChoice.Options:
                 _options.Open(s);
@@ -1900,10 +1935,12 @@ public partial class Game1 : Game
 
     /// <summary>
     /// The modal question Core is waiting on (<see cref="SessionPrompts"/>: party defeat, event menu, exit pair, KEEP IT?,
-    /// wilderness inn), or null. Hidden while the combat presenter still owns the screen.
+    /// wilderness inn), or III's "Are you sure …?" question the Client asks (<see cref="P3ConfirmQuestion"/>, s160), or null.
+    /// Hidden while the combat presenter still owns the screen.
     /// </summary>
     private SessionPrompt? CurrentPrompt =>
-        _combatUi.IsPresenting || P1PromptHeld(_prompts.Current) ? null : _prompts.Current; // s154: held for its sound
+        _combatUi.IsPresenting ? null
+        : _confirm.Prompt ?? (P1PromptHeld(_prompts.Current) ? null : _prompts.Current); // s154: held for its sound
 
     /// <summary>
     /// DOS menus are modal: nothing moves until the prompt is answered. Arrows move the highlight and Return/Space picks
@@ -1955,7 +1992,18 @@ public partial class Game1 : Game
                 }
                 key = shareKey; // O = OK
             }
-            var choice = KeepWindowFor(prompt) is not null ? KeepWindowChoice(key)
+            if (AmigaDisarmWindowFor(prompt) is not null)
+            {
+                if (AmigaDisarmWindow.Choice(key) is not { } disarmKey)
+                {
+                    if (prompt.EscapeChoice is int cancel)
+                        AnswerPrompt(prompt, cancel); // CANCEL: the trap is left as on No (ovl4 0x11bc, Amiga 0x1c71a)
+                    break;
+                }
+                key = disarmKey; // O = OK
+            }
+            var choice = _confirm.Owns(prompt) ? _confirm.Choice(key, ConfirmInWindow, _promptMenu)
+                : KeepWindowFor(prompt) is not null ? KeepWindowChoice(key)
                 : EventPageFor(prompt) is { } page ? EventPageChoice(prompt, page, key)
                 : _promptMenu.HandleKey(prompt, key);
             if (choice is null)
@@ -2017,6 +2065,16 @@ public partial class Game1 : Game
         _session is { Game: GameId.P3 } && CurrentGameSettings.OriginalScreens && _assets?.KeepWindows is { Bank: not null }
         && _assets.Get(PictureNames.Button("ok")) is not null && _assets.Get(PictureNames.Button("cancel")) is not null;
 
+    /// <summary>
+    /// s163: III's disarm question in the Amiga's window 6 (<see cref="AmigaDisarmWindow"/>) under AMIGA SCREENS with the pack's
+    /// window and OK / CANCEL art, or null (the prompt box).
+    /// </summary>
+    private AmigaWindowView? AmigaDisarmWindowFor(SessionPrompt prompt) =>
+        _session is { Game: GameId.P3 } s && CurrentGameSettings.OriginalScreens && _assets?.KeepWindows is { } k
+        && _assets.Get(PictureNames.Button("ok")) is not null && _assets.Get(PictureNames.Button("cancel")) is not null
+            ? AmigaDisarmWindow.View(s, prompt, _promptMenu.CursorFor(prompt), k)
+            : null;
+
     /// <summary>The share question's Amiga window (s157, <see cref="AmigaShareWindow"/>), or null (the prompt box).</summary>
     private AmigaWindowView? AmigaShareWindowFor(SessionPrompt prompt) =>
         AmigaBankWindows ? AmigaShareWindow.View(prompt, _promptMenu.CursorFor(prompt), _assets!.KeepWindows!) : null;
@@ -2026,7 +2084,8 @@ public partial class Game1 : Game
     /// or null: another game, another prompt, or a pack without them (the DOS Yes / No bar then).
     /// </summary>
     private KeepWindowsLayout.Window? KeepWindowFor(SessionPrompt prompt) =>
-        _session is { Game: GameId.P3 } s && _assets?.KeepWindows is { } k
+        _confirm.Owns(prompt) ? (ConfirmInWindow ? ConfirmWindowLayout() : null) // s160: window 1 under the Amiga look only
+        : _session is { Game: GameId.P3 } s && _assets?.KeepWindows is { } k
         && _assets.Get(PictureNames.Button("ok")) is not null && _assets.Get(PictureNames.Button("cancel")) is not null
             ? P3WindowFor(prompt.Kind, s.EntryPrompt?.AsksLoad == true,
                 s.PendingTreasureFinders.Count > 0 && s.PendingTreasureFinders[0] is not null, k,
@@ -2036,10 +2095,10 @@ public partial class Game1 : Game
     /// <summary>
     /// III Amiga's window for a prompt <paramref name="kind"/>, or null (the prompt bar): a fight find = window 23
     /// (<c>0x1a044</c>); window 1 (<c>0x1d77e</c>: the text as window 1's title, OK / CANCEL) for the dungeon "Keep …?"
-    /// (<c>0x1cb26</c>) and the dungeon entry / exit questions of <c>0x1bb58</c>: "Load previously saved dungeon?"
+    /// (<c>0x1cb26</c>) and the dungeon entry / exit questions of <c>0x1bb58</c>: `core.p3.load_saved_dungeon`
     /// (<c>0x1bc18</c>, only when <paramref name="entryAsksLoad"/>; the entry's "Will you enter?" is not window 1),
-    /// "An exit. Will you take it?" (<c>0x1bda4</c>) and "Would you like to save this map?" (<c>0x1bdc4</c>); and the dungeon
-    /// step's "&lt;name&gt; hears monsters. Continue?" (<c>0x1c560</c>) and "&lt;name&gt; spots a trap. Disarm it?"
+    /// `core.prompt.an_exit_take_it` (<c>0x1bda4</c>) and `core.prompt.save_dungeon_map` (<c>0x1bdc4</c>); and the dungeon
+    /// step's "&lt;name&gt; `core.p3.x_hears_monsters_continue`" (<c>0x1c560</c>) and "&lt;name&gt; `core.p3.x_spots_a_trap`"
     /// (<c>0x1c6c8</c>), Core's III Yes / No event questions (<paramref name="yesNoEvent"/>; OK = Yes, CANCEL = No, s134).
     /// </summary>
     public static KeepWindowsLayout.Window? P3WindowFor(SessionPromptKind kind, bool entryAsksLoad, bool fightFind,
@@ -2066,6 +2125,11 @@ public partial class Game1 : Game
     private void AnswerPrompt(SessionPrompt prompt, int choice)
     {
         var s = _session!;
+        if (_confirm.Owns(prompt)) // s160: III's question guards a Client command, not a Core one
+        {
+            AnswerConfirm(s, choice);
+            return;
+        }
         var mark = s.LogSequence;
         _defeatCause = new();
         _prompts.Answer(choice);
@@ -2073,9 +2137,13 @@ public partial class Game1 : Game
             _cycleMapAt = null; // s156: back in state 2 from the defeat (h2 +0x328) redraws the map, the same region too
         var notes = s.LogSince(mark).Where(n => !prompt.Lines.Contains(n)).ToList();
         _promptNote = string.Join(" ", _promptNoteLines = notes);
+        // s162: an answer's line that III Amiga shows in window 7 ("<name> `core.p3.x_disarms_the_trap`", 0x1c75a) opens it.
+        if (s.Mode is GameMode.Dungeon or GameMode.Overworld && notes.FirstOrDefault(n => AmigaMessageBox.Takes(
+                _assets?.KeepWindows?.Message, n)) is { } boxed)
+            OfferAmigaMessage(boxed);
         AfterSessionAction(s, mark);
         if (prompt.Kind == SessionPromptKind.WildernessInn)
-            OfferP1OkLines(s, mark); // s158: I Amiga's "YOU CAN'T AFFORD IT[SORRY]" requester
+            OfferP1OkLines(s, mark); // s158: I Amiga's `p1field.req.cant_afford` requester
         if (_defeatCause.Count == 0 && !DosPagesUp && CurrentPrompt is { Kind: SessionPromptKind.PartyDefeat } defeat)
             _defeatCause = DefeatReport.Fit(notes, defeat.Lines.Count); // e.g. a failed disarm springs a deadly trap
     }
@@ -2294,9 +2362,11 @@ public partial class Game1 : Game
         }
     }
 
-    private void RunTownChoice(GameSession s, TownChoice choice, Character? shopper)
+    /// <param name="confirmed">s160: III's question was answered Yes (<see cref="AnswerConfirm"/>): run, don't ask again.</param>
+    private void RunTownChoice(GameSession s, TownChoice choice, Character? shopper, bool confirmed = false)
     {
-        PlayClick(); // s140: II ST clicks on a menu-bar pick (0x294) before it runs
+        if (!confirmed)
+            PlayClick(); // s140: II ST clicks on a menu-bar pick (0x294) before it runs
         string? refused = null;
         switch (choice)
         {
@@ -2313,11 +2383,11 @@ public partial class Game1 : Game
                 s.RestAtInn();
                 _townMenu.OpenInn(); // menu 0x0d: Exit Inn / Distribute / Printout
                 break;
-            case TownChoice.Withdraw when s.BankIsDos: // III's DOS bank: "Withdraw all gold"
+            case TownChoice.Withdraw when s.BankIsDos: // III's DOS bank: `p3town.bank_withdraw_all`
                 s.DosBankWithdrawAll();
                 refused = s.LastMessage;
                 break;
-            case TownChoice.Deposit when s.BankIsDos: // "Deposit some gold"
+            case TownChoice.Deposit when s.BankIsDos: // `p3town.bank_deposit_some`
                 if (s.Party.GoldCarried <= 0)
                     refused = UiText.S("game.no_gold_carried");
                 else
@@ -2331,7 +2401,7 @@ public partial class Game1 : Game
                 if (shopper is null)
                     refused = UiText.S("game.no_party");
                 else
-                    _withdrawDialog.Open(); // "WHO WILL WITHDRAW?"
+                    _withdrawDialog.Open(); // `towndlg.who_will_withdraw`
                 break;
             case TownChoice.Deposit:
                 // D-049 (manual): all carried gold, split by shares — asked member by member as a prompt.
@@ -2347,13 +2417,15 @@ public partial class Game1 : Game
             case TownChoice.ShowParty:
                 refused = _inspectDialog.Open(s);
                 break;
+            // s160: III asks `p3bar.confirm_distribute` after the empty-party refusal (root 0x83a0…0x83c1),
+            // before any share moves, on every route (D, the Option / Inn list, the bar); the town-entry hand-out never asks.
+            case TownChoice.Distribute when !confirmed && s.Party.Members.Count > 0 && AskConfirm(s, "distribute"):
+                return;
             case TownChoice.Distribute:
                 refused = Distribute(s);
                 break;
-            case TownChoice.SaveGame when TownBarPlaces(s) is not null && ConfirmWindowLayout() is not null:
-                // s158: under III's Amiga town bar the street's S asks as File › Save does (one caller, 0xba9a)
-                _barConfirm.Open(UiText.S("p3bar.confirm_save"), "save");
-                s.AskConfirmQuestion();
+            // s158 / s160: III's S, Option › Save game and the bar's File › Save ask S390 first (0x844c / Amiga 0xba9a).
+            case TownChoice.SaveGame when !confirmed && AskConfirm(s, "save"):
                 return;
             case TownChoice.SaveGame:
                 SaveGame();
@@ -2369,6 +2441,8 @@ public partial class Game1 : Game
                 _settings.Save();
                 refused = _settings.Sound ? UiText.S("game.sound_on") : UiText.S("game.sound_off");
                 break;
+            case TownChoice.Printout when AskP1Printer(s):
+                return; // s163: I Amiga's "PREPARE PRINTER" first (h29 +0x10ba)
             case TownChoice.Printout:
                 refused = Printout(s);
                 break;
@@ -2398,11 +2472,44 @@ public partial class Game1 : Game
             s.Note(leaving); // s154: I DOS's row 24 after the town loop (OV1 0x483e), the line the overworld opens on
     }
 
+    /// <summary>
+    /// s163: I Amiga's town Printout (h29 <c>+0x10ba</c>) asks "PREPARE PRINTER[O.K.|ABORT]" first (h29 <c>+0x1f6</c>, its
+    /// beep before it): O.K. prints (a failed write asks again), ABORT prints nothing. False: no requester (the DOS path,
+    /// another game, an empty party), the Printout runs at once.
+    /// </summary>
+    private bool AskP1Printer(GameSession s)
+    {
+        if (s.Party.Members.Count == 0 || !P1TownRequesterReady("prepare_printer"))
+            return false;
+        if (P1MapCues && _assets!.Pack!.CueSounds!.Printout is int beep)
+            PlayP1CueInTurn(beep);
+        OpenP1TownHeld("prepare_printer", answer =>
+        {
+            if (answer != 0 || _session is not { } now)
+                return;
+            try
+            {
+                SetFeedback(UiText.F("game.printed_to_x", PartyPrintout.WriteFile(now.Party, _data!)), HelpForMode(now.Mode));
+                _messageBand.Restart();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                SetFeedback(UiText.F("game.printer_not_ready_x", ex.Message), HelpForMode(now.Mode));
+                AskP1Printer(now); // h29 +0x200: asked again until the printer opens
+            }
+        });
+        return true;
+    }
+
     /// <summary>Printout (OV1 <c>0x46dd</c>): the party list goes to a text file, the remaster's printer.</summary>
     private string Printout(GameSession s)
     {
         if (s.Party.Members.Count == 0)
             return UiText.S("game.no_party");
+        // s162: I Amiga's "PREPARE PRINTER[O.K.|ABORT]" beeps first (h29 +0x1f6 -> h26 +0x6e); here without its requester
+        // (a pack without map_requesters.town.prepare_printer).
+        if (P1MapCues && _assets!.Pack!.CueSounds!.Printout is int beep)
+            PlayP1CueInTurn(beep);
         try
         {
             return UiText.F("game.printed_to_x", PartyPrintout.WriteFile(s.Party, _data!));
@@ -2495,6 +2602,7 @@ public partial class Game1 : Game
         _rowLineBeforeStep = _message;
         move();
         SetFeedback(s.LastMessage, HelpForMode(s.Mode));
+        OfferAmigaMessage(s.LastMessage); // s162: III Amiga's "<name> picks the lock." is window 7 (0x1c674)
         KeepStepTextUnderPrompt(s, mark);
         AfterSessionAction(s, mark);
         MarkDungeonVisited(); // s141: after the boxes are planned, so a cell Core has left already is the one revealed
@@ -2502,7 +2610,7 @@ public partial class Game1 : Game
 
     /// <summary>
     /// A step that opens a prompt keeps its own text on the message line under it: a trap or a swim that kills the last
-    /// member opens "YOUR PARTY HAS BEEN DEFEATED", and without this the gas / damage / DIES lines were never seen.
+    /// member opens `core.defeat.your_party_has_been_defeated`, and without this the gas / damage / DIES lines were never seen.
     /// </summary>
     private void KeepStepTextUnderPrompt(GameSession s, long mark)
     {
@@ -2550,6 +2658,11 @@ public partial class Game1 : Game
     /// </summary>
     private void AfterFightEnded(GameSession s)
     {
+        // s163: II ST's round has played line by line on the combat screen (P2CombatLineRun), and the ST's defeat scene
+        // opens on "YOUR PARTY HAS BEEN DEFEATED" (0x12a16): no report pages in front of it, which put the ghost row and
+        // sound 23 one key per line later (seen live on Xvfb).
+        if (_combatUi.P2Lines?.Invoke() is not null)
+            return;
         if (_defeatCause.Count == 0 && CurrentPrompt is { Kind: SessionPromptKind.PartyDefeat } prompt)
             _defeatCause = DefeatReport.Fit(
                 s.LogSince(_fightMark).Where(n => !prompt.Lines.Any(l => l.Trim() == n.Trim())), prompt.Lines.Count);
@@ -2742,6 +2855,9 @@ public partial class Game1 : Game
             refused = _guildPickDialog.OpenRename(s);
         else if (s.Mode == GameMode.Guild && _input.Pressed(GameAction.GuildList, keys, pad))
             refused = _guildListDialog.Open(s);
+        // s160: III's Guild "Inspect" (DOS guild_menu item 6, Amiga Guild › Examine): any roster member's sheet, every layout
+        else if (s.Mode == GameMode.Guild && GuildPickDialog.ExaminesRoster(s.Game) && _input.Pressed(GameAction.GuildExamine, keys, pad))
+            refused = _guildPickDialog.OpenExamine(s, member => _inspectDialog.OpenSheet(member));
         // s156: on I Amiga's map the Options picks get the step tone first (MapOptionAfterTone); the pick runs after it.
         else if (_input.Pressed(GameAction.CastSpell, keys, pad))
         {
@@ -2794,10 +2910,13 @@ public partial class Game1 : Game
     /// <summary>Reset the shell's per-game state after a JSON load or a DOS import replaced the session state.</summary>
     private void AfterSnapshotApplied()
     {
+        _confirm.Close();
+        _guildPickDialog.Close();
         _amigaMessage.Close();
         _p2Alert.Close();
         _p1OkSpec = null;
         _p1About = false;
+        _p1TownHeld = null;
         _outsideBar.Close();
         _townBar.Close();
         CloseMapMessages();
@@ -3027,13 +3146,14 @@ public partial class Game1 : Game
     private const int OverworldViewRows = 16;
 
     // The Amiga full-screen positions (FORMAT.md, s52): region picture at (4,15) (h56 0x948), dungeon glyphs at (10,16)
-    // (h56 0xd10), compass at (214,68) (h56 0xe98).
+    // (h56 0xd10), compass at (214,68) (h56 0xe98: h77 +0xcfe(12, h69 +0x2af4, 214, 68, 64, 63); s162: every pixel equal
+    // to the live entry shot, P1MapBarTests; II ST's 0x5c7a uses the same place).
     private const int AmigaMapLeft = 4;
     private const int AmigaMapTop = 15;
-    private const int AmigaDungeonLeft = 10;
-    private const int AmigaDungeonTop = 16;
-    private const int AmigaCompassX = 214;
-    private const int AmigaCompassY = 68;
+    public const int AmigaDungeonLeft = 10;
+    public const int AmigaDungeonTop = 16;
+    public const int AmigaCompassX = 214;
+    public const int AmigaCompassY = 68;
 
     /// <summary>The town menu on the full-screen town picture (not the Armory's list screen, not the inventory screen).</summary>
     private bool TownPictureScreen(GameSession s) =>
@@ -3159,7 +3279,9 @@ public partial class Game1 : Game
         var x0 = Math.Clamp(px - cols / 2, 0, DungeonLevel.Width - cols);
         var y0 = Math.Clamp(py - rows / 2, 0, DungeonLevel.Height - rows);
         HitMapView(left, oy, cols, rows, gw, gh, x0, y0);
-        _spriteBatch!.Draw(pixel, new Rectangle(left, oy, cols * gw, rows * gh), Color.Black);
+        // s162: unseen cells in the pack's colour (I Amiga h56 +0xe2e: pen 13 grey over the map area), else black.
+        var unseen = assets.Pack?.DungeonUnseenColour is { } u ? VirtualScreen.ParseColor(u) : Color.Black;
+        _spriteBatch!.Draw(pixel, new Rectangle(left, oy, cols * gw, rows * gh), unseen);
         for (var vy = 0; vy < rows; vy++)
         for (var vx = 0; vx < cols; vx++)
         {
@@ -3188,7 +3310,8 @@ public partial class Game1 : Game
     // Scandor 50 × 74 shows columns 42–50 (one past the map) and rows 66–74 (on the map); the Netherworld 31 × 15 one
     // column past its east edge, its last row's cell being the 0xF9 the code writes there (0x1eb3e…0x1ec74). Past the
     // map the Amiga reads on (s108 [C]): a column past the east edge is the next row's first cell (PastMapTile). The
-    // planes (9×9) always show the whole plane.
+    // planes (9×9) always show the whole plane. III DOS CGA (s160): the same 9×9 of 16×16, tile 89 on the party's cell,
+    // and six Scandor tiles drawn as others (the pack's tile_swaps, ovl3 0x0).
     private void DrawTileOverworld(GameSession session, OverworldRegion region, TileMapLayout tiles, AssetCatalog assets,
         Texture2D pixel, int left, int top)
     {
@@ -3221,7 +3344,7 @@ public partial class Game1 : Game
                 }
                 continue;
             }
-            if (assets.GetOverworldTile(region.GetRaw(x, y)) is { } tex)
+            if (assets.GetOverworldTile(tiles.DrawnTile(session.Overworld.RegionId, region.GetRaw(x, y))) is { } tex)
                 _spriteBatch.Draw(tex, dest, Color.White);
             else
                 _spriteBatch.Draw(pixel, dest, TileColor(session, region, x, y));
@@ -3376,9 +3499,15 @@ public partial class Game1 : Game
             _help = UiText.S("p3combat.message_help");
     }
 
-    /// <summary>The message for the band / line: none while window 7 shows it (s135).</summary>
+    /// <summary>
+    /// The message for the band / line: none while window 7 shows it (s135). s163: a window title's row break ("\r" and the
+    /// next row's leading blanks, III's Monster Evaluate line) is one space on the band's single line.
+    /// </summary>
     private string BandMessage => (_amigaMessage.Shown && _message == _amigaMessage.Text) || _mapBoxed.Contains(_message.Trim())
-        || _dosPaged.Contains(_message.Trim()) ? "" : _message;
+        || _dosPaged.Contains(_message.Trim()) ? "" : OneLine(_message);
+
+    /// <summary>s163: <paramref name="text"/> with each window row break ("\r" and the blanks after it) as one space.</summary>
+    public static string OneLine(string text) => System.Text.RegularExpressions.Regex.Replace(text ?? "", "\r *", " ");
 
     private void SetFeedback(string message, string help)
     {

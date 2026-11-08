@@ -55,6 +55,10 @@ public class P4PanelPromptTests
         Assert.Equal((36 + 16 * 10), sk.Rows.YOf(10));
         Assert.Equal(((16, 2), (16, 224), 0, 14), (sk.Prompt, sk.Trained, sk.TextColour, sk.CellColour)); // s158: black (XEiJ)
         Assert.Equal((312, 268), P4DungeonScreen.SkillUpArea(sk));
+        // s162: _sklup's cell boxes (_font(-1, -1, -1, 14)) are the colour every row is cleared to and the window's grey, so
+        // they leave no mark (nor under the hover's ^ 5, which XORs box and row alike): drawing the rows is drawing them.
+        Assert.Equal((14, 14), (sk.CellColour, sk.Rows.Back));
+        Assert.Equal(sk.BackColour, sk.CellColour);
     }
 
     [OriginalDataFact]
@@ -116,6 +120,102 @@ public class P4PanelPromptTests
         var layout = P4DungeonScreen.LayOutColumn(picture, picture.Right + 4, 232, 178, _ => 1, _ => 4);
         Assert.Equal((4, 189), (layout.NoteX, layout.NoteTop));
         Assert.True(layout.NoteTop >= h / 2f + 1); // a gap under the shadow row
+    }
+
+    [OriginalDataFact]
+    public void Pack_HoldsTheOtherTitledWindows_AndEachPictureSceneNamesItsOwn()
+    {
+        // s162: every _wopen(…, 1, title) of the buildings, the town gate, the item commands and the ending, read from P4.X.
+        var t = Extras().Titled!;
+        Assert.Equal(17, t.Count);
+        Assert.Equal(new TitledWindow("_inn", new PanelRect(160, 32, 312, 352), "p4x.0x3f6d6", "宿　屋"), t["_inn"]);
+        Assert.Equal(new PanelRect(160, 64, 312, 180), t["_guildmenu"].Window); // the Guild's picture is the window
+        Assert.Equal(new PanelRect(160, 90, 312, 220), t["_mystic"].Window);
+        Assert.Equal(new PanelRect(160, 52, 312, 312), t["_hall"].Window);     // HALL_A 202 + HALL_B 110
+        Assert.Equal(("p4x.0x413bb", "Phantasie IV"), (t["_endstory"].Title, t["_endstory"].TitleText));
+        Assert.Equal("アイテム鑑定", t["_setident"].TitleText);
+        Assert.All(t.Values, w => Assert.StartsWith("p4x.0x", w.Title));
+        foreach (var (scene, key) in new[] { ("p4.guild", "_guildmenu"), ("p4.inn", "_inn"), ("p4.bank", "_bank"),
+            ("p4.mystic", "_mystic"), (P4DungeonScreen.HallScene, "_hall"), ("p4.hall.history.3", "_hall"),
+            ("p4.ending.banquet", "_banquet"), ("p4.ending.cell", "_arathamus") })
+        {
+            Assert.Equal(key, P4DungeonScreen.TitledWindowName(scene));
+            Assert.True(t.ContainsKey(key), key);
+        }
+        // Untitled: the streets (_tw_open flag 0), the ending's street, the outdoors; the shipwright has its own entry.
+        Assert.All(new[] { "p4.street.0", P4DungeonScreen.EndingStreetScene, P4DungeonScreen.OutdoorCloseUp, "p4.shipwright", null },
+            s => Assert.Null(P4DungeonScreen.TitledWindowName(s)));
+    }
+
+    [OriginalDataFact]
+    public void FinalScreen_LinesSitAtTheOriginalsPlaces_QuestionInBoldFont1Colour2()
+    {
+        // s162, _endstory (0xA9E6): heading at (140 centred, 48) in font 0 style 8 colour 1; lines from y 80; the score in
+        // font 1 colour 8 after "Your score is " at y 128; the code at 144; postcard lines 176-256; the question at 288.
+        var end = Extras().FinalScreen!;
+        Assert.Equal((0, 16), (end.TextColour, end.LineStep));
+        Assert.Equal((140, 48, 0, 8, 1, "p4x.0x413c8"), (end.Heading.X!.Value, end.Heading.Y!.Value, end.Heading.Font,
+            end.Heading.Style, end.Heading.Colour!.Value, end.Heading.Label));
+        Assert.Equal(new TrainingHallSegment(32, 288, "p4x.0x4139f", "《ゲームを保存しますか？》", false, 1, 2, 1), end.Question);
+        static int Width(string t, int font, int style) => 8 * t.Length + (style & 1) * t.Length; // bold: + 1 a character
+        static string Text(TrainingHallSegment s) => s.Label.Length == 0 ? "" : "x";
+        var rows = P4DungeonScreen.FinalScreenText(end, 200, false, 280, Text, Width);
+        Assert.Equal([80, 96, 128, 128, 128, 144, 144, 144, 176, 192, 208, 224, 240, 256], rows.Select(r => r.Y));
+        Assert.Equal((32 + 8, "200", 1, 8), (rows[3].X, rows[3].Text, rows[3].Font, rows[3].Colour)); // after "x"
+        Assert.DoesNotContain(rows, r => r.Y == 288);
+        var asked = P4DungeonScreen.FinalScreenText(end, 200, true, 280, Text, Width);
+        Assert.Equal((32, 288, 1, 2, 1), (asked[^1].X, asked[^1].Y, asked[^1].Font, asked[^1].Colour, asked[^1].Style));
+        // A line too wide for the window wraps and pushes the rest down (the user's fit rule).
+        var wide = P4DungeonScreen.FinalScreenText(end, 200, true, 280,
+            s => s.Label == "p4x.0x412c9" ? "aaaa bbbb cccc dddd eeee ffff gggg" : Text(s), Width);
+        Assert.Equal((96, 112, 304), (wide[1].Y, wide[2].Y, wide[^1].Y));
+    }
+
+    [OriginalDataFact]
+    public void WipedOutParty_BlacksTheScreen_ThenTheMessageWindow()
+    {
+        // s162, _deadmsg (0x1E308): _xblack (768 x 512, colour 0), window 32 at (100, 168) 440 x 64 filled black with two
+        // white outlines, the two lines centred on 220 at y 16 / 32 in bold white; _xblack again before _acgamend(1).
+        var d = Extras().DeadMessage!;
+        Assert.Equal((0, new PanelRect(100, 168, 440, 64), 0, 15), (d.ScreenColour, d.Window, d.Fill, d.FrameColour));
+        Assert.Equal([new PanelRect(2, 2, 436, 60), new PanelRect(3, 3, 434, 58)], d.Frames);
+        Assert.Equal((0, X68kFontStyle.Bold, 15), (d.Font, d.Style, d.TextColour));
+        Assert.Equal([("p4x.0x44097", 220, 16), ("p4x.0x440b0", 220, 32)], d.Lines.Select(l => (l.Label, l.X!.Value, l.Y!.Value)));
+    }
+
+    [OriginalDataFact]
+    public void TownGate_AgedMembersSitOnTheirOwnRows_TillTheWaitEnds()
+    {
+        // s162, _townent: member m's line at (8, 8 + 16 m) in the Town Gate window, the window kept while the wait is up.
+        var game = new[] { Code, GameOptions.ForPreset(GameId.P4, OptionPreset.Manual) }
+            .SelectMany(o => Enumerable.Range(1, 40).Select(seed => P4Preview.StartInTown(1, o, seed)))
+            .First(g => g.Town.GateRows is not null); // the preview party ages on arrival with some rolls
+        var rows = game.Town.GateRows!;
+        Assert.NotEmpty(rows);
+        Assert.Equal(P4TownPrompt.Wait, game.Town.Prompt);
+        Assert.All(rows, r => Assert.Equal(game.Town.Party.Members[r.Member].Name, r.Name));
+        var gate = Extras().TownGate!;
+        Assert.Equal((8, 8, 16, "p4x.0x3fa6f", "p4x.0x3fa89"), (gate.X, gate.Y, gate.Step, gate.GrownOlder.Label, gate.Died.Label));
+        static int Width(string t, int font, int style) => 8 * t.Length;
+        var text = P4DungeonScreen.TownGateText(gate, [new P4GateRow(1, "ODO", "p4x.0x3fa89"), new P4GateRow(3, "PIP", "p4x.0x3fa6f")],
+            304, s => s.Label == "p4x.0x3fa89" ? " died" : " older", Width);
+        Assert.Equal([(8, 24, "ODO died"), (8, 56, "PIP older")], text.Select(r => (r.X, r.Y, r.Text)));
+        game.Town.Continue();
+        Assert.Null(game.Town.GateRows);
+    }
+
+    [Fact]
+    public void X68kStyles_BoldAndShadow_AsWfnt()
+    {
+        // FORMAT.md 6.12: bold = row |= row >> 1 (one column wider, advance + 1); shadow = a hollow outline one pixel
+        // right and down with a drop-shadow pixel (two rows more, advance unchanged).
+        var dot = new GlyphDefinition(1, 4, [1u]);
+        var bold = X68kFontStyle.BoldGlyph(dot);
+        Assert.Equal((2, 5, 3u), (bold.Width, bold.Advance, bold.Rows[0]));
+        var shadow = X68kFontStyle.ShadowGlyph(dot);
+        Assert.Equal((4, 4, 3), (shadow.Width, shadow.Advance, shadow.Rows.Count));
+        // (x + 1, y) | (x, y + 1), (x + 2, y + 1) | (x + 1, y + 2), (x + 3, y + 2); (x + 1, y + 1) clear.
+        Assert.Equal([0b0100u, 0b1010u, 0b0101u], shadow.Rows);
     }
 
     [OriginalDataFact]

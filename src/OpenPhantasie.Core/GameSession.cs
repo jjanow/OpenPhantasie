@@ -47,7 +47,7 @@ public sealed partial class GameSession
 
     /// <summary>
     /// Who found each <see cref="PendingTreasure"/> item, in step with it: null = the game's plain question (I's "YOU FIND %s.
-    /// KEEP IT?", III's dungeon "Keep %s?"), a name = III's fight find ("&lt;name&gt; finds &lt;item&gt;" / "Will the party keep it?",
+    /// KEEP IT?", III's dungeon "Keep %s?"), a name = III's fight find ("&lt;name&gt; finds &lt;item&gt;" / `core.p3.will_the_party_keep_it`,
     /// root <c>0xf2eb</c>).
     /// </summary>
     private readonly List<string?> _pendingFinders = new();
@@ -76,7 +76,7 @@ public sealed partial class GameSession
 
     /// <summary>
     /// The question for the first pending item, or null: one line ("YOU FIND {item}. KEEP IT?"; III's dungeon "Keep {item}?"),
-    /// or, for a III fight find, DOS's two (root <c>0xf2eb</c>: "{name} finds {item}" at row 10, "Will the party keep it?" at
+    /// or, for a III fight find, DOS's two (root <c>0xf2eb</c>: "{name} finds {item}" at row 10, `core.p3.will_the_party_keep_it` at
     /// row 12).
     /// </summary>
     public IReadOnlyList<string>? TreasurePromptLines
@@ -358,7 +358,7 @@ public sealed partial class GameSession
     /// <summary>A day-branch menu of the random wilderness encounter waits for <see cref="AnswerWildernessPrompt"/>.</summary>
     public WildernessPrompt? WildernessPrompt { get; internal set; }
 
-    /// <summary>"A TOWN. ENTER?" / "A DUNGEON. ENTER?" waits for <see cref="AnswerOverworldEntry"/> (manual p.12).</summary>
+    /// <summary>"A TOWN. ENTER?" / `core.overworld.a_dungeon_enter` waits for <see cref="AnswerOverworldEntry"/> (manual p.12).</summary>
     public OverworldEntryPrompt? EntryPrompt { get; internal set; }
 
     /// <summary>
@@ -439,7 +439,7 @@ public sealed partial class GameSession
     /// s141: a move of the party inside a dungeon level that a step or an answer made after some of its lines: the party
     /// stood on (<paramref name="FromX"/>, <paramref name="FromY"/>) of level <paramref name="LevelId"/> until
     /// <paramref name="AfterLine"/> lines had been noted (<see cref="LogSequence"/>). I Amiga shows the boxes logged before
-    /// it over that cell (h41: op 12's "THE PARTY IS MOVED" and a jammed lock's "NO ONE CAN PICK THE LOCK" come before the
+    /// it over that cell (h41: op 12's `core.script.the_party_is_moved` and a jammed lock's `core.dungeon.no_one_can_pick_the_lock` come before the
     /// move). <paramref name="Serial"/> is <see cref="DungeonMoveSequence"/> after it.
     /// </summary>
     public sealed record DungeonMove(long Serial, long AfterLine, int LevelId, int FromX, int FromY);
@@ -642,8 +642,9 @@ public sealed partial class GameSession
     /// <summary>
     /// s141: the front end asks a confirm question the Amiga asks in window 1 (<c>0xaae2</c>: "Are you sure …?" for load /
     /// redistribute / purge / save, and the guild Add's "It will take this character two months to make the journey
-    /// here."). III plays 36 first (<c>0xaaf2</c>, <c>jsr %pc@(0xb126)</c>); the others play nothing. The remaster asks only
-    /// the guild Add's question (<see cref="AddNeedsMoveConfirm"/>), so that is its one caller.
+    /// here."). III plays 36 first (<c>0xaaf2</c>, <c>jsr %pc@(0xb126)</c>); the others play nothing. Callers: the guild
+    /// Add's question (<see cref="AddNeedsMoveConfirm"/>) and, s160, III's Load / Save / Distribute / Purge questions (DOS
+    /// III root <c>0x1820</c>(text, 2), the Amiga's <c>0xaae2</c>) under every III layout.
     /// </summary>
     public void AskConfirmQuestion()
     {
@@ -664,7 +665,7 @@ public sealed partial class GameSession
     /// <summary>Remaster text (D-065): DOS never refuses, so it has no message of its own.</summary>
     public static string RenamePartyMemberRefusal => GameText.S("core.guild.rename_party_member");
 
-    /// <summary>Guild N)EW, second half (OV1 <c>0xfd3</c>, INPUT NAME): the name must be unique ("Name is not unique!").</summary>
+    /// <summary>Guild N)EW, second half (OV1 <c>0xfd3</c>, INPUT NAME): the name must be unique (`core.guild.name_not_unique`).</summary>
     public bool TryEnrollNewMember(Character rolled, string name, out string error)
     {
         if (!GuildHall.TryRename(rolled, name, Roster, out error, ElementalNames) ||
@@ -676,12 +677,28 @@ public sealed partial class GameSession
         return true;
     }
 
-    /// <summary>Guild P)URGE (OV1 <c>0x23d5</c>, "WHOM DO YOU WANT TO PURGE?"): no confirm in DOS.</summary>
+    /// <summary>
+    /// Why Guild P)URGE would refuse <paramref name="member"/> (a member of another parked party, D-069; then
+    /// <see cref="GuildHall.PurgeRefusal"/>), or null. s160: DOS III refuses before it asks "Are you sure …?" (root
+    /// <c>0xb075</c>), so the front end asks only when this is null.
+    /// </summary>
+    public string? PurgeRefusal(Character member)
+    {
+        ArgumentNullException.ThrowIfNull(member);
+        if (IsInOtherParty(member)) // D-069 (manual silent): continue that party and D)ROP the member first
+            return SeveralParties.OtherPartyRefusal;
+        return GuildHall.PurgeRefusal(Roster, Party, member, Options.P3PurgeRule());
+    }
+
+    /// <summary>
+    /// Guild P)URGE (OV1 <c>0x23d5</c>, `member.whom_do_you_want_to_purge`): no confirm in I's DOS; s160: III's front end asks DOS
+    /// III's S407 first (<see cref="AskConfirmQuestion"/>).
+    /// </summary>
     public bool TryPurge(Character member, out string error)
     {
-        if (IsInOtherParty(member)) // D-069 (manual silent): continue that party and D)ROP the member first
+        if (PurgeRefusal(member) is { } refusal)
         {
-            error = SeveralParties.OtherPartyRefusal;
+            error = refusal;
             return false;
         }
         if (!GuildHall.TryPurge(Roster, Party, member, out error, Options.P3PurgeRule()))
@@ -691,7 +708,7 @@ public sealed partial class GameSession
     }
 
     /// <summary>
-    /// Guild R)ENAME (OV1 <c>0x22f6</c>, "WHO NEEDS RENAMING?"). DOS renames party members too (it syncs the party copy
+    /// Guild R)ENAME (OV1 <c>0x22f6</c>, `member.who_needs_renaming`). DOS renames party members too (it syncs the party copy
     /// before and after INPUT NAME); D-065 (user s53): the manual — "Characters cannot be renamed while they are members
     /// of a party." The save's <c>p1.rename-party</c> option can allow it (<see cref="CanRename"/>).
     /// </summary>
@@ -966,7 +983,7 @@ public sealed partial class GameSession
             Note(line);
         if (CastCue(result, spellIndex, location, (healTarget ?? caster).Status != CharacterStatus.Dead) is { } cue)
             Cue(cue);
-        // [C] (s49) OV1 0x275b: the MP is spent, then the "TRANSPORT TO WHICH TOWN?" picker opens.
+        // [C] (s49) OV1 0x275b: the MP is spent, then the `guild.transport_to_which_town` picker opens.
         if (result.Success && location == CastLocation.Town && spellIndex == SpellId.Transportation)
             TransportationPending = true;
         return result;
@@ -1077,10 +1094,10 @@ public sealed partial class GameSession
 
     private bool IsPhantasie3 => Campaign.Game == GameId.P3;
 
-    /// <summary>III under <c>p3.bank</c> = <c>dos</c>: the Bank offers DOS's "Deposit some gold" and "Withdraw all gold".</summary>
+    /// <summary>III under <c>p3.bank</c> = <c>dos</c>: the Bank offers DOS's `p3town.bank_deposit_some` and `p3town.bank_withdraw_all`.</summary>
     public bool BankIsDos => IsPhantasie3 && Options.P3DosBank();
 
-    /// <summary>DOS III's "Deposit some gold" (<see cref="P3Town.DosDeposit"/>); false = a bad amount, nothing changed.</summary>
+    /// <summary>DOS III's `p3town.bank_deposit_some` (<see cref="P3Town.DosDeposit"/>); false = a bad amount, nothing changed.</summary>
     public bool DosBankDeposit(long amount)
     {
         if (!BankIsDos || !P3Town.DosDeposit(Party, amount, _rng, Options))
@@ -1089,7 +1106,7 @@ public sealed partial class GameSession
         return true;
     }
 
-    /// <summary>DOS III's "Withdraw all gold" (<see cref="P3Town.DosWithdrawAll"/>).</summary>
+    /// <summary>DOS III's `p3town.bank_withdraw_all` (<see cref="P3Town.DosWithdrawAll"/>).</summary>
     public bool DosBankWithdrawAll()
     {
         var before = Party.GoldCarried;
@@ -1132,7 +1149,7 @@ public sealed partial class GameSession
 
     private string ItemName(int id) => _items.Get(id)?.Name ?? $"#{id}";
 
-    /// <summary>The move's line (remaster text) or the refusal "This character can't carry anymore." (III string 455).</summary>
+    /// <summary>The move's line (remaster text) or the refusal `core.p3.cant_carry_anymore` (III string 455).</summary>
     private void NoteTrade(P3TradeResult result, Func<string> done)
     {
         switch (result)
@@ -1381,7 +1398,7 @@ public sealed partial class GameSession
     /// <summary>
     /// Answer the pending <see cref="EntryPrompt"/>. YES enters the town or dungeon; NO leaves the party on the tile as a
     /// plain move (manual p.12; user s55: town NO = dungeon NO, OV2 menu <c>0x1c</c> NO → return 2).
-    /// D3-038 <c>dos</c> (<c>p3.dungeon-map-no</c>): a YES at a dungeon asks DOS III's "Load previously saved dungeon?" next
+    /// D3-038 <c>dos</c> (<c>p3.dungeon-map-no</c>): a YES at a dungeon asks DOS III's `core.p3.load_saved_dungeon` next
     /// (<see cref="OverworldEntryPrompt.AsksLoad"/>, ovl4 <c>0x6fe</c>); that answer enters, with the saved map on YES (when
     /// there is one) and the original on NO, which leaves the saved map in place (DOS keeps <c>DNP&lt;letter&gt;</c>).
     /// </summary>
@@ -1489,7 +1506,7 @@ public sealed partial class GameSession
 
     /// <summary>
     /// The DOS one-slot dungeon save (<c>DNG.SAV</c> + <c>DNGX.SAV</c>, s36 [C]); written by
-    /// <see cref="AnswerDungeonExit"/> on a YES to "WOULD YOU LIKE TO SAVE THE DUNGEON MAP?". Null = empty slot. In a game
+    /// <see cref="AnswerDungeonExit"/> on a YES to `core.prompt.save_dungeon_map`. Null = empty slot. In a game
     /// that keeps one saved map per dungeon (<see cref="RulesProfile.DungeonSavePerDungeon"/>, III's <c>DNP&lt;letter&gt;</c>)
     /// this is the last one written and <see cref="DungeonSaves"/> holds them all; setting it replaces them all.
     /// </summary>
@@ -1531,7 +1548,7 @@ public sealed partial class GameSession
             _lastDungeonSave = null;
     }
 
-    /// <summary>True while "AN EXIT. TAKE IT?" waits for <see cref="AnswerDungeonExit"/> (OV2 <c>0x2d46</c>, menu <c>0x1d</c>).</summary>
+    /// <summary>True while `core.prompt.an_exit_take_it` waits for <see cref="AnswerDungeonExit"/> (OV2 <c>0x2d46</c>, menu <c>0x1d</c>).</summary>
     public bool DungeonExitPending { get; internal set; }
 
     /// <param name="loadSaved">False = the original map even when a saved one exists (III's DOS entry question answered No).</param>
@@ -1552,8 +1569,8 @@ public sealed partial class GameSession
     }
 
     /// <summary>
-    /// Answer the exit prompts (OV2 <c>0x2d46</c> [C]): <paramref name="takeIt"/> = "AN EXIT. TAKE IT?" (NO = stay on the
-    /// exit cell); <paramref name="saveMap"/> = "WOULD YOU LIKE TO SAVE THE DUNGEON MAP?" — YES overwrites the one slot
+    /// Answer the exit prompts (OV2 <c>0x2d46</c> [C]): <paramref name="takeIt"/> = `core.prompt.an_exit_take_it` (NO = stay on the
+    /// exit cell); <paramref name="saveMap"/> = `core.prompt.save_dungeon_map` — YES overwrites the one slot
     /// with this dungeon's live buffer (<c>0x5929</c>). NO: DOS writes nothing and the slot keeps what it had; the remaster
     /// also purges the slot when it holds this same dungeon, so an older save can't come back (D-027, user s37). A slot of
     /// another dungeon is kept.
@@ -1660,7 +1677,7 @@ public sealed partial class GameSession
         switch (result.Kind)
         {
             case DungeonMoveKind.ExitDungeon:
-                DungeonExitPending = true; // "AN EXIT. TAKE IT?" -> AnswerDungeonExit
+                DungeonExitPending = true; // `core.prompt.an_exit_take_it` -> AnswerDungeonExit
                 break;
             case DungeonMoveKind.ScriptedEvent:
                 Campaign.BeginDungeonEvent(this, result); // OV2 0x24b2 (I: Phantasie1Campaign)
@@ -2054,7 +2071,7 @@ public sealed partial class GameSession
 
     /// <summary>
     /// D-053 <c>dos</c> (<c>p1.combat-shares</c>, OV2 <c>0x3fbe</c> [C]): with <c>n</c> non-DEAD adventurers, show
-    /// <c>⌊xp/(10n)⌋·10</c> XP and <c>⌊gold/n⌋</c> GP "EACH SURVIVOR GETS" and pool only <c>n</c> such shares; the remainders
+    /// <c>⌊xp/(10n)⌋·10</c> XP and <c>⌊gold/n⌋</c> GP `core.combat.each_survivor_gets` and pool only <c>n</c> such shares; the remainders
     /// are lost. After BEG the gold is <c>−purse</c>, so the purse keeps <c>purse mod n</c> (DOSBox s65: 556 GP, 6 survivors →
     /// 4 left; kept here as found gold [~]) and the screen shows <c>−⌊purse/n⌋</c>.
     /// </summary>

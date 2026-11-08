@@ -98,7 +98,7 @@ public static class DungeonTraps
         roll.Draw(rng) <= disarmer.Skills.DisarmTrap;
 
     /// <summary>
-    /// "WHO WILL DISARM ?" (<c>0x5a0a</c> mode 1) lists only members whose status is OK (1): DEAD and SLEEP are not
+    /// `core.prompt.who_will_disarm` (<c>0x5a0a</c> mode 1) lists only members whose status is OK (1): DEAD and SLEEP are not
     /// offered. No such member → the menu returns −1 (step back).
     /// </summary>
     public static bool CanDisarm(Character member) => member.Status == CharacterStatus.Ok;
@@ -172,7 +172,7 @@ public enum DungeonDoorKind
     /// <summary>Kind 14 (<c>0xc6</c>, <c>0xd5</c>): pick the lock.</summary>
     Locked,
 
-    /// <summary>Kind 15 (<c>0xc7</c>, <c>0xd6</c>): "NO ONE CAN PICK THE LOCK", push back. A failed pick turns a kind-14 door into this.</summary>
+    /// <summary>Kind 15 (<c>0xc7</c>, <c>0xd6</c>): `core.dungeon.no_one_can_pick_the_lock`, push back. A failed pick turns a kind-14 door into this.</summary>
     Jammed,
 }
 

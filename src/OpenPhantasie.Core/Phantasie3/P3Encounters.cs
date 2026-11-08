@@ -8,7 +8,7 @@ public sealed record P3GroupStrength(int Level, IReadOnlyList<int> MemberHp);
 /// <param name="RankOneAllDisabled">No rank-1 member is Okay (all asleep / down / out).</param>
 /// <param name="AnyMemberAble">A party member (the elemental excluded) is Okay or Down.</param>
 /// <param name="FreeFleeFlag"><c>FAR:0xb5c2</c>: the party surprised the monsters (s83, root <c>0xde54</c>: set when it
-/// attacks sleeping monsters or "You surprise the monsters."; it also makes the fight's mode 2). Flee succeeds outright
+/// attacks sleeping monsters or `core.p3.you_surprise_the_monsters`; it also makes the fight's mode 2). Flee succeeds outright
 /// when set. The III campaign passes its fight's opening (a door's "Continue?" Yes too, [~]: mode 2 there, the flag write
 /// not traced).</param>
 public sealed record P3FleeContext(bool RankOneExists, bool RankOneAllDisabled, bool AnyMemberAble, bool FreeFleeFlag = false);

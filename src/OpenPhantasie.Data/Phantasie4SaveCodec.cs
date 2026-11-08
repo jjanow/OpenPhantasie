@@ -71,7 +71,7 @@ public static class Phantasie4SaveCodec
     public static P4CampaignSnapshot ReadJson(string json)
     {
         if (!IsPhantasie4Save(json))
-            throw new InvalidDataException("The file is not a Phantasie IV remaster save.");
+            throw new InvalidDataException("This file isn't a Phantasie IV remaster save.");
         try
         {
             var dto = JsonSerializer.Deserialize<SaveDto>(json, JsonOptions)

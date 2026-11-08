@@ -248,7 +248,7 @@ public static partial class UiOverlays
     }
 
     /// <summary>
-    /// M on the field (<c>0x1a264(1)</c>, s120): window 23 at (16, 128)–(300, 191), "Monster Identification:", then a row a
+    /// M on the field (<c>0x1a264(1)</c>, s120): window 23 at (16, 128)–(300, 191), `p3field.monster_identification`, then a row a
     /// rank with monsters (<c>0x1a44c</c>): rank 2 one row above rank 1, "Rank", its digit, ":", the count and the name
     /// with "(s)", all in one colour. The Amiga prints the group's count word +2 (whether slain monsters stay in it is not read `[~]`); the remaster shows the orders screen's living count and name (§8.3).
     /// </summary>

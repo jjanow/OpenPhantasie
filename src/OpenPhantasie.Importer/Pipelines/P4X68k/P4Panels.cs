@@ -76,6 +76,31 @@ internal static class P4Panels
     private const int DiskSite = 0x1C58, DiskTable = 0x3F5C8, DiskTitle = 0x3F6BA;
     private const int AcgamendSite = 0xEA0, AcgamendTable = 0x3F362, AcgamendTitle = 0x3F4C1;
     private const int TrgTitleText = 0x3FD0C;
+    private const int EndHeadText = 0x413C8, EndScoreText = 0x413D5, EndScoreAfterText = 0x413E4, EndCodeText = 0x413EC;
+    private const int EndWordText = 0x413FB, EndCodeAfterText = 0x41400, EndTable = 0x40D1C;
+    private const int DeadLine1Text = 0x44097, DeadLine2Text = 0x440B0, GateOlderText = 0x3FA6F, GateDiedText = 0x3FA89;
+
+    // s162: the other titled windows: (name, _wopen site, x, y, width, height, title) as x68k_p4_panels.py reads them.
+    private static readonly (string Name, int Site, int X, int Y, int W, int H, int Title)[] Titled =
+    [
+        ("_inn", 0x24F8, 160, 32, 312, 352, 0x3F6D6),
+        ("_townent", 0x2ECA, 160, 32, 312, 352, 0x3FA65),
+        ("_townent.2", 0x2F96, 160, 32, 312, 352, 0x3FA7F),
+        ("_mage", 0x3A96, 160, 32, 312, 352, 0x3FC1C),
+        ("_guildmenu", 0x4752, 160, 64, 312, 180, 0x3FDD5),
+        ("_gatebank", 0x5326, 160, 132, 312, 160, 0x3FEAF),
+        ("_bank", 0x596C, 160, 32, 312, 352, 0x3FEF8),
+        ("_mystic", 0x6FD6, 160, 90, 312, 220, 0x40210),
+        ("_distribute", 0xA81A, 160, 32, 312, 352, 0x40BD8),
+        ("_endstory", 0xAC66, 160, 32, 312, 352, 0x413BB),
+        ("_arathamus", 0xAD26, 160, 32, 312, 352, 0x41408),
+        ("_banquet", 0xAE14, 160, 32, 312, 352, 0x4142E),
+        ("_hall", 0xDCA2, 160, 52, 312, 312, 0x424FD),
+        ("_armory", 0xEA0A, 160, 32, 312, 352, 0x4257B),
+        ("_setuse", 0xFE34, 160, 32, 312, 352, 0x4270A),
+        ("_trade", 0x10D9A, 160, 32, 312, 352, 0x4278D),
+        ("_setident", 0x2DD3E, 160, 32, 312, 352, 0x45756),
+    ];
     private const int SklTitleText = 0x4168B, SklHeaderText = 0x41698, SklEndText = 0x416F3;
     private const int TrgNeedText = 0x3FD34, TrgNeedAfterText = 0x3FD47, TrgCostText = 0x3FD5B, TrgCostAfterText = 0x3FD6E;
     private const int TrgQuestionText = 0x3FD8A, TrgShortText = 0x3FD97, TrgPoorText = 0x3FDAE, TrgPoor2Text = 0x3FDBF, TrgNothingText = 0x3FD13;
@@ -273,7 +298,134 @@ internal static class P4Panels
                 ("cost", ArrOf(Seg(TrgCostText), Obj(("x", 16), ("y", 32), ("number", true), ("font", 1), ("colour", 8)),
                     Seg(TrgCostAfterText), Seg(TrgQuestionText, ("x", 16), ("y", 48)))))),
             ("short_of_gold", Seg(TrgShortText)));
+        outObj["_titled"] = "s162: the titled windows (_wopen(win, x, y, width, height, 1, title): window grey colour 14, the " +
+                            "title bar and frame of _wwind / _wactive, FORMAT.md 6.9 'Window frames') that the buildings, the town " +
+                            "gate, the item commands and the ending open in the picture's place; the training hall's (trang) and " +
+                            "the shipwright's are their own entries.";
+        var titled = new JsonObject();
+        foreach (var (name, site, x, y, w, h, title) in Titled)
+            titled[name] = Obj(("site", Site(site)), ("window", Win(x, y, w, h)), ("title", P4xId(title)),
+                ("title_text", Text(img, title)));
+        outObj["titled"] = titled;
+        // s162: _endstory's final screen; its line table 0x40D1C holds lines 0-1, 2-7 and 8 (the question).
+        var endLines = Enumerable.Range(0, 9).Select(i => (int)BinaryPrimitives.ReadUInt32BigEndian(img.AsSpan(EndTable + 4 * i)))
+            .ToArray();
+        outObj["_endstory"] = "s162: _endstory's final screen (0xA9E6) in its titled window (titled._endstory): the heading " +
+                              "centred on heading.x at heading.y in font 0, style 8 (shadow: FORMAT.md 6.12), colour 1; then the " +
+                              "segments in order, each at its (x, y) when it has one, else at the text cursor after the last: a " +
+                              "string (label / text) or the score (_wdouti(32, digits, n)) in its font / colour (default font 0, " +
+                              "text_colour); after the SPACE wait the question in font 1, style 1 (bold), colour 2.";
+        var segments = new JsonArray(
+            Seg(endLines[0], ("x", 32), ("y", 80)), Seg(endLines[1], ("x", 32), ("y", 96)),
+            Seg(EndScoreText, ("x", 32), ("y", 128)), Obj(("number", true), ("digits", 3), ("font", 1), ("colour", 8)),
+            Seg(EndScoreAfterText),
+            Seg(EndCodeText, ("x", 32), ("y", 144)), Seg(EndWordText, ("font", 1), ("colour", 8)), Seg(EndCodeAfterText));
+        for (var i = 2; i < 8; i++)
+            segments.Add(Seg(endLines[i], ("x", 32), ("y", 80 + 64 + 16 * i)));
+        outObj["endstory"] = Obj(("site", "0xA9E6"), ("text_colour", 0), ("line_step", 16),
+            ("heading", Seg(EndHeadText, ("x", 140), ("y", 48), ("font", 0), ("style", 8), ("colour", 1))),
+            ("segments", segments),
+            ("question", Seg(endLines[8], ("x", 32), ("y", 80 + 64 + 16 * 9), ("font", 1), ("style", 1), ("colour", 2))));
+        outObj["_townent"] = "s162: _townent's aging rows in its Town Gate window (titled._townent): member m's row at (x, y + " +
+                             "step * m), the name then the line (grown_older / died); the ink as the window's (text_colour, not " +
+                             "read: [~]).";
+        outObj["townent"] = Obj(("site", "0x2CF2"), ("x", 8), ("y", 8), ("step", 16), ("text_colour", 0),
+            ("grown_older", Seg(GateOlderText)), ("died", Seg(GateDiedText)));
+        outObj["_deadmsg"] ="s162: _deadmsg (0x1E308), a wiped-out party: _xblack (screen: the whole 768 x 512 graphic screen " +
+                             "filled colour 0), then its untitled window (window: no frame of _wwind's) filled colour fill, two " +
+                             "frames (_wbox outlines) in frame_colour, the lines centred on x at y in font 0, style 1 (bold), " +
+                             "colour text_colour; _sdbeep, any key; _xblack again before _acgamend(1).";
+        outObj["deadmsg"] = Obj(("site", "0x1E308"), ("screen", Obj(("width", 768), ("height", 512), ("colour", 0))),
+            ("window", Win(100, 168, 440, 64)), ("fill", 0),
+            ("frames", ArrOf(Win(2, 2, 436, 60), Win(3, 3, 434, 58))),
+            ("frame_colour", 15), ("font", 0), ("style", 1), ("text_colour", 15),
+            ("lines", ArrOf(Seg(DeadLine1Text, ("x", 220), ("y", 16)), Seg(DeadLine2Text, ("x", 220), ("y", 32)))));
+        BuildingWindows(outObj, img, Seg);
         return outObj;
+    }
+
+    /// <summary>s163: the inn's rows, the bank's tables and the ending's message window (x68k_p4_panels.py building_windows).</summary>
+    private static void BuildingWindows(JsonObject outObj, byte[] img, Func<int, (string, object?)[], JsonObject> seg)
+    {
+        JsonObject Seg(int a, params (string, object?)[] kw) => seg(a, kw);
+        JsonObject Rect(int x, int y, int w, int h, int colour) =>
+            Obj(("x", x), ("y", y), ("width", w), ("height", h), ("colour", colour));
+        outObj["_inn"] = "s163: _inn's rows in its titled window (titled._inn) under INN.PKH: the sunken box _whole(x, y, width, " +
+                         "box_pad + row_step * party size) (2-pixel frame outside it, FORMAT.md 6.9), member m's row at (text_x, " +
+                         "text_y + row_step * m) for each living member: the name, slept, and mp_up after it on the same row when " +
+                         "the MP roll is won. Font 0, ink text_colour, on the window's grey.";
+        outObj["inn"] = Obj(("site", "0x2188"), ("box", Obj(("x", 8), ("y", 210), ("width", 296))), ("box_pad", 4),
+            ("row_step", 16), ("text_x", 16), ("text_y", 212), ("text_colour", 0), ("slept", Seg(0x3F6F0)),
+            ("mp_up", Seg(0x3F6FC)));
+        outObj["_bank"] = "s163: _bank / _deposit / _withdraw in the bank's titled window (titled._bank) under BANK.PKH: 'clear' " +
+                          "the grey under the picture; accounts = _bank's table (sunken box, headers, a colour-0 line, member i's " +
+                          "name and balance at y row_y + row_step * i, balances _wlocdi(digits): each leading zero two spaces); " +
+                          "deposit / withdraw: a black band with the heading centred in colour 15, their box, headers, line and " +
+                          "rows (y = row_y + row_step * m); the deposit's share buttons ' n ' (n = 0-3) on button_colour cells; " +
+                          "after the shares 'clear_per' and the per-share line. gold = _disppcg's line (the shipwright's).";
+        outObj["bank"] = Obj(
+            ("site", "0x57A4"), ("clear", Rect(0, 180, 312, 172, 14)), ("text_colour", 0),
+            ("accounts", Obj(("frame", Win(32, 194, 248, 116)),
+                ("headers", ArrOf(Seg(0x3FF14, ("x", 64), ("y", 196)), Seg(0x3FF19, ("x", 216), ("y", 196)))),
+                ("line", Rect(64, 211, 184, 1, 0)), ("row_y", 212), ("row_step", 16),
+                ("columns", Obj(("name", 64), ("balance", 208))), ("digits", 5))),
+            ("deposit", Obj(("band", Rect(0, 180, 312, 16, 0)), ("heading", Seg(0x3FE7A, ("x", 156), ("y", 180), ("colour", 15))),
+                ("frame", Win(32, 210, 216, 116)),
+                ("headers", ArrOf(Seg(0x3FE83, ("x", 64), ("y", 212)), Seg(0x3FE88, ("x", 148), ("y", 212)))),
+                ("line", Rect(64, 227, 160, 1, 0)), ("row_y", 228), ("row_step", 16),
+                ("columns", Obj(("name", 64), ("share", 196))),
+                ("buttons", Obj(("x", 272), ("y", 240), ("step", 20), ("width", 24), ("height", 16), ("count", 4), ("colour", 4),
+                    ("pad", Seg(0x3FE93)))),
+                ("clear_per", Rect(0, 336, 312, 16, 14)), ("per_share", Seg(0x3FE99, ("x", 16), ("y", 336))), ("per_digits", 6),
+                ("per_unit", Seg(0x3FEA8)))),
+            ("withdraw", Obj(("band", Rect(0, 180, 312, 16, 0)), ("heading", Seg(0x3FED7, ("x", 156), ("y", 180), ("colour", 15))),
+                ("frame", Win(16, 210, 280, 116)),
+                ("headers", ArrOf(Seg(0x3FEE0, ("x", 32), ("y", 212)), Seg(0x3FEE5, ("x", 96), ("y", 212)),
+                    Seg(0x3FEEA, ("x", 160), ("y", 212)), Seg(0x3FEF1, ("x", 224), ("y", 212)))),
+                ("line", Rect(32, 227, 240, 1, 0)), ("row_y", 228), ("row_step", 16),
+                ("columns", Obj(("name", 32), ("balance", 96), ("limit", 160), ("amount", 224))), ("digits", 5))),
+            ("gold", Obj(("x", 68), ("y", 336), ("label", P4xId(0x3FE66)), ("label_text", Text(img, 0x3FE66)), ("digits", 8),
+                ("unit", P4xId(0x3FE76)), ("unit_text", Text(img, 0x3FE76)))));
+        JsonObject ItemRows() => Obj(("top", 64), ("step", 32), ("count", 9), ("letter_x", 16), ("icon_x", 24), ("name_x", 56),
+            ("points_x", 208), ("points_digits", 3), ("users_x", 240), ("users_step", 8));
+        outObj["_item_windows"] = "s163: the item windows' rows (FORMAT.md 6.9 'Item lists'; titled.<key> is each window): row i " +
+                                  "at y = top + step * i, 32 high; the letter 'A' + i in letter_colour at (letter_x, y + 8), the " +
+                                  "icon (font 2, 32 x 32) at (icon_x, y), the name at (name_x, y + 8), the points (ids 1-84) " +
+                                  "padded to points_digits at points_x (or not_usable when the marked member cannot use it), the " +
+                                  "price padded to price_digits at price_x, the users' digits m + 1 at users_x + users_step * m; " +
+                                  "headers, the colour-0 line, sunken frames (_whole) and the member's name at their places. " +
+                                  "_distribute's equipment table under its divider is not read [~].";
+        outObj["item_windows"] = Obj(
+            ("letter_colour", 2), ("text_colour", 0), ("back_colour", 14),
+            ("_armory", Obj(
+                ("rows", Obj(("top", 32), ("step", 32), ("count", 6), ("letter_x", 32), ("icon_x", 44), ("name_x", 80),
+                    ("points_x", 192), ("points_digits", 4), ("price_x", 240), ("price_digits", 5))),
+                ("headers", ArrOf(Seg(0x42588, ("x", 80), ("y", 16)), Seg(0x4258D, ("x", 192), ("y", 16)),
+                    Seg(0x42593, ("x", 248), ("y", 16)))),
+                ("line", Rect(32, 31, 248, 1, 0)),
+                ("frames", ArrOf(Win(16, 16, 280, 208), Win(245, 224, 51, 16))),
+                ("more", Seg(0x42583, ("x", 253), ("y", 224))), ("not_usable", Seg(0x42540)),
+                ("member", Obj(("x", 20), ("y", 256))), ("message", Obj(("x", 32), ("y", 288))))),
+            ("_trade", Obj(("rows", ItemRows()),
+                ("headers", ArrOf(Seg(0x4277C, ("x", 56), ("y", 48)), Seg(0x42781, ("x", 192), ("y", 48)),
+                    Seg(0x42787, ("x", 240), ("y", 48)))),
+                ("line", Rect(16, 63, 280, 1, 0)), ("member", Obj(("x", 16), ("y", 16))))),
+            ("_distribute", Obj(
+                ("rows", Obj(("top", 32), ("step", 32), ("count", 5), ("icon_x", 16), ("name_x", 48), ("points_x", 208),
+                    ("points_digits", 3), ("users_x", 240), ("users_step", 8))),
+                ("headers", ArrOf(Seg(0x40BAC, ("x", 48), ("y", 16)), Seg(0x40BB1, ("x", 192), ("y", 16)),
+                    Seg(0x40BB7, ("x", 240), ("y", 16)))),
+                ("line", Rect(16, 31, 280, 1, 0)),
+                ("frames", ArrOf(Win(16, 208, 280, 4))), ("lit_xor", 15))));
+        outObj["_endmsg"] = "s163: _endmsg(block)'s window 33 for each ending page: untitled (white, colour 15, black frame and " +
+                            "shadow) at window (x, y) of the screen, y + lower_offset for blocks > 3 other than 6; line k at " +
+                            "(text_x, text_y + line_step * k), at most 3 a page, ink colour 0. _common_proc's Lord titles go in " +
+                            "the same window (its first line). The pictures under it: the ending's street (origin (160, 20)), " +
+                            "the banquet / cell windows (160, 32).";
+        outObj["endmsg"] = Obj(("site", "0xA8B2"), ("window", Win(160, 68, 312, 52)), ("lower_offset", 232),
+            ("upper_blocks", ArrOf(0, 1, 2, 3, 6)), ("text_x", 16), ("text_y", 4), ("line_step", 14), ("lines", 3),
+            ("fill", 15), ("text_colour", 0),
+            ("scene_y", Obj(("p4.ending.street", 20), ("p4.ending.banquet", 32), ("p4.ending.cell", 32))));
     }
 
     private static JsonObject Lists(byte[] img, JsonObject panels)

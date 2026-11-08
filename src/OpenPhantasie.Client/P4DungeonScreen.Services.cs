@@ -237,9 +237,10 @@ public sealed partial class P4DungeonScreen
             lines.AddRange(ProfileLines(p, 1));
         if (W.HallPerson is { } h)
             lines.AddRange(HallLines(h));
-        foreach (var l in W.Box)
-            if (l.Length > 0)
-                lines.Add(new(l, MenuLineStyle.Normal));
+        if (!MessagesInWindow) // s163: the bank's lines are in its window under the picture
+            foreach (var l in W.Box)
+                if (l.Length > 0)
+                    lines.Add(new(l, MenuLineStyle.Normal));
         if (W.Prompt == P4TownPrompt.Shares)
         {
             lines.Add(new(UiText.F("p4.town.share_gold_x", W.ShareAmount), MenuLineStyle.Header));

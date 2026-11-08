@@ -333,7 +333,7 @@ public class Phantasie2CampaignTests
     public void Dragon_KilledAfterAttack_WinsNothing()
     {
         // live s83 (parity/encounters-endgame-live.md §8): a TOSS kills PLUTO'S ICE DRAGON; an ordinary victory (the ST's
-        // "EACH SURVIVOR GETS 50000 XP AND 0 GP" share display is D2-043, decided s84 as the option `p2.combat-shares`; the remaster shows the manual's totals)
+        // "`core.combat.each_survivor_gets` 50000 XP AND 0 GP" share display is D2-043, decided s84 as the option `p2.combat-shares`; the remaster shows the manual's totals)
         // and its treasure, but no ending: SCORE stays 100, the party stays in DNG8 and (32,33) is the plain "ICE CAVERN".
         var s = AtTheDragon(Phantasie2Campaign.DragonGateScore, lastDead: false);
         foreach (var m in s.Party.Members)
@@ -444,7 +444,7 @@ public class Phantasie2CampaignTests
     [OriginalDataFact]
     public void Minion_DissolveWin_DropsNoAmulet()
     {
-        // live s82 (parity/encounters-endgame-live.md): MONSTERS START DISSOLVING ends the fight, the group's count word is not
+        // live s82 (parity/encounters-endgame-live.md): `core.combat.monsters_start_dissolving` ends the fight, the group's count word is not
         // -1, so combat_victory gives no amulet and sets no flag.
         var s = WithParty(members: 4);
         foreach (var m in s.Party.Members)
@@ -554,7 +554,7 @@ public class Phantasie2CampaignTests
     public void PartyDefeat_II_FateLines_OnePerMember()
     {
         // live s83 (parity/encounters-endgame-live.md §9): a three-member party (L15, L3, CON 0) wiped by a night fight
-        // shows "GLADE YOU HAVE BEEN RESURRECTED", "YOSHI YOU HAVE BEEN GRANTED UNDEAD STATUS", "FOREST YOU HAVE BEEN
+        // shows "GLADE YOU HAVE BEEN RESURRECTED", "YOSHI YOU HAVE BEEN `core.defeat.x_status_undead`", "FOREST YOU HAVE BEEN
         // DESTROYED" and nothing for the empty record past the party (mode 6 hands 0x12678 the last index, not the count).
         var s = WithParty(members: 3);
         Assert.True(s.LeaveTown());
@@ -573,7 +573,7 @@ public class Phantasie2CampaignTests
         var fates = result.Log.Skip(3).ToList(); // after the banner, the Astral Plane and the Great Demon
         Assert.True(fates.Count == 3, string.Join("\n", result.Log));
         Assert.Equal("HERO0 YOU HAVE BEEN RESURRECTED", fates[0]);
-        // The test process reads I's string table first (GameTextSetup); II's table holds "GRANTED UNDEAD STATUS".
+        // The test process reads I's string table first (GameTextSetup); II's table holds `core.defeat.x_status_undead`.
         Assert.Contains(fates[1], new[] { "HERO1 YOU HAVE BEEN RESURRECTED", GameText.F("core.defeat.x_status_undead", "HERO1") });
         Assert.Equal("{0} YOU HAVE BEEN GRANTED UNDEAD STATUS", GameTextSetup.PhantasieII.Get("core.defeat.x_status_undead"));
         Assert.Equal("HERO2 YOU HAVE BEEN DESTROYED", fates[2]);

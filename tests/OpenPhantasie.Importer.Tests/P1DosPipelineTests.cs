@@ -11,6 +11,19 @@ namespace OpenPhantasie.Importer.Tests;
 /// </summary>
 public class P1DosPipelineTests
 {
+    [RequiresFilesFact("tools/scripts/extract_maps.py", "src/OpenPhantasie.Data/GameData/phantasie1/dungeons.json")] // s163: the shipped file is not in the public repo
+    public void DungeonsNote_IsTheExtractorsWording_InTheShippedFileAndThePort()
+    {
+        // User s159: I's dungeons.json _note takes what extract_maps.py writes (it kept an older script note before s160).
+        var script = File.ReadAllText(Repo.Path("tools/scripts/extract_maps.py"));
+        var dn = script[script.IndexOf("dn = {", StringComparison.Ordinal)..];
+        var note = System.Text.RegularExpressions.Regex.Match(dn, "\"_note\": \"([^\"]*)\"").Groups[1].Value;
+        Assert.StartsWith("raw feature bytes; [C] grid", note);
+        Assert.Equal(note, MapTables.DungeonNote);
+        var shipped = JsonNode.Parse(File.ReadAllBytes(Path.Combine(Repo.GameData, "phantasie1", "dungeons.json")))!;
+        Assert.Equal(note, (string?)shipped["_note"]);
+    }
+
     private const string Image = "reverse-engineering/dos/original-images/phantasie1/phantasie-1987-ssi-360k.ima";
     private const string Profile = "p1-dos-1987";
     private const string GameData = "src/OpenPhantasie.Data/GameData/phantasie1/";

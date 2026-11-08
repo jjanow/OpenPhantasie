@@ -47,6 +47,35 @@ public class TitleTuneTests
         }
     }
 
+    /// <summary>s160: the Paula title tunes (I, III) take the AMIGA AUDIO FILTER switch: on by default, off renders a
+    /// brighter tune (more sample-to-sample movement) of the same length.</summary>
+    [OriginalDataTheory]
+    [InlineData(GameId.P1)]
+    [InlineData(GameId.P3)]
+    public void PaulaTitleTunes_TakeTheFilterSwitch(GameId game)
+    {
+        const int frames = 5 * Rate;
+        float[] Head(TuneRenderer r)
+        {
+            var buf = new float[2 * frames];
+            r.Render(buf, frames);
+            return buf;
+        }
+        static double Roughness(float[] s)
+        {
+            double sum = 0;
+            for (var i = 2; i < s.Length; i += 2)
+                sum += (s[i] - s[i - 2]) * (double)(s[i] - s[i - 2]);
+            return sum;
+        }
+        var on = TuneRenderer.For(Tune(game), Rate)!;
+        var off = TuneRenderer.For(Tune(game), Rate, a500Filter: false)!;
+        Assert.Equal(on.Length, off.Length);
+        var onHead = Head(on);
+        Assert.Equal(onHead, Head(TuneRenderer.For(Tune(game), Rate, a500Filter: true)!));
+        Assert.True(Roughness(onHead) < Roughness(Head(off)), $"{game}: the filter changes nothing");
+    }
+
     [OriginalDataFact]
     public void Renderer_StopsAtTheEnd_AndRendersNothingMore()
     {

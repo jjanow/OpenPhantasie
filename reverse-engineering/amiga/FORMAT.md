@@ -719,7 +719,8 @@ the waveform, the expansion buffer). Remaster: `OpenPhantasie.Data.Audio.AmigaDo
   wrap of the finishing one). PAL or NTSC pitch: the remaster uses the NTSC clock the constant was computed for (pack
   `clock_hz` 3 579 545).
 - **The A500's output filters (s158) `[C]`**, modelled in `OpenPhantasie.Client.Audio.A500AudioFilter` (every Paula sound:
-  I's tune and effects, III's tunes and effects; `PaulaMixer(…, a500Filter: true)` by default). Source: Commodore's
+  I's tune and effects, III's tunes and effects; `PaulaMixer(…, a500Filter: true)` by default; s160: the remaster's
+  per-game Options switch AMIGA AUDIO FILTER, on by default, turns it off for Paula's raw output). Source: Commodore's
   *A500 System Schematics* (#312511-02 rev 5 and #312511-03 rev 6A/7, sheet 4 "AUDIO FILTERS"; scan
   `devili.iki.fi/pub/Commodore/docs/books/System Schematics A500 Revisions 5, 6A, 7.pdf`, PDF pages 9 and 19; the
   filter values are the same in both, only the EMI parts and the coupling capacitor 0.22 / 0.33 µF differ). Per side,
@@ -796,17 +797,86 @@ expanded by `+0x9bc`). Period, volume and length come per step from the script; 
   `+0x7a`) returns a direction, i.e. at every overworld / dungeon step (live s153: a 0.064-s tone after each step click);
   h23 / h26 / h29 (Guild, Temple, shops, town bar: clicks in the town's own windows, which the remaster draws as its own
   screens): s158 wired for the sheet (h29 `+0xcf4` / `+0xe86` / `+0xf52` / `+0x934`) and Guild › New's PURGE / KEEP (h23
-  `+0xc56`), pack `cue_sounds.sheet_tone`; the rest (h23 `+0x22a` / `+0x88e` / `+0xa34` / `+0xbf8`, h26 ×6, h29 `+0x318` /
-  `+0x75e` / `+0x7dc`: the town's own list windows) not wired `[~]`; h23 `+0x734` is the spell list's (wired s134).
+  `+0xc56`), pack `cue_sounds.sheet_tone`; s162: h26 `+0xdb6` (the [original text] list, after each gadget) wired, pack
+  `cue_sounds.list_tone` (the remaster's list has no scroll gadgets, whose tones the Amiga also plays `[~]`); h23 `+0x22a` is the member chooser's (h23 `+0x1f8(n, title)`, requester 6 through h86 `+0`;
+  callers h5 `+0xdc2` / `+0x1116` / `+0x13c2`, h8 `+0x84` / `+0x642` / `+0xfa2` / `+0x11a2` / `+0x1354` / `+0x13fe`): the
+  tone only when it returns 0 (nobody picked: the cancel), not after a pick (s162 static `[C]`); h23 `+0x88e` follows the
+  Temple's requester (h84 `+0x1d2a`, "… THE GODS"); the rest (h23 `+0xa34` / `+0xbf8`, h26 `+0x16a` / `+0x33e` /
+  `+0x614` / `+0x8f6` / `+0xafe`, h29 `+0x318` / `+0x75e` / `+0x7dc`: the town's own list windows) not mapped; none of
+  these wired `[~]`; h23 `+0x734` is the spell list's (wired s134).
   `+0xe0`: h41 `+0x19a` the dungeon wall (wired s141); h26 `+0x72` / `+0x1a8` (the alerts' beep) wired s158 by line (pack
   `cue_sounds.alerts`, `P2AlertBeeps`: Guild Add's NO ROOM and move question, the Armory's AFFORD / NINE ITEMS, Guild
   Spells' NO MORE / AFFORD / LEARNED / FAILED, training's AFFORD and NEED MORE, NO ONE IS WISE, ASSEMBLE A GROUP, aging's
-  DIED / AGED, the map Cast's NOT ENOUGH MAGIC; not mapped `[~]`: "D O N E !" (h8 ×4 via h26 `+0x38`), "UNUSABLE" (h8
-  `+0x13e0`), the printout questions (h29 `+0x1e0` / `+0x210`). h32 `+0x5e4` / `+0x636` the defeat's raw tone. **Built s153:** pack
+  DIED / AGED, the map Cast's NOT ENOUGH MAGIC. **s162 (static) `[C]`, the rest of h26 `+0x6e`'s callers** (h84's
+  pointer table `+0x1a8…+0x1dc`): "D O N E ![O.K.]" (h84 `+0x11e`, through h26 `+0x38`) after h8's town Resurrection
+  (`+0x10ac`, `+0x1134`; **s163 correction** `[C]`: the loop rolls each dead member in party order and **returns after the
+  first one raised**, so one beep and one requester per cast, as DOS's OV1 `0x2693` and Core), town Healing (`+0x1190`,
+  `+0x12ae`) and a potion drunk in town (Use item `+0x1342`: `+0x14ba`, `+0x1540`); "UNUSABLE[SORRY]" (h84 `+0x12e`,
+  h26 `+0x62`) when the town's Use item picks an item outside 101–150 (`+0x13e0`); "[original text]"
+  (h84 `+0x16e`, h29 `+0x1da`) when a scroll (121–140) is read (h8 `+0x155e` → h29 `+0x24e`: the text read, the
+  question, NO shows it, YES → the next); "[original text]" (h84 `+0x18c`, h29 `+0x1f6`, asked again until
+  Open("prt:") succeeds) from the scroll's YES and from the town's Printout (h5 `+0x6c4` → h29 `+0x10ba`). **Built
+  s162** (beeps only; the requesters are not drawn, the remaster's line or screen stands in `[~]`): Core's
+  `town.cast_done` cue → 32 (pack `cue_sounds.cues`; Core cues once where the Amiga beeps per member raised `[~]`), the
+  drink lines in town (`cue_sounds.alerts`), a scroll read in town (`cue_sounds.scroll_read`, as its text shows) and the
+  Printout command (`cue_sounds.printout`). UNUSABLE has no remaster moment: D-061 shows the item's description there.
+  **s163 (static) `[C]`, the answers:** h86 `+0x32a` returns the button's index (0 = the first: YES / O.K.), and h26
+  `+0x6e` passes it on. h29 `+0x1da` returns 1 for YES. h29 `+0x24e(item)`: the text read into a 20 × 40 buffer (h20
+  `+0xa0`; a failed read returns at once), the question; YES → `+0x1f6`, which loops `PREPARE PRINTER` (beep and requester
+  each time) while O.K. is answered and Open("prt:") fails, returns 0 on ABORT and 1 once the printer opens; then the 20
+  rows go to the printer (h20 `+0x11a`), Close, and **no text is shown and no tone**; NO or ABORT → the 20 rows into
+  ITexts `0x98…0xab` (h84 `+0x1d2a`), requester 19 (h86 `+0(0x13)`), then the tone h89 `+0xd2` (`+0x318`). h29 `+0x10ba`
+  (the town's Printout) asks `+0x1f6` and prints the party only on 1. **Built s163:** under AMIGA SCREENS the three are
+  requester 0 in the town (pack `map_requesters.town` `done` / `scroll_printout` / `prepare_printer`, stored pens on the
+  town palette): D O N E ! after `town.cast_done`'s beep and after a potion drunk in town (`UseItemDialog.PotionsDrunk`),
+  any key or O.K. closes it; the scroll's question before its text (`UseItemDialog` steps `PrintAsk` / `PrinterAsk`, Y / N,
+  O.K. / ABORT: O.K. writes the scroll's lines to a text file, the remaster's printer, as the Printout does; a failed write
+  asks again with its beep); the Printout asks PREPARE PRINTER first (ABORT writes nothing). The beep plays at each
+  question (`PrintoutBeeps`), the requester shows with it (the Amiga: after it `[~]`). Requester 19 (the scroll's
+  text) is not drawn: the remaster's text panel stands in `[~]`. Tests `P1MapRequesterTests.TownAlerts_DoneAndPrintout_s163`,
+  `TownAndGuildDialogTests.UseItem_AmigaTown_AsksPrintoutBeforeTheScroll_s163`; seen on Xvfb
+  (`parity/shots/p1-remaster-town-done.png` after a town Healing I, `-town-prepare-printer.png` from Option › Printout;
+  the scroll's question only in the test, the test party carries no scroll).
+  **s163 (static) `[C]`, the town's other `+0xd2` callers** (h5 `+0x616`'s town menu: 0 Cast spell h8 `+0xf94`, 1 Use
+  item h8 `+0x1342`, 2 Printout h29 `+0x10ba`, 3 Show party h26 `+0x322`, 10 the Guild, 11 the Armory h8 `+0`, 12 the
+  Bank h8 `+0x608`, 13 the Inn h8 `+0x6be`, 14 h8 `+0xc44`, 15 the Temple h8 `+0xd84`): h23 `+0x88e` the Temple's rank
+  requester 5 ("… THE GODS", h8 `+0xf46`); h23 `+0xa34` Guild › New's list window (h23 `+0x970`, from `+0x8d8` "CREATING
+  %s", h5 `+0x914`), after each gadget; h23 `+0xbf8` the window of h23 `+0xb5a` (from h8 `+0xae8`, the rows "%c
+  %-10.9s%-4.3s%4d%4d%4d", h8 `+0x93c`) `[~]` which building not traced; h26 `+0x16a` Use item's item list (requester 17,
+  h26 `+0xee` from h8 `+0x1392`), after its answer; h26 `+0x33e` Show party (requester 6 through h23 `+0x246(7)`), after
+  it closes; h26 `+0x614` / `+0x8f6` the Armory's two lists (h26 `+0x4d0` "%-10.9s%-9.8s%-5.4s%-5.5s", `+0x758`
+  "%-29.29s" / ARMORY IS EMPTY), after each gadget; h26 `+0xafe` the Inn's report (requester 15, "%-9s IS RESTING %s",
+  h8 `+0x778`), after it closes; h29 `+0x318` the scroll's text (above); h29 `+0x75e` / `+0x7dc` the town entry's
+  hand-out (h5 `+0x34a` → h8 `+0x16d6`: the list h29 `+0x322`, then "%u GOLD" / "AND %u XP", requester h29 `+0x76c`).
+  **Built s163:** Use item's (`UseItemDialog.Tones`, pack `cue_sounds.list_tone`): the member choosers' cancel (h23
+  `+0x22a`: WHO WILL USE? h8 `+0x1354`, a potion's ON WHOM? `+0x13fe`), the item list's answer (h26 `+0x16a`) and the scroll text's close (h29 `+0x318`). Not wired `[~]`: the
+  other member choosers' cancel, the Temple (no remaster moment), Guild › New's list, h23 `+0xb5a`'s window, Show party,
+  the Armory's lists, the Inn's report and the entry hand-out (the remaster's screens differ: a line, a panel or the
+  inspect pages).
+  h32 `+0x5e4` / `+0x636` the defeat's raw tone. **Built s153:** pack
   `cue_sounds` (`CueSounds`, Client `Game1.P1Cues.cs`): under AMIGA SCREENS the step tone at each one-cell overworld /
   dungeon move, 19 when "A TOWN. ENTER?" / "[original text]" opens, 27 when the BLACK KNIGHTS menu opens. s158: 22 before
-  the town TRANSPORTATION's fade (h26 `+0xe4a`, a town picked; pack `cue_sounds.transport`), the fade itself not drawn
-  `[~]`. Also built s153: 2 before the morale check's
+  the town TRANSPORTATION's fade (h26 `+0xe4a`, a town picked; pack `cue_sounds.transport`). **s162 (static) `[C]`, the
+  fade h26 `+0xe30`:** `h80 +0x818(" ", 2)` (h27 `+0x152`: the line cleared), 22 (blocks), then for pens 0–15
+  `h77 +0x288(pen, 0)` = SetRGB4(pen, 0, 0, 0) and 10 WaitTOF (graphics −0x10e), 100 WaitTOF, for pens 0–15 SetRGB4 back
+  from h69 `+0x54` (the town palette) and 7 WaitTOF, then `DisplayBeep(screen)` (intuition −0x60, h237 `+0x68`) three
+  times and h89 `+0x1da` (an `rts`: nothing silenced). The list window stays up (h8 `+0x12ea` ends it after h26 `+0xc72`
+  returns), then h5 `+0x2e0` enters the new town. 372 frames: 6.2 s at 60 Hz (7.44 s on PAL `[~]`). II ST's `0x260a` is the
+  same loop. **Built s162:** pack `transport_fade` (`StTransportFade` with `after_sound` / `original_screens_only`):
+  under AMIGA SCREENS the frame with the list stays frozen while the list's tone and 22 play, then the pens go black and
+  come back on it as on the ST (`TransportFadeFilter`); test `P1DefeatScreenTests.TransportFade_MatchesTheLoopsOfH26`;
+  seen on Xvfb (`parity/shots/p1-remaster-town-transport-fade.png`, mid fade-out over the list; black ~6.3 s after the
+  pick until the new town). **Filmed s163** (`working/capture_s163_filming.md`, two runs, NTSC, with sound) `[C]`: the
+  list's tone at the release, the name line cleared 5 frames later, 22 (0.61 s), the fade 37 frames after 22's start,
+  **372 / 373 frames** from pen 0 to the flash (the model), the menu bar's text fading too; the three DisplayBeeps are
+  **silent** and show colour 0 as `#FFFFFF` over the whole screen for 2–3 frames (one flash); the new town is drawn
+  under the flash, its name 1–2 frames after it; release → name 6.95–6.98 s. **Built s163:** pack `transport_fade`
+  `flash_vbl` 3 / `flash_colour` (`StTransportFade.IsFlash`, `TransportFadeFilter`: register-0 pixels white), the frame
+  unfrozen at the fade's end so the new town shows under the flash (test
+  `P1DefeatScreenTests.TransportFade_EndsInTheDisplayBeepFlash_s163`); seen on Xvfb at 60 fps (3 frames, the new town
+under it: `parity/shots/p1-remaster-town-transport-flash.png`; the remaster's name shows during the flash, the Amiga's
+1–2 frames after `[~]`). Left: the town's name stays on the frozen frame
+  where the Amiga clears its line first `[~]`; a PAL run (7.44 s by the model) not filmed. Also built s153: 2 before the morale check's
   "MONSTERS RUN" box (`combat_field.message.sounds_before`, `P1CombatFieldRun`; it holds the run).
   **s154 (static) `[C]`:** h65 `+0` loops on h80 `+0xb48` until a code 0–8 comes (cursor keys 5–8; a click on a cell next
   to the party, `0x32` → h56 `+0xb2a` / `+0xc08`, any other cell loops on with no tone; the Options menu's picks 0–4 =
@@ -1179,7 +1249,11 @@ font file, and the window gave the id only, so every report title (s144 on) was 
 line pixel-equal to `p1-amiga-town-leaving-pelnor-live`). **Filmed s158** (`capture_s158_filming.md`): the
 inn's "  IN THE INN" report, the map's HEALTH REPORT (box (33, 45, 255, 110), OK (42, 136, 235, 9) as built), the fight's
 Party health (Top 45, not 23: corrected), requester 25's band, a row click ending a MESS window, the uncut window length.
-The magical pool (OUT5 (16, 13) only) not filmed `[~]`.
+**The magical pool, filmed s163** (`working/capture_s163_filming.md`, OUT1 (14, 16) patched to 111) `[C]`: the step
+tone only (no sound of its own), the sprite off, then requester 21 with "A MAGICAL POOL" and one "%-10.9s IS CHANGED" row
+per member; it **waits for OK** (frame and OK pixel-equal to the Health report's), as built. The title at x 106, rows
+at x 41 and "IS" at x 107 were read off `p1-amiga-map-magical-pool` and agree with the pack; the remaster's window was not
+rastered against the shot `[~]`. Not compared: the members' stats before / after.
 
 ## Requesters 0, 22 and 14 (s154, static) `[C]`
 
@@ -1253,7 +1327,11 @@ the key of its answer (Y / N on YES / NO, else the digit); the remaster's keys a
 only; keys kept, user decision s154). A blocked wilderness step whose log has Core's "THE RIVER STYX" / "[original text]"
 opens requester 0 with OK (`Game1.P1Requesters.cs`): it owns every key, button and click until a new key, a pad button or
 the OK click (Return) closes it; the party sprite is off and the water stands still under it, the line stays empty, a
-diagonal step stops there. Inspect's sheet in the town or the Guild (`InspectDialog.SheetMember`) is requester 14 over the
+diagonal step stops there. **Filmed s163** (`working/capture_s163_filming.md`; OUT1 (14, 14) patched to 100, STYX by the
+debugger's nop on h59 `+0x400`): both requesters pixel-equal to the built ones (`p1-amiga-map-the-ocean`,
+`-the-river-styx`; test `OceanAndStyx_MatchTheLiveShots_s163`); the step tone first; the party sprite is drawn on the
+blocked cell for 2 frames before the box (h59 `+0xc8` moves it before `+0xd2` reads the tile) and is back on the old
+cell after OK: the remaster keeps it on the old cell `[~]`; a double click gives two refusals (the second click queued). Inspect's sheet in the town or the Guild (`InspectDialog.SheetMember`) is requester 14 over the
 town picture: SPELLS / EQUIPMENT / SKILLS / POTIONS send 1–4 (the remaster's own pages follow `[~]`), EXIT sends Esc (back
 to the picker). Texts on this path are the Amiga's ("[original text]", "A TOWN.  ENTER?" with two blanks, "YOU SPOT" /
 "SLEEPING MONSTERS!" on two rows, OK); the DOS path keeps Core's. Dev switch `--p1-map-question
@@ -1434,7 +1512,17 @@ Static RE of `game` (hunk-relative offsets; hunk 69 = graphics data at file `0x1
 - **Fog:** map rect cleared to black, rects of cells < 120 copied back (`h56:0x254/0x2ea/0x860`).
 - **Dungeon map:** `h56:0xd10` 5×4 cells at (10,16); glyph ids `0xe6..0xed` as DOS (`h56:0xf76`), 16×4 4-plane
   bitmaps, 32 B each at hunk 69 + `0x894` (`h77:0xbc0`), blitted 5×4. Compass 64×63 at hunk 69 + `0x2af4`, drawn at
-  (214,68) (`h56:0xe98`; not shown by the remaster yet). The Amiga saves the drawn dungeon map as a 32000-B screen.
+  (214,68) (`h56:0xe98`: h77 `+0xcfe(12, h69 +0x2af4, 214, 68, 64, 63)`). The Amiga saves the drawn dungeon map as a
+  32000-B screen. **s162 (static) `[C]`, the map area:** `h56 +0xd10` stores the rect (10, 16, 165, 152) at h58 `+0x228`
+  (and (0, 0, 320, 200) at `+0x230`), then opens the saved map (h57 `+0x10`); when it is there and its first word is
+  this level, it reads the 32000 B and blits the rect back from it (`h77 +0xcfe(11, …)`); otherwise (`+0xe2e`)
+  `h77 +0xa60(13, 10, 16, 165, 152)` = SetAPen 13, RectFill(10, 16, 175, 168): the whole map area pen 13 (`#888888`),
+  the seen cells' glyphs blitted over it as the party walks. The pen-10 frame (`+0xe7c`, drawn next) covers x 175 /
+  y 168, so x 10–174 / y 16–167 (33 × 38 cells) shows the grey (live s158). Then the compass, and LoadRGB4 of the map
+  palette (`+0xedc`). **Built s162:** pack `map_layout.dungeon_unseen_colour` `#888888`, drawn under the glyphs on both
+  of the remaster's layouts (`Game1.DrawDungeonGlyphs`); the compass's place checked: every pixel of `compass.png` at
+  (214, 68) equals the live entry shot (`P1MapBarTests.DungeonCompass_MatchesTheLiveShot`; s158's "about 10 px off" was
+  the remaster's 2.5× window shot read at 3×).
 - **vs DOS:** terrain equals the DOS grid except OUT2 (11,8) and OUT12 (11,14) (Amiga water patch, DOS mountain /
   forest; Core runs DOS). **User s53: keep the DOS terrain, patch the picture** — the extractor fills each lake polygon
   with the DOS class pattern; it also applies `map-patches.json` (APPLETON's OUT13 (17,19) → town icon, D-060). Initial fog differs in OUT9/10/11/13/14. Glyph-per-cell rule: DOS OV2 `0x21df` is used;
@@ -1625,9 +1713,8 @@ speech, pen 5), h53 `+0xba8` (the fight's line, pen 3, 185) and **h41 `+0x10d8`*
   `+0xe7c`: (7, 13, 170, 155, pen 10), with h69 `+0x2af4` blitted at (214, 68)) and the fight (h53 `+0x45c`: (0, 11, 319,
   186, pen 1)). **Built s158:** the dungeon's (pack `map_message.dungeon_frame` (7, 13, 171, 158), 3 px, pen 10
   `#446600`; live `p1-amiga-dungeon-entry-frame`, test `P1MapBarTests.DungeonFrame_MatchesTheLiveShot`; remaster shot
-  `p1-remaster-dungeon-frame`). Left `[~]`: the Amiga fills the dungeon map's unseen cells pen 13 grey `#888888` (live),
-  the remaster leaves them black; the remaster's compass sits about 10 px left / up of h69 `+0x2af4`'s (214, 68) and adds
-  its own "D1 SOUTH (x, y)" lines.
+  `p1-remaster-dungeon-frame`). s162: the unseen cells' grey built and the compass's place checked (Dungeon map, above).
+  The remaster adds its own "D1 SOUTH (x, y)" lines under the compass (the Amiga has none).
 
 ## Tooling
 

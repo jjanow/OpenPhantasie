@@ -75,20 +75,24 @@ public static class P4Town
     /// gets full MP and HP and <c>_heal(member, 2)</c> on the wounds; then every member's carried Rings of Magic Power /
     /// Healing and those in the pack get 20 charges. A living member whose MP-growth flag +72 is set (a spell cast in
     /// combat) may first gain 1 max MP (<see cref="P4TownRules.InnMpGrowth"/>, training.md §4.2; needs
-    /// <paramref name="services"/> and <paramref name="rng"/>).
+    /// <paramref name="services"/> and <paramref name="rng"/>). s163: returns the rows the original prints in the inn's
+    /// window (<c>_inn</c>: member m's row, the MP line after "slept" on the same row).
     /// </summary>
-    public static void InnStay(P4Party party, P4MessageWindow window, P4ServiceTables? services = null,
+    public static IReadOnlyList<P4InnRow> InnStay(P4Party party, P4MessageWindow window, P4ServiceTables? services = null,
         IRandomSource? rng = null, P4TownTables? towns = null)
     {
         ArgumentNullException.ThrowIfNull(party);
         ArgumentNullException.ThrowIfNull(window);
-        foreach (var m in party.Members)
+        var rows = new List<P4InnRow>();
+        for (var index = 0; index < party.Members.Count; index++)
         {
+            var m = party.Members[index];
             if (m.Alive)
             {
-                window.Line(m.Name + GameText.S("p4x.0x3f6f0"));
-                if (services is not null && rng is not null && P4TownRules.InnMpGrowth(services, rng, m))
-                    window.Line(m.Name + GameText.S("p4x.0x3f6fc"));
+                // s163: _inn prints " MP が上がった !" after " は眠った．" on the member's row (both _wprint).
+                var mpUp = services is not null && rng is not null && P4TownRules.InnMpGrowth(services, rng, m);
+                window.Line(m.Name + GameText.S("p4x.0x3f6f0") + (mpUp ? GameText.S("p4x.0x3f6fc") : ""));
+                rows.Add(new(index, m.Name, mpUp));
                 m.Mp = m.MpMax;
                 m.Hp = m.HpMax;
                 P4Body.Heal(m.Wounds, towns?.InnHealPoints ?? 2);
@@ -104,6 +108,7 @@ public static class P4Town
             if (party.Pack[i] is P4Party.RingA or P4Party.RingB)
                 party.PackCharges[i] = P4Party.RingCharges;
         }
+        return rows;
     }
 
     /// <summary>Days a town inn stay passes: two weeks under the manual (D4-032; added to the party's day counter), none in the code.</summary>
@@ -140,3 +145,6 @@ public static class P4Town
             .Select(_ => t.ShopRandomItems[P4Dice.Rand(rng, 2 * Math.Min(levelSum, 12) + 5) + 1])
             .ToList();
 }
+
+/// <summary>s163: a row of the inn's window (<c>_inn</c>): party member <see cref="Member"/> slept, and gained 1 max MP when <see cref="MpUp"/>.</summary>
+public sealed record P4InnRow(int Member, string Name, bool MpUp);

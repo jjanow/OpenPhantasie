@@ -49,11 +49,11 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 | D2-043 | End-of-combat XP / gold repeats I's D-053 (manual: totals shown, divided on town entry; ST: "[original text]" shares at once) | DECIDED: manual, as I's D-053 (user s84; ST shares as option) · built (`p2.combat-shares`) |
 | D2-044 | DIVINE I's deity index 4 (both draws 100): the ST reads past its four-name table and faults; manual silent | **DECIDED** (user s92: show ZEUS) |
 | D2-045 | The ST repeats I's DOS side on 29 more shared rules (D-010…D-078 audit, s92 + s95; D-015: the ST already plays I's decision; D-033 differs): II plays I's manual decisions through shared code, with no ST option | **DECIDED** (user s92: I's decisions hold for II; D-033 too) |
-| D2-046 | Apple II vs ST: the wilderness is turned a quarter (compass words in scrolls, movement keys, OUT28 castle entrances) | PENDING |
-| D2-047 | Apple II vs ST: five monster numbers (VIPER, FIRE ELEMENTAL, three of Pluto's beasts) | PENDING |
-| D2-048 | Apple II vs ST: DEMONIAC price factor 255 vs 150; SCROLL D / E in IPSWICH and FERRON | PENDING |
-| D2-049 | Apple II vs ST: creation cells (2 agree with the manual / D2-009, 2 ST-only skill cells) and 9 map / 2 dungeon cells | PENDING |
-| D2-050 | Apple II vs ST: text (names, scroll and message wording, menus); the Apple has no spell names | PENDING |
+| D2-046 | Apple II vs ST: the wilderness is turned a quarter (compass words in scrolls, movement keys, OUT28 castle entrances) | DECIDED |
+| D2-047 | Apple II vs ST: five monster numbers (VIPER, FIRE ELEMENTAL, three of Pluto's beasts) | DECIDED |
+| D2-048 | Apple II vs ST: DEMONIAC price factor 255 vs 150; SCROLL D / E in IPSWICH and FERRON | DECIDED |
+| D2-049 | Apple II vs ST: creation cells (2 agree with the manual / D2-009, 2 ST-only skill cells) and 9 map / 2 dungeon cells | DECIDED |
+| D2-050 | Apple II vs ST: text (names, scroll and message wording, menus); the Apple has no spell names | DECIDED |
 
 ---
 
@@ -553,7 +553,9 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 The importer builds II from the Apple II version (user s158, `docs/plan/10-importer.md` section 6). D2-046 to D2-050
 compare the Apple II v1.0 (2/5/86) data with the ST data today's GameData holds; "Manual" is the same combined
 rulebook. Evidence: static, `reverse-engineering/apple2/phantasie2/FORMAT.md` (section 5) and
-`tools/scripts/diff_a2_p2_vs_st.py`. Nothing here is built; the remaster still plays the ST data.
+`tools/scripts/diff_a2_p2_vs_st.py`. An ST build plays the ST data; an Apple-only import is built as each entry's
+"Remaster" line says (s160: the importer's `P2Apple2` pipeline with the shipped `GameData/phantasie2/apple2-import.json`
+and `strings/fallback.en.json`).
 
 ## D2-046 — The wilderness is turned a quarter between the Apple II and the ST
 
@@ -563,9 +565,13 @@ rulebook. Evidence: static, `reverse-engineering/apple2/phantasie2/FORMAT.md` (s
   says WEST, NORTH for EAST, WEST for NORTH (scrolls 121, 124, 126–129, 131, 138, 140), and the eight entrances of the
   Black castle (OUT28) lead to DNG7's start cells shifted by a quarter turn (the dungeon maps themselves are the same).
 - **ST:** today's GameData: the ST's compass, scroll words and OUT28 entrance table.
-- **Decision:** PENDING. Choices: keep the ST's world and text whatever the source copy (only numbers taken from the
-  Apple); or, for an Apple import, use the Apple's text **and** turn the map display, keys and OUT28 table with it.
-- **Remaster:** ST orientation.
+- **Decision:** (user s159) keep the ST's world whatever the source copy: ST compass, keys and OUT28 table. An Apple
+  import's scroll text has its compass words swapped to the ST orientation at import (D2-050).
+- **Remaster:** ST orientation (built). Apple-only import (s160): OUT28's eight entrances take the ST's destinations
+  (`apple2-import.json` `st_cells`); the compass words of SCROLLL1-20 are swapped at import (NORTH → EAST, EAST → SOUTH,
+  SOUTH → WEST, WEST → NORTH, all at once, at the start of a word: SOUTH-ERN, NORTHERN), each boxed line keeping its
+  width. After the swap the scrolls' 21 compass words equal the ST's in order (test). Dungeon messages and wilderness
+  texts are not touched (the dungeon maps are the same; the 43 wilderness texts agree with the ST's).
 - **Side effects:** taking the Apple's scroll text without turning the map makes every direction in it wrong.
 
 ## D2-047 — Five monster numbers
@@ -574,8 +580,8 @@ rulebook. Evidence: static, `reverse-engineering/apple2/phantasie2/FORMAT.md` (s
 - **Apple II / ST** (`MN2x` / `PHANT.PRG` table): VIPER (6) companions 1, 1 / 0, 0; FIRE ELEMENTAL (53) reaction
   modifier −10 / 0 and treasure 0, 0 / 0, 135; PLUTO'S WYVERN (74) damage 40 / 35; PLUTO'S GIANT WYVERN (76) attack
   power 350 / 300; PLUTO'S DRAGON-DEMON (77) attack power 800 / 400. Every other number of the 80 monsters agrees.
-- **Decision:** PENDING (which version's numbers an Apple import uses, and whether the remaster changes).
-- **Remaster:** ST values.
+- **Decision:** (user s159) ST values for every source copy; an Apple import takes the ST's five numbers.
+- **Remaster:** ST values (built). Apple-only import (s160): the five numbers set to the ST's from `apple2-import.json`.
 
 ## D2-048 — Town data
 
@@ -583,8 +589,9 @@ rulebook. Evidence: static, `reverse-engineering/apple2/phantasie2/FORMAT.md` (s
 - **Apple II / ST** (`TF2` / `TWNS.INT`): DEMONIAC's price factor 255 / 150 (Apple prices there ×1.7); IPSWICH and FERRON
   stock 5 × item 127 SCROLL E / 5 × item 126 SCROLL D. Everything else in the ten towns agrees (stock, restock pool,
   exits, names; the ST's two unused towns are not on the Apple).
-- **Decision:** PENDING.
-- **Remaster:** ST values.
+- **Decision:** (user s159) ST values for every source copy (DEMONIAC 150, SCROLL D in IPSWICH and FERRON).
+- **Remaster:** ST values (built). Apple-only import (s160): DEMONIAC's factor and the four stock cells set to the ST's from
+  `apple2-import.json`.
 
 ## D2-049 — Creation-table cells, map and dungeon cells
 
@@ -595,9 +602,11 @@ rulebook. Evidence: static, `reverse-engineering/apple2/phantasie2/FORMAT.md` (s
   (17, 19) tile 100. Dungeon cells: DNG5 byte 1233 (x 12, y 37) 0x11 (floor); DNG8 byte 1095 (x 6, y 33) 0x8D.
 - **ST:** HALFLING DEX 11, MONK spell 41 at level 7 (both already replaced by D2-009), MONK L10 skill 6 = 14, PRIEST L15
   skill 8 = 4; tiles 101, 21, 72, 85; DNG5 cell 0 (wall), DNG8 cell 0x85 (forced fight).
-- **Decision:** PENDING for the two skill cells, the map and the dungeon cells (D2-009's cells need nothing: the Apple
-  agrees with the decision).
-- **Remaster:** ST values (D2-009: the manual's).
+- **Decision:** (user s159) ST cells for every source copy (the two skill cells, the 9 map and 2 dungeon cells); D2-009's
+  cells need nothing (the Apple agrees with that decision).
+- **Remaster:** ST values (D2-009: the manual's). Apple-only import (s160): the two skill cells, the 9 map cells (a fogged
+  cell keeps its fog) and the 2 dungeon bytes set to the ST's from `apple2-import.json`; every number of the Apple build
+  now equals the ST build's except OUT1's unused feature record 14 (no cell uses it).
 
 ## D2-050 — Text
 
@@ -607,10 +616,25 @@ rulebook. Evidence: static, `reverse-engineering/apple2/phantasie2/FORMAT.md` (s
   places (beside D2-046): DNG1 msg 40 "AN UNGRATEFUL SPRITE" / ST "AN EVIL GHOST"; DNG6 msgs 45, 53, 62, 77 and DNG7
   msgs 50, 77, 79, 85 have other menu choices (e.g. DNG6 53: HOLD BREATH / BREAK THE GATE / STUFF UP THE GAS SOURCE /
   PRAY TO YOUR GODS vs the ST's HOLD / RUN AWAY / SHUT OFF), plus spelling (DETENTION / DETENSION, HERE / HEAR …). The
-  Apple has **no spell names** (spells are numbers 1–60) and none of the ST's `strings/en.json` lines except Pluto's
-  speech (`SCROLLL0`).
+  Apple has **no spell names** (spells are numbers 1–60). String tables (corrected s160; s158 said "none of the ST's
+  `strings/en.json` lines except Pluto's speech"): of the 330 ids whose text the ST gives (shared 53, I's table 195,
+  II's 82), the Apple's programs hold 217 verbatim (most of I's engine lines, e.g. [original text], {0} TAKES AN
+  AMULET); 95 more it prints in its own wording (the Mystic's ranks, Pluto's speech in `SCROLLL0`, the whole Filmon
+  ending in `WIN`, LIZARD MAN, DROP WHO, ...); 18 it lacks (VALUE, MG WEAPON, IN PEACE, nine spell words, PLUTO'S
+  MINION ! !, ...).
 - **ST:** today's GameData text (mixed case in scrolls; GIANT CONST., KILLER CRUD, SM SWORD, LIZ.MAN, OK).
-- **Decision:** PENDING: which text an Apple import shows, and where the missing spell names / lines come from (the ST,
-  a remaster table, or numbers as on the Apple). Menu wording that differs changes which choice is which only if the
+- **Decision:** (user s159) an Apple-only import shows the Apple's own text (names, wording, menu labels) with the compass
+  words in its scrolls swapped to the ST orientation (D2-046); spell names come from the manual's spell list; lines the
+  Apple lacks show the remaster's own wording instead of "...". An ST import keeps the ST text. Menu wording that differs changes which choice is which only if the
   event scripts differ, and they do not (level bytes 0–1739 agree): the labels differ, the outcomes do not `[~]`.
-- **Remaster:** ST text.
+- **Remaster:** ST text (built). Apple-only import (s160): names, scrolls and dungeon text are the Apple's (scroll compass
+  turned, D2-046). Spell names: the manual's list (CB p.12: HEALING 1 ... SUMMONS ELEMENTAL, MONSTER EVALUATION ...,
+  `apple2-import.json`); the two divine spells, which the manual does not name, are "DIVINE #57" / "DIVINE #58"
+  (remaster wording `[~]`). String tables: the 217 verbatim ids and the 95 in the Apple's own wording come from the
+  player's Apple programs (`p2-apple2` alternatives in `en.sources.json`, the own-wording ones from
+  `tools/scripts/p2_apple2_own_wording.json`, applied to II only and only while II's tables are the Apple's, so I keeps
+  DOS I's lines and an ST import keeps the ST's); the 18 it lacks take the remaster's wording
+  (`GameData/phantasie2/strings/fallback.en.json`), laid under every imported file so a DOS I or ST import still wins.
+  The Filmon ending keeps the ST's line ids with the Apple's 40-column lines (the counts match); the Apple's party-size
+  number in "THESE n BRAVE ADVEN-" is left out (the id has no placeholder) `[~]`. Not checked in the Client yet: the
+  18-character MONSTER EVALUATION in II's spell windows (fit or scroll) and the Apple ending lines on the ending screens.

@@ -10,10 +10,10 @@ namespace OpenPhantasie.Data;
 /// closed door and the combat palette at once.</item>
 /// <item>Each text line (<c>+0x340</c>: centred on row <see cref="TextY"/> in pen <see cref="TextPen"/>) waits
 /// <see cref="LinePolls"/> polls of <see cref="PollSeconds"/> or a key or click (<c>h62 +0x576</c>).</item>
-/// <item>"YOUR PARTY HAS BEEN DEFEATED"; the ghost in every slot of the row (all members, one blit a frame);
-/// <see cref="GhostSound"/>; "YOU HAVE ARRIVED AT THE ASTRAL PLANE"; the door sinks (<see cref="DoorSeconds"/>, a raw
+/// <item>`core.defeat.your_party_has_been_defeated`; the ghost in every slot of the row (all members, one blit a frame);
+/// <see cref="GhostSound"/>; `core.defeat.arrived_at_astral_plane`; the door sinks (<see cref="DoorSeconds"/>, a raw
 /// Paula tone under it); <c>Delay(</c><see cref="AfterDoorTicks"/><c>)</c>; <see cref="DemonSound"/>; the Great Demon's
-/// face; "THE GREAT DEMON APPEARS AND SPEAKS:".</item>
+/// face; `core.defeat.great_demon_speaks`.</item>
 /// <item>Per member: <see cref="FateSound"/>, then its fate (portrait or cleared slot) and its line.</item>
 /// <item>A last wait of <see cref="EndPolls"/> polls or a key.</item>
 /// </list>
@@ -166,11 +166,40 @@ public sealed record CueSounds(int? Step, int? OverworldEntry, int? BlackKnights
     /// </summary>
     public FieldAlerts? Alerts { get; init; }
 
+    /// <summary>
+    /// s162: the tone (h89 <c>+0xd2</c>) after each gadget of the town's own list windows (I Amiga h26 <c>+0xdb6</c>: the
+    /// `guild.transport_to_which_town` list, a town, a scroll or the cancel), or null.
+    /// </summary>
+    public int? ListTone { get; init; }
+
+    /// <summary>
+    /// s162: a session cue (<c>FieldCues</c> name) → the sound that blocks before the original's alert for it (I Amiga
+    /// <c>town.cast_done</c>: h26 <c>+0x38</c> = the default beep, then "D O N E ![O.K.]"); empty when none.
+    /// </summary>
+    public IReadOnlyDictionary<string, int> Cues { get; init; } = new Dictionary<string, int>(StringComparer.Ordinal);
+
+    /// <summary>
+    /// s162: the beep before the printout question when a scroll is read in town (I Amiga h8 <c>+0x155e</c> → h29
+    /// <c>+0x24e</c> → <c>+0x1da</c>: h26 <c>+0x6e</c>, "DO YOU WANT PRINTOUT?[YES|NO]"; NO shows the text), or null.
+    /// </summary>
+    public int? ScrollRead { get; init; }
+
+    /// <summary>
+    /// s162: the beep before the town Printout's question (I Amiga h5 <c>+0x6c4</c> → h29 <c>+0x10ba</c> → <c>+0x1f6</c>:
+    /// h26 <c>+0x6e</c>, "PREPARE PRINTER[O.K.|ABORT]", asked again until <c>prt:</c> opens), or null.
+    /// </summary>
+    public int? Printout { get; init; }
+
     internal static CueSounds FromDto(Dto dto, string manifestPath) => new(dto.Step, dto.OverworldEntry, dto.BlackKnights)
     {
         Resurrected = dto.Resurrected,
         SheetTone = dto.SheetTone,
         Transport = dto.Transport,
+        ListTone = dto.ListTone,
+        ScrollRead = dto.ScrollRead,
+        Printout = dto.Printout,
+        Cues = (dto.Cues ?? []).ToDictionary(c => c.Key, c => c.Value >= 0 ? c.Value
+            : throw new InvalidDataException($"{manifestPath}: cue_sounds.cues: '{c.Key}' needs a sound number ≥ 0."), StringComparer.Ordinal),
         Alerts = dto.Alerts is { } a ? FieldSounds.AlertsFromDto(a, manifestPath, "cue_sounds.alerts") : null,
     };
 
@@ -182,6 +211,10 @@ public sealed record CueSounds(int? Step, int? OverworldEntry, int? BlackKnights
         public int? Resurrected { get; set; }
         [JsonPropertyName("sheet_tone")] public int? SheetTone { get; set; }
         public int? Transport { get; set; }
+        [JsonPropertyName("list_tone")] public int? ListTone { get; set; }
+        [JsonPropertyName("scroll_read")] public int? ScrollRead { get; set; }
+        public int? Printout { get; set; }
+        public Dictionary<string, int>? Cues { get; set; }
         public FieldSounds.AlertsDto? Alerts { get; set; }
     }
 }

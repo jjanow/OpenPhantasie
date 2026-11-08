@@ -111,15 +111,19 @@ number. A step or an event fight starts a new page.
 | ovl2 `0x14c4` | "Do you wish to train, now?" | 1 Yes | — (no such question in the remaster's Guild) |
 | ovl2 `0x423d` (`0x4192`) | "Really leave <name>?" | 1 Yes | — |
 | ovl2 `0x2883` (creation) | "Keep character?" | 2 No | — (the remaster's creation flow is I's) |
-| root `0x83c1…0x8465` (options) | "Are you sure you want to redistribute?" / "…load an old game…" / "…save this game…" / "…quit?" | 2 No | — (the remaster's own game menu) |
-| root `0xb075` | "Are you sure you want to purge this character permanently?" | 2 No | — (I's Purge flow) |
+| root `0x83c1…0x8465` (options) | "[original text]" (`DS:0x58e2`, after the empty-party / defeat refusals) / "…load an old game…" (S447) / "…save this game…" (S390) / "…quit?" (S389) | 2 No | s160: the first three (`P3ConfirmQuestion`, `Game1.P3Confirm.cs`) before the town's Distribute (every route but the town-entry hand-out), Save (S, Option › Save game, the bar's File › Save, the game menu / F5 in a town or the Guild) and Load (the bar's File › Load, the game menu / F9 in a town or the Guild); Quit has no remaster moment (the game menu's Main menu) |
+| root `0xb075` | "Are you sure you want to purge this character permanently?" (S407, after the elemental / party-member refusals) | 2 No | s160: after a Purge pick that Core would not refuse (`GameSession.PurgeRefusal`, `GuildPickDialog.PurgeAsked`) |
 | root `0x87ba`, `0x8aa0` | "See more info?" (inspect) | 1 Yes | — |
 | root `0x10d58` | "[original text]" One / Two (not Yes / No: Esc gives "Two") | 1 One | AMIGA SCREENS off (s156): the combat order step "NAME: [original text]  > 1 One    2 Two" (`CombatPresenter.HandleDosRankKey`: One lit, arrows move the light, Return takes it, Y / 1 = One, N / 2 / Esc = Two; Backspace walks the list again, the remaster's); on: the Amiga's window 20 |
 | ovl1 `0x380`, `0x98c`, `0x9b8` | transfer questions, "Are you playing off the hard drive?" | 2 No | — (T5 / not modelled) |
 
 **Built (s108):** every row with a remaster prompt is a `SessionPrompt` with `Remembers` = false, `InitialChoice` = the
 lit word and `EscapeChoice` = 2 (No) in III; I / II keep their own menus. The III card (AU PDF 18) says "Esc exits most
-menus", which agrees.
+menus", which agrees. **s160 (user s159):** the town's four "Are you sure …?" rows (root `0x83c1` / `0x83f1` / `0x8440`
+and `0xb075`, each `push 2` before `lcall 0:0x1820`, so "No" lit) are asked under every III layout through one Client
+question (`P3ConfirmQuestion`): with AMIGA SCREENS on and a pack with window 1 and the OK / CANCEL art, the Amiga's window 1
+(`0xaae2`, Return = OK, D3-068's split); otherwise this table's prompt, "No" lit, Return = No, Y / N, Esc = No. Sound 36
+before each (`GameSession.AskConfirmQuestion`).
 
 ## 3. Event programs `[C]` (ovl4 `0x14b0`, jump table ovl4 `0x1aea`)
 
@@ -294,7 +298,7 @@ the cell entered:
 |---|---|
 | 0x80–0x89 | forced fight `0x1d30(record[0x2d1 + cell − 0x80], 1, 0)` |
 | 8–17 | when the dungeon chance `FAR:0xdd8c` > that roll: fight `12L + rand() % 3 + cell − 8`, clear flag 0; afterwards the chance −1 while above 1. The chance is 10 on entry (ovl4 `0x679`) |
-| 2–6 | trap: the first member (not Dead / Out) passing Find Trap spots it: "<name> [original text]" — Yes: a chosen member (not Dead / Out) rolls Disarm: success "<name> [original text]" and the cell becomes 7; failure springs it; No: nothing changes (step result 0). Not spotted, or a failed disarm: "A trap!!!", every member with HP > 0 takes `rnd(5t − 25)` (12 when that is below 0 or above 25; t = 5 gives a die of 0, `[~]` what root `0x2426` does with it), the cell becomes 7 |
+| 2–6 | trap: the first member (not Dead / Out) passing Find Trap spots it: "<name> [original text]" — Yes: "[original text]" (the member picker `0x18bd(92)`, ovl4 `0x1189`; s163 static: it asks again while the pick is Dead / Out, and its cancel (−1) does as No) — the chosen member rolls Disarm: success "<name> [original text]" and the cell becomes 7, the party back where it came from (step result −1 at `0x1265`, as No; s163); failure springs it; No: nothing changes (step result 0). Not spotted, or a failed disarm: "A trap!!!", every member with HP > 0 takes `rnd(5t − 25)` (12 when that is below 0 or above 25; t = 5 gives a die of 0, `[~]` what root `0x2426` does with it), the cell becomes 7 |
 | 0xba–0xc5, 0xc9–0xd4 | a door with monsters behind: the first member passing Listen: "<name> [original text]" — Yes: fight mode 2 (the party surprises); No: back (result 1). Nobody hears: fight mode 1 (the monsters surprise). Monster `(cell ≥ 0xc8 ? cell − 15 : cell) − 0xba + 12L`, clear flag = the cell |
 | 0xc6, 0xd5 | locked door: the first member passing Pick Lock: "<name> picks the lock." and the cell becomes `cell − 13` (a plain door 0xb9 / 0xc8); nobody: result 4 (no entry) |
 | 0xc7, 0xd6 | special door: result 4, `FAR:0xde58` = 0x2a `[~]` (the manual's locks that "cannot be picked") |

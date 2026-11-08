@@ -8,8 +8,8 @@ namespace OpenPhantasie.Core;
 /// </summary>
 public static class P3Sounds
 {
-    /// <summary>A member's dungeon line: "hears monsters. Continue?", "picks the lock.", "spots a trap. Disarm it?",
-    /// "disarms the trap." (Amiga <c>0x1f572</c>); the guild's " It is learned successfully! " (<c>0x10902</c>).</summary>
+    /// <summary>A member's dungeon line: `core.p3.x_hears_monsters_continue`, "picks the lock.", `core.p3.x_spots_a_trap`,
+    /// `core.p3.x_disarms_the_trap` (Amiga <c>0x1f572</c>); the guild's " It is learned successfully! " (<c>0x10902</c>).</summary>
     public const int MemberLine = 6;
 
     /// <summary>s138: Guild New character, OK on the rolled character's sheet, before the name field (Amiga <c>0x13938</c> in
@@ -28,17 +28,17 @@ public static class P3Sounds
     /// night / surprise rolls; DOS root <c>0xde54</c> <c>[~]</c> whether DOS sounds it).</summary>
     public const int Encounter = 24;
 
-    /// <summary>Event op 7 "The party finds some gold." (op 8 on its own: left in the event word).</summary>
+    /// <summary>Event op 7 `core.p3.party_finds_gold` (op 8 on its own: left in the event word).</summary>
     public const int GoldFound = 3;
 
-    /// <summary>Event op 12 "The party is teleported." (op 13 writes nothing).</summary>
+    /// <summary>Event op 12 `core.p3.party_is_teleported` (op 13 writes nothing).</summary>
     public const int Teleported = 9;
 
-    /// <summary>Event op 14 "A noise is heard in the distance." (op 15 writes nothing).</summary>
+    /// <summary>Event op 14 `core.p3.noise_in_the_distance` (op 15 writes nothing).</summary>
     public const int Noise = 27;
 
     /// <summary>
-    /// 42: the Damage Report window (Amiga <c>0x1d4ea</c>, every party-damage call), event op 9 "Some gold was taken."
+    /// 42: the Damage Report window (Amiga <c>0x1d4ea</c>, every party-damage call), event op 9 `core.p3.some_gold_was_taken`
     /// (op 10 on its own and ops 1–4: left in the event word), and the special doors 0xc7 / 0xd6 ("No one can pick the
     /// lock").
     /// </summary>
@@ -53,8 +53,8 @@ public static class P3Sounds
     public const int ConfirmQuestion = 36;
 
     /// <summary>
-    /// s158: the driver's stop (all three voice pointers 0, FORMAT.md 7.2): played before "The monsters flee!" (Amiga
-    /// <c>0x15990</c>) and "The party gets away!" (<c>0x19c66</c>). It silences whatever plays, a carried title tune
+    /// s158: the driver's stop (all three voice pointers 0, FORMAT.md 7.2): played before `core.p3.monsters_flee` (Amiga
+    /// <c>0x15990</c>) and `core.p3.party_gets_away` (<c>0x19c66</c>). It silences whatever plays, a carried title tune
     /// included.
     /// </summary>
     public const int Stop = 33;

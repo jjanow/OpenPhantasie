@@ -281,7 +281,7 @@ public sealed partial class Phantasie3Campaign
         {
             if (items.Get(id) is null)
                 continue;
-            offers.Add(new TreasureOffer(id, finder.Name)); // root 0xf2eb asks "<name> finds <item>" / "Will the party keep it?"
+            offers.Add(new TreasureOffer(id, finder.Name)); // root 0xf2eb asks "<name> finds <item>" / `core.p3.will_the_party_keep_it`
         }
         return offers;
     }

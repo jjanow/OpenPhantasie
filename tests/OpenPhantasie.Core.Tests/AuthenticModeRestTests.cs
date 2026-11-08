@@ -249,7 +249,7 @@ public class AuthenticModeRestTests
 
     [OriginalDataTheory]
     [InlineData(89, PartyOptionOutcome.CombatOver)]
-    [InlineData(90, PartyOptionOutcome.GiveOrders)] // rand < Σreaction + 90 fails: "MONSTERS DON'T RESPOND"
+    [InlineData(90, PartyOptionOutcome.GiveOrders)] // rand < Σreaction + 90 fails: `core.combat.monsters_dont_respond`
     public void BegForMercy_CanFail_UnderDos_D017(int roll, PartyOptionOutcome outcome)
     {
         var enc = Fight(Dos(RuleOptionRegistry.BegMercy), 1, Member("A"));
@@ -376,7 +376,7 @@ public class AuthenticModeRestTests
         Assert.Equal(0, rng.Remaining);
     }
 
-    // ---- SUMMON ELEMENTAL party test (D-033) ----------------------------------------------------------------------
+    // ---- `core.spell.summon_elemental` party test (D-033) ----------------------------------------------------------------------
 
     private static CombatEncounter Party6WithElemental(GameOptions rules, int dead)
     {

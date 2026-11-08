@@ -218,6 +218,13 @@
    "feeds": [
     "art:amiga"
    ],
+   "companions": [
+    {
+     "profile": "kickstart-1.3",
+     "output": "GameData/phantasie1/graphics/fonts/amiga-topaz-8.json",
+     "gives": "import.gives.topaz8"
+    }
+   ],
    "disks": [
     {
      "label": "game disk",
@@ -254,6 +261,63 @@
     "game",
     "tamb.dat",
     "mstr1.pat"
+   ],
+   "mutable_files": [
+    {
+     "name": "out2.dat",
+     "size": 2500,
+     "sha1": "1a21e1056d4d71d4784cfbc95320430fddbb2e99"
+    },
+    {
+     "name": "out3.dat",
+     "size": 2500,
+     "sha1": "96f87737ceebfb9d89706cb91ccff7a1685b5d32"
+    },
+    {
+     "name": "out4.dat",
+     "size": 2500,
+     "sha1": "d961bd829b8842fb58d19fcb900a1664261a273b"
+    },
+    {
+     "name": "out6.dat",
+     "size": 2500,
+     "sha1": "a56ed9ecb9225884432771e6888bcd7f9c639f88"
+    },
+    {
+     "name": "out7.dat",
+     "size": 2500,
+     "sha1": "1191cbc2bddb668d6c5f6a39023c3e2549f77d86"
+    },
+    {
+     "name": "out8.dat",
+     "size": 2500,
+     "sha1": "8ec6aa91c3b119e80b5e238c4dab4c2cb568cc52"
+    },
+    {
+     "name": "out12.dat",
+     "size": 2500,
+     "sha1": "dd62a9894faeb99b33d8ab9126f0bf0cbaba6ed9"
+    },
+    {
+     "name": "out15.dat",
+     "size": 2500,
+     "sha1": "8cbda2a6e0951cdaaf1754ba97f97f896a649683"
+    },
+    {
+     "name": "out16.dat",
+     "size": 2500,
+     "sha1": "9f99c4a32f9bde0202ee860fd71dd4c85c30e067"
+    },
+    {
+     "name": "out18.dat",
+     "size": 2500,
+     "sha1": "bf929cfbfcb1c04f718ad13b5e1d878d36d38284"
+    },
+    {
+     "name": "out19.dat",
+     "size": 2500,
+     "sha1": "0a3d08ed20ed663b7b5b714d1ea7a01e83a0950a"
+    }
    ],
    "images": [
     {
@@ -495,7 +559,8 @@
    "platform": "dos",
    "status": "supported",
    "feeds": [
-    "tables"
+    "tables",
+    "art:dos-cga"
    ],
    "disks": [
     {
@@ -565,6 +630,13 @@
    "status": "supported",
    "feeds": [
     "art:amiga"
+   ],
+   "companions": [
+    {
+     "profile": "kickstart-1.3",
+     "output": "GameData/phantasie3/graphics/fonts/amiga-topaz-8.json",
+     "gives": "import.gives.topaz8"
+    }
    ],
    "disks": [
     {

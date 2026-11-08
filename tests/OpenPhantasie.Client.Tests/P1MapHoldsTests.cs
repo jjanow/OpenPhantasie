@@ -91,6 +91,34 @@ public class P1MapHoldsTests
         Assert.False(holds.Busy(0.2));
     }
 
+    /// <summary>
+    /// s162: the town TRANSPORTATION on I Amiga (h26 <c>+0xdb6</c> / <c>+0xe4a</c> / <c>+0xe30</c>): the list's tone, then
+    /// 22, then the fade, each after the one before has ended (Game1's PlayP1CueInTurn and the fade's deferred start, all
+    /// queued in the same frame).
+    /// </summary>
+    [Fact]
+    public void TransportToneThen22ThenTheFade_InTurn()
+    {
+        var holds = new P1MapHolds();
+        var order = new List<(string What, double At)>();
+        var now = 0.0;
+        void Play(string what, double hold) => holds.Defer(now, 0, () =>
+        {
+            order.Add((what, now));
+            holds.Defer(now, hold, static () => { });
+        });
+        Play("tone", 0.075);
+        Play("22", 0.61);
+        holds.Defer(now, 0, () => order.Add(("fade", now)));
+        for (; now < 1; now += 0.001)
+            holds.Update(now);
+        Assert.Equal(["tone", "22", "fade"], order.Select(o => o.What));
+        Assert.Equal(0, order[0].At);
+        Assert.InRange(order[1].At, 0.075, 0.077);
+        Assert.InRange(order[2].At, 0.685, 0.687);
+        Assert.False(holds.Busy(now));
+    }
+
     [OriginalDataFact]
     public void ShapeCache_ReadsOnlyMissingMonsters_ThreeSlots()
     {

@@ -70,7 +70,7 @@ public sealed class DungeonMoveResult
     public int? SpotterIndex { get; init; }
 
     /// <summary>
-    /// A lock ambush was heard by this member; "%s HEARS MONSTERS. GO BACK ?" waits
+    /// A lock ambush was heard by this member; "%s `core.dungeon.x_hears_monsters_go_back`" waits
     /// (<see cref="DungeonTraversal.ResolveHeardMonsters"/>, session <c>AnswerDungeonLock</c>).
     /// </summary>
     public int? ListenerIndex { get; init; }

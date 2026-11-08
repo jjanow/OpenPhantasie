@@ -10,13 +10,13 @@ public sealed partial class GameSession
     /// <summary>"%s SPOTS A TRAP / D)ISARM OR L)EAVE" is waiting: answer with <see cref="AnswerDungeonTrap"/>.</summary>
     public PendingDungeonTrap? DungeonTrapPrompt { get; private set; }
 
-    /// <summary>"%s HEARS MONSTERS. GO BACK ?" is waiting: answer with <see cref="AnswerDungeonLock"/>.</summary>
+    /// <summary>"%s `core.dungeon.x_hears_monsters_go_back`" is waiting: answer with <see cref="AnswerDungeonLock"/>.</summary>
     public PendingDungeonLock? DungeonLockPrompt { get; internal set; }
 
     /// <summary>A spotted trap of kind <paramref name="TrapKind"/> on cell (X, Y); <paramref name="SpotterIndex"/> = party index.</summary>
     public sealed record PendingDungeonTrap(int TrapKind, int X, int Y, int SpotterIndex, string Message)
     {
-        /// <summary>Party indices "WHO WILL DISARM ?" offers (<c>0x5a0a</c> mode 1: status OK only).</summary>
+        /// <summary>Party indices `core.prompt.who_will_disarm` offers (<c>0x5a0a</c> mode 1: status OK only).</summary>
         public IReadOnlyList<int> Disarmers { get; init; } = Array.Empty<int>();
     }
 
@@ -27,7 +27,7 @@ public sealed partial class GameSession
     private bool _stepBackAfterCombat;
 
     /// <summary>
-    /// Answer "D)ISARM OR L)EAVE" (D-052): <paramref name="disarmerIndex"/> null = LEAVE (or no one chosen at "WHO WILL DISARM ?"): the party
+    /// Answer "D)ISARM OR L)EAVE" (D-052): <paramref name="disarmerIndex"/> null = LEAVE (or no one chosen at `core.prompt.who_will_disarm`): the party
     /// steps back and the trap stays. Otherwise the member (status OK) tries; a failure springs the trap.
     /// </summary>
     public DungeonMoveResult AnswerDungeonTrap(int? disarmerIndex)

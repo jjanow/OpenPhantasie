@@ -6,7 +6,8 @@ namespace OpenPhantasie.Client.Audio;
 /// Behaviour kept: a new sample pointer given while a channel runs is taken when its buffer wraps (the hardware reloads
 /// <c>AUDxLC</c> / <c>AUDxLEN</c> then); a new period takes effect at the next sample; volume at once. The output is the
 /// held sample value averaged over each output sample, then (s158, on by default) the A500's analogue output filters
-/// per side (<see cref="A500AudioFilter"/>), with the output capacitor's DC removed `[~]`. No MonoGame types: tests
+/// per side (<see cref="A500AudioFilter"/>; s160: the game's AMIGA AUDIO FILTER switch, <c>GameSettings.A500Filter</c>,
+/// reaches here through the renderers' <c>a500Filter</c>), with the output capacitor's DC removed `[~]`. No MonoGame types: tests
 /// render it headless.
 /// </summary>
 public sealed class PaulaMixer

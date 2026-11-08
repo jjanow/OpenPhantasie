@@ -172,7 +172,7 @@ public class DamageHookCoverageTests
     [OriginalDataFact]
     public void ScriptDamageOps_RunTheHook()
     {
-        // A one-op script at the script base: op 1 (SMOKE FILLS THE AIR, damage a = 5), no continue flag.
+        // A one-op script at the script base: op 1 (`core.script.smoke_fills_the_air`, damage a = 5), no continue flag.
         static (DungeonLevel, DungeonScriptResume) Script()
         {
             var level = GameDataRepository.LoadPhantasie1().Dungeons.Single(d => d.Id == "DNG1").ToRuntime().CloneAsBuffer();

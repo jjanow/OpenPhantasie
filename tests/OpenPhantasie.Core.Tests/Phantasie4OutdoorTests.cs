@@ -290,6 +290,8 @@ public class Phantasie4OutdoorTests
         o.Answer(true);
         o.FightOver(P4FightOutcome.Lost);
         Assert.Equal(P4OutdoorPrompt.PartyLost, o.Prompt);
+        // s162: _deadmsg's two lines, as in a location map.
+        Assert.Equal([GameText.S("p4x.0x44097"), GameText.S("p4x.0x440b0")], o.Box.TakeLast(2));
     }
 
     // --- Ships --------------------------------------------------------------------------------------------------------

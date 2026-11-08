@@ -75,6 +75,113 @@ public class ImportScreenTests
     }
 
     [Fact]
+    public void Refresh_RunsOnOpen_ShowsTheReport_AndCallsBack()
+    {
+        // s163 (10-importer.md 4.4): a version built by an older recipe is re-run from its recorded files at start.
+        var report = new ImportReport { Committed = true };
+        report.Versions.Add(new("p3-dos-1988", "Phantasie III (DOS, SSI 1988)", true, 900, [], null));
+        report.Notes.Add("Phantasie I (DOS, SSI 1987) was imported by an older version of the importer, and its files were not found again");
+        var ran = 0;
+        var s = new ImportScreen(Path.Combine(Path.GetTempPath(), "phantasie-import-screen-test"), (_, _) => new ImportReport(),
+            () => [], _ => { ran++; return report; });
+        var called = false;
+        s.OnImported = () => called = true;
+        s.OpenRefresh();
+        Assert.True(s.IsOpen);
+        Assert.False(s.FirstRun);
+        WaitForReport(s);
+        Assert.Equal(1, ran);
+        Assert.True(called);
+        var text = string.Join(" ", ImportScreen.ReportLines(report).Select(l => l.Text.Trim()));
+        Assert.Contains("Phantasie III", text);
+        Assert.Contains("not found again", text);
+    }
+
+    [Fact]
+    public void MissingTopaz_TheReportOffersIt_AImportsTheGivenFileAlone()
+    {
+        // s160: Amiga III imported without the Kickstart 1.3 ROM.
+        var calls = new List<IReadOnlyList<string>>();
+        var first = new ImportReport { Committed = true };
+        first.Versions.Add(new("p3-amiga-1.0", "Phantasie III (Amiga v1.0, 1987)", true, 600, [], null));
+        first.Offers.Add(new ImportOffer("kickstart-1.3", "Amiga Kickstart 1.3 ROM (34.5)", ["Phantasie III (Amiga v1.0, 1987)"],
+            "import.gives.topaz8"));
+        var second = new ImportReport { Committed = true };
+        second.Versions.Add(new("kickstart-1.3", "Amiga Kickstart 1.3 ROM (34.5)", true, 3, [], null));
+        var s = Screen((paths, _) => { calls.Add(paths); return calls.Count == 1 ? first : second; });
+        s.Open(firstRun: false);
+        s.AddPaths([Path.GetTempPath()]);
+        s.HandleKeys([Keys.Down, Keys.Down, Keys.Enter]);
+        WaitForReport(s);
+        Assert.NotNull(s.Offer);
+        var text = string.Join(" ", ImportScreen.ReportLines(first).Select(l => l.Text.Trim()));
+        Assert.Contains("topaz 8", text);
+        Assert.Contains("Kickstart 1.3", text);
+        Assert.Contains("Press A", text);
+        Assert.Contains("A add", s.Help);
+
+        s.HandleKeys([Keys.A]);
+        Assert.False(s.ShowingReport);
+        Assert.True(s.AskingForOffer);
+        Assert.Equal(1, s.RowCount); // only the file row
+        Assert.Contains(s.Lines(), l => l.Text.Contains("FILE:", StringComparison.Ordinal));
+        Assert.Contains(s.Lines(), l => l.Text.Contains("Kickstart", StringComparison.Ordinal));
+        var rom = Path.Combine(Path.GetTempPath(), "phantasie-import-screen-kick.rom");
+        File.WriteAllBytes(rom, [0]);
+        try
+        {
+            Type(s, rom);
+            s.HandleKeys([Keys.Enter]);
+            WaitForReport(s);
+            Assert.Equal(2, calls.Count);
+            Assert.Equal([Path.GetFullPath(rom)], calls[1]); // the ROM alone, not the earlier paths
+            Assert.False(s.AskingForOffer);
+            Assert.Null(s.Offer);
+        }
+        finally
+        {
+            File.Delete(rom);
+        }
+    }
+
+    private static (ImportScreen Screen, List<IReadOnlyList<string>> Calls) OfferShown()
+    {
+        var calls = new List<IReadOnlyList<string>>();
+        var first = new ImportReport { Committed = true };
+        first.Offers.Add(new ImportOffer("kickstart-1.3", "Amiga Kickstart 1.3 ROM (34.5)", ["Phantasie I (Amiga v1.0, 1987)"],
+            "import.gives.topaz8"));
+        var s = Screen((paths, _) => { calls.Add(paths); return calls.Count == 1 ? first : new ImportReport(); });
+        s.Open(firstRun: false);
+        s.AddPaths([Path.GetTempPath()]);
+        s.HandleKeys([Keys.Down, Keys.Down, Keys.Enter]);
+        WaitForReport(s);
+        return (s, calls);
+    }
+
+    [Fact]
+    public void Offer_EscBacksOut_TheScreenStaysOpen()
+    {
+        var (s, calls) = OfferShown();
+        s.HandleKeys([Keys.A, Keys.Escape]);
+        Assert.False(s.AskingForOffer);
+        Assert.True(s.IsOpen);
+        s.AddPaths([Path.GetTempPath()]); // a drop now only adds a path again
+        Assert.Single(calls);
+        Assert.Single(s.Paths);
+    }
+
+    [Fact]
+    public void Offer_ADroppedFile_IsImportedAlone()
+    {
+        var (s, calls) = OfferShown();
+        s.HandleKeys([Keys.A]);
+        s.AddPaths([Path.GetTempPath()]);
+        WaitForReport(s);
+        Assert.Equal(2, calls.Count);
+        Assert.Equal([Path.GetFullPath(Path.GetTempPath())], calls[1]);
+    }
+
+    [Fact]
     public void LibraryShortcut_AddsTheFolder_EscCloses()
     {
         var s = Screen((_, _) => new ImportReport(), new StoreLibraries.Library("Steam", "/steam/common"));

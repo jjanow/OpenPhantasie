@@ -22,7 +22,7 @@ public sealed class DosSaveDialog
 
     private bool _transfer => _transferFrom is not null;
 
-    /// <summary>T5: the transfer adds to Phantasie III's roster (D3-030), one "Will you keep this character?" each.</summary>
+    /// <summary>T5: the transfer adds to Phantasie III's roster (D3-030), one `transfer.keep_question` each.</summary>
     private bool _intoIII;
 
     /// <summary>III's transfer: the source slots still to review (occupied only) and the ones kept so far.</summary>
@@ -111,7 +111,7 @@ public sealed class DosSaveDialog
     /// <summary>
     /// T5, Phantasie III's transfer from I or II (D3-030: a menu action, any time): the erase question only when
     /// <paramref name="eraseFirst"/> (<c>p3.transfer-roster</c> = <c>erase</c>, D3-003), then the source save, then DOS's
-    /// review: each character's name, level, class, race, status, age and attributes and "Will you keep this character?"
+    /// review: each character's name, level, class, race, status, age and attributes and `transfer.keep_question`
     /// (<c>FORMAT.md</c> section 6). The shell takes the roster (<see cref="TakeTransfer"/>) with
     /// <see cref="TransferIntoIII"/>.
     /// </summary>

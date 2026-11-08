@@ -131,8 +131,8 @@ public sealed class CombatEncounter
 
     /// <summary>
     /// <c>[0x6490]</c> holds the living <i>count</i> rather than the last living <i>index</i> (combat-resolution.md
-    /// §SUMMON ELEMENTAL): false after the orders phase, true once a monster has taken a turn this round (melee or special)
-    /// or RESURRECTION worked. Only DOS's SUMMON ELEMENTAL test reads it (D-033 <c>dos</c>); not saved, reset every round top.
+    /// §`core.spell.summon_elemental`): false after the orders phase, true once a monster has taken a turn this round (melee or special)
+    /// or RESURRECTION worked. Only DOS's `core.spell.summon_elemental` test reads it (D-033 <c>dos</c>); not saved, reset every round top.
     /// </summary>
     public bool LivingWordIsCount { get; set; }
 
@@ -165,7 +165,7 @@ public sealed class CombatEncounter
     }
 
     /// <summary>
-    /// Encounter level <c>L = [0x7508]</c> ("MONSTERS ARE AT LEVEL"), used by monster readiness: Σ group level
+    /// Encounter level <c>L = [0x7508]</c> (`core.magic.monsters_at_level_x`), used by monster readiness: Σ group level
     /// <c>+0x18</c> at build (<see cref="EncounterBuilder"/>, OV2 <c>0x3ac4</c>).
     /// </summary>
     public int MonsterLevel { get; set; }
@@ -346,7 +346,7 @@ public sealed class CombatEncounter
     }
 
     /// <summary>
-    /// SUMMON ELEMENTAL success (OV2 <c>0x8db</c>): the elemental becomes member 7 with no action this round
+    /// `core.spell.summon_elemental` success (OV2 <c>0x8db</c>): the elemental becomes member 7 with no action this round
     /// (its action word is 4 from the build, <c>0x339e</c>). Prep of the others is kept.
     /// </summary>
     public void AddSummonedMember(Character elemental)
@@ -474,7 +474,7 @@ public sealed class CombatResolver : ICombatResolver
                 }
 
                 // PARRY (3) and no action (4) never roll, so PARRY stays armed for the whole round.
-                // Read Prep live: SUMMON ELEMENTAL can append a member mid-round.
+                // Read Prep live: `core.spell.summon_elemental` can append a member mid-round.
                 var action = encounter.Prep[i].PackedAction;
                 if (action <= CombatAction.Cleared || ch.HpCur <= 0)
                     continue;

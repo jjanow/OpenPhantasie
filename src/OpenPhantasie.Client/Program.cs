@@ -1,5 +1,9 @@
 using OpenPhantasie.Client;
+using OpenPhantasie.Data;
 
+// s163: the player's import before the switches are checked (--test-game asks whether the game is playable, which in
+// a build without built-in GameData means imported); Game1.Initialize sets the same root again.
+GameDataLocator.UseImport(Path.Combine(ClientSettings.DataDirectory, "import"));
 var testLevel = TestParty.ParseArgs(args, out var error);
 var testGame = TestParty.ParseGame(args, out var gameError);
 error ??= gameError;

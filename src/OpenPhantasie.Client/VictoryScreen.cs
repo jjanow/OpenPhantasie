@@ -33,8 +33,9 @@ namespace OpenPhantasie.Client;
 /// a key) before the fade-out. s135: with <c>stSounds</c> the crowd's <see cref="EndingCrowd.Sound"/> (II: 32,
 /// <c>0xb80e(32)</c>) starts with each cheer, and a page's <see cref="EndingPage.Sound"/> (the OK form's click,
 /// <c>0xb7e6</c>) when OK closes it; neither holds the screen (Dosound returns at once): their
-/// <see cref="SoundStarts"/> end is ∞, so it plays out unless the next sound cuts it. The ST's next sound 32 would wait for
-/// it (<c>0xb8f2</c> at the ending's Speed 20), which only bites when keys cut the title lines short <c>[~]</c>.</para>
+/// <see cref="SoundStarts"/> end is ∞, so it plays out unless the next sound cuts it. s163: with <c>stSoundSeconds</c> the
+/// next sound 32 waits for the last to end (<c>0xb8f2</c> at the ending's Speed 20), the other pose on the stage, which
+/// only bites when keys cut the title lines short.</para>
 /// <para>All of it is one list of steps; each step lasts its time, or until a key when it is a line or a page.</para>
 /// </summary>
 public sealed class VictoryScreen
@@ -81,7 +82,7 @@ public sealed class VictoryScreen
 
     private enum StepKind
     {
-        IntroPage, Sound, Disk, FadeIn, Header, Hold, Ghosts, ArmSound, ArmBlit, Title, Cheer, PortraitBlit, Grant,
+        IntroPage, Sound, Disk, FadeIn, Header, Hold, Ghosts, ArmSound, ArmBlit, Title, CheerWait, Cheer, PortraitBlit, Grant,
         GrantDelay, Speech, ClosingPage, FadeOut,
     }
 
@@ -102,9 +103,10 @@ public sealed class VictoryScreen
     private readonly int _grants;
     private readonly List<Step> _steps = [];
     private readonly Dictionary<int, double> _cuts = []; // step index → its length after a key ended it
+    private readonly double _crowdSoundSeconds; // II: sound 32's length (0 = no wait modelled)
 
     public VictoryScreen(EndingSceneLayout layout, VictoryScene scene, VictorySoundTimes? sounds = null,
-        bool stSounds = false)
+        bool stSounds = false, Func<int, double>? stSoundSeconds = null)
     {
         ArgumentNullException.ThrowIfNull(layout);
         ArgumentNullException.ThrowIfNull(scene);
@@ -115,6 +117,9 @@ public sealed class VictoryScreen
             ? [.. keys.Select(GameText.S)]
             : scene.SpeechLines;
         _grants = scene.Slots.Count(s => s.Granted);
+        _crowdSoundSeconds = stSounds && layout.Crowd?.Sound is int crowdSound && stSoundSeconds is not null
+            ? Math.Max(0, stSoundSeconds(crowdSound))
+            : 0;
         var fx = sounds ?? VictorySoundTimes.None;
         var n = fx.Numbers; // null: no sounds and no sound waits (with the layout's sounds the drains stay, zero long)
         var waits = layout.Sounds is not null || n is not null;
@@ -158,6 +163,10 @@ public sealed class VictoryScreen
         {
             if (k < scene.Titles.Count)
                 _steps.Add(new(StepKind.Title, k, line, true));
+            // s163: the next 32 waits for the last (0xb8f2 at the ceremony's Speed 20), after the other pose: it only bites
+            // when keys cut the title lines short (CheerWait's length is worked out in End).
+            if (layout.Crowd is not null && k > 0 && _crowdSoundSeconds > 0)
+                _steps.Add(new(StepKind.CheerWait, k, 0, false));
             if (layout.Crowd is { } crowd)
                 _steps.Add(new(StepKind.Cheer, k, crowd.Flashes * crowd.FlashTicks * tick, false,
                     stSounds ? crowd.Sound : null) { Overlaps = true });
@@ -204,7 +213,16 @@ public sealed class VictoryScreen
 
     private double Start(int i) => i == 0 ? 0 : End(i - 1);
 
-    private double End(int i) => Start(i) + (_cuts.TryGetValue(i, out var cut) ? cut : _steps[i].Seconds);
+    private double End(int i) => Start(i) + (_cuts.TryGetValue(i, out var cut) ? cut : Length(i));
+
+    // A step's own length; II's CheerWait lasts until the last cheer's sound 32 has ended (none when it already has).
+    private double Length(int i)
+    {
+        if (_steps[i].Kind != StepKind.CheerWait)
+            return _steps[i].Seconds;
+        var last = _steps.FindLastIndex(i, s => s.Kind == StepKind.Cheer);
+        return last < 0 ? 0 : Math.Max(0, Start(last) + _crowdSoundSeconds - Start(i));
+    }
 
     private int First(StepKind kind) => _steps.FindIndex(s => s.Kind == kind);
 
@@ -357,6 +375,9 @@ public sealed class VictoryScreen
                 case StepKind.Title:
                     text = Scene.Titles[step.Index];
                     (stage, pose) = (step.Index, false);
+                    break;
+                case StepKind.CheerWait: // the other pose shows; the crowd keeps its last frame
+                    (stage, pose) = (step.Index, true);
                     break;
                 case StepKind.Cheer:
                     (stage, pose) = (step.Index, true);

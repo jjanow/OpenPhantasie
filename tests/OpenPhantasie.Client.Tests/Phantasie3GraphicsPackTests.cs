@@ -16,7 +16,8 @@ public class Phantasie3GraphicsPackTests
     [OriginalDataFact]
     public void PhantasieIII_OffersTheAmigaPack_AsItsDefault()
     {
-        Assert.Equal(["amiga"], Catalog.Available.Select(p => p.Id));
+        // s160: the DOS CGA pack is offered too, never by default (auto_select false; index fallback_order).
+        Assert.Equal(["amiga", "dos-cga"], Catalog.Available.Select(p => p.Id));
         Assert.Empty(Catalog.Missing);
         Assert.Same(Amiga, Catalog.Default);
         Assert.Equal(("phantasie3", "amiga"), (Amiga.Game, Amiga.Platform));
@@ -285,8 +286,8 @@ public class Phantasie3GraphicsPackTests
     [OriginalDataFact]
     public void P3WindowFor_DungeonEntryAndExitQuestions_AreWindowOne()
     {
-        // s128 static: 0x1bb58 asks "Load previously saved dungeon?" (0x1bc18), "An exit. Will you take it?" (0x1bda4)
-        // and "Would you like to save this map?" (0x1bdc4) through 0x1d77e = window 1 (struct 0x2325c), like "Keep …?".
+        // s128 static: 0x1bb58 asks `core.p3.load_saved_dungeon` (0x1bc18), `core.prompt.an_exit_take_it` (0x1bda4)
+        // and `core.prompt.save_dungeon_map` (0x1bdc4) through 0x1d77e = window 1 (struct 0x2325c), like "Keep …?".
         var k = Amiga.KeepWindows!;
         Assert.Same(k.Dungeon, Game1.P3WindowFor(SessionPromptKind.OverworldEntry, entryAsksLoad: true, fightFind: false, k));
         Assert.Same(k.Dungeon, Game1.P3WindowFor(SessionPromptKind.DungeonExitTakeIt, false, false, k));
@@ -295,7 +296,7 @@ public class Phantasie3GraphicsPackTests
         Assert.Same(k.Fight, Game1.P3WindowFor(SessionPromptKind.Treasure, false, fightFind: true, k));
         Assert.Null(Game1.P3WindowFor(SessionPromptKind.OverworldEntry, entryAsksLoad: false, fightFind: false, k)); // "Will you enter?"
         Assert.Null(Game1.P3WindowFor(SessionPromptKind.DungeonTrap, false, false, k)); // I's DISARM / LEAVE prompt
-        // s134: the dungeon step's "<name> hears monsters. Continue?" (0x1c560) and "<name> spots a trap. Disarm it?"
+        // s134: the dungeon step's "<name> `core.p3.x_hears_monsters_continue`" (0x1c560) and "<name> `core.p3.x_spots_a_trap`"
         // (0x1c6c8) go through 0x1d77e too; Core asks them as III Yes / No event questions.
         Assert.Same(k.Dungeon, Game1.P3WindowFor(SessionPromptKind.DungeonEvent, false, false, k, yesNoEvent: true));
         Assert.Null(Game1.P3WindowFor(SessionPromptKind.DungeonEvent, false, false, k)); // other event menus: the page

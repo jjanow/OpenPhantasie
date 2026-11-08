@@ -14,16 +14,44 @@ public sealed class SoundEffectPlayer : IDisposable
     private object? _imageFor;
     private byte[]? _image;
 
+    /// <summary>
+    /// s160: the Amiga sounds (I, III; on Paula) through the A500's output filters, the game's AMIGA AUDIO FILTER switch
+    /// (<see cref="PaulaMixer"/>), asked when a run starts (a running one keeps its own). Null or true = on, the default.
+    /// </summary>
+    public Func<bool>? A500Filter { get; set; }
+
+    private bool FilterOn => A500Filter?.Invoke() ?? true;
+
+    /// <summary>
+    /// s163, a developer aid for live checks: with <c>OPENPHANTASIE_SOUND_TRACE</c> set to a file, every sound started is
+    /// appended to it as "ms kind number" (Unix ms, comparable with screenshot times), so a run on Xvfb can be timed
+    /// without listening.
+    /// </summary>
+    private static readonly string? TracePath = Environment.GetEnvironmentVariable("OPENPHANTASIE_SOUND_TRACE");
+
+    private void Trace(string kind, int sound)
+    {
+        if (string.IsNullOrEmpty(TracePath))
+            return;
+        try
+        {
+            File.AppendAllText(TracePath, $"{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()} {kind} {sound}\n");
+        }
+        catch (IOException)
+        {
+        }
+    }
+
     /// <summary>True while a run still sounds.</summary>
     public bool Playing => _player?.Playing == true;
 
     /// <summary>The renderer for <paramref name="plays"/> (VBL, sound number) on <paramref name="effects"/>, or null.</summary>
     public static P3MusicRenderer? Render(P3SoundEffects effects, byte[] image, IEnumerable<(int Frame, int Sound)> plays,
-        int sampleRate = TuneRenderer.DefaultSampleRate)
+        int sampleRate = TuneRenderer.DefaultSampleRate, bool a500Filter = true)
     {
         ArgumentNullException.ThrowIfNull(effects);
         return effects.Score(image, plays) is { } score
-            ? new P3MusicRenderer(score, effects.ClockHz ?? TuneRenderer.PaulaNtscHz, sampleRate)
+            ? new P3MusicRenderer(score, effects.ClockHz ?? TuneRenderer.PaulaNtscHz, sampleRate, a500Filter)
             : null;
     }
 
@@ -40,7 +68,7 @@ public sealed class SoundEffectPlayer : IDisposable
                 _image = effects.TryLoadImage();
                 _imageFor = effects;
             }
-            if (_image is not null && Render(effects, _image, plays) is { } renderer)
+            if (_image is not null && Render(effects, _image, plays, a500Filter: FilterOn) is { } renderer)
                 _player = TunePlayer.TryStart(renderer);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
@@ -108,7 +136,7 @@ public sealed class SoundEffectPlayer : IDisposable
                 _image = effects.TryLoadImage();
                 _imageFor = effects;
             }
-            if (_image is not null && Render(effects, _image, sound) is { } renderer)
+            if (_image is not null && Render(effects, _image, sound, a500Filter: FilterOn) is { } renderer)
                 _player = TunePlayer.TryStart(renderer);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
@@ -127,18 +155,18 @@ public sealed class SoundEffectPlayer : IDisposable
         if (effects is null || AmigaDosoundScore.Tone(channel, period, volume, ticks) is not { Steps.Count: > 0 } score)
             return;
         _player = TunePlayer.TryStart(new AmigaDosoundRenderer(score, effects.ClockHz ?? TuneRenderer.PaulaNtscHz,
-            TuneRenderer.DefaultSampleRate));
+            TuneRenderer.DefaultSampleRate, a500Filter: FilterOn));
     }
 
     /// <summary>The renderer for I's sound <paramref name="sound"/> (each step its ticks plus the player's step overhead),
     /// or null when the pack lacks it or it is silent.</summary>
     public static AmigaDosoundRenderer? Render(AmigaDosoundEffects effects, byte[] image, int sound,
-        int sampleRate = TuneRenderer.DefaultSampleRate)
+        int sampleRate = TuneRenderer.DefaultSampleRate, bool a500Filter = true)
     {
         ArgumentNullException.ThrowIfNull(effects);
         return effects.Score(image, sound) is { Steps.Count: > 0 } score
             ? new AmigaDosoundRenderer(score, effects.ClockHz ?? TuneRenderer.PaulaNtscHz, sampleRate,
-                effects.StepOverheadSeconds, effects.ChannelOverheadSeconds) // s130 / s153: each step sounds as long as the player holds it
+                effects.StepOverheadSeconds, effects.ChannelOverheadSeconds, a500Filter) // s130 / s153: each step sounds as long as the player holds it
             : null;
     }
 
@@ -148,6 +176,7 @@ public sealed class SoundEffectPlayer : IDisposable
     /// </summary>
     public void Play(StDosoundEffects? effects, int sound)
     {
+        Trace("st", sound);
         Stop();
         if (effects is null)
             return;

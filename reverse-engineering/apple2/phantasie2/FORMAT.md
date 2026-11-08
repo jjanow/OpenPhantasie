@@ -162,5 +162,5 @@ are not key files. Version string: INTRO2 192–193 "VERSION 1.0  2/5/86".
 `diff_a2_p2_vs_st.py` summary: monsters 1274 / 1280 numbers equal; items 180 / 180 factors; creation 1541 / 1545
 cells; towns 1845 / 1850 numbers; wilderness 8831 / 8840 cells (fog excluded), features equal except the text args and
 OUT28's entrances; dungeon levels 13918 / 13920 bytes. Every number difference is in `DIFFERENCES-II.md` D2-046 to
-D2-050 (PENDING). Text: names, scroll and message wording (D2-050). The message comparison is noisy because the ST
+D2-050 (decided s159: an Apple-only import takes the ST's numbers and keeps the Apple's text; built s160). Text: names, scroll and message wording (D2-050). The message comparison is noisy because the ST
 GameData's continuation records hold fragments; read its rows as pointers, not as a list of real differences.

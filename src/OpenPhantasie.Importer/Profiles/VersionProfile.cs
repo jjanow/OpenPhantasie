@@ -20,8 +20,23 @@ public sealed class VersionProfile
     [JsonPropertyName("name_markers")] public List<string> NameMarkers { get; init; } = [];
     [JsonPropertyName("mutable_files")] public List<KeyFile> MutableFiles { get; init; } = [];
     [JsonPropertyName("images")] public List<ImageFingerprint> Images { get; init; } = [];
+    /// <summary>
+    /// Other files this version's import wants and can't take from its own disks (s160: the Amiga games' screen font
+    /// comes from the Kickstart ROM). When the import ends without a companion's output, the report offers to add it.
+    /// </summary>
+    [JsonPropertyName("companions")] public List<Companion> Companions { get; init; } = [];
 
     public bool IsSupported => Status == "supported";
+
+    public sealed class Companion
+    {
+        /// <summary>The profile that gives it (e.g. <c>kickstart-1.3</c>).</summary>
+        [JsonPropertyName("profile")] public string Profile { get; init; } = "";
+        /// <summary>The import path that is there once it is given (e.g. <c>GameData/phantasie1/graphics/fonts/amiga-topaz-8.json</c>).</summary>
+        [JsonPropertyName("output")] public string Output { get; init; } = "";
+        /// <summary>A string id (<c>shared/strings</c>) naming what the companion gives, for the player.</summary>
+        [JsonPropertyName("gives")] public string Gives { get; init; } = "";
+    }
 
     public sealed class Disk
     {

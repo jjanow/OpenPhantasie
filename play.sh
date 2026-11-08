@@ -9,6 +9,7 @@
 #   ./play.sh --test-level 10 --p1-victory   I's test party wins the Black Lord fight (the victory screen)
 #   ./play.sh --test-level 5 --p1-combat 12  I's test party in a wilderness fight with monster 12 (the combat screen)
 #   ./play.sh --test-level 5 --p1-dungeon 2 6 28   I's test party on DNG2 cell (6, 28) (a dungeon step's boxes)
+#   ./play.sh --test-level 10 --test-game 3 --p1-dungeon 5 23 7   III's test party in the Pendragon archives (a trap south)
 #   ./play.sh --test-party --test-game 2 --p2-victory   II's test party at Filmon's ceremony (the last member DEAD)
 #   ./play.sh --rebuild ...        force a build first
 #   ./play.sh --help               this text
@@ -26,7 +27,7 @@ game_args=()
 for arg in "$@"; do
     case "$arg" in
         --rebuild) rebuild=1 ;;
-        -h|--help) sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) game_args+=("$arg") ;;
     esac
 done

@@ -105,7 +105,7 @@ public static class P3RuleOptions
     /// <summary>
     /// D3-025: Deposit splits the party gold by 1 / 2 / 3 shares per adventurer with Apple II's share maths as the manual's
     /// "small banking fee" (<c>manual</c>, user s89: each account gets <c>⌊S · gold / (ΣS + 0.00001)⌋</c>, the rest is
-    /// lost), the same shares with no fee (<c>no-fee</c>, Phantasie I's deposit), or evenly with "Withdraw all gold"
+    /// lost), the same shares with no fee (<c>no-fee</c>, Phantasie I's deposit), or evenly with `p3town.bank_withdraw_all`
     /// (<c>dos</c>, ovl2 <c>0x297a</c>; DOS and Amiga take no fee).
     /// </summary>
     public static readonly RuleOptionDescriptor Bank = new(
@@ -174,7 +174,7 @@ public static class P3RuleOptions
         "p3.event-gold", GameId.P3, ["fixed", "dos"], Manual: "fixed", Dos: "dos", Remaster: "fixed");
 
     /// <summary>
-    /// D3-038 (decided s96, manual default): leaving a dungeon with NO to "Would you like to save this map?" forgets that dungeon's saved map
+    /// D3-038 (decided s96, manual default): leaving a dungeon with NO to `core.prompt.save_dungeon_map` forgets that dungeon's saved map
     /// (<c>manual</c>, I's D-027 reading: an old save can't come back) or keeps it, as DOS writes nothing (<c>dos</c>).
     /// </summary>
     public static readonly RuleOptionDescriptor DungeonMapNo = ManualOrDos("p3.dungeon-map-no", "D3-038");
@@ -188,7 +188,7 @@ public static class P3RuleOptions
     /// <summary>
     /// D3-040 (user s99): Purge on a party member purges it and keeps a loaded elemental while a character is left, as
     /// III's Drop (<c>manual</c>), purges it and unloads the elemental as Phantasie I (<c>phantasie-i</c>), or is refused
-    /// (<c>dos</c>: "You cannot purge a party member."). The elementals themselves can never be purged.
+    /// (<c>dos</c>: `core.guild.cannot_purge_party_member`). The elementals themselves can never be purged.
     /// </summary>
     public static readonly RuleOptionDescriptor Purge = new(
         "p3.purge", GameId.P3, ["manual", "phantasie-i", "dos"],

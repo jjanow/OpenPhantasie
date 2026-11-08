@@ -25,12 +25,52 @@ public sealed partial class P4DungeonScreen
 
     /// <summary>
     /// The Core list up at this prompt, or null (none, no pack layout for it). In a fight only the combat spell list
-    /// (s152, <c>_getmagic(member, 0)</c>), drawn over the field's right side (<see cref="DrawBeside"/>).
+    /// (s152, <c>_getmagic(member, 0)</c>), drawn right of the field at the panel's place (s160, <see cref="FightListUp"/>).
     /// </summary>
     private P4ListWindow? CoreList => !Game.LoopBuilt || DoorOpen || MysticBusy ? null
         : Game.Battle is not null ? BattleSpellList
         : MenuOpen ? (M!.Prompt == P4MenuPrompt.Pick ? M.ListWindow : null)
         : _system is null && Game.Place == P4Place.Town && W.Prompt == P4TownPrompt.Pick ? W.ListWindow : null;
+
+    /// <summary>
+    /// True while the combat spell list is open (s160, user s159): it takes the Command panel's place right of the field
+    /// (the original's x 496) and the text column narrows to the field's side until it closes.
+    /// </summary>
+    public bool FightListUp => FightSpellListOpen && CurrentList is not null;
+
+    /// <summary>The combat spell list is open (a member's orders, Cast chosen), whatever the art pack.</summary>
+    public bool FightSpellListOpen => BattleSpellList is not null;
+
+    /// <summary>
+    /// The layout row where a list's frame (its title bar's top line) starts (s160). A list in its own window (the spell
+    /// lists: <c>_wopen(34, 496, 32, 136, 360, 1, "Spell List")</c>) sits where the original opens it: the window's area at
+    /// screen row 32, so its 21-row bar from row 11 (the screen is the original's 640 × 400, one pack pixel each); the
+    /// remaster's Command panel and pictures sit higher than the original's, so this is the original's place on screen,
+    /// not its place relative to them. Kept on screen when a window would run past the bottom. Lists drawn in window 34
+    /// under "Command" or under a panel keep the panel's top (4).
+    /// </summary>
+    public static float ListFrameTop(CommandList layout, float k)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        if (layout.Panel is not null || layout.Window is not { } w)
+            return 4;
+        var top = (w.Y - PanelTitleRows) * k;
+        return Math.Max(0, Math.Min(top, 200 - (PanelTitleRows + w.Height + 2) * k));
+    }
+
+    /// <summary>
+    /// The Command strip's lowest layout row (s157's key-help layout): the panel's (<paramref name="panelHeight"/> layout
+    /// pixels from row 4) or a list window's when one is up and lower (<see cref="ListFrameTop"/>, its bar, area
+    /// <paramref name="windowHeight"/> high unless the list has its own window, frame and shadow).
+    /// </summary>
+    public static int StripBottom(float panelHeight, CommandList? list, int windowHeight, float k)
+    {
+        var bottom = 4 + (int)Math.Ceiling(panelHeight);
+        if (list is { Panel: null } l)
+            bottom = Math.Max(bottom,
+                (int)Math.Ceiling(ListFrameTop(l, k) + (PanelTitleRows + (l.Window?.Height ?? windowHeight) + 2) * k));
+        return bottom;
+    }
 
     /// <summary>The list up now with its pack layout, or null.</summary>
     private (P4ListWindow List, CommandList Layout)? CurrentList =>

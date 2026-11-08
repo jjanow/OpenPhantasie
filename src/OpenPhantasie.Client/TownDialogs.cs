@@ -17,7 +17,7 @@ internal static class DialogKeys
 }
 
 /// <summary>
-/// The one member-list cursor DOS keeps across "WHO WILL WITHDRAW?", "WHO WILL SHOP?" and "WHO WILL USE?" (s58 DOSBox: the
+/// The one member-list cursor DOS keeps across `towndlg.who_will_withdraw`, "WHO WILL SHOP?" and "WHO WILL USE?" (s58 DOSBox: the
 /// Armory opened on the last Bank row, Use item on the last Armory row; town-menus.md §Bank). The remaster's current
 /// shopper is this row. In memory only.
 /// </summary>
@@ -39,13 +39,13 @@ public sealed class MemberCursor
 }
 
 /// <summary>
-/// Bank W)ITHDRAW (OV1 <c>0x2944</c> loop, town-menus.md §Bank) [C]: "GOLD CARRIED %u" / "WHO WILL WITHDRAW?" on the shared
+/// Bank W)ITHDRAW (OV1 <c>0x2944</c> loop, town-menus.md §Bank) [C]: "GOLD CARRIED %u" / `towndlg.who_will_withdraw` on the shared
 /// <see cref="MemberCursor"/> row (Up/Down + Return, or the digit; Esc leaves), then the amount field (<c>0x35df</c> →
 /// field editor <c>0x3629</c>, s58 static + DOSBox): it opens holding the member's whole bank balance and Return takes out
 /// the value shown (<see cref="GameSession.BankWithdraw"/>). A digit shifts in from the right; one that would put the
 /// value above the balance or 65535 is refused (DOS beeps; with the save's gold cap lifted, <c>p1.gold-cap</c>, only the
 /// balance limits it, <see cref="MaxAmount"/>). Backspace/Delete shifts right with a 0 in front. DOS has no
-/// Esc case there, so Esc is ignored. After Return — 0 included — the loop goes back to "WHO WILL WITHDRAW?" (s58 DOSBox).
+/// Esc case there, so Esc is ignored. After Return — 0 included — the loop goes back to `towndlg.who_will_withdraw` (s58 DOSBox).
 /// III under AMIGA SCREENS (s157, <see cref="AmigaKeys"/>): drawn in the Bank's window 9 style (<see cref="View"/>), O = OK
 /// (Return), C or Esc = CANCEL (the picker leaves; the amount field goes back to the picker, nothing taken out).
 /// </summary>
@@ -124,14 +124,14 @@ public sealed class WithdrawDialog : IModalDialog, IAmigaWindowDialog
     /// <summary>The value in the amount field.</summary>
     public int Amount => _amount;
 
-    /// <summary>Bank Withdraw: start at "WHO WILL WITHDRAW?".</summary>
+    /// <summary>Bank Withdraw: start at `towndlg.who_will_withdraw`.</summary>
     public void Open()
     {
         _open = true;
         _member = null;
     }
 
-    /// <summary>Straight to <paramref name="member"/>'s amount field (as if picked at "WHO WILL WITHDRAW?").</summary>
+    /// <summary>Straight to <paramref name="member"/>'s amount field (as if picked at `towndlg.who_will_withdraw`).</summary>
     public void Open(Character member)
     {
         _open = true;
@@ -200,7 +200,7 @@ public sealed class WithdrawDialog : IModalDialog, IAmigaWindowDialog
             if (key == Keys.Enter)
             {
                 var member = _member;
-                _member = null; // back to "WHO WILL WITHDRAW?" (s58 DOSBox), whatever the amount
+                _member = null; // back to `towndlg.who_will_withdraw` (s58 DOSBox), whatever the amount
                 return _amount == 0 ? UiText.S("towndlg.nothing_withdrawn") : session.BankWithdraw(member, _amount).Message;
             }
         }

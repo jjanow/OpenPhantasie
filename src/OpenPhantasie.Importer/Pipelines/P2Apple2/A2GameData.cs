@@ -8,11 +8,12 @@ namespace OpenPhantasie.Importer.Pipelines.P2Apple2;
 /// <summary>
 /// II's GameData (today's schema, the ST build's shape) from the Apple II files alone, so an Apple-only import is a
 /// playable II. Decided entries apply whatever the source (D2-009, D2-015, D2-021, D2-022 / 023: the manual's values).
-/// The PENDING Apple-vs-ST entries (DIFFERENCES-II D2-046..050) are not decided here: the Apple's own values are the only
-/// ones on the player's disks, so they are used, and each one is named in a warning (<c>import.json</c>).
-/// <para>Nothing original is taken from the ST: no spell names (the Apple numbers its spells), no ST text lines.
-/// Our own data (I's shipped item points / spell categories / creation decisions, the rules files) is used as the ST
-/// build uses it. When the ST copy is (or was) imported too, its tables win and this writes nothing.</para>
+/// The Apple-vs-ST entries (DIFFERENCES-II D2-046..050, user s159): the ST's world, monster numbers, town data and cells
+/// whatever the source, from the shipped remaster data <c>apple2-import.json</c> (<see cref="A2StValues"/>); the Apple's
+/// own text, its scroll compass words turned to the ST orientation; spell names from the manual's list.
+/// <para>Nothing original is taken from the ST. Our own data (I's shipped item points / spell categories / creation
+/// decisions, the rules files) is used as the ST build uses it. When the ST copy is (or was) imported too, its tables
+/// win and this writes nothing.</para>
 /// </summary>
 internal static class A2GameData
 {
@@ -25,19 +26,21 @@ internal static class A2GameData
 
     private static readonly string[] Attrs = ["STR", "INT", "DEX", "CON", "CHA"];
 
-    public static void Write(ImportContext ctx, A2Source src, JsonObject gfxIndex)
+    /// <summary>Write II's tables from the Apple; false when the ST copy's tables (this run or earlier) win.</summary>
+    public static bool Write(ImportContext ctx, A2Source src, JsonObject gfxIndex)
     {
         if (ctx.ReadImportedGameData(Game, "game.json") is JsonObject existing && (string?)existing["platform"] != "apple2")
         {
             ctx.Warn("Phantasie II's game data comes from the Atari ST copy (imported as well); the Apple II copy adds " +
                      "only its art pack (choose it under the graphics options).");
-            return;
+            return false;
         }
         var built = Build(ctx, src, gfxIndex, out var warnings);
         foreach (var (file, node) in built)
             ctx.WriteGameData(Game, file, node, indent: 1);
         foreach (var w in warnings)
             ctx.Warn(w);
+        return true;
     }
 
     public static Dictionary<string, JsonObject> Build(ImportContext ctx, A2Source src, JsonObject gfxIndex, out List<string> warnings)
@@ -45,6 +48,8 @@ internal static class A2GameData
         warnings = [];
         var raw = A2Tables.Build(src, forGameData: true);
         var b = new P2GameDataBuilder(ctx);
+        var st = A2StValues.Load(ctx);
+        var spellNames = st.SpellNames;
         var monstersRaw = raw["monsters.json"]["monsters"]!.AsArray();
         var namesRaw = raw["names.json"];
 
@@ -53,7 +58,9 @@ internal static class A2GameData
             ["classes"] = J.Strs(namesRaw["classes"]!.AsArray().Select(x => (string)x!["name"]!)),
             ["races"] = J.Strs(namesRaw["races"]!.AsArray().Select(x => (string)x!["name"]!)),
             ["status"] = J.Strs(namesRaw["status"]!.AsArray().Select(x => (string)x!["name"]!)),
-            ["spells"] = J.A(Enumerable.Range(0, 60).Select(s => (JsonNode?)J.O(("slot", s), ("name", $"SPELL {s + 1}")))),
+            // D2-050: the Apple numbers its spells; names from the manual's list (slots it does not name stay numbered).
+            ["spells"] = J.A(Enumerable.Range(0, 60).Select(s => (JsonNode?)J.O(("slot", s),
+                ("name", spellNames.TryGetValue(s, out var n) ? n : $"SPELL {s + 1}")))),
         };
         var items = Items(ctx, raw["items.json"]);
         nm["items"] = J.A(items.Select(i => (JsonNode?)J.O(("index", J.Clone(i!["index"])), ("name", J.Clone(i["name"])))));
@@ -66,30 +73,22 @@ internal static class A2GameData
             ["items.json"] = Retag(b.Items(items), $"{Source}: ITEM (names 1-180) and TINFO +89+id (value factors) [C]; id 0 " +
                                                    "(the empty slot) is not on the Apple: its value and kind are I's"),
             ["spells.json"] = Retag(b.Spells(nm), $"{Source}: the Apple has no spell names (spells are numbered 1-60, TOWN2 " +
-                                                  "3060, 6882): each is named by its number (dos_slot + 1)"),
+                                                  "3060, 6882); names from the manual's spell list (D2-050, apple2-import.json)"),
             ["names.json"] = Retag(P2GameDataBuilder.Names(nm, monstersRaw), $"{Source}: TOWN2 260 / 270, OUTDOORS2 290, ITEM, MN2x; " +
-                                                                              "spells by number"),
+                                                                              "spells from the manual's list"),
             ["overworld.json"] = Overworld(raw["overworld.json"], warnings),
             ["dungeons.json"] = Dungeons(raw["dungeons.json"]),
-            ["scrolls.json"] = Scrolls(raw["scrolls.json"]),
+            ["scrolls.json"] = Scrolls(raw["scrolls.json"], st),
             ["towns.json"] = Retag(P2GameDataBuilder.Towns(Towns(raw["towns.json"], raw["overworld.json"])),
                 $"{Source}: TF2 (the new-game template), 10 x 250 B"),
             ["creation-tables.json"] = Creation(ctx, raw["creation-tables.json"]),
             ["elementals.json"] = Elementals(),
             ["wilderness-encounters.json"] = P2GameDataBuilder.WildernessEncounters(),
         };
+        // D2-046..049 (user s159): the ST's numbers in every cell where the Apple's differ.
+        st.ApplyCells(built, warnings);
         built["game.json"] = Manifest(built);
 
-        warnings.Add("Phantasie II from the Apple II copy: some of its numbers and texts differ from the Atari ST version " +
-                     "and are still open questions (DIFFERENCES-II D2-046 to D2-050). This import uses the Apple's values: " +
-                     "D2-047 five monster numbers (VIPER, FIRE ELEMENTAL, three of Pluto's beasts), D2-048 DEMONIAC's prices " +
-                     "and the SCROLL D / E stock of IPSWICH and FERRON, D2-049 two skill cells and a few map / dungeon cells.");
-        warnings.Add("D2-046: the map is shown as the remaster (and the Atari ST) draw it, but the Apple's scroll texts give " +
-                     "directions for the Apple's map, which is turned a quarter (its SOUTH is the shown map's WEST, NORTH is " +
-                     "EAST, WEST is NORTH), and the Black castle's entrances lead to the Apple's start cells.");
-        warnings.Add("D2-050: the Apple II has no spell names; spells show as SPELL 1 to SPELL 58 (the Apple's numbers). " +
-                     "Names, scrolls and dungeon messages are the Apple's (upper case, some other wording); the remaster's " +
-                     "own lines stay as they are.");
         warnings.Add("Phantasie II's elementals are not on the Apple II disks: the remaster's three (the same numbers as " +
                      "Phantasie I's and the Atari ST's) are used.");
         return built;
@@ -143,8 +142,8 @@ internal static class A2GameData
             ("_fields", "The ST build's field names (same meanings, FORMAT.md 3.1). sprite_width = the Apple idle picture's " +
                         "width; sprite_height = the Apple's rank height YS% (a2.group_height, OUTDOORS2 1480-1500), the " +
                         "number the Apple lays its groups out with; the group fit test (encounters.md 3) is the ST's [~]. " +
-                        "a2 = the shape / SCALE / HCOLOR the art pack draws with. D2-047 (PENDING): five monsters' numbers " +
-                        "differ from the ST's; these are the Apple's."),
+                        "a2 = the shape / SCALE / HCOLOR the art pack draws with. D2-047 (user s159): the five numbers where " +
+                        "the Apple differs from the ST are the ST's (apple2-import.json)."),
             ("monsters", list));
     }
 
@@ -204,7 +203,8 @@ internal static class A2GameData
         return J.O(
             ("_source", $"{Source}: OUTT<n> (side A; 768 B as shipped, 756 B once played) [C]"),
             ("_note", "26 x 20 grid as the ST build: the Apple stores the same bytes (cell (CX, CY) = the ST's (y, 25 - x)) and " +
-                      "draws them turned a quarter (D2-046, PENDING); the map here is the ST's orientation. Fog = tile + 120. " +
+                      "draws them turned a quarter; the map here is the ST's orientation, OUT28's entrances and the 9 cells " +
+                      "where the Apple differs are the ST's (D2-046 / D2-049, user s159). Fog = tile + 120. " +
                       "Text cells: the Apple's CR-ended string from slot arg, put into the ST's page form (pages = its screen " +
                       "lines, arg + 10 per extra line)."),
             ("grid_width", 26), ("grid_height", 20), ("tile_rules", rules), ("regions", regions));
@@ -311,7 +311,8 @@ internal static class A2GameData
         return J.O(
             ("_source", $"{Source}: DNG1..DNG8 (side B, 6140 B) [C]"),
             ("_note", "raw_hex = the file's first 2048 bytes (the ST's level size): 0-1739 the Phantasie I level format, " +
-                      "byte-equal to the ST's except two cells (D2-049, PENDING), then the start of the Apple's message slots. " +
+                      "byte-equal to the ST's (its two differing cells set to the ST's, D2-049), then the start of the Apple's " +
+                      "message slots. " +
                       "Messages: the Apple's text (CALL 800, slot 1700 + 40 * id, to its CR); a menu written in the text " +
                       "('1-LEAVE  2-OPEN IT') becomes options when an event record asks for that many choices (record " +
                       "byte 1); otherwise the options are the digits. Wording differs from the ST's in places (D2-050)."),
@@ -320,14 +321,15 @@ internal static class A2GameData
 
     // ---- scrolls ----------------------------------------------------------------------------------------------
 
-    private static JsonObject Scrolls(JsonObject sc)
+    /// <summary>The scroll records; their compass words turned to the ST orientation (D2-046).</summary>
+    private static JsonObject Scrolls(JsonObject sc, A2StValues st)
     {
         var pages = sc["a2_pages"]!.AsObject();
         var list = new JsonArray();
         for (var id = 0; id <= 20; id++)
         {
             var lines = id == 0 ? sc["a2_pluto_speech"]!["lines"]!.AsArray().Select(x => (string)x!).ToList()
-                : pages[$"SCROLLL{id}"] is JsonArray a ? a.Select(x => (string)x!).ToList() : [];
+                : pages[$"SCROLLL{id}"] is JsonArray a ? a.Select(x => st.TurnCompass((string)x!)).ToList() : [];
             list.Add(J.O(("id", id), ("step", 0), ("lines", J.Strs(lines)),
                 ("text", string.Join(" ", lines.Select(A2Text.Strip).Where(s => s.Length > 0)))));
         }
@@ -339,7 +341,8 @@ internal static class A2GameData
             ("_source", $"{Source}: SCROLLL1..20 (side A), SCROLLL0 (side B), 1000-B text-screen dumps [C]"),
             ("_layout", "Record n = the screen SCROLLLn shows (24 rows of 40); 0 = Pluto's speech (DUNGON2 4300), 17 is not " +
                         "on the disk (empty). item_records: item i shows SCROLLL(i - 120) and the next files while row 22 " +
-                        "starts with '!' (TOWN2 8000-8020)."),
+                        "starts with '!' (TOWN2 8000-8020). D2-046 (user s159): the compass words of records 1-20 are " +
+                        "turned to the ST orientation (Apple SOUTH = ST WEST, NORTH = EAST, WEST = NORTH, EAST = SOUTH)."),
             ("item_records", map),
             ("scrolls", list));
     }
@@ -379,8 +382,8 @@ internal static class A2GameData
             ("_notes", J.Strs([
                 "TF2, the Apple's new-game template (TWN21..TWN210 are the played copies) [C]; exit_x / exit_y in the ST's map convention.",
                 "map_town_cells: cells with tile 40 whose feature arg - 1 == this town index.",
-                "The Apple has ten towns (the ST's unused STARVILLE / OLYMPIA records are not on it). D2-048 (PENDING): " +
-                "DEMONIAC's price factor and the SCROLL D / E stock of IPSWICH and FERRON are the Apple's.",
+                "The Apple has ten towns (the ST's unused STARVILLE / OLYMPIA records are not on it). D2-048 (user s159): " +
+                "DEMONIAC's price factor and the SCROLL D / E stock of IPSWICH and FERRON are the ST's.",
                 "Restock: the Apple sets 9 pool items per entry (TOWN2 860), the ST 4; the remaster plays the ST rule (D2-045).",
             ])),
             ("towns", towns));
@@ -420,8 +423,8 @@ internal static class A2GameData
             ("_source", $"{Source}: TINFO (side A, 1730 B at $08FC; FORMAT.md 3.4) [C]"),
             ("_decisions", "D2-009 (user: manual, as in I): HALFLING DEX modifier 12 / ceiling 20 and MONK spell 41 not " +
                            "learnable at level 7 (the Apple's own cells already say so). D2-015 (user s79: manual): WIZARD " +
-                           "spell 43 learnable at level 13. D2-049 (PENDING): MONK level 10 skill 6 and PRIEST level 15 skill " +
-                           "8 are the Apple's (0). Skill coefficients are one byte on the Apple (the ST stores u16)."),
+                           "spell 43 learnable at level 13. D2-049 (user s159): MONK level 10 skill 6 and PRIEST level 15 skill " +
+                           "8 are the ST's (the Apple has 0). Skill coefficients are one byte on the Apple (the ST stores u16)."),
             ("_lifespan", "lifespan_bands = the manual's bands +-10 %, as I (D2-021, user s80: manual); copied from " +
                           "GameData/phantasie1/creation-tables.json."),
             ("hp_factors", J.O(("layout", "class * 15 + level"), ("by_class", a2["hp_factors"]!["by_class"]!.DeepClone()))),

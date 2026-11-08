@@ -68,6 +68,14 @@ public sealed partial class GameSession
     public int PartyDefeatsThisRun { get; private set; }
 
     /// <summary>
+    /// True when the last fight ended with the party wiped out (state 6), false after any other ending or before the first
+    /// fight (not saved). II ST plays its combat-screen sound 17 only after a fight that went through <c>combat_victory</c>
+    /// (the flag <c>[0x23eb6]</c>, FORMAT.md 7.3: data 1 at load, set again only at <c>combat_victory</c>'s end), so not
+    /// on the first fight after a defeat.
+    /// </summary>
+    public bool LastFightLost { get; private set; }
+
+    /// <summary>
     /// An event script stopped at op 6's "KEEP IT?" (<see cref="DungeonScriptEnd.OfferItem"/>): the item is the pending
     /// treasure, and <see cref="AnswerTreasure"/> runs the rest of the script from here (s58: DOS asks mid-script).
     /// </summary>
@@ -88,6 +96,7 @@ public sealed partial class GameSession
     private void AfterCombatEnded(CombatEncounter encounter, CombatResult result)
     {
         AfterDungeonCombat(encounter, result); // 0x2a26 cell rewrite, 0x29a9 step back (GameSession.DungeonCells.cs)
+        LastFightLost = result.PartyWiped;
         if (result.PartyWiped)
         {
             PartyDefeatPending = true;

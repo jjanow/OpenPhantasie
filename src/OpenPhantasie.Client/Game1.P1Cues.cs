@@ -18,7 +18,7 @@ public partial class Game1
 
     /// <summary>
     /// s153 / s154: I Amiga's question sounds (pack <c>cue_sounds</c>), under AMIGA SCREENS: 19 when "A TOWN. ENTER?" /
-    /// "A DUNGEON. ENTER?" opens, 27 when the BLACK KNIGHTS menu opens; the question shows after the sound's hold
+    /// `core.overworld.a_dungeon_enter` opens, 27 when the BLACK KNIGHTS menu opens; the question shows after the sound's hold
     /// (<see cref="P1MapHolds.HoldPrompt"/>; 0 with the Sound switch off). The step tone plays at the step itself
     /// (<see cref="StepAfterTone"/>). Called once a frame and right after a deferred step.
     /// </summary>
@@ -155,6 +155,9 @@ public partial class Game1
     /// s158: an I Amiga cue that blocks (h89's player, FORMAT.md "Sound effects"): the sound plays with the Sound switch on
     /// and the input waits for its hold (<see cref="P1SoundSeconds"/>; nothing with the switch off, user s129).
     /// </summary>
+    /// <summary>s162: <see cref="PlayP1Cue"/> once the holds running now are over (the Amiga's blocking sounds in turn).</summary>
+    private void PlayP1CueInTurn(int sound) => _p1Holds.Defer(_updateSeconds, 0, () => PlayP1Cue(sound));
+
     private void PlayP1Cue(int sound)
     {
         if (!_settings.Sound || _assets?.Pack?.DosoundEffects is not { } effects)
@@ -164,6 +167,42 @@ public partial class Game1
     }
 
     private string? _p1SheetToneState;
+    private (int PrintoutBeeps, int Tones, int PotionsDrunk) _p1UseItemCounts;
+    private UseItemDialog? _p1ScrollDialog;
+
+    /// <summary>
+    /// s162 / s163: I Amiga's town Use item (h8 <c>+0x1342</c>) once a frame: the beep before each printout question (pack
+    /// <c>cue_sounds.scroll_read</c>, h29 <c>+0x24e</c> → h26 <c>+0x6e</c>; the questions are drawn with
+    /// <see cref="UseItemDialog.AmigaTown"/>, else the beep plays as the text shows), the list tone (<c>list_tone</c>: the
+    /// chooser's cancel h23 <c>+0x22a</c>, the item list's answer h26 <c>+0x16a</c>, the text's close h29 <c>+0x318</c>) and
+    /// "D O N E !" after a potion drunk (h8 <c>+0x14ba</c> / <c>+0x1540</c>; its beep is the drink line's alert).
+    /// </summary>
+    private void UpdateP1ScrollBeep()
+    {
+        var dialog = _useItemDialog; // null before a game starts; a new game makes a new one (counting from 0)
+        if (dialog is null)
+            return;
+        dialog.AmigaTown = P1MapCues && P1TownRequesterReady("scroll_printout");
+        dialog.Printer ??= lines => UiText.F("game.printed_to_x", PartyPrintout.WriteLines(lines));
+        var counts = (dialog.PrintoutBeeps, dialog.Tones, dialog.PotionsDrunk);
+        if (!ReferenceEquals(dialog, _p1ScrollDialog))
+        {
+            _p1ScrollDialog = dialog;
+            _p1UseItemCounts = counts;
+            return;
+        }
+        var before = _p1UseItemCounts;
+        _p1UseItemCounts = counts;
+        if (!P1MapCues)
+            return;
+        var cuesPack = _assets!.Pack!.CueSounds!;
+        if (counts.Tones != before.Tones && dialog.AmigaTown && cuesPack.ListTone is int tone)
+            PlayP1Cue(tone); // first: the item list's tone comes before the scroll's question beeps
+        if (counts.PrintoutBeeps != before.PrintoutBeeps && cuesPack.ScrollRead is int beep)
+            PlayP1CueInTurn(beep);
+        if (counts.PotionsDrunk != before.PotionsDrunk && _session?.Mode == GameMode.Town)
+            OpenP1TownHeld("done");
+    }
 
     /// <summary>
     /// s158: I Amiga's tone after the character sheet's answers (pack <c>cue_sounds.sheet_tone</c>, h89 <c>+0xd2</c>): h29
@@ -200,6 +239,7 @@ public partial class Game1
     private void ResetP1Holds()
     {
         _p1Holds.Reset();
+        _fadePending = false; // its deferred start went with the holds
         _p1FightLoading = false;
         _p1QueuedMoves.Clear();
         _p1MoveNow = null;

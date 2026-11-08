@@ -61,7 +61,7 @@ public class P3TogglesTests
         Assert.DoesNotContain(o.Lines(), l => l.Text.Contains(" TIME LAG (0-9)"));
 
         o.HandleKeys([Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down,
-            Keys.Down]); // → TIME LAG AND SOUND (I has AMIGA SCREENS and COMBAT SPEED since s132)
+            Keys.Down, Keys.Down]); // → TIME LAG AND SOUND (I has AMIGA SCREENS, COMBAT SPEED s132, AMIGA AUDIO FILTER s160)
         o.HandleKeys([Keys.Enter]);
         Assert.True(settings.Game(GameId.P1).TimeLagInOptions);
         Assert.Contains(o.Lines(), l => l.Text.Contains("IN OPTIONS"));

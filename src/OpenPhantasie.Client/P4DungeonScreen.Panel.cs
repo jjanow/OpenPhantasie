@@ -62,7 +62,8 @@ public sealed partial class P4DungeonScreen
     /// <summary>
     /// True where the panel's strip is kept beside the text column (the whole town, outdoors, a location map, outside
     /// fights), whether or not a panel is up at this prompt: the column keeps one width from step to step. Not in a fight:
-    /// the found-item question's panel lies over the field (<see cref="PanelOverField"/>).
+    /// the found-item question's panel lies over the field (<see cref="PanelOverField"/>); the combat spell list takes the
+    /// strip only while it is open (<see cref="FightListUp"/>).
     /// </summary>
     public bool PanelPlace => Game.LoopBuilt && Game.Battle is null
         && Game.Place is P4Place.Town or P4Place.Outdoors or P4Place.Dungeon;

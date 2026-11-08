@@ -199,28 +199,63 @@ public static partial class UiOverlays
     /// <summary>
     /// III Amiga's message box, window 7 (<c>0xaaac</c>, s134): the box and frame, the text as the window's title (a
     /// "\r" or "\n" starts the next row 8 px down at the same column; a row too wide for the box goes on at a word on the
-    /// next row, never cut) and the one OK button (a click presses O). False when the pack lacks the OK art.
+    /// next row, never cut) and the one OK button (a click presses O). s162: the text in the pack's font for the window
+    /// (topaz 8, as <c>0x854</c> prints it; the s134 shot's `core.magic.cant_cast_here` matches the ROM glyphs 1664 of
+    /// 1664 pixels), and in a dungeon (<paramref name="inDungeon"/>) the button in the pack's dungeon palette, as every
+    /// window there (s125). False when the pack lacks the OK art.
     /// </summary>
     public static bool DrawMessageWindow(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, KeepWindowsLayout layout,
-        KeepWindowsLayout.MessageWindow w, string text, Point? held)
+        KeepWindowsLayout.MessageWindow w, string text, Point? held, bool inDungeon = false)
     {
-        if (assets.Get(PictureNames.Button("ok")) is not { } ok)
+        var palette = inDungeon ? layout.DungeonPalette : null;
+        if (assets.GetInPalette(PictureNames.Button("ok"), layout.ButtonPalette, palette) is not { } ok)
             return false;
         var (x0, y0, x1, y1) = (w.Box[0], w.Box[1], w.Box[2], w.Box[3]);
-        var rows = text.Split('\r', '\n')
-            .SelectMany(line => Lines(line, Math.Max(1, (x1 - 3 - w.Text.X) / PixelFont.Advance))).ToList();
+        using var font = PixelFont.With(FontSources.Named(w.Font, w.FontFile));
+        var rows = MessageRows(w, text);
         // Rows that would reach the button grow the box (and move the button) down, never cut (s99).
         var grow = Math.Max(0, w.Text.Y + 8 * rows.Count + 2 - w.Ok.Y);
         DrawWindowFrame(batch, pixel, layout, x0, y0, x1, y1 + grow);
         var ink = VirtualScreen.ParseColor(w.TextColour);
+        if (inDungeon)
+            ink = InPalette(assets, ink, MapPalette, DungeonPalette); // s162: colour 8 shows the dungeon's #FFFF00 there
         for (var i = 0; i < rows.Count; i++)
             PixelFont.Draw(batch, pixel, w.Text.X, w.Text.Y + 8 * i, rows[i], ink);
         var area = new Rectangle(w.Ok.X, w.Ok.Y + grow, layout.ButtonWidth, layout.ButtonHeight);
-        var picture = held is { } p && area.Contains(p) && assets.Get(PictureNames.Button("ok", chosen: true)) is { } down
+        var picture = held is { } p && area.Contains(p)
+            && assets.GetInPalette(PictureNames.Button("ok", chosen: true), layout.ButtonPalette, palette) is { } down
             ? down : ok;
         batch.Draw(picture, new Rectangle(area.X, area.Y, picture.Width, picture.Height), Color.White);
         Hits?.Add(new HitRegion(area) { Click = [Keys.O] });
         return true;
+    }
+
+    /// <summary>
+    /// s162: <paramref name="colour"/>, a colour of the pack's palette <paramref name="from"/>, as the same index shows in
+    /// <paramref name="to"/> (a window's text drawn while another palette is in force); the colour itself when
+    /// <paramref name="from"/> does not hold it or <paramref name="to"/> lacks that index.
+    /// </summary>
+    public static Color InPalette(AssetCatalog assets, Color colour, string from, string to)
+    {
+        for (var i = 0; i < 32; i++)
+        {
+            if (assets.PaletteColour(from, i) is not { } c)
+                break;
+            if (c == colour)
+                return assets.PaletteColour(to, i) ?? colour;
+        }
+        return colour;
+    }
+
+    /// <summary>
+    /// Window 7's text rows (s162): split at "\r" / "\n", a row too wide for the box going on at a word on the next row,
+    /// measured in the window's font (<see cref="KeepWindowsLayout.MessageWindow.Font"/>); each row 8 px below the last.
+    /// </summary>
+    public static IReadOnlyList<string> MessageRows(KeepWindowsLayout.MessageWindow w, string text)
+    {
+        using var font = PixelFont.With(FontSources.Named(w.Font, w.FontFile));
+        return [.. (text ?? "").Split('\r', '\n')
+            .SelectMany(line => Lines(line, Math.Max(1, (w.Box[2] - 3 - w.Text.X) / PixelFont.Advance)))];
     }
 
     /// <summary>
@@ -254,7 +289,7 @@ public static partial class UiOverlays
     }
 
     /// <summary>
-    /// The heal target (spells 1–4) in window 6 (<c>0x127ce(33)</c>, s119): "Who shall be healed in combat?" (colour 8), one
+    /// The heal target (spells 1–4) in window 6 (<c>0x127ce(33)</c>, s119): `p3combat.heal_question` (colour 8), one
     /// member a row (<c>0x12ac8</c>: name, race, level, class, status; colour 4, the cursor's row in 8), OK / CANCEL.
     /// </summary>
     private static void DrawHealWindow(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, KeepWindowsLayout layout,

@@ -50,7 +50,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-040 | Purge: DOS refuses a party member ("[original text]"); the manual's Purge drops the adventurer "from the guild list from the party" | DECIDED: manual, elemental as III's Drop · built (`p3.purge`) |
 | D3-041 | Lifespans: the manual's old age (decline, death); DOS writes a maximum age at creation but nothing reads it | DECIDED: manual (I's lifespans) · built (`p3.lifespans`) |
 | D3-065 | Title page: the manual says "Hit any key to get to the Initial Menu"; the Amiga shows the title only while the game loads and clears it with no key | DECIDED (user s103): wait for a key (manual) · built; tune plays on after the splash (user s157) · built |
-| D3-067 | Wolf / Mud Elemental pictures: the Amiga has none (byte 27 ≥ 48), shows the earlier fight's picture or hangs on the first fight after boot | DECIDED (user s126): bug, fixed with borrowed pictures (Wolf = Wild Dog, Mud Elemental = the party elemental), no option · built |
+| D3-067 | Wolf / Mud Elemental pictures: the Amiga has none (byte 27 ≥ 48), shows the earlier fight's picture or hangs on the first fight after boot | DECIDED (user s126): bug, fixed with borrowed pictures (Wolf = Wild Dog, Mud Elemental = the party elemental), no option · built. s161: the DOS CGA pack borrows too (DOS's Skeleton / Forest Elf replaced; Troll Baby = the party Troll) · built |
 | D3-066 | Sound switch: the manual toggles sound with the Time Lag; DOS has a Sound menu entry; the Amiga has no sound switch (its "Speed" menu sets 3 speeds only) | DECIDED (user s111): manual — sound toggled on the Time Lag prompt · built (s112) |
 | D3-068 | Dungeon Yes / No questions: DOS lights No on "[original text]" (and the exit / save-map questions); the Amiga's window 1 has no highlight and Return = OK (continue / take it) | DECIDED: Amiga under AMIGA SCREENS (user, s135) · built (s134) |
 | D3-069 | Inn magic gain: the manual's "characters who have cast spells while in the wilderness"; DOS rolls for every living member on the first stay after a fight | DECIDED (user s137): manual (a cast outside town) · built |
@@ -781,7 +781,9 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 - **Code:** Amiga `0x1b4c8` (s97 / s125): a monster's picture is record byte 27; the sheets hold 0–47. Mud Elemental (48)
   and Wolf (65) get no picture cut, so the field shows whatever the slots last held (seen: two Sniverlings from the fight
   before), and on the first fight after boot the empty slot makes the blitter copy 65536 words a row and the game hangs
-  `[C]` (`reverse-engineering/amiga/phantasie3/FORMAT.md` §6, §8.8). DOS III's `MONSTERS.CGA` not decoded `[?]`.
+  `[C]` (`reverse-engineering/amiga/phantasie3/FORMAT.md` §6, §8.8). **DOS III** (decoded s160, DOS `FORMAT.md` section
+  10): no bug there: root `0x10b8b` takes byte 27 (minus 1 above 27) and `0x7e89` falls back to picture 15, the
+  Skeleton's, for any index past the giants, so both show a Skeleton (at the giant places) `[C]` static.
 - **Decision (user s126):** a bug, fixed outright, **no option**: neither the stale picture nor the hang is reproduced.
   Both borrow the game's own art: **Wolf = the Wild Dog's picture** (byte 0; III already shares pictures, e.g. Wild Cat /
   Panther, Orc / Kobold / Goblin), **Mud Elemental = the summoned party elemental's** (heros picture 22; the Troll Baby
@@ -790,8 +792,13 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   `monsters/{idle,attacking}/31-wolf.png` and `53-mud-elemental.png`. Only the picture is borrowed: byte 27 is unchanged,
   so both stay giants (one group, at most two, the giant places and the flash's +2 bytes; `UiOverlays.FieldGiant`) and
   draw their normal-size pictures there, as the Amiga does with its stale one.
+- **DOS CGA pack (decided user s161: "find an analogous creature and use those graphics instead"):** DOS shows the
+  Skeleton's picture for Wolf and Mud Elemental and the Forest Elf's for the Troll Baby (byte 27 = 27). The pack borrows
+  the same analogous creatures as the Amiga: Wolf = the Wild Dog's picture, Mud Elemental = the party elemental's
+  (SHAPES.CGA party picture 22), Troll Baby = the party Troll's (party picture 20). Built s161 in
+  `extract_dos_p3_graphics.py` `BORROWED_PICTURE` and `P3CgaArt.BorrowedPicture`; giant placement unchanged.
 - **Side effects:** none on the rules (presentation only).
-- **Spec:** `reverse-engineering/amiga/phantasie3/FORMAT.md` §6 (byte 27 table), §8.8.
+- **Spec:** `reverse-engineering/amiga/phantasie3/FORMAT.md` §6 (byte 27 table), §8.8; DOS: `reverse-engineering/dos/phantasie3/FORMAT.md` section 10.
 
 ## D3-068 — Dungeon Yes / No questions: Return's answer
 
@@ -808,7 +815,9 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 - **Remaster (s128, s134):** with AMIGA SCREENS on and the III Amiga pack, the four questions are window 1 and Return =
   OK (the exit / save-map since s128, "hears monsters" / trap since s134); with the remaster's prompt bar, DOS's lit
   answer. So under AMIGA SCREENS a Return on "[original text]" walks into the fight, where DOS's Return goes
-  back.
+  back. s160 (user s159: the town's questions under every III layout): the same split for "Are you sure …?" before Load,
+  Save, Distribute and a Purge pick (DOS root `0x1820`(text, 2), "No" lit): window 1 with Return = OK under AMIGA
+  SCREENS, DOS's prompt with Return = No otherwise (`P3ConfirmQuestion`).
 - **Side effects:** none on the rules (which answer Return gives only).
 - **Spec:** `reverse-engineering/amiga/phantasie3/FORMAT.md` section 8.7 ("window 1"), `Phantasie3Campaign.YesNoHighlight`.
 

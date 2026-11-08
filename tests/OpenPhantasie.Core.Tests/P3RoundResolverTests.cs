@@ -268,7 +268,7 @@ public class P3RoundResolverTests
         Assert.Empty(enc.TakeRoundLines());
     }
 
-    /// <summary>s158 (Amiga <c>0x15990</c>, FORMAT.md 7.2): the driver's stop 33 comes before "The monsters flee!".</summary>
+    /// <summary>s158 (Amiga <c>0x15990</c>, FORMAT.md 7.2): the driver's stop 33 comes before `core.p3.monsters_flee`.</summary>
     [Fact]
     public void LineTags_MonstersFleeing_TagTheLineWithTheStop()
     {

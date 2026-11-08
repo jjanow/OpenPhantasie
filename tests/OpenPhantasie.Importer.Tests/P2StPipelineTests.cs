@@ -27,6 +27,13 @@ public class P2StPipelineTests
         ["strings/en.sources.json"] = "where the table's original lines sit in each copy (build_string_sources.py), ships",
         ["graphics/index.json"] = "class (a), hand-written pack list",
         ["graphics/apple2.json"] = "the Apple II pack: p2-apple2's output (P2Apple2PipelineTests)",
+        ["apple2-import.json"] = "class (a), shipped: the ST cells, compass map and manual spell names an Apple-only import takes (D2-046..050)",
+        ["strings/fallback.en.json"] = "class (a), shipped: the remaster's wording for lines the Apple II lacks (D2-050)",
+        ["graphics/fonts/emutos-st-8x8.json"] = "s160: EmuTOS's font (emutos_st_font.py), not from the disks, ships",
+        ["graphics/fonts/emutos-st-8x8-italic.json"] = "s160: EmuTOS's font in VDI italic (emutos_st_font.py), ships",
+        ["graphics/fonts/emutos-st-8x8.LICENSE.txt"] = "s160: the EmuTOS font's source and GPL-2.0+ licence, ships",
+        ["graphics/fonts/emutos-st-6x6.json"] = "s162: EmuTOS's 6x6 small font (emutos_st_font.py), the ending's OK label, ships",
+        ["graphics/fonts/emutos-st-6x6.LICENSE.txt"] = "s162: the EmuTOS 6x6 font's source and GPL-2.0+ licence, ships",
     };
 
     private static readonly string[] RawFiles =

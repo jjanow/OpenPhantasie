@@ -196,6 +196,15 @@ with no picture at all (the 12 × 12 box; no III monster since D3-067) is still 
 Mindblast II, cast line → bee flash → "takes 4" → "dies" → next bee). s114: watched in the running Client (Xvfb): a Fireflash I on a
 monster rank that outlives the round draws the three frames over the rank's picture, sound with it. (s125: the
 `0x181b8` 0-damage branch, the party's Sleep, is noted as hits now, see above.) s117: sound 15 on the melee "hits!" lines and 18 on "misses" are wired on the combat field (§8.1).
+**s163, a monster's Sleep on the party, seen live** (FS-UAE, `../working/capture_s163_p3_dungeon.md`): `0x17bc2` rolls each
+member (chance 5 · (the caster's word `+0x0e + 2i` − the member's `+0x1e`) + 50; dead / out members skipped); a member
+the roll takes gets `damage_character(0, slot, flash 1)` and status 2. Filmed: the red "Skeleton casts Sleep" with sound
+21, the line cleared, then one flash per member taken, slots 0 to 5 in turn (three frames 7 VBLs apart, sound 15 on the
+second), and **no line after any flash**. A monster casts only while its word `+0x0e + 2i` is at least the spell's tier
+(id mod 4, 2 for ids from 33 up), which byte 24 = 255 left at −1: why s162's sleep disk never cast. The remaster, watched
+on Xvfb (`:157`, III test party, `--p1-combat 72`, the Guagle Beast, every member parrying): "GUAGLE BEAST CASTS SLEEP",
+then a flash on each member slept, one after another, and no line after them
+(`parity/shots/p3-remaster-s163-monster-sleep-cast-line.png`, `-flash.png`), as the Amiga.
 
 **Palette in the reward intro `[C]` (s109):** `0x1ee82` sets no palette before the flashes, so the one in force is what the
 event fight `0x1da5c` left: after the fight it sets black (`0x21a88`), clears, draws the dungeon map and sets `0x244de`
@@ -221,7 +230,7 @@ started with the page and stopped when the page changes; silent with the Sound s
 | File | Picture | Where |
 |---|---|---|
 | `Graphics/title.cmp` | title "The Wrath of Nikademus" | `0x73fe` |
-| `D/w4.cmp` | town street (every town) | loaded at start `0x7776`. Town name (s102, `0x7e54`): 12 spaces at text cell (14, 2), then the name (table `0x22f14`, mixed case "Pendragon") at cell 14 + (12 − len)/2, row 2 (`0x854`: x = col·8, baseline row·8 + 6, so the text top is y 16); BackPen 4 (the scroll's tan); FrontPen **2** (`#924924`) in towns 1–15, **0** in 16–17 (`0x24152` = 0 / 1 / 2 / 4 for towns < 15 / 15 / 16 / 17+, `0xb17e`). Towns 16–17 fade (`0x4390` is the palette fade, as in §3.1) to `0x23050`, a dim palette (words 000 222 333 444 333 432 321 210 531 430 222 123 102 100 222 444), instead of `0x24010` (= `w4`'s own colours) when the street is drawn (`0x78ee`, and back from a building `0xb228`) `[C]` s108. Cell centring puts an odd-gap name 4 px left of the exact centre `[C]`. Built (s108): pack `town_screen` `name_cells` / `name_cell` (`TownScreenLayout.NameShift`), `dim_towns` [16, 17] with `palettes.town_dim` and the name in black (`AssetCatalog.TownBackdropFor` recolours the street and the doors). No message line on this screen (the picture runs to row 199). |
+| `D/w4.cmp` | town street (every town) | loaded at start `0x7776`. Town name (s102, `0x7e54`): 12 spaces at text cell (14, 2), then the name (table `0x22f14`, mixed case "Pendragon") at cell 14 + (12 − len)/2, row 2 (`0x854`: x = col·8, baseline row·8 + 6, so the text top is y 16); BackPen 4 (the scroll's tan); FrontPen **2** (`#924924`) in towns 1–15, **0** in 16–17 (`0x24152` = 0 / 1 / 2 / 4 for towns < 15 / 15 / 16 / 17+, `0xb17e`). Towns 16–17 fade (`0x4390` is the palette fade, as in §3.1) to `0x23050`, a dim palette (words 000 222 333 444 333 432 321 210 531 430 222 123 102 100 222 444), instead of `0x24010` (= `w4`'s own colours) when the street is drawn (`0x78ee`, and after File › Load `0xb228`, s162) `[C]` s108. Cell centring puts an odd-gap name 4 px left of the exact centre `[C]`. Built (s108): pack `town_screen` `name_cells` / `name_cell` (`TownScreenLayout.NameShift`), `dim_towns` [16, 17] with `palettes.town_dim` and the name in black (`AssetCatalog.TownBackdropFor` recolours the street and the doors). No message line on this screen (the picture runs to row 199). |
 | `D/w3.cmp` | five 48×48 **open-door pieces** of the town street (s102 `[C]`): Bank at (16, 141), Mystic (64, 141), Armory (160, 143), Inn (208, 139), Guild (272, 141); the rest of the screen is colour 0 | loaded with `w4` on entering a town (`0x7776` / `0x7788`) and unpacked to the back buffer; on going into a building `0xacc8(door)` saves the 48×48 rect of the street (table `0x23070`: x in 16-px words, y), copies the open door from `w3` over it, waits 15 ticks and restores the street. Door numbers from the callers: 0 bank (`0x11812`), 1 Mystic (`0x12072`), 2 armory (`0x10fa2`), 3 inn (`0x11bc2`), 4 the Guild and its screens (`0x12bfc`, `0x12422`, `0x127ce`). Remaster (s102): pack `town_screen.doors` + `town.doors`; the Client shows the door for 0.3 s (15 ticks at 1/50 s `[~]`) before going in |
 | `D/w2.cmp` | a temple with a red demon: the gates of the Astral Plane | party defeat `0x1dc16`: "[original text]…" / "…arrived at the gates…", then the picture (X of `D/WX.cmp`, string 35, set to `'2'` at `0x1dc70`); drawn behind III's defeat outcome; screen layout in §6.1 |
 | `D/w1.cmp` | Zeus on clouds (art rows 0–120) | reward scene `0x1ee82(outcome)`: outcome 2 (Nikademus killed, good) → `'1'` (§3.1); DOS ovl4 `0x0000`, `endgame.md` §3 |
@@ -510,7 +519,7 @@ address + `0x6038`: DATA starts at flat `0x21890` and file `0x278c8`; no relocat
 | 27 | 2 | event op 14 "[original text]" (s135: `0x1cc3e` writes 27 to the event word `0x240fa`, played at the op tail `0x1d1b6`) |
 | 30 | 1 | **no caller** (s135 `[C]`: every reference to `0xb126` is a `jsr` (none by `bsr`; s140: one `jsr %pc@`, 36 at `0xaaee`), each with a constant, the event word `0x240fa` (written only with 12, 42, 3, 9, 27) or the defeat's `%a5@(-24)`, which is 48 / 9 / 9 at the call: each loop pass sets `%a5@(-8)` to 21 (`0x1de34`), maybe then 22 / 23, and the local's other write, the name length at `0x1e00c`, comes after the call) |
 | 33 | none: all three pointers 0 = the driver's stop | `0x15990`, `0x19c66` (s157 `[C]` static: both in the fight's end of round: `0x15990` before "[original text]" (`0x1a676`), `0x19c66` before "[original text]" (the party's flight succeeding; "[original text]" plays nothing). s158 wired (`P3Sounds.Stop`): Core tags "[original text]" with 33 (the field run plays it as the line prints) and raises it with "[original text]"; it silences the running sound and a carried title tune, 7.1) |
-| 36 | 2 | `0x111e0` (s136: the Armory's "He cannot carry anymore!"), `0x11386` ("The party cannot afford it!"), both in `0x10fa2`; s140 `[C]` live: `0xaaee` in `0xaae2(text)`, window 1's confirm question (OK / CANCEL), called by `jsr %pc@(0xb126)` (the one PC-relative call, missed by the s135 sweep): "Are you sure you want to load an old game over this current one?" (`0xb1f6`), "… redistribute?" (`0xb36c`), "… purge this character permanently?" (`0xb55a`), "… save this game over your previously saved one?" (`0xbaa0`, heard live), "It will take this character two months to make the journey here." (`0xd24c`, asked only for a member whose town word `+0x88` differs from the guild's `0x240e6`; OK adds 4 to the age clock `+0x92` and moves him: DOS's `AddNeedsMoveConfirm` / `AddAgeCost`). s141 wired: the remaster asks only the guild Add's question (no confirm for load, save, purge or Distribute), so `GameSession.AskConfirmQuestion` (`P3Sounds.ConfirmQuestion`) plays 36 when the Guild Add dialog asks it |
+| 36 | 2 | `0x111e0` (s136: the Armory's "He cannot carry anymore!"), `0x11386` ("The party cannot afford it!"), both in `0x10fa2`; s140 `[C]` live: `0xaaee` in `0xaae2(text)`, window 1's confirm question (OK / CANCEL), called by `jsr %pc@(0xb126)` (the one PC-relative call, missed by the s135 sweep): "Are you sure you want to load an old game over this current one?" (`0xb1f6`), "… redistribute?" (`0xb36c`), "… purge this character permanently?" (`0xb55a`), "… save this game over your previously saved one?" (`0xbaa0`, heard live), "It will take this character two months to make the journey here." (`0xd24c`, asked only for a member whose town word `+0x88` differs from the guild's `0x240e6`; OK adds 4 to the age clock `+0x92` and moves him: DOS's `AddNeedsMoveConfirm` / `AddAgeCost`). s141 wired: `GameSession.AskConfirmQuestion` (`P3Sounds.ConfirmQuestion`) plays 36 when the Guild Add dialog asks its question; s158 File › Load / Save under the town bar; s160: before every one of III's load / save / redistribute / purge questions under every III layout (`P3ConfirmQuestion`, 8.9) |
 | 39 | 2 | `0x18610` (s136: in `0x1833e`, a combat line ending " dies!"; callers `0x1665c`, `0x18270`, `0x182ac`, `0x18328`, `0x187ce`. s138 `[C]` static: `0x187ce` is in `0x186f6(group, spell, rank, member)`, the party's **Fireflash I-IV**: the cast routine's case for spells #5-8 (`0x168f2`, jump table `0x1705a`) calls it for order 7 (Cast at rank 1, group `0x24794`) or 16 (Cast at rank 2, group `0x2481e`) when that group has a living monster; it picks the monster with `0x187da`, rolls `rnd((INT / 2 + 1) · t[spell])` (the caster's INT, record +0x0c at `0x255a6`; magic +0x1e is `0x255b8`, table `0x2271a`), caps it at 10 / 30 / 60 / 99 by tier, at least 1, and calls `damage_monster` with the flash set. Built s137 `CombatEncounter.TagDies`: every monster kill in Core (melee, the party's Fireflash and the other spells through `CombatResolver.ApplyMonsterDamage`) tags its " dies!" line with 39; a member's death has none) |
 | 42 | 2 | `0x1092c` (s136: " The spell was not learned... "), `0x1d516` (s136: the **Damage Report** window `0x1d4ea`, shown by every party-damage call `0x1d24a`: a sprung trap `0x1c7b6`, ops 1–4 `0x1cb00`, op 16 `0x1cc78`, and `0xa676` / `0xa6b8`); the dungeon step's special doors 0xc7 / 0xd6 (s136: `0x1c4e0` writes 42 with result 4, message 4 "No one can pick the lock"; a locked door 0xc6 / 0xd5 nobody picks gives result 4 with no sound); event op 9 "[original text]" (s135: op 9 sets the message and falls into op 10, which writes 42 at `0x1cbf2`); ops 1–4 (`0x1cb06`) and op 10 on its own write 42 with no message, so the op tail does not play it and the word is left for the dungeon step's play at `0x1c246` (s136 `[C]`, below) |
 | 45 | 3 | `0x1dde6` (the defeat's demon appears) |
@@ -744,12 +753,13 @@ every fight `0x2437e` holds the map palette (8.4 "Button palette").
   its loop flag for every non-zero key) or a click on OK. No sound (`0xaae2`, which puts its text in window 1, plays sound
   36 first). 78 callers: the combat refusals, the town / guild refusals ("[original text]" …), the spells cast
   outside a fight, the disk messages. Seen on FS-UAE (s134, the TOSEC save in Pendragon, Options → Cast Spell →
-  sprite → Monster Evaluate): "You cannot cast this here." with the box (0, 0)–(319, 52) (outer frame row 0 / column 0,
+  sprite → Monster Evaluate): "[original text]" with the box (0, 0)–(319, 52) (outer frame row 0 / column 0,
   inner row 52 / column 319), the text's ink from (8, 8) in (238, 204, 68) = map index 8, OK at (72, 27)–(127, 44); an
   `x` closed it (`parity/shots/p3-amiga-window7-cannot-cast-here.png`). Built: pack `keep_windows.message`,
   `UiOverlays.DrawMessageWindow` on the orders screen (`CombatPresenter.AmigaMessageShown`: the next key, Esc included,
   or OK only closes it), watched on Xvfb (`parity/shots/p3-remaster-window7-knows-no-spells.png`). The other 77
-  callers: the caller table below (s135). Not built: Resurrection on a living target ("This character is not
+  callers: the caller table below (s135). **s162:** the text is topaz 8 (the shot's "[original text]" equals the
+  ROM glyphs, 1664 of 1664 pixels); pack `keep_windows.message.font` = `amiga-topaz-8`. Not built: Resurrection on a living target ("This character is not
   dead.", Core's Resurrection order has no target). Watched
   s119 on Xvfb (`:79`): a level-12 Priest's two pages, MORE, Healing III → the heal window, cursor, a row press, CANCEL →
   Thrusts (R1).
@@ -766,14 +776,14 @@ every fight `0x2437e` holds the map palette (8.4 "Button palette").
   | `0xde0c` Training | `0xe36c` "This character is at maximum level." | none: the dispatch's T tests only the status and the class (`0xb92a`…); DOS guild_menu item 1 refuses level ≥ 21 with S417 "[original text]" (root `0xad25`), Core's rule, so `core.p3.cannot_train` reads S417 (s158) and this Amiga line has no remaster moment `[~]` |
   | `0xec76` Use Item | `0xefe6` "…unable to do this.", `0xf13a` "This character's health improves.", `0xf1dc` "This character's magic restores." | none: the remaster's item lines are I's `[~]`; s158: the dispatch's "…not carrying anything." (`0xba7c`, U by a member with no item; DOS root `0x8cc6` S416) = `useitem.x_carries_nothing` in III's table: window 7 (the remaster tests carried and worn items; whether `+0x26` counts worn ones not read `[~]`) |
   | `0xf2c0` Trade | `0xf5be` "[original text]" | `core.p3.cant_carry_anymore`: window 7 |
-  | `0xf770` Cast outside a fight | `0xf950` / `0xf9a0` "…magic is too low!", `0xfa08` "This character is not dead.", `0xfa22` "This character's life is restored.", `0xfa4c` / `0xfb02` / `0xfb1e` "You cannot cast this here.", `0xfa7a` "The party is already in this town." | none: III's spells outside a fight are mostly `core.p3.spell_not_built` in the remaster; the shared caster's lines are I's `[~]` |
-  | `0xfcbe` heal outside a fight | `0xfd42` "The character's health improves..." | none `[~]` |
-  | `0xfed6` Monster Evaluate | `0xff2e` "The approximate level of the monsters\r within this region is" + the level (`0x1aa40` + 1, × 2, at most 12; built in a local buffer) | formatted (`core.magic.monsters_at_level_x`), not matched `[~]` |
+  | `0xf770` Cast outside a fight (s162 `[C]` static, the routine at `0xf8f6`: MP < 1 → too low; the list `0xf770`; cost > MP → too low; ids 1–4 → `0xfcbe`; 44 → a target (status > 0 → not dead, else raised and "restored"); 54 outside a town or 52 in a town → "cannot cast this here"; 54 to the same town → "already in this town"; every other id → "cannot cast this here") | `0xf950` / `0xf9a0` "…magic is too low!", `0xfa08` "This character is not dead.", `0xfa22` "This character's life is restored.", `0xfa4c` / `0xfb02` / `0xfb1e` "[original text]", `0xfa7a` "The party is already in this town." | s162: III's table says Core's out-of-fight refusals in these words, all window 7: `core.magic.not_enough_mp` = S484 "[original text]", `core.magic.cant_cast_here` and `.only_in_combat` = S434 "[original text]" (the remaster's list leaves most refused spells out, so rarely reached); "not dead" / "restored" / "already in this town": no remaster equivalent (Resurrection's target, Transportation's town pick) `[~]` |
+  | `0xfcbe` heal outside a fight | `0xfd42` "[original text]" | s163: Core says it after every out-of-fight III heal (`core.p3.character_health_improves`; DOS root `0x194d` prints the same text at `0x19be` once the target is picked, where I's DOS prints nothing), window 7; watched on Xvfb (`p3-remaster-s163-window7-health-improves.png`) |
+  | `0xfed6` Monster Evaluate | `0xff2e` "The approximate level of the monsters\r      within this region is" + the level (`0x1aa40` + 1, × 2, at most 12; s162: the text is copied to a buffer and the level's digits (`0x1d8a`, itoa) written at byte 66, after "is "; DOS root `0x1b02` does the same at `bp − 0xe`) | s162: III's `core.magic.monsters_at_level_x` = that text with the row joined ("… monsters within this region is {0}", the band's one line), window 7 (the level itself is Core's rule, D-056); s163: the text keeps the programs' "\r" and row 2's six blanks (one byte span in both, `en.sources.json`), so window 7 prints row 2 one 8-px row down from the title column with its six blank cells (`UiOverlays.MessageRows`); the remaster's one-line band turns the break into a space (`Game1.OneLine`). Not seen in the Client: the test party knows no Monster Evaluate `[~]` |
   | `0x103f2` Learn Spells | `0x1058a` "[original text]", `0x1068a` "[original text]\r[original text]" | `core.guild.learn_no_more` (III's wording since s156) and `core.guild.learn_cant_afford` (s158: DOS ovl2 `0x1d12` prints the same DS text when the party's gold is below the cost; Core tests the same after the pick, DOS before the list): window 7 |
   | `0x12bfc` New character | `0x139fc` "The character roster is now full." | none |
   | `0x188e4` orders screen | the six cast refusals (s134, above) | built s134 |
   | `0x1a192` take an item | `0x1a1a4` "The party can't carry any more items." | none `[~]` |
-  | `0x1c36c` dungeon step | `0x1c674` "<name> picks the lock.", `0x1c75a` "<name> [original text]" (both built in `0x24632` by `0x1f572`, below) | formatted (`core.p3.x_picks_the_lock` / `x_disarms_the_trap`, on the remaster's line), not matched `[~]` |
+  | `0x1c36c` dungeon step | `0x1c674` "<name> picks the lock.", `0x1c75a` "<name> [original text]" (both built in `0x24632` by `0x1f572`, below) | s162: window 7 (`core.p3.x_picks_the_lock` / `x_disarms_the_trap`; `text_ids` take format items, `AmigaMessageBox.Matches`), the OK and text in the dungeon palette (`DrawMessageWindow(inDungeon)`, text colour 8 → `#FFFF00`). s163: all four of the step's member lines seen live on the Amiga (`../working/capture_s163_p3_dungeon.md`: sound 6 once from `0x1f5cc` before each window) and watched in the Client (8.7) |
   | `0x1f6dc`, `0x1faf0`, `0x20404` disk and I → III transfer | "Insert your Phantasie III disk.", "This [original text]I Disk.", the two drive-light warnings, "To use these characters, select the 'Start this turn in Pendragon' option.", "Insert a Phantasie I Disk now.", "Insert the Phantasie III Disk on to which these characters will be added.", "[original text]" (`0x20978`), "This [original text] disk!" | no remaster path (the importer has no disks) |
 
   **The town dispatch key by key (s158, `[C]` static).** `0xb1cc` upper-cases the key and jumps through the word table
@@ -798,6 +808,23 @@ every fight `0x2437e` holds the map palette (8.4 "Button palette").
   ≤ 3 (Examine also needs `0x97c2` = 0), S404 / S418 at a party word of 7 (picked by `0xb612`), S409 at 20 (New),
   S417 for Dead / Out (status 0 / 3), race 17 and, for Train only, level ≥ 21; Examine (`0x999f(6)`, message 395 "Who shall
   be examined?") lists the roster too and opens `0x86f0`. So DOS and the Amiga agree; the roster sizes differ (20 / 25).
+  DOS asks O / S / D / P's questions through root `0x1820`(text, 2) with "No" lit (`dungeon-events.md` 2.2, town.md
+  "The questions"); the Amiga's window 1 has no highlight and Return = OK. **Built s160 (user s159), every III layout:**
+  one Client question (`P3ConfirmQuestion`, `Game1.P3Confirm.cs`) with the shared lines `p3bar.confirm_load` / `_save` /
+  `_distribute` / `_purge` (DOS's and the Amiga's text, byte-equal in both programs), sound 36 first, shown through the
+  prompt path: window 1 when AMIGA SCREENS is on and the pack has window 1 and the OK / CANCEL art, else DOS's Yes / No
+  prompt ("No" lit, Esc = No). Asked before: Load (the bar's File › Load; the game menu / F9 in a town or the Guild),
+  Save (the bar's File › Save, the street's S, the DOS row's Option › Save game, the game menu / F5 in a town or the
+  Guild), Distribute (D, the bar's Options › Distribute, the DOS row's Inn list; after the empty-party refusal; not the
+  town-entry hand-out, which DOS's `0x0000(1)` runs without one) and a Purge pick (after Core's refusals,
+  `GameSession.PurgeRefusal`; the list steps aside while it asks, `GuildPickDialog.PurgeAsked`). E (Examine any roster
+  member) is the Guild's I key outside the bar (`GameAction.GuildExamine`, DOS's label "Inspect"; E stays Exit Guild).
+  Watched s160 on Xvfb (`:187`, III test party): AMIGA SCREENS on: Guild I → the roster list → a sheet; P → SWAT →
+  window 1 with S407, CANCEL → the list; the street's S → window 1 (the band empty, as s158), OK → "Saved."; D → window 1,
+  OK → the hand-out screen. AMIGA SCREENS off (the DOS row): P → SWAT → "Yes >No", Return → the list, SWAT kept; S, F9
+  and D → the prompt with "No" lit; Esc on Load's closed it; Y on Distribute's opened the hand-out
+  (`parity/shots/p3-remaster-confirm-{purge,distribute}-window1.png`, `…-confirm-{purge,save,load,distribute}-dos.png`,
+  `p3-remaster-guild-examine-key.png`).
   **`0x1f572(text, member)`** copies the member's name (record `0x2559a` + 262 · member) into `0x24632`, appends the
   text and plays **sound 6** (`0xb126(6)` at `0x1f5c8`). Its four callers in `0x1c36c`: " [original text]"
   (`0x1c554`) and " [original text]" (`0x1c6bc`), which then ask in window 1, and " picks the lock." (`0x1c668`)
@@ -821,8 +848,11 @@ every fight `0x2437e` holds the map palette (8.4 "Button palette").
   on an empty party) read S405 "[original text]", Add on an empty roster `guild.roster_empty` S408 "The
   character roster is empty.", `core.p3.cannot_train` S417, `core.guild.learn_cant_afford` the DOS / Amiga text; all go
   to window 7. Left with the remaster's wording because the condition does not match one-for-one `[~]`: "No one to add."
-  for a roster whose members are all in the party (III lists them and refuses each pick), Use Item's and the
-  out-of-fight caster's lines.
+  for a roster whose members are all in the party (III lists them and refuses each pick; seen s163 on the band with six
+  members and an elemental, where the Amiga's Add says "The party is fully assembled." or "You can only add an
+  elemental." by the word `0x240e2`, not read), Use Item's lines. s163: the out-of-fight caster's "…magic is too low!"
+  watched in window 7 (the remaster asks the heal target first, then refuses; `0xf8f6` tests the cost before the target
+  `[~]`).
 - **Button palette `[C]` static (s128).** The spell / heal / rank windows sit on the orders screen. `0x18c48` sets
   black (`0x11ae`), draws, then sets `0x2437e` and `0x24070` = 1 (`0x19058`), so `0x3904` keeps that palette.
   `0x2437e` is written only when a `.cmp` / `.set` / sheet is loaded (`0x123c` / `0x27d8` copy the file's 16 colours):
@@ -1006,9 +1036,41 @@ number pad moves the party (8 / 2 / 4 / 6; the diagonals did nothing); on the ov
   lights No), the palette by `GameSession.Dungeon` (null at the load question). Watched on Xvfb
   (`parity/shots/p3-remaster-window1-{exit-question,save-map,load-dungeon}.png`). Since s134 the dungeon step's "hears
   monsters. Continue?" and "[original text]" (Core's III Yes / No event questions) are window 1 too, in the
-  dungeon palette; I's DISARM / LEAVE prompt keeps the bar. OK = Yes `[C]` (s134): after `0x1c560` OK sets the fight
+  dungeon palette; I's DISARM / LEAVE prompt keeps the bar. **Rows (s162 `[C]` seen):** the title is topaz 8 (the s125 /
+  s128 shots: "Keep Scroll II?" 960 / 960, "[original text]" 1656 / 1664 pixels equal the ROM glyphs) and a
+  "\r" goes one 8-px row down: the town's save question at (8, 80) / (8, 88), live (`../working/capture_s162_p3_windows.md`,
+  `parity/shots/p3-amiga-window1-save-question.png`). Remaster: pack `keep_windows.dungeon.font` = `amiga-topaz-8`,
+  `UiOverlays.KeepWindowRows` (rows the font's line height apart, wrapped at a word in the font's widths; a window without
+  a font keeps the remaster's 10 px). **Guild Add's move question (s162 `[C]` seen)** is window 1 too ("It will take this
+  character two\rmonths to make the journey here.", `0xd24c` → `0xaae2`), over the street with the roster list closed;
+  CANCEL brings the list back (`p3-amiga-window1-guild-add-two-months.png`). Remaster: III's text (S445, string
+  `guild.move_journey_question`; before s162 III showed I's three-row text) in both looks; under AMIGA SCREENS window 1
+  over the Guild with the list stepped aside (`GuildAddDialog.AmigaWindow`: Return / O / Y = OK, C / N / Esc = CANCEL),
+  else the Yes / No panel with "Yes" lit. OK = Yes `[C]` (s134): after `0x1c560` OK sets the fight
   (`0x1c56a` → `0x1da5c`), CANCEL skips it; after `0x1c6c8` OK opens "who disarms" (window 6, `0x127ce(92)`). No answer
-  is lit, Return = OK, where DOS lights No on "hears monsters" (D3-068, PENDING). Not watched in the Client `[~]`.
+  is lit, Return = OK, where DOS lights No on "hears monsters" (D3-068, PENDING).
+  **s163, seen live on the Amiga** (`../working/capture_s163_p3_dungeon.md`, cells poked in the archives): "strider spots a
+  trap. Disarm it?" and "strider [original text]" in window 1 on one row (ink index 9 from (8, 80), labels the
+  dungeon's yellow), sound 6 before each; OK on the trap → **window 6 "[original text]"**: the heal window's box
+  (8, 44)–(312, 160), the title at cell (5, 7) in the dungeon's colour 8, one member a row from y 72 (name, race, level,
+  class, status; the cursor's row in 8, the others the dungeon's 4), OK / CANCEL at y 135; the `2` key moved the cursor
+  (the host's Down did nothing `[~]`). **Static (`0x1c6d6`…`0x1c71a`, DOS ovl4 `0x1189`…`0x11bc` the same):** the picker
+  asks again while the pick's status is 0 (Dead) or 3 (Out); its CANCEL (−1) leaves the trap as CANCEL on the question
+  does (nothing sprung, the cell kept); a pick rolls Disarm (`0x1b91e(5, member)`): success sets the cell to 7 and shows
+  "<name> [original text]" (window 7) with the party back where it came from (step result −1 at `0x1c7c2`, as No; seen:
+  the next step went onto the disarmed cell), failure springs it (message 0x60, the Damage Report). Built s163: Core
+  re-asks on a Dead / Out pick, takes the picker's cancel (the prompt's escape choice, one past the members) as No and
+  steps the party back after a disarm (before s163 a Dead / Out pick sprang the trap, there was no cancel and a disarm
+  left the party on the cell); the Client draws the question as window 6 under AMIGA SCREENS
+  (`AmigaDisarmWindow`, pack `keep_windows.heal`, the dungeon palette through `DrawAmigaWindow(inDungeon)`; Up / Down,
+  Return / O, C / Esc = CANCEL, a digit or a click on a row picks). **Watched in the Client s163** (Xvfb `:157`, III test
+  party, `--p1-dungeon 5 23 7` / `5 3 15` / `5 15 22`: the archives' trap 2, door 0xc5 and locked door 0xc6): window 1
+  "LEFTY [original text]" → OK → window 6 → O on LEFTY → window 7 "LEFTY [original text]" (a click on OK
+  closed it); CANCEL clicked in window 6 left the trap unsprung; "LEFTY [original text]" in window 1, CANCEL
+  clicked (the party back), the step again, OK clicked → the fight; "LEFTY picks the lock." in window 7
+  (`parity/shots/p3-remaster-s163-window1-spots-trap.png`, `-window6-who-disarms.png`, `-window7-disarms-the-trap.png`,
+  `-window1-hears-monsters.png`, `-window7-picks-the-lock.png`). Not drawn: a sprung trap's Damage Report window
+  (`0x1d4ea`; the remaster's band shows "A trap!!!" and each member's damage) `[~]`.
 - **Scandor's south edge `[C]` seen** (`p3-amiga-scandor-south-edge-1-at-24-73.png`, `-2-north-no-scroll.png`). The
   save patched on a disk copy (block `0x24564` at `gamesave.dat` + 8518: centre (24, 70), view (4, 7), party (24, 73),
   still in Pendragon; leaving the town puts the party on its saved cell). The view shows rows 66–74. A step north
@@ -1179,7 +1241,9 @@ sound off, the master ADF's saved party, "Continue a previously saved game"). Sh
     File › Info the credits (window 0), Load the remaster's load, Save its save (s158: each first asks the Amiga's
     window-1 question with sound 36, `0xb1f0` / `0xba9a`: "Are you sure you want to load an old\rgame over this current
     one?" / "… save this\rgame over your previously saved one?", OK runs it, CANCEL / Esc drops it, other keys are
-    dropped; `AmigaConfirmWindow`, drawn by `DrawKeepWindow` in window 1's box with the map palette); Options › Armoury / Bank as the town keys A / B (the Armoury screen, the Amiga Bank
+    dropped; drawn by `DrawKeepWindow` in window 1's box with the map palette; s160: `P3ConfirmQuestion` through the
+    prompt path, which also asks before Options › Distribute and Guild › Purge's pick, and DOS's Yes / No prompt in the
+    layouts without the Amiga look, 8.4 "The town dispatch"); Options › Armoury / Bank as the town keys A / B (the Armoury screen, the Amiga Bank
     window 9), Inn and Mystic through their doors, Exit leaves, Cast Spell, Distribute, Trade Item (only where `p3.trade`
     allows trading), Use Item, View Party (the remaster's inspect); Guild › an item takes the party into the remaster's
     Guild (its door) and opens that Guild key's dialog there; s158: Examine lists every roster member ("Who shall be
@@ -1193,13 +1257,15 @@ sound off, the master ADF's saved party, "Continue a previously saved game"). Sh
     went back to the dungeon's (empty under D-077) (`p3-remaster-dungeon-help-after-window1.png`); "hears monsters.
     Continue?" / "[original text]" not caught: the scripted walk's screen check missed window 1 and its N key
     would have answered one (CANCEL) `[~]`. The Street's S (D-066) asks File › Save's question too under the bar (one
-    caller, `0xba9a`); a refusal of a Guild key on the remaster's Guild screen goes to window 7 as the bar's do. The
+    caller, `0xba9a`; s160: under every III layout); a refusal of a Guild key on the remaster's Guild screen goes to window 7 as the bar's do. The
     rule rows do nothing. Keys: the bar's letters are not bound (the town keeps the manual's letters, D-066: A, B, M, N, G,
     L, U, I, D, S, and ? / / Info); the remaster's arrows pull Options down and step (Left / Right the next menu), Return /
     Space take, Esc closes. The DOS row's Option list is not on this screen: Sound is in the Options tab, Printout on the
     Inn list after a rest, but the Auto save toggle (I's DOS Option; neither DOS III nor the Amiga has one) has no route
     on III's Amiga street `[~]` (the setting still applies). The dim towns' bar palette (`town_dim`) follows the street's
-    fade, not seen `[~]`. Watched on Xvfb (`:141`, III test party): the bar, Options by keys → Bank (window 9),
+    fade; **seen s162** (`p3-amiga-town-dim-bar.png`, town word poked to 16 at File › Load's `0xb17e`): the bar in the dim
+    palette's 15 (`444`) with black titles, i.e. `town_dim` 15 / 0 as the remaster draws it `[C]`. (`0xb17e` runs at the
+    town entry `0x78bc` and after File › Load `0xb21c`; `0xb228` is the load's redraw, not a building's.) Watched on Xvfb (`:141`, III test party): the bar, Options by keys → Bank (window 9),
     Guild by the mouse held → Drop Member → the Guild's drop list (`parity/shots/p3-remaster-town-bar*.png`).
   - **Press-drag-release (s156).** `0x184a` runs while the button is down above y 11 and returns the key of the row the
     button is released on (0 off the rows or on the title). Every III bar (fight, outside, town) now does that in the
@@ -1207,8 +1273,14 @@ sound off, the master ADF's saved party, "Continue a previously saved game"). Sh
     release elsewhere closes it); a press and release on the title (a click) leaves the menu down, so click, click works
     too (`Game1.AmigaBarPress`). Watched on Xvfb (`:141`): the town's Guild › Drop Member and the outside bar's Options ›
     Party Status by a held drag (`p3-remaster-outside-bar-held.png`, `-released-status.png`; xdotool's absolute moves do
-    not reach the Client while a button is held on Xvfb, `mousemove_relative` does). The fight's bar uses the same path,
-    not watched `[~]`.
+    not reach the Client while a button is held on Xvfb, `mousemove_relative` does). The fight's bar uses the same path;
+    s162 seen on the Amiga: held on Options, dragged, released over "[original text]" → window 23
+    (`p3-amiga-fight-bar-held.png`, `-released.png`); s163 the remaster's fight bar watched on Xvfb: held on Options, dragged
+    to "[original text]" (the row inverted), released → window 23 "[original text]"
+    (`parity/shots/p3-remaster-s163-fight-bar-held.png`, `-released-window23.png`). The town bar's Guild › Purge Member by
+    a held drag → the roster list → a party member → window 1's purge question on two rows, CANCEL clicked → the list,
+    Esc → the street (`p3-remaster-s163-town-bar-guild-purge-held.png`, `-bar-purge-window1.png`); the DOS row's Inn ›
+    Distribute → "[original text]" with "No" lit (`p3-remaster-s163-dos-inn-distribute-question.png`).
   - **A click on OK `[C]` seen (s141, FS-UAE, `../working/capture_s141_p3_window22.md`):** in Pendragon, `?`, then the
     left button held on OK: the label turns map index 5 (34, 170, 136), the chosen OK art (`ok-1`), and the window stays;
     the release closes it and the town comes back (`parity/shots/p3-amiga-window0-credits-town-ok-held.png`). The

@@ -23,7 +23,8 @@ public sealed class P4X68kPipeline : IImportPipeline
     public static readonly string[] RawFiles = ["P4.X", "P4.SND", "VDATA"];
 
     public string ProfileId => "p4-x68000-1.02";
-    public int RecipeVersion => 1;
+    /// <summary>2 (s163): the remaster's wording for the shared lines IV shows (its Hall's save messages).</summary>
+    public int RecipeVersion => 2;
 
     public void Run(ImportContext context)
     {
@@ -53,6 +54,7 @@ public sealed class P4X68kPipeline : IImportPipeline
         // is the game's own (equal to the copy's text, so the shipped id-keyed patch leaves it out, 4.6).
         var own = text.Ids.Where(id => text.En(id) == text.Ja(id)).ToDictionary(id => id, text.Ja, StringComparer.Ordinal);
         ImportedStrings.Write(context, new Dictionary<string, IReadOnlyDictionary<string, string>> { [Game] = own });
+        ImportedStrings.WriteFallback(context, ImportedStrings.CommonFallbackGame); // s163 (10-importer.md 7.6)
     }
 
     /// <summary>The shipped id-keyed English (strings/en.json <c>strings</c>), empty when none ships.</summary>

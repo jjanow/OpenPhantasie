@@ -5,7 +5,7 @@ using OpenPhantasie.Data;
 
 namespace OpenPhantasie.Client.Tests;
 
-/// <summary>CONTINUE SAVED GAME asks for a Guild number (manual ENCORE, D-069).</summary>
+/// <summary>`continue.continue_saved_game` asks for a Guild number (manual ENCORE, D-069).</summary>
 public class ContinueDialogTests
 {
     private static SessionSnapshot Saved(GameSession s) => SessionCodec.ReadJson(SessionCodec.WriteJson(s.CaptureSnapshot()));

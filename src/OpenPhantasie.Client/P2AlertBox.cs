@@ -6,9 +6,10 @@ namespace OpenPhantasie.Client;
 /// <summary>
 /// s158: II ST's alert boxes (AES <c>form_alert</c> after the beep <c>0xb7fa</c>; FORMAT.md 7.4) over the remaster's
 /// screen: the disks' own text and button (<see cref="FieldAlertLine.Box"/>, <see cref="FieldAlerts.CueBoxes"/>), one at a
-/// time in the order they came. <c>form_alert</c> waits for its button: Return (the default button), a click on the
-/// button, and here also Space / Esc close the box and are used up; nothing under it sees the keys. No MonoGame drawing
-/// (<see cref="UiOverlays.DrawStAlert"/> draws <see cref="Current"/>).
+/// time in the order they came. <c>form_alert</c> waits for its button (user, s159: as on the ST): only Return / Enter
+/// (the default button; EmuTOS <c>aes/gemfmlib.c</c> <c>fm_keybd</c>, the AES's own form loop) or a click on the button
+/// closes the box; every other key is used up and does nothing, and nothing under the box sees the keys. No timer.
+/// No MonoGame drawing (<see cref="UiOverlays.DrawStAlert"/> draws <see cref="Current"/>).
 /// </summary>
 public sealed class P2AlertBox
 {
@@ -26,8 +27,9 @@ public sealed class P2AlertBox
         _queue.Enqueue(alert);
     }
 
-    /// <summary>The keys that answer the box (its one button).</summary>
-    public static bool Answers(Keys key) => key is Keys.Enter or Keys.Space or Keys.Escape;
+    /// <summary>The key that answers the box: Return / Enter selects the default button (<c>fm_keybd</c>: RETURN, ENTER);
+    /// Space and Esc do nothing in the AES form loop.</summary>
+    public static bool Answers(Keys key) => key is Keys.Enter;
 
     /// <summary>
     /// While a box is up it owns the frame's keys: an answering key closes it (the next one shows). True when a box was

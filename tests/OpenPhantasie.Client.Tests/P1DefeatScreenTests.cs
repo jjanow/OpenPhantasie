@@ -49,6 +49,68 @@ public class P1DefeatScreenTests
         Assert.Equal(32, cues.Alerts!.Sound);
         Assert.Contains(cues.Alerts.Lines, l => l.Key == "core.guild.move_not_in_town" && l.Modes.Contains("guild"));
         Assert.DoesNotContain(cues.Alerts.Lines, l => l.Key == "core.inn.you_cant_afford_it"); // h71 +0xe76: no beep
+        // s162: the TRANSPORT list's tone after each gadget (h26 +0xdb6), the D O N E ! beep (h26 +0x38) for town casts and
+        // for the potions drunk in town (h8 +0x14ba / +0x1540).
+        Assert.Equal(31, cues.ListTone);
+        Assert.Equal(32, cues.Cues[FieldCues.TownCastDone]);
+        Assert.Equal((32, 32), (cues.ScrollRead, cues.Printout)); // h29 +0x1da / +0x1f6 through h26 +0x6e
+        Assert.Contains(cues.Alerts.Lines, l => l.Key == "core.magic.x_drinks_healing_x_x" && l.Modes.SequenceEqual(["town"]));
+        Assert.Contains(cues.Alerts.Lines, l => l.Key == "core.magic.x_drinks_magic_x_x" && l.Modes.SequenceEqual(["town"]));
+    }
+
+    /// <summary>
+    /// s162: the town TRANSPORTATION's fade (h26 <c>+0xe30</c>) in the program file: 22 at <c>+0xe46</c>, 16 pens
+    /// (<c>cmpi.w #16</c> at <c>+0xe5a</c> / <c>+0xeac</c>), 10 WaitTOF a pen out (<c>+0xe6e</c>), 100 held (<c>+0xe8c</c>),
+    /// 7 a pen back (<c>+0xed4</c>), the colours back from the town palette (h69 <c>+0x54</c>); after the sounds, under AMIGA
+    /// SCREENS only, nothing silenced: 372 frames, 6.2 s at 60 Hz.
+    /// </summary>
+    [OriginalDataFact]
+    public void TransportFade_MatchesTheLoopsOfH26()
+    {
+        var fade = Pack.TransportFade!;
+        var game = File.ReadAllBytes(Pack.DosoundEffects!.FilePath);
+        const int h26 = 0x8c74, h69 = 0x19428; // the hunks' file offsets
+        int U16(int at) => game[at] << 8 | game[at + 1];
+        Assert.Equal(0x7000 | Pack.CueSounds!.Transport!.Value, U16(h26 + 0xe46)); // moveq #22, d0 before h89 +0xee
+        Assert.Equal((0x0C40, fade.Registers), (U16(h26 + 0xe5a), U16(h26 + 0xe5c)));
+        Assert.Equal((0x0C40, fade.Registers), (U16(h26 + 0xeac), U16(h26 + 0xeae)));
+        Assert.Equal((0x3D7C, fade.OutVbl), (U16(h26 + 0xe6e), U16(h26 + 0xe70))); // move.w #10, -4(a6)
+        Assert.Equal((0x3D7C, fade.HoldVbl), (U16(h26 + 0xe8c), U16(h26 + 0xe8e))); // move.w #100
+        Assert.Equal((0x3D7C, fade.InVbl), (U16(h26 + 0xed4), U16(h26 + 0xed6))); // move.w #7
+        for (var i = 0; i < 16; i++)
+        {
+            var w = U16(h69 + 0x54 + 2 * i);
+            Assert.Equal($"#{(w >> 8 & 15) * 17:X2}{(w >> 4 & 15) * 17:X2}{(w & 15) * 17:X2}", fade.Palette[i]);
+        }
+        Assert.Equal(372, fade.TotalVbl);
+        Assert.Equal(6.2, fade.TotalSeconds, 6);
+        Assert.True(fade.AfterSound && fade.OriginalScreensOnly && !fade.SilencesSound);
+    }
+
+    /// <summary>
+    /// s163 filmed (<c>capture_s163_filming.md</c>): 372 frames from pen 0's blackout to the flash, then the three silent
+    /// DisplayBeeps show colour 0 as <c>#FFFFFF</c> for 3 Vsyncs over everything; the other registers keep their colours.
+    /// </summary>
+    [OriginalDataFact]
+    public void TransportFade_EndsInTheDisplayBeepFlash_s163()
+    {
+        var fade = Pack.TransportFade!;
+        Assert.Equal(3, fade.FlashVbl);
+        Assert.False(fade.IsFlash(fade.TotalSeconds - 0.001));
+        Assert.True(fade.IsFlash(fade.TotalSeconds));
+        Assert.True(fade.IsFlash((372 + 2.5) / 60.0));
+        Assert.False(fade.IsFlash(fade.EndSeconds));
+        var filter = new TransportFadeFilter(fade.Palette);
+        filter.At(fade, fade.TotalSeconds + 0.01);
+        Assert.True(filter.Active);
+        var pen0 = VirtualScreen.ParseColor(fade.Palette[0]);
+        var pen5 = VirtualScreen.ParseColor(fade.Palette[5]);
+        Microsoft.Xna.Framework.Color[] px = [pen0, pen5];
+        filter.Apply(px);
+        Assert.Equal(VirtualScreen.ParseColor("#FFFFFF"), px[0]);
+        Assert.Equal(pen5, px[1]);
+        filter.At(fade, fade.EndSeconds);
+        Assert.False(filter.Active);
     }
 
     /// <summary>
@@ -84,6 +146,16 @@ public class P1DefeatScreenTests
         Assert.False(beeps.Beeps(GameText.S("core.magic.not_enough_mp"), GameMode.Town));
         Assert.False(beeps.Beeps(GameText.S("core.inn.you_cant_afford_it"), GameMode.Overworld));
         Assert.Equal(1, beeps.BeepsFor([], [GameText.S("core.armory.not_enough_gold")], GameMode.Town));
+        // s162: a potion drunk in town (h8 +0x14ba / +0x1540 -> h26 +0x38, D O N E !), matched by the whole template, so
+        // the town's other lines stay silent and a drink outside the town has no beep.
+        var healing = GameText.F("core.magic.x_drinks_healing_x_x", "SWAT", 3, 9);
+        Assert.StartsWith("SWAT drinks HEALING", healing, StringComparison.Ordinal);
+        Assert.True(beeps.Beeps(healing, GameMode.Town));
+        Assert.True(beeps.Beeps(GameText.F("core.magic.x_drinks_magic_x_x", "ZANDOR", 2, 6), GameMode.Town));
+        Assert.False(beeps.Beeps(healing, GameMode.Overworld));
+        Assert.False(beeps.Beeps("LEFT THE GUILD.", GameMode.Town));
+        Assert.False(beeps.Beeps("PELNOR", GameMode.Town));
+        Assert.False(beeps.Beeps("Printed to /tmp/party.txt", GameMode.Town));
     }
 
     [OriginalDataFact]

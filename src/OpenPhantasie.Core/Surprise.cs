@@ -14,7 +14,7 @@ public readonly record struct SurpriseFlags(bool FirstRound, int MonsterHold)
     /// <summary>Every random encounter (1, 1): options first; in round 1 the monsters sit out pass 1.</summary>
     public static SurpriseFlags Normal => new(true, 1);
 
-    /// <summary>(1, 0): no options or orders; in round 1 only the monsters act ("MONSTERS APPEAR", "MONSTERS SURPRISE YOU !").</summary>
+    /// <summary>(1, 0): no options or orders; in round 1 only the monsters act ("MONSTERS APPEAR", `core.encounter.monsters_surprise_you`).</summary>
     public static SurpriseFlags PartySurprised => new(true, 0);
 
     /// <summary>(0, 2): monsters built asleep; round 1 has no orders, and the monsters are held in rounds 1 and 2.</summary>
@@ -55,7 +55,7 @@ public static class Surprise
         return new SurpriseFlags(firstRound, hold);
     }
 
-    /// <summary>Overworld "%s HEARS MONSTERS" → FIGHT (<c>0x746b</c>): <c>rand0_99 &lt; 30</c> → normal, else "YOU SURPRISE THEM !".</summary>
+    /// <summary>Overworld "%s HEARS MONSTERS" → FIGHT (<c>0x746b</c>): <c>rand0_99 &lt; 30</c> → normal, else `core.encounter.you_surprise_them`.</summary>
     public static SurpriseFlags HeardThenFight(IRandomSource rng) =>
         Roll(rng) < 30 ? SurpriseFlags.Normal : SurpriseFlags.MonstersSurprised;
 
@@ -70,7 +70,7 @@ public static class Surprise
     /// <summary>Black Knights menu → FIGHT (<c>0x72a1</c>): a stalled opening.</summary>
     public static SurpriseFlags BlackKnightsFight => SurpriseFlags.Stalled;
 
-    /// <summary>"YOU SPOT SLEEPING MONSTERS!" → ATTACK (<c>0x7376</c>): monsters surprised.</summary>
+    /// <summary>`core.encounter.sleeping_monsters` → ATTACK (<c>0x7376</c>): monsters surprised.</summary>
     public static SurpriseFlags SleepingMonstersAttacked => SurpriseFlags.MonstersSurprised;
 
     private static int Roll(IRandomSource rng)

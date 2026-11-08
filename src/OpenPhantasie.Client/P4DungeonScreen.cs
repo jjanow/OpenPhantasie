@@ -453,7 +453,9 @@ public sealed partial class P4DungeonScreen
     {
         var lines = new List<MenuLine> { new(W.Site?.Name ?? "", MenuLineStyle.Title) };
         lines.Add(new(UiText.F("p4.town.gold_x", Game.Party.Gold), MenuLineStyle.Dim));
-        if (!ShipwrightWindowUp) // s151: the shipwright's lines are in his window under the picture
+        // s151: the shipwright's lines are in his window under the picture; s163: the inn's, the bank's and the ending
+        // pages' in theirs.
+        if (!ShipwrightWindowUp && !MessagesInWindow)
             foreach (var l in W.Box)
                 lines.Add(new(l, MenuLineStyle.Normal));
         switch (W.Prompt)
@@ -583,6 +585,24 @@ public sealed partial class P4DungeonScreen
             _ => null,
         };
 
+    /// <summary>
+    /// s162: the titled window (the pack's <c>titled</c> key, P4.X's function) the original opens round scene
+    /// <paramref name="scene"/>'s picture (FORMAT.md 6.9 "Titled building windows"), or null: the street and the ending's
+    /// street are untitled (<c>_tw_open</c>), the shipwright has its own entry, the outdoors none.
+    /// </summary>
+    public static string? TitledWindowName(string? scene) => scene switch
+    {
+        "p4.guild" => "_guildmenu",
+        "p4.inn" => "_inn",
+        "p4.bank" => "_bank",
+        "p4.mystic" => "_mystic",
+        HallScene => "_hall",
+        "p4.ending.banquet" => "_banquet",
+        "p4.ending.cell" => "_arathamus",
+        { } s when s.StartsWith("p4.hall.history.", StringComparison.Ordinal) => "_hall", // _hhist draws in the Hall's window
+        _ => null,
+    };
+
     /// <summary>The outdoor view's name: <see cref="OutdoorOverview"/> with M, else <see cref="OutdoorCloseUp"/>.</summary>
     private string OutdoorScene => O.MapOverview ? OutdoorOverview : OutdoorCloseUp;
 
@@ -693,6 +713,8 @@ public sealed partial class P4DungeonScreen
     public void Draw(SpriteBatch batch, Texture2D pixel)
     {
         Fill(batch, pixel, new Rectangle(0, 0, 320, 200), Back);
+        if (DrawBlackedOut(batch, pixel)) // s162: _deadmsg's _xblack, its window, _xblack before _acgamend(1)
+            return;
         // s156: _trang's own window 32 in the picture's place (the training hall has no picture: _trang's _clrtdraw), a
         // level-up's _sklup window in its lower part.
         if (CoreTrainingWindow is { } hallUp && Assets?.PackPixelsPerLayoutPixel is > 0 && Extras?.TrainingHall is { } hall
@@ -704,6 +726,12 @@ public sealed partial class P4DungeonScreen
         if (CoreSkillWindow is { } skills && Assets?.PackPixelsPerLayoutPixel is > 0 && Extras?.SkillUp is { } sk
             && SkillUpArea(sk) is var (skw, skh) && DrawBeside(batch, pixel, skw, skh,
                 (origin, k) => DrawSkillWindow(batch, pixel, sk, skills, origin, k)))
+            return;
+        if (DrawFinalScreen(batch, pixel)) // s162: _endstory's own titled window
+            return;
+        if (DrawTownGate(batch, pixel)) // s162: _townent's Town Gate window while the aging wait is up
+            return;
+        if (DrawItemWindow(batch, pixel)) // s163: the Armory's, Share out's, Trade's, Use's and Identify's item windows
             return;
         if (SceneName is { } name)
         {
@@ -787,6 +815,19 @@ public sealed partial class P4DungeonScreen
             return DrawTitledBeside(batch, pixel, scene.Width,
                 Math.Max(scene.Height, ShipwrightHeight(ship, 1f / Assets!.PackPixelsPerLayoutPixel)),
                 PanelText(ship.Title, ship.TitleText), (origin, k) => DrawSceneAt(batch, pixel, scene, marks, origin, k));
+        // s162: the other buildings' and the ending's titled windows (_wopen(…, 1, title)): the bar and frame round the
+        // picture. s163: the inn's, the bank's, the banquet's and the cell's are the original's 352 rows round a 180-row
+        // picture; their grey holds the inn's rows, the bank's tables and the ending's message window
+        // (P4DungeonScreen.Buildings.cs), no longer printed in the text column.
+        if (TitledWindowName(SceneName) is { } key && Extras?.Titled?.GetValueOrDefault(key) is { } titled)
+        {
+            var height = TitledHeight(key, titled, scene.Height, 1f / Assets!.PackPixelsPerLayoutPixel);
+            return DrawTitledBeside(batch, pixel, scene.Width, height, PanelText(titled.Title, titled.TitleText), (origin, k) =>
+            {
+                DrawUnderPicture(batch, pixel, origin, scene.Width, scene.Height, height, k);
+                DrawSceneAt(batch, pixel, scene, marks, origin, k);
+            });
+        }
         return DrawBeside(batch, pixel, scene.Width, scene.Height,
             (origin, k) => DrawSceneAt(batch, pixel, scene, marks, origin, k));
     }
@@ -818,6 +859,7 @@ public sealed partial class P4DungeonScreen
             DrawShipwrightWindow(batch, pixel, origin, k);
         else if (PanelName == NoYesName && Assets?.Pack?.CommandPanels?.NoYes is { } noYes)
             DrawNoYes(batch, pixel, noYes, origin, k);
+        DrawBuildingWindows(batch, pixel, origin, k); // s163: the inn's rows, the bank's tables, _endmsg's window
         // Marks in pack pixels (the outdoor party square): scaled pixels, so a 1-pixel inset stays 1 pack pixel.
         foreach (var (box, color) in marks)
             batch.Draw(pixel, origin + new Vector2(box.X * k, box.Y * k), null, color, 0f, Vector2.Zero,
@@ -880,16 +922,11 @@ public sealed partial class P4DungeonScreen
             // keeps its width. The message window moves left of it (FindItMessageSpan).
             DrawPanel(batch, pixel, overSet, over, new Vector2(picture.Right - (float)Math.Ceiling(PanelSize(overSet, k).X), 4), k);
         }
-        else if (Game.Battle is not null && Assets.Pack?.CommandPanels is { } fightSet && CurrentList is { } spells)
+        else if (Assets.Pack?.CommandPanels is { } panels && (PanelPlace || FightListUp))
         {
-            // s152: the combat spell list (_getmagic(member, 0)) as the found-item panel (user s142, option a): over the
-            // field's right side, top at the field's; its 360-row window runs below the field. The original's is right
-            // of the field at x 496 [~].
-            DrawList(batch, pixel, fightSet, spells.List, spells.Layout,
-                new Vector2(picture.Right - (float)Math.Ceiling(PanelSize(fightSet, k).X), 4), k);
-        }
-        else if (Assets.Pack?.CommandPanels is { } panels && PanelPlace)
-        {
+            // s160 (user s159): in a fight the combat spell list (_getmagic(member, 0)) opens here too, right of the field
+            // at the panel's place (the original's x 496); the text column gives way to it while it is open (it narrows to
+            // the field's side, the key help and the party lines go under the field) and comes back when it closes.
             right = stripLeft = 316 - (int)Math.Ceiling(PanelSize(panels, k).X);
             if (CurrentPanel is { } panel)
             {
@@ -899,18 +936,14 @@ public sealed partial class P4DungeonScreen
                     row = panel; // s141: drawn after the box, at the sheet's lower right (RowAt)
             }
             if (CurrentList is { } shown) // s151: the spell list, Transport's towns, creation's lists
-                DrawList(batch, pixel, panels, shown.List, shown.Layout, new Vector2(right, 4), k);
+                DrawList(batch, pixel, panels, shown.List, shown.Layout, new Vector2(right, ListFrameTop(shown.Layout, k)), k);
             right -= 4;
         }
         var left = width == 0 ? 4 : picture.Right + 4;
         // s157: the key help (and the party lines when they fit) under the picture where there is room, not in the column.
         int? stripBottom = null;
-        if (Assets.Pack?.CommandPanels is { } strip && PanelPlace)
-        {
-            var listHeight = CurrentList is { Layout: { Panel: null } shownLayout }
-                ? (int)Math.Ceiling((PanelTitleRows + (shownLayout.Window?.Height ?? strip.Window.Height) + 2) * k) : 0;
-            stripBottom = 4 + Math.Max((int)Math.Ceiling(PanelSize(strip, k).Y), listHeight);
-        }
+        if (Assets.Pack?.CommandPanels is { } strip && (PanelPlace || FightListUp))
+            stripBottom = StripBottom(PanelSize(strip, k).Y, CurrentList?.Layout, strip.Window.Height, k);
         var noteText = Note ?? Help;
         var partyLines = PartyLines();
         var layout = LayOutColumn(picture, left, right, stripBottom, c => HelpLines(noteText, c).Count,
@@ -1068,7 +1101,14 @@ public sealed partial class P4DungeonScreen
             if (owner >= 0)
                 scroll.Follow(owner, owner + rows[owner].Block - 1);
             else
-                scroll.Follow(follow);
+            {
+                // s160: a selected line wrapped over several rows (the narrow column beside the combat spell list) is
+                // brought into view whole, not only its first row.
+                var last = follow;
+                while (last + 1 < rows.Count && rows[last + 1].Selected && rows[last + 1].Owner < 0)
+                    last++;
+                scroll.Follow(follow, last);
+            }
         }
         UiOverlays.HitScrollArea(scroll, area);
         for (var i = 0; i < visible && scroll.Offset + i < rows.Count; i++)

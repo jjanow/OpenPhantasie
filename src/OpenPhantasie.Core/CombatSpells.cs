@@ -209,7 +209,7 @@ public static class CombatSpells
     }
 
     /// <summary>
-    /// SUMMON ELEMENTAL (OV2 <c>0x8cc</c>, <c>combat-resolution.md</c> §SUMMON ELEMENTAL): no roll and no message; the
+    /// `core.spell.summon_elemental` (OV2 <c>0x8cc</c>, <c>combat-resolution.md</c> §`core.spell.summon_elemental`): no roll and no message; the
     /// caller spends the MP either way. Works when an elemental was loaded at the Guild (<see cref="Party.Elemental"/>,
     /// <c>[0x62a8] ≠ 0</c>), it isn't already fighting, and the party has six non-DEAD members (SLEEP counts). It then
     /// joins as member 7 with no action this round.

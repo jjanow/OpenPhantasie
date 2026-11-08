@@ -349,7 +349,7 @@ public sealed partial class Phantasie3Campaign : ICampaign
     /// <summary>
     /// Train Member (ovl2 <c>0x1031</c>): refused while the member may not train or lacks XP; the party pays the price;
     /// level + 1, HP re-rolled, level gold into the bank (D3-023), three skills trained, new spells learnable. The three
-    /// skill picks are the player's ("Skill(s) to train in:", <see cref="SkillPickRows"/>, applied in order); a call with
+    /// skill picks are the player's (`p3train.skills_to_train_in_x`, <see cref="SkillPickRows"/>, applied in order); a call with
     /// none (scripts, tests) trains the three that gain the most (ties in record order) [I].
     /// </summary>
     public TownTransactionResult? Train(GameSession session, Character member) => Train(session, member, null);
@@ -465,7 +465,7 @@ public sealed partial class Phantasie3Campaign : ICampaign
 
     /// <summary>
     /// The Mystic (ovl2 <c>0x2ca2</c>): scores recomputed; &lt; 30 novice, &lt; 60 average, &lt; 90 experienced, else expert;
-    /// then "and heroes of Gelnor" (a Phantasie I score), "… of Ferronrah" (a II score) and the highest title.
+    /// then `core.p3.mystic.heroes_of_gelnor` (a Phantasie I score), "… of Ferronrah" (a II score) and the highest title.
     /// </summary>
     public TownTransactionResult ConsultMystic(GameSession session)
     {

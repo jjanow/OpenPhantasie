@@ -42,13 +42,15 @@ public abstract class TuneRenderer
     protected abstract void RenderCore(Span<float> output, int frames);
 
     /// <summary>The renderer for a pack's title tune, or null when its file is missing.</summary>
-    public static TuneRenderer? For(TitleTune tune, int sampleRate = DefaultSampleRate) =>
+    /// <param name="a500Filter">s160: the Paula tunes (I, III) through the A500's output filters (the game's AMIGA AUDIO
+    /// FILTER switch, <see cref="PaulaMixer"/>); the other chips ignore it.</param>
+    public static TuneRenderer? For(TitleTune tune, int sampleRate = DefaultSampleRate, bool a500Filter = true) =>
         tune.TryLoad() switch
         {
             null => null,
-            AmigaDosoundScore s => new AmigaDosoundRenderer(s, tune.ClockHz ?? PaulaNtscHz, sampleRate),
+            AmigaDosoundScore s => new AmigaDosoundRenderer(s, tune.ClockHz ?? PaulaNtscHz, sampleRate, a500Filter: a500Filter),
             DosoundScore s => new DosoundRenderer(s, tune.ClockHz ?? StPsgHz, sampleRate),
-            P3MusicScore s => new P3MusicRenderer(s, tune.ClockHz ?? PaulaNtscHz, sampleRate),
+            P3MusicScore s => new P3MusicRenderer(s, tune.ClockHz ?? PaulaNtscHz, sampleRate, a500Filter),
             OpmDrvScore s => new OpmDrvRenderer(s, sampleRate),
             var s => throw new InvalidDataException($"No renderer for {s.GetType().Name}."),
         };
@@ -113,12 +115,13 @@ public sealed class AmigaDosoundRenderer : TuneRenderer
     /// <see cref="AmigaDosoundEffects.StepOverheadSeconds"/>; the title tune 0).</param>
     /// <param name="channelOverheadSeconds">What each channel a step sends adds to it (s153:
     /// <see cref="AmigaDosoundEffects.ChannelOverheadSeconds"/>; the title tune 0).</param>
+    /// <param name="a500Filter">s160: Paula's output through the A500's filters (AMIGA AUDIO FILTER, on by default).</param>
     public AmigaDosoundRenderer(AmigaDosoundScore score, double clockHz, int sampleRate, double stepOverheadSeconds = 0,
-        double channelOverheadSeconds = 0)
+        double channelOverheadSeconds = 0, bool a500Filter = true)
         : base(sampleRate)
     {
         _score = score;
-        _paula = new PaulaMixer(clockHz, sampleRate);
+        _paula = new PaulaMixer(clockHz, sampleRate, a500Filter);
         _stepStart = new long[score.Steps.Count + 1];
         var seconds = 0.0;
         for (var i = 0; i <= score.Steps.Count; i++)
@@ -207,10 +210,11 @@ public sealed class P3MusicRenderer : TuneRenderer
     private readonly IReadOnlyList<sbyte[]> _waves = P3MusicScore.Waveforms();
     private int _next;
 
-    public P3MusicRenderer(P3MusicScore score, double clockHz, int sampleRate) : base(sampleRate)
+    /// <param name="a500Filter">s160: Paula's output through the A500's filters (AMIGA AUDIO FILTER, on by default).</param>
+    public P3MusicRenderer(P3MusicScore score, double clockHz, int sampleRate, bool a500Filter = true) : base(sampleRate)
     {
         _score = score;
-        _paula = new PaulaMixer(clockHz, sampleRate);
+        _paula = new PaulaMixer(clockHz, sampleRate, a500Filter);
         Length = FrameOf(score.Frames);
     }
 
@@ -249,7 +253,8 @@ public sealed class P3MusicRenderer : TuneRenderer
 /// <summary>
 /// Phantasie IV's OPMDRV music (<see cref="OpmDrvScore"/>) on the YM2151 (s109): the sequencer runs live, each pass's
 /// register writes go to the chip at the pass's OPM clock, the chip makes one sample per 64 clocks, and those samples
-/// are interpolated to the output rate. The tune ends with the pass that ends its last track.
+/// are interpolated to the output rate. The tune ends with the pass that ends its last track. s162: each chip sample goes
+/// through the X68000's analogue stage after the YM3012 (<see cref="X68000AudioFilter"/>; s163: the first model's sheet).
 /// </summary>
 public sealed class OpmDrvRenderer : TuneRenderer
 {
@@ -261,9 +266,17 @@ public sealed class OpmDrvRenderer : TuneRenderer
     private long _nextPassSample;    // the chip sample the next pass happens before
     private double _chipPos;         // output position in chip samples
     private float _prevL, _prevR, _curL, _curR;
+    private readonly X68000AudioFilter? _leftFilter, _rightFilter;
 
-    public OpmDrvRenderer(OpmDrvScore score, int sampleRate) : base(sampleRate)
+    /// <param name="outputFilter">s162: the X68000's analogue output stage (<see cref="X68000AudioFilter"/>); off only for
+    /// tests that compare against the bare chip.</param>
+    public OpmDrvRenderer(OpmDrvScore score, int sampleRate, bool outputFilter = true) : base(sampleRate)
     {
+        if (outputFilter)
+        {
+            _leftFilter = new X68000AudioFilter(score.ClockHz / Ym2151.ClocksPerSample);
+            _rightFilter = new X68000AudioFilter(score.ClockHz / Ym2151.ClocksPerSample);
+        }
         _seq = score.Start();
         _seq.InitialWrites(_writes);
         Apply();
@@ -293,6 +306,11 @@ public sealed class OpmDrvRenderer : TuneRenderer
         _prevR = _curR;
         _curL = l / 32768f;
         _curR = r / 32768f;
+        if (_leftFilter is not null)
+        {
+            _curL = (float)_leftFilter.Next(_curL);
+            _curR = (float)_rightFilter!.Next(_curR);
+        }
         _chipSamples++;
     }
 

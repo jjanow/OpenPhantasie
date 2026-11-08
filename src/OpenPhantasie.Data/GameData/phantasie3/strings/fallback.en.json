@@ -1,0 +1,12 @@
+{
+ "_schema": "phantasie.strings-fallback/v1",
+ "_note": "The remaster's own wording for the Phantasie III table lines DOS III does not give (10-importer.md 7.6); the shared and I table lines are in phantasie1/strings/fallback.en.json. The importer writes both to strings/en.fallback.<profile>.json, under every other imported file.",
+ "language": "en",
+ "tables": {
+  "phantasie3": {
+   "core.dungeon.x_avoids_the_trap": "{0} ESCAPES THE TRAP",
+   "core.dungeon.x_swims": "{0} SWIMS ON",
+   "core.dungeon.x_sinks_and_takes_x_damage": "{0} GOES UNDER, {1} DAMAGE"
+  }
+ }
+}

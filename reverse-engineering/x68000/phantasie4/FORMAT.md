@@ -478,7 +478,7 @@ below are the window's. Each row is **32 pixels high**: the icon `_wputc(win, _i
   at y 224, a member per 16-pixel row from y 240 with the member buttons '1' + m); the current item's slot kind is boxed
   in the table's header (`_pwaku[kind]`, `_wxbox` 16 × 15 at y 224).
 - **Trade / U Use item / Identify `_tritmlst(member)`** (`_trade` `0x1079A` 交　換, `_setuse` `0xFDEA` [original text],
-  `_setident` `0x2DCF4` "Identify": all three call `_init_tl`, so one layout): the member's **9 carried slots**, row i at
+  `_setident` `0x2DCF4` [original text] (s162: read from its `_wopen`): all three call `_init_tl`, so one layout): the member's **9 carried slots**, row i at
   y = **64 + 32 · i** (the last ends at 352, the window's bottom): the letter A + i in colour 2 at (16, y + 8), the icon at
   **(24, y)**, the name at (56, y + 8), the points at x 208 (ids < 0x55), the users' digits at x 240 + 8 · m; an empty
   slot is a cleared row with its button off (no letter, no icon). Headers 品名 / ﾎﾟｲﾝﾄ / ﾕｰｻﾞｰ at (56 / 192 / 240, 48),
@@ -496,12 +496,22 @@ below are the window's. Each row is **32 pixels high**: the icon `_wputc(win, _i
   column beside a picture, stays plain text without its icon). Share out shows the item being placed and the next four of the queue with
   their icons (the original's 5 rows); Trade's held-item line has none. Checked on Xvfb (s151:
   `parity/shots/p4-remaster-armory-items.png`, `-share-out-items.png`, `-trade-items.png`, `-use-items.png`, `-use-items-narrow.png` (a
-  location map's narrow column); the last four with items given by a temporary, uncommitted preview change). `[~]`: the remaster keeps its text rows, so the
-  letter (colour 2 in the original) comes after the icon with the remaster's digit, and the columns (points, price,
-  users) are the remaster's text, not the original's x positions; Share out's headers and the equipment table are not
-  drawn (s158: its row-0 highlight is: the item being placed drawn as `_wxbox` XOR 15 leaves it on the window grey, a
-  colour-1 band across the row with the icon's cell colour 1, its ink and the row's text colour 15,
-  `parity/shots/p4-remaster-share-out-lit.png`); Share out's four queue rows push its pick list down (it scrolls).
+  location map's narrow column); the last four with items given by a temporary, uncommitted preview change).
+  **s163: the windows themselves (call sites of the headers, lines, frames, MORE and the row columns asserted by
+  `x68k_p4_panels.py` → the pack's `item_windows`):** the Client (`P4DungeonScreen.ItemWindows.cs`) draws each in the
+  picture's place as its titled window (`titled._armory` 商店, `_distribute` 分配, `_trade` 交換, `_setuse`
+  [original text], `_setident` [original text]; Use and Identify take `_trade`'s layout, `_init_tl`): the grey, the sunken frames,
+  the colour-0 line, the headers, and per row the letter in colour 2, the icon (font 2 glyph), the name, the points
+  (`_wdoutc` 4 digits in the Armory / `_wlocdc` 3 elsewhere, ids 1–84; " N-U" when the marked member cannot use it),
+  the price (`_wlocdi` 5), the users' digits (`_wlocdi(240 + 8 m, 1, m + 1)` for each member `_cal_user` passes), the
+  Armory's MORE box and member name (20, 256) and its last message line at (32, 288), Trade's / Use's member name at (16,
+  16); Share out's row 0 lit (`_wxbox` XOR 15: the grey colour 1, the text 15). A click on a lettered row presses its
+  key. Shots `parity/shots/p4-remaster-armory-window.png`, `-trade-window.png`, `-share-out-window.png`,
+  `-use-window.png`, `-use-window-dungeon.png` (a location map: the window takes the view's place and fits). The text column keeps its lines and keys (as the training hall's). `[~]`: an English name that
+  would reach the points column takes the row's two 16-dot lines (split at the space that leaves both shortest; the
+  original's names fit one line); Share out's equipment table under its divider (`_init_eq` / `_disp_eq`) is not read
+  or drawn; Identify's window is drawn by the same code as Use's, not seen live; the Armory's message line is the
+  remaster's last box line.
 
 **Command panel (s136, static) `[C]`:** every icon menu goes through `_mkicon(count, table, clear, title)` (`0x61F4`):
 with `clear` ≠ 0 it runs `_clrbtn` / `_clrbtd` and opens window 34 = `_wopen(34, 496, 48, 136, 324, 1, title)` (title ""
@@ -730,13 +740,20 @@ preceding `_mkicon`'s title ("Command").
   120, -> 168, 訓練後 200), the last three moved with the now / after columns; a translation with another word count
   stays one string. **s158:** the window's title bar ("訓練場", `p4x.0x3fd0c`, the pack's `trang.title`) and frame are
   drawn (`P4DungeonScreen.DrawTitledBeside`, `_wwind` / `_wactive` as the Command panel's; the bar takes the screen's
-  top margin so the s157 key help still fits under the window; a translation that would push it past the screen falls
-  back to the untitled window `[~]`); seen on XEiJ with the experience and gold poked (`parity/shots/p4-x68k-training-needs.png`,
+  top margin so the s157 key help still fits under the window, kept there by the user's decision (s159); a translation
+  that would push it past the screen falls back to the untitled window `[~]`); seen on XEiJ with the experience and gold poked (`parity/shots/p4-x68k-training-needs.png`,
   `-training-cost.png`, `-sklup.png`, `-sklup-done.png`, `-training-short.png`): the bar as drawn, the name in colour 0,
   the cost number in colour 8 (blue), the experience still needed in colour 11 (gold), the end line in colour 2 on the
-  grey bar; remaster `parity/shots/p4-remaster-training-titled.png`. `[~]`: the cell boxes are not drawn (grey on the
-  same grey); now / after move right just enough when a skill name would come within 4 pixels of x 112 (the user's fit
-  rule); whether the patched original's English header looks the same is unchecked `[?]`; window 34 keeps `_confirm`'s
+  grey bar; remaster `parity/shots/p4-remaster-training-titled.png`. s162: the cell boxes leave no mark: their colour
+  (14) is the colour each row is cleared to and the window's grey, and the hover's ^ 5 XORs box and row alike, so drawing
+  the rows draws them (pinned by a test); the header, prompt and trained line sit on the window grey, the title's cell
+  boxes (colour 0) on the black bar, the done line's (14) on the grey bar. `[~]`: now / after move right just enough when a skill name would come within 4 pixels of x 112 (the user's fit
+  rule); the English header (s163, static `[C]`): `_sklup` prints the header with one `_wlocpr(32, 16, 20, 0x41698)`, so
+  an original with the English string in its place would draw it as one run from x 16 at font 0's advances ("#" 16,
+  "Skill" 34, "Now" 77, "->" 110, "After" 126, ending at 161: `x68k-p4-font0.json`), with "Now" and "After" over the
+  skill names and the now column, not over the now / after columns (112 / 192); the remaster's split (each word at the
+  Japanese word's x: 16 / 56 / 120 / 168 / 200) is its own fit choice and stays `[~]` (not run on XEiJ with the string
+  poked in); window 34 keeps `_confirm`'s
   Okay / Cansel icons in the original during the picks (XEiJ shot: yes, nothing clears it), the remaster's strip is empty
   during the picks; on XEiJ the trained line's row (y 224 of `_sklup`'s window) overpaints the hall window's bottom frame
   line, the remaster keeps the frame. Checked on Xvfb (s156; `parity/shots/p4-remaster-training-cost.png`,
@@ -749,11 +766,16 @@ preceding `_mkicon`'s title ("Command").
   (`P4DungeonScreen.Lists.cs`): the spell list in its own titled 360-row window, the creation lists in window 34 under
   "Command", the towns under the Transport panel; a click on a row or head line presses the remaster's key for its
   choice (a digit, past 9 the cursor and Return; SPACE). The text column keeps its lines and keys. The strip's width also
-  fits the lists' longest texts (spell, town, race, class names; 159 in English as before). `[~]`: the spell list's top
-  stays at the strip's top (the original's window starts 16 rows above the panel's); the remaster's frame takes the
+  fits the lists' longest texts (spell, town, race, class names; 159 in English as before). s160: the spell lists'
+  own window (`_getmagic`, `_getmagic.8`, `_getmagic.0`) sits at the original's place on screen
+  (`P4DungeonScreen.ListFrameTop`: the area at row 32 of 400, the bar from row 11, frame and shadow to row 393; the
+  s151 build had its top at the strip's top, row 8). The remaster's Command panel (bar from row 8, the original's 28)
+  and pictures (row 8, the original's 32) sit higher than the original's, so the list is no longer 16 rows above the
+  panel's place as in the original, but where the original draws it; the lists drawn in window 34 under "Command" or
+  under a panel keep the panel's top. `[~]`: the remaster's frame takes the
   window's first and last column, so the groove runs between them; a long Hall name pushes the race column right of x
   96 just enough (none of the shipped names do); the combat spell list (`_getmagic(member, 0)`) is built s152 (next
-  bullet). Checked on Xvfb (s151; `parity/shots/p4-remaster-spell-list.png` (town), `-spell-list-dungeon.png` (location map),
+  bullet). Checked on Xvfb (s151; `parity/shots/p4-remaster-spell-list.png` (town; retaken s160), `-spell-list-dungeon.png` (location map),
   `-transport-towns.png` (a click on K, line 11, asked for Akihabara), `-magic-page.png` (a click on "2 :Page 2" turned
   the page), `-race-list.png`, `-class-list.png` (a click on Elf), `-hall-list.png`; spells / gold by a temporary,
   uncommitted preview tweak).
@@ -764,15 +786,23 @@ preceding `_mkicon`'s title ("Command").
   `SpellPageHeads` (the head lines' string ids). Client (`P4DungeonScreen.Battle.cs`): C opens the list on page 0; the
   text column lists the page's castable spells by name, then the pages and Quit (their text without the original's "1 :",
   since the column's digits differ); a digit or the cursor picks; a page line turns the page; Quit and Backspace go back
-  to the orders. The window (pack list `_getmagic.0`: `_spelltop(0)`'s six lines from `0x44A98`, keys 1–6) is drawn as the
-  found-item panel is (user s142, option a): over the field's right side, top at the field's, running below the field. A
-  click on a row or a head line presses its line's key (a digit, past 9 the cursor and Return). `[~]`: the original's
-  window is right of the field (x 496), not over it; its keys 1–5 (pages) and A… (spells) are not the remaster's keys
-  (the column's digits are, as in the Magic Training Hall's list). As the original, C opens the list even when nothing
+  to the orders. The window (pack list `_getmagic.0`: `_spelltop(0)`'s six lines from `0x44A98`, keys 1–6) is drawn, since
+  s160 (user s159), right of the field at the Command panel's place as the original's (x 496 in the original; the
+  remaster's strip is right-aligned with its frame and shadow at x 640 − 8, so the frame's left column at 494 when the
+  window is 136 wide (the original's area at 496, its frame at 495), 472 with English's 159), at the
+  original's height (the bar from row 11, see the s160 note above); while it is open the text column gives way: it
+  narrows to the field's side (box and party lines wrap and scroll, the cursor line is brought into view whole when the
+  list opens, the page turns or the cursor moves),
+  the key help goes under the field (`P4DungeonScreen.FightListUp`, s157's `LayOutColumn` with the list's bottom), and
+  when the list closes the column takes its full width again (s152 drew the window over the field's right side). A
+  click on a row or a head line presses its line's key (a digit, past 9 the cursor and Return). `[~]`: its keys 1–5
+  (pages) and A… (spells) are not the remaster's keys (the column's digits are, as in the Magic Training Hall's list). As the original, C opens the list even when nothing
   is castable (letters only; Quit goes back; the remaster's earlier "No spell can be cast now." note is gone). Checked
-  on Xvfb (s152; `parity/shots/p4-remaster-combat-spell-list.png`: a click on "3 :Combat" turned to page 2, whose 16
-  rows fill the window; a click on "M Flameball 1" (row 13: cursor and Return) gave the order; a temporary, uncommitted
-  forced fight with every spell known).
+  on Xvfb (s152: a click on "M Flameball 1" (row 13: cursor and Return) gave the order; s160:
+  `parity/shots/p4-remaster-combat-spell-list.png`, the list right of the field, a click on "3 :Combat" turned to page 2,
+  whose 16 rows fill the window, frame rows 11 and 392–393 probed on the shot; Backspace gave the column back;
+  `-spell-list.png` the town list at the same rows; a temporary, uncommitted forced fight and preview party with every
+  spell known).
 
 **Window frames (s141, `_wwind` `0x333E0`, `_wactive` `0x335B4`, static `[C]`):** `_wwind(x, y, w, h, flag, titled)`
 draws nothing when flag = 0. Otherwise: fill colour 15 (untitled) or 14 (titled) over x, y, w × h; a black (colour 0)
@@ -888,11 +918,123 @@ unless tagged; P4.X read from the `jsr` sites, `tools/scripts/x68k_p4_panels.py`
   answer and the gold 16 rows down and makes the window taller `[~]`. s158: the window's title bar ("船　大　工",
   `p4x.0x400d4`) and frame are drawn as the training hall's (`DrawTitledBeside`; `parity/shots/p4-remaster-shipwright-titled.png`,
   as `p4-x68k-shipwright-offer.png`); it also holds with a ship owned and 1500 GP (four English offer rows, one extra:
-  `-shipwright-titled-ship.png`; the key help then goes into the column, as it did untitled). The other titled building windows (all `_wopen(…, 160, 32, 312, 352, 1, title)`,
-  s158 list from the call sites: `_inn` 宿　屋, `_townent` Town Gate, `_mage` 魔法訓練場, `_bank` 銀　行, `_distribute` 分　配,
-  `_armory` 商　店, `_setuse` [original text], `_trade` 交　換, `_setident` [original text], `_endstory` Phantasie IV, `_arathamus`
-  [original text], `_banquet` [original text]; the Guild's ギルド (XEiJ s158) is opened elsewhere) still have no bar or frame in
-  the remaster `[~]`: their titles are not in the pack yet.
+  `-shipwright-titled-ship.png`; the key help then goes into the column, as it did untitled).
+- **Titled building windows (s162, static `[C]`; `x68k_p4_panels.py` → the pack's `titled`, each `_wopen` site's seven
+  pushes read back):** `_inn` 宿　屋, `_townent` Town Gate (two sites), `_mage` 魔法訓練場, `_bank` 銀　行, `_distribute`
+  分　配, `_endstory` Phantasie IV, `_arathamus` [original text], `_banquet` [original text], `_armory` 商　店, `_setuse`
+  [original text], `_trade` 交　換, `_setident` [original text], all (160, 32) 312 × 352; and three the s158 list missed:
+  `_guildmenu` ギルド (160, 64) 312 × 180 (= GUILD.PKH), `_mystic` 占　師 (160, 90) 312 × 220 (= MYSTIC.PKH), `_hall`
+  栄光の殿堂 (160, 52) 312 × 312 (= HALL_A + HALL_B; `_htran` / `_hprof` reopen it with the same text); also `_gatebank`
+  [original text] (160, 132) 312 × 160. **Built (s162):** the bar and frame (`DrawTitledBeside`) round the Guild, Inn, Bank,
+  Mystic, Hall (and its history pages, which `_hhist` draws in the Hall's window), banquet and cell pictures
+  (`P4DungeonScreen.TitledWindowName`; the ending's street stays untitled, `_tw_open` flag 0, as
+  `p4-x68k-ending-street.png` shows); shots `parity/shots/p4-remaster-inn-titled.png`, `-guild-titled.png`,
+  `-bank-titled.png`, `-hall-titled.png`, `-ending-banquet-titled.png`, `-ending-cell-titled.png` (the inn's, bank's,
+  banquet's and cell's of these show s162's frame ending under the picture; their 352-row windows since s163:
+  `-inn-window.png`, `-bank-window.png`, `-ending-cell-message.png`). Seen on XEiJ (s162, a fresh boot, party by the RE-REFERENCE recipe):
+  `parity/shots/p4-x68k-guild.png` (bar "ギルド" and frame round the 180-row picture, as the remaster's),
+  `p4-x68k-inn.png` (the 352-row window; the inn's line "abc は眠った." in a sunken box under the picture),
+  `p4-x68k-bank.png` (the 352-row window; an account table 口座 / 残高 in a sunken box and "[original text] 0 GP" under the
+  picture). s163: the inn's, the bank's, the banquet's and the cell's windows are drawn at the original's 352 rows with
+  what the original holds in them ("Building windows under the picture" below). The final screen and the Town Gate are
+  drawn in their windows (below). s163: the item windows (`_armory`, `_distribute`, `_trade`, `_setuse`, `_setident`) are
+  drawn titled with the original's rows ("Item lists" above). Still without bar / frame (their content is the remaster's
+  box text in the picture's place, not the original's window layout): `_mage` (the Magic Training Hall; read s163,
+  below, not built) and `_gatebank`'s share-out (312 × 160 at (160, 132), its rows not read) `[~]`.
+- **`_mage`'s own window (s163, static `[C]`, not built yet):** at each member pick `_wopen(32, 160, 32, 312, 352, 1,
+  "魔法訓練場")` (`0x3A96`), `_amark`, the name `_wlocpr(32, 16, 16, name)`; then one note, as `_trang`'s: on the branch
+  that offers nothing (its test before `0x35C4` not read `[~]`), level byte over 30 → `_wprint("はもはやこれ以上教える事は
+  ない。")` after the name (`0x35DC`), else `_wlocpr(32, 16, 32, "[original text]")` (`0x360A`); poor condition `_wprint("[original text]")` +
+  `_wlocpr(32, 32, 32, "[original text]")` (`0x3972` / `0x399E`); else the offer: `_wlocpr(32, 120, 16, "どの魔法も")`
+  (on the name's row), `_wlocpr(32, 16, 32, "１つにつき")`, `_font(1, −1, 8, −1)` + `_wdoutl(32, 137, price)` (font 1,
+  colour 8, left-aligned), `_font(0, −1, −2, −1)`, `_wprint(" [original text]")`, `_wlocpr(32, 16, 48, "さて、どの魔法を学ぶ
+  のじゃ？")`, then `_getmagic(member, 8)` (the spell list in window 34); after a pick `_font(0, −1, 2, −1)` (colour 2),
+  `_wfbox(32, 14, 0, 64, 311, 16)` and at (16, 64) "[original text]" / "×落第だ。" / "[original text]", `_font(0, −1,
+  −2, −1)`; the offer loops while picks are left. The remaster prints these lines in its box (the window's layout is the
+  pack's next step, as `trang`).
+- **The final screen (s162, `_endstory` `0xA9E6`–`0xAC30` read, static `[C]`):** `_clrtdraw`, `_wopen(32, 160, 32, 312,
+  352, 1, "Phantasie IV")`; `_font(0, 8, 1, 16)` and the heading "THE GAME END" (`0x413C8`) by `_wprcen` centred on x 140
+  at y 48 (font 0, **shadow**, colour 1); `_font(0, 0, 0, 16)`; lines 0–1 of `0x40D1C` at (32, 80) / (32, 96);
+  "[original text] " at (32, 128), the score by `_font(1, 0, 8, 16)` + `_wdouti(32, 3, n)`, then " です。" in font 0;
+  "[original text] " at (32, 144), "ﾀﾞｯｸ" in font 1 colour 8, " です。"; lines 2–7 at (32, 176 … 256); `_spc_wait`;
+  `_font(1, 1, 2, 16)` and line 8 "[original text]" at (32, 288) (font 1, **bold**, colour 2); `_font(0, 0, 0,
+  16)`, `_sdbeep`, `_confirm`. The pack's `endstory` holds it. **Built (s162):** Core `P4TownScene.EndingFinal` (the
+  window replaces the last ending picture); the Client draws the titled window in the picture's place with every line at
+  its place, fonts and colours from the pack (bold and shadow by `X68kFontStyle`), English rows that would pass 16 short
+  of the right edge wrapped and the later rows pushed down; it stays up under `_acgamend(1)`; the text column keeps its
+  lines and keys (`parity/shots/p4-remaster-final-screen.png`, `-final-screen-question.png`). The heading's shadow look
+  is unchecked on XEiJ `[~]` (the ending is not reached in a fresh boot).
+- **The Town Gate (s162, `_townent` read, static `[C]`):** at the first member who ages `_wopen(32, 160, 32, 312, 352,
+  1, "Town Gate")` (the two sites are the two branches), then member m's row: the name by `_wlocpr(32, 8, 8 + 16 m)` and
+  " has grown older." (`0x3FA6F`) / " has died of old age." (`0x3FA89`) by `_wprint`; `_spc_wait` after the loop. The
+  ink is not set there (s163: no `_font` call in `_townent` or in `_town` before it, `_clrtdraw` sets none, and
+  `_wopen`'s `_wactive` saves and restores `_fgcol` round its title), so it is the `_fgcol` the screen before left: drawn
+  colour 0, as the last `_mkicon` leaves it `[~]`. **Built (s162):** Core `P4TownLoop.GateRows` (each aged member's
+  index, name and line while the aging wait is up; not kept by a save made at that wait `[~]`), the pack's `townent`,
+  the Client's titled window with the rows (`parity/shots/p4-remaster-town-gate.png`).
+- **Building windows under the picture (s163, static `[C]`; `_inn` `0x2188`, `_bank` `0x57A4`, `_disppcg` `0x493A`,
+  `_deposit` `0x4992`, `_withdraw` `0x5414`, `_endmsg` `0xA8B2` read; `x68k_p4_panels.py` → the pack's `inn`, `bank`,
+  `endmsg`, each call site's pushes asserted).** Coordinates are the window's (its origin = the picture's, (160, 32));
+  `_whole(win, x, y, w, h)` = the sunken frame (two 1-pixel rings outside the box: colour 1 top / left, 15 bottom / right).
+  - **`_inn`:** `_font(0, 0, 0, 16)` (font 0, black, no cell box); after INN.PKH `_whole(win, 8, 210, 296, 16 · party
+    size + 4)`; then for each member m with record +0x12 ≠ 0 (living) `_wlocpr(win, 16, 212 + 16 m, name)` and
+    `_wprint(" は眠った．")` (`0x3F6F0`); on a won MP roll `_wprint(" [original text]")` (`0x3F6FC`) **after it on the same
+    row** (the remaster's Core printed it as a second line with the name before: now one line, as the original; English
+    " MP went up!"). A dead member's row stays empty. `_healall`, `_spc_wait`, `_wclose`: the box is up through the wait.
+  - **`_bank`:** `_font(0, 0, 0, 14)`; after BANK.PKH `_wfbox(win, 14, 0, 180, 312, 172)` (the grey under the picture),
+    `_whole(win, 32, 194, 248, 116)`, "口座" (`0x3FF14`) at (64, 196), "残高" (`0x3FF19`) at (216, 196), a colour-0 line
+    `_wfbox(win, 0, 64, 211, 184, 1)`, member i's name at (64, 212 + 16 i) and balance `_wlocdi(win, 208, y, 5, +0x1E)`;
+    `_disppcg`: "[original text] " at (68, 336), `_wdouti(win, 8, gold)`, " GP". `_wdout(win, fmt, type, &n)` (`0x340B0`):
+    fmt & 63 digits, each leading zero two spaces (one digit's width) unless fmt bit 7 (no padding, `_wdoutl`'s 137).
+  - **`_deposit`:** `_wcls(34)`, `_clrbtn`; the grey again, a black band `_wfbox(win, 0, 0, 180, 312, 16)` and "預金入金"
+    (`0x3FE7A`) centred on x 156 at y 180 in colour 15 (`_font(0, 0, 15, 16)`), back to `_font(0, 0, 0, 14)`;
+    `_disppcg`; `_whole(win, 32, 210, 216, 116)`, "口座" (64, 212), "[original text]" (148, 212), a line (64, 227, 160, 1); four
+    buttons `_setbtn(-1, win, 272, 240 + 20 i, 24, 16, '0' + i, 64, 1)` each drawn "  " + the digit + "  " (`0x3FE93` /
+    `0x3FE96`, two spaces each) with cell colour 4 (`0x789AC` = 4 during the loop, 14 after); then member m's name at
+    (64, 228 + 16 m), the cursor at (196, y), `_mgetc` for a share button, the share `_wdouti(win, 1, n)`; then
+    `_wfbox(win, 14, 0, 336, 312, 16)` and "[original text]  " (`0x3FE99`) at (16, 336), `_wdout(win, 6, 1, &per)`, " GP   "
+    (`0x3FEA8`); `_spc_wait`.
+  - **`_withdraw`:** the grey, the band with "預金引出" (`0x3FED7`) as the deposit's, `_disppcg`, `_whole(win, 16, 210,
+    280, 116)`, "口座" (32, 212), "残高" (96, 212), "限度額" (160, 212), "引出額" (224, 212), a line (32, 227, 240, 1); every
+    member m (y = 228 + 16 m): the name at x 32, the balance (`_wlocdi` 5) at 96, the limit at 160; **only when the limit
+    is above 0** `_wloc(win, 224, y)` and `_numin(win, 34, 40, 224, 5)` (the keypad in window 34, typing at that cursor),
+    the amount (capped at the limit) `_wlocdi` at 224, the account and the gold updated and `_disppcg` again; `_spc_wait`
+    after the last member.
+  - **`_endmsg(block)`:** window 33 = `_wopen68(33, _cvx(160), _cvy(20) + 48 + offset, 312, 52, 1, "")` (title the empty
+    string `0x413BA`: untitled, white with the black frame and shadow; offset 232 for blocks > 3 other than 6), so screen
+    (160, 68) or (160, 300): over the ending's street (whose picture starts at (160, 20): END1 at (160, 154) is its row
+    134) 48 rows down, or in the banquet's / cell's window 268 rows down (the cell shot's white box). Each page:
+    `_wcls(33)`, at most three lines of the block's table (`0x40C58` pointers, `0x40C00` {first, last}) at (16, 14 k + 4)
+    (`_wlocpr`; the 14-row step matches the cell shot's rows 347 / 361 / 375), `_sdbeep`, `_spc_wait`. `_common_proc`'s
+    Lord titles write in the same window 33 (`_wcls(33)`, `_wlocpr(33, 16, 4, origin)` …), the last `_endmsg`'s.
+  - **Built (s163):** Core `P4TownLoop.InnRows` (`P4InnRow`: member, name, MP won; `P4Town.InnStay` returns them, the town
+    inn keeps them through the wait), `P4TownLoop.BankWindow` (`P4BankWindow`: accounts / deposit / withdraw, the
+    withdraw's rows for every member with balance, limit and amount, the deposit's shares and amount per share),
+    `P4TownLoop.EndingBlock` (the block of the page waiting); the Client (`P4DungeonScreen.Buildings.cs`) draws the inn,
+    bank, banquet and cell windows at their 352 rows, the inn's box and rows, the bank's tables (accounts, the deposit
+    band with the share buttons (a click gives that share), the withdraw band with the typed amount at x 224), the gold /
+    per-share line, and `_endmsg`'s white window over the street or under the banquet / cell picture, and no longer
+    prints those lines in the text column. English rows that would pass the box wrap and push the later rows and the
+    box / window down (the user's fit rule). Shots `parity/shots/p4-remaster-inn-window.png`, `-bank-window.png`,
+    `-bank-withdraw.png`, `-bank-deposit.png`, `-ending-street-message.png`, `-ending-cell-message.png`. `[~]`: the
+    deposit's rows all show at once with the remaster's shares (the original asks member by member, each row appearing
+    as its share is given; the share cursor at x 196 not drawn); `_deposit`'s `_wcls(34)` leaves the Command window's
+    title and grey (the remaster shows no panel there); the outdoor inns: `_oinn` (`0x14F98`) calls `_inn` too (after
+    "paid 256 gold" and its `_spc_wait`), so the original opens INN.PKH's 352-row window with the box over the map and
+    waits again for SPACE, while the remaster's `P4OutdoorLoop.InnStay` prints the rows in the outdoor box and goes on
+    (no inn picture, no second wait); the deposit and withdraw windows are from the code only (no XEiJ
+    shot of them; the account table, the inn's box and `_endmsg`'s window over the street and in the cell match the s162
+    XEiJ shots).
+- **The wiped-out party (s162, `_deadmsg` `0x1E308` read, static `[C]`):** `_xblack` (`0x31EDC` = `_fbox2(0, 768, 512,
+  0)`: the whole graphic screen colour 0); `_wopen(32, 100, 168, 440, 64, 0, "")` (untitled, no frame), `_wfbox(32, 0,
+  0, 0, 440, 64)` black, `_wbox(32, 15, 2, 2, 436, 60)` and `_wbox(32, 15, 3, 3, 434, 58)` (two white outlines),
+  `_font(−1, 1, 15, −1)` (bold, white), "[original text]" / "[original text]" by `_wkprcen` centred
+  on x 220 at y 16 / 32; `_clrbtn`, `_clrbtd`, slot 14 over the window, `_sdbeep`, `_mgetc`; **`_xblack` again**, then
+  `_acgamend(1)` (its panel on the black screen). **Built (s162):** the pack's `deadmsg`; the Client blacks the screen
+  and draws the window at the original's place while the key waits (wider when a translation's line would pass its
+  frames), then after the key shows the panel and its text column on black, no picture or view
+  (`parity/shots/p4-remaster-deadmsg-black.png`, the black screen forced by a temporary, uncommitted switch); the
+  outdoor loss now prints both lines, as a location map's does.
 
 `fl.pix` is read into memory the combat buffers share (`_fpixb` = `0x58194`, `_bkpixb` = `0x58196`), which is why
 `_denc` calls `_dpixset` again after a fight. The 21 maps use floor 0–43, north 0–19 / 31 and west 0, 1, 2, 5 / 7 only, all
@@ -1177,11 +1319,11 @@ pixels wide, font 0's), colour 0. Then the AN sheet (argument 0 with `_town_anim
 (the sheet's read, decode and copy and `_wcls`, measured above), 275 ms (the `_wcls` part alone `[~]`, not timed on its
 own) for the ending's `_tload(1)`, which loads no sheet (`parity/shots/p4-remaster-please-wait.png`, the hold lengthened
 in the build's copy for the shot). `[~]`: the picture appears at once (its 319 ms copy is not animated); the text box
-already lists the street's menu during both holds; `_tw_open`'s grey border and sunken frame round the window are not
-drawn: s158 measured against the s157 layout: the street's 312 × 348 window with `_fbox(14)`'s 8 pixels round it is
-328 × 364 pack pixels = 182 layout rows, so even with its top in the screen's top margin its bottom (182) passes the
-178 the street's two-row key help needs under it; the help would go back into the column (5–7 rows). A layout
-question for the user, not built `[~]`.
+already lists the street's menu during both holds. `_tw_open`'s grey border and sunken frame round the window are not
+drawn, **decided by the user (s159): no border** (s158 measured against the s157 layout: the street's 312 × 348 window
+with `_fbox(14)`'s 8 pixels round it is 328 × 364 pack pixels = 182 layout rows, so even with its top in the screen's
+top margin its bottom (182) passes the 178 the street's two-row key help needs under it; the help would go back into
+the column, 5–7 rows).
 
 **Measured (s110, XEiJ 0.26.10.08; `docs/plan/RE-REFERENCE.md` "X68000 full-system runs") `[C]`.** Model "Shodai"
 (the original X68000: MC68000 at 10 MHz, IPL ROM 1.0 — not XEiJ's IPL 1.6 — wait cycles on), the game booted from the
@@ -1390,7 +1532,7 @@ IOCS `_OPMSET` (`$68`, `0x2804`).
   interrupts (`0x248f`) and runs the sequencer on every 4th (`& 3` = 0), channels 0–7 in order. A timer A period is
   64 · (1024 − NA) OPM clocks (YM2151 data sheet), so one sequencer pass = 256 · ⌊19531 / T⌋ clocks (s117: XEiJ shows
   NA = 862 at T120 and the passes on every 4th interrupt; a voice-loading pass can lose one, §6.11.3). With the X68000's
-  **4 MHz** OPM clock `[~]` (XEiJ only assumes it) that is 1.25 / T s: **48 passes to a quarter note** (19531 = 4 000 000 · 60 / (64 · 4 · 48),
+  **4 MHz** OPM clock `[C]` (Sharp's service manuals and *Inside X68000*, §6.11.3 "Clock") that is 1.25 / T s: **48 passes to a quarter note** (19531 = 4 000 000 · 60 / (64 · 4 · 48),
   which is how the clock shows in the code), 10.368 ms at T120. Default tempo 120 (`_m_init`, `0x1c22`). A tempo event
   takes effect from the next reload: the interval already counting keeps the old NA `[~]` (no IV song changes tempo).
 - **Voices**: `_m_vset(n, a)` copies 55 bytes into the table at `0x282e` + (n − 1) · 55, 200 voices. Layout (from the
@@ -1498,19 +1640,64 @@ per round (sequencer log of 0x18 / 0x19 / 0x1B): passes 0–47 off (@83, @195: P
     the overflow (2592.84 µs a period on average against 2592.0; an emulator artefact). s156: the remaster models the measured
     rule (`OpmDrvSequencer.LostInterrupts`): a pass that loads a voice waits 5 timer periods, the song's first pass 6, so
     a round is 7687 periods = 19.925 s; the rule is measured for song 0 only, other songs `[~]` (their passes' CPU time
-    is not known).
-  - **Clock:** XEiJ's OPM runs at a fixed `OPM_OSC_FREQ` = 4 000 000 Hz (`xeij/OPM.java`), so the trace's 2.592 ms
-    period cannot measure the clock: it only repeats XEiJ's own assumption. The 4 MHz stays `[~]` (the driver's 19531 and
-    KF 5 agree with it, §6.11.1). s158 search: MAME's X68000 driver (`src/mame/sharp/x68k.cpp`) also clocks the YM2151
-    at `16_MHz_XTAL / 4` = 4 MHz (and the MSM6258 and MFP from the same 16 MHz crystal), and a vgmrips forum thread says
-    the same; both are emulator / hobby sources, not a Sharp document. No Sharp schematic, service manual or *Inside
-    X68000* page with the OPM clock was found online, so it stays `[~]`.
+    is not known; not needed: the remaster plays no IV song but song 0, the title).
+  - **Clock (s162) `[C]`:** 4 MHz. Sharp's own documents: the service manual **CZ-134** (X68000 CZ-634C-TN /
+    CZ-644C-TN, April 1991; archive.org `CZ134X68000ServiceManual`) draws the YM2151 with `CLK(4MHz)` in the sound block
+    diagram (図7-1, chapter 7 "サウンド機能") and, in "16. コントロール基本配線図" (printed pp. 85–86), IC221 YM2151's φM
+    pin 24 on the net labelled `4MHz`; the X68030 manual **CZ-147** (CZ-300C-B / CZ-310C-B) draws the same sound
+    circuit. *Inside X68000* (桑野雅彦, ソフトバンク 1992, p. 280, the KC register): the OPM's note table is made for
+    3.579545 MHz, "X68000 ではクロックとして 4 MHz を与えているため", so notes come out about 192.27 cents (about a
+    whole tone) high, which is what OPMDRV's shifted note codes and KF 5 correct (§6.11.1). XEiJ (`OPM_OSC_FREQ` =
+    4 000 000, `xeij/OPM.java`) and MAME (`16_MHz_XTAL / 4`, `src/mame/sharp/x68k.cpp`) agree. s163: the first model's
+    control sheet (CZ-600CE, below) draws the same YM2151 / YM3012 pairing; its φM net was not traced to its source on
+    that sheet (not needed: the sources above already give 4 MHz for the X68000 as a whole).
+  - **Analogue output, first model (s163) `[C]`:** the "CZ-600CE コントロール回路図" in the schematic appendix of
+    桑野雅彦 *Outside X68000* (ソフトバンク 1993; archive.org `OutsideX680001993`, file `Outside_X68000_schematic`,
+    scan 0003, the sheet after "CZ-600CE メイン回路図 (1) / (2)" and "サブ回路図"; the book's own text calls the first
+    model "CZ-600C (初代タイプ)" and bases its I/O chapter on the 初代 circuit). The YM3012 (IC15) hold capacitors
+    C48 / C47 0.01 µF (CH1 / CH2) are buffered by NJM072 followers (IC10; `TOBUF` → IC9 follower → R30 560 Ω → `COM`,
+    as on the later boards), then C28 / C29 4.7 µF and R32 / R31 3.9 kΩ into an NJM072 inverting stage (IC12, + inputs
+    grounded) with **R35 / R36 12 kΩ ∥ C37 / C38 820 pF** feedback: gain −12 / 3.9 (−3.08), a pole at
+    1 / (2π · 12 kΩ · 820 pF) = **16.17 kHz**, the high-pass 1 / (2π · 3.9 kΩ · 4.7 µF) = 8.7 Hz as before. The ADPCM
+    side joins the same summing nodes through C34 / C35 0.47 µF and R38 / R37 2.2 kΩ. IC12's output goes through
+    C16 / C17 4.7 µF; from there R16 / R15 22 kΩ and C25 / C24 4.7 µF to the AO (line out) jack (RM1 15 kΩ to ground
+    on the jack side, where the expansion slots' SND L / R join through C26 / C30 4.7 µF and R17 / R18 22 kΩ), and
+    R19 / R14 22 kΩ to the 10 kΩ volume pots and the BA526 headphone / speaker amplifiers (IC5 / IC6). So the first
+    model's stage differs from the later boards' (below) in its feedback only. The remaster's
+    `OpenPhantasie.Client.Audio.X68000AudioFilter` uses the CZ-600CE values (16.17 kHz, 8.7 Hz; unity gain, the
+    −3.08 level and the inversion not modelled), since the remaster's IV stands for the first model. The passive
+    line-out network after C16 adds no corner in the audio band (high-passes under 2 Hz) and is not modelled.
+  - **Analogue output, later boards (s162) `[C]` on the CZ-134 and CZ-147 sheets:** CZ-134 pp. 85–86 (IC
+    numbers of that board): the YM3012 (IC224) is a DAC with sample-and-hold, its CH1 / CH2 hold capacitors C239 / C240
+    (0.01 µF) buffered by MC3403 followers (IC226; the shared DAC output `TOBUF` → follower → R244 560 Ω → `COM`); each
+    side then goes through C230 / C226 4.7 µF and R243 / R245 3.9 kΩ into an MC3403 inverting stage (IC227 amps 1 and 4,
+    + inputs grounded) with **R246 / R247 4.7 kΩ ∥ C228 / C229 1800 pF** feedback: gain −4.7 / 3.9 (−1.21), a pole at
+    1 / (2π · 4.7 kΩ · 1800 pF) = **18.81 kHz**, and a high-pass at 1 / (2π · 3.9 kΩ · 4.7 µF) = 8.7 Hz. The same stage
+    sums the ADPCM side through C236 / C231 0.47 µF and R229 / R230 2.2 kΩ (6.13 "Output filter"). Its output (C252 / C253 47 µF) goes to the line-out jack through
+    R224 / R225 1 kΩ and C202 / C204 4.7 µF (100 pF to ground at the jack: 1.6 MHz) and to the volume pot (R223 / R226
+    18 kΩ, 10 kΩ) and the NJM2073 speaker / headphone amplifier. CZ-147's "17. メイン基本配線図 (7)" has the same values
+    (R25 / R22 3.9 kΩ, R23 / R16 4.7 kΩ, C68 / C72 1800 pF, C91 / C94 0.01 µF, R91 560 Ω). s162 modelled this stage
+    (18.81 kHz); s163 replaced it with the first model's (above; the later corner stays in the code as
+    `X68000AudioFilter.LaterModelsLowPassCornerHz`, unused). The filter runs on every `OpmDrvRenderer` chip sample (the
+    8.7 Hz high-pass included; the DC blocker of the other chips is not used). The hold is the DAC's own (no series
+    resistor but the 560 Ω, the same on the CZ-600CE); the remaster holds each chip sample and interpolates linearly to
+    the output rate. **The hold's charging `[?]` (s163):** Yamaha's YM3012 data sheet (April 1992, bitsavers
+    `components/yamaha/YM3012_199204.pdf`) gives DAC settling 2.5 µs typical / 5.0 µs max and recommends C_SH 560 to
+    3300 pF (1500 pF) with R_COM 100 to 1000 Ω (270 Ω), but no switch on-resistance and no window width in numbers
+    (Fig. 3 is undimensioned); the YM2151 data sheet (Dec 1991, same place) gives no SH1 / SH2 timing either.
+    Nuked-OPM (`opm.c` `OPM_Output`, from die shots, not a Yamaha document `[~]`) raises SH1 / SH2 for 8 of the 32 φ1
+    slots of each sample: 4 µs at 4 MHz out of 16 µs. The X68000's 0.01 µF (above Yamaha's range) charges through at
+    least R30 560 Ω: τ ≥ 5.6 µs, so each window brings the held level at most 1 − e^(−4 / 5.6) ≈ 51 % of the way to the
+    new sample. If so, the hold acts as a per-sample one-pole (pole ≥ 0.49 at 62.5 kHz) whose −3 dB corner is at most
+    about 7.4 kHz, below the stage's 16.2 kHz pole. Not modelled: the switch's on-resistance (which lowers it further)
+    and the window width from a primary source are both missing. The speaker / headphone path after the pot is not modelled (the line out is the
+    reference).
 - **Not used by IV `[C]`:** `_mus` makes 73 `_xm_trk` calls (all songs and the stop song), each with its own string;
   every byte of those 73 strings is one of `#&.0-9:<>@QRTVabcdefglopqrv|`: no `[`, `]`, `{`, `}`, no `|` other than
   `|:` / `:|`, and no command word, so OPMDRV's loop-break, segno / coda and
   tuplet commands never reach the compiler. Their encoding stays `[?]` (a static read of `_m_trk` `0xa58`; not needed).
-- **Still `[?]`**: the YM3012 / X68000 analogue output filter (not modelled: no Sharp schematic with its component
-  values was found (s158); MAME and XEiJ model none either); the real X68000's OPM clock (4 MHz `[~]`, above).
+- **Still open**: the YM3012's hold charging `[?]` (above: may set a corner at or below about 7.4 kHz, unmodelled).
+  (s163: the first model's output stage is read from its own sheet, CZ-600CE, no longer taken from the CZ-134 / CZ-147.)
 
 ### 6.12 Fonts: P4.X's own ANK glyph tables (s135) `[C]`
 
@@ -1539,8 +1726,12 @@ it into `_xlen` (`0x3A2F5`) and `_ylen` (`0x3A2F8`); style → `_wfopt` (`0x3A2E
   a 32-bit-per-row buffer (`0x3A30C`); bit 0 **bold**: row |= row >> 1, advance + 1 (`0x3A034`); bit 1 **italic**
   (`0x3A096`): d = rows / 2, then each pair of rows from the top is shifted right by d, d − 1, … while d > 0 (the last
   pair by 1, a 9th / 11th odd row not shifted); the advance is unchanged, so the slant overhangs the next cell; bit 2
-  **outline** (`0x3A0C2`: two more rows, advance + 2; `_flen` / `_fsize` add the 2 too) and bit 3 **shadow** (`0x3A236`),
-  not decoded further. Then `0x39E66` writes `_fgcol` into graphic VRAM (`0xC00000` + 2048 · y + 2 · x + the page
+  **outline** (`0x3A0C2`: two more rows, advance + 2; `_flen` / `_fsize` add the 2 too, not decoded further) and bit 3
+  **shadow** (`0x3A236`, s162 read): into a cleared buffer two rows longer, for each glyph row r (a mask, MSB left) at row
+  y: row y |= r >> 1, row y + 1 |= r | r >> 2, row y + 2 |= r >> 1 | r >> 3; then row y + 1 &= ~(r >> 1) for every y:
+  a hollow outline of the glyph one pixel right and down with one more pixel of drop shadow (x + 3, y + 2); the advance
+  is unchanged (only `_endstory`'s heading uses it). The remaster applies bold and shadow to the pack's fonts where the
+  pack has no styled file (`X68kFontStyle`, s162). Then `0x39E66` writes `_fgcol` into graphic VRAM (`0xC00000` + 2048 · y + 2 · x + the page
   offset at `0x820C0`) only where the buffer has ink (transparent). `_fsize` (`0x2E45E`) sums `_flen` advances (+2 each
   with bit 2), 16 per Shift-JIS double byte.
 - **Styles used** (`_font` call sites with a constant style): 1 bold (`_acswitch`, `_deadmsg`, `_enc_end`, `_endstory`,
@@ -1608,8 +1799,26 @@ it into `_xlen` (`0x3A2F5`) and `_ylen` (`0x3A2F8`); style → `_wfopt` (`0x3A2E
     NO alike, so both answers sound it; `ending.md` §3.)
   - Sink by the party: the remaster turns the monsters (`_f2f`) before they land, so their turn is silent (the original
     lands each first, so its `_b_face` sounds too).
-  - The X68000's ADPCM output filter (XEiJ interpolates linearly between samples; the remaster holds each); the mix level
-    (0.6 of full scale).
+  - The mix level (0.6 of full scale); XEiJ interpolates linearly between samples, the remaster holds each (the DAC's
+    hold).
+- **Output filter (s163, Sharp's CZ-134 sheet "16. コントロール基本配線図", printed p. 85 = PDF page 78 of archive.org
+  `CZ134X68000ServiceManual`, read at 200–300 dpi) `[C]`:** MSM6258 `DAOUT` (pin 22) → C260 4.7 µF → R234 68 kΩ to node
+  A (C256 560 pF to ground) → R233 68 kΩ to node B → R232 68 kΩ to IC227's + input (pin 10, C254 180 pF to ground);
+  C255 1200 pF from node B to the op-amp's output (pin 8), which is tied to its − input (pin 9): a passive pole feeding a
+  unity-gain Sallen-Key low-pass (third order, −3 dB near 4 kHz). The output → C232 0.47 µF → node N (R261 33 kΩ to
+  ground) → two pan branches, each R237 / R242 1.5 kΩ (Q208 / Q207, DTC114ES, short the branch to ground when that side
+  is off), C231 / C236 0.47 µF, R230 / R229 2.2 kΩ into the inverting summing stage the OPM shares (R247 / R246 4.7 kΩ
+  ∥ C229 / C228 1800 pF, 6.11.3). With both sides on (`_voice`'s pan 3): H(s) = −(Rf / Rs) · Rs s² C232 Cb / (D1 · D2 ·
+  (1 + s Rf Cf)), Rs = 3.7 kΩ, Cb = 0.47 µF, D1 = (1 + s C254 (R233 + R232) + s² R233 R232 C255 C254)(1 + s R234 C256) +
+  s R234 C254 (1 + s R232 C255), D2 = 1 / R261 + s (C232 + Cb Rs / R261 + 2 Cb) + s² C232 Cb Rs (checked against a nodal
+  solve): a band-pass, −3 dB at about 270 Hz and 3.7 kHz, 0.97 at its peak (1.5 kHz) with the stage's −4.7 / 3.7 left
+  out. **Built (s163):** `X68000AdpcmFilter` (bilinear, pre-warped at 3 kHz; within 0.5 dB of the analogue response up
+  to 4 kHz at 44.1 kHz) on every held sample of `AdpcmRenderer` (both channels). Not modelled `[~]`: DAOUT's output
+  impedance (taken as 0; not on the sheet), C260's high-pass (≈ 0.17 Hz into the network's 204 kΩ), ideal op-amps, the
+  stage's level relative to the OPM (each player keeps its own mix level). The first model's sheet (CZ-600CE, 6.11.3)
+  has the same filter values and topology (MSM6258 IC8 → C21 → R26 / R41 / R25 68 kΩ, C14 560 pF, C19 1200 pF, C36
+  180 pF round an NJM072 follower) `[C]`; its pan switching is not read, and its summing stage is 12 kΩ ∥ 820 pF where
+  the band-pass above uses the CZ-134's 4.7 kΩ ∥ 1800 pF `[~]`.
   - The remaster's post-fight item appraisal under a high Spot Item (`P4Battle`, a manual rule): P4.X calls `_ident_mi`
     only from `_ident` (Identify), so no original moment matches. s156: since the remaster prints `_ident_mi`'s text and
     `_ident_mi` sounds `_sdmag` on entry (`0x2DBB8` link, `0x2DBBC` the call, before any branch), the appraisal now notes

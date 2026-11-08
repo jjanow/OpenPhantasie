@@ -26,11 +26,20 @@ public sealed class ImportReport
     /// <summary>Versions found but not imported (recognised only, unknown builds, missing disks, planned).</summary>
     public List<string> Skipped { get; } = [];
     public List<string> Notes { get; } = [];
+    /// <summary>Companion files the import is still missing (profile <c>companions</c>), one per companion profile.</summary>
+    public List<ImportOffer> Offers { get; } = [];
     public bool Committed { get; set; }
 
     public sealed record VersionResult(string ProfileId, string Title, bool Ok, int FilesWritten,
         IReadOnlyList<string> Warnings, string? Error);
 }
+
+/// <summary>
+/// A file the import can still add (s160): <see cref="ProfileId"/> / <see cref="Title"/> name what to give (e.g. the
+/// Kickstart 1.3 ROM), <see cref="ForTitles"/> the imported versions that want it, <see cref="GivesId"/> a string id
+/// for what it adds. Importing just that file afterwards adds it and keeps the rest of the import.
+/// </summary>
+public sealed record ImportOffer(string ProfileId, string Title, IReadOnlyList<string> ForTitles, string GivesId);
 
 internal sealed class ImportSession
 {
@@ -93,6 +102,41 @@ public sealed class ImportRunner
             return report;
 
         var staging = ImportRoot + ".tmp";
+        var manifest = Stage(staging, scan, work, report, progress, cancel);
+
+        if (report.Versions.All(v => !v.Ok))
+        {
+            Directory.Delete(staging, recursive: true);
+            return report;
+        }
+        manifest["importer_version"] = ImporterVersion;
+        report.Offers.AddRange(MissingCompanions(report, manifest));
+        // A game with pictures but no tables can't be played yet: say which copy would add them.
+        if (manifest["games"] is JsonObject games)
+            foreach (var (game, node) in games)
+            {
+                if (node is not JsonObject g || g["tables"] is not null || game == "shared")
+                    continue;
+                var sources = VersionProfiles.All
+                    .Where(p => p.Game == game && p.IsSupported && p.Feeds.Contains("tables"))
+                    .Select(p => p.Title).ToList();
+                if (sources.Count > 0)
+                    report.Notes.Add($"{GameName(game)}: its pictures are imported, but the game itself needs its data from " +
+                                     $"{string.Join(" or ", sources)}.");
+            }
+        File.WriteAllBytes(Path.Combine(staging, ManifestName), PyJson.SerializeUtf8(manifest, 1));
+        Swap(staging);
+        report.Committed = true;
+        return report;
+    }
+
+    /// <summary>
+    /// Copy the current import to <paramref name="staging"/> and run <paramref name="work"/>'s pipelines into it,
+    /// recording each version in the returned manifest (not yet written).
+    /// </summary>
+    private JsonObject Stage(string staging, ScanResult scan, List<Detection> work, ImportReport report,
+        IProgress<string>? progress, CancellationToken cancel)
+    {
         if (Directory.Exists(staging))
             Directory.Delete(staging, recursive: true);
         Directory.CreateDirectory(staging);
@@ -139,30 +183,143 @@ public sealed class ImportRunner
             RecordVersion(manifest, d, pipeline, ctx);
             report.Versions.Add(new(d.Profile.Id, d.Profile.Title, true, ctx.Pending.Count, ctx.Warnings, null));
         }
+        return manifest;
+    }
 
-        if (report.Versions.All(v => !v.Ok))
-        {
-            Directory.Delete(staging, recursive: true);
-            return report;
-        }
-        manifest["importer_version"] = ImporterVersion;
-        // A game with pictures but no tables can't be played yet: say which copy would add them.
-        if (manifest["games"] is JsonObject games)
-            foreach (var (game, node) in games)
+    // ---- recipe re-runs (10-importer.md 4.4) ----------------------------------------------------------------------
+
+    /// <summary>A version in the import built by an older recipe than this importer's pipeline (4.4).</summary>
+    public sealed record StaleVersion(string Game, string ProfileId, string Title, int Recipe, int Current,
+        IReadOnlyList<string> Sources);
+
+    /// <summary>The versions of the import at <paramref name="importRoot"/> whose recorded recipe is older than the pipeline's.</summary>
+    public static IReadOnlyList<StaleVersion> StaleVersions(string importRoot)
+    {
+        var path = Path.Combine(importRoot, ManifestName);
+        if (!File.Exists(path))
+            return [];
+        var manifest = LoadManifest(path);
+        var stale = new List<StaleVersion>();
+        foreach (var (game, node) in manifest["games"] as JsonObject ?? [])
+            foreach (var (id, v) in node?["versions"] as JsonObject ?? [])
             {
-                if (node is not JsonObject g || g["tables"] is not null || game == "shared")
+                if (v is not JsonObject version || PipelineRegistry.For(id) is not { } pipeline || pipeline is PlannedPipeline)
                     continue;
-                var sources = VersionProfiles.All
-                    .Where(p => p.Game == game && p.IsSupported && p.Feeds.Contains("tables"))
-                    .Select(p => p.Title).ToList();
-                if (sources.Count > 0)
-                    report.Notes.Add($"{GameName(game)}: its pictures are imported, but the game itself needs its data from " +
-                                     $"{string.Join(" or ", sources)}.");
+                var recipe = version["recipe"] is JsonValue r && r.TryGetValue(out int n) ? n : 0;
+                if (recipe >= pipeline.RecipeVersion)
+                    continue;
+                var sources = (version["sources"] as JsonArray ?? []).Select(x => x?.GetValue<string>()).OfType<string>().ToList();
+                stale.Add(new(game, id, (string?)version["title"] ?? id, recipe, pipeline.RecipeVersion, sources));
             }
-        File.WriteAllBytes(Path.Combine(staging, ManifestName), PyJson.SerializeUtf8(manifest, 1));
-        Swap(staging);
-        report.Committed = true;
+        return stale;
+    }
+
+    /// <summary>
+    /// Re-run every version built by an older recipe from the source files it was imported from (4.4), when they are
+    /// still there and still detected as that version (the key files' sha1s match the profile); a version whose files
+    /// are gone or changed stays as it is, and the report asks for its files again. Nothing stale: an empty report.
+    /// </summary>
+    public ImportReport Refresh(IProgress<string>? progress = null, CancellationToken cancel = default)
+    {
+        var stale = StaleVersions(ImportRoot);
+        if (stale.Count == 0)
+            return new ImportReport();
+        var paths = stale.SelectMany(s => s.Sources).Distinct(StringComparer.Ordinal)
+            .Where(p => File.Exists(p) || Directory.Exists(p)).ToList();
+        var full = paths.Count > 0 ? Scan(paths, cancel) : new ScanResult { Paths = [], Containers = [], Detections = [], Notes = [] };
+        var ids = stale.Select(s => s.ProfileId).ToHashSet(StringComparer.Ordinal);
+        var scan = new ScanResult
+        {
+            Paths = full.Paths, Containers = full.Containers, Notes = [],
+            Detections = full.Detections.Where(d => ids.Contains(d.Profile.Id)).ToList(),
+        };
+        var report = scan.Importable.Any() ? Run(scan, progress, cancel) : new ImportReport();
+        foreach (var s in stale.Where(s => report.Versions.All(v => v.ProfileId != s.ProfileId || !v.Ok)))
+            report.Notes.Add($"{s.Title} was imported by an older version of the importer, and its files were not found " +
+                             $"again ({(s.Sources.Count == 0 ? "none recorded" : string.Join(", ", s.Sources))}): import " +
+                             "them again to get what the new version adds.");
         return report;
+    }
+
+    // ---- --check ---------------------------------------------------------------------------------------------------
+
+    /// <summary>One version's outputs compared with what the import recorded for it (10-importer.md 4.1 <c>--check</c>).</summary>
+    public sealed record CheckedVersion(string ProfileId, string Title, bool Ok, string? Error, bool InImport,
+        IReadOnlyList<string> Changed, IReadOnlyList<string> Added, IReadOnlyList<string> Missing)
+    {
+        public bool Same => Ok && InImport && Changed.Count == 0 && Added.Count == 0 && Missing.Count == 0;
+    }
+
+    /// <summary>
+    /// Run <paramref name="scan"/>'s versions into a scratch copy of the import (nothing in the import changes) and
+    /// compare each output's sha1 with the one <c>import.json</c> recorded for that version.
+    /// </summary>
+    public IReadOnlyList<CheckedVersion> Check(ScanResult scan, IProgress<string>? progress = null, CancellationToken cancel = default)
+    {
+        var work = Order(scan.Importable.ToList());
+        if (work.Count == 0)
+            return [];
+        var recorded = LoadManifest(Path.Combine(ImportRoot, ManifestName));
+        var staging = Path.Combine(Path.GetTempPath(), "openphantasie-check-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var report = new ImportReport();
+            var manifest = Stage(staging, scan, work, report, progress, cancel);
+            var result = new List<CheckedVersion>();
+            foreach (var v in report.Versions)
+            {
+                var game = VersionProfiles.Get(v.ProfileId).Game;
+                var before = recorded["games"]?[game]?["versions"]?[v.ProfileId]?["outputs"] as JsonObject;
+                var after = v.Ok ? manifest["games"]?[game]?["versions"]?[v.ProfileId]?["outputs"] as JsonObject : null;
+                var old = before?.ToDictionary(kv => kv.Key, kv => (string?)kv.Value) ?? [];
+                var now = after?.ToDictionary(kv => kv.Key, kv => (string?)kv.Value) ?? [];
+                result.Add(new(v.ProfileId, v.Title, v.Ok, v.Error, before is not null,
+                    [.. now.Keys.Where(k => old.TryGetValue(k, out var h) && h != now[k]).Order(StringComparer.Ordinal)],
+                    [.. now.Keys.Where(k => !old.ContainsKey(k)).Order(StringComparer.Ordinal)],
+                    [.. old.Keys.Where(k => !now.ContainsKey(k)).Order(StringComparer.Ordinal)]));
+            }
+            return result;
+        }
+        finally
+        {
+            if (Directory.Exists(staging))
+                Directory.Delete(staging, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// The companions (profile <c>companions</c>) of this run's imported versions that no version in the import has
+    /// written (the <paramref name="manifest"/>'s outputs, after this run): e.g. Amiga I imported without the Kickstart
+    /// ROM, and no earlier import gave the font. Read from the manifest, not the folder: the Client copies shipped
+    /// GameData into the import, and a dev build ships the font.
+    /// </summary>
+    public static IReadOnlyList<ImportOffer> MissingCompanions(ImportReport report, JsonObject manifest)
+    {
+        var written = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (_, game) in manifest["games"] as JsonObject ?? [])
+            foreach (var (_, version) in game?["versions"] as JsonObject ?? [])
+                foreach (var (key, _) in version?["outputs"] as JsonObject ?? [])
+                    written.Add(key);
+        var offers = new List<ImportOffer>();
+        foreach (var v in report.Versions.Where(v => v.Ok))
+        {
+            var profile = VersionProfiles.All.FirstOrDefault(p => p.Id == v.ProfileId);
+            foreach (var c in profile?.Companions ?? [])
+            {
+                if (written.Contains(c.Output))
+                    continue;
+                var at = offers.FindIndex(o => o.ProfileId == c.Profile);
+                if (at >= 0)
+                {
+                    if (!offers[at].ForTitles.Contains(v.Title))
+                        offers[at] = offers[at] with { ForTitles = [.. offers[at].ForTitles, v.Title] };
+                    continue;
+                }
+                var giver = VersionProfiles.All.FirstOrDefault(p => p.Id == c.Profile);
+                offers.Add(new ImportOffer(c.Profile, giver?.Title ?? c.Profile, [v.Title], c.Gives));
+            }
+        }
+        return offers;
     }
 
     private static string GameName(string folder) => folder switch
@@ -176,6 +333,11 @@ public sealed class ImportRunner
     {
         var outs = d.PlayedFiles.Where(f => f.StartsWith("OUT", StringComparison.OrdinalIgnoreCase)).ToList();
         var files = string.Join(", ", d.PlayedFiles);
+        // s163: Amiga I's OUT*.DAT give only the town / dungeon places of its map pictures; fog and fights come from
+        // DOS I's tables, so play (fog lifted, fights spent) changes nothing it imports.
+        if (!d.Profile.Feeds.Contains("tables"))
+            return $"This copy of {d.Profile.Title} has been played ({files} changed). Only what play leaves as it was " +
+                   "is read from those files, so the import is the same as from a fresh copy.";
         return outs.Count > 0
             ? $"This copy of {d.Profile.Title} has been played ({files} changed). It was imported as it is: on the " +
               $"saved map regions ({string.Join(", ", outs)}) the fog is already lifted and fixed fights already won " +
@@ -227,8 +389,10 @@ public sealed class ImportRunner
             game["tables"] = d.Profile.Id;
         var art = game["art"] as JsonObject ?? new JsonObject();
         game["art"] = art;
-        foreach (var feed in d.Profile.Feeds.Where(f => f.StartsWith("art:", StringComparison.Ordinal)))
-            art[feed[4..]] = d.Profile.Id;
+        // A profile that can feed art but cut none (DOS III without its picture files) records no pack.
+        if (ctx.Pending.Keys.Any(k => k.StartsWith("files/", StringComparison.Ordinal)))
+            foreach (var feed in d.Profile.Feeds.Where(f => f.StartsWith("art:", StringComparison.Ordinal)))
+                art[feed[4..]] = d.Profile.Id;
         var versions = game["versions"] as JsonObject ?? new JsonObject();
         game["versions"] = versions;
         var outputs = new JsonObject();

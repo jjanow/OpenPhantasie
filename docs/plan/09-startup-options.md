@@ -44,6 +44,7 @@ own D-entry.
  GRAPHICS            AMIGA
  TITLE SCREEN        ON
  TITLE TUNE          ON
+ AMIGA AUDIO FILTER  ON                ← I and III only
  DIAGONAL MOVES      ON
  STATUS LINES        OFF
  CONTINUE FROM A LIST OFF
@@ -74,9 +75,9 @@ own D-entry.
   a Client test).
 - **General tab:** window scale, start maximized. (Key bindings stay in the settings file until a rebinding screen exists.
   Sound and T)IME LAG are I's own options, D-073: the manual's wilderness **T** by default, or rows of I's tab, below.)
-- **Game tab**, top to bottom: presentation (graphics, title screen and title tune (section 8), diagonal moves, status
-  lines, continue from a list, new inventory screen, **time lag and sound**: `T COMMAND` / `IN OPTIONS`, the D-073 QoL
-  switch; with `IN OPTIONS` a TIME LAG 0–9 row and a SOUND row follow and T is no command), **colorblind palette** (P3
+- **Game tab**, top to bottom: presentation (graphics, title screen and title tune (section 8), on I and III **Amiga
+  audio filter** (section 8), diagonal moves, status lines, continue from a list, new inventory screen, **time lag and
+  sound**: `T COMMAND` / `IN OPTIONS`, the D-073 QoL switch; with `IN OPTIONS` a TIME LAG 0–9 row and a SOUND row follow and T is no command), **colorblind palette** (P3
   QoL, off = the original colours), then **Rules for new games**: the preset row, every rules option of that game, then
   the feature modules of other games ("from other games"), which show "NOT BUILT" until they are decoded.
 - **Combat speed** (presentation, per game): I and III show AMIGA SCREENS and COMBAT SPEED (the Amiga's Speed menu, s117 /
@@ -274,6 +275,14 @@ player goes back to the main menu or starts another game, or switches TITLE TUNE
 game keeps it). TITLE SCREEN off shows no splash and starts no tune. A step with `until_tune_ends` lasts until the tune's
 end, counted from the splash's start (I's cover1, 53.56 s; s156 II's composite, to 64.62 s), whether the tune plays or not. Per-game switch **TITLE TUNE** (`titleTune`, on by default, the
 row under TITLE SCREEN, `options.title_tune` + `.desc`). I's town "Sound" option is the game's own and does not gate it.
+**Amiga audio filter (s160, user s159):** every Paula sound (I's and III's title tunes, their sound effects and tones,
+III's reward tune) goes through the A500's analogue output filters (`A500AudioFilter`, Amiga `FORMAT.md` "Title tune":
+the fixed 4421 Hz pole and the LED filter in, as both games leave it). Per-game presentation switch **AMIGA AUDIO
+FILTER** (`a500Filter`, on by default = as the A500; off = Paula's raw output; the row under TITLE TUNE on the I and III
+tabs only, `options.a500_filter` + `.desc`). Read when a tune or effect run starts (`TuneRenderer.For`, the
+`SoundEffectPlayer.A500Filter` callback), so a sound already playing keeps the old setting. The ST's and X68000's
+chips have no such switch: each always goes through its machine's output stage (the STF's C10 low-pass in `Ym2149`,
+s163; the first X68000's `X68000AudioFilter`, s162 / s163).
 IV's tune (s109) is OPMDRV.X MML compiled by the driver's rules and played on a YM2151 model (`OpmDrvScore`,
 `Ym2151`; 4 MHz, 85 min of 256 rounds with the measured lost timer ticks of voice-loading passes (s156), cut off with
 the splash). A pack without a

@@ -269,7 +269,7 @@ public class Phantasie2PlayThroughTests
         Assert.Equal((13, 4), (s.Dungeon!.X, s.Dungeon.Y));
         Assert.True(s.Sack.Experience > 0 || s.Sack.Gold > 0, "a won fight puts its XP / gold in the sack");
 
-        // Back the way we came, to the exit cell: "AN EXIT. TAKE IT?" lands on DNG1's OUT tile.
+        // Back the way we came, to the exit cell: `core.prompt.an_exit_take_it` lands on DNG1's OUT tile.
         var back = Dng1EntryToFight.Reverse().Select(Back).ToArray();
         d.Step(back);
         Assert.Equal((15, 0), (s.Dungeon!.X, s.Dungeon.Y));

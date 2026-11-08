@@ -80,7 +80,18 @@ public sealed record SkillUpWindow(PanelRect Window, PanelRect Under, int BackCo
 /// cursor after the last piece; a string (<see cref="Label"/> / <see cref="Text"/>) or, with <see cref="Number"/>, the
 /// note's amount (left-aligned, no padding); in <see cref="Font"/> and <see cref="Colour"/> (null = the window's ink).
 /// </summary>
-public sealed record TrainingHallSegment(int? X, int? Y, string Label, string Text, bool Number, int Font, int? Colour);
+public sealed record TrainingHallSegment(int? X, int? Y, string Label, string Text, bool Number, int Font, int? Colour,
+    int Style = 0, int Digits = 0);
+
+/// <summary>
+/// s162: <c>_endstory</c>'s final screen (FORMAT.md 6.9 "The final screen") in its titled window
+/// (<see cref="PanelExtras.Titled"/> <c>_endstory</c>): the <see cref="Heading"/> centred on its x (font 0, style 8 =
+/// shadow), the <see cref="Segments"/> (strings and the score, <see cref="TrainingHallSegment.Number"/>) at their places or
+/// after the last, and after the SPACE wait the <see cref="Question"/> (font 1, style 1 = bold, colour 2). Rows
+/// <see cref="LineStep"/> apart, ink <see cref="TextColour"/>.
+/// </summary>
+public sealed record FinalScreenWindow(int TextColour, int LineStep, TrainingHallSegment Heading,
+    IReadOnlyList<TrainingHallSegment> Segments, TrainingHallSegment Question);
 
 /// <summary>
 /// <c>_trang</c>'s own window 32 (s156, FORMAT.md 6.9 "Level-up skill picks"): <see cref="Window"/> in grey
@@ -94,9 +105,97 @@ public sealed record TrainingHallWindow(PanelRect Window, int BackColour, int Te
     IReadOnlyDictionary<string, IReadOnlyList<TrainingHallSegment>> Notes, TrainingHallSegment ShortOfGold,
     string Title = "", string TitleText = "");
 
+/// <summary>
+/// s162: a titled window (<c>_wopen(win, x, y, width, height, 1, title)</c>) a building, the town gate, an item command or
+/// the ending opens in the picture's place: <see cref="Window"/>, the bar's string id <see cref="Title"/>
+/// (<see cref="TitleText"/> the original's text). Grey colour 14, bar and frame as <c>_wwind</c> / <c>_wactive</c>.
+/// </summary>
+public sealed record TitledWindow(string Name, PanelRect Window, string Title, string TitleText);
+
+/// <summary>
+/// s162: <c>_deadmsg</c>'s screen (a wiped-out party): <c>_xblack</c> fills the whole screen colour
+/// <see cref="ScreenColour"/>, then the untitled <see cref="Window"/> filled <see cref="Fill"/> with the
+/// <see cref="Frames"/> outlined in <see cref="FrameColour"/> and the <see cref="Lines"/> centred on their x in font
+/// <see cref="Font"/>, style <see cref="Style"/>, colour <see cref="TextColour"/>; after the key the screen goes black again.
+/// </summary>
+public sealed record DeadMessageWindow(int ScreenColour, PanelRect Window, int Fill, IReadOnlyList<PanelRect> Frames,
+    int FrameColour, int Font, int Style, int TextColour, IReadOnlyList<TrainingHallSegment> Lines);
+
+/// <summary>
+/// s162: <c>_townent</c>'s aging rows in its Town Gate window: member m's row at (<see cref="X"/>, <see cref="Y"/> +
+/// <see cref="Step"/> · m), the name then the line (<see cref="GrownOlder"/> / <see cref="Died"/>), ink
+/// <see cref="TextColour"/>.
+/// </summary>
+public sealed record TownGateWindow(int X, int Y, int Step, int TextColour, TrainingHallSegment GrownOlder,
+    TrainingHallSegment Died);
+
+/// <summary>
+/// s163: <c>_inn</c>'s rows under INN.PKH (FORMAT.md 6.9 "Building windows under the picture"): the sunken box at
+/// (<see cref="BoxX"/>, <see cref="BoxY"/>), <see cref="BoxWidth"/> wide and <see cref="BoxPad"/> + <see cref="RowStep"/> ·
+/// party size high; member m's row at (<see cref="TextX"/>, <see cref="TextY"/> + <see cref="RowStep"/> · m): the name,
+/// <see cref="Slept"/>, and <see cref="MpUp"/> after it when the MP roll is won.
+/// </summary>
+public sealed record InnWindow(int BoxX, int BoxY, int BoxWidth, int BoxPad, int RowStep, int TextX, int TextY,
+    int TextColour, TrainingHallSegment Slept, TrainingHallSegment MpUp);
+
+/// <summary>One of the bank's tables (s163): its sunken <see cref="Frame"/>, headers, the colour-0 <see cref="Line"/>, rows
+/// from <see cref="RowY"/> every <see cref="RowStep"/>, column x by name (<c>name</c>, <c>balance</c>, <c>limit</c>,
+/// <c>amount</c>, <c>share</c>), amounts <see cref="Digits"/> wide (<c>_wlocdi</c>: two spaces a leading zero).</summary>
+public sealed record BankTable(PanelRect Frame, IReadOnlyList<TrainingHallSegment> Headers, PanelRect Line, int LineColour,
+    int RowY, int RowStep, IReadOnlyDictionary<string, int> Columns, int Digits);
+
+/// <summary>The deposit's share buttons (s163): " n " for n = 0 … <see cref="Count"/> − 1 at (<see cref="X"/>,
+/// <see cref="Y"/> + <see cref="Step"/> · n) on <see cref="Colour"/> cells, <see cref="Pad"/> either side.</summary>
+public sealed record BankShareButtons(int X, int Y, int Step, int Width, int Height, int Count, int Colour, string Pad);
+
+/// <summary>
+/// s163: the bank's window under BANK.PKH (<c>_bank</c>, <c>_deposit</c>, <c>_withdraw</c>): <see cref="Clear"/> the grey
+/// under the picture; <see cref="Accounts"/> while the bank's panel waits; <see cref="Deposit"/> / <see cref="Withdraw"/>
+/// under their black <see cref="Band"/> with the heading centred; the deposit's buttons and per-share line; the gold line.
+/// </summary>
+public sealed record BankWindow(PanelRect Clear, int ClearColour, int TextColour, BankTable Accounts, PanelRect Band,
+    int BandColour, TrainingHallSegment DepositHeading, BankTable Deposit, BankShareButtons Buttons, PanelRect ClearPer,
+    TrainingHallSegment PerShare, int PerDigits, TrainingHallSegment PerUnit, TrainingHallSegment WithdrawHeading,
+    BankTable Withdraw, ShipwrightGold Gold);
+
+/// <summary>
+/// s163: <c>_endmsg</c>'s window 33 for an ending page: untitled (fill <see cref="Fill"/>, black frame and shadow) at
+/// screen (<see cref="Window"/>.X, <see cref="Window"/>.Y), <see cref="LowerOffset"/> lower for blocks not in
+/// <see cref="UpperBlocks"/>; line k at (<see cref="TextX"/>, <see cref="TextY"/> + <see cref="LineStep"/> · k).
+/// <see cref="SceneY"/>: the screen y of each ending scene's picture origin (the street (160, 20), the banquet / cell
+/// windows (160, 32)).
+/// </summary>
+public sealed record EndMessageWindow(PanelRect Window, int LowerOffset, IReadOnlyList<int> UpperBlocks, int TextX, int TextY,
+    int LineStep, int Lines, int Fill, int TextColour, IReadOnlyDictionary<string, int> SceneY)
+{
+    /// <summary>The window's screen y for ending block <paramref name="block"/>.</summary>
+    public int YFor(int block) => Window.Y + (UpperBlocks.Contains(block) ? 0 : LowerOffset);
+}
+
+/// <summary>
+/// s163: an item window's rows (FORMAT.md 6.9 "Item lists"): row i at y = <see cref="Top"/> + <see cref="Step"/> · i, the
+/// letter (none when <see cref="LetterX"/> is null), the icon, the name at y + 8, the points (ids 1–84) padded to
+/// <see cref="PointsDigits"/>, the price (<see cref="PriceX"/>) and the users' digits (<see cref="UsersX"/>) when the window
+/// has them.
+/// </summary>
+public sealed record ItemRowLayout(int Top, int Step, int Count, int? LetterX, int IconX, int NameX, int PointsX,
+    int PointsDigits, int? PriceX, int PriceDigits, int? UsersX, int UsersStep);
+
+/// <summary>s163: one item window's layout (<c>_armory</c>, <c>_trade</c> = Trade / Use / Identify, <c>_distribute</c>).</summary>
+public sealed record ItemWindowLayout(ItemRowLayout Rows, IReadOnlyList<TrainingHallSegment> Headers, PanelRect Line,
+    int LineColour, IReadOnlyList<PanelRect> Frames, TrainingHallSegment? More, TrainingHallSegment? NotUsable,
+    (int X, int Y)? Member, (int X, int Y)? Message, int LitXor);
+
+/// <summary>s163: the item windows (the pack's <c>item_windows</c>): colours and each window's layout by its key.</summary>
+public sealed record ItemWindows(int LetterColour, int TextColour, int BackColour,
+    IReadOnlyDictionary<string, ItemWindowLayout> Windows);
+
 /// <summary>The smaller pieces of IV X68000's panels (s151, FORMAT.md 6.9), each null when the pack's file lacks it.</summary>
 public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, EventWaitBar? EventWait, Keypad? Keypad,
-    ShipwrightWindow? Shipwright, SkillUpWindow? SkillUp = null, TrainingHallWindow? TrainingHall = null)
+    ShipwrightWindow? Shipwright, SkillUpWindow? SkillUp = null, TrainingHallWindow? TrainingHall = null,
+    IReadOnlyDictionary<string, TitledWindow>? Titled = null, FinalScreenWindow? FinalScreen = null,
+    DeadMessageWindow? DeadMessage = null, TownGateWindow? TownGate = null, InnWindow? Inn = null, BankWindow? Bank = null,
+    EndMessageWindow? EndMessage = null, ItemWindows? ItemWindows = null)
 {
     public static PanelExtras Load(string path)
     {
@@ -131,10 +230,57 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
                 ? new(R(tw), tr.BackColour, tr.TextColour, tr.LineStep, (tn.X, tn.Y),
                     notes.ToDictionary(p => p.Key, p => (IReadOnlyList<TrainingHallSegment>)[.. p.Value.Select(Seg)]),
                     Seg(shortOf), tr.Title ?? "", tr.TitleText ?? "")
-                : null);
+                : null,
+            (d.Titled ?? []).Where(p => p.Value.Window is not null).ToDictionary(p => p.Key,
+                p => new TitledWindow(p.Key, R(p.Value.Window), p.Value.Title ?? "", p.Value.TitleText ?? ""),
+                StringComparer.Ordinal),
+            d.EndStory is { Heading: { } eh, Segments: { } es, Question: { } eq } end
+                ? new(end.TextColour, end.LineStep, Seg(eh), [.. es.Select(Seg)], Seg(eq))
+                : null,
+            d.DeadMsg is { Screen: { } ds, Window: { } dw, Frames: { } df, Lines: { } dl } dead
+                ? new(ds.Colour, R(dw), dead.Fill, [.. df.Select(R)], dead.FrameColour, dead.Font, dead.Style, dead.TextColour,
+                    [.. dl.Select(Seg)])
+                : null,
+            d.Gate is { GrownOlder: { } go, Died: { } gd } gate
+                ? new(gate.X, gate.Y, gate.Step, gate.TextColour, Seg(go), Seg(gd))
+                : null,
+            d.Inn is { Box: { } ib, Slept: { } isl, MpUp: { } imp } inn
+                ? new(ib.X, ib.Y, ib.Width, inn.BoxPad, inn.RowStep, inn.TextX, inn.TextY, inn.TextColour, Seg(isl), Seg(imp))
+                : null,
+            d.Bank is { Clear: { } bc, Accounts: { } ba, Deposit: { Band: { } bankBand, Heading: { } dh, Buttons: { } bb,
+                ClearPer: { } cp, PerShare: { } ps, PerUnit: { } pu } bd, Withdraw: { Heading: { } wh } bw, Gold: { } bg } bank
+                ? new(R(bc), bc.Colour, bank.TextColour, Table(ba), R(bankBand), bankBand.Colour, Seg(dh), Table(bd),
+                    new(bb.X, bb.Y, bb.Step, bb.Width, bb.Height, bb.Count, bb.Colour, bb.Pad?.Text ?? ""), R(cp), Seg(ps),
+                    bd.PerDigits, Seg(pu), Seg(wh), Table(bw),
+                    new(bg.X, bg.Y, bg.Label ?? "", bg.LabelText ?? "", bg.Digits, bg.Unit ?? "", bg.UnitText ?? ""))
+                : null,
+            d.EndMsg is { Window: { } ew } em
+                ? new(R(ew), em.LowerOffset, em.UpperBlocks ?? [], em.TextX, em.TextY, em.LineStep, em.Lines, em.Fill,
+                    em.TextColour, em.SceneY ?? [])
+                : null,
+            d.ItemWindows is { } iw ? Items(iw) : null);
+        ItemWindows Items(Dictionary<string, JsonElement> iw)
+        {
+            int Int(string key) => iw.TryGetValue(key, out var e) && e.ValueKind == JsonValueKind.Number ? e.GetInt32() : 0;
+            var windows = new Dictionary<string, ItemWindowLayout>(StringComparer.Ordinal);
+            foreach (var (key, e) in iw)
+            {
+                if (e.ValueKind != JsonValueKind.Object || e.Deserialize<ItemWindowDto>() is not { Rows: { } r } w)
+                    continue;
+                windows[key] = new(
+                    new(r.Top, r.Step, r.Count, r.LetterX, r.IconX, r.NameX, r.PointsX, r.PointsDigits, r.PriceX, r.PriceDigits,
+                        r.UsersX, r.UsersStep),
+                    [.. (w.Headers ?? []).Select(Seg)], R(w.Line), w.Line?.Colour ?? 0, [.. (w.Frames ?? []).Select(R)],
+                    w.More is { } more ? Seg(more) : null, w.NotUsable is { } nu ? Seg(nu) : null,
+                    w.Member is { } mm ? (mm.X, mm.Y) : null, w.Message is { } msg ? (msg.X, msg.Y) : null, w.LitXor);
+            }
+            return new(Int("letter_colour"), Int("text_colour"), Int("back_colour"), windows);
+        }
+        BankTable Table(BankTableDto t) => new(R(t.Frame), [.. (t.Headers ?? []).Select(Seg)], R(t.Line), t.Line?.Colour ?? 0,
+            t.RowY, t.RowStep, t.Columns ?? [], t.Digits);
         static SkillUpText Line(LineDto l) => new(l.X, l.Y, l.Colour, l.Label ?? "", l.Text ?? "");
         static TrainingHallSegment Seg(SegmentDto s) =>
-            new(s.X, s.Y, s.Label ?? "", s.Text ?? "", s.Number, s.Font, s.Colour);
+            new(s.X, s.Y, s.Label ?? "", s.Text ?? "", s.Number, s.Font, s.Colour, s.Style, s.Digits);
     }
 
     private sealed class Dto
@@ -146,6 +292,152 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
         [JsonPropertyName("shipwright")] public ShipDto? Ship { get; set; }
         [JsonPropertyName("sklup")] public SklupDto? Sklup { get; set; }
         [JsonPropertyName("trang")] public TrangDto? Trang { get; set; }
+        [JsonPropertyName("titled")] public Dictionary<string, TitledDto>? Titled { get; set; }
+        [JsonPropertyName("endstory")] public EndStoryDto? EndStory { get; set; }
+        [JsonPropertyName("deadmsg")] public DeadMsgDto? DeadMsg { get; set; }
+        [JsonPropertyName("townent")] public GateDto? Gate { get; set; }
+        [JsonPropertyName("inn")] public InnDto? Inn { get; set; }
+        [JsonPropertyName("bank")] public BankDto? Bank { get; set; }
+        [JsonPropertyName("endmsg")] public EndMsgDto? EndMsg { get; set; }
+        [JsonPropertyName("item_windows")] public Dictionary<string, JsonElement>? ItemWindows { get; set; }
+    }
+
+    private sealed class ItemRowsDto
+    {
+        [JsonPropertyName("top")] public int Top { get; set; }
+        [JsonPropertyName("step")] public int Step { get; set; }
+        [JsonPropertyName("count")] public int Count { get; set; }
+        [JsonPropertyName("letter_x")] public int? LetterX { get; set; }
+        [JsonPropertyName("icon_x")] public int IconX { get; set; }
+        [JsonPropertyName("name_x")] public int NameX { get; set; }
+        [JsonPropertyName("points_x")] public int PointsX { get; set; }
+        [JsonPropertyName("points_digits")] public int PointsDigits { get; set; }
+        [JsonPropertyName("price_x")] public int? PriceX { get; set; }
+        [JsonPropertyName("price_digits")] public int PriceDigits { get; set; }
+        [JsonPropertyName("users_x")] public int? UsersX { get; set; }
+        [JsonPropertyName("users_step")] public int UsersStep { get; set; }
+    }
+
+    private sealed class ItemWindowDto
+    {
+        [JsonPropertyName("rows")] public ItemRowsDto? Rows { get; set; }
+        [JsonPropertyName("headers")] public List<SegmentDto>? Headers { get; set; }
+        [JsonPropertyName("line")] public RectDto? Line { get; set; }
+        [JsonPropertyName("frames")] public List<RectDto>? Frames { get; set; }
+        [JsonPropertyName("more")] public SegmentDto? More { get; set; }
+        [JsonPropertyName("not_usable")] public SegmentDto? NotUsable { get; set; }
+        [JsonPropertyName("member")] public RectDto? Member { get; set; }
+        [JsonPropertyName("message")] public RectDto? Message { get; set; }
+        [JsonPropertyName("lit_xor")] public int LitXor { get; set; }
+    }
+
+    private sealed class InnDto
+    {
+        [JsonPropertyName("box")] public RectDto? Box { get; set; }
+        [JsonPropertyName("box_pad")] public int BoxPad { get; set; }
+        [JsonPropertyName("row_step")] public int RowStep { get; set; }
+        [JsonPropertyName("text_x")] public int TextX { get; set; }
+        [JsonPropertyName("text_y")] public int TextY { get; set; }
+        [JsonPropertyName("text_colour")] public int TextColour { get; set; }
+        [JsonPropertyName("slept")] public SegmentDto? Slept { get; set; }
+        [JsonPropertyName("mp_up")] public SegmentDto? MpUp { get; set; }
+    }
+
+    private class BankTableDto
+    {
+        [JsonPropertyName("frame")] public RectDto? Frame { get; set; }
+        [JsonPropertyName("headers")] public List<SegmentDto>? Headers { get; set; }
+        [JsonPropertyName("line")] public RectDto? Line { get; set; }
+        [JsonPropertyName("row_y")] public int RowY { get; set; }
+        [JsonPropertyName("row_step")] public int RowStep { get; set; }
+        [JsonPropertyName("columns")] public Dictionary<string, int>? Columns { get; set; }
+        [JsonPropertyName("digits")] public int Digits { get; set; }
+        [JsonPropertyName("band")] public RectDto? Band { get; set; }
+        [JsonPropertyName("heading")] public SegmentDto? Heading { get; set; }
+    }
+
+    private sealed class BankDepositDto : BankTableDto
+    {
+        [JsonPropertyName("buttons")] public BankButtonsDto? Buttons { get; set; }
+        [JsonPropertyName("clear_per")] public RectDto? ClearPer { get; set; }
+        [JsonPropertyName("per_share")] public SegmentDto? PerShare { get; set; }
+        [JsonPropertyName("per_digits")] public int PerDigits { get; set; }
+        [JsonPropertyName("per_unit")] public SegmentDto? PerUnit { get; set; }
+    }
+
+    private sealed class BankButtonsDto
+    {
+        [JsonPropertyName("x")] public int X { get; set; }
+        [JsonPropertyName("y")] public int Y { get; set; }
+        [JsonPropertyName("step")] public int Step { get; set; }
+        [JsonPropertyName("width")] public int Width { get; set; }
+        [JsonPropertyName("height")] public int Height { get; set; }
+        [JsonPropertyName("count")] public int Count { get; set; }
+        [JsonPropertyName("colour")] public int Colour { get; set; }
+        [JsonPropertyName("pad")] public SegmentDto? Pad { get; set; }
+    }
+
+    private sealed class BankDto
+    {
+        [JsonPropertyName("clear")] public RectDto? Clear { get; set; }
+        [JsonPropertyName("text_colour")] public int TextColour { get; set; }
+        [JsonPropertyName("accounts")] public BankTableDto? Accounts { get; set; }
+        [JsonPropertyName("deposit")] public BankDepositDto? Deposit { get; set; }
+        [JsonPropertyName("withdraw")] public BankTableDto? Withdraw { get; set; }
+        [JsonPropertyName("gold")] public GoldDto? Gold { get; set; }
+    }
+
+    private sealed class EndMsgDto
+    {
+        [JsonPropertyName("window")] public RectDto? Window { get; set; }
+        [JsonPropertyName("lower_offset")] public int LowerOffset { get; set; }
+        [JsonPropertyName("upper_blocks")] public List<int>? UpperBlocks { get; set; }
+        [JsonPropertyName("text_x")] public int TextX { get; set; }
+        [JsonPropertyName("text_y")] public int TextY { get; set; }
+        [JsonPropertyName("line_step")] public int LineStep { get; set; }
+        [JsonPropertyName("lines")] public int Lines { get; set; }
+        [JsonPropertyName("fill")] public int Fill { get; set; }
+        [JsonPropertyName("text_colour")] public int TextColour { get; set; }
+        [JsonPropertyName("scene_y")] public Dictionary<string, int>? SceneY { get; set; }
+    }
+
+    private sealed class GateDto
+    {
+        [JsonPropertyName("x")] public int X { get; set; }
+        [JsonPropertyName("y")] public int Y { get; set; }
+        [JsonPropertyName("step")] public int Step { get; set; }
+        [JsonPropertyName("text_colour")] public int TextColour { get; set; }
+        [JsonPropertyName("grown_older")] public SegmentDto? GrownOlder { get; set; }
+        [JsonPropertyName("died")] public SegmentDto? Died { get; set; }
+    }
+
+    private sealed class DeadMsgDto
+    {
+        [JsonPropertyName("screen")] public RectDto? Screen { get; set; }
+        [JsonPropertyName("window")] public RectDto? Window { get; set; }
+        [JsonPropertyName("fill")] public int Fill { get; set; }
+        [JsonPropertyName("frames")] public List<RectDto>? Frames { get; set; }
+        [JsonPropertyName("frame_colour")] public int FrameColour { get; set; }
+        [JsonPropertyName("font")] public int Font { get; set; }
+        [JsonPropertyName("style")] public int Style { get; set; }
+        [JsonPropertyName("text_colour")] public int TextColour { get; set; }
+        [JsonPropertyName("lines")] public List<SegmentDto>? Lines { get; set; }
+    }
+
+    private sealed class EndStoryDto
+    {
+        [JsonPropertyName("text_colour")] public int TextColour { get; set; }
+        [JsonPropertyName("line_step")] public int LineStep { get; set; }
+        [JsonPropertyName("heading")] public SegmentDto? Heading { get; set; }
+        [JsonPropertyName("segments")] public List<SegmentDto>? Segments { get; set; }
+        [JsonPropertyName("question")] public SegmentDto? Question { get; set; }
+    }
+
+    private sealed class TitledDto
+    {
+        [JsonPropertyName("window")] public RectDto? Window { get; set; }
+        [JsonPropertyName("title")] public string? Title { get; set; }
+        [JsonPropertyName("title_text")] public string? TitleText { get; set; }
     }
 
     private sealed class SegmentDto
@@ -157,6 +449,8 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
         [JsonPropertyName("number")] public bool Number { get; set; }
         [JsonPropertyName("font")] public int Font { get; set; }
         [JsonPropertyName("colour")] public int? Colour { get; set; }
+        [JsonPropertyName("style")] public int Style { get; set; }
+        [JsonPropertyName("digits")] public int Digits { get; set; }
     }
 
     private sealed class TrangDto

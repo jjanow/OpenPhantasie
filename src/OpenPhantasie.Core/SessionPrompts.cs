@@ -5,7 +5,7 @@ public enum SessionPromptKind
 {
     None,
 
-    /// <summary><c>PartyDefeatPending</c>: "YOUR PARTY HAS BEEN DEFEATED" → <see cref="GameSession.ResolvePartyDefeat"/>.</summary>
+    /// <summary><c>PartyDefeatPending</c>: `core.defeat.your_party_has_been_defeated` → <see cref="GameSession.ResolvePartyDefeat"/>.</summary>
     PartyDefeat,
 
     /// <summary>The Great Demon's judgement (the defeat log incl. each fate), shown until acknowledged.</summary>
@@ -44,16 +44,16 @@ public enum SessionPromptKind
     /// </summary>
     DungeonTrap,
 
-    /// <summary>"WHO WILL DISARM ?" (<c>0x5a0a</c> mode 1: OK members only — the manual names no limit), asked after DISARM.</summary>
+    /// <summary>`core.prompt.who_will_disarm` (<c>0x5a0a</c> mode 1: OK members only — the manual names no limit), asked after DISARM.</summary>
     DungeonTrapWho,
 
-    /// <summary>"%s HEARS MONSTERS. GO BACK ?" → <see cref="GameSession.AnswerDungeonLock"/>.</summary>
+    /// <summary>"%s `core.dungeon.x_hears_monsters_go_back`" → <see cref="GameSession.AnswerDungeonLock"/>.</summary>
     DungeonLock,
 
-    /// <summary>"AN EXIT. TAKE IT?" (OV2 <c>0x2d46</c>, menu <c>0x1d</c>).</summary>
+    /// <summary>`core.prompt.an_exit_take_it` (OV2 <c>0x2d46</c>, menu <c>0x1d</c>).</summary>
     DungeonExitTakeIt,
 
-    /// <summary>"WOULD YOU LIKE TO SAVE THE DUNGEON MAP?" (asked only after a YES to TAKE IT?).</summary>
+    /// <summary>`core.prompt.save_dungeon_map` (asked only after a YES to TAKE IT?).</summary>
     DungeonExitSaveMap,
 
     /// <summary>"YOU FIND %s. KEEP IT?" (<see cref="GameSession.AnswerTreasure"/>).</summary>
@@ -63,7 +63,7 @@ public enum SessionPromptKind
     /// <see cref="GameSession.AnswerWildernessPrompt"/>.</summary>
     WildernessEncounter,
 
-    /// <summary>"A TOWN. ENTER?" / "A DUNGEON. ENTER?" (manual p.12) → <see cref="GameSession.AnswerOverworldEntry"/>.</summary>
+    /// <summary>"A TOWN. ENTER?" / `core.overworld.a_dungeon_enter` (manual p.12) → <see cref="GameSession.AnswerOverworldEntry"/>.</summary>
     OverworldEntry,
 
     /// <summary>The wilderness inn on tile 41 (menu <c>0x16</c>) → <see cref="GameSession.StayAtWildernessInn"/>.</summary>
@@ -76,7 +76,7 @@ public enum SessionPromptKind
     BankShares,
 
     /// <summary>
-    /// III's town entry (D3-071, DOS ovl2 <c>0x0000</c>(1), s143): "- Distributing - Player Experience Pts" / "Shares for
+    /// III's town entry (D3-071, DOS ovl2 <c>0x0000</c>(1), s143): "`core.prompt.p3_distributing_xp` `core.prompt.p3_distributing_xp`" / "Shares for
     /// NAME :", one character at a time (a dead one 0..3, any other 1..3; s144) → <see cref="GameSession.ShareOutExperience"/>
     /// after the last one.
     /// </summary>
@@ -108,7 +108,7 @@ public sealed record SessionPrompt(SessionPromptKind Kind, IReadOnlyList<string>
     /// <summary>
     /// The answer lit when the prompt opens (1-based), for a prompt with no memory (<see cref="Remembers"/> = false); null
     /// = the first. III's two-item menu root <c>0x75a3</c> takes it from each caller (<c>[bp+0x16]</c>): "No" (2) for the
-    /// exit pair, "Load previously saved dungeon?" and the door's "Continue?", "Yes" (1) for the rest (s108 static [C]).
+    /// exit pair, `core.p3.load_saved_dungeon` and the door's "Continue?", "Yes" (1) for the rest (s108 static [C]).
     /// </summary>
     public int? InitialChoice { get; init; }
 
@@ -136,7 +136,7 @@ public sealed record SessionPrompt(SessionPromptKind Kind, IReadOnlyList<string>
 
 /// <summary>
 /// Front-end glue (P2, s39): turns the session's pending questions into one modal prompt at a time and sends the answer
-/// back through the existing <see cref="GameSession"/> API. Holds only what Core does not: the YES to "AN EXIT. TAKE IT?"
+/// back through the existing <see cref="GameSession"/> API. Holds only what Core does not: the YES to `core.prompt.an_exit_take_it`
 /// while "SAVE THE DUNGEON MAP?" is asked (Core takes both answers in one call), the wilderness inn offer (Core only
 /// notes it), and the defeat outcome until it is acknowledged. No rules live here.
 /// </summary>
@@ -217,11 +217,14 @@ public sealed class SessionPrompts
             if (s.DungeonEventPrompt is { } ev)
                 return s.Game == GameId.P3 && Phantasie3Campaign.YesNoHighlight(ev) is { } lit // the trap / door questions
                     ? P3YesNo(SessionPromptKind.DungeonEvent, ev.Message.Lines, lit)
-                    : new(SessionPromptKind.DungeonEvent, ev.Message.Lines, ev.Message.Options);
+                    : new(SessionPromptKind.DungeonEvent, ev.Message.Lines, ev.Message.Options)
+                    {
+                        EscapeChoice = s.Game == GameId.P3 && Phantasie3Campaign.AsksDisarmer(ev) ? ev.Message.Options.Count + 1 : null,
+                    };
             if (s.DungeonPage is { WaitsForKey: true } page)
                 return new(SessionPromptKind.DungeonPage, page.Lines, [Continue]) { EscapeChoice = 1 };
             if (s.WildernessPrompt is { } p3Wild && s.Game == GameId.P3)
-                return P3YesNo(SessionPromptKind.WildernessEncounter, [p3Wild.Title], 1); // root 0xe294: "Will you attack?" / "Fight?"
+                return P3YesNo(SessionPromptKind.WildernessEncounter, [p3Wild.Title], 1); // root 0xe294: `core.p3.x_spots_sleeping_monsters` / "Fight?"
             if (s.WildernessPrompt is { } wp)
                 return new(SessionPromptKind.WildernessEncounter, [wp.Title], WildernessOptions(wp.Menu).Select(o => o.Label).ToList())
                     { MenuId = WildernessMenuId(wp.Menu) };
@@ -458,8 +461,8 @@ public sealed class SessionPrompts
     };
 
     /// <summary>
-    /// III's wilderness questions are Yes / No (root <c>0xe294</c>): "… spots sleeping monsters! Will you attack?" (Yes =
-    /// attack) and "… hears monsters... Fight? (or try to run)" (Yes = fight, No = run).
+    /// III's wilderness questions are Yes / No (root <c>0xe294</c>): "… `core.p3.x_spots_sleeping_monsters` `core.p3.x_spots_sleeping_monsters`" (Yes =
+    /// attack) and "… `core.p3.x_hears_monsters_fight` `core.p3.x_hears_monsters_fight`" (Yes = fight, No = run).
     /// </summary>
     private static IReadOnlyList<(string Label, WildernessAnswer Answer)> P3WildernessOptions(WildernessMenu menu) => menu switch
     {

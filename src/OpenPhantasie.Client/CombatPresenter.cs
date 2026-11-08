@@ -24,7 +24,7 @@ public enum AmigaFieldWindow
 {
     None,
 
-    /// <summary>"Monster Identification:" (<c>0x1a264(1)</c>, window 23 moved down).</summary>
+    /// <summary>`p3field.monster_identification` (<c>0x1a264(1)</c>, window 23 moved down).</summary>
     MonsterNames,
 
     /// <summary>The party's health (<c>0xadac</c>, window 24).</summary>
@@ -181,14 +181,48 @@ public sealed class CombatPresenter
 
     /// <summary>
     /// s156: while II's round plays line by line, the monster ranks as they stood before it (the order kept; the ST re-ranks
-    /// at the round's end), each with the monsters whose picture is not erased yet (<see cref="P2CombatLineRun.Slain"/>);
-    /// ranks with none left are dropped. Null outside a round's run: the encounter's own ranks show.
+    /// at the round's end), each with the monsters whose picture is not erased yet (<see cref="P2CombatLineRun.Slain"/>).
+    /// A rank whose monsters are all erased: with the pack's <see cref="StCombatLines.MonsterSlots"/> it stays as an empty
+    /// row until the re-rank (s163, the ST: <c>0x18458</c> lays the groups out from their counts, which only
+    /// <c>0x18288</c> rewrites at the round's end, and an erase only zeroes the slot's width), else it is dropped. Null
+    /// outside a round's run: the encounter's own ranks show.
     /// </summary>
     public IReadOnlyList<IReadOnlyList<Monster>>? P2RankRows =>
-        P2Run is { } run && _p2Round is not null && _p2RanksBefore is { } before
-            ? before.Select(r => (IReadOnlyList<Monster>)r.Where(m => !run.Slain.Contains(m)).ToList())
-                .Where(r => r.Count > 0).ToList()
+        P2RanksShown() is { } shown && P2Run is { } run
+            ? shown.Select(r => (IReadOnlyList<Monster>)r.Where(m => !run.Slain.Contains(m)).ToList()).ToList()
             : null;
+
+    /// <summary>
+    /// s163: the kind of each row of <see cref="P2RankRows"/> (its first monster before the round), for the row's line and
+    /// picture size when every monster of it is erased. Null outside a round's run.
+    /// </summary>
+    public IReadOnlyList<Monster>? P2RankKinds => P2RanksShown()?.Select(r => r[0]).ToList();
+
+    // The ranks before the round that show while it plays: the ones with a monster then; with monster slots all of them
+    // (an emptied rank keeps its row), else those with a monster not erased yet.
+    private List<IReadOnlyList<Monster>>? P2RanksShown()
+    {
+        if (P2Run is not { } run || _p2Round is null || _p2RanksBefore is not { } before)
+            return null;
+        var keep = P2Lines?.Invoke() is { MonsterSlots: true };
+        return before.Where(r => r.Count > 0 && (keep || r.Any(m => !run.Slain.Contains(m)))).ToList();
+    }
+
+    /// <summary>
+    /// s162: II ST's monster slots (<see cref="StCombatLines.MonsterSlots"/>, FORMAT.md 7.3 "The poses"): per rank shown
+    /// (as <see cref="P2RankRows"/>) its monsters in order, an erased one (<see cref="P2CombatLineRun.Slain"/>) as null: its
+    /// slot stays empty, the others keep their places (<c>0x18856</c>) until the round's re-rank; a rank with every
+    /// monster erased is a row of empty slots (s163). Outside a round's run the encounter's living monsters. Null when the
+    /// pack draws one picture per rank or there is no fight.
+    /// </summary>
+    public IReadOnlyList<IReadOnlyList<Monster?>>? P2RankSlots(CombatEncounter? combat)
+    {
+        if (P2Lines?.Invoke() is not { MonsterSlots: true })
+            return null;
+        if (P2RanksShown() is { } shown && P2Run is { } run)
+            return shown.Select(r => (IReadOnlyList<Monster?>)r.Select(m => run.Slain.Contains(m) ? null : m).ToList()).ToList();
+        return combat?.Ranks.Where(r => !r.IsWiped).Select(r => (IReadOnlyList<Monster?>)r.Living.ToList()).ToList();
+    }
 
     /// <summary>A sparkle roll for II's run (tests pin it), 0..32767.</summary>
     public Func<int>? P2Roll { get; set; }
@@ -293,7 +327,7 @@ public sealed class CombatPresenter
     /// D-058 on I Amiga's field (user s140: "do whatever shows it but doesn't slow things down"): the remaster's own encounter
     /// flash ("A DAY ENCOUNTER", the dungeon's "AN ENCOUNTER"; the Amiga has neither) on the field's line from the fight's
     /// start, adding no wait, until the fight's first line prints or its first run ends. Null for a night fight: the
-    /// Amiga's "A NIGHT ENCOUNTER" box (h74 <c>+0x6c</c>) has shown it over the map.
+    /// Amiga's `core.encounter.a_night_encounter` box (h74 <c>+0x6c</c>) has shown it over the map.
     /// </summary>
     public string? P1Banner { get; private set; }
 
@@ -517,7 +551,7 @@ public sealed class CombatPresenter
     public int FieldMenuItem { get; private set; }
 
     /// <summary>
-    /// True when M / H on the field open the Amiga's own windows (s120: "Monster Identification:" <c>0x1a264(1)</c>, the
+    /// True when M / H on the field open the Amiga's own windows (s120: `p3field.monster_identification` <c>0x1a264(1)</c>, the
     /// party's health <c>0xadac</c>; the pack has them); null / false = the remaster's names / health box.
     /// </summary>
     public Func<bool>? AmigaFieldWindows { get; set; }
@@ -629,7 +663,7 @@ public sealed class CombatPresenter
     /// <summary>True while the orders are given on III Amiga's orders screen (<see cref="AmigaOrders"/>).</summary>
     public bool AmigaOrdersShown => Phase == CombatPhase.Orders && _amiga;
 
-    /// <summary>The Amiga's "Target rank 1? (or 2)" window is open (window 20, <c>0x19806</c>).</summary>
+    /// <summary>The Amiga's `p3combat.rank_question` window is open (window 20, <c>0x19806</c>).</summary>
     public bool AsksRankWindow => AmigaOrdersShown && _orderMember >= 0 && _step == OrderStep.Rank;
 
     /// <summary>The packed order member <paramref name="index"/> holds now (what the orders screen labels).</summary>
@@ -767,9 +801,10 @@ public sealed class CombatPresenter
         }
         _logMark = session.LogSequence;
         _p2PendingSounds.Clear();
-        // II ST: the combat screen starts with sound 17 (0x1838e, encounter start 0xfd78 / 0xfe08) `[~]` whether the surprise
-        // and day / night encounters use the same call was not read; the first line's sound wait ignores it (not tracked).
-        if (session.Mode == GameMode.Combat && P2Lines?.Invoke() is { FightStartSound: >= 0 } p2Table)
+        // II ST: the combat screen starts with sound 17 (0x1838e from the set-up 0xfd82, whatever started the fight) when
+        // [0x23eb6] is set: not on the first fight after a defeat (s163; only combat_victory's end sets it again); the
+        // first line's sound wait ignores it (not tracked).
+        if (session.Mode == GameMode.Combat && !session.LastFightLost && P2Lines?.Invoke() is { FightStartSound: >= 0 } p2Table)
             _p2PendingSounds.Add(p2Table.FightStartSound);
         LastLine = session.LastMessage;
         // Open the log at the encounter flash (D-058: "AN ENCOUNTER", or "A DAY / NIGHT ENCOUNTER") when it is still in view.
@@ -1125,7 +1160,7 @@ public sealed class CombatPresenter
         var ends = result.Outcome == PartyOptionOutcome.CombatOver;
         if (StartP2Interlude(session, ends, ends ? null : s => AfterOption(s, result.Outcome))) // II ST: the answer's box
             return;
-        DrainLog(session); // "MONSTERS DON'T RESPOND" / "MONSTERS SURRENDER" / … and the XP/GP line
+        DrainLog(session); // `core.combat.monsters_dont_respond` / `core.combat.monsters_surrender` / … and the XP/GP line
         // I Amiga: the answer in requester 23 (h44 +0x1c8 … +0x2a8, +0x736), then on as below.
         if (StartP1Interlude(session, p1Snapshot, mark, result.Outcome == PartyOptionOutcome.CombatOver,
                 s => AfterOption(s, result.Outcome)))
@@ -1307,7 +1342,7 @@ public sealed class CombatPresenter
     private int _rankLit; // DOS III's rank menu: 0 = One lit, 1 = Two lit
 
     /// <summary>
-    /// s156: III's rank question off the Amiga screens is DOS's (root <c>0x10cf3</c> → <c>0x10d58</c>): "Target which rank?"
+    /// s156: III's rank question off the Amiga screens is DOS's (root <c>0x10cf3</c> → <c>0x10d58</c>): `p3combat.x_target_which_rank`
     /// in the Yes / No menu (<c>0x1820</c>) with the words One / Two, One lit; Y answers One, N and Esc Two (word 2), Return
     /// the lit word (dungeon-events.md 2). With two living ranks only (one rank: no question, Core's rule).
     /// </summary>
@@ -1893,7 +1928,7 @@ public sealed class CombatPresenter
     {
         P1Snapshot = snapshot;
         P1LastLine = null; // the round's set-up fills the field (h53 +0x2fc)
-        // What the session noted after the round's lines (the fight's end: "EACH SURVIVOR GETS" …) follows them (requester 23).
+        // What the session noted after the round's lines (the fight's end: `core.combat.each_survivor_gets` …) follows them (requester 23).
         var scene = session.PendingRewardScene?.Lines;
         var log = round.Log.Concat(session.LogSince(mark).Skip(round.Log.Count).Where(l => scene is null || !scene.Contains(l)))
             .ToList();

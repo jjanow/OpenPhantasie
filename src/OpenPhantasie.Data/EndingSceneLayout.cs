@@ -122,8 +122,8 @@ public sealed record EndingSceneLayout(
             JustifyWidth = dto.JustifyWidth,
             Font = dto.Font,
             FontFile = CombatFieldLayout.FontFileFor(dto.Font, manifestPath),
-            IntroPage = dto.IntroPage is { } ip ? EndingPage.FromDto(ip, Bad) : null,
-            ClosingPage = dto.ClosingPage is { } cp ? EndingPage.FromDto(cp, Bad) : null,
+            IntroPage = dto.IntroPage is { } ip ? EndingPage.FromDto(ip, Bad, manifestPath) : null,
+            ClosingPage = dto.ClosingPage is { } cp ? EndingPage.FromDto(cp, Bad, manifestPath) : null,
         };
     }
 
@@ -211,7 +211,29 @@ public sealed record EndingPage(IReadOnlyList<string>? Palette, int X, int Y, in
     /// does not hold the screen.</summary>
     public int? Sound { get; init; }
 
-    internal static EndingPage FromDto(Dto dto, Func<string, InvalidDataException> bad)
+    /// <summary>
+    /// s160: the page's font (II ST: <c>v_gtext</c> in the 8×8 system font, italic: EmuTOS's, the pack's
+    /// <c>fonts/&lt;id&gt;.json</c>), or null for the pack's own; <see cref="FontFile"/> is its file next to the manifest.
+    /// </summary>
+    public string? Font { get; init; }
+    public string? FontFile { get; init; }
+
+    /// <summary>
+    /// s160: pixels the font's cell starts right of <see cref="X"/> (negative = left). II ST: top-aligned italic text
+    /// starts left_offset + right_offset = 4 px left of the <c>v_gtext</c> point (EmuTOS <c>vdi_text.c</c>, vertical
+    /// alignment 5), so the slanted top row sits at x; matches the s80 page shots pixel for pixel.
+    /// </summary>
+    public int FontDx { get; init; }
+
+    /// <summary>
+    /// s162: the OK button label's font (II ST: the form's G_BOXTEXT has <c>te_font</c> 5, the 6×6 small system font:
+    /// EmuTOS's, the pack's <c>fonts/&lt;id&gt;.json</c>), or null for the pack's own; <see cref="ButtonFontFile"/> is its
+    /// file.
+    /// </summary>
+    public string? ButtonFont { get; init; }
+    public string? ButtonFontFile { get; init; }
+
+    internal static EndingPage FromDto(Dto dto, Func<string, InvalidDataException> bad, string manifestPath)
     {
         if (dto.Palette is { } p && (p.Count != 16 || p.Any(c => !HexColourOk(c))) || dto.LineGap <= 0 ||
             dto.TextPen is < 0 or > 15 || dto.ButtonPen is < 0 or > 15 || dto.Sound is < 0)
@@ -219,6 +241,11 @@ public sealed record EndingPage(IReadOnlyList<string>? Palette, int X, int Y, in
         return new EndingPage(dto.Palette is { } pal ? [.. pal!] : null, dto.X, dto.Y, dto.LineGap, dto.TextPen, dto.ButtonPen)
         {
             Sound = dto.Sound,
+            Font = dto.Font,
+            FontFile = CombatFieldLayout.FontFileFor(dto.Font, manifestPath),
+            FontDx = dto.FontDx,
+            ButtonFont = dto.ButtonFont,
+            ButtonFontFile = CombatFieldLayout.FontFileFor(dto.ButtonFont, manifestPath),
         };
     }
 
@@ -233,6 +260,9 @@ public sealed record EndingPage(IReadOnlyList<string>? Palette, int X, int Y, in
         [JsonPropertyName("text_pen")] public int TextPen { get; set; }
         [JsonPropertyName("button_pen")] public int ButtonPen { get; set; }
         public int? Sound { get; set; }
+        public string? Font { get; set; }
+        [JsonPropertyName("font_dx")] public int FontDx { get; set; }
+        [JsonPropertyName("button_font")] public string? ButtonFont { get; set; }
     }
 }
 

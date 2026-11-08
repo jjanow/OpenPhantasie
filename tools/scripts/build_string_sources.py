@@ -19,6 +19,13 @@ repo (10-importer.md 8) ships each such id with the references replaced by "..."
 Phantasie IV is not covered: its public `en.json` is the id-keyed patch (ids whose English differs from the Japanese)
 and the importer adds the rest from the player's P4.X (4.6).
 
+Phantasie II's Apple II copy (`p2-apple2`, user s159, DIFFERENCES-II D2-050) is added after the rest, so it changes no
+other alternative: an id the ST gives gets a `p2-apple2` alternative when every original part of the ST's is found
+verbatim in the Apple's programs (the same text), and the ids the Apple prints in its own wording get the
+hand-mapped alternatives of `p2_apple2_own_wording.json` (references only, marked `"wording": "own"`: they resolve
+to the Apple's text, not to the committed value). The ids neither covers get the remaster's own wording from
+`GameData/phantasie2/strings/fallback.en.json` (written by the importer under every imported file).
+
 Run with `python3 -I tools/scripts/build_string_sources.py` (`--check` compares with the committed files).
 """
 from __future__ import annotations
@@ -32,6 +39,8 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import re_common  # noqa: E402
 import extract_dos_p3_common as p3  # noqa: E402
+from a2_rdos import RdosDisk  # noqa: E402
+from extract_a2_p2_tables import text_page  # noqa: E402
 
 GAMEDATA = REPO / "src" / "OpenPhantasie.Data" / "GameData"
 RE = REPO / "reverse-engineering"
@@ -52,6 +61,28 @@ def load_versions() -> dict[str, dict[str, bytes]]:
         "p3-amiga-1.0": {"PhantasieIII": (RE / "amiga" / "phantasie3" / "unpacked" / "PhantasieIII" / "PhantasieIII").read_bytes()},
         "p4-x68000-1.02": {"P4.X": (RE / "x68000" / "phantasie4" / "unpacked" / "disk1" / "P4.X").read_bytes()},
     }
+
+# Phantasie II, Apple II (4am crack): the Applesoft programs whose names are on one side only (FileSet.Find takes the
+# first match, and MN2x / PHANTASIE II are on both), plus SCROLLL0 (Pluto's speech) as its decoded text page.
+A2_IMAGES = RE / "apple2" / "original-images" / "phantasie2" / "4am-crack"
+A2_PROGRAMS = {"a": ["OUTDOORS2", "TOWN2", "CEMETARY2", "CHAR2", "INTRO2", "INFO"], "b": ["DUNGON2", "WIN"]}
+A2_OWN = Path(__file__).resolve().parent / "p2_apple2_own_wording.json"
+
+
+def a2_page_text(raw: bytes) -> bytes:
+    """A text-page dump as the importer's `<file>:page` key: its 24 rows (right-stripped) joined by newlines."""
+    return "\n".join(text_page(raw)).encode("latin-1")
+
+
+def load_apple2() -> dict[str, bytes]:
+    out: dict[str, bytes] = {}
+    for side, names in A2_PROGRAMS.items():
+        disk = RdosDisk(A2_IMAGES / f"phantasie2-4am-side-{side}.dsk")
+        for n in names:
+            out[n] = disk.read(n)
+    out["SCROLLL0:page"] = a2_page_text(RdosDisk(A2_IMAGES / "phantasie2-4am-side-b.dsk").read("SCROLLL0"))
+    return out
+
 
 P1 = ["p1-dos-1987", "p1-amiga-1.0"]
 P2 = ["p2-st-1.0"]
@@ -193,7 +224,27 @@ def sources_for(versions, folder: str, sid: str, value: str):
     return alts
 
 
-def build(versions, folder: str) -> dict:
+def apple2_verbatim(apple: dict[str, bytes], versions, alts: list) -> dict | None:
+    """The `p2-apple2` alternative of an id whose ST parts are all found verbatim in the Apple's programs."""
+    st = next((a for a in alts if a["from"] == "p2-st-1.0"), None)
+    if st is None:
+        return None
+    parts: list = []
+    for p in st["parts"]:
+        if isinstance(p, str):
+            parts.append(p)
+            continue
+        if (ref := find(apple, versions["p2-st-1.0"][p[0]][p[1]:p[1] + p[2]].decode("latin-1"))) is None:
+            return None
+        parts.append(ref)
+    return {"from": "p2-apple2", "parts": parts}
+
+
+def resolve(files: dict[str, bytes], parts: list) -> str:
+    return "".join(p if isinstance(p, str) else files[p[0]][p[1]:p[1] + p[2]].decode("latin-1") for p in parts)
+
+
+def build(versions, folder: str, apple: dict[str, bytes], own: dict) -> dict:
     table = json.loads((GAMEDATA / folder / "strings" / "en.json").read_text(encoding="utf-8"))
     out = {}
     for sid, value in table["strings"].items():
@@ -202,13 +253,25 @@ def build(versions, folder: str) -> dict:
         if (alts := sources_for(versions, folder, sid, value)) is not None:
             if not alts:
                 raise SystemExit(f"{folder} {sid}: original parts but no version has them all")
+            if (a2 := apple2_verbatim(apple, versions, alts)) is not None:
+                assert resolve(apple, a2["parts"]) == value, (folder, sid)
+                alts.append(a2)
+            elif sid in own.get(folder, {}):
+                parts = own[folder][sid]
+                text = resolve(apple, parts)
+                assert text.strip() and "\x00" not in text, (folder, sid, text)
+                alts.append({"from": "p2-apple2", "wording": "own", "parts": parts})
             out[sid] = alts
+    for sid in own.get(folder, {}):
+        if sid not in out or not any(a["from"] == "p2-apple2" for a in out[sid]):
+            raise SystemExit(f"{folder} {sid}: in {A2_OWN.name} but not an id the Apple lacks verbatim")
     return {
         "_schema": "openphantasie.string-sources/v1",
         "_note": "Generated by tools/scripts/build_string_sources.py: where each id's original text sits in the "
                  "player's own copy (version profile, file, offset, length; latin-1). Literal parts are ours. The "
                  "importer resolves these into strings/en.<profile>.json; the public en.json ships the ids with "
-                 "\"...\" in place of each reference.",
+                 "\"...\" in place of each reference. \"wording\": \"own\" = the version prints this line in its own "
+                 "wording (Phantasie II's Apple II, D2-050): it resolves to that text, not to the en.json value.",
         "game": table.get("game", folder),
         "language": "en",
         "strings": out,
@@ -218,9 +281,16 @@ def build(versions, folder: str) -> dict:
 def main() -> int:
     check = "--check" in sys.argv[1:]
     versions = load_versions()
+    apple = load_apple2()
+    own = json.loads(A2_OWN.read_text(encoding="utf-8"))["strings"] if A2_OWN.exists() else {}
+    if "--show-apple" in sys.argv[1:]:
+        for folder, ids in own.items():
+            for sid, parts in ids.items():
+                print(f"{folder} {sid}: {resolve(apple, parts)!r}")
+        return 0
     bad = 0
     for folder in FOLDERS:
-        data = build(versions, folder)
+        data = build(versions, folder, apple, own)
         path = GAMEDATA / folder / "strings" / "en.sources.json"
         text = json.dumps(data, indent=1, ensure_ascii=False) + "\n"
         if check:

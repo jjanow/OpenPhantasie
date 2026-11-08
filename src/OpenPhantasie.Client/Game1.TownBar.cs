@@ -7,7 +7,6 @@ namespace OpenPhantasie.Client;
 public partial class Game1
 {
     private readonly AmigaTownBar _townBar = new();
-    private readonly AmigaConfirmWindow _barConfirm = new();
     private Keys? _townBarKey; // a town key an item stands for, sent at the start of the next frame
     private bool _guildFromBar; // s158: a Guild item of the bar is running; the party goes back to the street after it
 
@@ -22,7 +21,7 @@ public partial class Game1
     /// <summary>The bar answers the mouse and the arrows only on the street with nothing else up (as the town's ? / /).</summary>
     private bool TownBarTakesInput(GameSession s) =>
         TownBarPlaces(s) is not null && TownInfoTakesInput(s) && _townMenu.Place == TownPlace.Menu
-        && !_outsideBar.CreditsShown && !_outsideBar.StatusShown && !_barConfirm.Shown;
+        && !_outsideBar.CreditsShown && !_outsideBar.StatusShown && !_confirm.Shown;
 
     /// <summary>The town bar's palette: the map's (w4 holds it word for word), the dim towns' <c>town_dim</c> (0x78ee).</summary>
     private string TownBarPalette(GameSession s) =>
@@ -35,12 +34,6 @@ public partial class Game1
     private bool HandleTownBarKeys(GameSession s, IEnumerable<Keys> newKeys)
     {
         ReturnFromBarGuild(s);
-        if (_barConfirm.HandleKeys(newKeys) is (true, var confirmed)) // s158: File › Load / Save's window 1 owns the keys
-        {
-            if (confirmed.Length > 0)
-                RunConfirmedBarAction(s, confirmed);
-            return true;
-        }
         if (_townBarKey is { } pending) // Armoury / Bank: the town's own key, read by this frame's town input
         {
             _townBarKey = null;
@@ -87,12 +80,11 @@ public partial class Game1
                 if (_assets?.KeepWindows?.Credits is not null)
                     _outsideBar.ShowCredits();
                 return;
-            case "load" or "save" when ConfirmWindowLayout() is not null: // s158: the Amiga asks first (0xb1f0 / 0xba9a); S too
-                _barConfirm.Open(action == "load" ? UiText.S("p3bar.confirm_load") : UiText.S("p3bar.confirm_save"), action);
-                s.AskConfirmQuestion(); // 36 before window 1 (0xaae2)
+            case "load": // s158: the Amiga asks first (0xb1f0, window 1 with 36); s160: through P3ConfirmQuestion
+                LoadOrAsk(s);
                 return;
-            case "load" or "save":
-                RunConfirmedBarAction(s, action);
+            case "save": // 0xba9a: the same question as the street's S
+                RunTownChoice(s, TownChoice.SaveGame, shopper);
                 return;
             case "armoury": _townBarKey = Keys.A; return;
             case "bank": _townBarKey = Keys.B; return;
@@ -113,18 +105,6 @@ public partial class Game1
                 if (!StartDoorFlash(TownDoor(TownChoice.Guild), Enter))
                     Enter();
                 return;
-        }
-    }
-
-    /// <summary>File › Load / Save once OK answers the question (or straight away for a pack without window 1).</summary>
-    private void RunConfirmedBarAction(GameSession s, string action)
-    {
-        if (action == "load")
-            LoadGame();
-        else if (action == "save")
-        {
-            SaveGame();
-            _messageBand.Restart();
         }
     }
 

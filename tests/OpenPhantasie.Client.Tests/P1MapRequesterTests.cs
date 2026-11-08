@@ -219,7 +219,7 @@ public class P1MapRequesterTests
     }
 
     /// <summary>
-    /// s156: the dungeon's questions (h41 <c>+0x11c</c>: "%s %s" of the name and "|SPOTS A TRAP.||DISARM IT?"): four lines
+    /// s156: the dungeon's questions (h41 <c>+0x11c</c>: "%s %s" of the name and "`p1field.req.spots_a_trap` IT?"): four lines
     /// (three '|', no rotation) from row 0, the name's line "VILMAR " centred with its blank; D-052's DISARM / LEAVE labels.
     /// </summary>
     [OriginalDataFact]
@@ -282,6 +282,29 @@ public class P1MapRequesterTests
         Assert.Contains(cost.Ops, o => o.Text == "AGREE");
         Assert.Contains(cost.Ops, o => o.Text == "NOT");
         Assert.Null(P1MapRequesters.Town(l, "nothing", _ => Keys.Enter));
+    }
+
+    /// <summary>
+    /// s163: the town's h26 <c>+0x6e</c> requesters (h84 <c>+0x11e</c> / <c>+0x16e</c> / <c>+0x18c</c>): "D O N E !" one
+    /// line with O.K. (one button, gadget 0 at x 47), the two printout questions one line with two buttons; stored pens on
+    /// the town palette as the Guild's move question.
+    /// </summary>
+    [OriginalDataFact]
+    public void TownAlerts_DoneAndPrintout_s163()
+    {
+        var l = Layout();
+        var done = P1MapRequesters.Town(l, "done", i => i == 0 ? Keys.Y : Keys.N)!;
+        Assert.Contains(done.Ops, o => o.Text == "D O N E !");
+        Assert.Equal("O.K.", Assert.Single(done.Ops, o => o.Text == "O.K.").Text);
+        Assert.Single(done.Buttons);
+        Assert.Equal("#226644", done.Palette[done.Ops[0].Pen]);
+        var ask = P1MapRequesters.Town(l, "scroll_printout", i => i == 0 ? Keys.Y : Keys.N)!;
+        Assert.Contains(ask.Ops, o => o.Text == "DO YOU WANT PRINTOUT?");
+        Assert.Equal([Keys.Y, Keys.N], ask.Buttons.Select(b => b.Click));
+        var printer = P1MapRequesters.Town(l, "prepare_printer", i => i == 0 ? Keys.Enter : Keys.Escape)!;
+        Assert.Contains(printer.Ops, o => o.Text == "PREPARE PRINTER");
+        Assert.Contains(printer.Ops, o => o.Text == "ABORT");
+        Assert.Equal(2, printer.Buttons.Count);
     }
 
     /// <summary>
@@ -433,6 +456,21 @@ public class P1MapRequesterTests
         var l = Layout();
         var scene = P1MapRequesters.Menu(l, UiText.S("p1field.req.dungeon_enter"), i => Keys.D1 + i);
         Assert.Equal(0, Mismatch("p1-amiga-map-requester0-a-dungeon.png", scene, l.Menu!.Box, new Box(118, 90, 20, 22)));
+    }
+
+    /// <summary>
+    /// s163 live (FS-UAE, a blocked tile 100 patched into OUT1; STYX by the debugger's nop on h59 <c>+0x400</c>): "THAT IS
+    /// THE OCEAN" / "THE RIVER STYX" are requester 0 with one line and OK (<c>p1-amiga-map-the-ocean</c>,
+    /// <c>-the-river-styx</c>), every pixel of the box.
+    /// </summary>
+    [OriginalDataTheory]
+    [InlineData("p1field.req.the_ocean", "p1-amiga-map-the-ocean.png")]
+    [InlineData("p1field.req.river_styx", "p1-amiga-map-the-river-styx.png")]
+    public void OceanAndStyx_MatchTheLiveShots_s163(string id, string shot)
+    {
+        var l = Layout();
+        var scene = P1MapRequesters.Menu(l, UiText.S(id), _ => Keys.Enter);
+        Assert.Equal(0, Mismatch(shot, scene, l.Menu!.Box));
     }
 
     /// <summary>

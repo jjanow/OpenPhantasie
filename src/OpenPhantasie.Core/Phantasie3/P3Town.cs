@@ -11,7 +11,7 @@ public enum P3TradeResult
     /// <summary>No item at that slot.</summary>
     NoSuchItem,
 
-    /// <summary>"This character can't carry anymore." (string 455): the receiver has 9 items.</summary>
+    /// <summary>`core.p3.cant_carry_anymore` (string 455): the receiver has 9 items.</summary>
     ReceiverFull,
 
     /// <summary>The giver and the receiver are the same member.</summary>
@@ -104,7 +104,7 @@ public static class P3Town
     }
 
     /// <summary>
-    /// DOS's "Deposit some gold" (ovl2 <c>0x297a</c>, <c>p3.bank</c> = <c>dos</c>): <c>0 &lt; amount ≤ party gold</c>; the
+    /// DOS's `p3town.bank_deposit_some` (ovl2 <c>0x297a</c>, <c>p3.bank</c> = <c>dos</c>): <c>0 &lt; amount ≤ party gold</c>; the
     /// remainder <c>amount mod party size</c> goes 1 gold at a time to random living members (root <c>0x1124</c>, here a
     /// uniform <c>rnd</c> over the members not Dead <c>[~]</c>), then every member gets <c>amount / party size</c>. No fee,
     /// no shares. Returns false (nothing changes) for a bad amount or the manual's bank.
@@ -128,7 +128,7 @@ public static class P3Town
         return true;
     }
 
-    /// <summary>DOS's "Withdraw all gold": every account is emptied into the party's gold (the excess over the purse cap is lost).</summary>
+    /// <summary>DOS's `p3town.bank_withdraw_all`: every account is emptied into the party's gold (the excess over the purse cap is lost).</summary>
     public static bool DosWithdrawAll(Party party, GameOptions rules)
     {
         ArgumentNullException.ThrowIfNull(party);

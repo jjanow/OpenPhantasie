@@ -174,6 +174,7 @@ public class CampaignSplitTests
         hero.Status = CharacterStatus.Dead;
         session.ResolveCombatRound();
         Assert.True(session.PartyDefeatPending);
+        Assert.True(session.LastFightLost); // s163: II ST's sound 17 skips the next fight
         Assert.False(campaign.Calls.ContainsKey(nameof(ICampaign.AfterCombatSurvived))); // a wipe is never a win
 
         session.TravelTime = 5000;

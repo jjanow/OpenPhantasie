@@ -4,7 +4,7 @@ namespace OpenPhantasie.Data;
 
 /// <summary>
 /// Manifest <c>combat_field.spell_list</c>: I Amiga's Cast requesters (s133, Amiga <c>FORMAT.md</c> "The spell list"):
-/// requester 12 "SPELLS AVAILABLE:" (h71 <c>+0x73a</c> → h23 <c>+0x570</c>) and requester 6 "ON WHOM:" (h62
+/// requester 12 `inspect.spells_available` (h71 <c>+0x73a</c> → h23 <c>+0x570</c>) and requester 6 "ON WHOM:" (h62
 /// <c>+0x508</c>) for HEALING I–IV. Screen pixels and the pens on screen (the struct pens through h77 <c>+0x112e</c>'s
 /// table h69 <c>+0x19c</c>).
 /// </summary>

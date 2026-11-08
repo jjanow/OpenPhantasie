@@ -104,33 +104,50 @@ public sealed partial class P4DungeonScreen
         foreach (var s in segments)
             pieces.Add((s.X, s.Y, s.Number ? window.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 : text(s), s.Font, s.Colour ?? hall.TextColour));
-        var rows = new List<(int, int, string, int, int)>();
-        int x = hall.Name.X, y = hall.Name.Y, start = x, shift = 0;
-        foreach (var (px, py, s, font, colour) in pieces)
+        return [.. FlowText(pieces.Select(p => (p.X, p.Y, p.Text, p.Font, p.Colour, 0)), hall.Name.X, hall.Name.Y, right,
+            hall.LineStep, (t, font, _) => width(t, font)).Select(r => (r.X, r.Y, r.Text, r.Font, r.Colour))];
+    }
+
+    /// <summary>
+    /// A window's text pieces in pack pixels (s156 <c>_trang</c>, s162 <c>_endstory</c>): each at its own place when it has
+    /// one, else at the text cursor after the last, from (<paramref name="x0"/>, <paramref name="y0"/>). A piece that would
+    /// pass <paramref name="right"/> wraps at a space (or, with none, between characters) to the next row at its line's
+    /// start; every later row moves down with it (the user's fit rule: no text is dropped). <paramref name="width"/> gives
+    /// a string's width in a font and style.
+    /// </summary>
+    public static List<(int X, int Y, string Text, int Font, int Colour, int Style)> FlowText(
+        IEnumerable<(int? X, int? Y, string Text, int Font, int Colour, int Style)> pieces, int x0, int y0, int right,
+        int step, Func<string, int, int, int> width)
+    {
+        ArgumentNullException.ThrowIfNull(pieces);
+        ArgumentNullException.ThrowIfNull(width);
+        var rows = new List<(int, int, string, int, int, int)>();
+        int x = x0, y = y0, start = x, shift = 0;
+        foreach (var (px, py, s, font, colour, style) in pieces)
         {
             if (px is int nx && py is int ny)
                 (x, y, start) = (nx, ny + shift, nx);
             var rest = s;
-            while (rest.Length > 0 && x + width(rest, font) > right)
+            while (rest.Length > 0 && x + width(rest, font, style) > right)
             {
                 var cut = rest.Length - 1;
-                while (cut > 0 && (x + width(rest[..cut], font) > right || rest[cut] != ' '))
+                while (cut > 0 && (x + width(rest[..cut], font, style) > right || rest[cut] != ' '))
                     cut--;
                 if (cut == 0 && x > start)
                     cut = -1; // nothing fits after the text before it: the whole piece starts the next row
                 else if (cut == 0)
-                    for (cut = 1; cut < rest.Length && x + width(rest[..(cut + 1)], font) <= right; cut++)
+                    for (cut = 1; cut < rest.Length && x + width(rest[..(cut + 1)], font, style) <= right; cut++)
                     {
                     }
                 if (cut > 0)
-                    rows.Add((x, y, rest[..cut], font, colour));
+                    rows.Add((x, y, rest[..cut], font, colour, style));
                 rest = cut > 0 ? rest[cut..].TrimStart() : rest;
-                (x, y) = (start, y + hall.LineStep);
-                shift += hall.LineStep;
+                (x, y) = (start, y + step);
+                shift += step;
             }
             if (rest.Length > 0)
-                rows.Add((x, y, rest, font, colour));
-            x += width(rest, font);
+                rows.Add((x, y, rest, font, colour, style));
+            x += width(rest, font, style);
         }
         return rows;
     }

@@ -6,7 +6,7 @@ namespace OpenPhantasie.Client;
 
 /// <summary>
 /// Inspect. Wilderness / dungeon Options → Inspect is OV2 <c>0x464a</c> [C] (s49 static): a party summary
-/// (<see cref="SummaryLines"/>), then menu <c>0x15</c> "INSPECT MEMBER?" NO / YES; YES → "WHOM DO YOU WANT TO INSPECT?"
+/// (<see cref="SummaryLines"/>), then menu <c>0x15</c> "INSPECT MEMBER?" NO / YES; YES → `inspect.whom_do_you_want_to_inspect`
 /// (picker mode 7), repeated until cancelled. Town and Guild go straight to the picker (manual p.11 "INSPECT PARTY MEMBERS").
 /// A member's view is COM <c>0x2aa6</c> [C]: the stat sheet (<see cref="SheetLines"/>) with menu <c>0xa</c>
 /// SPELLS / EQUIPMENT / SKILLS / POTIONS; a pick shows that page (<see cref="SpellRows"/>, <see cref="EquipmentLines"/>,
@@ -235,7 +235,7 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
 
     /// <summary>
     /// The wilderness / dungeon party summary (OV2 <c>0x464a</c>) [C]: <c>"DAY OUT%21u"</c> (time <c>&gt;&gt; 8</c>),
-    /// <c>"EXPERIENCE POINTS%11lu"</c> (pool <c>[0x63f4]·10</c>; Core keeps whole XP, D-053), <c>"GOLD PIECES%17u"</c> (purse
+    /// <c>"`core.combat.x_experience_points_and_x_gold`%11lu"</c> (pool <c>[0x63f4]·10</c>; Core keeps whole XP, D-053), <c>"GOLD PIECES%17u"</c> (purse
     /// <c>[0x63f6]</c>; Core's carried + found gold, one purse vs two <c>[~]</c>), then for each found-item class with a count
     /// <c>"%-4.3d%s(S)"</c>: class <c>(id − 1) / 20</c> of the found items, names SHIELD, ARMOR, WEAPON, GOOD WEAPON,
     /// MG WEAPON, POTION, SCROLL, TREASURE, GOOD TREASURE (DS <c>0xbdd3</c>); ids past 180 are not counted.
@@ -327,7 +327,7 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
     }
 
     /// <summary>
-    /// "SPELLS AVAILABLE:" (COM <c>0x2b18</c> → <c>0x2864</c>) [C] (s58): the casting picker COM <c>0x139c</c>
+    /// `inspect.spells_available` (COM <c>0x2b18</c> → <c>0x2864</c>) [C] (s58): the casting picker COM <c>0x139c</c>
     /// (<see cref="SpellPicker"/>) — names only, the bar fixed with 3 known spells above it and 2 below, on the cursor
     /// shared with every spell picker.
     /// </summary>
@@ -367,7 +367,7 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
     /// <summary>
     /// The counters (COM <c>0x2cf6</c> → <c>0x2da5</c>) [C], counted from the nine carried items: <c>"%-3uhl potions"</c> (101–110),
     /// <c>"%-3umg potions"</c> (111–120), <c>"%-3uscroll(s)"</c> (121–140), <c>"%-3utreasures"</c> (151+); items 141–150 write
-    /// letter <c>id − 76</c> ('A'..) at position <c>id − 141</c> of a 10-space buffer. "THE WAND OF NIKADEMUS" if position 9 (WAND
+    /// letter <c>id − 76</c> ('A'..) at position <c>id − 141</c> of a 10-space buffer. `inspect.the_wand_of_nikademus` if position 9 (WAND
     /// 150) is set; then the buffer is cut to 9 and <c>"RING:%s"</c> is printed if any of 141–150 is carried (so a wand
     /// alone prints "RING:" with blanks).
     /// </summary>

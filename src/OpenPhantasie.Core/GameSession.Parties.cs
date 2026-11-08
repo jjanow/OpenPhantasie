@@ -26,7 +26,7 @@ public sealed partial class GameSession
     }
 
     /// <summary>
-    /// D-069 <c>dos</c>: CONTINUE SAVED GAME as DOS (OV1 <c>0x866..0x89d</c>: every flagged record joins the party; nothing
+    /// D-069 <c>dos</c>: `continue.continue_saved_game` as DOS (OV1 <c>0x866..0x89d</c>: every flagged record joins the party; nothing
     /// is asked): the file's own party comes back. The remaster keeps where it was saved (it saves anywhere); a file
     /// with nobody in the party opens with an empty party, as DOS opens Pelnor (<c>0x7e7</c>).
     /// </summary>
@@ -41,7 +41,7 @@ public sealed partial class GameSession
     }
 
     /// <summary>
-    /// CONTINUE SAVED GAME (manual, ENCORE): load <paramref name="file"/> for the character with Guild number
+    /// `continue.continue_saved_game` (manual, ENCORE): load <paramref name="file"/> for the character with Guild number
     /// <paramref name="guildNumber"/> — its party where it was, the file's active party parked in its place. A character
     /// in no party opens a new, empty party at its town's menu (manual silent; the party starts on the town's exit tile
     /// like a DOS import). False with <paramref name="error"/> (nothing changes) when the number names nobody.

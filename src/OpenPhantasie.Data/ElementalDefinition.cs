@@ -4,7 +4,7 @@ using OpenPhantasie.Core;
 namespace OpenPhantasie.Data;
 
 /// <summary>
-/// One SUMMON ELEMENTAL template from <c>elementals.json</c> (TWNS.INT tail, roster records 22–24,
+/// One `core.spell.summon_elemental` template from <c>elementals.json</c> (TWNS.INT tail, roster records 22–24,
 /// <c>tools/scripts/extract_elementals.py</c>). Fields not listed are 0 in the DOS record.
 /// </summary>
 public sealed class ElementalDefinition

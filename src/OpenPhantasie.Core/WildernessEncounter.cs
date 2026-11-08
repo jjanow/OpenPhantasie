@@ -13,10 +13,10 @@ public sealed record WildernessEncounterRules(IReadOnlyList<int> PairTable)
 /// <summary>The three menus of the day branches (COM menu ids <c>0xf</c>, <c>0x10</c>, <c>0x11</c>).</summary>
 public enum WildernessMenu
 {
-    /// <summary>Menu <c>0xf</c>: "BLACK KNIGHTS !!!" — RUN / FIGHT / SURRENDER.</summary>
+    /// <summary>Menu <c>0xf</c>: `core.encounter.black_knights` — RUN / FIGHT / SURRENDER.</summary>
     BlackKnights,
 
-    /// <summary>Menu <c>0x10</c>: "YOU SPOT SLEEPING MONSTERS!" — ATTACK / LEAVE.</summary>
+    /// <summary>Menu <c>0x10</c>: `core.encounter.sleeping_monsters` — ATTACK / LEAVE.</summary>
     SleepingMonsters,
 
     /// <summary>Menu <c>0x11</c>: "%s HEARS MONSTERS" — RUN / FIGHT.</summary>

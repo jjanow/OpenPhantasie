@@ -157,7 +157,7 @@ public sealed class DungeonTraversal
                     Y = state.Y,
                     FeatureByte = feature,
                     FeatureKind = kind,
-                    // No text of its own (s58 DOSBox): "AN EXIT. TAKE IT?" is the session's prompt and the old message
+                    // No text of its own (s58 DOSBox): `core.prompt.an_exit_take_it` is the session's prompt and the old message
                     // line stays under it.
                 };
 
@@ -308,7 +308,7 @@ public sealed class DungeonTraversal
 
     /// <summary>
     /// Answer to "%s SPOTS A TRAP / D)ISARM OR L)EAVE" for the trap of kind <paramref name="a"/> on (<paramref name="x"/>,
-    /// <paramref name="y"/>). <paramref name="disarmerIndex"/> null = LEAVE, or "WHO WILL DISARM ?" left with no choice
+    /// <paramref name="y"/>). <paramref name="disarmerIndex"/> null = LEAVE, or `core.prompt.who_will_disarm` left with no choice
     /// (−1): step back, the trap stays. Otherwise the chosen member (status OK only, <see cref="DungeonTraps.CanDisarm"/>)
     /// rolls: success → "SUCCEEDS", the cell becomes 7; failure → "FAILS" and the trap springs.
     /// </summary>
@@ -385,7 +385,7 @@ public sealed class DungeonTraversal
 
     /// <summary>
     /// Lock / ambush cell <c>0x2e03(b, x, y)</c> [C] (s39). Open door (kind 1): nothing. Kind 14: pick roll — picked →
-    /// the cell opens (<c>0xb9 + si</c>) and the party stays; not picked → "NO ONE CAN PICK THE LOCK", the cell jams
+    /// the cell opens (<c>0xb9 + si</c>) and the party stays; not picked → `core.dungeon.no_one_can_pick_the_lock`, the cell jams
     /// (kind 15) and the party steps back. Kind 15: same message and step back. Kinds 2..13: listen roll; heard →
     /// <see cref="DungeonMoveResult.ListenerIndex"/> and "GO BACK ?" waits (<see cref="ResolveHeardMonsters"/>); not
     /// heard → the ambush at once with <see cref="Surprise.LockAmbush"/>.
@@ -444,7 +444,7 @@ public sealed class DungeonTraversal
     }
 
     /// <summary>
-    /// Answer to "%s HEARS MONSTERS. GO BACK ?" on the lock cell the party stands on: YES → step back, no fight; NO →
+    /// Answer to "%s `core.dungeon.x_hears_monsters_go_back`" on the lock cell the party stands on: YES → step back, no fight; NO →
     /// the ambush (monster <c>12·T + di − 2</c>, <see cref="Surprise.LockAmbush"/> with someone heard).
     /// </summary>
     public static DungeonMoveResult ResolveHeardMonsters(DungeonState state, DungeonLevel level, bool goBack,

@@ -127,7 +127,7 @@ public sealed class Phantasie2Campaign : ICampaign
     public IReadOnlyDictionary<int, int> OverworldTownAliases => NoAliases;
 
     /// <summary>
-    /// The ST shows <c>OUT.RSC</c> tree 15 " THE RIVER STYX " past region 16, else tree 17 " THAT IS THE OCEAN "
+    /// The ST shows <c>OUT.RSC</c> tree 15 " THE RIVER STYX " past region 16, else tree 17 " `core.overworld.that_is_the_ocean` "
     /// (<c>terrain.md</c> §1; texts read from the resource file s83 [C]): I's two lines.
     /// </summary>
     public string BlockedMessage(int regionId) => regionId > LastSurfaceRegion
@@ -213,7 +213,7 @@ public sealed class Phantasie2Campaign : ICampaign
 
     /// <summary>
     /// <c>encounter_start</c> §3.1: a minion that some party member already killed becomes the 1-based monster ⌊r·36/100⌋
-    /// (0-based one less, SKELETON for 0), opened normally and rebuilt; otherwise "PLUTO'S MINION ! !".
+    /// (0-based one less, SKELETON for 0), opened normally and rebuilt; otherwise `core.p2.plutos_minion`.
     /// </summary>
     public int? ReplaceEncounter(GameSession session, CombatEncounter encounter)
     {
@@ -239,7 +239,7 @@ public sealed class Phantasie2Campaign : ICampaign
             return;
         // combat_victory only: a fight left by FLEE / BEG / TELEPORTATION gives nothing. A DISSOLVE win leaves the group's
         // count word alive, so no amulet and no flag (live s82, §3.1); the ST's FEAR never makes monsters run.
-        // The ST box shows "PLUTO'S MINION IS KILLED !" above "<name> TAKES AN AMULET" (live s82).
+        // The ST box shows `core.p2.plutos_minion_is_killed` above "<name> TAKES AN AMULET" (live s82).
         if (result.PartyWon && MinionOf(encounter) is int k && FirstGroup(encounter)!.IsWiped)
         {
             session.Note(GameText.S("core.p2.plutos_minion_is_killed"));
@@ -569,7 +569,7 @@ public sealed class Phantasie2Campaign : ICampaign
 
     /// <summary>
     /// <c>magic-divine.md</c> §3: the MP (2) is spent first; in a dungeon a deity ⌊r₁·r₂·0.0004⌋ (DEMIGOD, ATHENA, APOLLO,
-    /// ZEUS) "APPEARS AND GIVES YOU ADVICE", then the level's message 105. Anywhere else nothing happens. Index 4 (both
+    /// ZEUS) `core.p2.x_appears_and_gives_you_advice`, then the level's message 105. Anywhere else nothing happens. Index 4 (both
     /// draws 100) makes the ST read a pointer past the table (a bus error on the ST <c>[~]</c>, D2-044): the remaster shows
     /// ZEUS, the last name (user s92).
     /// </summary>

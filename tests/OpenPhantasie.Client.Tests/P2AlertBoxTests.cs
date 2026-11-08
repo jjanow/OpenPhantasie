@@ -121,7 +121,9 @@ public class P2AlertBoxTests
         Assert.Same(a, box.Current);
         Assert.True(box.HandleKeys([Keys.Enter]));
         Assert.Same(b, box.Current);
-        Assert.True(box.HandleKeys([Keys.Escape]));
+        Assert.True(box.HandleKeys([Keys.Escape, Keys.Space])); // s160: the AES form loop takes Return only
+        Assert.Same(b, box.Current);
+        Assert.True(box.HandleKeys([Keys.Enter]));
         Assert.False(box.Shown);
         box.Offer(a);
         box.Close();

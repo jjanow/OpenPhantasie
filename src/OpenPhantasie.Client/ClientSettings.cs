@@ -46,6 +46,7 @@ public enum GameAction
     GuildPurge,
     GuildRename,
     GuildList,
+    GuildExamine,
     ToggleMapLayout,
 }
 
@@ -172,6 +173,7 @@ public sealed class ClientSettings
         [nameof(GameAction.GuildPurge)] = nameof(Keys.P), // Guild only (P)URGE)
         [nameof(GameAction.GuildRename)] = nameof(Keys.R), // Guild only (R)ENAME)
         [nameof(GameAction.GuildList)] = nameof(Keys.L), // Guild only (L)IST MEMBERS); L leaves town on the town bar
+        [nameof(GameAction.GuildExamine)] = nameof(Keys.I), // III Guild only (DOS III guild_menu item 6 "Inspect", s160)
         [nameof(GameAction.ToggleMapLayout)] = nameof(Keys.F2),
     };
 
@@ -303,6 +305,14 @@ public sealed class GameSettings
     /// length either way). A presentation switch; the Phantasie I town "Sound" option is the game's own and does not gate it.
     /// </summary>
     public bool TitleTune { get; set; } = true;
+
+    /// <summary>
+    /// s160 (user, s159): the Amiga's sounds (I and III: title tune, sound effects, III's reward tune; everything on
+    /// <see cref="Audio.PaulaMixer"/>) through the A500's analogue output filters (<see cref="Audio.A500AudioFilter"/>, the
+    /// LED filter in, as the originals leave it). On by default, as the A500 sounds; off = Paula's raw output, brighter.
+    /// A presentation switch, shown on the I and III tabs; a sound already playing keeps its setting.
+    /// </summary>
+    public bool A500Filter { get; set; } = true;
 
     /// <summary>
     /// QoL (D-076, off = manual's four directions): numpad 7 / 9 / 1 / 3 (or Home / PgUp / End / PgDn with Num Lock off)

@@ -165,7 +165,7 @@ public partial class Game1
     }
 
     /// <summary>
-    /// The timed steps of a defeat prompt: the defeat box is one line on DOS (YOUR PARTY HAS BEEN DEFEATED; the remaster's
+    /// The timed steps of a defeat prompt: the defeat box is one line on DOS (`core.defeat.your_party_has_been_defeated`; the remaster's
     /// report above it shows with it); the outcome is one step per line (ASTRAL PLANE, the demon, each fate).
     /// </summary>
     private static int StepsFor(SessionPrompt prompt, IReadOnlyList<string> lines) =>

@@ -38,7 +38,8 @@ public class ImportFlowTests
             Assert.False(GameDataLocator.IsImported(GameId.P3));
             Assert.Equal("p3-amiga-1.0", GameDataLocator.ImportedArt(GameId.P3)["amiga"]);
             var catalog = GraphicsPackCatalog.Load(Path.Combine(Repo.GameData, "phantasie3"));
-            var pack = Assert.Single(catalog.Available);
+            // (s160: the DOS CGA pack may be listed too, from the repo's extract in this dev build.)
+            var pack = catalog.Find("amiga")!;
             Assert.StartsWith(Path.Combine(root, "files"), pack.RootDirectory);
 
             // Re-import: same outputs, the old ones replaced, still one version.
@@ -165,6 +166,91 @@ public class ImportFlowTests
         foreach (var p in Profiles.VersionProfiles.All.Where(p => p.IsSupported && p.Game != "shared"))
             Assert.True(Pipelines.PipelineRegistry.For(p.Id) is { } pl && pl is not Pipelines.PlannedPipeline, $"{p.Id}: no pipeline");
         Assert.Equal("supported", Profiles.VersionProfiles.Get("p2-apple2").Status);
+    }
+}
+
+/// <summary>s160: an Amiga I / III import without the Kickstart 1.3 ROM offers the ROM (profile <c>companions</c>).</summary>
+[Collection(nameof(LocatorCollection))]
+public class KickstartOfferTests
+{
+    private const string P3Adf = "reverse-engineering/amiga/original-images/phantasie3/phantasie3-v1.0-1987-ssi.adf";
+    private const string Kickstart = "reverse-engineering/amiga/original-images/kickstart";
+    private const string P3Topaz = "GameData/phantasie3/graphics/fonts/amiga-topaz-8.json";
+
+    private static JsonObject Manifest(params string[] outputs)
+    {
+        var o = new JsonObject();
+        foreach (var k in outputs)
+            o[k] = "0";
+        return new JsonObject
+        {
+            ["games"] = new JsonObject { ["shared"] = new JsonObject { ["versions"] = new JsonObject { ["x"] = new JsonObject { ["outputs"] = o } } } },
+        };
+    }
+
+    private static ImportReport Report(params string[] okProfiles)
+    {
+        var r = new ImportReport();
+        foreach (var id in okProfiles)
+            r.Versions.Add(new(id, Profiles.VersionProfiles.Get(id).Title, true, 1, [], null));
+        return r;
+    }
+
+    [Fact]
+    public void BothAmigaGamesWithoutTheFont_OneOfferNamingBoth()
+    {
+        var offer = Assert.Single(ImportRunner.MissingCompanions(Report("p1-amiga-1.0", "p3-amiga-1.0"), Manifest()));
+        Assert.Equal("kickstart-1.3", offer.ProfileId);
+        Assert.Equal(Profiles.VersionProfiles.Get("kickstart-1.3").Title, offer.Title);
+        Assert.Equal(["Phantasie I (Amiga v1.0, 1987)", "Phantasie III (Amiga v1.0, 1987)"], offer.ForTitles);
+        Assert.Equal("import.gives.topaz8", offer.GivesId);
+    }
+
+    [Fact]
+    public void FontAlreadyImported_OrNoAmigaGame_NoOffer()
+    {
+        Assert.Empty(ImportRunner.MissingCompanions(Report("p3-amiga-1.0"), Manifest(P3Topaz)));
+        Assert.Empty(ImportRunner.MissingCompanions(Report("p3-dos-1988"), Manifest()));
+        var failed = new ImportReport();
+        failed.Versions.Add(new("p3-amiga-1.0", "x", false, 0, [], "broken"));
+        Assert.Empty(ImportRunner.MissingCompanions(failed, Manifest()));
+    }
+
+    [RequiresFilesFact(P3Adf, Kickstart)]
+    public void AmigaWithoutTheRom_Offers_ThenTheRomAloneAddsTopaz_AndKeepsThePack()
+    {
+        var dir = Directory.CreateTempSubdirectory("phantasie-import-topaz-").FullName;
+        try
+        {
+            var root = Path.Combine(dir, "import");
+            var first = new ImportRunner(root, Repo.GameData).Run(ImportRunner.Scan([Repo.Path(P3Adf)]));
+            Assert.True(first.Committed);
+            var offer = Assert.Single(first.Offers);
+            Assert.Equal("kickstart-1.3", offer.ProfileId);
+            Assert.False(File.Exists(Path.Combine(root, P3Topaz)));
+
+            // The player points at the ROM only: the font is extracted as the full import would, the pack stays.
+            var rom = new ImportRunner(root, Repo.GameData).Run(ImportRunner.Scan([Repo.Path(Kickstart)]));
+            Assert.True(rom.Committed);
+            var v = Assert.Single(rom.Versions);
+            Assert.Equal(("kickstart-1.3", true), (v.ProfileId, v.Ok));
+            Assert.Empty(rom.Offers);
+            Assert.True(Golden.BytesEqualFile(File.ReadAllBytes(Path.Combine(root, P3Topaz)),
+                "src/OpenPhantasie.Data/GameData/phantasie3/graphics/fonts/amiga-topaz-8.json"));
+            Assert.True(File.Exists(Path.Combine(root, "GameData/phantasie1/graphics/fonts/amiga-topaz-8.json")));
+            var manifest = JsonNode.Parse(File.ReadAllBytes(Path.Combine(root, ImportRunner.ManifestName)))!;
+            Assert.Equal("p3-amiga-1.0", (string?)manifest["games"]!["phantasie3"]!["art"]!["amiga"]);
+            Assert.True(Directory.Exists(Path.Combine(root, "files", "reverse-engineering", "amiga", "phantasie3")));
+
+            // Importing the game again without the ROM: the font is in the import now, so no offer.
+            var again = new ImportRunner(root, Repo.GameData).Run(ImportRunner.Scan([Repo.Path(P3Adf)]));
+            Assert.Empty(again.Offers);
+            Assert.True(File.Exists(Path.Combine(root, P3Topaz)));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
     }
 }
 

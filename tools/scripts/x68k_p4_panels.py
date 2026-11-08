@@ -178,6 +178,31 @@ TRG_NEED_TEXT, TRG_NEED_AFTER_TEXT, TRG_COST_TEXT, TRG_COST_AFTER_TEXT = 0x3FD34
 TRG_QUESTION_TEXT, TRG_SHORT_TEXT, TRG_POOR_TEXT, TRG_POOR_2_TEXT, TRG_NOTHING_TEXT = 0x3FD8A, 0x3FD97, 0x3FDAE, 0x3FDBF, 0x3FD13
 # s158: the window's title (訓練場), pushed first (last argument) before the _wopen at SKL_TRANG_WOPEN (0x45F6).
 TRG_TITLE_TEXT = 0x3FD0C
+# s162: the other titled windows' _wopen call sites (name: site). _townent opens its window at two places (two branches
+# of the entry), _endstory is the final screen, _arathamus / _banquet the ending's cell and banquet.
+WOPEN = 0x3379E
+# s162: _endstory's call sites (FORMAT.md 6.9 "The final screen"): the heading's _font / _wprcen, the line loop's _wlocpr,
+# the score line, its number's _font / _wdouti, the code line, its word's _font / _wprint, the postcard loop and the
+# question's _font / _wlocpr; END_TABLE = its line table (0x40D1C: lines 0-1, 2-7, 8 = the question).
+END_HEAD_FONT, END_HEAD, END_HEAD_TEXT = 0xAC8C, 0xACAC, 0x413C8
+END_LINES, END_SCORE, END_SCORE_TEXT, END_NUM_FONT, END_NUM = 0xAA12, 0xAA48, 0x413D5, 0xAA66, 0xAA80
+END_SCORE_AFTER, END_SCORE_AFTER_TEXT = 0xAAAC, 0x413E4
+END_CODE, END_CODE_TEXT, END_WORD_FONT, END_WORD, END_WORD_TEXT = 0xAAD0, 0x413EC, 0xAAEE, 0xAB04, 0x413FB
+END_CODE_AFTER, END_CODE_AFTER_TEXT = 0xAB2E, 0x41400
+END_POSTCARD, END_QUESTION_FONT, END_QUESTION, END_TABLE = 0xAB6E, 0xABAE, 0xABDC, 0x40D1C
+# s162: _deadmsg's call sites: _xblack, _wopen (untitled: its title is the empty string 0x44096), the black fill, the two
+# white outlines, _font(-1, 1, 15, -1), the two centred lines, _xblack after the key.
+DEAD_XBLACK, DEAD_WOPEN, DEAD_TITLE, DEAD_FILL, DEAD_FRAME_1, DEAD_FRAME_2 = 0x1E30C, 0x1E338, 0x44096, 0x1E35A, 0x1E388, 0x1E3B6
+DEAD_FONT, DEAD_LINE_1, DEAD_LINE_1_TEXT, DEAD_LINE_2, DEAD_LINE_2_TEXT = 0x1E3D8, 0x1E3FA, 0x44097, 0x1E41C, 0x440B0
+DEAD_XBLACK_2 = 0x1E490
+# s162: _townent's aging rows: the name / line call sites of its two branches and their strings.
+GATE_NAME_1, GATE_LINE_1, GATE_OLDER, GATE_NAME_2, GATE_LINE_2, GATE_DIED = 0x2F24, 0x2F3A, 0x3FA6F, 0x2FFC, 0x3012, 0x3FA89
+TITLED = {
+    "_inn": 0x24F8, "_townent": 0x2ECA, "_townent.2": 0x2F96, "_mage": 0x3A96, "_guildmenu": 0x4752,
+    "_gatebank": 0x5326, "_bank": 0x596C, "_mystic": 0x6FD6, "_distribute": 0xA81A, "_endstory": 0xAC66,
+    "_arathamus": 0xAD26, "_banquet": 0xAE14, "_hall": 0xDCA2, "_armory": 0xEA0A, "_setuse": 0xFE34,
+    "_trade": 0x10D9A, "_setident": 0x2DD3E,
+}
 
 
 def text(img: bytes, a: int) -> str:
@@ -510,8 +535,227 @@ def main() -> None:
         # s158 (XEiJ, parity/shots/p4-x68k-training-short.png): black, as _confirm's _mkicon cleared _fgcol (see sklup).
         "short_of_gold": seg(TRG_SHORT_TEXT),
     }
+    # s162: the other titled windows (_wopen flag 1) of the buildings, the town gate, the item commands and the ending.
+    # Each site's seven pushes are read back: _wopen(win, x, y, width, height, 1, title).
+    titled = {}
+    for name, site in TITLED.items():
+        assert jsr(site, WOPEN), (name, hex(site))
+        i = at[site]
+        pushes = [ins for _, ins in lines[i - 7:i]]
+        vals = []
+        for ins in pushes:
+            m = re.match(r"movel #(-?\d+),%sp@-$", ins.strip())
+            assert m, (name, ins)
+            vals.append(int(m.group(1)))
+        title, flag, h, w, y, x, win = vals
+        assert flag == 1, (name, flag)
+        titled[name] = {"site": f"0x{site:X}", "window": {"x": x, "y": y, "width": w, "height": h},
+                        "title": f"p4x.0x{title:x}", "title_text": text(img, title)}
+    out["_titled"] = ("s162: the titled windows (_wopen(win, x, y, width, height, 1, title): window grey colour 14, the "
+                      "title bar and frame of _wwind / _wactive, FORMAT.md 6.9 'Window frames') that the buildings, the town "
+                      "gate, the item commands and the ending open in the picture's place; the training hall's (trang) and "
+                      "the shipwright's are their own entries.")
+    out["titled"] = titled
+    # s162: _endstory's final screen (0xA9E6) in its window (titled["_endstory"]): y = 48 for the heading, then 80.
+    wlocpr, wprint, wprcen, wdouti = 0x3403C, 0x32CE4, 0x32F2C, 0x34386
+    for site, target, values, span in (
+            (END_HEAD_FONT, font, (16, 1, 8), 12), (END_HEAD, wprcen, (END_HEAD_TEXT, 140), 12),
+            (END_LINES, wlocpr, (32,), 8), (END_SCORE, wlocpr, (END_SCORE_TEXT, 48, 32), 14),
+            (END_NUM_FONT, font, (16, 8, 1), 12), (END_NUM, wdouti, (3, 32), 8), (END_SCORE_AFTER, wprint, (END_SCORE_AFTER_TEXT,), 6),
+            (END_CODE, wlocpr, (END_CODE_TEXT, 64, 32), 14), (END_WORD_FONT, font, (16, 8, 1), 12),
+            (END_WORD, wprint, (END_WORD_TEXT,), 6), (END_CODE_AFTER, wprint, (END_CODE_AFTER_TEXT,), 6),
+            (END_POSTCARD, wlocpr, (64, 32), 14), (END_QUESTION_FONT, font, (16, 2, 1), 12),
+            (END_QUESTION, wlocpr, (64, 32), 14)):
+        assert jsr(site, target) and all(pushed_before(site, v, span) for v in values), hex(site)
+    table = [struct.unpack_from(">I", img, END_TABLE + 4 * i)[0] for i in range(9)]
+    out["_endstory"] = ("s162: _endstory's final screen (0xA9E6) in its titled window (titled._endstory): the heading "
+                        "centred on heading.x at heading.y in font 0, style 8 (shadow: FORMAT.md 6.12), colour 1; then the "
+                        "segments in order, each at its (x, y) when it has one, else at the text cursor after the last: a "
+                        "string (label / text) or the score (_wdouti(32, digits, n)) in its font / colour (default font 0, "
+                        "text_colour); after the SPACE wait the question in font 1, style 1 (bold), colour 2.")
+    out["endstory"] = {
+        "site": "0xA9E6", "text_colour": 0, "line_step": 16,
+        "heading": seg(END_HEAD_TEXT, x=140, y=48, font=0, style=8, colour=1),
+        "segments": [seg(table[0], x=32, y=80), seg(table[1], x=32, y=96),
+                     seg(END_SCORE_TEXT, x=32, y=128), {"number": True, "digits": 3, "font": 1, "colour": 8},
+                     seg(END_SCORE_AFTER_TEXT),
+                     seg(END_CODE_TEXT, x=32, y=144), seg(END_WORD_TEXT, font=1, colour=8), seg(END_CODE_AFTER_TEXT)]
+                    + [seg(table[i], x=32, y=80 + 64 + 16 * i) for i in range(2, 8)],
+        "question": seg(table[8], x=32, y=80 + 64 + 16 * 9, font=1, style=1, colour=2),
+    }
+    # s162: _townent's aging rows (0x2CF2): in its Town Gate window (titled._townent, opened at the first member who ages),
+    # member m's line at (8, 8 + 16 m): the name (_wlocpr), then " has grown older." / " has died of old age." (_wprint).
+    for site, target, values, span in ((GATE_NAME_1, wlocpr, (8, 32), 14), (GATE_LINE_1, wprint, (GATE_OLDER,), 6),
+                                       (GATE_NAME_2, wlocpr, (8, 32), 14), (GATE_LINE_2, wprint, (GATE_DIED,), 6)):
+        assert jsr(site, target) and all(pushed_before(site, v, span) for v in values), hex(site)
+    assert any("addql #8,%d0" in ins for _, ins in lines[at[GATE_NAME_1] - 6:at[GATE_NAME_1]])
+    out["_townent"] = ("s162: _townent's aging rows in its Town Gate window (titled._townent): member m's row at (x, y + "
+                       "step * m), the name then the line (grown_older / died); the ink as the window's (text_colour, not "
+                       "read: [~]).")
+    out["townent"] = {"site": "0x2CF2", "x": 8, "y": 8, "step": 16, "text_colour": 0,
+                      "grown_older": seg(GATE_OLDER), "died": seg(GATE_DIED)}
+    # s162: _deadmsg (0x1E308): _xblack (the whole 768 x 512 screen colour 0), its untitled window 32, the two lines; after
+    # the key _xblack again, then _acgamend(1).
+    wbox, wfbox, wkprcen, xblack = 0x32FCC, 0x3302E, 0x3406E, 0x31EDC
+    for site, target, values, span in (
+            (DEAD_XBLACK, xblack, (), 0), (DEAD_WOPEN, WOPEN, (DEAD_TITLE, 64, 440, 168, 100, 32), 14),
+            (DEAD_FILL, wfbox, (64, 440, 32), 14), (DEAD_FRAME_1, wbox, (60, 436, 2, 15), 14),
+            (DEAD_FRAME_2, wbox, (58, 434, 3, 15), 14), (DEAD_FONT, font, (15, 1), 12),
+            (DEAD_LINE_1, wkprcen, (DEAD_LINE_1_TEXT, 16, 220), 12), (DEAD_LINE_2, wkprcen, (DEAD_LINE_2_TEXT, 32, 220), 12),
+            (DEAD_XBLACK_2, xblack, (), 0)):
+        assert jsr(site, target) and all(pushed_before(site, v, span) for v in values), hex(site)
+    assert img[DEAD_TITLE] == 0  # untitled
+    out["_deadmsg"] = ("s162: _deadmsg (0x1E308), a wiped-out party: _xblack (screen: the whole 768 x 512 graphic screen "
+                       "filled colour 0), then its untitled window (window: no frame of _wwind's) filled colour fill, two "
+                       "frames (_wbox outlines) in frame_colour, the lines centred on x at y in font 0, style 1 (bold), "
+                       "colour text_colour; _sdbeep, any key; _xblack again before _acgamend(1).")
+    out["deadmsg"] = {
+        "site": "0x1E308", "screen": {"width": 768, "height": 512, "colour": 0},
+        "window": {"x": 100, "y": 168, "width": 440, "height": 64}, "fill": 0,
+        "frames": [{"x": 2, "y": 2, "width": 436, "height": 60}, {"x": 3, "y": 3, "width": 434, "height": 58}],
+        "frame_colour": 15, "font": 0, "style": 1, "text_colour": 15,
+        "lines": [seg(DEAD_LINE_1_TEXT, x=220, y=16), seg(DEAD_LINE_2_TEXT, x=220, y=32)],
+    }
+    building_windows(out, img, jsr, pushed_before, seg)
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(OUT, len(panels), "panels")
+
+
+def building_windows(out: dict, img: bytes, jsr, pushed_before, seg) -> None:
+    """s163: what the inn, the bank and the ending's message pages draw in the grey under their pictures (FORMAT.md 6.9
+    'Building windows under the picture'). Each (site, target, pushed values) is checked against the disassembly."""
+    wprint, wlocpr, wfbox, whole, wprcen, wlocdi, wdouti, wdout, wloc, font, setbtn, wopen68, wputc = (
+        0x32CE4, 0x3403C, 0x3302E, 0x32F6E, 0x32F2C, 0x343B6, 0x34386, 0x340B0, 0x32C68, 0x2E16A, 0x2F9EA, 0x33A5C,
+        0x33E2A)
+    slept, mp_up = 0x3F6F0, 0x3F6FC
+    acc, bal, dep_head, dep_acc, dep_share, per, per_unit = 0x3FF14, 0x3FF19, 0x3FE7A, 0x3FE83, 0x3FE88, 0x3FE99, 0x3FEA8
+    wd_head, wd_acc, wd_bal, wd_limit, wd_amount = 0x3FED7, 0x3FEE0, 0x3FEE5, 0x3FEEA, 0x3FEF1
+    gold_label, gold_unit, share_left, share_right = 0x3FE66, 0x3FE76, 0x3FE93, 0x3FE96
+    for site, target, values, span in (
+            # _inn (0x2188): _font(0, 0, 0, 16), the box _whole(win, 8, 210, 296, 16 * party size + 4), member m's name at
+            # (16, 212 + 16 m) (asll #4, addl #212), " は眠った．", " MP が上がった !" after it on a won MP roll.
+            (0x24BE, font, (16,), 12), (0x25D0, whole, (296, 210, 8), 14), (0x21EA, wlocpr, (16, 212), 14),
+            (0x21FE, wprint, (slept,), 6), (0x22DE, wprint, (mp_up,), 6),
+            # _bank (0x57A4): _font(0, 0, 0, 14), the grey under the picture, the box, the headers, the line, the rows
+            # (name at x 64, balance _wlocdi 5 digits at x 208, y = 212 + 16 i), _disppcg's gold line.
+            (0x5938, font, (14,), 12), (0x5A40, wfbox, (172, 312, 180, 14), 14), (0x5A68, whole, (116, 248, 194, 32), 12),
+            (0x5A8A, wlocpr, (acc, 196, 64), 10), (0x5AAC, wlocpr, (bal, 196, 216), 10),
+            (0x5AD6, wfbox, (1, 184, 211, 64), 14), (0x57E4, wlocpr, (64,), 10), (0x582A, wlocdi, (5, 208), 12),
+            (0x4952, wlocpr, (gold_label, 336, 68), 10), (0x496C, wdouti, (8,), 8), (0x4980, wprint, (gold_unit,), 6),
+            # _deposit (0x4992): the grey, the black band (0, 180, 312, 16) and its heading centred white, the box, the
+            # headers, the line, the share buttons " 0 " … " 3 " at (272, 240 + 20 i) 24 x 16 on colour-4 cells, member
+            # m's row at y 228 + 16 m (name x 64, the share typed at x 196), then "１分配につき" + 6 digits + " GP".
+            (0x4DA4, wfbox, (172, 312, 180, 14), 14), (0x4DCA, wfbox, (16, 312, 180), 14), (0x4DE4, font, (16, 15), 12),
+            (0x4E06, wprcen, (dep_head, 180, 156), 10), (0x4E1C, font, (14,), 12),
+            (0x4E52, whole, (116, 216, 210, 32), 12), (0x4E74, wlocpr, (dep_acc, 212, 64), 10),
+            (0x4E96, wlocpr, (dep_share, 212, 148), 10), (0x4EC0, wfbox, (1, 160, 227, 64), 14),
+            (0x49E2, setbtn, (1, 64, 16, 24, 240, 272), 24), (0x4A22, wloc, (240, 272), 12),
+            (0x4A38, wprint, (share_left,), 6), (0x4A64, wprint, (share_right,), 6),
+            (0x4ACA, wlocpr, (64, 228), 14), (0x4AE4, wloc, (196,), 8), (0x4B6C, wdouti, (1,), 8),
+            (0x4C28, wfbox, (16, 312, 336, 14), 14), (0x4C4A, wlocpr, (per, 336, 16), 10), (0x4C70, wdout, (1, 6), 14),
+            (0x4C86, wprint, (per_unit,), 6),
+            # _withdraw (0x5414): the same band with its heading, the box, four headers, the line; member m's row at
+            # y 228 + 16 m: name x 32, balance x 96, limit x 160 (each _wlocdi 5 digits); _numin's amount at x 224.
+            (0x5632, wfbox, (172, 312, 180, 14), 14), (0x5658, wfbox, (16, 312, 180), 14), (0x5672, font, (16, 15), 12),
+            (0x5694, wprcen, (wd_head, 180, 156), 10), (0x56AA, font, (14,), 12),
+            (0x56E0, whole, (116, 280, 210, 16), 12), (0x5702, wlocpr, (wd_acc, 212, 32), 10),
+            (0x5724, wlocpr, (wd_bal, 212, 96), 10), (0x5746, wlocpr, (wd_limit, 212, 160), 10),
+            (0x5768, wlocpr, (wd_amount, 212, 224), 10), (0x5792, wfbox, (1, 240, 227, 32), 14),
+            (0x54A6, wlocpr, (32, 228), 14), (0x54CA, wlocdi, (5, 96), 12), (0x54EE, wlocdi, (5, 160), 12),
+            (0x5538, 0x309E4, (5, 224, 40, 34), 12), (0x5570, wlocdi, (5, 224), 12),
+            # _endmsg (0xA8B2): window 33 = _wopen68(33, _cvx(160), _cvy(20) + 48 + offset, 312, 52, 1, "") (offset 232
+            # for blocks > 3 other than 6), _wcls(33) before each page, line k at (16, 14 k + 4), at most 3 a page.
+            (0xA9D2, wopen68, (0x413BA, 1, 52, 312), 18), (0xA8FE, wlocpr, (16, 33), 12)):
+        assert jsr(site, target) and all(pushed_before(site, v, span) for v in values), hex(site)
+    assert img[0x413BA] == 0  # _endmsg's window is untitled
+    assert text(img, share_left) == text(img, share_right) == "  "
+    out["_inn"] = ("s163: _inn's rows in its titled window (titled._inn) under INN.PKH: the sunken box _whole(x, y, width, "
+                   "box_pad + row_step * party size) (2-pixel frame outside it, FORMAT.md 6.9), member m's row at (text_x, "
+                   "text_y + row_step * m) for each living member: the name, slept, and mp_up after it on the same row when "
+                   "the MP roll is won. Font 0, ink text_colour, on the window's grey.")
+    out["inn"] = {"site": "0x2188", "box": {"x": 8, "y": 210, "width": 296}, "box_pad": 4, "row_step": 16,
+                  "text_x": 16, "text_y": 212, "text_colour": 0, "slept": seg(slept), "mp_up": seg(mp_up)}
+    out["_bank"] = ("s163: _bank / _deposit / _withdraw in the bank's titled window (titled._bank) under BANK.PKH: 'clear' "
+                    "the grey under the picture; accounts = _bank's table (sunken box, headers, a colour-0 line, member i's "
+                    "name and balance at y row_y + row_step * i, balances _wlocdi(digits): each leading zero two spaces); "
+                    "deposit / withdraw: a black band with the heading centred in colour 15, their box, headers, line and "
+                    "rows (y = row_y + row_step * m); the deposit's share buttons ' n ' (n = 0-3) on button_colour cells; "
+                    "after the shares 'clear_per' and the per-share line. gold = _disppcg's line (the shipwright's).")
+    band = {"x": 0, "y": 180, "width": 312, "height": 16, "colour": 0}
+    out["bank"] = {
+        "site": "0x57A4", "clear": {"x": 0, "y": 180, "width": 312, "height": 172, "colour": 14}, "text_colour": 0,
+        "accounts": {"frame": {"x": 32, "y": 194, "width": 248, "height": 116},
+                     "headers": [seg(acc, x=64, y=196), seg(bal, x=216, y=196)],
+                     "line": {"x": 64, "y": 211, "width": 184, "height": 1, "colour": 0},
+                     "row_y": 212, "row_step": 16, "columns": {"name": 64, "balance": 208}, "digits": 5},
+        "deposit": {"band": band, "heading": seg(dep_head, x=156, y=180, colour=15),
+                    "frame": {"x": 32, "y": 210, "width": 216, "height": 116},
+                    "headers": [seg(dep_acc, x=64, y=212), seg(dep_share, x=148, y=212)],
+                    "line": {"x": 64, "y": 227, "width": 160, "height": 1, "colour": 0},
+                    "row_y": 228, "row_step": 16, "columns": {"name": 64, "share": 196},
+                    "buttons": {"x": 272, "y": 240, "step": 20, "width": 24, "height": 16, "count": 4, "colour": 4,
+                                "pad": seg(share_left)},
+                    "clear_per": {"x": 0, "y": 336, "width": 312, "height": 16, "colour": 14},
+                    "per_share": seg(per, x=16, y=336), "per_digits": 6, "per_unit": seg(per_unit)},
+        "withdraw": {"band": band, "heading": seg(wd_head, x=156, y=180, colour=15),
+                     "frame": {"x": 16, "y": 210, "width": 280, "height": 116},
+                     "headers": [seg(wd_acc, x=32, y=212), seg(wd_bal, x=96, y=212), seg(wd_limit, x=160, y=212),
+                                 seg(wd_amount, x=224, y=212)],
+                     "line": {"x": 32, "y": 227, "width": 240, "height": 1, "colour": 0},
+                     "row_y": 228, "row_step": 16,
+                     "columns": {"name": 32, "balance": 96, "limit": 160, "amount": 224}, "digits": 5},
+        "gold": {"x": 68, "y": 336, "label": f"p4x.0x{gold_label:x}", "label_text": text(img, gold_label), "digits": 8,
+                 "unit": f"p4x.0x{gold_unit:x}", "unit_text": text(img, gold_unit)},
+    }
+    # s163: the item windows' rows (FORMAT.md 6.9 "Item lists", read s151): the headers and lines checked here.
+    for site, target, values, span in (
+            (0xEB90, wlocpr, (0x42588, 16, 80), 10), (0xEBBA, wlocpr, (0x4258D, 16, 192), 10),
+            (0xEBE4, wlocpr, (0x42593, 16, 248), 10), (0xEC16, wfbox, (1, 248, 31, 32), 14),
+            (0xEABA, whole, (208, 280, 16), 12), (0xEA8A, whole, (16, 51, 224, 245), 12), (0xEAF0, wfbox, (18, 51, 222, 245, 14), 14),
+            (0xEB1A, wlocpr, (0x42583, 224, 253), 10), (0xEB62, setbtn, (64, 77, 16, 51, 224, 245), 18),
+            (0xE1C4, wprint, (0x42540,), 8), (0xE1A4, 0x34300, (4,), 8),
+            (0x10702, wlocpr, (0x4277C, 48, 56), 10), (0x1072C, wlocpr, (0x42781, 48, 192), 10),
+            (0x10756, wlocpr, (0x42787, 48, 240), 10), (0x10788, wfbox, (1, 280, 63, 16), 14),
+            (0x1053C, wlocpr, (56,), 10), (0x10592, 0x34338, (3, 208), 12), (0x105E2, wlocdi, (1, 240), 14),
+            (0x9CBE, wlocpr, (0x40BAC, 16, 48), 10), (0x9CE8, wlocpr, (0x40BB1, 16, 192), 10),
+            (0x9D12, wlocpr, (0x40BB7, 16, 240), 10), (0x9D44, wfbox, (1, 280, 31, 16), 14)):
+        assert jsr(site, target) and all(pushed_before(site, v, span) for v in values), hex(site)
+    item_rows = {"top": 64, "step": 32, "count": 9, "letter_x": 16, "icon_x": 24, "name_x": 56, "points_x": 208,
+                 "points_digits": 3, "users_x": 240, "users_step": 8}
+    out["_item_windows"] = ("s163: the item windows' rows (FORMAT.md 6.9 'Item lists'; titled.<key> is each window): row i "
+                            "at y = top + step * i, 32 high; the letter 'A' + i in letter_colour at (letter_x, y + 8), the "
+                            "icon (font 2, 32 x 32) at (icon_x, y), the name at (name_x, y + 8), the points (ids 1-84) "
+                            "padded to points_digits at points_x (or not_usable when the marked member cannot use it), the "
+                            "price padded to price_digits at price_x, the users' digits m + 1 at users_x + users_step * m; "
+                            "headers, the colour-0 line, sunken frames (_whole) and the member's name at their places. "
+                            "_distribute's equipment table under its divider is not read [~].")
+    out["item_windows"] = {
+        "letter_colour": 2, "text_colour": 0, "back_colour": 14,
+        "_armory": {"rows": {"top": 32, "step": 32, "count": 6, "letter_x": 32, "icon_x": 44, "name_x": 80,
+                             "points_x": 192, "points_digits": 4, "price_x": 240, "price_digits": 5},
+                    "headers": [seg(0x42588, x=80, y=16), seg(0x4258D, x=192, y=16), seg(0x42593, x=248, y=16)],
+                    "line": {"x": 32, "y": 31, "width": 248, "height": 1, "colour": 0},
+                    "frames": [{"x": 16, "y": 16, "width": 280, "height": 208}, {"x": 245, "y": 224, "width": 51, "height": 16}],
+                    "more": seg(0x42583, x=253, y=224), "not_usable": seg(0x42540),
+                    "member": {"x": 20, "y": 256}, "message": {"x": 32, "y": 288}},
+        "_trade": {"rows": item_rows,
+                   "headers": [seg(0x4277C, x=56, y=48), seg(0x42781, x=192, y=48), seg(0x42787, x=240, y=48)],
+                   "line": {"x": 16, "y": 63, "width": 280, "height": 1, "colour": 0}, "member": {"x": 16, "y": 16}},
+        "_distribute": {"rows": {"top": 32, "step": 32, "count": 5, "icon_x": 16, "name_x": 48, "points_x": 208,
+                                 "points_digits": 3, "users_x": 240, "users_step": 8},
+                        "headers": [seg(0x40BAC, x=48, y=16), seg(0x40BB1, x=192, y=16), seg(0x40BB7, x=240, y=16)],
+                        "line": {"x": 16, "y": 31, "width": 280, "height": 1, "colour": 0},
+                        "frames": [{"x": 16, "y": 208, "width": 280, "height": 4}], "lit_xor": 15},
+    }
+    out["_endmsg"] = ("s163: _endmsg(block)'s window 33 for each ending page: untitled (white, colour 15, black frame and "
+                      "shadow) at window (x, y) of the screen, y + lower_offset for blocks > 3 other than 6; line k at "
+                      "(text_x, text_y + line_step * k), at most 3 a page, ink colour 0. _common_proc's Lord titles go in "
+                      "the same window (its first line). The pictures under it: the ending's street (origin (160, 20)), "
+                      "the banquet / cell windows (160, 32).")
+    out["endmsg"] = {"site": "0xA8B2", "window": {"x": 160, "y": 68, "width": 312, "height": 52}, "lower_offset": 232,
+                     "upper_blocks": [0, 1, 2, 3, 6], "text_x": 16, "text_y": 4, "line_step": 14, "lines": 3,
+                     "fill": 15, "text_colour": 0,
+                     "scene_y": {"p4.ending.street": 20, "p4.ending.banquet": 32, "p4.ending.cell": 32}}
 
 
 if __name__ == "__main__":

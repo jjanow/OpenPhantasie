@@ -132,6 +132,8 @@ public sealed partial class P4TownLoop
         _screen = null;
         ScreenTitle = null;
         Marked = null;
+        BankWindow = null;
+        EndingBlock = null;
         SkillWindow = null;
         TrainingWindow = null;
         _choices.Clear();
@@ -594,12 +596,19 @@ public sealed partial class P4TownLoop
 
     // --- Bank (_bank, _deposit, _withdraw) ---------------------------------------------------------------------------
 
+    /// <summary>
+    /// s163: what the bank's window shows under its picture (<c>_bank</c>'s account table, <c>_deposit</c>'s shares,
+    /// <c>_withdraw</c>'s rows; FORMAT.md 6.9 "Building windows under the picture") while the bank is open; else null.
+    /// </summary>
+    public P4BankWindow? BankWindow { get; private set; }
+
     private IEnumerable<P4TownPrompt> Bank()
     {
         ScreenTitle = GameText.S("p4x.0x3fef8");
         while (true)
         {
             _window.Clear();
+            BankWindow = new(P4BankView.Accounts, [], null);
             yield return Pick([
                 new(GameText.S("p4x.0x3fe26"), Party.Gold != 0 && Party.Members.Count > 0),
                 new(GameText.S("p4x.0x3fe46"), Party.Gold != 0xFFFF),
@@ -610,10 +619,13 @@ public sealed partial class P4TownLoop
             if (_choice == 0)
             {
                 SharesFor = P4ShareKind.Gold;
+                BankWindow = new(P4BankView.Deposit, [], null);
                 yield return P4TownPrompt.Shares;
                 var accounts = P4Town.Deposit(_options, _tables.Towns, Party.Gold, Party.Members.Select(m => m.Account).ToList(),
                     _shares);
                 var per = (long)Math.Truncate(Party.Gold / (0.0001 + _shares.Sum()));
+                BankWindow = new(P4BankView.Deposit,
+                    [.. Party.Members.Select((m, i) => new P4BankRow(i, m.Name, m.Account, 0, null, _shares[i]))], per);
                 for (var i = 0; i < accounts.Length; i++)
                     Party.Members[i].Account = accounts[i];
                 Party.Gold = 0;
@@ -621,18 +633,25 @@ public sealed partial class P4TownLoop
                 yield return P4TownPrompt.Wait;
                 continue;
             }
+            // s163: _withdraw prints every member's row (name, balance, limit); only a limit above 0 asks for the amount.
+            var rows = new List<P4BankRow>();
             for (var i = 0; i < Party.Members.Count; i++)
             {
                 var m = Party.Members[i];
                 var (_, after) = P4Town.Withdraw(_options, _tables.Towns, m.Account, Party.Gold, long.MaxValue);
                 var limit = after - Party.Gold;
+                rows.Add(new(i, m.Name, m.Account, Math.Max(0, limit), null, null));
+                BankWindow = new(P4BankView.Withdraw, [.. rows], null);
                 if (limit <= 0)
                     continue;
                 Marked = i;
                 _window.Clear();
                 _window.Line($"{m.Name,-10} {GameText.S("p4x.0x3fee5")} {m.Account}  {GameText.S("p4x.0x3feea")} {limit}");
                 yield return Number(limit);
+                var before = Party.Gold;
                 (m.Account, Party.Gold) = P4Town.Withdraw(_options, _tables.Towns, m.Account, Party.Gold, _number);
+                rows[^1] = rows[^1] with { Amount = Party.Gold - before };
+                BankWindow = new(P4BankView.Withdraw, [.. rows], null);
             }
             Marked = null;
             yield return P4TownPrompt.Wait;
@@ -1195,6 +1214,7 @@ public sealed partial class P4TownLoop
                 _scene = P4TownScene.EndingCell;
             // _endmsg: three lines a page, each page waits for SPACE.
             var lines = text.Messages[block];
+            EndingBlock = block; // s163: _endmsg(block)'s window 33 holds the page
             for (var i = 0; i < lines.Count; i += 3)
             {
                 _window.Clear();
@@ -1215,6 +1235,9 @@ public sealed partial class P4TownLoop
             }
         }
         // _endstory: "Phantasie IV — THE GAME END", the score and the fixed completion code; then the save question.
+        // s162: its _wopen(32, …, 1, "Phantasie IV") fills the picture's place grey: no picture from here on.
+        _scene = P4TownScene.EndingFinal;
+        EndingBlock = null;
         _window.Clear();
         foreach (var id in text.FinalLines)
             _window.Line(GameText.S(id));
@@ -1241,6 +1264,12 @@ public sealed partial class P4TownLoop
     public P4EndingStep EndingStep { get; private set; }
 
     /// <summary>
+    /// s163: the <c>_endmsg</c> block whose page waits now (its window 33 holds the page's lines; <c>_common_proc</c>'s Lord
+    /// titles go in the same window, so they keep the last block), else null.
+    /// </summary>
+    public int? EndingBlock { get; private set; }
+
+    /// <summary>
     /// s158: the save question's answer (<c>_endstory</c> <c>0xAC02</c>–<c>0xAC26</c>): a YES saves first (<c>_disk(1)</c>;
     /// in the remaster the front end's save, taken before this call, while the prompt is still the final screen), then on
     /// either answer the second <c>_sdbeep</c> (<c>0xAC1A</c>) and <c>_acgamend(1)</c>.
@@ -1255,3 +1284,16 @@ public sealed partial class P4TownLoop
         Party.Sounds.Note(P4Sounds.EndingFinal);
     }
 }
+
+/// <summary>s163: which of the bank's tables its window shows (<see cref="P4TownLoop.BankWindow"/>).</summary>
+public enum P4BankView { Accounts, Deposit, Withdraw }
+
+/// <summary>
+/// s163: a row of the bank's deposit / withdraw table: party member <see cref="Member"/>, the balance shown
+/// (<c>_withdraw</c>: before the withdrawal; deposit: after), the withdraw limit, the amount drawn (null until asked; a
+/// limit of 0 asks nothing), the deposit share.
+/// </summary>
+public sealed record P4BankRow(int Member, string Name, long Account, long Limit, long? Amount, int? Share);
+
+/// <summary>s163: the bank window's view, its rows (deposit / withdraw) and the deposit's amount per share once paid in.</summary>
+public sealed record P4BankWindow(P4BankView View, IReadOnlyList<P4BankRow> Rows, long? PerShare);

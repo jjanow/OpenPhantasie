@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework.Input;
 using OpenPhantasie.Core;
 using OpenPhantasie.Data;
@@ -17,9 +18,23 @@ public sealed class AmigaMessageBox
 
     public bool Shown => Text.Length > 0;
 
-    /// <summary>True when <paramref name="line"/> is one of the window's texts (resolved through the string tables).</summary>
+    /// <summary>
+    /// True when <paramref name="line"/> is one of the window's texts (resolved through the string tables). s162: a text
+    /// with format items (<c>{0}</c>: a member's name, Monster Evaluate's level) takes any line it formats to.
+    /// </summary>
     public static bool Takes(KeepWindowsLayout.MessageWindow? window, string? line) =>
-        window is not null && !string.IsNullOrEmpty(line) && window.TextIds.Any(id => GameText.S(id) == line);
+        window is not null && !string.IsNullOrEmpty(line) && window.TextIds.Any(id => Matches(GameText.S(id), line));
+
+    /// <summary>Whether <paramref name="line"/> is <paramref name="text"/> with each format item filled by some text.</summary>
+    public static bool Matches(string text, string line)
+    {
+        if (text == line)
+            return true;
+        if (!text.Contains('{'))
+            return false;
+        var pattern = "^" + Regex.Replace(Regex.Escape(text), @"\\\{\d+(?:,-?\d+)?(?::[^}]*)?}", ".+?") + "$";
+        return Regex.IsMatch(line, pattern, RegexOptions.Singleline);
+    }
 
     /// <summary>Opens the window with <paramref name="line"/> when <paramref name="enabled"/> and the window takes it.</summary>
     public bool Offer(KeepWindowsLayout.MessageWindow? window, bool enabled, string? line)

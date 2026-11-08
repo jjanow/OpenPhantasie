@@ -13,6 +13,9 @@ namespace OpenPhantasie.Client;
 /// <para>Rows: a path typed in (Return adds it; files dropped on the window are added too), the paths added (Delete
 /// removes one), the Steam / GOG library folders found on this machine, IMPORT, DONE. While importing a progress line
 /// shows; then the report replaces the list until a key is pressed.</para>
+/// <para>s160: when the report names a file the import still lacks (<see cref="ImportReport.Offers"/>: Amiga I / III
+/// imported without the Kickstart 1.3 ROM, so no topaz font), A asks for that file: only the path row shows, and the
+/// path typed or dropped there is imported at once, alone (the rest of the import stays).</para>
 /// </summary>
 public sealed class ImportScreen
 {
@@ -23,6 +26,7 @@ public sealed class ImportScreen
     public const int VisibleLines = 8;
 
     private readonly Func<IReadOnlyList<string>, IProgress<string>, ImportReport> _run;
+    private readonly Func<IProgress<string>, ImportReport> _refresh;
     private readonly Func<IReadOnlyList<StoreLibraries.Library>> _libraries;
     private readonly List<string> _paths = [];
     private IReadOnlyList<StoreLibraries.Library> _found = [];
@@ -30,15 +34,19 @@ public sealed class ImportScreen
     private volatile string _progress = "";
     private List<MenuLine> _report = [];
     private int _scroll;
+    private ImportOffer? _offer;
 
     /// <param name="run">Scan and import the paths (default: <see cref="ImportRunner"/> into <paramref name="importRoot"/>).</param>
+    /// <param name="refresh">Re-run the versions built by an older recipe (default: <see cref="ImportRunner.Refresh"/>).</param>
     public ImportScreen(string importRoot,
         Func<IReadOnlyList<string>, IProgress<string>, ImportReport>? run = null,
-        Func<IReadOnlyList<StoreLibraries.Library>>? libraries = null)
+        Func<IReadOnlyList<StoreLibraries.Library>>? libraries = null,
+        Func<IProgress<string>, ImportReport>? refresh = null)
     {
         ImportRoot = importRoot;
         _run = run ?? ((paths, progress) =>
             new ImportRunner(importRoot, GameDataLocator.ShippedRoot).Run(ImportRunner.Scan(paths), progress));
+        _refresh = refresh ?? (progress => new ImportRunner(importRoot, GameDataLocator.ShippedRoot).Refresh(progress));
         _libraries = libraries ?? StoreLibraries.Find;
     }
 
@@ -55,6 +63,12 @@ public sealed class ImportScreen
     public IReadOnlyList<string> Paths => _paths;
     public string Typed { get; private set; } = "";
 
+    /// <summary>The missing file the last report offered to add (null: none).</summary>
+    public ImportOffer? Offer => _offer;
+
+    /// <summary>Asking for <see cref="Offer"/>'s file: the next path given is imported alone.</summary>
+    public bool AskingForOffer { get; private set; }
+
     /// <summary>Run when an import committed (the shell re-reads the import: <see cref="GameDataLocator.UseImport"/>).</summary>
     public Action? OnImported { get; set; }
 
@@ -63,6 +77,8 @@ public sealed class ImportScreen
         FirstRun = firstRun;
         IsOpen = true;
         ShowingReport = false;
+        AskingForOffer = false;
+        _offer = null;
         Imported = false;
         Cursor = 0;
         _scroll = 0;
@@ -76,7 +92,7 @@ public sealed class ImportScreen
     private int LibraryRow(int i) => 1 + _paths.Count + i;
     private int ImportRow => 1 + _paths.Count + Libraries.Count;
     private int DoneRow => ImportRow + 1;
-    public int RowCount => DoneRow + 1;
+    public int RowCount => AskingForOffer ? 1 : DoneRow + 1;
 
     /// <summary>Text typed (Window.TextInput): goes into the path row; backspace deletes.</summary>
     public void OnTextInput(char c)
@@ -97,6 +113,13 @@ public sealed class ImportScreen
     {
         if (!IsOpen || Running)
             return;
+        if (AskingForOffer)
+        {
+            var given = paths.Select(Checked).OfType<string>().ToList();
+            if (given.Count > 0)
+                Start(given);
+            return;
+        }
         foreach (var p in paths)
             AddPath(p);
         ShowingReport = false;
@@ -104,15 +127,43 @@ public sealed class ImportScreen
 
     private bool AddPath(string raw)
     {
+        if (Checked(raw) is not { } p)
+            return false;
+        if (!_paths.Contains(p))
+            _paths.Add(p);
+        return true;
+    }
+
+    /// <summary>The full path of an existing file or folder typed or dropped (<c>~</c> = home), or null.</summary>
+    private static string? Checked(string raw)
+    {
         var p = raw.Trim().Trim('"');
         if (p.StartsWith('~'))
             p = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + p[1..];
         if (p.Length == 0 || !(File.Exists(p) || Directory.Exists(p)))
-            return false;
-        p = Path.GetFullPath(p);
-        if (!_paths.Contains(p))
-            _paths.Add(p);
-        return true;
+            return null;
+        return Path.GetFullPath(p);
+    }
+
+    /// <summary>
+    /// s163 (10-importer.md 4.4): the import holds versions built by an older recipe of this importer; re-run them from
+    /// the files they were imported from, on a background task, and show the report (a version whose files are gone
+    /// is named there, with a request to import it again).
+    /// </summary>
+    public void OpenRefresh()
+    {
+        Open(firstRun: false);
+        _progress = UiText.S("import.refreshing");
+        _task = Task.Run(() => _refresh(new SyncProgress(m => _progress = m)));
+    }
+
+    /// <summary>Import <paramref name="paths"/> on a background task.</summary>
+    private void Start(IReadOnlyList<string> paths)
+    {
+        AskingForOffer = false;
+        Typed = "";
+        _progress = UiText.S("import.scanning");
+        _task = Task.Run(() => _run(paths, new SyncProgress(m => _progress = m)));
     }
 
     /// <summary>Poll the background import (call once a frame).</summary>
@@ -123,12 +174,14 @@ public sealed class ImportScreen
         _task = null;
         ShowingReport = true;
         _scroll = 0;
+        _offer = null;
         if (task.IsFaulted)
         {
             _report = Wrap(UiText.F("import.failed", task.Exception!.GetBaseException().Message), MenuLineStyle.Normal);
             return;
         }
         var report = task.Result;
+        _offer = report.Offers.FirstOrDefault();
         if (report.Committed)
         {
             Imported = true;
@@ -153,6 +206,9 @@ public sealed class ImportScreen
             lines.AddRange(Wrap(UiText.F("import.skipped", s), MenuLineStyle.Dim));
         foreach (var n in report.Notes)
             lines.AddRange(Wrap(n, MenuLineStyle.Dim));
+        foreach (var o in report.Offers)
+            lines.AddRange(Wrap(UiText.F("import.offer", string.Join(", ", o.ForTitles), UiText.S(o.GivesId), o.Title),
+                MenuLineStyle.Header));
         if (lines.Count == 0)
             lines.AddRange(Wrap(UiText.S("import.nothing"), MenuLineStyle.Normal));
         return lines;
@@ -175,12 +231,31 @@ public sealed class ImportScreen
                     case Keys.Down: _scroll = Math.Clamp(_scroll + 1, 0, Math.Max(0, _report.Count - VisibleLines)); break;
                     case Keys.PageUp: _scroll = Math.Max(0, _scroll - VisibleLines); break;
                     case Keys.PageDown: _scroll = Math.Clamp(_scroll + VisibleLines, 0, Math.Max(0, _report.Count - VisibleLines)); break;
+                    case Keys.A when _offer is not null:
+                        ShowingReport = false;
+                        AskingForOffer = true;
+                        Typed = "";
+                        Cursor = 0;
+                        _scroll = 0;
+                        break;
                     case Keys.Enter or Keys.Space or Keys.Escape:
                         ShowingReport = false;
                         Cursor = MainMenuScreen.Games.Any(MainMenuScreen.IsPlayable) ? DoneRow : 0;
                         _scroll = 0;
                         break;
                 }
+                continue;
+            }
+            if (AskingForOffer)
+            {
+                if (key == Keys.Escape)
+                {
+                    AskingForOffer = false;
+                    Typed = "";
+                    Cursor = 0;
+                }
+                else if (key == Keys.Enter && Checked(Typed) is { } file)
+                    Start([file]);
                 continue;
             }
             switch (key)
@@ -239,9 +314,7 @@ public sealed class ImportScreen
                 Typed = "";
             if (_paths.Count == 0)
                 return false;
-            var paths = _paths.ToList();
-            _progress = UiText.S("import.scanning");
-            _task = Task.Run(() => _run(paths, new SyncProgress(m => _progress = m)));
+            Start(_paths.ToList());
             return false;
         }
         return Cursor == DoneRow;
@@ -255,7 +328,8 @@ public sealed class ImportScreen
     private int HeaderCount => 2 + MainMenuScreen.Games.Count + 1;
 
     public string Help => Running ? UiText.S("import.help.running")
-        : ShowingReport ? UiText.S("import.help.report")
+        : ShowingReport ? (_offer is null ? UiText.S("import.help.report") : UiText.S("import.help.report.offer"))
+        : AskingForOffer ? UiText.S("import.help.offer")
         : Cursor == 0 ? UiText.S("import.help.typing")
         : Cursor <= _paths.Count ? UiText.S("import.help.path")
         : UiText.S("import.help");
@@ -320,10 +394,16 @@ public sealed class ImportScreen
     private List<MenuLine> RowLines()
     {
         var rows = new List<MenuLine>();
-        var label = UiText.S("import.row.path");
+        var label = AskingForOffer ? UiText.S("import.row.offer") : UiText.S("import.row.path");
         var room = Columns - 1 - label.Length - 1;
         var typed = Typed.Length > room ? "..." + Typed[^(room - 3)..] : Typed;
         rows.Add(Row(0, label + typed + (Cursor == 0 ? "_" : "")));
+        if (AskingForOffer && _offer is { } offer)
+        {
+            // Only the path row is a row; the prompt sits under it, so the mouse rows stay where they are.
+            rows.AddRange(Wrap(UiText.F("import.offer.prompt", offer.Title, UiText.S(offer.GivesId)), MenuLineStyle.Dim));
+            return rows;
+        }
         for (var i = 0; i < _paths.Count; i++)
             rows.Add(Row(PathRow(i), "  " + Tail(_paths[i], Columns - 3)));
         var libs = Libraries;

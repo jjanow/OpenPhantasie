@@ -3,6 +3,12 @@
 OpenPhantasie's own code is under the MIT licence (`LICENSE`). The source tree contains no third-party code; the
 packages below are fetched by NuGet at build time, and builds of the game redistribute the runtime ones.
 
+The source tree holds one third-party data file set, shipped with the game's data:
+
+| Files | Used for | Source | Licence |
+|---|---|---|---|
+| `src/OpenPhantasie.Data/GameData/phantasie2/graphics/fonts/emutos-st-8x8.json`, `emutos-st-8x8-italic.json` | Phantasie II (Atari ST): alert boxes, end-of-fight boxes and the ending's text | EmuTOS `bios/fnt_st_8x8.c`, tag VERSION_1_4 (converted by `tools/scripts/emutos_st_font.py`) | GNU GPL 2.0 or later; source, copyright and licence text in `emutos-st-8x8.LICENSE.txt` beside them |
+
 | Package | Used by | Licence |
 |---|---|---|
 | MonoGame.Framework.DesktopGL 3.8 | the game client (graphics, input, audio) | Microsoft Public License (MS-PL) |

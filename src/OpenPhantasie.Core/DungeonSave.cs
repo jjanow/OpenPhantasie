@@ -3,7 +3,7 @@ namespace OpenPhantasie.Core;
 /// <summary>
 /// The DOS one-slot dungeon save [C] (s36, dungeon-representation.md §Leaving and re-entering): <c>DNG.SAV</c> = dungeon
 /// id word + map-screen image, <c>DNGX.SAV</c> = the 2500-byte live level buffer. Written only by OV2 <c>0x5929</c> when
-/// the party leaves by an exit cell and answers YES to "WOULD YOU LIKE TO SAVE THE DUNGEON MAP?". An entry loads it only
+/// the party leaves by an exit cell and answers YES to `core.prompt.save_dungeon_map`. An entry loads it only
 /// when its id matches (no time factor). D-027 (user s37): DOS rule, except that a NO purges a slot holding this same
 /// dungeon (DOS keeps it, so an older save would come back).
 /// </summary>

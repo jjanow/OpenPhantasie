@@ -5,7 +5,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Client;
 
 /// <summary>
-/// III's DOS bank, "Deposit some gold" (<c>p3.bank</c> = <c>dos</c>, ovl2 <c>0x297a</c>): an amount field that opens holding
+/// III's DOS bank, `p3town.bank_deposit_some` (<c>p3.bank</c> = <c>dos</c>, ovl2 <c>0x297a</c>): an amount field that opens holding
 /// the party's gold; Return deposits it (<see cref="GameSession.DosBankDeposit"/>: split evenly, the remainder 1 gold at a
 /// time to random members). Digits shift in from the right, Backspace drops the last one, Esc leaves. The field's look
 /// is the remaster's (DOS III's screen was not captured).
@@ -67,7 +67,7 @@ public sealed class DosDepositDialog : IModalDialog
 /// III's town Trade Items (manual III PDF 6: "allows an adventurer to give an item to another adventurer, or sell it by
 /// trading it to adventurer 7"; D3-027): pick the giver (1–6), one of its items (1–9), then the receiver (1–6) or 7 to
 /// sell (manual rule only; <c>give-only</c> = the Amiga's Trade has no 7). After each move the dialog goes back to "who
-/// will trade?", as the Amiga's does (seen s116: "Whose item shall be traded?" again, no message); Esc steps back one
+/// will trade?", as the Amiga's does (seen s116: `p3town.trade_whose` again, no message); Esc steps back one
 /// level. Worn items may be traded: both members re-ready their equipment.
 /// </summary>
 public sealed class TradeDialog : IModalDialog, IAmigaWindowDialog
@@ -79,8 +79,8 @@ public sealed class TradeDialog : IModalDialog, IAmigaWindowDialog
     private int _cursor;
 
     /// <summary>
-    /// III Amiga's Trade windows (s117, FORMAT.md §8): "Whose item shall be traded?" (the party: name, race, level, class,
-    /// status), "Trade which item?" (the giver's items), "Who gets the item?" (the party, plus the sale row under the
+    /// III Amiga's Trade windows (s117, FORMAT.md §8): `p3town.trade_whose` (the party: name, race, level, class,
+    /// status), `p3town.trade_which` (the giver's items), `p3town.trade_who_gets` (the party, plus the sale row under the
     /// manual's rule); Up / Down pick (yellow), Return or O = OK, C = CANCEL (leaves), digits as before.
     /// </summary>
     public AmigaWindowView? View(GameSession session, GameDataRepository data, KeepWindowsLayout layout)
@@ -263,9 +263,9 @@ public interface IAmigaWindowDialog
 }
 
 /// <summary>
-/// III Amiga's Bank (window 9, FORMAT.md §8, s117): "The party is in the bank." with the party's gold and the members'
+/// III Amiga's Bank (window 9, FORMAT.md §8, s117): `p3town.bank_title` with the party's gold and the members'
 /// total in the bank, two picks and OK / CANCEL. Up / Down pick, Return or O = OK, C or Esc = CANCEL; 1 / 2 pick and OK.
-/// Under the DOS bank rules (<c>p3.bank</c> = <c>dos</c>, the Amiga's own): "Withdraw all gold" closes at once, "Deposit
+/// Under the DOS bank rules (<c>p3.bank</c> = <c>dos</c>, the Amiga's own): `p3town.bank_withdraw_all` closes at once, "Deposit
 /// some gold" asks "How much:" in the same window with an empty field (the Amiga; DOS opens it holding the gold) and
 /// Return deposits it, both with no message. Under the other rules the picks are the remaster's Withdraw / Deposit,
 /// whose own dialogs follow (<see cref="Follow"/>).
@@ -422,6 +422,55 @@ public static class AmigaShareWindow
     /// The key the prompt menu gets for <paramref name="key"/> on the share window: O = OK (Return, the highlighted count),
     /// null for C = CANCEL (the front end leaves the deposit, <see cref="SessionPrompts.CancelBankDeposit"/>); any other key
     /// unchanged (arrows, digits, Return).
+    /// </summary>
+    public static Keys? Choice(Keys key) => key switch
+    {
+        Keys.O => Keys.Enter,
+        Keys.C => null,
+        _ => key,
+    };
+}
+
+/// <summary>
+/// s163: III's "Who will disarm the trap?" (<see cref="Phantasie3Campaign.AsksDisarmer"/>) as III Amiga's window 6 under
+/// AMIGA SCREENS: <c>0x1c6d6</c> calls the member picker <c>0x127ce(92)</c>, the heal target's window (struct
+/// <c>0x23360</c>, pack <c>keep_windows.heal</c>): the title (<c>0x23084[92]</c>, colour 8) at cell (5, 7), one member a
+/// row (<c>0x12ac8</c>: name, race, level, class, status; colour 4, the cursor's row 8), OK / CANCEL. Up / Down move the
+/// cursor, Return or O take it, C (and Esc) = CANCEL, the prompt's <see cref="SessionPrompt.EscapeChoice"/>; a digit or a
+/// click on a row picks that member (the Amiga's row press only moves the cursor <c>[~]</c>).
+/// </summary>
+public static class AmigaDisarmWindow
+{
+    /// <summary>The window for <paramref name="prompt"/>, or null: not the disarm question, or the pack lacks window 6.</summary>
+    public static AmigaWindowView? View(GameSession session, SessionPrompt prompt, int cursor, KeepWindowsLayout layout)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(prompt);
+        ArgumentNullException.ThrowIfNull(layout);
+        if (prompt.Kind != SessionPromptKind.DungeonEvent || session.DungeonEventPrompt is not { } ev
+            || !Phantasie3Campaign.AsksDisarmer(ev) || layout.Heal is not { Text.Count: >= 6 } w)
+            return null;
+        var t = w.Text;
+        var rows = new List<AmigaWindowRow> { new(t[0].X, t[0].Y, prompt.Lines.Count > 0 ? prompt.Lines[0] : "", true) };
+        var picks = new List<(int, Keys)>();
+        var members = session.Party.Members;
+        for (var i = 0; i < members.Count; i++)
+        {
+            var m = members[i];
+            var y = t[1].Y + 8 * i;
+            string[] cells = [m.Name, UiText.Name(m.Race), m.Level.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                UiText.Name(m.Class), UiText.S($"p3combat.window_status.{(int)P3Fight.StatusOf(m)}")];
+            for (var c = 0; c < cells.Length; c++)
+                rows.Add(new(t[1 + c].X, y, cells[c], i == cursor));
+            if (i < 9)
+                picks.Add((rows.Count - cells.Length, Keys.D1 + i));
+        }
+        return new AmigaWindowView(w, rows, picks);
+    }
+
+    /// <summary>
+    /// The key the prompt menu gets for <paramref name="key"/>: O = OK (Return, the cursor's member), null for C = CANCEL
+    /// (the front end answers the prompt's escape choice); any other key unchanged (arrows, digits, Return).
     /// </summary>
     public static Keys? Choice(Keys key) => key switch
     {

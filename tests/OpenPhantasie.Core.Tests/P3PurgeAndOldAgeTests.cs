@@ -38,6 +38,24 @@ public class P3PurgeAndOldAgeTests
         Assert.Null(s.Party.Elemental);
     }
 
+    /// <summary>
+    /// s160: DOS III refuses before it asks "Are you sure …?" (guild_menu root 0xafe3…0xb075), so the front end reads the
+    /// refusal first: a party member under <c>p3.purge</c> = dos is refused, under the manual's rule nothing is.
+    /// </summary>
+    [OriginalDataFact]
+    public void PurgeRefusal_IsTheRefusalTryPurgeWouldGive_AndChangesNothing()
+    {
+        var dos = With("p3.purge", "dos");
+        dos.OpenGuild();
+        var member = dos.Party.Members[0];
+        Assert.Equal("You cannot purge a party member.", dos.PurgeRefusal(member));
+        Assert.Contains(member, dos.Roster.Occupied);
+        var manual = WithParty(members: 2);
+        manual.OpenGuild();
+        Assert.Null(manual.PurgeRefusal(manual.Party.Members[0]));
+        Assert.Contains(manual.Party.Members[0], manual.Roster.Occupied);
+    }
+
     [OriginalDataFact]
     public void Purge_DosOption_RefusesAPartyMember()
     {

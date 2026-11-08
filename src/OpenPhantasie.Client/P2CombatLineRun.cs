@@ -208,7 +208,7 @@ public sealed class P2CombatLineRun
                         continue;
                     }
                     // s158: a pair's line alone (the manual's totals under p2.combat-shares = manual: "%d XP AND %d GP"
-                    // without "EACH SURVIVOR GETS", which would not be true of a total). combat_victory always shows the
+                    // without `core.combat.each_survivor_gets`, which would not be true of a total). combat_victory always shows the
                     // two-line box (0xa3da): the line in its own row, the partner's row empty [~].
                     var row = pair.TakeWhile(k => k != key).Count();
                     _steps.Add(new Step(StepKind.Print, Line: i));

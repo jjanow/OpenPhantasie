@@ -143,8 +143,10 @@ public static class SpellCaster
                 : Magic.HealingAmount(tier, rng.Next(0, 100));
             var gained = Magic.ApplyHealing(target, heal);
             P3Spells.CureBody(rules, target, spellIndex); // T4: III's healing cures body areas too
+            // [D✓] s65: I's DOS prints nothing for a town / field HEALING. III prints "The character's health improves..."
+            // once the target is picked (DOS root 0x19be in 0x194d; Amiga 0xfd42 in 0xfcbe, window 7; s163 static).
             return MagicResult.Ok(
-                "", // [D✓] s65: DOS prints nothing for a town / field HEALING
+                rules.Game == GameId.P3 ? GameText.S("core.p3.character_health_improves") : "",
                 mpSpent: cost, hpRestored: gained);
         }
 
@@ -596,7 +598,7 @@ public static class SpellCaster
 
             case SpellId.SummonElemental:
                 // [C] OV2 0x8cc: no roll, no message (only the party panel redraws); MP spent either way (0x9f7).
-                // III (root 0xc912) prints "The elemental begins to form..." when it comes; I prints nothing.
+                // III (root 0xc912) prints `core.p3.elemental_begins_to_form` when it comes; I prints nothing.
                 if (CombatSpells.SummonElemental(encounter) && encounter.Rules.Game == GameId.P3)
                     log.Add(GameText.S("core.p3.elemental_begins_to_form"));
                 return MagicResult.Ok(GameText.S("core.spell.summon_elemental"), mpSpent: cost, log: log);

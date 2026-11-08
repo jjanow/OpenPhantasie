@@ -135,7 +135,16 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
     /// <summary>s140: times the move question (COM menu 9; II ST alert 6, which beeps first) has been asked.</summary>
     public int MoveQuestions { get; private set; }
 
-    public string Help => _confirming is not null ? UiText.S("guild.arrows_enter_or_y_yes_n") : UiText.S("guild.arrows_choose_enter_add_esc_done");
+    /// <summary>
+    /// s162: III's move question shows in the Amiga's window 1 (<c>0xd24c</c> through <c>0xaae2</c>: OK / CANCEL, no
+    /// highlight, Return = OK; <see cref="Game1.KeepWindowChoice"/>), set by the Client from
+    /// <see cref="P3ConfirmQuestion.InWindow"/>. Off: the Yes / No panel.
+    /// </summary>
+    public bool AmigaWindow { get; set; }
+
+    public string Help => _confirming is not null
+        ? (AmigaWindow ? GameText.S("game.keep_window_ok_cancel") : UiText.S("guild.arrows_enter_or_y_yes_n"))
+        : UiText.S("guild.arrows_choose_enter_add_esc_done");
 
     /// <summary>The YES/NO gate (COM menu 9) as a prompt, so it keeps that menu's own cursor memory.</summary>
     public static SessionPrompt MoveConfirmPrompt { get; } =
@@ -147,9 +156,24 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
     /// </summary>
     public static SessionPrompt MoveConfirmPromptFor(GameId game) => game == GameId.P3 ? P3MoveConfirmPrompt : MoveConfirmPrompt;
 
-    private static SessionPrompt P3MoveConfirmPrompt { get; } =
-        new(SessionPromptKind.None, GuildHall.AddMoveConfirmText, [SessionPrompts.Yes, SessionPrompts.No])
-            { Remembers = false, InitialChoice = 1, EscapeChoice = 2 };
+    private static SessionPrompt? _p3MoveConfirmPrompt;
+
+    /// <summary>
+    /// s162: III's question is its own line, S445 "It will take this character two\rmonths to make the journey here."
+    /// (DOS ovl2 <c>0x3b75</c> and the Amiga's <c>0xd24c</c> print the same text), split at the "\r" as both break it.
+    /// Rebuilt when the string table's text changes (the table is the game's, loaded after this type).
+    /// </summary>
+    private static SessionPrompt P3MoveConfirmPrompt
+    {
+        get
+        {
+            IReadOnlyList<string> lines = GameText.S("guild.move_journey_question").Split('\r', '\n');
+            if (_p3MoveConfirmPrompt is not { } p || !p.Lines.SequenceEqual(lines))
+                _p3MoveConfirmPrompt = new(SessionPromptKind.None, lines, [SessionPrompts.Yes, SessionPrompts.No])
+                    { Remembers = false, InitialChoice = 1, EscapeChoice = 2 };
+            return _p3MoveConfirmPrompt;
+        }
+    }
 
     /// <summary>The rows offered: roster members first (null template), then elementals (template index).</summary>
     public static IReadOnlyList<(Character? Member, int Elemental, string Label)> Rows(GameSession session, GameDataRepository data)
@@ -167,7 +191,7 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
         var data = _data;
         if (session.Mode is not (GameMode.Guild or GameMode.Title))
             return UiText.S("guild.only_in_the_guild");
-        // s158: an empty roster has its own line (III: S408 "The character roster is empty.", DOS guild_menu item 2 /
+        // s158: an empty roster has its own line (III: S408 `guild.roster_empty`, DOS guild_menu item 2 /
         // Amiga 0xb274, both tested before the list opens); other empty lists keep the remaster's line (III lists the
         // party's own members and refuses them on the pick, FORMAT.md 8.4).
         if (!session.Roster.Occupied.Any())
@@ -186,8 +210,9 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
         Page = null;
         if (_confirming is not null)
         {
-            var c = _yesNo.CursorFor(MoveConfirmPromptFor(session.Game));
-            return [.. GuildHall.AddMoveConfirmText, UiText.F("guild.x_yes_x_no", (c == 0 ? ">" : " "), (c == 1 ? ">" : " "))];
+            var question = MoveConfirmPromptFor(session.Game);
+            var c = _yesNo.CursorFor(question);
+            return [.. question.Lines, UiText.F("guild.x_yes_x_no", (c == 0 ? ">" : " "), (c == 1 ? ">" : " "))];
         }
         var rows = Rows(session, data);
         Page = ListPage.Of(1, 10, _scroll, rows.Count);
@@ -206,7 +231,8 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
                     _confirming = null;
                     return "";
                 }
-                if (_yesNo.HandleKey(MoveConfirmPromptFor(session.Game), key) is not { } answer)
+                var answer = AmigaWindow ? Game1.KeepWindowChoice(key) : _yesNo.HandleKey(MoveConfirmPromptFor(session.Game), key);
+                if (answer is null)
                     continue;
                 _confirming = null;
                 _yesNo.Sync(null);
@@ -264,7 +290,7 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
 }
 
 /// <summary>
-/// Guild D)ROP MEMBER (OV1 <c>0x225c</c>, "WHOM DO YOU WANT TO DROP?"): a digit sends that member back to the roster through
+/// Guild D)ROP MEMBER (OV1 <c>0x225c</c>, `guild.whom_do_you_want_to_drop`): a digit sends that member back to the roster through
 /// <see cref="GuildHall.TryDropFromParty"/> (<c>@218</c> := 0; I: every Drop also clears the elemental slot, OV1 <c>0x22d1</c>; III keeps it while a character is
 /// left, <see cref="ElementalRules.DropKeeps"/>).
 /// </summary>
@@ -314,7 +340,7 @@ public sealed class GuildDropDialog : IModalDialog
 
 /// <summary>
 /// Guild party options S)PELLS and T)RAINING (manual p.4: "PARTY MEMBERS options can only be used by characters that have
-/// been added to a party"): a digit picks the party member — DOS "WHO IS GOING TO BE TRAINED?" (OV1 DS <c>0x5c22</c>) /
+/// been added to a party"): a digit picks the party member — DOS `guild.who_is_going_to_be_trained` (OV1 DS <c>0x5c22</c>) /
 /// "WHO WILL LEARN?" — then <see cref="OnPick"/> runs (open the spell list). Training (<see cref="OpenTraining"/>) first shows
 /// DOS's "It will cost / N gold" box with A)GREE / N)OT (s65 DOSBox; manual: "you will be told … how much the training will
 /// cost"), and like DOS returns to the WHO list after each result until Esc.
@@ -408,7 +434,7 @@ public sealed class GuildPartyPickDialog : IModalDialog
                     _confirming = null;
                     if (session.TrainingAsksSkills && session.TrainingWouldSucceed(member))
                     {
-                        _skillMember = member; // III: "Skill(s) to train in:" before the level-up is applied
+                        _skillMember = member; // III: `p3train.skills_to_train_in_x` before the level-up is applied
                         _skillPicks.Clear();
                         return "";
                     }

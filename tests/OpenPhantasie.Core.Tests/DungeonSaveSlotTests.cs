@@ -22,7 +22,7 @@ public class DungeonSaveSlotTests
         return session;
     }
 
-    /// <summary>Step off the entrance and back on: "AN EXIT. TAKE IT?" is pending.</summary>
+    /// <summary>Step off the entrance and back on: `core.prompt.an_exit_take_it` is pending.</summary>
     private static void WalkOntoExit(GameSession s)
     {
         s.Dungeon!.Y = 1; // (20,1) is a fight cell; stand there without triggering it

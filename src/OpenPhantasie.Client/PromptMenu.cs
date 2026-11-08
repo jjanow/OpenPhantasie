@@ -6,7 +6,7 @@ namespace OpenPhantasie.Client;
 /// <summary>
 /// The highlighted answer of a modal <see cref="SessionPrompt"/>, the DOS way: DOS menus are cursor bars (arrows move,
 /// Return picks) and <b>each menu id reopens on the last choice made in it</b> (message-and-text.md §Menus: one selection
-/// word per menu at DS <c>0x24 + 16·id</c>; DOSBox s45 sleeping-monsters menu reopened on LEAVE; s58 "A DUNGEON. ENTER?"
+/// word per menu at DS <c>0x24 + 16·id</c>; DOSBox s45 sleeping-monsters menu reopened on LEAVE; s58 `core.overworld.a_dungeon_enter`
 /// reopened on NO after a NO, but a NO to SAVE MAP left it on YES). The direct keys the manual names (Y/N, the number, the
 /// first letter before the ")") keep working (D-066; DOS ignores Y/N) and are remembered too.
 /// </summary>

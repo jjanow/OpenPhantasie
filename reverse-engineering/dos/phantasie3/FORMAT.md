@@ -522,3 +522,64 @@ followed the wrong record = dungeon − 1 rule). Amiga `D/DNPA…DNPK` are playe
   Ranger Attack L15 25 (I 250), Ranger Parry L15 60 (I 85), and Monk / Wizard Parry one level ahead of I's rows (the
   Parry table is one byte short after Ranger L14, so Monk L15 = 40, Wizard L15 = 0). DOS III data errors, not manual
   questions (the manual prints no skill tables); kept as read. HP dice and the magic ceiling equal I's tables.
+
+## 10. CGA pictures (s160, static) — `WORLD.CGA`, `SHAPES.CGA`, `MONSTERS.CGA`, `TOWN.CMP`, `PICS.CMP`
+
+Every picture file is CGA 320×200 four-colour data: 2 bits a pixel, 4 pixels a byte, high bits first, rows stored one
+after another (not the screen's two banks); the blitter (root `0x3b2:0x420`, called through `0x284:0x774(buffer, x
+words, y, width words, rows, 0)`) copies `2 · width` bytes a row into the interleaved screen, opaque `[C]`. Colours:
+**CGA palette 0, high intensity** (black, #55FF55, #FF5555, #FFFF55) on every DOS III screen in the s81–s156 DOSBox-X
+shots (title, town, map, combat menus); the mode / palette set itself is not traced `[~]`.
+
+| File | Bytes | Layout | Loaded by |
+|---|---|---|---|
+| `TOWN.CMP` (`DTOWN.CMP` on a data disk) | 10,736 | one packed screen: the town street (every town) | root `0x0000` → `0x284:0` → blit (0, 0, 40 words, 200) `[C]` |
+| `PICS.CMP` | 30,170 | four packed screens back to back: 0 at 0 (9,180 B) the title, 1 at `0x23dc` (5,574 B) the Astral Plane, 2 at `0x39a2` (7,640 B) Zeus, 3 at `0x577a` (7,776 B) Pluto | title ovl1 `0x7f7`; Astral Plane root `0x1edd` (party defeat); gods ovl4 `0xa8` (argument ≠ 0 → 2, else 3; which god is which by the pictures `[~]`) `[C]` offsets |
+| `WORLD.CGA` | 16,000 | 250 overworld tiles of 16×16 (64 B each, 4 B a row); tile = map byte, the Amiga `phantasy.set` order | root `0x00bf` (16,000 B at FAR `0x9fa`) `[C]` |
+| `SHAPES.CGA` | 16,192 | six blocks, below | ovl1 `0x884…0x929`, root `0x0124` `[C]` |
+| `MONSTERS.CGA` | 48,768 | 41 normal pictures × 768 B (two 32×48 frames, 384 B each: idle, attacking), then 6 giants × 2,880 B (two 80×72 frames, 1,440 B each) at `0x7b00` | root `0x7e89` per group (FAR `0x9eee` / `0xaa32`) `[C]` |
+
+**Packed screens** (`0x284:0`, root img `0x2840`): byte 0 picks the unpacker, 1 = row order (`0x3b2:0xee`), 2 = column
+order (`0x3b2:0x161`); all five DOS III screens use 2 `[C]`. The output is 16,000 bytes (80 a row, 200 rows); order 2
+fills it a byte column at a time (offset += 80 for 200 rows, then back to the top of the next column). Then control
+bytes: `c` in 1..127 = `c` literal bytes follow; `c` ≥ 128 = the next byte `256 − c` times; `c` = 0 = a little-endian
+word count, then the byte repeated that many times; it stops after 16,000 bytes, so the files hold no length or end
+mark (the four `PICS.CMP` screens end exactly where the next starts) `[C]`.
+
+**`SHAPES.CGA` blocks** (offset, size → FAR buffer):
+
+| Offset | Bytes | What | Use |
+|---|---|---|---|
+| `0x0000` | 432 | three 24×24 frames (144 B) | drawn in turn at a map position by root `0x15cf…0x1624` (after `load_plane_map`); what it shows `[?]` |
+| `0x01b0` | 240 | fifteen 8×8 glyphs (16 B) | root `0x0636(n, x, y)`: glyph `n` at x = 8-pixel column `x`, y = pixel row `y`; which glyphs mean what and who calls it `[?]` |
+| `0x02a0` | 9,600 | 25 party pictures 32×48 (384 B): 12 race pairs (idle, attacking) + the grave (24) | same cells as Amiga `heros.cmp`; race → picture by the byte table DS:`0x9ea` (img `0x295ea`) = Amiga `0x239a0`: Human 0, Dwarf 2, Elf 4, Gnome / Halfling 6, (Random 0), Gnoll 14, Goblin / Kobold / Orc 16, Lizard Man 10, Minotaur 12, Ogre 14, Pixie / Sprite 8, Troll 20, Elemental 22, Undead 18, entry 18 = 24 (the grave) `[C]` data |
+| `0x2820` | 112 | dungeon map glyphs 8×5 (2 B × 5 rows, 16 B a slot) | ovl4 `0x5a8(x, y, g)`: glyph `g` 46..52 → slot 1, 2, 3, 6, 5, 4, 0 (jump table `0x5f7`) `[C]` |
+| `0x2890` | 5,040 | Scroll IV's map "Geography of Scandor", 120×168 | root `0x0124` (`read_scroll`, item 126): blit (12 words, 8, 15 words, 168) `[C]` |
+| `0x3c40` | 768 | the body-area figure: 4 states × 12 pieces × 16 B (8×8) | root `0x0dcf` / `0x0eb5`, below `[C]` |
+
+**Dungeon glyphs** (ovl4 `0x21bb`, the cell → glyph map): map byte 0 / 1 → 46 (also the not-seen fill, ovl4 `0x7ff`),
+185–199 → 47, 200–214 → 48, 215–217 → 52, ≥ 221 → 49, else 50; a glyph outside 45..52 draws 51 (ovl4 `0x1fe3`) `[C]`:
+the same numbers as the Amiga's `dng.csh` glyphs (pack `tile_maps.dungeon_cells`). Cells sit 8 px apart, 5 rows.
+
+**Body figure** (root `0x0dcf`, called by `0x0d00` with the record's six area words `+0xf2…+0xfc`): piece `p` of state
+`s` is at `s · 192 + p · 16` and is drawn at text cell (x + p div 4, y + p mod 4), so the 12 pieces are a 3 × 4 grid
+(24×32) stored column by column. State word 0 Okay → set 0 (green), 1 Injured → 1 (yellow), 2 Broken → 2 (red),
+3 Gone → 3 (all black). Pieces drawn: 4 head (area 0); 1 the viewer's left arm = area 2 Right Arm; 5 the chest (always
+set 0); 9 area 1 Left Arm; 2 and 3 area 5 Right Leg; 6 area 3 Torso; 10 and 11 area 4 Left Leg. Pieces 0, 7, 8 are not
+drawn `[C]`.
+
+**Overworld view** (ovl3 `0x12f1`): 9 × 9 tiles at x = 16·column, y = 16 + 16·row; the party's cell draws **tile 89
+instead of** the map byte (opaque, not over it) `[C]`. The tile draw (ovl3 `0x0000`) swaps six tiles while the plane
+(FAR `0xcc4`) is 0, Scandor: 154 → 144, 166 → 165, 170 → 181, 187 → 186, 243 → 237, 249 → 1 `[C]` (25 Scandor cells
+hold one of them). Whether the Amiga does the same is not checked `[?]`.
+
+**Monster pictures** (root `0x10b8b` → `0x7e89`): picture index = record byte 27, minus 1 when above 27 (so 27 and 28,
+Troll Baby and Forest Elf, both show index 27); index < 41 → normal picture at `768 · index`; 41..46 → giant at
+`0x7b00 + 2880 · (index − 41)`; any other index → **normal picture 15** (the Skeleton's): Mud Elemental (48) and Wolf
+(65) show the Skeleton on DOS, where the Amiga cuts nothing (D3-067) `[C]`. Byte 27 > 41 still makes the group a giant
+group (§4.4), so these two stand at the giant places with a normal picture. The remaster's DOS CGA pack does not draw
+these three choices (D3-067, user s161): Wolf takes the Wild Dog's picture, Mud Elemental the party elemental's and
+Troll Baby the party Troll's (SHAPES.CGA party pictures 22 / 20), as the Amiga pack does.
+
+Extractor: `tools/scripts/extract_dos_p3_graphics.py` → `extracted/graphics/` (the importer's `P3Dos/P3CgaArt.cs`
+writes the same; pack `GameData/phantasie3/graphics/dos-cga.json`).

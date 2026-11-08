@@ -86,7 +86,7 @@ public partial class P1DosMapPagesTests
         s.EnterDungeon(2, 6, 28);
         s.MoveDungeon(CardinalDirection.South);
         var mark = s.LogSequence;
-        s.AnswerDungeonEvent(1); // BRIBE THEM: A SPELL IS CAST, the report, THE PARTY IS MOVED
+        s.AnswerDungeonEvent(1); // BRIBE THEM: A SPELL IS CAST, the report, `core.script.the_party_is_moved`
         var pages = P1DosMapPages.ForStep(Boxes(), s, mark)!;
         Assert.Equal(["A SPELL IS CAST"], pages.Pages[0].Rows);
         Assert.Equal(GameText.S("core.script.report"), pages.Pages[1].Rows[0]);
@@ -97,14 +97,14 @@ public partial class P1DosMapPagesTests
     [OriginalDataFact]
     public void OpTwelvesBand_ShowsThePartyOnTheEventCell_UntilItsKey()
     {
-        // s156: DOS draws "THE PARTY IS MOVED" before the move (s58 live: the old row-24 line under it, the map unmoved).
+        // s156: DOS draws `core.script.the_party_is_moved` before the move (s58 live: the old row-24 line under it, the map unmoved).
         var s = ClientSessions.Overworld();
         s.EnterDungeon(2, 6, 28);
         s.MoveDungeon(CardinalDirection.South);
         var (level, x, y) = (s.Dungeon!.LevelId, s.Dungeon.X, s.Dungeon.Y);
         var mark = s.LogSequence;
         var moveMark = s.DungeonMoveSequence;
-        s.AnswerDungeonEvent(1); // BRIBE THEM: A SPELL IS CAST, the report, THE PARTY IS MOVED, then op 12's move
+        s.AnswerDungeonEvent(1); // BRIBE THEM: A SPELL IS CAST, the report, `core.script.the_party_is_moved`, then op 12's move
         Assert.NotEqual((x, y), (s.Dungeon.X, s.Dungeon.Y));
         var pages = P1DosMapPages.ForStep(Boxes(), s, mark, moveMark)!;
         Assert.Equal(["THE PARTY IS MOVED"], pages.Pages[^1].Rows);

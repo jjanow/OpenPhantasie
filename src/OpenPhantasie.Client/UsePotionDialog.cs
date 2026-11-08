@@ -6,7 +6,7 @@ namespace OpenPhantasie.Client;
 
 /// <summary>
 /// Options → Use potion (OV2 <c>0x43e2</c>, wilderness / dungeon Options menu <c>0x14</c>; manual p.13 U)SE POTION; town
-/// U)SE ITEM for potions) [C] (s49 static): "WHO WILL USE POTION:" (member picker <c>0x5a0a</c> mode 1 — OK members), the
+/// U)SE ITEM for potions) [C] (s49 static): `potion.who_will_use_potion` (member picker <c>0x5a0a</c> mode 1 — OK members), the
 /// member's potions (<c>0x5b5f</c>), "ON WHOM:" (picker mode 4), then <see cref="Magic.UsePotion"/>. OV2 calls <c>0x43e2</c>
 /// only from the Options menu: there is no potion order in combat (DOS orders bar THRUST…PARRY; manual p.10 options 1–7).
 /// Picker mode 4 offers every party slot below <c>[0x648e]</c> whatever its status, dead and asleep included [C] (the combat

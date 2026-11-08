@@ -1,0 +1,71 @@
+{
+  "_schema": "phantasie.graphics-pack/v1",
+  "_note": "DOS CGA Phantasie III art (s160; tools/scripts/extract_dos_p3_graphics.py, importer P3Dos/P3CgaArt.cs; formats in reverse-engineering/dos/phantasie3/FORMAT.md section 10). CGA palette 0 high on every DOS III screen [~] (shots s81-s156). Never the default (auto_select false): drawn when no Amiga III pack is present (index fallback_order, a DOS-only import) or when chosen. Screens: TOWN.CMP, PICS.CMP (title, Astral Plane, Zeus, Pluto). Overworld: WORLD.CGA's 250 tiles of 16x16, tile = map byte, a 9x9 view (ovl3 0x12f1); the party's cell draws tile 89 instead of the map tile (overworld.party, opaque). tile_swaps: while on Scandor (region 0) ovl3 0x0 draws six tiles as others. Dungeon: SHAPES.CGA's 8x5 glyphs 46..52 with the cell map of ovl4 0x21bb (the Amiga's numbers). Monsters by DOS's own picture choice (root 0x10b8b: byte 27, minus 1 above 27; an index past the giants shows picture 15), except D3-067 (user s161): Wolf, Mud Elemental and Troll Baby borrow an analogous creature's picture as the Amiga pack does (Wild Dog, the party elemental, the party Troll; DOS: Skeleton, Skeleton, Forest Elf). Party pictures by race (DS:0x9ea), the elemental 22, the grave 24. Body figure: root 0xdcf, four sets (Okay green, Injured yellow, Broken red, Gone black). Scroll IV (item 126): the map of Scandor. No buttons, windows, flashes or scroll frame: DOS has none of these pictures. Every picture is opaque (DOS blits copy colour 0).",
+  "id": "dos-cga",
+  "game": "phantasie3",
+  "platform": "dos",
+  "name": "DOS (CGA)",
+  "auto_select": false,
+  "root": "reverse-engineering/dos/phantasie3/extracted/graphics",
+  "requires": ["overworld/tiles", "monsters", "screens/town.png"],
+  "screen": { "width": 320, "height": 200, "pixel_aspect": [1, 1], "background": "#000000" },
+  "palette": ["#000000", "#55FF55", "#FF5555", "#FFFF55"],
+  "tile_maps": {
+    "overworld_tile": [16, 16],
+    "overworld_view": [9, 9],
+    "dungeon_glyph": [8, 5],
+    "dungeon_unseen": 46,
+    "dungeon_party": 51,
+    "dungeon_default": 50,
+    "dungeon_cells": [[0, 1, 46], [185, 199, 47], [200, 214, 48], [215, 217, 52], [221, 255, 49]],
+    "_tile_swaps": "[region, map byte, tile drawn]: ovl3 0x0 swaps these while the plane (FAR 0xcc4) is 0, Scandor [C] (FORMAT.md section 10).",
+    "tile_swaps": [[0, 154, 144], [0, 166, 165], [0, 170, 181], [0, 187, 186], [0, 243, 237], [0, 249, 1]]
+  },
+  "town_screen": {
+    "_note": "The name sits on the picture's banner, black, centred near x 160 at y 16 (DOS shot s143_entry_done_town); the code that prints it is not traced [~]. Row 0-7 is the menu bar.",
+    "bar_rows": 8,
+    "name_x": 160,
+    "name_y": 16,
+    "name_colour": "#000000"
+  },
+  "body_figure": {
+    "_note": "root 0xdcf: 3 x 4 cells of 8x8; set s of stored piece p at SHAPES.CGA 0x3c40 + 192 s + 16 p, drawn at cell (p div 4, p mod 4). Draw order and areas: head 4, right arm 1 (the viewer's left), chest 5 (always Okay), left arm 9, right leg 2 and 3, torso 6, left leg 10 and 11; file body/<9 s + i> for the i-th piece below. Gone draws its black set (not a clear).",
+    "size": [24, 32],
+    "background": "#000000",
+    "first_slot": 0,
+    "slot_step": 9,
+    "states": ["okay", "injured", "broken", "gone"],
+    "pieces": [
+      { "area": "head", "at": [8, 0] },
+      { "area": "right-arm", "at": [0, 8] },
+      { "area": null, "at": [8, 8] },
+      { "area": "left-arm", "at": [16, 8] },
+      { "area": "right-leg", "at": [0, 16] },
+      { "area": "torso", "at": [8, 16] },
+      { "area": "left-leg", "at": [16, 16] },
+      { "area": "right-leg", "at": [0, 24] },
+      { "area": "left-leg", "at": [16, 24] }
+    ]
+  },
+  "pictures": {
+    "title.cover": "screens/title.png",
+    "town.backdrop": "screens/town.png",
+    "overworld.party": "overworld/tiles/089.png",
+    "scroll.picture.126": "scroll/scandor.png",
+    "scene.astral-plane": "screens/astral-plane.png",
+    "scene.reward.good": "screens/reward-good.png",
+    "scene.reward.evil": "screens/reward-evil.png",
+    "portrait.elemental.idle": "portraits/idle/elemental.png",
+    "portrait.elemental.attacking": "portraits/attacking/elemental.png",
+    "portrait.grave": "portraits/grave.png"
+  },
+  "picture_sets": [
+    { "name": "overworld.tile.{n}", "dir": "overworld/tiles", "prefix": "{n:D3}.", "ext": ".png" },
+    { "name": "dungeon.cell.{n}", "dir": "dungeon", "prefix": "glyph-{n}.", "ext": ".png" },
+    { "name": "monster.{n}.idle", "dir": "monsters/idle", "prefix": "{n:D2}-", "ext": ".png" },
+    { "name": "monster.{n}.attacking", "dir": "monsters/attacking", "prefix": "{n:D2}-", "ext": ".png" },
+    { "name": "portrait.{n}.idle", "dir": "portraits/idle", "prefix": "{n:D2}-", "ext": ".png" },
+    { "name": "portrait.{n}.attacking", "dir": "portraits/attacking", "prefix": "{n:D2}-", "ext": ".png" },
+    { "name": "body.piece.{n}", "dir": "body", "prefix": "{n}.", "ext": ".png" }
+  ]
+}

@@ -85,11 +85,11 @@ public class P1AmigaPipelineTests
     }
 
     [RequiresFilesFact(Adf, Kickstart)]
-    public void WithoutKickstart_SkipsTopazOnly_AndWarns()
+    public void WithoutKickstart_SkipsTopazOnly_TheReportOffersTheRom()
     {
+        // s160: no pipeline warning; ImportRunner's report offers the ROM (ImportFlowTests.AmigaWithoutTheRom_*).
         var r = PipelineHarness.Run("p1-amiga-1.0", Adf);
-        var warning = Assert.Single(r.Warnings);
-        Assert.Contains("Kickstart", warning);
+        Assert.Empty(r.Warnings);
         Assert.DoesNotContain(r.Outputs.Keys, k => k.Contains("topaz", StringComparison.Ordinal));
         Assert.Contains("GameData/phantasie1/graphics/fonts/amiga-z6font-6.json", r.Outputs.Keys);
         Assert.Contains("files/" + Root + "/maps/maps.json", r.Outputs.Keys);

@@ -18,7 +18,7 @@ public static class FieldCues
     /// <summary>The overworld's "A DUNGEON. ENTER ?" is asked (II ST <c>0x106a0</c>: sound 19 before tree 30).</summary>
     public const string DungeonPrompt = "overworld.dungeon_prompt";
 
-    /// <summary>A dungeon step into a wall or off the map, "THAT IS THE WALL" (II ST <c>0x1046c</c>: <c>0xb7fa</c>, the
+    /// <summary>A dungeon step into a wall or off the map, `core.dungeon.that_is_the_wall` (II ST <c>0x1046c</c>: <c>0xb7fa</c>, the
     /// default script, for a cell 0 and for a step off the map alike).</summary>
     public const string DungeonWall = "dungeon.wall";
 
@@ -28,10 +28,10 @@ public static class FieldCues
     /// <summary>Dungeon event op 3, "A SPELL IS CAST" (II ST <c>0x11d02</c>: sound 28 before the box).</summary>
     public const string EventSpellCast = "dungeon.event.spell_cast";
 
-    /// <summary>Dungeon event op 12, "THE PARTY IS MOVED" (II ST <c>0x11dfc</c>: sound 16; op 13 is silent).</summary>
+    /// <summary>Dungeon event op 12, `core.script.the_party_is_moved` (II ST <c>0x11dfc</c>: sound 16; op 13 is silent).</summary>
     public const string EventPartyMoved = "dungeon.event.party_moved";
 
-    /// <summary>Dungeon event op 14, "YOU HEAR A NOISE IN THE DISTANCE" (II ST <c>0x11e88</c>: sound 26; op 15 is silent).</summary>
+    /// <summary>Dungeon event op 14, `core.script.you_hear_a_noise` (II ST <c>0x11e88</c>: sound 26; op 15 is silent).</summary>
     public const string EventNoise = "dungeon.event.noise";
 
     /// <summary>TRANSPORTATION: a town was picked (II ST <c>0x262c</c>: sound 22, then the palette fade <c>0x260a</c>, the

@@ -32,7 +32,7 @@ public class AmigaOutsideBarTests
     {
         Assert.Equal([0, 6, 15], Enumerable.Range(0, 3).Select(m => UiOverlays.FieldMenuColumn(Titles(), m)));
         Assert.Equal(new Rectangle(0, 12, 80, 16), Box(0));
-        // Options: "E) Examine Member " is 18 cells: (18 + 2) & ~1 = 20 cells; 4 items: (4 + 1) · 8 rows.
+        // Options: "`p3bar.item.examine` " is 18 cells: (18 + 2) & ~1 = 20 cells; 4 items: (4 + 1) · 8 rows.
         Assert.Equal(new Rectangle(48, 12, 160, 40), Box(1));
         Assert.Equal(new Rectangle(112, 12, 96, 32), Box(2));
     }

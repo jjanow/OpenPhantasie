@@ -110,7 +110,7 @@ public sealed class DungeonScriptResult
 
     /// <summary>
     /// s141: the moves ops 12 / 13 made, in order: each after the first <see cref="ScriptMove.AfterLines"/> lines of
-    /// <see cref="Log"/>, from the cell the party stood on (I Amiga h41 <c>+0x1964</c>: sound 16 and "THE PARTY IS MOVED"
+    /// <see cref="Log"/>, from the cell the party stood on (I Amiga h41 <c>+0x1964</c>: sound 16 and `core.script.the_party_is_moved`
     /// come first, the party moves after them, so the boxes before a move show it on the event cell).
     /// </summary>
     public IReadOnlyList<ScriptMove> Moves { get; init; } = Array.Empty<ScriptMove>();

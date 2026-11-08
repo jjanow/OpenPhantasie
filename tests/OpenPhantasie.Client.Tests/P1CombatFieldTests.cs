@@ -658,7 +658,7 @@ public class P1CombatFieldTests
         ui.HandleKey(s, Keys.Enter);
         Assert.Equal(CombatPhase.Resolving, ui.Phase);
         Assert.NotNull(ui.P1Run);
-        Assert.NotNull(ui.P1Shown?.Box);           // "MONSTERS GREET YOU" / "DON'T RESPOND" …
+        Assert.NotNull(ui.P1Shown?.Box);           // `core.combat.monsters_greet_you` / "DON'T RESPOND" …
         Assert.False(ui.AwaitingInput);
         Assert.False(ui.HandleKey(s, Keys.Enter)); // swallowed
         var length = ui.P1Run!.LengthMs;

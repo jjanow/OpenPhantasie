@@ -38,14 +38,14 @@ public class P3SoundsTests
     private const byte More = 0x80; // the continue bit
 
     [OriginalDataTheory]
-    [InlineData(new byte[] { 7, 1 }, new[] { 3 })] // "The party finds some gold." with 3
+    [InlineData(new byte[] { 7, 1 }, new[] { 3 })] // `core.p3.party_finds_gold` with 3
     [InlineData(new byte[] { 8, 1 }, new[] { 3 })] // op 8 alone and last: its word sounds at the end
     [InlineData(new byte[] { 8 | More, 1 }, new int[0])] // the ending byte's op call clears it (Amiga 0x1c9b0 / 0x1cadc)
-    [InlineData(new byte[] { 9, 0 }, new[] { 42 })] // "Some gold was taken."
+    [InlineData(new byte[] { 9, 0 }, new[] { 42 })] // `core.p3.some_gold_was_taken`
     [InlineData(new byte[] { 10, 0 }, new[] { 42 })]
-    [InlineData(new byte[] { 12, 11, 2, 0 }, new[] { 9 })] // "The party is teleported."
+    [InlineData(new byte[] { 12, 11, 2, 0 }, new[] { 9 })] // `core.p3.party_is_teleported`
     [InlineData(new byte[] { 13, 11, 2, 0 }, new int[0])] // op 13 writes no word
-    [InlineData(new byte[] { 14, 0, 0, 0 }, new[] { 27 })] // "A noise is heard in the distance."
+    [InlineData(new byte[] { 14, 0, 0, 0 }, new[] { 27 })] // `core.p3.noise_in_the_distance`
     [InlineData(new byte[] { 15, 0, 0, 0 }, new int[0])]
     [InlineData(new byte[] { 1, 0 }, new[] { 42, 42 })] // the Damage Report, then the word at the end
     [InlineData(new byte[] { 1 | More, 0, 7, 1 }, new[] { 42, 3 })] // the next op clears op 1's word

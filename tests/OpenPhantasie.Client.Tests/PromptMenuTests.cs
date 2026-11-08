@@ -176,7 +176,7 @@ public class PromptMenuTests
     [Fact]
     public void IiiMenu75a3_OpensOnTheCallersHighlight_EveryTime_s108()
     {
-        // "An exit. Will you take it?": ovl4 passes highlight 2 ("No") to 0x75a3 on every call, no memory.
+        // `core.prompt.an_exit_take_it`: ovl4 passes highlight 2 ("No") to 0x75a3 on every call, no memory.
         SessionPrompt Exit() =>
             new(SessionPromptKind.DungeonExitTakeIt, ["An exit. Will you take it?"], [SessionPrompts.Yes, SessionPrompts.No])
                 { Remembers = false, InitialChoice = 2, EscapeChoice = 2 };

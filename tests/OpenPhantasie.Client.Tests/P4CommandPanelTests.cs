@@ -649,6 +649,34 @@ public class P4CommandPanelTests
     }
 
     [OriginalDataFact]
+    public void SpellListWindows_SitWhereTheOriginalOpensThem()
+    {
+        // s160: _wopen(34, 496, 32, 136, 360, 1, "Spell List"): the area at screen row 32 (one pack pixel each at k = 0.5),
+        // so the 21-row bar from row 11, the frame and shadow down to row 394 (layout 197) of 400. The other lists keep the
+        // panel's top.
+        var set = Pack().CommandPanels!;
+        const float k = 0.5f;
+        foreach (var name in new[] { "_getmagic", "_getmagic.8", "_getmagic.0" })
+        {
+            var list = set.Lists[name];
+            var top = P4DungeonScreen.ListFrameTop(list, k);
+            Assert.Equal(11, top / k);
+            Assert.Equal(list.Window!.Value.Y, top / k + P4DungeonScreen.PanelTitleRows);
+            Assert.InRange(top + (P4DungeonScreen.PanelTitleRows + list.Window.Value.Height + 2) * k, 0, 200);
+            Assert.Equal(197, P4DungeonScreen.StripBottom(173.5f, list, set.Window.Height, k));
+        }
+        foreach (var name in new[] { "_racemenu", "_classmenu", "_set_fame_lst", "_cast_47" })
+            Assert.Equal(4, P4DungeonScreen.ListFrameTop(set.Lists[name], k));
+        // Without a list (or under a panel) the strip ends at the panel's bottom; a window-34 list is the panel's height.
+        Assert.Equal(178, P4DungeonScreen.StripBottom(173.5f, null, set.Window.Height, k));
+        Assert.Equal(178, P4DungeonScreen.StripBottom(173.5f, set.Lists["_cast_47"], set.Window.Height, k));
+        Assert.Equal(178, P4DungeonScreen.StripBottom(173.5f, set.Lists["_racemenu"], set.Window.Height, k));
+        // A taller window would be kept on screen.
+        var tall = set.Lists["_getmagic"] with { Window = (496, 32, 136, 370) };
+        Assert.Equal(200 - (P4DungeonScreen.PanelTitleRows + 370 + 2) * k, P4DungeonScreen.ListFrameTop(tall, k));
+    }
+
+    [OriginalDataFact]
     public void ListRows_PressTheirLine_AndTheHallRaceClearsLongNames()
     {
         Assert.Equal((Keys.Space, (int?)null), P4DungeonScreen.ListPress(-1)); // SPACE:Quit

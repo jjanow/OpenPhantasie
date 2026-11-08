@@ -45,7 +45,7 @@ public sealed class NameEntry
 /// <summary>
 /// Guild N)EW MEMBER (OV1 <c>0xbac</c>, manual p.4): race by number, then class, then the rolled attributes with a Y/N.
 /// N drops the roll and starts again at the race menu (DOS frees the slot, <c>0xf5e</c> → <c>0xbb2</c>); Y asks INPUT NAME
-/// (unique, "Name is not unique!"), then shows the full sheet until SPACE. Esc backs out before the name is accepted.
+/// (unique, `core.guild.name_not_unique`), then shows the full sheet until SPACE. Esc backs out before the name is accepted.
 /// <para>
 /// T5 lineage (<see cref="GameSession.LineageOffered"/>, <c>ancestry.md</c> section 13): with the option on, a first
 /// question picks the plain roll or a descendant. A descendant picks ancestor 1 and ancestor 2 from the shared Hall list
@@ -415,9 +415,11 @@ public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog
 }
 
 /// <summary>
-/// Guild P)URGE (OV1 <c>0x23d5</c>, "WHOM DO YOU WANT TO PURGE?") and R)ENAME (OV1 <c>0x22f6</c>, "WHO NEEDS RENAMING?"):
-/// arrows + Return pick a Guild member. Purge deletes at once (no confirm in DOS) and asks again; Rename asks INPUT NAME
-/// and lists only members outside every party (D-065, manual), or everyone when the save's <c>p1.rename-party</c> allows it
+/// Guild P)URGE (OV1 <c>0x23d5</c>, `member.whom_do_you_want_to_purge`) and R)ENAME (OV1 <c>0x22f6</c>, `member.who_needs_renaming`):
+/// arrows + Return pick a Guild member. Purge deletes at once (no confirm in I's DOS) and asks again; s160: in III a pick
+/// that would not be refused first waits for DOS III's "Are you sure you want to purge this character permanently?" (S407,
+/// <see cref="PurgeAsked"/>, answered through <see cref="AnswerPurge"/>). Rename asks INPUT NAME and lists only members
+/// outside every party (D-065, manual), or everyone when the save's <c>p1.rename-party</c> allows it
 /// (<see cref="GameSession.CanRename"/>).
 /// </summary>
 public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
@@ -428,6 +430,9 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
     public static string RenameTitle => UiText.S("member.who_needs_renaming");
     public static string ExamineTitle => UiText.S("member.who_shall_be_examined");
 
+    /// <summary>s160: III's question before a purge (DOS S407, Amiga <c>0x230cc</c>), the "\r" its row break.</summary>
+    public static string PurgeQuestion => UiText.S("p3bar.confirm_purge");
+
     private readonly NameEntry _name = new();
     private bool _open;
     private bool _rename;
@@ -436,7 +441,13 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
     private string _error = "";
     private int _scroll;
 
-    public bool IsOpen => _open;
+    /// <summary>
+    /// s160: the III member picked for a purge while the front end asks S407 (root <c>0xb075</c>); the list is not open
+    /// meanwhile (the question owns the keys) and comes back after the answer (<see cref="AnswerPurge"/>).
+    /// </summary>
+    public Character? PurgeAsked { get; private set; }
+
+    public bool IsOpen => _open && PurgeAsked is null;
 
     public string? TypingAlphabet => _open && _renaming is not null ? NameEntry.Alphabet : null;
 
@@ -469,6 +480,7 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
             return UiText.S("guild.roster_empty");
         _rename = false;
         _examine = examine;
+        PurgeAsked = null;
         _open = true;
         _renaming = null;
         _error = "";
@@ -482,6 +494,7 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
         if (session.Mode is not GameMode.Guild)
             return UiText.S("member.only_in_the_guild");
         _examine = null;
+        PurgeAsked = null;
         _rename = rename;
         if (Rows(session).Count == 0)
             return rename && session.Roster.Occupied.Any() ? GameSession.RenamePartyMemberRefusal : UiText.S("member.the_guild_has_no_members");
@@ -557,16 +570,59 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
                         _error = "";
                         return null;
                     }
-                    var ok = session.TryPurge(member, out var err);
-                    rows = Rows(session);
-                    if (rows.Count == 0)
-                        _open = false;
-                    Cursor = Math.Clamp(Cursor, 0, Math.Max(0, rows.Count - 1));
-                    return ok ? session.LastMessage : err;
+                    if (AsksBeforePurge(session.Game))
+                    {
+                        // DOS III refuses first (elemental, a party member under p3.purge = dos), then asks (0xb075).
+                        if (session.PurgeRefusal(member) is { } refusal)
+                            return refusal;
+                        PurgeAsked = member;
+                        return null;
+                    }
+                    return Purge(session, member);
             }
             _scroll = Math.Clamp(_scroll, Math.Max(0, Cursor - 9), Cursor);
         }
         return null;
+    }
+
+    /// <summary>s160: III asks S407 before a purge (DOS guild_menu root <c>0xb075</c>, Amiga <c>0xb4c2</c>); I does not.</summary>
+    public static bool AsksBeforePurge(GameId game) => game == GameId.P3;
+
+    /// <summary>
+    /// s160: III's Guild examines any roster member (DOS guild_menu item 6 "Inspect", Amiga Guild › Examine), so the
+    /// Guild's I key opens <see cref="OpenExamine"/> under every III layout; I's Guild has no such item.
+    /// </summary>
+    public static bool ExaminesRoster(GameId game) => game == GameId.P3;
+
+    /// <summary>
+    /// s160: the answer to S407 for <see cref="PurgeAsked"/>: Yes purges (the list asks again, as after any purge), No
+    /// leaves the member; either way the list is back. Returns the line for the band, or null when nothing was asked.
+    /// </summary>
+    public string? AnswerPurge(GameSession session, bool yes)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (PurgeAsked is not { } member)
+            return null;
+        PurgeAsked = null;
+        return yes ? Purge(session, member) : "";
+    }
+
+    /// <summary>Leave without an answer (a load replaced the session): the asked member stays, the list closes.</summary>
+    public void Close()
+    {
+        PurgeAsked = null;
+        _open = false;
+        _renaming = null;
+    }
+
+    private string Purge(GameSession session, Character member)
+    {
+        var ok = session.TryPurge(member, out var err);
+        var rows = Rows(session);
+        if (rows.Count == 0)
+            _open = false;
+        Cursor = Math.Clamp(Cursor, 0, Math.Max(0, rows.Count - 1));
+        return ok ? session.LastMessage : err;
     }
 }
 
@@ -664,7 +720,7 @@ public static class TestParty
     public const string VictorySwitch = "--p1-victory";
 
     /// <summary>A developer switch to watch I's party defeat (s153): the test party's members all DEAD in the wilderness,
-    /// "YOUR PARTY HAS BEEN DEFEATED" waiting (<see cref="Defeat"/>).</summary>
+    /// `core.defeat.your_party_has_been_defeated` waiting (<see cref="Defeat"/>).</summary>
     public const string DefeatSwitch = "--p1-defeat";
 
     /// <summary>Every member DEAD at 0 HP on the wilderness and the defeat pending, as after a lost fight.</summary>
@@ -724,8 +780,8 @@ public static class TestParty
 
     /// <summary>
     /// With <see cref="CombatSwitch"/>, <c>--p1-map-boxes</c> first plays I Amiga's encounter boxes over the map (s139,
-    /// <see cref="P1MapMessageRun"/>): "A NIGHT ENCOUNTER", then "%s IS ON WATCH" / "AND HEARS THE MONSTERS" for the first
-    /// member; with <see cref="SurpriseSwitch"/> "YOU SURPRISE THEM !" (the remaster's D-058 flash is no box since s140: the
+    /// <see cref="P1MapMessageRun"/>): `core.encounter.a_night_encounter`, then "%s IS ON WATCH" / `core.encounter.and_hears_the_monsters` for the first
+    /// member; with <see cref="SurpriseSwitch"/> `core.encounter.you_surprise_them` (the remaster's D-058 flash is no box since s140: the
     /// fight's line shows it). A preview: Core's fight is the switch's, the lines are not rolled.
     /// </summary>
     public const string MapBoxesSwitch = "--p1-map-boxes";
@@ -768,6 +824,20 @@ public static class TestParty
         ArgumentNullException.ThrowIfNull(session);
         session.DepartGuildToWilderness();
         session.EnterDungeon(cell.Level, cell.X, cell.Y);
+    }
+
+    /// <summary>
+    /// <see cref="DungeonSwitch"/> in III (s163, to watch the dungeon step's windows: a trap, a door with monsters, a locked
+    /// door): the test party leaves the Guild and the town and enters dungeon <paramref name="cell"/>'s level on its cell,
+    /// the original map (no saved one). E.g. <c>--p1-dungeon 5 3 15</c>: one step south is the Pendragon archives' door
+    /// 0xc5 (monsters behind it); <c>5 23 7</c>: south is trap 2; <c>5 15 22</c>: north is the locked door 0xc6.
+    /// </summary>
+    public static void EnterP3Dungeon(GameSession session, (int Level, int X, int Y) cell)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        session.LeaveGuild();
+        session.LeaveTown();
+        session.EnterDungeon(cell.Level, cell.X, cell.Y, loadSaved: false);
     }
 
     /// <summary>The opening <see cref="CombatSwitch"/> asks for: <see cref="SurpriseSwitch"/> or the normal one.</summary>
@@ -839,6 +909,24 @@ public static class TestParty
             last.HpCur = 0;
         }
         Phantasie2Campaign.ResolveEnding(session);
+    }
+
+    /// <summary>
+    /// A developer switch to watch a field Resurrection (s163): with a test party, the party leaves the Guild for the
+    /// wilderness with its last member DEAD (<see cref="FieldWithDeadMember"/>).
+    /// </summary>
+    public const string FieldDeadSwitch = "--field-dead";
+
+    /// <summary>The party in the wilderness, its last member DEAD at 0 HP, for <see cref="FieldDeadSwitch"/>.</summary>
+    public static void FieldWithDeadMember(GameSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        session.DepartGuildToWilderness();
+        if (session.Party.Members.Count > 1 && session.Party.Members[^1] is { } last)
+        {
+            last.Status = CharacterStatus.Dead;
+            last.HpCur = 0;
+        }
     }
 
     /// <summary>

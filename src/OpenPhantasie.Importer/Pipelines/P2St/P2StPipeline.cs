@@ -20,7 +20,8 @@ public sealed class P2StPipeline : IImportPipeline
 
     public string ProfileId => "p2-st-1.0";
 
-    public int RecipeVersion => 1;
+    /// <summary>2 (s163): the remaster's wording for the lines the ST lacks (shared / I tables, II's DOS-I-only ids).</summary>
+    public int RecipeVersion => 2;
 
     public void Run(ImportContext context)
     {
@@ -75,5 +76,7 @@ public sealed class P2StPipeline : IImportPipeline
 
         // The game's own lines of the string tables (10-importer.md 7.6).
         ImportedStrings.Write(context);
+        // s163: the remaster's wording for the ids of II's chain the ST does not give (10-importer.md 7.6).
+        ImportedStrings.WriteFallback(context, ImportedStrings.CommonFallbackGame, "phantasie2");
     }
 }

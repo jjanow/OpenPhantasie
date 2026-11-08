@@ -65,7 +65,10 @@ public static class PipelineHarness
             .ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.Ordinal);
 
         private static bool IsImportedStrings(string key, string profile) =>
-            key.StartsWith("GameData/", StringComparison.Ordinal) && key.EndsWith("/" + ImportedStrings.OutputFile(profile), StringComparison.Ordinal);
+            key.StartsWith("GameData/", StringComparison.Ordinal)
+            && (key.EndsWith("/" + ImportedStrings.OutputFile(profile), StringComparison.Ordinal)
+                || key.EndsWith("/" + ImportedStrings.FallbackFile(profile), StringComparison.Ordinal)
+                || key.EndsWith("/" + ImportedStrings.OwnWordingFile(profile), StringComparison.Ordinal));
     }
 
     private static readonly Dictionary<string, Result> Cache = new();

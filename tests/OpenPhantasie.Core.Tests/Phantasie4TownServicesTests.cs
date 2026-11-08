@@ -696,13 +696,15 @@ public class Phantasie4TownServicesTests
     }
 
     [OriginalDataTheory]
-    [InlineData(new[] { 0 }, new[] { P4TownScene.EndingStreet })]
-    [InlineData(new[] { 0, 1, 2 }, new[] { P4TownScene.EndingStreet, P4TownScene.EndingBanquet })]
-    [InlineData(new[] { 0, 1, 2, 3 }, new[] { P4TownScene.EndingStreet, P4TownScene.EndingBanquet, P4TownScene.EndingCell })]
-    [InlineData(new[] { 0, 1, 2, 3, 4 }, new[] { P4TownScene.EndingStreet, P4TownScene.EndingBanquet })]
+    [InlineData(new[] { 0 }, new[] { P4TownScene.EndingStreet, P4TownScene.EndingFinal })]
+    [InlineData(new[] { 0, 1, 2 }, new[] { P4TownScene.EndingStreet, P4TownScene.EndingBanquet, P4TownScene.EndingFinal })]
+    [InlineData(new[] { 0, 1, 2, 3 }, new[] { P4TownScene.EndingStreet, P4TownScene.EndingBanquet, P4TownScene.EndingCell,
+        P4TownScene.EndingFinal })]
+    [InlineData(new[] { 0, 1, 2, 3, 4 }, new[] { P4TownScene.EndingStreet, P4TownScene.EndingBanquet, P4TownScene.EndingFinal })]
     public void Ending_Pictures_StreetThenBanquetThenCell(int[] flags, P4TownScene[] expected)
     {
-        // ending.md §1, FORMAT.md §6.9: _endset (street + END1), _banquet (END2) before blocks 4 / 7, _arathamus (END3) before 9.
+        // ending.md §1, FORMAT.md §6.9: _endset (street + END1), _banquet (END2) before blocks 4 / 7, _arathamus (END3) before 9;
+        // s162: _endstory's own titled window, no picture.
         var party = Party(2);
         foreach (var f in flags)
             party.StoryFlags[P4TownLoop.EndingFlag + f] = 1;

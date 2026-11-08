@@ -16,7 +16,7 @@ public class Phantasie3DungeonTests
             Assert.True(s.LeaveTown());
         var entranceX = Campaign(s).World.DungeonEntranceX[n - 1];
         s.EnterDungeon(n, entranceX, 0);
-        Assert.True(s.DungeonExitPending); // the entrance is an exit cell: "An exit. Will you take it?" first (live s82)
+        Assert.True(s.DungeonExitPending); // the entrance is an exit cell: `core.prompt.an_exit_take_it` first (live s82)
         s.AnswerDungeonExit(takeIt: false, saveMap: false);
         if (x >= 0)
         {
@@ -188,7 +188,7 @@ public class Phantasie3DungeonTests
         Assert.All(s.Party.Members, m => Assert.Equal(P3AreaState.Injured, P3BodyAreas.Of(m)[P3BodyArea.Torso]));
         var gold = s.Sack.Gold;
         StepOnto(s, 19, 24);
-        s.AnswerDungeonEvent(4); // torsos hurt: gold (live s82: "The party finds some gold.", +1,024)
+        s.AnswerDungeonEvent(4); // torsos hurt: gold (live s82: `core.p3.party_finds_gold`, +1,024)
         ReadPages(s);
         Assert.Equal(gold + 1024, s.Sack.Gold);
     }

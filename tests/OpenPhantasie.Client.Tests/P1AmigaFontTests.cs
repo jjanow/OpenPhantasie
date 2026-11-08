@@ -154,7 +154,7 @@ public class P1AmigaFontTests
 
     /// <summary>
     /// Requester 23 on the s135 shots <c>-23</c> / <c>-24</c> (Speed at boot, the end of a fight): each line centred in 40
-    /// cells (h65 <c>+0x1f4</c>) from x 41, so "MONSTERS KILLED" starts at 113, "EACH SURVIVOR GETS" at 107 and "140 XP AND 40
+    /// cells (h65 <c>+0x1f4</c>) from x 41, so "MONSTERS KILLED" starts at 113, `core.combat.each_survivor_gets` at 107 and "140 XP AND 40
     /// GP" at 113; one line takes the middle row, two the top two.
     /// </summary>
     [OriginalDataFact]
@@ -227,7 +227,7 @@ public class P1AmigaFontTests
     /// <summary>
     /// s153 FS-UAE shots of text the remaster does not draw as the Amiga does (FORMAT.md "Fonts"): requester 14 (Guild ›
     /// Inspect, the character sheet; its ReqText, IText 123, is the member's name in topaz 8 at (7, 7), the rows z6font),
-    /// requester 22 (the Black Knights; IText 194 "BLACK KNIGHTS!!!" in topaz 8 at (49, 19), the buttons' z6font labels)
+    /// requester 22 (the Black Knights; IText 194 `p1field.req.black_knights` in topaz 8 at (49, 19), the buttons' z6font labels)
     /// and "LEAVING %s" on the town line (h29 <c>+0x168</c>, z6font, pen 4, the 10-character name field centred with it).
     /// </summary>
     [OriginalDataTheory]

@@ -47,7 +47,7 @@ public sealed partial class GameDataRepository
     public IReadOnlyList<TownDefinition> Towns { get; }
     public IReadOnlyDictionary<int, AssetSpritePaths> MonsterSprites { get; }
 
-    /// <summary>SUMMON ELEMENTAL templates FIRE, WATER, EARTH (<c>elementals.json</c>).</summary>
+    /// <summary>`core.spell.summon_elemental` templates FIRE, WATER, EARTH (<c>elementals.json</c>).</summary>
     public IReadOnlyList<ElementalDefinition> Elementals { get; }
 
     /// <summary>Travel time per wilderness step (<c>travel-time.json</c>, OV2 <c>0x5f88</c>) [C].</summary>

@@ -120,7 +120,7 @@ public class P2CombatLineRunTests
     [InlineData("EACH SURVIVOR GETS", "4220 XP AND 0 GP")]
     public void EndBox_XpPair_IsOneTwoLineBox_UpperRowFirst_HeldSpeedPlus1500(string first, string second)
     {
-        // 0xa3da: 0xa272("EACH SURVIVOR GETS", buf) → tree 41, Speed + 1500 (0xa238), no sound.
+        // 0xa3da: 0xa272(`core.combat.each_survivor_gets`, buf) → tree 41, Speed + 1500 (0xa238), no sound.
         var run = Run(Normal, null, first, second, "Hero HITS");
         Assert.Equal(["EACH SURVIVOR GETS", "4220 XP AND 0 GP"], run.ActiveBox!.Rows);
         Assert.Equal(2, run.Printed); // both lines in the log at once
@@ -371,6 +371,49 @@ public class P2CombatLineRunTests
     }
 
     [OriginalDataFact]
+    public void MonsterSpecial_AsTracedLive_SilhouettePoseThenSound9_NoHold()
+    {
+        // s162 (capture_s162_combat.md): 0x186de(group, slot, 2) from 0x8d92: the silhouette 300–315 ms, the attack pose
+        // 315 ms, the blank line with sound 9 (no hold: one character), then 0x92f8's own line at once ("TAKES 10 DAMAGE",
+        // n −1, the Speed hold). The remaster's "CASTS A SPELL" stands for the blank line (user s137).
+        var table = Table();
+        var run = new P2CombatLineRun(table, P2CombatLineRun.Classify(table, ["ORC CASTS A SPELL", "Hero TAKES 10 DAMAGE"],
+            [], [Hero]), Normal, Seconds);
+        Assert.True(run.Pose!.Silhouette);
+        run.Advance(300);
+        Assert.False(run.Pose!.Silhouette); // the attack pose
+        Assert.Equal(0, run.Printed);
+        run.Advance(300);
+        Assert.Equal([9], run.SoundPlays);
+        Assert.Equal(2, run.Printed); // no hold after the special's line, the damage line (no sound) prints at once
+        run.Advance(9);
+        Assert.False(run.Done);
+        run.Advance(1);
+        Assert.True(run.Done); // the damage line's 10 ms hold
+    }
+
+    [OriginalDataFact]
+    public void MonsterBreath_AsTracedLive_13WaitsFor9_ThenTheHold()
+    {
+        // s162: BABY DRAGON: silhouette, pose, the blank line with 9, then "BABY DRAGON BREATHES" n 13: 13's 0xb8f2 waits
+        // for 9 (995 ms live at normal Speed) and the text shows after it, then the Speed hold.
+        var table = Table();
+        var run = new P2CombatLineRun(table, P2CombatLineRun.Classify(table, ["DRAGON BREATHES", "Hero HITS"], [], [Hero]),
+            Normal, Seconds);
+        run.Advance(600);
+        Assert.Equal([9], run.SoundPlays);
+        Assert.Equal(0, run.Printed);
+        run.Advance(899);
+        Assert.Equal(0, run.Printed);
+        run.Advance(1);
+        Assert.Equal([9, 13], run.SoundPlays);
+        Assert.Equal(1, run.Printed);
+        run.Advance(10); // the hold, then Hero's attack pose before HITS
+        Assert.Equal(1, run.Printed);
+        Assert.NotNull(run.Pose);
+    }
+
+    [OriginalDataFact]
     public void MemberDies_MarkSound15_500Ms_WaitForTheSound_ThenTheRowIsRelaid()
     {
         var run = Run(Normal, null, "Hero DIES", "ORC HITS");
@@ -498,6 +541,42 @@ public class P2CombatLineRunTests
             return;
         }
         Assert.Fail("no seed won the fight");
+    }
+
+    [OriginalDataFact]
+    public void Presenter_NoSound17OnTheFirstFightAfterADefeat_AgainAfterAWin()
+    {
+        // s163, FORMAT.md 7.3: 17 plays only while [0x23eb6] is set (data 1 at load), cleared at the fight's start and set
+        // again only at combat_victory's end, which a defeat (mode 6) never reaches.
+        var s = ClientSessions.Fight(3);
+        var ui = new CombatPresenter(new ClientSettings()) { P2Lines = Table, P2SoundSeconds = _ => 0 };
+        ui.Start(s);
+        Assert.Equal([17], ui.TakeP2Sounds()); // the first fight of the run
+        foreach (var m in s.Party.Members)
+        {
+            m.HpCur = 0;
+            m.Status = CharacterStatus.Dead;
+        }
+        s.ResolveCombatRound();
+        Assert.True(s.LastFightLost);
+        void Again()
+        {
+            foreach (var m in s.Party.Members)
+            {
+                m.Status = CharacterStatus.Ok;
+                m.HpCur = m.HpMax;
+            }
+            s.BeginWildernessCombat(ClientSessions.Data.Monsters.First(m => m.HpBase <= 8).Id, SurpriseFlags.Normal);
+            ui.Start(s);
+        }
+        Again();
+        Assert.Empty(ui.TakeP2Sounds()); // the first fight after the defeat: no 17
+        foreach (var mon in s.Combat!.AllMonsters)
+            mon.HitPoints = 0;
+        s.ResolveCombatRound();
+        Assert.False(s.LastFightLost);
+        Again();
+        Assert.Equal([17], ui.TakeP2Sounds()); // after a won fight: 17 again
     }
 
     [OriginalDataFact]
@@ -659,13 +738,28 @@ public class P2CombatLineRunTests
         var t = pack.StCombatLines!;
         Assert.Equal(300, t.AttackPoseMs);
         Assert.Equal([15, 0], t.SilhouettePens);
-        Assert.Equal(new StCombatSparkle(35, "combat.sparkle", "combat.rock", 32, 16, 300, 100, 10), t.Sparkle);
+        Assert.Equal(new StCombatSparkle(35, "combat.sparkle", "combat.rock", 32, 16, 300, 100, 10),
+            t.Sparkle! with { RockMissArea = null });
+        Assert.Equal([0, 13, 320, 134], t.Sparkle.RockMissArea!); // 0x18458's field from y 13, [0x23eb4] 150 − 3
         Assert.True(pack.StDosoundEffects!.Has(35)); // 0xb9ce's script 0x21c48
         Assert.NotNull(pack.Resolve("combat.sparkle"));
         Assert.NotNull(pack.Resolve("combat.rock"));
         Assert.True(t.Lines["core.combat.x_hits"][CombatLineSide.Monster].Attack);
         Assert.True(t.Lines["core.combat.x_dies"][CombatLineSide.Monster].Erase);
         Assert.True(t.Lines["core.combat.x_breathes"][CombatLineSide.Monster].Pose);
+    }
+
+    [Fact]
+    public void RockMiss_TheStSpotMovedOntoTheRemastersMonsterArea()
+    {
+        // s163: (100, 10) of the ST's monster area (0, 13, 320, 134): 100/320 across, 3 px above the top: on a 146 × 80
+        // rank box at (8, 92) x = 8 + 100·146/320 = 53, y clamped to the box's top; the sprite kept inside the box.
+        var sp = new StCombatSparkle(35, "s", "r", 32, 16, 300, 100, 10) { RockMissArea = [0, 13, 320, 134] };
+        Assert.Equal((53, 92), sp.RockMissOn(8, 92, 146, 80, 16, 16));
+        Assert.Equal((12, 92), sp.RockMissOn(8, 92, 20, 80, 16, 16)); // 8 + 100·20/320 = 14: the sprite kept inside
+        Assert.Equal((8, 92), sp.RockMissOn(8, 92, 10, 80, 16, 16)); // a box narrower than the sprite: its corner
+        // Without the area: the ST's own screen spot.
+        Assert.Equal((100, 10), (sp with { RockMissArea = null }).RockMissOn(8, 92, 146, 80, 16, 16));
     }
 
     [OriginalDataFact]
@@ -835,5 +929,108 @@ public class P2CombatLineRunTests
             return;
         }
         Assert.Fail("no seed played a round");
+    }
+
+    [OriginalDataFact]
+    public void MonsterDies_ErasesTheMonsterJustHit_NotAnotherOfItsName()
+    {
+        // s162: Core notes each monster hit right before its "TAKES" line (CombatResolver.ApplyMonsterDamage), so the
+        // "DIES" after it names that very monster, also with several of one kind (a group spell over two ORC ranks).
+        var other = new Monster { Name = "ORC" };
+        CombatHit[] hits = [new(DamageSource.PartySpell, null, Orc, Line: 1), new(DamageSource.PartySpell, null, other, Line: 3)];
+        var entries = P2CombatLineRun.Classify(Paced(),
+            ["Hero CASTS A SPELL", "ORC TAKES 9 DAMAGE", "ORC DIES", "ORC TAKES 9 DAMAGE", "ORC DIES"], [], [Hero], hits: hits);
+        Assert.Same(Orc, entries[2].Monster);
+        Assert.Same(other, entries[4].Monster);
+    }
+
+    [Fact]
+    public void SlotRects_SideBySide_ThenANewLine_NothingCut()
+    {
+        // s162: a rank's monsters left to right, 2 px apart, at their own size; one that would run past the width starts a
+        // new line, the first of a line always stays (an 80-px picture in a 60-px column is drawn whole).
+        var rects = UiOverlays.SlotRects([new(32, 34), new(32, 34), new(32, 34), new(32, 34), new(32, 34)], 2, 10, 140);
+        Assert.Equal([2, 36, 70, 104, 2], rects.Select(r => r.X));
+        Assert.Equal([10, 10, 10, 10, 46], rects.Select(r => r.Y));
+        var big = UiOverlays.SlotRects([new(80, 80), new(80, 80)], 0, 0, 60);
+        Assert.Equal([(0, 0), (0, 82)], big.Select(r => (r.X, r.Y)));
+        Assert.All(big, r => Assert.Equal((80, 80), (r.Width, r.Height)));
+    }
+
+    [OriginalDataFact]
+    public void Presenter_RankSlots_OnePerMonster_AnErasedOneLeftEmpty()
+    {
+        Assert.True(Table().MonsterSlots); // the ST pack: a picture per monster (0x18288)
+        for (var seed = 1; seed < 80; seed++)
+        {
+            var s = ClientSessions.Fight(seed);
+            var ui = new CombatPresenter(new ClientSettings()) { P2Lines = Table, P2SoundSeconds = _ => 0 };
+            ui.Start(s);
+            // Outside a round: the encounter's living monsters, rank by rank.
+            Assert.Equal(s.Combat!.Ranks.Where(r => !r.IsWiped).Select(r => r.Living.Select(m => (Monster?)m).ToList()),
+                ui.P2RankSlots(s.Combat)!.Select(r => r.ToList()));
+            Assert.Null(new CombatPresenter(new ClientSettings()).P2RankSlots(s.Combat)); // no ST pack: one picture per rank
+            foreach (var m in s.Party.Members)
+                m.HpCur = 999;
+            foreach (var mon in s.Combat.AllMonsters)
+                mon.HitPoints = 1;
+            var before = s.Combat.Ranks.Select(r => r.Members.Where(m => m.IsAlive).ToList()).Where(r => r.Count > 0).ToList();
+            for (var i = 0; i < 20 && ui.Phase != CombatPhase.Resolving && ui.IsPresenting; i++)
+                ui.HandleKey(s, Keys.Enter);
+            if (ui.Phase != CombatPhase.Resolving)
+                continue;
+            s.AutoMeleeRank0();
+            ui.Update(s, 0, fastForward: false);
+            if (ui.P2Run is not { } run)
+                continue;
+            run.Finish();
+            if (!before.Any(r => r.Any(run.Slain.Contains) && !r.All(run.Slain.Contains)))
+                continue;
+            // 0x18856: the slots keep their places; an erased monster's slot is empty (s163: an emptied rank's row too).
+            var expected = before
+                .Select(r => r.Select(m => run.Slain.Contains(m) ? null : (Monster?)m).ToList()).ToList();
+            Assert.Equal(expected, ui.P2RankSlots(s.Combat)!.Select(r => r.ToList()));
+            Assert.Contains(ui.P2RankSlots(s.Combat)!, r => r.Contains(null));
+            Assert.Equal(ui.P2RankRows!.Select(r => r.Count), ui.P2RankSlots(s.Combat)!.Select(r => r.Count(m => m is not null)));
+            return;
+        }
+        Assert.Fail("no seed erased one monster of a rank that kept another");
+    }
+    [OriginalDataFact]
+    public void Presenter_ARankWhoseMonstersAreAllErased_KeepsItsEmptyRowUntilTheReRank()
+    {
+        // s163, the ST: 0x18458 lays the groups out from their counts, which only 0x18288 rewrites at the round's end
+        // (0xfd82); an erase (0x186de mode 0) only zeroes the slot's width. So an emptied group's row stays, empty.
+        for (var seed = 1; seed < 120; seed++)
+        {
+            var s = ClientSessions.Fight(seed);
+            var ui = new CombatPresenter(new ClientSettings()) { P2Lines = Table, P2SoundSeconds = _ => 0 };
+            ui.Start(s);
+            foreach (var m in s.Party.Members)
+                m.HpCur = 999;
+            foreach (var mon in s.Combat!.AllMonsters)
+                mon.HitPoints = 1;
+            var before = s.Combat.Ranks.Select(r => r.Members.Where(m => m.IsAlive).ToList()).Where(r => r.Count > 0).ToList();
+            for (var i = 0; i < 20 && ui.Phase != CombatPhase.Resolving && ui.IsPresenting; i++)
+                ui.HandleKey(s, Keys.Enter);
+            if (ui.Phase != CombatPhase.Resolving)
+                continue;
+            s.AutoMeleeRank0();
+            ui.Update(s, 0, fastForward: false);
+            if (ui.P2Run is not { } run)
+                continue;
+            run.Finish();
+            var emptied = before.FindIndex(r => r.All(run.Slain.Contains));
+            if (emptied < 0)
+                continue;
+            var slots = ui.P2RankSlots(s.Combat)!;
+            Assert.Equal(before.Count, slots.Count); // no row dropped: the rank numbers stay
+            Assert.Equal(before[emptied].Count, slots[emptied].Count);
+            Assert.All(slots[emptied], Assert.Null);
+            Assert.Empty(ui.P2RankRows![emptied]);
+            Assert.Same(before[emptied][0], ui.P2RankKinds![emptied]); // its line and slot size
+            return;
+        }
+        Assert.Fail("no seed erased a whole rank");
     }
 }

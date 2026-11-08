@@ -350,4 +350,24 @@ public class P2StSoundEffectTests
         }
         static int Level(string hex, int at) => (int)Math.Round(Convert.ToInt32(hex.Substring(at, 2), 16) / 255.0 * 7);
     }
+
+    /// <summary>s162 (atari-st FORMAT.md 7.1): no II sound writes a fixed level 1–3 to registers 8–10, so the ST circuit
+    /// model's excess at those levels (10–23 % over the measured STF table) is never reached by a fixed level; the title
+    /// script uses 10–15, the effects 7–15, besides 0 and the envelope (bit 4).</summary>
+    [OriginalDataFact]
+    public void NoSound_WritesAFixedLevelOneToThree()
+    {
+        var tune = Pack.TitleSequence!.Tune!;
+        var title = Assert.IsType<DosoundScore>(tune.TryLoad());
+        var image = Prg;
+        var scores = Enumerable.Range(0, 36).Select(n => Effects.Score(image, n)).Append(title).ToList();
+        Assert.All(scores, Assert.NotNull);
+        var fixedLevels = scores.SelectMany(sc => sc!.Writes)
+            .Where(w => w.Register is >= 8 and <= 10 && (w.Value & 0x10) == 0 && (w.Value & 0x0F) != 0)
+            .Select(w => w.Value & 0x0F).Distinct().Order().ToList();
+        Assert.NotEmpty(fixedLevels);
+        Assert.DoesNotContain(fixedLevels, v => v <= 3);
+        Assert.Equal([10, 11, 12, 13, 14, 15], title.Writes.Where(w => w.Register == 8 && w.Value is > 0 and < 16)
+            .Select(w => w.Value).Distinct().Order());
+    }
 }

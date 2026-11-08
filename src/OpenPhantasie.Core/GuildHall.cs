@@ -18,7 +18,7 @@ public static class GuildHall
     /// (<c>0x3b08</c>, see <see cref="AddNeedsMoveConfirm"/>) only when the member's <c>@254</c> differs from this Guild's
     /// town; on every confirmed Add — same town too — it then sets <c>@254</c> := this town, <c>@264</c> += 4 and
     /// <c>@218</c> := 1. D-067 (user s53, manual silent): only a member from another town ages (the gate says
-    /// "it takes 2 months"); DOS quirk Q8 aged a same-town Add too. A caller must ask first and only call this on a yes.
+    /// `core.guild.move_takes_2_months`); DOS quirk Q8 aged a same-town Add too. A caller must ask first and only call this on a yes.
     /// <paramref name="guildTownId"/> is the 1-based Core town id of the Guild.
     /// </summary>
     public static bool TryAddToParty(GuildRoster roster, Party party, Character member, int guildTownId, out string error) =>
@@ -163,6 +163,24 @@ public static class GuildHall
     }
 
     /// <summary>
+    /// Why Guild ▸ Purge would refuse <paramref name="member"/>, or null when it would purge: not in the roster, or a party
+    /// member under DOS III's refusal (<see cref="PurgePartyRule.Refused"/>, string 448). s160: DOS III tests these before
+    /// its "Are you sure …?" question (guild_menu <c>0xafe3…0xb075</c>), so the front end asks only when this is null.
+    /// </summary>
+    public static string? PurgeRefusal(GuildRoster roster, Party party, Character member,
+        PurgePartyRule partyRule = PurgePartyRule.ClearsElemental)
+    {
+        ArgumentNullException.ThrowIfNull(roster);
+        ArgumentNullException.ThrowIfNull(party);
+        ArgumentNullException.ThrowIfNull(member);
+        if (Array.IndexOf(roster.Slots, member) < 0)
+            return GameText.S("core.guild.not_in_roster");
+        if (party.Members.Contains(member) && partyRule == PurgePartyRule.Refused)
+            return GameText.S("core.guild.cannot_purge_party_member"); // DOS III string 448
+        return null;
+    }
+
+    /// <summary>
     /// Guild ▸ Purge. A party member is purged and leaves the party; what happens to a loaded elemental (or whether DOS III
     /// refuses) is <paramref name="partyRule"/> (D3-040). The elemental records are never in the roster, so no rule can
     /// remove one from the game; only its party copy is unloaded.
@@ -170,23 +188,14 @@ public static class GuildHall
     public static bool TryPurge(GuildRoster roster, Party party, Character member, out string error,
         PurgePartyRule partyRule = PurgePartyRule.ClearsElemental)
     {
-        ArgumentNullException.ThrowIfNull(roster);
-        ArgumentNullException.ThrowIfNull(party);
-        ArgumentNullException.ThrowIfNull(member);
-
-        var idx = Array.IndexOf(roster.Slots, member);
-        if (idx < 0)
+        if (PurgeRefusal(roster, party, member, partyRule) is { } refusal)
         {
-            error = GameText.S("core.guild.not_in_roster");
+            error = refusal;
             return false;
         }
+        var idx = Array.IndexOf(roster.Slots, member);
         if (party.Members.Contains(member))
         {
-            if (partyRule == PurgePartyRule.Refused)
-            {
-                error = GameText.S("core.guild.cannot_purge_party_member"); // DOS III string 448
-                return false;
-            }
             party.Members.Remove(member);
             // I [C] OV1 0x2489: purging a party member also clears party slot 7. III (D3-040, manual): as III's Drop, the
             // elemental stays while a character is left.

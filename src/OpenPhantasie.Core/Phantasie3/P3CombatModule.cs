@@ -128,8 +128,8 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
 
     /// <summary>
     /// DOS III's refusals of Cast itself, before the spell list opens (root <c>0xffef</c> / <c>0xffdf</c>; the Amiga's
-    /// <c>0x19430</c> / <c>0x1943a</c> the same, s134 static): "This character knows no spells." when the record's spell
-    /// count (<c>+0x56</c>, every known spell, castable in combat or not) is 0; else "This character's magic is too low!"
+    /// <c>0x19430</c> / <c>0x1943a</c> the same, s134 static): `cast.x_knows_no_spells` when the record's spell
+    /// count (<c>+0x56</c>, every known spell, castable in combat or not) is 0; else `core.magic.not_enough_mp`
     /// when the current magic (<c>+0x1e</c>) is 0 or less. The message's text id, or null when the list opens. Each refusal
     /// makes the order Thrust (R1) (<c>0xff55</c>; no rank question, a Thief too), as <see cref="CastRefusal"/>'s do.
     /// </summary>
@@ -147,7 +147,7 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
     private const int CombatMonsterEvaluation = 51, CombatTransportation = 53, CombatFirstPlaneSpell = 56;
 
     /// <summary>
-    /// "Target which rank?" (string 483) when a second group exists: Fire Bow; a Thief's Thrust, Slash (at 150 %) and
+    /// `p3combat.x_target_which_rank` (string 483) when a second group exists: Fire Bow; a Thief's Thrust, Slash (at 150 %) and
     /// Attack (manual D3-012; never under <c>p3.thief-attack</c> = <c>dos</c>). Lunge goes to rank 2 without asking.
     /// </summary>
     public bool? AsksRank(CombatEncounter encounter, int memberIndex, CombatChoice choice)

@@ -4,7 +4,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Core.Tests;
 
 /// <summary>
-/// SUMMON ELEMENTAL end to end (combat-resolution.md §SUMMON ELEMENTAL, s33): Guild prep into party slot 7 (OV1
+/// `core.spell.summon_elemental` end to end (combat-resolution.md §`core.spell.summon_elemental`, s33): Guild prep into party slot 7 (OV1
 /// <c>0x2786</c>), the cast (OV2 <c>0x8cc</c>), combat membership, end of combat (<c>0x3f2e</c>) and the ways it leaves.
 /// </summary>
 public class SummonElementalTests

@@ -237,7 +237,7 @@ public interface ICampaign
     }
 
     /// <summary>
-    /// "An exit. Will you take it?" was answered YES: true when the campaign put the party where the exit leads (III's
+    /// `core.prompt.an_exit_take_it` was answered YES: true when the campaign put the party where the exit leads (III's
     /// planes); false = I's exit record (<see cref="DungeonLevel.ExitTarget"/>).
     /// </summary>
     bool TakeDungeonExit(GameSession session, DungeonState state, DungeonLevel level) => false;
@@ -433,7 +433,7 @@ public sealed class CampaignAccess
         set => _session.LastEndgame = value;
     }
 
-    /// <summary>"A TOWN. ENTER?" / "A DUNGEON. ENTER?" (or a campaign's own place question) waiting for an answer.</summary>
+    /// <summary>"A TOWN. ENTER?" / `core.overworld.a_dungeon_enter` (or a campaign's own place question) waiting for an answer.</summary>
     public OverworldEntryPrompt? EntryPrompt
     {
         get => _session.EntryPrompt;
@@ -447,7 +447,7 @@ public sealed class CampaignAccess
         set => _session.WildernessPrompt = value;
     }
 
-    /// <summary>"An exit. Will you take it?" waiting (a campaign's own dungeon step found an exit cell).</summary>
+    /// <summary>`core.prompt.an_exit_take_it` waiting (a campaign's own dungeon step found an exit cell).</summary>
     public bool DungeonExitPending
     {
         get => _session.DungeonExitPending;

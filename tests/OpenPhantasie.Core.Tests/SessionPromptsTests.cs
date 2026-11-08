@@ -314,7 +314,7 @@ public class SessionPromptsTests
         Assert.Null(p.Current);
     }
 
-    // --- "A TOWN. ENTER?" / "A DUNGEON. ENTER?" (manual p.12) ------------------------------------------------
+    // --- "A TOWN. ENTER?" / `core.overworld.a_dungeon_enter` (manual p.12) ------------------------------------------------
 
     private static GameSession NextTo(int x, int y)
     {

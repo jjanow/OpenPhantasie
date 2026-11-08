@@ -424,7 +424,7 @@ public static class SessionCodec
         public int[]? PartySlotIndices { get; set; }
         public long PartyGold { get; set; }
 
-        /// <summary>Party slot 7 (SUMMON ELEMENTAL), GUILD JSON of one character; absent in older saves.</summary>
+        /// <summary>Party slot 7 (`core.spell.summon_elemental`), GUILD JSON of one character; absent in older saves.</summary>
         public string? ElementalJson { get; set; }
 
         public bool ElementalSummoned { get; set; }

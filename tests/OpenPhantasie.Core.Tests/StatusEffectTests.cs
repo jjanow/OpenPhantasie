@@ -106,7 +106,7 @@ public class StatusEffectTests
         var enc = new CombatEncounter(party);
         enc.AddRank(Mon("ORC"));
         enc.Prepare();
-        enc.Prep[0].WeaponHitEff = 20; // "THE PARTY IS SLOWED" ×2
+        enc.Prep[0].WeaponHitEff = 20; // `core.combat.party_slowed` ×2
 
         var r = SpellCaster.ResolveCombatCast(enc, 0, CombatAction.CastSpell(SpellId.QuicknessI),
             new StrictRandomSource(), new List<string>());

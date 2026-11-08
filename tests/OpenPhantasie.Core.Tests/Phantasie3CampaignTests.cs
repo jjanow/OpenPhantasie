@@ -51,7 +51,7 @@ public class Phantasie3CampaignTests
         Assert.Equal(new ElementalRules(1, BlocksAdd: false, DropKeeps: true), Data.Rules.ElementalRulesOrDefault);
         var s = NewGame();
         s.OpenGuild();
-        Assert.False(s.TryAddElemental(0, out var none)); // ovl2 0x3a0a: "The party is not assembled."
+        Assert.False(s.TryAddElemental(0, out var none)); // ovl2 0x3a0a: `core.guild.party_not_assembled`
         Assert.Equal("The party is not assembled.", none);
         var a = s.CreateAndEnroll("HERO0", Race.Human, CharacterClass.Fighter);
         Assert.True(s.TryAddToParty(a, out var err), err);
@@ -264,7 +264,7 @@ public class Phantasie3CampaignTests
         Assert.Equal(PartyOptionOutcome.LoseRound, flee.Outcome);
         Assert.Contains("You don't get away...", flee.Log);
 
-        Assert.DoesNotContain(P3Sounds.Stop, s.SoundsSince(0)); // "You don't get away..." plays nothing
+        Assert.DoesNotContain(P3Sounds.Stop, s.SoundsSince(0)); // `core.p3.you_dont_get_away` plays nothing
 
         var rng = new Switchable(3);
         var t = WithParty(rng);

@@ -112,7 +112,7 @@ public static class PartyOptions
             case PartyOption.BegMercy:
                 // DOS (0x3bea) rolls rand < Σreaction + 90 and fights on a miss; D-017 (manual): begging always works.
                 if (encounter.Rules.IsDos(RuleOptionRegistry.BegMercy) && Roll0To99(rng) >= encounter.ReactionSum + 90)
-                    return Refused(log); // "MONSTERS DON'T RESPOND" → orders (0x6a2a)
+                    return Refused(log); // `core.combat.monsters_dont_respond` → orders (0x6a2a)
                 log.Add(GameText.S("core.combat.monsters_take_gold"));
                 encounter.TreasureForfeited = true;
                 return Over(EndCombat(encounter, 0, log), forfeitsSack: true);

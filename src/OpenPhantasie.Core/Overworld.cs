@@ -641,7 +641,7 @@ public enum OverworldEntryKind
 }
 
 /// <summary>
-/// "A TOWN. ENTER?" / "A DUNGEON. ENTER?" (manual p.12; DOS OV2 <c>0x6115</c> / menu <c>0x1c</c>; the town prompt has its own menu, <c>0xe</c> <c>[~]</c>): a town id (1-based) or
+/// "A TOWN. ENTER?" / `core.overworld.a_dungeon_enter` (manual p.12; DOS OV2 <c>0x6115</c> / menu <c>0x1c</c>; the town prompt has its own menu, <c>0xe</c> <c>[~]</c>): a town id (1-based) or
 /// a dungeon level id with its arrival cell.
 /// </summary>
 public sealed record OverworldEntryPrompt(OverworldEntryKind Kind, int Id, int DestX, int DestY)
@@ -656,7 +656,7 @@ public sealed record OverworldEntryPrompt(OverworldEntryKind Kind, int Id, int D
     public string? Name { get; init; }
 
     /// <summary>
-    /// The dungeon was entered and DOS III's next question waits: "Load previously saved dungeon?" (ovl4 <c>0x6fe</c>, DS
+    /// The dungeon was entered and DOS III's next question waits: `core.p3.load_saved_dungeon` (ovl4 <c>0x6fe</c>, DS
     /// <c>0x62ec</c>), asked on every entry under <c>p3.dungeon-map-no</c> = <c>dos</c> (D3-038). Yes loads the saved map,
     /// No the original.
     /// </summary>

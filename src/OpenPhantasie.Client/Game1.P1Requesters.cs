@@ -13,8 +13,28 @@ public partial class Game1
     /// <summary>s156: Info › About Phantasie's requester 27 is up (the logo; a click on it or a key closes it).</summary>
     private bool _p1About;
 
-    /// <summary>One of the Client-held requesters over the map is up (the STYX / OCEAN OK, About Phantasie).</summary>
-    private bool P1HeldRequesterUp => _p1OkSpec is not null || _p1About;
+    /// <summary>
+    /// s163: a Client-held requester 0 in the town (pack <c>map_requesters.town</c> key: "D O N E !", the Printout's
+    /// "PREPARE PRINTER"); <see cref="P1TownHeld.Answer"/> gets the button's index (0 = the first) when it closes.
+    /// </summary>
+    private sealed record P1TownHeld(string Key, Action<int>? Answer = null);
+
+    private P1TownHeld? _p1TownHeld;
+
+    /// <summary>One of the Client-held requesters is up (the STYX / OCEAN OK, About Phantasie, s163 the town's).</summary>
+    private bool P1HeldRequesterUp => _p1OkSpec is not null || _p1About || _p1TownHeld is not null;
+
+    /// <summary>True when the pack draws the town requester <paramref name="key"/> now (I, AMIGA SCREENS, in a town).</summary>
+    private bool P1TownRequesterReady(string key) =>
+        P1Requesters is { Menu: not null, TownPalette: not null, PenRemap.Count: 16 } layout && layout.Town.ContainsKey(key)
+        && _session?.Mode is GameMode.Town or GameMode.Guild;
+
+    /// <summary>s163: opens the town requester <paramref name="key"/> (no-op without one in the pack).</summary>
+    private void OpenP1TownHeld(string key, Action<int>? answer = null)
+    {
+        if (P1TownRequesterReady(key))
+            _p1TownHeld = new P1TownHeld(key, answer);
+    }
 
     private Data.MapRequestersLayout? P1Requesters =>
         _session is { Game: GameId.P1 } && CurrentGameSettings.OriginalScreens ? _assets?.Pack?.MapRequesters : null;
@@ -105,13 +125,25 @@ public partial class Game1
         return null;
     }
 
+    /// <summary>s163: the scroll's printout questions in the town's Use item (h29 <c>+0x1da</c> / <c>+0x1f6</c>), or null.</summary>
+    private RequesterScene? P1UseItemRequesterFor(IModalDialog modal, GameSession s)
+    {
+        if (P1Requesters is not { } layout || s.Mode != GameMode.Town || !ReferenceEquals(modal, _useItemDialog))
+            return null;
+        if (_useItemDialog.AskingPrintout)
+            return P1MapRequesters.Town(layout, "scroll_printout", i => i == 0 ? Keys.Y : Keys.N);
+        if (_useItemDialog.AskingPrinter)
+            return P1MapRequesters.Town(layout, "prepare_printer", i => i == 0 ? Keys.Enter : Keys.Escape);
+        return null;
+    }
+
     /// <summary>s156: Guild › New's rolled character as requester 14 with PURGE / KEEP (h23 <c>+0xc08</c>), or null.</summary>
     private RequesterScene? P1RolledSheetFor(GameSession s) =>
         P1Requesters is { Sheet: { RolledButtons.Count: 2 } sheet } && s.Mode == GameMode.Guild && _guildNewDialog.RolledMember is { } rolled
             ? P1MapRequesters.Sheet(sheet, rolled, rolled: true)
             : null;
 
-    /// <summary>After a blocked wilderness step: "THE RIVER STYX" / "THAT IS THE OCEAN" open their OK requester.</summary>
+    /// <summary>After a blocked wilderness step: "THE RIVER STYX" / `core.overworld.that_is_the_ocean` open their OK requester.</summary>
     private void OfferP1Ok(GameSession s, long mark, OverworldMoveResult result)
     {
         if (result.Kind == OverworldMoveKind.Blocked)
@@ -120,7 +152,7 @@ public partial class Game1
 
     /// <summary>
     /// The first line logged since <paramref name="mark"/> that the pack's <c>oks</c> name opens its requester (STYX / OCEAN
-    /// after a blocked step; s158: the wilderness inn's "YOU CAN'T AFFORD IT[SORRY]", h71 <c>+0xe76</c>, filmed).
+    /// after a blocked step; s158: the wilderness inn's `p1field.req.cant_afford`, h71 <c>+0xe76</c>, filmed).
     /// </summary>
     private void OfferP1OkLines(GameSession s, long mark)
     {
@@ -143,6 +175,28 @@ public partial class Game1
     {
         if (!P1HeldRequesterUp)
             return false;
+        if (_p1TownHeld is { } held)
+        {
+            // s163: one button: any key closes it; two: Y / Return / O / the first button's click answer it, N / Esc / A
+            // the second (h86 +0x32a's index).
+            var two = P1Requesters?.Town.GetValueOrDefault(held.Key) is { } id && P1MapRequesters.Parse(UiText.S(id)).Buttons.Count > 1;
+            int? answer = null;
+            foreach (var key in _input.NewKeys(keys))
+            {
+                answer = !two ? 0 : key is Keys.Y or Keys.Enter or Keys.O or Keys.Space ? 0
+                    : key is Keys.N or Keys.Escape or Keys.A or Keys.Back ? 1 : null;
+                if (answer is not null)
+                    break;
+            }
+            if (answer is null && !two && _input.NewButtons(pad).Any())
+                answer = 0;
+            if (answer is int i)
+            {
+                _p1TownHeld = null;
+                held.Answer?.Invoke(i);
+            }
+            return true;
+        }
         if (_input.NewKeys(keys).Any() || _input.NewButtons(pad).Any())
         {
             _p1OkSpec = null;
@@ -194,7 +248,9 @@ public partial class Game1
     }
 
     private RequesterScene? P1OkScene() =>
-        _p1OkSpec is { } spec && P1Requesters is { Menu: not null } layout && _session is { Mode: GameMode.Overworld }
+        _p1TownHeld is { } held && P1TownRequesterReady(held.Key)
+            ? P1MapRequesters.Town(P1Requesters!, held.Key, i => i == 0 ? Keys.Y : Keys.N)
+            : _p1OkSpec is { } spec && P1Requesters is { Menu: not null } layout && _session is { Mode: GameMode.Overworld }
             ? P1MapRequesters.Menu(layout, spec, _ => Keys.Enter)
             : _p1About && P1Requesters is { About: not null } about && _session is { Mode: GameMode.Overworld or GameMode.Dungeon }
                 ? P1MapRequesters.About(about)

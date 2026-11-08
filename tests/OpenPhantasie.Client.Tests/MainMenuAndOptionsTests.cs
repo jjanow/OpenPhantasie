@@ -129,6 +129,11 @@ public class MainMenuAndOptionsTests
         Assert.EndsWith("ON", Line(o, "TITLE TUNE"));
         o.HandleKeys([Keys.Enter]);
         Assert.False(settings.Game(GameId.P1).TitleTune);
+        o.HandleKeys([Keys.Down]); // → AMIGA AUDIO FILTER (s160: the A500's output filters), on by default = as the A500
+        Assert.EndsWith("ON", Line(o, "AMIGA AUDIO FILTER"));
+        o.HandleKeys([Keys.Enter]);
+        Assert.False(settings.Game(GameId.P1).A500Filter);
+        Assert.EndsWith("OFF", Line(o, "AMIGA AUDIO FILTER"));
         o.HandleKeys([Keys.Down]); // → AMIGA SCREENS (s132: I's combat screen), on by default = as the original
         Assert.EndsWith("ON", Line(o, "AMIGA SCREENS"));
         o.HandleKeys([Keys.Enter]);
@@ -200,6 +205,28 @@ public class MainMenuAndOptionsTests
         Assert.DoesNotContain(o.Lines(), l => l.Text.Contains("COMBAT ORDERS")); // I's own module
     }
 
+    /// <summary>s160: AMIGA AUDIO FILTER is a row of the Paula games' tabs only (I, III), right after TITLE TUNE.</summary>
+    [OriginalDataFact]
+    public void A500FilterRow_OnlyOnTheAmigaSoundTabs()
+    {
+        var o = new OptionsScreen(new ClientSettings(), _ => [], _ => true);
+        o.Open();
+        foreach (var game in new[] { GameId.P1, GameId.P2, GameId.P3, GameId.P4 })
+        {
+            o.HandleKeys([Keys.Right]);
+            Assert.Equal(game, o.Tab);
+            var rows = o.RowTexts().Select(t => t.TrimStart()).ToList();
+            var at = rows.FindIndex(t => t.StartsWith("AMIGA AUDIO FILTER", StringComparison.Ordinal));
+            if (game is GameId.P1 or GameId.P3)
+            {
+                Assert.True(rows[at - 1].StartsWith("TITLE TUNE", StringComparison.Ordinal));
+                Assert.EndsWith("ON", rows[at]);
+            }
+            else
+                Assert.Equal(-1, at);
+        }
+    }
+
     [OriginalDataFact]
     public void InGame_ShowsOnlyGeneralAndTheRunningGame_RulesLocked()
     {
@@ -210,10 +237,10 @@ public class MainMenuAndOptionsTests
         Assert.Equal(GameId.P1, o.Tab);
         Assert.Equal("> GENERAL  [I]", o.Lines()[1].Text);
 
-        // The locked rows can be scrolled to and read but not changed: Down past the eleven presentation rows (the header is
+        // The locked rows can be scrolled to and read but not changed: Down past the twelve presentation rows (the header is
         // skipped) lands on PRESET, and Right / Return there change nothing.
         o.HandleKeys([Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down,
-            Keys.Down, Keys.Down]);
+            Keys.Down, Keys.Down, Keys.Down]);
         Assert.Equal(MenuLineStyle.Selected, o.Lines().Single(l => l.Text.Contains("PRESET")).Style);
         Assert.Contains(o.Lines(), l => l.Text.Contains("THIS SAVE'S RULES (LOCKED)")); // the header above it
         o.HandleKeys([Keys.Right, Keys.Enter]);

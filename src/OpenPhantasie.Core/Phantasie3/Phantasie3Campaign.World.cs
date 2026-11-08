@@ -288,7 +288,7 @@ public sealed partial class Phantasie3Campaign
     }
 
     /// <summary>
-    /// An independent inn (ovl3 <c>0x8cc</c>): 250 gold from the party ("The party cannot afford the stay."), then the
+    /// An independent inn (ovl3 <c>0x8cc</c>): 250 gold from the party (`core.p3.cannot_afford_stay`), then the
     /// inn (body areas as every inn: 1 Break or 2 Injuries; HP and magic as the shared wilderness inn [~]).
     /// </summary>
     public TownTransactionResult? StayAtWildernessInn(GameSession session)

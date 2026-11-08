@@ -91,6 +91,9 @@ Phase 09 T4. The III counterpart of `03-dos-disassembly-and-logic-extraction.md`
       altar's Torso fault, the wizard's Divine Aid sale and a gold sign-extension, the record letters `DNPA`, exits
       ignoring x, y).
 - [x] **T4 campaign:** `Phantasie3Campaign` built on these specs (`09-trilogy.md` T4).
+- [x] **DOS CGA pictures (s160).** All five DOS picture files decoded (`reverse-engineering/dos/phantasie3/FORMAT.md`
+      section 10), extractor `tools/scripts/extract_dos_p3_graphics.py`, pack `GameData/phantasie3/graphics/dos-cga.json`
+      (never the default; drawn when no Amiga pack is imported), importer `P3Dos/P3CgaArt.cs` (`10-importer.md` 7.7).
 - [~] **4c Graphics (Amiga).** Formats in `reverse-engineering/amiga/phantasie3/FORMAT.md`, extractor
       `tools/scripts/extract_amiga_p3_graphics.py` → `extracted/graphics/`, pack `GameData/phantasie3/graphics/amiga.json`.
       Decoded `[C]` and drawn in the Client unless noted:

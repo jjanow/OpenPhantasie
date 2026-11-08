@@ -245,10 +245,39 @@ manual at all.
   which stays within about 8 % of the table from level 4 up (levels 1–3 read 10–23 % high, all below 0.5 % of full
   scale; one voice at 15: 0.56 for the table's 0.53) and covers the envelope's 32 steps (the table has 16; Hatari interpolates
   them); a fixed level v uses step 2v + 1 (1 stays 1, Hatari `YmVolume4to5`). Hatari's single-voice table
-  `ymout1c5bit` steps by exactly 2^¼ (1.5 dB), i.e. the data sheet curve, not a further measurement. Not modelled: the
-  STF's own RC low-pass (R8 1 kΩ / C10 0.1 µF, asymmetric 2.1–7.7 kHz per Hatari's note on the Dec 1986 schematic;
-  Hatari's default filter is a different anti-alias one) `[~]`. The s108 model (three 1.5-dB levels averaged) stays as
-  `Ym2149Mixing.Linear`. Decoder `OpenPhantasie.Data.Audio.DosoundScore`.
+  `ymout1c5bit` steps by exactly 2^¼ (1.5 dB), i.e. the data sheet curve, not a further measurement. **Levels 1–3
+  (s162) `[C]`:** no II script writes a fixed level 1–3: the title script's fixed levels are 10–15 (A) and 0 / 16
+  (envelope), the 28 `PHANT.PRG` scripts' (table 7.2, `0x21ab0`, the second player's bodies `0x21bc0` / `0x21b54` /
+  `0x21b66` / `0x21b7a` and `0x21c48`) 7, 9, 11 and 13–15 besides 0 and the envelope (16 / 31), with no `0x81` sweep
+  on registers 8–10 (a scan of the bytes). So the model's 10–23 % excess only reaches the envelope's lowest steps (2–7), all below 0.5 % of full
+  scale; the measured table has no 5-bit envelope steps, so no measurement can replace the model there `[~]`.
+  **The STF's RC low-pass (s163) `[C]` values, modelled:** Atari's own sheet **C070787 rev. C** ("SCHEMATIC DIAGRAM
+  1040ST", Atari (Japan), drawn Dec 1986, used on 1040STF / 1040STFM; archive.org
+  `Atari_1040ST_Schematic_Rev_C_C070787_Dec_26_1986`, sheet 1 of 5, bottom left, U16 YM2149) draws the output stage:
+  ANALOG A / B / C (pins 4, 3, 38) tied, **C10 0.1 µF ∥ R8 1 kΩ** to ground (a CR14 1N914 clamp to +5 V), AUDIO-IN
+  joining through C9 47 µF, then C11 100 µF into Q1 2N3904's base (R9 10 kΩ to ground, R10 5.1 kΩ to +12 V decoupled by
+  FB / C8 0.1 µF, collector R11 150 Ω, emitter R12 470 Ω), C12 47 µF to AUDIO OUT (sheet 3: the RF modulator / monitor
+  connector). These are the values Hatari's `sound.c` comment reads (`LowPassFilter`, "dec 1986 schematics"), now seen
+  on the sheet. While the chip pulls down, C10 discharges into R8 ∥ R9 ∥ R10 ∥ hFE · R12 = 759.1 Ω (Hatari's "795.1" is
+  a typo): **2096.6 Hz** at hFE 100 (2063 Hz at hFE ∞, 2131 Hz at hFE 50, so the transistor's gain hardly matters);
+  while it pulls up, the YM's own source resistance is in parallel, Hatari's 1 kΩ · (65119 − 46602) / 65119 = 284 Ω
+  (from Simoes' measured tables, an estimate `[~]`): 206.9 Ω = **7694 Hz**. The remaster models it in
+  `OpenPhantasie.Client.Audio.Ym2149` (with `Ym2149Mixing.StCircuit` only): a one-pole stepped at the chip's own
+  clock / 8 (250 kHz, where the output is constant between steps, so `y += (1 − e^(−2π·fc·8/clock))·(x − y)` is exact),
+  the corner picked per step by x ≥ y (pull-up) or x < y (pull-down), before the per-sample averaging and the DC
+  blocker. It is on for the title tune and the sound effects alike (both `DosoundRenderer`). Not modelled: AUDIO-IN
+  (C9, nothing drives it), the CR14 clamp (never reached), the emitter follower's level and the monitor's own input.
+  Note for comparisons with Hatari captures: Hatari runs `LowPassFilter` on its 250 kHz `YM_Buffer_250` with taps
+  fixed for 44.1 kHz (`(3·(x0 + x1) + 2·y0) / 8` up, `((x0 + x1) + 6·y0) / 8` down), so its corners there are about
+  43 kHz and 11.3 kHz, not the 7.7 / 2.1 kHz its comment names; Hatari's audio is not a reference for this filter.
+  Hatari enables it for ST machines at output rates ≥ 40 kHz (`Sound_SetOutputAudioFreq`; its PWM anti-alias filter
+  otherwise).
+  Atari's earlier **520ST sheet C070112 rev. B (Jan–Feb 1985**, archive.org `atari-520-st-schematics-jan-feb-1985`, sheet
+  1) has **no such capacitor**: ANALOG A / B / C tied to R111 1 kΩ to ground, then C31 1 µF into Q1 2N3904 (bias R38
+  8.2 kΩ / R39 3 kΩ, R40 220 Ω collector, R41 220 Ω emitter) and C33 1 µF to AUDIO-OUT; the SAMS Computerfacts
+  CSCS12 (520ST) names the same Q1 / C31 / C33. So the low-pass depends on the board; the remaster's II stands for an
+  STF (as the measured table), the machine choice `[~]`. The s108 model (three 1.5-dB levels
+  averaged) stays as `Ym2149Mixing.Linear`. Decoder `OpenPhantasie.Data.Audio.DosoundScore`.
 
 ### 7.2 Sound effects and the Speed menu (`PHANT.PRG`, s135) `[C]` static
 
@@ -332,8 +361,12 @@ line it is: character record `0x25162` + 318·i, name at `+270` = a party member
   `" "` with sound 9, then `0x92f8` applies the special (its own lines: `%s BREATHES` 13, `IS SLEPT`, the damage …). The
   ST has **no "%s CASTS A SPELL" for a monster** (the only caller names a member); the remaster's monster line "X CASTS A
   SPELL" / "X BREATHES" (I DOS, `MonsterSpecials`) stands for this blank line: II plays it as sound 9 without a hold, and
-  a breath line as sound 9 then 13 `[~]` (the ST prints a blank line, then "%s BREATHES"). User s137: keep the
-  remaster's text with the ST's sound 9 (as built).
+  a breath line as sound 9 then 13 (the ST prints a blank line, then "%s BREATHES"). User s137: keep the
+  remaster's text with the ST's sound 9 (as built). s162 traced live (`parity/capture_s162_combat.md`) `[C] live`: the
+  gate as I's (`0x8980..0x89b8`: `r + 1 ≤ chance·(2g + 2)/(groups + 2)`); the silhouette on the monster's own slot 300 ms,
+  the attack pose 300 ms, the blank line with 9 and no hold, then `0x92f8`'s own lines (none for 5–16, the damage line
+  for 1–4, the party lines for 17–24); a breath: 13 waits for 9 (≈ 1 s at normal), then the hold, the damage lines and
+  the monster's melee with its own pose.
 - **Pacing per line** (`0x18cc2`, `0xb80e`, `0xb8f2`, `0x16cbe`), with S = `[0x1fefa]` (Speed: fast 5, normal 10, slow 1000):
   1. n ≥ 0 (and ≠ 15): when S ≥ 9 and the last sound was not 18, wait until the running sound has ended (Dosound(−1)
      polled; keys do not end it); then the new sound starts (at fast it cuts the old one off). n < 0: no sound, no wait.
@@ -355,14 +388,18 @@ line it is: character record `0x25162` + 318·i, name at `+270` = a party member
   after the round's last line and before `combat_victory`'s boxes (MONSTERS KILLED, the XP box). It sets `[0x21a30]` := 1:
   the next sound does not wait for it. The party options `0x9dac` play no 18.
 - **Sound 17** (`0x1838e`): when `[0x23eb6]` is set, the screen switched to the combat view (`0x180d0`, `0x19af6`), the flag
-  cleared and 17 played; then the combat screen is drawn (`0x18458(0)`). Callers: `0xfd78` (in `0xfd58`, no
-  `jsr` caller: reached through a pointer `[?]`), `0xfe08` (in the combat-screen set-up `0xfd82`, called at the round's
+  cleared and 17 played; then the combat screen is drawn (`0x18458(0)`). Callers: `0xfd78` (in `0xfd58`: no caller, no
+  branch and no fixup names it, dead code, s162 `[C]` static), `0xfe08` (in the combat-screen set-up `0xfd82`, called at the round's
   start `0x761a`, its end `0x8ef4` and by the party options `0x9d96`) and `combat_victory 0xa290` (`0xa2ba`). So 17 plays
   at the first combat-screen set-up after the flag was set, whatever started the fight (a wilderness roll, a dungeon
   cell, a fixed tile, a surprise or night start: each opens with the party options or a round). `[0x23eb6]` is data 1 at load and set again only by `0x183c4`
   (`0xa714`, the end of `combat_victory`: back to the party view). Every fight ending goes through `combat_victory`
   (mode 12, 7.3a), so every encounter starts with 17, except the first one after a defeat (mode 6 never reaches
   `0x183c4`), and `combat_victory`'s own call only redraws (the flag was cleared at the fight's start) `[C]` static.
+  Remaster (s163): Core's `GameSession.LastFightLost` (the last fight ended in a wipe; not saved, as the ST's flag lives
+  in the program) and `CombatPresenter.Start` queues 17 only when it is false; before s163 every fight played 17
+  (`P2CombatLineRunTests.Presenter_NoSound17OnTheFirstFightAfterADefeat_AgainAfterAWin`). A non-combat defeat (a dungeon
+  event) leaves the flag as the last fight left it, as on the ST.
 - **The poses `0x186de(group, slot, mode)`** (s156 objdump, `[C]` static): the monster's sprite index is `[0x24c1c + 2·group]`,
   its picture rectangle the 8-byte entry (x, y, w, h) at `0x25c3c` + 48·group + 8·slot (slot = the n-th living monster of the
   group, `0x18856`); MSTR2 (attacking) is read from the buffer `[0x24f34]`, MSTR1 (idle) from `[0x28332]`.
@@ -401,7 +438,17 @@ line it is: character record `0x25162` + 318·i, name at `+270` = a party member
   `0x9080` subtracts only for the damage call `0x99e0`); each right before `0x99e0` (the damage and its
   `%s TAKES %d DAMAGE`). Monsters only: no call puts it on a member.
 - **The rock's miss** `0x18c6c` (`0x78ec`, right after a rock's `%s MISSES` and its hold): the rock sprite `0x23c92` at the fixed
-  screen spot (100, 10), 300 ms (`evnt_timer`, no key), undrawn. No sound.
+  screen spot (100, 10), 300 ms (`evnt_timer`, no key), undrawn. No sound. The spot's place on the combat screen (s163
+  objdump `0x18458`): the field is cleared from (3, 13) (315 × 186, `0x18468`), the groups stacked bottom up from
+  `[0x23eb4]` − 3 = 147 (data word 150, the party row's top; each group's band = its picture height + 3), so (100, 10)
+  sits a third of the way across, its 16 × 16 rock straddling the menu bar's lower edge at the top of the monster area.
+- **An emptied group's row** (s163 objdump `[C]` static): `0x18458`'s layout loop (`0x184c0..0x18518`) places each group
+  from its count `[0x24c16 + 2·group]` and its band height (entry `+6`); only `0x18288` writes that count (after
+  `0x1823c` has reset all three to −1), at the combat-screen set-up `0xfd82` (the round's start and its normal end,
+  after the re-rank `0x9b42`); `combat_victory` resets them too (`0xa2b4` → `0x1823c`). An erase (`0x186de`
+  mode 0, `0x19b28`) only clears the slot and zeroes its width, and the redraw skips width-0 slots (`0x18544`). So a
+  group whose monsters all die in a round keeps its (empty) band until the round's end re-lays the screen, and the
+  others do not move up.
 #### 7.3a The end-of-fight boxes `0xa124` / `0xa1c2` (s137, s138) `[C]` static, details `[~]` marked
 
 Two message boxes from **OUT.RSC** (`rsrc_gaddr(R_TREE, n)`, `0x1abfa(type, index, &addr)`), tree units = 8×8 px chars:
@@ -467,8 +514,10 @@ Two message boxes from **OUT.RSC** (`rsrc_gaddr(R_TREE, n)`, `0x1abfa(type, inde
   `combat_victory` always shows the XP box and "[original text]" over the manual's totals would not be true `[~]`. The
   minion box follows the XP box (s156: `Classify` moves it up past the treasure lines Core notes between them; the ST
   order read above `[C]`).
-  `UiOverlays.DrawP2EndBox` draws it over the combat screen at (12, 75) of the 320×200 screen; the remaster's
-  5×7 glyphs sit centred in the ST's 8-px cells (TOS's font is not on the disks) `[~]`. The party options' answers, the
+  `UiOverlays.DrawP2EndBox` draws it over the combat screen at (12, 75) of the 320×200 screen; s160 (user, s159): the
+  text in EmuTOS's 8×8 system font (the pack's `fonts` role `p2.end_box`, `GameData/phantasie2/graphics/fonts/
+  emutos-st-8x8.json`, GPL-2.0+, `tools/scripts/emutos_st_font.py`; TOS's own is not on the disks), one glyph per 8-px
+  cell from its top-left as `objc_draw` puts G_TEXT; seen live on Xvfb ([original text]). The party options' answers, the
   morale check's MONSTERS RUN and what follows an ending outside a round (XP box) play through the same run
   (`CombatPresenter.StartP2Interlude`), then the orders, the menu or the fight's end; MONSTERS RUN in a round stays the
   spell's line (sound 2, no box). The box's place on the remaster's combat screen (its own layout, not the ST's) and the
@@ -484,11 +533,18 @@ Two message boxes from **OUT.RSC** (`rsrc_gaddr(R_TREE, n)`, `0x1abfa(type, inde
   damage line a spell or rock hit leads to (Core's `CombatHit.SpellDamage`: the spell's pre-armour roll, s156 also the
   rock's damage before the floor), each followed by the silence (`P2CombatLineRun.Silence`: the Client stops the effect),
   the rock's miss after its MISSES' hold, and 18 after every round's last line, before the end boxes. The combat screen
-  draws the poses on the member's card / the rank's one picture (the ST poses the monster's own slot: the remaster shows
-  one picture per rank `[~]`), the sparkle at its random spot inside that picture (`StCombatSparkle.Offset`, the ST's
-  `0x18a8a`), the rock's miss at (100, 10) of the 320×200 screen (the ST's screen spot; the remaster's layout differs
-  `[~]`), and while a round plays the ranks as they stood before it, less the erased monsters (`CombatPresenter.P2RankRows`;
-  closes the last round's empty rank list). The Vsync before each sprite (≤ 1 VBL) is not modelled `[~]`. Traced live s156
+  draws the poses on the member's card / the monster's own picture (s162: the pack's `monster_slots`: each rank a row of
+  its own monsters' pictures, as `0x18288`, wrapped to the rank box; an erased monster's slot stays empty, the others in
+  place, until the round's re-rank, as `0x18856`; `CombatPresenter.P2RankSlots`, `UiOverlays.SlotRects`; seen on Xvfb,
+  `parity/shots/s162/remaster-p2-monster-slots-strip.png`: the attack pose on the first and the third skeleton, then a
+  gap left by the middle one's DIES), the sparkle at its random spot inside that picture (`StCombatSparkle.Offset`, the ST's
+  `0x18a8a`), the rock's miss at (100, 10) of the ST's monster area moved onto the remaster's (s163: the pack's
+  `sparkle.rock_miss_area` [0, 13, 320, 134], `StCombatSparkle.RockMissOn`: the same fraction across the rank box, the
+  sprite kept inside it, so at its top a third of the way across; the remaster's placement `[~]`), and while a round
+  plays the ranks as they stood before it, less the erased monsters (`CombatPresenter.P2RankRows`; closes the last
+  round's empty rank list); s163: with `monster_slots` a rank whose monsters are all erased keeps its row (empty slots
+  sized by its kind, its line "RANK n : 0 …", the remaster's: the ST draws no line) until the round's re-rank, as above
+  (`P2RankKinds`; one picture per rank still drops it). The Vsync before each sprite (≤ 1 VBL) is not modelled `[~]`. Traced live s156
   (`parity/capture_s156_combat.md`): the attack pose's 300 ms (+ 10–20 ms drawing) before rock / monster lines, the rock's
   silent 300 ms miss after MISSES, 18 at a survived round's end (`0x8f00`) `[C] live`. s158 traced live
   (`parity/capture_s158_combat.md`) `[C] live`: a cast: the silhouette 300 ms at normal (10 ms + drawing at fast), the
@@ -497,12 +553,13 @@ Two message boxes from **OUT.RSC** (`rsrc_gaddr(R_TREE, n)`, `0x1abfa(type, inde
   a monster's death: `0x186de(group, slot, 0)` erases that monster's own rectangle before "%s DIES", whose text shows only
   after sound 16's wait; a member's death: no sound / hold on the line, the portrait cleared and the mark drawn, sound 15
   (after the running sound), 500 ms, the wait (≈ 3.7 s more), `0x185d6(1)` (75 ms): ≈ 4.5 s per death. The remaster's
-  steps follow the same order. Not seen live: a monster's special (silhouette, sound 9) `[~]`. Remaster seen on Xvfb
+  steps follow the same order; s162 a monster's special and a breath (above, "A monster's special"). Remaster seen on Xvfb
   (s156, a wilderness round: TOSS miss, eight skeleton swings): the monsters' attack frame on the rank pictures
   (`parity/shots/s156-remaster-p2-monster-attack-pose.png`, `…-rank2-attack-pose.png`); s158 (a 30 fps recording,
   `parity/shots/s158/`): the member's attack pose, the caster's silhouette, the rock's sparkle on a hit and a spell's
-  sparkle on the monster picture; a member's death and the rock's miss not caught in the Client `[~]`. A monster's DIES takes the last hit monster of its name, so with several groups of one kind `Slain` can erase
-  another instance `[~]`. The elemental keeps its own picture (no pose).
+  sparkle on the monster picture; s163 (`parity/capture_s163_client.md`): a member's death (the portrait now cleared before the mark, as `0x18a02`), the rock's miss, an emptied rank's row and the XP box under the manual rule seen live. A monster's DIES erases the monster just hit: Core notes each monster hit right before its TAKES line
+  (`CombatResolver.ApplyMonsterDamage`), so the last hit of that name up to the DIES is that very monster (s162 test
+  with two ORC ranks) `[C]`. The elemental keeps its own picture (no pose).
 
 ### 7.4 Sounds outside combat: overworld, dungeon, town (s139) `[C]` static, traced live s140 / s141
 
@@ -672,8 +729,10 @@ combat round (7.3), the fight's start / end (17 / 18) and the ending (32, the cl
   `build_st_p2_asset_manifest.py`), its `printf` holes filled from the remaster line's own values in turn ("%8s has died":
   the name, padded to 8); `cue_boxes` gives the town casts' cue `town.cast_done` PHANT.RSC 9 "D O N E !". So the box
   shows II's text where the remaster's line is I's ("You can not afford it" over "Not enough gold."). Every alert string
-  has icon 0. The box is modal: Return (the default button), Space, Esc or a click on its button closes it, and the keys
-  are used up; boxes queue in order. The Guild's move question (PHANT.RSC 6, YES / NO) gets no box: the remaster asks it
+  has icon 0. The box is modal and has no timer: s160 (user, s159: "wait for a key as on the ST"), only Return / Enter
+  (the default button: EmuTOS `aes/gemfmlib.c` `fm_keybd` takes RETURN and ENTER, nothing else ends the form) or a
+  click on its button closes it (s158 also took Space and Esc); every other key is used up and does nothing; boxes
+  queue in order. A click outside the box (the AES rings the bell) is not modelled. The Guild's move question (PHANT.RSC 6, YES / NO) gets no box: the remaster asks it
   in its own dialog, which a box would not answer `[~]`. **Look** (`alerts.look`) `[~]`: TOS's AES and its 8×8 font are
   not on the disks, so the geometry is measured on EmuTOS 1.4's `form_alert` in Hatari (`parity/shots/p2-endgame-wand-improved.png`,
   `p2-endgame-wand-unusable.png`, `p2-train-*.png`; EmuTOS's `form_alert` comes from DRI's GEM AES, as TOS's does):
@@ -682,12 +741,21 @@ combat round (7.3), the fight's start / end (17 / 18) and the ending (32, the cl
   + 1) cells with a 3-px border outside (the default button; a two-button alert's 2 px is not modelled), 2 cells apart,
   the row centred on whole cells. Colours: VDI 0 (fill) and VDI 1 (lines, text) = registers 0 / 15 of the palette the
   mode shows (`town` for town / Guild: black and white as the shots; `map` for the field: black and red, not filmed).
-  The remaster's 5×7 glyphs sit centred in the 8-px cells. No mouse pointer, no icon.
+  s160: the text in EmuTOS's 8×8 system font (pack role `p2.alert`, the file above), one glyph per 8-px cell from its
+  top-left: "UNUSABLE" lands on `p2-endgame-wand-unusable.png` pixel for pixel (top-left (104, 93)); the s160 Xvfb shot
+  of "You need 767 more experience points" matches the `p2-train-*` shots' glyphs. No mouse pointer, no icon.
 - **Remaster (s156), the defeat:** the ghost row shows only once line 1's hold is over (`P2DefeatSounds.GhostsShown`: s156
   objdump, `0x12d4c` line 1 and its 3000 ms, `0x12d54` `0x12b5e` the ghosts, `0x12d5e` 23; `0x12a8a` only lays out the
   slots, nothing is drawn before), the row empty until then. The door takes the traced 413 VBL (6.87 s at 60 Hz) spread
   evenly over its 90 steps (`DefeatScene.DoorVbl`; which steps the blits slow is not measured `[~]`). A fate line can still
   lead its 21 by the running sound's rest `[~]`.
+- **Remaster (s163), seen live in the Client** (Xvfb, `parity/capture_s163_client.md`, `OPENPHANTASIE_SOUND_TRACE`): a
+  lost fight now opens the scene on "[original text]" (before s163 the fight's report lines came first, one
+  key each, putting the ghosts and 23 behind them: `Game1.AfterFightEnded` adds no report after II's line-by-line round);
+  the ghost row and 23 about 3 s after the page shows, 22 as the astral page opens (23 long over), 20 9.9 s later (door
+  6.87 s + 3 s), then the 21s. Field Resurrection: "ZANDOR IS RESURRECTED" on the message line, 12 between 1.1 and 1.5 s
+  after it (frame steps 0.4 s; the rule's 1365 ms at normal). The remaster's defeat page waits for a key where the ST
+  goes on after its 3000 ms hold `[~]`.
 
 ## 8. Tools available
 
@@ -990,7 +1058,7 @@ water and lava shimmer on the overworld. The PNGs show the uncycled table.
   or 2 (`0x79fc`). (2) The rebuilt list `0x24c26` keeps party order without the gaps (`0x18176`), so later members move
   left and the row re-spreads. (3) Only DEAD leaves: the test is `@24 ≠ 0` and the status table (`0x1f067`) is DEAD / OK /
   SLEEP (UNDEAD is a race), so sleepers stay; II has no stoned / unconscious status. (4) Every row build filters the
-  same way: encounter start (`0xfd58` / `0xfd82` → `0x1823c` → `0x181ca`), victory (`0xa2b4`), the elemental joining
+  same way: encounter start (`0xfd82` → `0x1823c` → `0x181ca`; `0xfd58` is dead code, s162), victory (`0xa2b4`), the elemental joining
   (`0x8402..0x8422`, count 6 → 7, `0x185c4`) and leaving (`0xa298..0xa2ac`), so a dead member stays off every later row
   until resurrected. (5) A resurrection in combat brings the member back at once: "%s IS RESURRECTED" (`0x9286`) and,
   in main-loop mode 5 (`0x25d1e` = 5 = `combat_round 0x7610`, jump table `0x2126e`), `0x185c4` → `0x185d6(1)`. The
@@ -1042,7 +1110,10 @@ it covers (checked per region: the polygon pattern set equals the grid's class s
   `0xe6..0xed` as DOS / Amiga I `[C]` static (not live-checked; same MFDB path as the icons).
 - Font: **no font in the files** `[C]`. `PHANT.PRG`'s VDI calls never use vst_font (21) or vst_load_fonts (119),
   only vst_height (12), so all text is the TOS ROM system font (the baked-in menu bar of `PELNOR.PIC` shows Atari TOS's;
-  EmuTOS draws its own over it). `pack.json` keeps the remaster's font.
+  EmuTOS draws its own over it). `pack.json` keeps the remaster's font; s160 (user, s159) the alert boxes, the
+  end-of-fight boxes and the ending draw in EmuTOS's 8×8 system font (`fonts/emutos-st-8x8.json` and its italic, the
+  pack's `fonts` roles and `ending_scene` fonts; 7.3a, 7.4, `endgame.md` 7.1), the font's source and GPL-2.0+ licence in
+  `fonts/emutos-st-8x8.LICENSE.txt`.
 - RSC art: **none** `[C]`. `BACKUP.RSC`, `PHANT.RSC`, `OUT.RSC` have 0 ICONBLKs, 0 BITBLKs, 0 images (menus, dialogs,
   strings only).
 

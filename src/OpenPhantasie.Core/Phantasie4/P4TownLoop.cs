@@ -54,9 +54,13 @@ public enum P4TownScene
     Street, None, Guild, Inn, Bank, Shipwright, Mystic, Hall, HallHistory,
 
     /// <summary>The ending (<c>ending.md</c> §1): Pendragon's street with END1 (<c>_endset</c>), the banquet END2
-    /// (<c>_banquet</c>), Arathamus in his cell END3 (<c>_arathamus</c>).</summary>
-    EndingStreet, EndingBanquet, EndingCell,
+    /// (<c>_banquet</c>), Arathamus in his cell END3 (<c>_arathamus</c>). s162: the final screen (<c>_endstory</c>) opens
+    /// its own titled window 32 over them (<c>_wopen(32, 160, 32, 312, 352, 1, "Phantasie IV")</c>): no picture.</summary>
+    EndingStreet, EndingBanquet, EndingCell, EndingFinal,
 }
+
+/// <summary>s162: one Town Gate row (<c>_townent</c>): the member's place in the party, name and the line's string id.</summary>
+public sealed record P4GateRow(int Member, string Name, string Line);
 
 /// <summary>What a <see cref="P4TownPrompt.Shares"/> prompt shares out.</summary>
 public enum P4ShareKind { Gold, Experience }
@@ -159,6 +163,8 @@ public sealed partial class P4TownLoop
             throw new ArgumentOutOfRangeException(nameof(town), $"No town {town}.");
         Town = town;
         Transfer = null;
+        GateRows = null;
+        InnRows = null;
         _scene = P4TownScene.None; // _town clears the area before _townent / _welcome; _tload draws the street last
         _window.Clear();
         Prompt = P4TownPrompt.Menu;
@@ -260,7 +266,8 @@ public sealed partial class P4TownLoop
     {
         var add = P4Aging.AgeUnitsFromDays(_tables.Aging, Party.DaysOut);
         var said = false;
-        foreach (var m in Party.Members)
+        var rows = new List<P4GateRow>();
+        foreach (var (m, index) in Party.Members.Select((m, i) => (m, i)))
         {
             m.AgeUnits = Math.Min(P4Aging.AgeCap, m.AgeUnits + add);
             if (!m.Alive)
@@ -274,6 +281,7 @@ public sealed partial class P4TownLoop
                         m.Abilities[i] = P4Aging.ScaleOnAging(_options, m.Abilities[i]);
                     m.Defence = P4Aging.ScaleOnAging(_options, m.Defence);
                     _window.Line(m.Name + GameText.S("p4x.0x3fa6f"));
+                    rows.Add(new(index, m.Name, "p4x.0x3fa6f"));
                     said = true;
                     break;
                 case P4AgeEvent.DiedOfOldAge:
@@ -281,14 +289,30 @@ public sealed partial class P4TownLoop
                     Array.Clear(m.Abilities);
                     m.Defence = 0;
                     _window.Line(m.Name + GameText.S("p4x.0x3fa89"));
+                    rows.Add(new(index, m.Name, "p4x.0x3fa89"));
                     said = true;
                     break;
             }
         }
         Party.DaysOut = 0;
         if (said)
+        {
             Prompt = P4TownPrompt.Wait;
+            GateRows = rows;
+        }
     }
+
+    /// <summary>
+    /// s162: the Town Gate window's rows (<c>_townent</c>'s <c>_wopen(32, 160, 32, 312, 352, 1, "Town Gate")</c>, opened at
+    /// the first member who ages): each aged member's line, at the member's own row, while the aging wait is up; else null.
+    /// </summary>
+    public IReadOnlyList<P4GateRow>? GateRows { get; private set; }
+
+    /// <summary>
+    /// s163: the inn's rows (<c>_inn</c>, FORMAT.md 6.9 "Building windows under the picture") while its SPACE wait is up:
+    /// each living member who slept, at the member's own row; else null.
+    /// </summary>
+    public IReadOnlyList<P4InnRow>? InnRows { get; private set; }
 
     /// <summary>
     /// <c>_town</c>'s Pendragon test, then <c>_tload</c>: with the first ending flag set Pendragon runs the ending instead of
@@ -357,7 +381,7 @@ public sealed partial class P4TownLoop
         {
             case P4Building.Inn:
                 // D4-032: two weeks under the manual (they age the party at the next town entry), none in the code.
-                P4Town.InnStay(Party, _window, _tables.Services, _rng, _tables.Towns);
+                InnRows = P4Town.InnStay(Party, _window, _tables.Services, _rng, _tables.Towns);
                 Party.DaysOut = Math.Min(0xFFFF, Party.DaysOut + P4Town.InnStayDays(_options, _tables.Towns));
                 Prompt = P4TownPrompt.Wait;
                 break;
@@ -483,6 +507,8 @@ public sealed partial class P4TownLoop
     public void Continue()
     {
         Require(P4TownPrompt.Wait);
+        GateRows = null;
+        InnRows = null;
         if (_screen is not null)
         {
             Resume();
@@ -515,6 +541,10 @@ public sealed partial class P4TownLoop
         Prompt = s.Prompt;
         _scene = P4TownScene.None; // past the entry the menu shows the street (Scene); during it, nothing
         _window.Restore(s.Box);
+        GateRows = null; // a save at the aging wait reloads its lines in the box only [~]
+        InnRows = null;
+        BankWindow = null;
+        EndingBlock = null;
         SharesFor = s.SharesFor;
         Transfer = s.Transfer;
         _stage = Enum.Parse<Stage>(s.Stage);

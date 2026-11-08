@@ -1,11 +1,15 @@
 {
   "_schema": "phantasie.graphics-index/v1",
-  "_note": "T1.5 graphics packs of Phantasie III. Art source: the Amiga v1.0 (03c-phantasie3-re.md; never the DOS CGA art on screen). The only pack so far and the default.",
+  "_note": "T1.5 graphics packs of Phantasie III. Art source: the Amiga v1.0 (03c-phantasie3-re.md), the default. DOS CGA (s160, user s159: a DOS-only import shows the DOS pictures) has auto_select false and is not in default_order; fallback_order: when no default_order pack is present (a DOS-only import) the first available of these is drawn, so art follows what was imported (as Phantasie I's index).",
   "game": "phantasie3",
   "default_order": [
     "amiga"
   ],
+  "fallback_order": [
+    "dos-cga"
+  ],
   "packs": [
-    "amiga.json"
+    "amiga.json",
+    "dos-cga.json"
   ]
 }

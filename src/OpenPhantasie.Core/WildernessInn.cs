@@ -13,7 +13,7 @@ public static class WildernessInn
 
     /// <summary>
     /// One stay. A member who cast since the last rest rolls <c>rand0_99 &lt; 20·(@14 − @16)</c> for +1 MP max
-    /// ("GAINS MORE MAGIC"; D-046 manual cap — DOS uses ≤); then MP and HP are refilled (sleepers too, not woken).
+    /// (`core.inn.gains_more_magic`; D-046 manual cap — DOS uses ≤); then MP and HP are refilled (sleepers too, not woken).
     /// DEAD members get no line and no MP roll but are refilled too, status unchanged (D-047 manual — DOS skips them). DOS then adds 1000 travel-time units (≈ 3.9 days); the remaster instead adds one age-clock unit
     /// (two weeks) to every party member, DEAD too (D-008, like the town Inn's D-004).
     /// </summary>

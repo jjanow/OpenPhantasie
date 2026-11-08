@@ -369,7 +369,7 @@ public class Party
 
     /// <summary>
     /// Party slot 7 (DOS record <c>0x624c</c>; <c>[0x62a8]</c> = its <c>@92</c>): the elemental loaded at the Guild for
-    /// SUMMON ELEMENTAL (<c>combat-resolution.md</c> §SUMMON ELEMENTAL). Not in <see cref="Members"/> except between a
+    /// `core.spell.summon_elemental` (<c>combat-resolution.md</c> §`core.spell.summon_elemental`). Not in <see cref="Members"/> except between a
     /// successful summon and the end of that fight. Cleared by Guild Drop / Purge, town entry and party defeat.
     /// </summary>
     public Character? Elemental { get; set; }

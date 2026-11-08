@@ -210,6 +210,7 @@ public sealed class TransportFadeFilter
     private readonly Color[] _registers;
     private readonly Dictionary<uint, int> _nearest = new();
     private readonly bool[] _black;
+    private Color? _flash;
 
     public TransportFadeFilter(IReadOnlyList<string> palette)
     {
@@ -224,10 +225,11 @@ public sealed class TransportFadeFilter
         ArgumentNullException.ThrowIfNull(fade);
         for (var i = 0; i < _black.Length; i++)
             _black[i] = fade.IsBlack(i, seconds);
+        _flash = fade.IsFlash(seconds) ? VirtualScreen.ParseColor(fade.FlashColour) : null; // s163: the DisplayBeeps
     }
 
-    /// <summary>True when some register is black (the frame changes).</summary>
-    public bool Active => _black.Any(b => b);
+    /// <summary>True when some register is black or the flash is up (the frame changes).</summary>
+    public bool Active => _flash is not null || _black.Any(b => b);
 
     /// <summary>The register nearest <paramref name="c"/> (squared RGB distance, the first wins a tie).</summary>
     public int NearestRegister(Color c)
@@ -255,6 +257,13 @@ public sealed class TransportFadeFilter
     {
         if (!Active)
             return;
+        if (_flash is { } flash)
+        {
+            for (var i = 0; i < pixels.Length; i++)
+                if (NearestRegister(pixels[i]) == 0)
+                    pixels[i] = flash;
+            return;
+        }
         for (var i = 0; i < pixels.Length; i++)
             if (_black[NearestRegister(pixels[i])])
                 pixels[i] = Color.Black;

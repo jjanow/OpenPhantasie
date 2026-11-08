@@ -200,7 +200,7 @@ public partial class EndgameTests
         Assert.True(session.TryAddToParty(session.CreateAndEnroll("Fighto", Race.Human, CharacterClass.Fighter), out _));
         session.DepartGuildToWilderness();
         session.EnterDungeon(1, 20, 0);
-        session.Dungeon!.Level!.Set(20, 1, 0xc7);            // jammed: NO ONE CAN PICK THE LOCK, then the step back
+        session.Dungeon!.Level!.Set(20, 1, 0xc7);            // jammed: `core.dungeon.no_one_can_pick_the_lock`, then the step back
         var moves = session.DungeonMoveSequence;
         session.MoveDungeon(CardinalDirection.South);
         var move = Assert.Single(session.DungeonMovesSince(moves));

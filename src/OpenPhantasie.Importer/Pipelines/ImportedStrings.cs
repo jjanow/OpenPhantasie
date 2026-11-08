@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Nodes;
 using OpenPhantasie.Importer.Pipelines.P1Dos;
+using OpenPhantasie.Importer.Pipelines.P2Apple2;
 using OpenPhantasie.Importer.Pipelines.P3Dos;
 using OpenPhantasie.Importer.Profiles;
 
@@ -25,14 +26,81 @@ public static class ImportedStrings
     public static string OutputFile(string profileId) => $"strings/en.{profileId}.json";
 
     /// <summary>
+    /// The remaster's own wording for the lines a version lacks, relative to the table's GameData folder:
+    /// <c>GameDataLocator.ImportedStringFiles</c> lays it under every other imported file.
+    /// </summary>
+    public static string FallbackFile(string profileId) => $"strings/en.fallback.{profileId}.json";
+
+    /// <summary>
+    /// A version's lines in its own wording (alternatives marked <c>"wording": "own"</c>), relative to its game's
+    /// GameData folder: they hold only for that game, and only while its tables come from that version
+    /// (<c>GameDataLocator.ImportedStringFiles</c> checks <c>import.json</c>), so they never reach another game through a
+    /// shared or extended table and never cover another version's own lines.
+    /// </summary>
+    public static string OwnWordingFile(string profileId) => $"strings/en.own.{profileId}.json";
+
+    /// <summary>The shipped fallback file of a game's folder (<c>{"tables": {table: {id: text}}}</c>).</summary>
+    public const string ShippedFallbackFile = "strings/fallback.en.json";
+
+    /// <summary>
+    /// The shipped fallback for the shared and Phantasie I tables (<c>phantasie1/strings/fallback.en.json</c>): every
+    /// import without I's tables writes it (s163), with its own game's file.
+    /// </summary>
+    public const string CommonFallbackGame = "phantasie1";
+
+    /// <summary>
+    /// Write the remaster's own wording for the lines the running version lacks, from the shipped fallback files of
+    /// <paramref name="games"/> (<see cref="ShippedFallbackFile"/>), merged per table (an id in two files must read the
+    /// same; a test keeps every id in one file), one fallback file per table (DIFFERENCES-II D2-050; s163 III and the
+    /// common shared / I file).
+    /// </summary>
+    public static void WriteFallback(ImportContext ctx, params string[] games)
+    {
+        var merged = new SortedDictionary<string, JsonObject>(StringComparer.Ordinal);
+        foreach (var game in games)
+        {
+            if (ctx.ReadShipped(game, ShippedFallbackFile)?["tables"] is not JsonObject tables)
+                throw new InvalidOperationException($"shipped {game}/{ShippedFallbackFile} missing");
+            foreach (var (table, ids) in tables)
+            {
+                if (ids is not JsonObject list)
+                    continue;
+                if (!merged.TryGetValue(table, out var into))
+                    merged[table] = into = new JsonObject();
+                foreach (var (id, text) in list)
+                    into[id] = text?.DeepClone();
+            }
+        }
+        var from = string.Join(", ", games.Select(g => $"{g}/{ShippedFallbackFile}"));
+        foreach (var (table, list) in merged)
+        {
+            if (list.Count == 0)
+                continue;
+            ctx.WriteGameData(table, FallbackFile(ctx.Profile.Id), new JsonObject
+            {
+                ["_schema"] = "phantasie.strings/v1",
+                ["_note"] = $"The remaster's own wording for lines {ctx.Profile.Title} does not hold (shipped {from}); " +
+                            "under every other imported file.",
+                ["game"] = table,
+                ["language"] = "en",
+                ["strings"] = list,
+            }, indent: 1);
+        }
+    }
+
+    /// <summary>
     /// Resolve every id the running version can give from its files and write one file per table that gets any.
     /// <paramref name="extra"/> adds more resolved ids for a table (Phantasie IV's lines that equal the Japanese).
+    /// Lines in the version's own wording go, from every table, to <paramref name="ownWordingGame"/>'s
+    /// <see cref="OwnWordingFile"/>; null leaves them out (another version's tables won).
     /// </summary>
-    public static void Write(ImportContext ctx, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? extra = null)
+    public static void Write(ImportContext ctx, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? extra = null,
+        string? ownWordingGame = null)
     {
         var files = new FileCache(ctx.Files);
         var profile = ctx.Profile.Id;
         var tables = Tables.Concat(extra?.Keys ?? []).Distinct();
+        var own = new JsonObject();
         foreach (var table in tables)
         {
             var strings = new JsonObject();
@@ -45,7 +113,10 @@ public static class ImportedStrings
                         if (alt?["from"]?.GetValue<string>() == profile && alt["parts"] is JsonArray parts
                             && Resolve(parts, files) is { } text)
                         {
-                            strings[id] = text;
+                            if (alt["wording"] is null)
+                                strings[id] = text;
+                            else if (ownWordingGame is not null)
+                                own[id] = text;
                             break;
                         }
                 }
@@ -63,6 +134,16 @@ public static class ImportedStrings
                 ["strings"] = strings,
             }, indent: 1);
         }
+        if (ownWordingGame is not null && own.Count > 0)
+            ctx.WriteGameData(ownWordingGame, OwnWordingFile(profile), new JsonObject
+            {
+                ["_schema"] = "phantasie.strings/v1",
+                ["_note"] = $"Built by the importer from the player's copy ({ctx.Profile.Title}): the lines it prints in its own " +
+                            "wording, from every table; they hold for this game only, while its tables come from this version.",
+                ["game"] = ownWordingGame,
+                ["language"] = "en",
+                ["strings"] = own,
+            }, indent: 1);
     }
 
     /// <summary>The text of one alternative, or null when a referenced file is missing or too short.</summary>
@@ -90,7 +171,10 @@ public static class ImportedStrings
 
     private static string? Resolve(JsonArray parts, FileCache files) => Resolve(parts, files.Get);
 
-    /// <summary>A version's files by sources key: a raw file name, or a decoded image (<c>name:unpacked</c> …).</summary>
+    /// <summary>
+    /// A version's files by sources key: a raw file name, or a decoded image (<c>name:unpacked</c> …;
+    /// <c>name:page</c> = an Apple II text-page dump as its 24 rows joined by newlines).
+    /// </summary>
     private sealed class FileCache(FileSet set)
     {
         private readonly Dictionary<string, byte[]?> _cache = new(StringComparer.Ordinal);
@@ -104,6 +188,8 @@ public static class ImportedStrings
             {
                 "PHANTASI.COM:unpacked" => Raw("PHANTASI.COM") is { } com ? ComImage.Unpack(com) : null,
                 "MAIN.EXE:root" => Raw("MAIN.EXE") is { } exe ? P3Exe.UnpackRoot(exe) : null,
+                _ when key.EndsWith(":page", StringComparison.Ordinal) =>
+                    Raw(key[..^5]) is { } page ? Encoding.Latin1.GetBytes(string.Join("\n", A2Text.TextPage(page))) : null,
                 _ => Raw(key),
             };
             _cache[key] = data;

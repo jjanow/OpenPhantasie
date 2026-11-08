@@ -184,7 +184,9 @@ ST_ALERT_LOOK = {
              "in area (x, y, w, h); lines from cell (1, 1); one blank row, then the buttons (widest label + 1 cells "
              "each, button_gap cells apart, the row centred on whole cells), the default button's border 3 px outside. "
              "Colours: VDI 0 (fill) = register fill_pen, VDI 1 (lines, text) = register ink_pen of the palette the "
-             "game mode shows. Font: TOS's 8x8 is not on the disks: the remaster's glyphs centred in the 8-px cells [~].",
+             "game mode shows. Font (s160): TOS's 8x8 is not on the disks; EmuTOS's 8x8 (the pack's fonts role "
+             "p2.alert), one glyph per 8-px cell from its top-left, as the shots pixel for pixel. Only Return / Enter "
+             "(the default button, EmuTOS fm_keybd) or a click on the button closes the box.",
     "cell": 8, "outline": 3, "button_border": 3, "button_gap": 2, "area": [0, 9, 320, 191],
     "fill_pen": VDI_TO_REGISTER[0], "ink_pen": VDI_TO_REGISTER[1],
     "palettes": {"town": "town", "guild": "town", "title": "town", "overworld": "map", "dungeon": "map"},
@@ -266,8 +268,8 @@ ST_END_BOXES = {
              "over '%ld XP AND %ld GP'; 0xa4fa: 'PLUTO'S MINION IS KILLED !' over '%s TAKES AN AMULET'; both seen live "
              "s82). outside_round_keys: lines that are boxes only outside a round (the morale check's 'MONSTERS RUN' "
              "0xa066; in a round the spell's line, sound 2). sounds: played before the box (0xb80e: 0xa05a plays 2 "
-             "before 'MONSTERS RUN'); the other boxes have none. Font: TOS 8x8 not drawn, the remaster's glyphs centred "
-             "in the 8-px cells [~].",
+             "before 'MONSTERS RUN'); the other boxes have none. Font (s160): EmuTOS's 8x8 system font, the pack's "
+             "fonts role p2.end_box, one glyph per 8-px cell from its top-left.",
     "palette": "combat", "x": 12, "y": 75, "cell": 8, "center_columns": 35,
     "border": 2, "border_pen": 0, "fill_pen": 3, "text_pen": 0,
     "one_line": {"columns": 38, "rows": 5, "text_cells": [[2, 2]], "hold_ms": 1000},
@@ -353,6 +355,12 @@ def main() -> int:
                          "period_vbl": 14, "vbl_hz": 60,
                          "pictures": ["overworld.region.", "overworld.icon.", "overworld.party"]},
         "font": "remaster-5x7",
+        "_fonts_note": "s160 (user, s159): the ST draws its alert boxes (AES form_alert) and end-of-fight boxes (OUT.RSC "
+                       "trees 40 / 41, G_TEXT font 3) in the TOS ROM's 8x8 system font, which is not on the disks; the "
+                       "look was measured on EmuTOS, so these places use EmuTOS's 8x8 font (fonts/emutos-st-8x8.json, "
+                       "GPL-2.0-or-later, tools/scripts/emutos_st_font.py; matches the EmuTOS alert shots pixel for "
+                       "pixel). Glyphs it lacks come from the pack's font. The ending's own fonts are in ending_scene.",
+        "fonts": {"p2.alert": "emutos-st-8x8", "p2.end_box": "emutos-st-8x8"},
         "map_layout": {"format": "amiga-maps/v1", "file": "maps/maps.json"},
         # Town screen on PELNOR.PIC (s98, never crop scenes): the GEM bar rows 0..9, the name in the scroll (0x4082; x:
         # s109 live, the ink centre is 155.5-156 in all ten towns, as 0x4082 computes), a message on the black rows 192..199 (0x4082's message branch, y 192).
@@ -375,13 +383,14 @@ def main() -> int:
                      "ended, and only then shows its 'insert your Data Disk' page [C] (s156, static + Hatari trace; "
                      "atari-st/phantasie2/parity/capture_s156_title.md). So the composite lasts until the tune's end "
                      "(until_tune_ends, counted from the tune's start) and the tune never plays into PHANT.PRG's "
-                     "screens; in the remaster a key still ends a picture early. The VBL rate is the colour cycle's vbl_hz (60: the US release on a US ST's NTSC TOS, decided s109).",
+                     "screens; in the remaster a key still ends a picture early. The VBL rate is the colour cycle's vbl_hz (60: the US release on a US ST's NTSC TOS, decided s109). s158: the first (blank) step is the 1.96 s START.PRG spends reading COVER1 on the black palette after Dosound has started the tune (Hatari's FDC, EmuTOS US: VBL 217 -> 335, capture_s156_title.md) [~] (emulated floppy timing).",
             "canvas": [320, 200],
             "background": "#000000",
             # s108: the Dosound script START.PRG passes (image 0x1b3 = file 0x1cf), played on the YM2149 model.
             "tune": {"format": "atari-st-dosound", "file": "../../unpacked/disk1/START.PRG", "offset": 463,
                      "clock_hz": 2000000},
             "steps": [
+                {"blank": True, "seconds": 1.96},  # s158: COVER1 read on the black palette, the tune running
                 {"picture": "title.cover", "vbl": 251},
                 {"picture": "title.credits", "until_tune_ends": True},  # s156: PHANT.PRG waits at 0xb8f2
             ],
@@ -423,13 +432,18 @@ def main() -> int:
                      "sound, the sprite (spell: amount >= 0; rock: the rock's damage, negative) at a random 16x16 spot "
                      "inside the monster's picture (x + rand(w - 16), y + rand(h - 16)), hold_ms (no key), the sound "
                      "silenced (0xb9e2); rock_miss: 0x18c6c after a rock's MISSES, the rock sprite at the screen spot, "
-                     "hold_ms, no sound. Lines not listed: no sound [?], the Speed hold.",
+                     "hold_ms, no sound; rock_miss_area: the ST's monster area (x, y, w, h) the spot lies in (s163). Lines not listed: no sound [?], the Speed hold. monster_slots (s162, 0x18288 / "
+                     "0x18856): a picture per monster, each group a row of its own monsters; the poses, sparkles and "
+                     "erases on the monster's own slot, an erased slot keeping its place until the round's re-rank.",
             "speed_ms": {"fast": 5, "normal": 10, "slow": 1000},
             "sound_wait_speed": 9, "no_wait_after": 18, "short_text": 3,
             "pose_ms": 300, "pose_fast_ms": 10, "pose_speed": 9, "attack_pose_ms": 300, "silhouette_pens": [15, 0],
-            "fight_start_sound": 17, "round_end_sound": 18,
+            "monster_slots": True, "fight_start_sound": 17, "round_end_sound": 18,
             "sparkle": {"sound": ST_SPARKLE_SOUND, "spell": "combat.sparkle", "rock": "combat.rock", "per": 32,
-                        "size": 16, "hold_ms": 300, "rock_miss": [100, 10]},
+                        "size": 16, "hold_ms": 300, "rock_miss": [100, 10],
+                        # s163: the ST's monster area for the miss spot (0x18458 clears from y 13; groups stack up
+                        # from [0x23eb4] - 3 = 147); the remaster moves the spot by the same fraction onto its own.
+                        "rock_miss_area": [0, 13, 320, 134]},
             "death": {"sound": 15, "hold_ms": 500},
             "lines": ST_COMBAT_LINES,
             "end_boxes": ST_END_BOXES,
@@ -485,9 +499,13 @@ def main() -> int:
         # II's optional parts.
         "ending_scene": {
             "_note": "0x12f2a: intro page (10 lines by v_gtext at (2, 50 + 10i), VDI 3 = register 2 of the map palette "
-                     "the dungeon left, the OK form until OK; italic and TOS's 8x8 font not drawn [~]); final2.pic on "
+                     "the dungeon left, the OK form until OK; s160: italic 8x8 = EmuTOS's font in VDI italic (intro_page.font, "
+                     "font_dx -4: top-aligned skewed text starts left_offset + right_offset px left of the point, EmuTOS "
+                     "vdi_text.c), the OK label (G_BOXTEXT te_font 5) in EmuTOS's 6x6 small font, button_font, s162: the "
+                     "s80 shot's O at (277, 184) pixel for pixel); final2.pic on "
                      "black; registers 0..15 := combat, 10 Vsync each (vbl_hz 60, as the colour cycle); bottom lines "
-                     "(0x12a16: v_justified centred on 160, y 192, 310 wide, VDI 5 = register 6; each 3000 ms or a key) "
+                     "(0x12a16: v_justified centred on 160, y 192, 310 wide, VDI 5 = register 6, plain 8x8 = font; spacing "
+                     "EmuTOS's vdi_v_justified, s160; each 3000 ms or a key) "
                      "'Filmon speaks:', 'Presenting ...'; evnt_timer 2000; per record 0..n-1 (n = OK members): its idle "
                      "portrait on the door spot (150,75), its title line, the other pose (PARTY2), sound 32 (s135: "
                      "Dosound, not waited for), crowd frames 0/1 x10 at (40,127) 330 ms apart, its portrait in row slot d7 (y 158, I's gap "
@@ -499,10 +517,13 @@ def main() -> int:
             "stage": [150, 75],
             "crowd": {"frames": ["ending.crowd.0", "ending.crowd.1", "ending.crowd.2"], "x": 40, "y": 127,
                       "flashes": 10, "flash_ticks": 330, "sound": 32},
+            "font": "emutos-st-8x8",
             "text_y": 192, "text_pen": 6, "line_ticks": 3000, "justify_width": 310,
             "intro_page": {"palette": index["palettes"]["map"]["rgb"], "x": 2, "y": 50, "line_gap": 10,
-                           "text_pen": 2, "button_pen": 15, "sound": ST_FORM_CLICK},
-            "closing_page": {"x": 2, "y": 4, "line_gap": 8, "text_pen": 4, "button_pen": 15, "sound": ST_FORM_CLICK},
+                           "text_pen": 2, "button_pen": 15, "sound": ST_FORM_CLICK,
+                           "font": "emutos-st-8x8-italic", "font_dx": -4, "button_font": "emutos-st-6x6"},
+            "closing_page": {"x": 2, "y": 4, "line_gap": 8, "text_pen": 4, "button_pen": 15, "sound": ST_FORM_CLICK,
+                             "font": "emutos-st-8x8-italic", "font_dx": -4, "button_font": "emutos-st-6x6"},
         },
         "picture_sets": [
             {"name": "monster.{n}.idle", "dir": "monsters/idle", "prefix": "{n:D2}-", "ext": ".png"},

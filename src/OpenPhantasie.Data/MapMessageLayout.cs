@@ -36,7 +36,7 @@ public sealed record MapMessageLayout(IReadOnlyList<string> Palette, CombatField
 
     /// <summary>
     /// s157: a key → the string id of the text the original's box prints where it differs from Core's (DOS's) text
-    /// (<c>texts</c>; I Amiga: "YOU SURPRISE THEM!" with no blank before "!", "THAT IS A WALL"), formatted with the same
+    /// (<c>texts</c>; I Amiga: `p1field.box.you_surprise_them` with no blank before "!", "THAT IS A WALL"), formatted with the same
     /// arguments. Core's text still finds the key (and stays Core's on the message line and in the log); only the box's
     /// rows change. A key with a <see cref="Splits"/> entry cannot have one.
     /// </summary>

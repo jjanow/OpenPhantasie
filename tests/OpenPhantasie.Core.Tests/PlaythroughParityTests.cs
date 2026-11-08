@@ -110,7 +110,7 @@ public class PlaythroughParityTests
         session.Overworld.Y = 8;
         var step = session.MoveOverworld(CardinalDirection.East);
         Assert.Equal(OverworldMoveKind.EnterDungeon, step.Kind);
-        session.AnswerOverworldEntry(enter: true); // "A DUNGEON. ENTER?"
+        session.AnswerOverworldEntry(enter: true); // `core.overworld.a_dungeon_enter`
         Assert.Equal(GameMode.Dungeon, session.Mode);
         Assert.NotNull(session.Dungeon);
         Assert.Equal(1, session.Dungeon!.LevelId);

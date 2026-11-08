@@ -324,7 +324,7 @@ public static class TownMenus
             m.Score = Math.Max(m.Score, score);
 
         // 0x3327(score, tier, allFourRunes): table at OV1 file 0x5ecd; tiers 2–4 add "The Gods." — at tier 4 with the
-        // first four rune words (@72..@78, OR'd across counted members) all set, "The Gods and face the tests." [C]+[D✓] s49.
+        // first four rune words (@72..@78, OR'd across counted members) all set, `core.mystic.the_gods_and_tests` [C]+[D✓] s49.
         var tier = (score > 9 ? 1 : 0) + (score > 20 ? 1 : 0) + (score > 39 ? 1 : 0) + (score > 59 ? 1 : 0)
             + (score > 83 ? 1 : 0) + (score > 99 ? 1 : 0);
         var allFourRunes = readyForTheTests(counted);
@@ -403,7 +403,7 @@ public static class TownMenus
     }
 
     /// <summary>
-    /// [C] OV1 0x1387..0x139e + 0x3b35 — XP still missing ("You need N more experience points."); 0 = may train.
+    /// [C] OV1 0x1387..0x139e + 0x3b35 — XP still missing ("You need N more `core.guild.you_need_x_more_xp`"); 0 = may train.
     /// DOS stores <c>(float)(XP − X)</c>, truncates it to a long and trains when that is ≥ 0.
     /// </summary>
     public static long TrainingXpShortfall(int classIdx, CharacterStats stats, int level, long experience)
@@ -559,7 +559,7 @@ public static class TownMenus
     /// [C] OV1 0x14cf..0x15ab (s63, DOSBox-checked): "You can learn %d more spells." The cap is
     /// <c>trunc(level·INT·1.3/90·class + 3·(class == FIGHTER) + 1)</c> (class number THIEF 0 … WIZARD 5, x87 order kept);
     /// the count is <c>min(spells marked 2, cap − known + 1)</c>, so a character can end up knowing cap + 1. A DEAD member
-    /// gets −1. Zero or less → "You can't learn any more!".
+    /// gets −1. Zero or less → `core.guild.learn_no_more`.
     /// </summary>
     public static int SpellLearnCount(Character member)
     {
@@ -589,7 +589,7 @@ public static class TownMenus
     }
 
     /// <summary>
-    /// [C] OV1 0x3455 / 0x1648..0x1672 (s63 DOSBox): fee > carried gold → "You can't afford it!" (nothing taken). Otherwise the
+    /// [C] OV1 0x3455 / 0x1648..0x1672 (s63 DOSBox): fee > carried gold → `core.guild.learn_cant_afford` (nothing taken). Otherwise the
     /// fee is taken and age +2 even on a failed <paramref name="learned"/> roll (<see cref="SpellLearnRoll"/>); only a success
     /// marks the spell known.
     /// </summary>

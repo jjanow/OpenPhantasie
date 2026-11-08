@@ -22,8 +22,11 @@ public readonly record struct OpmWrite(int Register, int Value);
 /// </summary>
 public sealed class OpmDrvScore : TuneScore
 {
-    /// <summary>The X68000's OPM clock `[~]` (the driver's 19531 = 4 000 000 · 60 / (64 · 4 · 48) agrees; XEiJ assumes the
-    /// same 4 MHz, so its OPM trace cannot measure it, s117).</summary>
+    /// <summary>The X68000's OPM clock, 4 MHz `[C]` (s162): Sharp's service manuals draw the YM2151's φM pin 24 on a net
+    /// labelled "4MHz" (CZ-134, CZ-634C/644C, sound block diagram 図7-1 "CLK(4MHz)" and control-board diagram pp. 85–86;
+    /// the same in CZ-147), and <i>Inside X68000</i> (Kuwano, 1992, p. 280) says the X68000 gives the OPM 4 MHz, about
+    /// 192 cents above the data sheet's 3.579545 MHz notes. The driver's 19531 = 4 000 000 · 60 / (64 · 4 · 48) agrees
+    /// (FORMAT.md 6.11.1). No sheet of the first model (CZ-600C) was found.</summary>
     public const int X68000OpmClockHz = 4_000_000;
 
     public const int Channels = 8;
@@ -530,7 +533,8 @@ public sealed class OpmDrvSequencer
     /// s156: timer A interrupts a pass loses (FORMAT.md section 6.11.3, the s117 XEiJ trace): a pass that loads a voice
     /// takes longer than a timer period (each chip write waits on the busy flag, ~61 µs) and the handler's closing
     /// 0x14 = 0x15 clears the overflow that came meanwhile, so the next pass comes one period later; the song's first
-    /// pass (its header writes and two voice loads, 5.9 ms) loses 2. Measured for song 0 (7 a round + 1); other songs `[~]`.
+    /// pass (its header writes and two voice loads, 5.9 ms) loses 2. Measured for song 0 (7 a round + 1); other songs `[~]`
+    /// (not needed: the remaster plays no IV song but song 0, the title).
     /// </summary>
     public static int LostInterrupts(bool firstPass, bool loadedVoice) => !loadedVoice ? 0 : firstPass ? 2 : 1;
 

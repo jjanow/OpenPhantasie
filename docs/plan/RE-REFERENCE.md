@@ -180,6 +180,9 @@ of each PRG.
   `gamesave.dat` + 8518 = the 36-B block `0x24564` (centre x / y, view x / y, party x / y, …;
   `reverse-engineering/amiga/phantasie3/FORMAT.md` section 4); patch only the changed 488-B chunk (`adf_patch_file.py`
   stops on gamesave's second chunk, which another file repeats).
+- **I (s163):** `adf_patch_file.py` fails on `OUT1.DAT`: its first block is also on the disk under `backup/` (blocks
+  916 and 954), so patch both by hand (`capture_s163_filming.md`). STYX without walking there: the debugger nop
+  `W 23240 4e 71`.
 - **Tracing calls with the UAE debugger (III sounds):** `"console_debugger = 1"`; F12+D or a breakpoint enters the
   debugger, which reads stdin and prints to stdout. Start with `DEBUG_FIFO=SECONDS fsuae_run.sh …`: it makes the FIFO
   `WORKDIR/dbg.in`, holds it open that long and logs unbuffered to `fsuae.log`. Find the program's load base from the
@@ -260,3 +263,20 @@ For what the X68000 binaries can't tell statically (CPU-bound timing, screen lay
   `_game` runs `_dungeon` at that square (`FORMAT.md` section 6.10 "Dungeon `_ianim`"). The remaster's same view:
   `--p4-dungeon MAP X,Y` (decimal). Event-prompt recipe: pokes `c7d7c=1,c7d7e=9,c7d80=f` (Town Hall (9, 15)), then
   `typekey tenkey8`, `space`: INPUTS "文字＞" (`reverse-engineering/x68000/phantasie4/logic-specs/events.md` section 4.1).
+
+## Hardware documents already read (s162, for the audio output models)
+- archive.org `CZ134X68000ServiceManual` (X68000 CZ-634C / 644C) and `CZ147X68030ServiceManual`: OPM clock and the
+  analogue stage after the YM3012 (x68000 `FORMAT.md` 6.11.3), the ADPCM filter's values (6.13). Their `_text.pdf`
+  has a text layer for finding pages; the sheets render readably at 300 dpi (`pdftoppm -x/-y/-W/-H` crops).
+- archive.org `inside-x68000` (*Inside X68000*, 1992): OPM at 4 MHz, p. 280.
+- archive.org `atari-520-st-schematics-jan-feb-1985` (520ST C070112 rev. B) and `SAMSComputerfactsCSCS12Atari520ST`:
+  the 520ST's YM2149 output (no low-pass capacitor; atari-st `FORMAT.md` 7.1). `Atari_Mega_ST_Schematic_1986_Atari` is
+  the Mega ST (other designators).
+- s163: archive.org `Atari_1040ST_Schematic_Rev_C_C070787_Dec_26_1986` (1040STF / STFM C070787 rev. C, Dec 1986;
+  plain PDF, render sheet 1 at 600 dpi): the STF's YM2149 output stage, R8 / C10 (atari-st `FORMAT.md` 7.1). Also on
+  archive.org: `Atari_1040STf_Schematic_1986_Atari`, `Atari_1040STe_Schematic_1986_Atari`, `atari520st1040stservicemanual`
+  (not needed). The elektrotanya.com copy sits behind a captcha.
+- s163: archive.org `OutsideX680001993` (*Outside X68000*, 1993): file `Outside_X68000_schematic` is the book's
+  schematic appendix (the `.pdf` gave HTTP 500; `_jp2.zip` works, scan NNNN = djvu page NNNN + 1): CZ-600CE (first
+  X68000) メイン (1) / (2), サブ, コントロール (scan 0003: the sound section, x68000 `FORMAT.md` 6.11.3), then the
+  CZ-634C main / control sheets and the option boards. No Sharp CZ-600C service manual is on archive.org.

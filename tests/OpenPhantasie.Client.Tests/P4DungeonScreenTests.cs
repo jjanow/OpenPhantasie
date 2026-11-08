@@ -122,6 +122,7 @@ public class P4DungeonScreenTests
         // s158, _deadmsg: "The party has been wiped out.", any key (_mgetc), then _acgamend(1): E / T, no SPACE back.
         var s = new P4DungeonScreen(Synthetic(0x22, 0x1A, 255, 0x00)); // DAMAGE 255 on arrival
         Assert.True(s.Game.PartyLost);
+        Assert.Equal([GameText.S("p4x.0x44097"), GameText.S("p4x.0x440b0")], s.BoxLines().Select(l => l.Text).TakeLast(2));
         Assert.Equal(P4ScreenRequest.Load, s.HandleKeys([Keys.F9])); // F9 still loads
         Assert.Null(s.SystemPage);
         Assert.Null(s.HandleKeys([Keys.A]));
@@ -198,6 +199,32 @@ public class P4DungeonScreenTests
             && l.Text.EndsWith(heads[0], StringComparison.Ordinal)); // page 4 holds one castable spell too
         s.HandleKeys([Keys.D1]); // *Arrow Flame 1: no target
         Assert.Equal((P4ActionKind.Cast, 26), (m.Order.Kind, m.Order.Spell));
+    }
+
+    [OriginalDataFact]
+    public void CombatSpellList_TakesTheStripOnlyWhileOpen()
+    {
+        // s160 (user s159): the list opens right of the field at the panel's place and the column gives way to it while it
+        // is open; Quit, Backspace and a picked spell close it and the column comes back. No panel strip in a fight.
+        var s = new P4DungeonScreen(Synthetic(true, 0x22, 0x23, 0x01, 0x00));
+        var b = Assert.IsType<P4Battle>(s.Game.Battle);
+        s.HandleKeys([Keys.F]);
+        var m = b.Current!;
+        m.Member.Spells[25] = 1; // *Arrow Flame 1 (page 4, no target)
+        m.Member.Mp = 10;
+        Assert.False(s.FightSpellListOpen);
+        Assert.False(s.PanelPlace);
+        s.HandleKeys([Keys.C]);
+        Assert.True(s.FightSpellListOpen);
+        Assert.Null(s.PanelName);
+        s.HandleKeys([Keys.Back]);
+        Assert.False(s.FightSpellListOpen);
+        s.HandleKeys([Keys.C]);
+        s.HandleKeys([Keys.D5]); // head 5 = page 4: the list stays open on its new page
+        Assert.True(s.FightSpellListOpen);
+        s.HandleKeys([Keys.D1]); // *Arrow Flame 1: the order is given, the list closes
+        Assert.Equal((P4ActionKind.Cast, 26), (m.Order.Kind, m.Order.Spell));
+        Assert.False(s.FightSpellListOpen);
     }
 
     [OriginalDataFact]

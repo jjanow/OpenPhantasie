@@ -38,7 +38,7 @@ public class P1DungeonMessageTests
     [OriginalDataFact]
     public void TheWall_IsABox_WithTheAmigasText_InTheDungeonOnly()
     {
-        // h41 +0x1a6: Core logs DOS's "THAT IS THE WALL"; the box prints the Amiga's h42 +0x5d "THAT IS A WALL" (s157).
+        // h41 +0x1a6: Core logs DOS's `core.dungeon.that_is_the_wall`; the box prints the Amiga's h42 +0x5d "THAT IS A WALL" (s157).
         var l = Layout();
         Assert.Equal(["THAT IS A WALL"], P1MapMessageRun.Rows(l, "THAT IS THE WALL", dungeon: true));
         Assert.Null(P1MapMessageRun.Rows(l, "THAT IS THE WALL"));
@@ -211,7 +211,7 @@ public class P1DungeonMessageTests
         Assert.Equal(GameText.S("core.script.report"), run.WaitLines[0]);
         Assert.True(run.HasNext);
         Assert.Equal(new P1MapMessageRun.PartyCell(2, 6, 29), run.PartyAt(run.LengthMs + 5000)); // the wait: still there
-        // Then sound 16 and THE PARTY IS MOVED, still over the event cell; the move after it.
+        // Then sound 16 and `core.script.the_party_is_moved`, still over the event cell; the move after it.
         var next = run.Next(null)!;
         var moved = Assert.Single(next.Boxes);
         Assert.Equal(["THE PARTY IS MOVED"], moved.Rows);
@@ -310,7 +310,7 @@ public class P1DungeonMessageTests
         ui.Start(dungeon);
         Assert.Equal(GameSession.EncounterBanner, ui.P1Banner);
 
-        // A night fight: the Amiga's own "A NIGHT ENCOUNTER" box has shown it over the map (h74 +0x6c).
+        // A night fight: the Amiga's own `core.encounter.a_night_encounter` box has shown it over the map (h74 +0x6c).
         Assert.Null(CombatPresenter.RemasterBanner([NightEncounter.Banner, "Combat vs 1 ORC", "A IS ON WATCH"]));
         Assert.Equal(GameSession.DayEncounterBanner,
             CombatPresenter.RemasterBanner([NightEncounter.Banner, "x", GameSession.DayEncounterBanner, "Combat vs 1 ORC"]));

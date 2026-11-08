@@ -1,0 +1,894 @@
+{
+ "_note": "Phantasie II, Apple II (p2-apple2): ids the Apple prints in its own wording (DIFFERENCES-II D2-050, user s159). Parts as in en.sources.json: our literal glue, or [file, offset, length] into the Apple's programs (by RDOS name) or SCROLLL0:page (the decoded text page). build_string_sources.py adds them as alternatives marked \"wording\": \"own\"; --show-apple prints what they resolve to.",
+ "strings": {
+  "shared": {
+   "core.overworld.lava": [
+    [
+     "OUTDOORS2",
+     15043,
+     19
+    ]
+   ],
+   "p1field.spells_available": [
+    [
+     "OUTDOORS2",
+     17692,
+     7
+    ]
+   ]
+  },
+  "phantasie1": {
+   "printout.x_level_x_x_x_x": [
+    "{0,10} ",
+    [
+     "TOWN2",
+     14530,
+     6
+    ],
+    "{1,2}{2,11}{3,11}{4,6}"
+   ],
+   "useitem.who_will_use": [
+    [
+     "TOWN2",
+     12506,
+     12
+    ],
+    "?"
+   ],
+   "guild.whom_do_you_want_to_drop": [
+    [
+     "TOWN2",
+     8784,
+     8
+    ],
+    "?"
+   ],
+   "guild.who_is_going_to_be_trained": [
+    [
+     "TOWN2",
+     6134,
+     18
+    ],
+    "?"
+   ],
+   "guild.who_will_learn": [
+    [
+     "TOWN2",
+     7071,
+     21
+    ],
+    "?"
+   ],
+   "guild.it_will_cost": [
+    [
+     "TOWN2",
+     6841,
+     12
+    ]
+   ],
+   "guild.x_gold": [
+    "{0}",
+    [
+     "TOWN2",
+     6861,
+     12
+    ]
+   ],
+   "member.whom_do_you_want_to_purge": [
+    [
+     "TOWN2",
+     9163,
+     25
+    ]
+   ],
+   "inspect.whom_do_you_want_to_inspect": [
+    [
+     "TOWN2",
+     14385,
+     11
+    ],
+    "?"
+   ],
+   "inspect.liz_man": [
+    [
+     "TOWN2",
+     571,
+     10
+    ]
+   ],
+   "inspect.x_pts_x": [
+    "{0,-13}",
+    [
+     "TOWN2",
+     2965,
+     3
+    ],
+    ":{1,-2}"
+   ],
+   "inspect.spells_available": [
+    [
+     "TOWN2",
+     7519,
+     7
+    ]
+   ],
+   "town.label.armory": [
+    [
+     "TOWN2",
+     3185,
+     6
+    ]
+   ],
+   "core.aging.x_has_died": [
+    "{0}",
+    [
+     "TOWN2",
+     1062,
+     9
+    ]
+   ],
+   "core.aging.x_has_aged": [
+    "{0}",
+    [
+     "TOWN2",
+     996,
+     9
+    ]
+   ],
+   "core.combat.monsters_are_charmed": [
+    [
+     "OUTDOORS2",
+     8862,
+     16
+    ]
+   ],
+   "core.dungeon.x_sinks_and_takes_x_damage": [
+    "{0,-10:.9}",
+    [
+     "OUTDOORS2",
+     14008,
+     5
+    ],
+    " AND ",
+    [
+     "OUTDOORS2",
+     10366,
+     6
+    ],
+    "{1,-3}",
+    [
+     "OUTDOORS2",
+     10379,
+     7
+    ]
+   ],
+   "core.dungeon.x_hears_monsters_go_back": [
+    "{0}",
+    [
+     "DUNGON2",
+     17420,
+     25
+    ]
+   ],
+   "core.defeat.arrived_at_astral_plane": [
+    [
+     "CEMETARY2",
+     928,
+     39
+    ]
+   ],
+   "core.defeat.great_demon_speaks": [
+    [
+     "CEMETARY2",
+     1019,
+     35
+    ]
+   ],
+   "core.encounter.and_hears_the_monsters": [
+    [
+     "OUTDOORS2",
+     14907,
+     18
+    ]
+   ],
+   "core.prompt.who_will_disarm": [
+    [
+     "DUNGON2",
+     14271,
+     16
+    ],
+    "?"
+   ],
+   "core.encounter.you_surprise_them": [
+    [
+     "OUTDOORS2",
+     14472,
+     18
+    ]
+   ],
+   "core.encounter.monsters_surprise_you": [
+    [
+     "OUTDOORS2",
+     14547,
+     21
+    ]
+   ],
+   "core.mystic.tier_novice": [
+    [
+     "TOWN2",
+     9671,
+     18
+    ]
+   ],
+   "core.mystic.tier_experienced": [
+    [
+     "TOWN2",
+     9698,
+     23
+    ]
+   ],
+   "core.guild.it_will_cost_x_gold": [
+    " ",
+    [
+     "TOWN2",
+     6841,
+     13
+    ],
+    "{0}",
+    [
+     "TOWN2",
+     6861,
+     12
+    ],
+    "."
+   ],
+   "core.magic.x_is_resurrected": [
+    "{0} ",
+    [
+     "CEMETARY2",
+     1230,
+     11
+    ]
+   ]
+  },
+  "phantasie2": {
+   "core.dungeon.x_sinks_and_takes_x_damage": [
+    "{0}",
+    [
+     "OUTDOORS2",
+     14007,
+     6
+    ],
+    " AND ",
+    [
+     "OUTDOORS2",
+     10366,
+     6
+    ],
+    "{1}",
+    [
+     "OUTDOORS2",
+     10379,
+     7
+    ]
+   ],
+   "core.p2.mystic.rank_0": [
+    [
+     "TOWN2",
+     9910,
+     8
+    ],
+    [
+     "TOWN2",
+     9671,
+     18
+    ]
+   ],
+   "core.p2.mystic.rank_1": [
+    [
+     "TOWN2",
+     9910,
+     8
+    ],
+    [
+     "TOWN2",
+     9698,
+     23
+    ]
+   ],
+   "core.p2.mystic.rank_2": [
+    [
+     "TOWN2",
+     9910,
+     8
+    ],
+    [
+     "TOWN2",
+     9763,
+     8
+    ],
+    [
+     "TOWN2",
+     9730,
+     24
+    ]
+   ],
+   "core.p2.mystic.rank_3": [
+    [
+     "TOWN2",
+     9910,
+     8
+    ],
+    [
+     "TOWN2",
+     9730,
+     24
+    ]
+   ],
+   "core.p2.mystic.rank_4": [
+    [
+     "TOWN2",
+     9910,
+     8
+    ],
+    [
+     "TOWN2",
+     9790,
+     18
+    ]
+   ],
+   "core.p2.mystic.rank_5": [
+    [
+     "TOWN2",
+     9910,
+     8
+    ],
+    [
+     "TOWN2",
+     9817,
+     10
+    ],
+    [
+     "TOWN2",
+     651,
+     9
+    ]
+   ],
+   "core.p2.mystic.heroes_of_gelnor_also": [
+    [
+     "TOWN2",
+     9934,
+     15
+    ],
+    [
+     "TOWN2",
+     636,
+     6
+    ]
+   ],
+   "core.p2.plutos_minion_is_killed": [
+    [
+     "OUTDOORS2",
+     11750,
+     38
+    ]
+   ],
+   "core.p2.pluto_voice_1": [
+    [
+     "SCROLLL0:page",
+     0,
+     25
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     31,
+     33
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     65,
+     38
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     104,
+     5
+    ]
+   ],
+   "core.p2.pluto_voice_2": [
+    [
+     "SCROLLL0:page",
+     111,
+     32
+    ],
+    [
+     "SCROLLL0:page",
+     145,
+     39
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     185,
+     39
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     225,
+     35
+    ]
+   ],
+   "core.p2.pluto_voice_3": [
+    [
+     "SCROLLL0:page",
+     261,
+     36
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     298,
+     37
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     336,
+     39
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     376,
+     9
+    ]
+   ],
+   "core.p2.pluto_voice_4": [
+    [
+     "SCROLLL0:page",
+     391,
+     32
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     424,
+     40
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     465,
+     38
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     504,
+     39
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     544,
+     35
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     580,
+     37
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     618,
+     40
+    ],
+    " ",
+    [
+     "SCROLLL0:page",
+     659,
+     38
+    ]
+   ],
+   "core.p2.pluto_voice_5": [
+    [
+     "SCROLLL0:page",
+     703,
+     17
+    ]
+   ],
+   "core.p2.filmon_intro_1": [
+    [
+     "WIN",
+     24,
+     37
+    ]
+   ],
+   "core.p2.filmon_intro_2": [
+    [
+     "WIN",
+     64,
+     35
+    ]
+   ],
+   "core.p2.filmon_intro_3": [
+    [
+     "WIN",
+     104,
+     37
+    ]
+   ],
+   "core.p2.filmon_intro_4": [
+    [
+     "WIN",
+     144,
+     20
+    ]
+   ],
+   "core.p2.filmon_intro_5": [
+    [
+     "WIN",
+     174,
+     36
+    ]
+   ],
+   "core.p2.filmon_intro_6": [
+    [
+     "WIN",
+     214,
+     35
+    ]
+   ],
+   "core.p2.filmon_intro_7": [
+    [
+     "WIN",
+     254,
+     15
+    ],
+    [
+     "WIN",
+     280,
+     6
+    ],
+    [
+     "WIN",
+     297,
+     14
+    ]
+   ],
+   "core.p2.filmon_intro_8": [
+    [
+     "WIN",
+     316,
+     5
+    ]
+   ],
+   "core.p2.filmon_intro_9": [
+    [
+     "WIN",
+     331,
+     35
+    ]
+   ],
+   "core.p2.filmon_intro_10": [
+    [
+     "WIN",
+     371,
+     20
+    ]
+   ],
+   "core.p2.filmon_speaks": [
+    [
+     "WIN",
+     2035,
+     14
+    ]
+   ],
+   "core.p2.presenting_heroes": [
+    [
+     "WIN",
+     2056,
+     34
+    ]
+   ],
+   "core.p2.title_x_x_x": [
+    "{0} - ",
+    [
+     "WIN",
+     29,
+     4
+    ],
+    "{1}",
+    [
+     "WIN",
+     2237,
+     4
+    ],
+    " ",
+    [
+     "WIN",
+     303,
+     5
+    ],
+    "{2}"
+   ],
+   "core.p2.title_word_0": [
+    [
+     "WIN",
+     404,
+     11
+    ]
+   ],
+   "core.p2.title_word_1": [
+    [
+     "WIN",
+     424,
+     6
+    ]
+   ],
+   "core.p2.title_word_2": [
+    [
+     "WIN",
+     439,
+     10
+    ]
+   ],
+   "core.p2.title_word_3": [
+    [
+     "WIN",
+     458,
+     8
+    ]
+   ],
+   "core.p2.title_word_4": [
+    [
+     "WIN",
+     475,
+     4
+    ]
+   ],
+   "core.p2.title_word_5": [
+    [
+     "WIN",
+     488,
+     6
+    ]
+   ],
+   "core.p2.title_word_6": [
+    [
+     "WIN",
+     503,
+     7
+    ]
+   ],
+   "core.p2.title_word_7": [
+    [
+     "WIN",
+     519,
+     7
+    ]
+   ],
+   "core.p2.title_word_8": [
+    [
+     "WIN",
+     535,
+     7
+    ]
+   ],
+   "core.p2.title_word_9": [
+    [
+     "WIN",
+     551,
+     6
+    ]
+   ],
+   "core.p2.origin_gelnor": [
+    [
+     "WIN",
+     570,
+     6
+    ]
+   ],
+   "core.p2.origin_ferronrah": [
+    [
+     "WIN",
+     154,
+     9
+    ]
+   ],
+   "core.p2.origin_netherworld": [
+    [
+     "WIN",
+     603,
+     15
+    ]
+   ],
+   "core.p2.wand_line_1": [
+    [
+     "WIN",
+     2446,
+     22
+    ]
+   ],
+   "core.p2.wand_line_2": [
+    [
+     "WIN",
+     2471,
+     38
+    ]
+   ],
+   "core.p2.wand_line_3": [
+    [
+     "WIN",
+     2511,
+     25
+    ]
+   ],
+   "core.p2.filmon_closing_1": [
+    [
+     "WIN",
+     2570,
+     38
+    ]
+   ],
+   "core.p2.filmon_closing_2": [
+    [
+     "WIN",
+     2610,
+     6
+    ]
+   ],
+   "core.p2.filmon_closing_3": [
+    [
+     "WIN",
+     2626,
+     40
+    ]
+   ],
+   "core.p2.filmon_closing_4": [
+    [
+     "WIN",
+     2666,
+     40
+    ]
+   ],
+   "core.p2.filmon_closing_5": [
+    [
+     "WIN",
+     2706,
+     38
+    ]
+   ],
+   "core.p2.filmon_closing_6": [
+    [
+     "WIN",
+     2746,
+     22
+    ]
+   ],
+   "core.p2.filmon_closing_7": [
+    [
+     "WIN",
+     2776,
+     38
+    ]
+   ],
+   "core.p2.filmon_closing_8": [
+    [
+     "WIN",
+     2816,
+     39
+    ]
+   ],
+   "core.p2.filmon_closing_9": [
+    [
+     "WIN",
+     2856,
+     38
+    ]
+   ],
+   "core.p2.filmon_closing_10": [
+    [
+     "WIN",
+     2896,
+     39
+    ]
+   ],
+   "core.p2.filmon_closing_11": [
+    [
+     "WIN",
+     2936,
+     37
+    ]
+   ],
+   "core.p2.filmon_closing_12": [
+    [
+     "WIN",
+     2976,
+     6
+    ]
+   ],
+   "core.p2.filmon_closing_13": [
+    [
+     "WIN",
+     2990,
+     40
+    ]
+   ],
+   "core.p2.filmon_closing_14": [
+    [
+     "WIN",
+     3030,
+     24
+    ],
+    [
+     "WIN",
+     3061,
+     13
+    ]
+   ],
+   "core.p2.filmon_closing_15": [
+    [
+     "WIN",
+     3078,
+     37
+    ]
+   ],
+   "core.p2.filmon_closing_16": [
+    [
+     "WIN",
+     3119,
+     10
+    ]
+   ],
+   "core.p2.filmon_closing_17": [
+    [
+     "WIN",
+     3137,
+     40
+    ]
+   ],
+   "core.p2.filmon_closing_18": [
+    [
+     "WIN",
+     3177,
+     39
+    ]
+   ],
+   "core.p2.filmon_closing_19": [
+    [
+     "WIN",
+     3217,
+     39
+    ]
+   ],
+   "core.p2.filmon_closing_20": [
+    [
+     "WIN",
+     3257,
+     6
+    ]
+   ],
+   "core.p2.filmon_closing_21": [
+    [
+     "WIN",
+     3273,
+     38
+    ]
+   ],
+   "core.p2.looks_nice": [
+    [
+     "TOWN2",
+     12250,
+     11
+    ]
+   ]
+  }
+ }
+}

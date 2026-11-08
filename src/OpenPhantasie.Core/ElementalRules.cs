@@ -29,6 +29,6 @@ public enum PurgePartyRule
     /// <summary>III's manual, handled as III's Drop: the member is purged; the elemental stays while a character is left.</summary>
     KeepsElemental,
 
-    /// <summary>DOS III: "You cannot purge a party member." (Drop first.)</summary>
+    /// <summary>DOS III: `core.guild.cannot_purge_party_member` (Drop first.)</summary>
     Refused,
 }

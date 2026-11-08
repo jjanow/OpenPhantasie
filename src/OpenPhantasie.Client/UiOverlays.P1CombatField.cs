@@ -470,7 +470,7 @@ public static partial class UiOverlays
     }
 
     /// <summary>
-    /// Requester 12 "SPELLS AVAILABLE:" (s133, h23 <c>+0x570</c>): the box, the title, the list's frame and fill, a page of
+    /// Requester 12 `inspect.spells_available` (s133, h23 <c>+0x570</c>): the box, the title, the list's frame and fill, a page of
     /// six spell names (white on blue, JAM2), the two scroll gadgets (ghosted when they cannot move) and EXIT.
     /// </summary>
     private static void DrawP1SpellList(SpriteBatch batch, Texture2D pixel, CombatFieldList l, Color[] pens, GameSession session,

@@ -9,7 +9,7 @@ public enum DefeatPortraitKind
     /// <summary>The ghost portrait (<see cref="OpenPhantasie.Data.PictureNames.PortraitGhost"/>): before the judgement.</summary>
     Ghost,
 
-    /// <summary>The member's race portrait: RESURRECTED, or GRANTED UNDEAD STATUS (race 15, the UNDEAD portrait).</summary>
+    /// <summary>The member's race portrait: RESURRECTED, or `core.defeat.x_status_undead` (race 15, the UNDEAD portrait).</summary>
     Race,
 
     /// <summary>DESTROYED: the slot is cleared (<c>0x12824</c>).</summary>
@@ -34,9 +34,9 @@ public readonly record struct DefeatSceneFrame(int DoorHeight, bool ShowBehindDo
 /// Phantasie II's party-defeat scene on <c>DECOR.PIC</c> (ST <c>0x12bea</c>, FORMAT.md §10.3/§10.4) [C] static s95:
 /// <list type="bullet">
 /// <item>The portrait row: one 32×32 slot per party member (DEAD included, the summoned elemental dropped), spaced
-/// <c>(320 − 32·n)/(n + 1)</c> apart (<c>0x1814e</c>). After "YOUR PARTY HAS BEEN DEFEATED" every slot shows the ghost
+/// <c>(320 − 32·n)/(n + 1)</c> apart (<c>0x1814e</c>). After `core.defeat.your_party_has_been_defeated` every slot shows the ghost
 /// portrait (<c>0x12b5e(0)</c>); each fate then redraws its slot.</item>
-/// <item>The door (80×90 at (123,14)): after "YOU HAVE ARRIVED AT THE ASTRAL PLANE" it sinks into the floor, 90 steps of 4
+/// <item>The door (80×90 at (123,14)): after `core.defeat.arrived_at_astral_plane` it sinks into the floor, 90 steps of 4
 /// VBLs (<c>0x12d8c</c>): step j draws the door's top <c>91 − j</c> rows at <c>y = 104 − h</c>. Then the sign (5th
 /// defeat) or, after a 3000 ms wait (<c>0x12e28</c>), the Great Demon's face.</item>
 /// </list>
@@ -99,7 +99,7 @@ public static class DefeatScene
 
     /// <summary>
     /// The outcome page's lines this frame: the ST prints the Great Demon's speech and the fates only once the face shows
-    /// (<c>0x12e62</c>, then the fate loop), so until then only "YOU HAVE ARRIVED AT THE ASTRAL PLANE" shows and the
+    /// (<c>0x12e62</c>, then the fate loop), so until then only `core.defeat.arrived_at_astral_plane` shows and the
     /// sinking door stays in view above the box. Every other page keeps its lines.
     /// </summary>
     public static IReadOnlyList<string> LinesShown(SessionPromptKind kind, IReadOnlyList<string> lines, DefeatSceneFrame frame)
@@ -154,11 +154,11 @@ public static class DefeatScene
 
 /// <summary>
 /// Phantasie III's party-defeat scene as the Amiga shows it (root <c>0x1dc16</c>, static s98): on a cleared screen the
-/// first two sentences print on text rows 12–13 ("The souls of your defeated warriors / begin the journey…", 120 ticks,
-/// then "Your party has arrived at the gates to / the Astral Plane…", 120 ticks); then <c>D/W2.cmp</c> (the gates of the
+/// first two sentences print on text rows 12–13 ("`core.p3.astral_1` / begin the journey…", 120 ticks,
+/// then "`core.p3.astral_2` / the Astral Plane…", 120 ticks); then <c>D/W2.cmp</c> (the gates of the
 /// Astral Plane, art on rows 0–140) fills the screen, the party's portraits stand under it (<c>0x1b6be</c>: 32×48 each,
 /// slot i at x = 48·i, y = 143, the y of combat row 0 from <c>0x1b42e</c>), and every further line prints on text row 24
-/// (y 192): "A Great Demon appears and speaks...", then each member's name and fate, after which the row is redrawn with
+/// (y 192): `core.p3.astral_3`, then each member's name and fate, after which the row is redrawn with
 /// that member's new picture (destroyed: race byte 22 = the grave, sprite 16; undead: race 17 = the Undead portrait).
 /// The Amiga moves on by itself (100 / 140-tick waits); the remaster pages with Return (<see cref="DefeatScenePager"/>).
 /// </summary>
@@ -199,7 +199,7 @@ public static class AstralScene
         return fate >= 0 && fate < shown.Fates.Count && shown.Fates[fate].Fate == DefeatFate.Undead ? UndeadColour : TextColour;
     }
 
-    /// <summary>The sound as the demon appears (<c>0x1dde6</c>, before "A Great Demon appears and speaks...").</summary>
+    /// <summary>The sound as the demon appears (<c>0x1dde6</c>, before `core.p3.astral_3`).</summary>
     public const int DemonSound = 45;
 
     /// <summary>A member's fate sound (<c>0x1dfe6</c>): 48 when destroyed, 9 otherwise (resurrected or undead).</summary>
@@ -246,7 +246,7 @@ public static class AstralScene
 
 /// <summary>
 /// Phantasie III's gods' reward as the Amiga shows it (root <c>0x1ee82</c>, static s102; DOS ovl4 <c>0x0000</c> has the
-/// same text): on a cleared screen "You hear noises and see flashing lights" (text row 11, colour 15, then the flashing
+/// same text): on a cleared screen "`core.p3.reward_noises` lights" (text row 11, colour 15, then the flashing
 /// <c>0x1f30a</c>), "When the noises and lights ..." (row 9); then <c>D/W1.cmp</c> (Zeus, a good win) or <c>D/W0.cmp</c>
 /// (Pluto, an evil win; art on rows 0-120) with the party's portraits under it (<c>0x1b6be</c>: slot i at x = 48 i,
 /// y = 123, the y of combat row 3: every record's row word is set to 3 at <c>0x1ef96</c>; slot 6, the elemental's, is

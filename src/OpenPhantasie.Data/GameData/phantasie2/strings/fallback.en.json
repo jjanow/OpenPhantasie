@@ -1,0 +1,12 @@
+{
+ "_schema": "phantasie.strings-fallback/v1",
+ "_note": "The remaster's own wording for lines a version's copy does not hold (DIFFERENCES-II D2-050, user s159: an Apple-only Phantasie II shows these instead of \"...\"). Per string table: the ids the Atari ST gives that the Apple II prints neither verbatim nor in its own wording (strings/en.sources.json). The importer writes them to strings/en.fallback.<profile>.json in the import, which StringTable lays under every other imported file, so a version that holds the line (DOS I, the ST) still wins. Spell words: the manual's spell list (combined rulebook p.12). s163: the shared and I table lines moved to phantasie1/strings/fallback.en.json (every import without I's tables writes it); this file keeps II's own table, with the two II ids whose only source is DOS I (the Mystic's score line, the amulet's LEAVE), so the ST copy writes it too.",
+ "language": "en",
+ "tables": {
+  "phantasie2": {
+   "core.p2.plutos_minion": "A MINION OF PLUTO!",
+   "core.p2.mystic.score_x": "Score: {0,4}.",
+   "core.p2.amulet_leave": "LEAVE"
+  }
+ }
+}

@@ -8,7 +8,7 @@ public enum MonsterMeleeRider
     /// <summary>Id 34 → 100: target SLEEPs and loses its action, "A STUNNING BLOW".</summary>
     StunningBlow,
 
-    /// <summary>Id 35 → 101: <c>@18 MP cur := (6·MP + 5)/10</c>, "MAGIC IS DRAINED".</summary>
+    /// <summary>Id 35 → 101: <c>@18 MP cur := (6·MP + 5)/10</c>, `core.combat.magic_drained`.</summary>
     MagicDrain,
 }
 

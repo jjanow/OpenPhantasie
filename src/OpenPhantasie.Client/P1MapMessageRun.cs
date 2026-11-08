@@ -6,9 +6,9 @@ namespace OpenPhantasie.Client;
 
 /// <summary>
 /// Requester 23 over Phantasie I Amiga's map screens (Amiga <c>FORMAT.md</c> "The map screen's requester 23", s139, and "The
-/// dungeon's requester 23", s140): the boxes a wilderness step's encounter opens (h74 <c>+0</c>: "A NIGHT ENCOUNTER",
-/// "%s IS ON WATCH" [/ "AND HEARS THE MONSTERS"], "%s HEARS MONSTERS", "YOU SURPRISE THEM!", "MONSTERS SURPRISE YOU!",
-/// "BLACK KNIGHTS SEE YOU AND FLEE!") and a dungeon step's events (h41: the wall, stairs, locks, a trap's disarm, the script
+/// dungeon's requester 23", s140): the boxes a wilderness step's encounter opens (h74 <c>+0</c>: `core.encounter.a_night_encounter`,
+/// "%s IS ON WATCH" [/ `core.encounter.and_hears_the_monsters`], "%s HEARS MONSTERS", `p1field.box.you_surprise_them`, `p1field.box.monsters_surprise_you`,
+/// `p1field.box.black_knights_flee`) and a dungeon step's events (h41: the wall, stairs, locks, a trap's disarm, the script
 /// ops' SMOKE / SPELL / GOLD / MOVED / NOISE / MONSTERS APPEAR), one after the other, before the fight's screen. Each box
 /// stays its whole seconds (⌊(polls + 60·rows) / 60⌋, h80 <c>+0x546</c>), less when the machine's clock reaches a multiple
 /// of 8 s first (<see cref="CombatFieldMessage.ShownSeconds"/>); keys and clicks are swallowed meanwhile. The boxes of one
@@ -306,7 +306,7 @@ public sealed class P1MapMessageRun
             if (Arguments(GameText.S(key), text.Trim()) is not { } args)
                 continue;
             if (!layout.Splits.TryGetValue(key, out var split))
-                // s157: the original's own text where it differs from Core's (I Amiga: "YOU SURPRISE THEM!", "THAT IS A WALL").
+                // s157: the original's own text where it differs from Core's (I Amiga: `p1field.box.you_surprise_them`, "THAT IS A WALL").
                 return [layout.Texts.TryGetValue(key, out var own) ? GameText.F(own, args).Trim() : text.Trim()];
             return [.. split.Select(id => GameText.F(id, args).Trim())];
         }

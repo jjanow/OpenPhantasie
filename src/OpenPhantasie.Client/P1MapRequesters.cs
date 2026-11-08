@@ -122,7 +122,7 @@ public static class P1MapRequesters
         return new RequesterScene(layout.Palette, ops, [new RequesterHit(pic, Keys.Enter, 0)]);
     }
 
-    /// <summary>Requester 22 as stored ("BLACK KNIGHTS!!!", RUN / FIGHT / SURRENDER).</summary>
+    /// <summary>Requester 22 as stored (`p1field.req.black_knights`, RUN / FIGHT / SURRENDER).</summary>
     public static RequesterScene Fixed(IReadOnlyList<string> palette, FixedRequester r, Func<int, Keys> click)
     {
         ArgumentNullException.ThrowIfNull(r);
@@ -236,7 +236,7 @@ public static class P1MapRequesters
     }
 
     /// <summary>
-    /// s158: the sheet's SPELLS view, the fight's requester 12 "SPELLS AVAILABLE:" (h29 <c>+0xe90</c> → h23 <c>+0x570(record
+    /// s158: the sheet's SPELLS view, the fight's requester 12 `inspect.spells_available` (h29 <c>+0xe90</c> → h23 <c>+0x570(record
     /// +0x60, 1)</c>: every known spell in slot order, none ghosted, browse only; live s158 over the map,
     /// <c>p1-amiga-map-sheet-spells</c>): the box and title, the list's frame and fill, a page of <paramref name="spells"/>
     /// from <paramref name="first"/>, the two scroll gadgets (ghosted when they cannot move: Up / Down) and EXIT (Esc); a row
@@ -303,7 +303,7 @@ public static class P1MapRequesters
 
     /// <summary>
     /// Requester 11's rows (h29 <c>+0xfb6</c> / <c>+0x842</c>): the potion and scroll / treasure counts, "RINGS: " with a ring's
-    /// letter at its place (none: the row blank), "THE WAND OF NIKADEMUS" when item 150 is carried (else blank).
+    /// letter at its place (none: the row blank), `inspect.the_wand_of_nikademus` when item 150 is carried (else blank).
     /// </summary>
     public static IReadOnlyList<string> PotionRows(Character m)
     {

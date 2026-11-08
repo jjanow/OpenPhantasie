@@ -33,7 +33,7 @@ public sealed class PartyDefeatResult
 
 /// <summary>
 /// Party defeat — state 6 → OV1 <c>0x5ee</c> → <c>0x3bc</c> (endgame.md §4 [C]; D-025 NOT A CONFLICT, DOS rule).
-/// "YOUR PARTY HAS BEEN DEFEATED", the Astral Plane, and the Great Demon's judgement of each (dead) member.
+/// `core.defeat.your_party_has_been_defeated`, the Astral Plane, and the Great Demon's judgement of each (dead) member.
 /// </summary>
 public static class PartyDefeat
 {

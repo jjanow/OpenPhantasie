@@ -5,7 +5,7 @@ namespace OpenPhantasie.Core.Tests;
 /// <summary>
 /// III's Yes / No questions on DOS's two-item menu root <c>0x75a3</c> (s108 static: every caller listed in
 /// <c>dungeon-events.md</c> §2.2): Esc = No, Y / N answer, no cursor memory, and each caller's own highlight ("No" lit for
-/// the exit pair, "Load previously saved dungeon?" and the door's "Continue?"; "Yes" for the rest).
+/// the exit pair, `core.p3.load_saved_dungeon` and the door's "Continue?"; "Yes" for the rest).
 /// </summary>
 public class P3YesNoPromptTests
 {
@@ -75,7 +75,7 @@ public class P3YesNoPromptTests
     }
 
     [OriginalDataFact]
-    public void DungeonTrapAndDoor_Questions_TheirOwnHighlight_WhoWillDisarmTakesNoEsc()
+    public void DungeonTrapAndDoor_Questions_TheirOwnHighlight_WhoWillDisarmEscIsCancel()
     {
         var s = WithParty();
         Phantasie3DungeonTests.Enter(s, 5, 11, 1);
@@ -86,7 +86,7 @@ public class P3YesNoPromptTests
         AssertMenu75a3(new SessionPrompts(s).Current!, lit: 2);
         s.CampaignAccess.DungeonEventPrompt = new PendingDungeonEvent(3, -2, new DungeonMessage(["Who?"], ["HERO0", "HERO1"]));
         var who = new SessionPrompts(s).Current!;
-        Assert.Null(who.EscapeChoice);
+        Assert.Equal(3, who.EscapeChoice); // s163: the picker's cancel (ovl4 0x11bc), the choice after the members
         Assert.Null(who.InitialChoice);
     }
 

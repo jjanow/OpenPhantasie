@@ -149,7 +149,7 @@ public class P3TownScreenClientTests
         Assert.False(d.IsOpen);
 
         d.Open();
-        Press(d, s, Keys.Down, Keys.O);                       // Deposit some gold: the field opens empty
+        Press(d, s, Keys.Down, Keys.O);                       // `p3town.bank_deposit_some`: the field opens empty
         Assert.True(d.IsOpen);
         if (Windows() is { } layout2)
             Assert.Contains(d.View(s, P3Data, layout2)!.Rows, r => r.Text == UiText.S("p3town.bank_how_much") + "_");
@@ -228,6 +228,38 @@ public class P3TownScreenClientTests
     }
 
     [OriginalDataFact]
+    public void AmigaDisarmWindow_IsWindow6_OneRowAMember_CIsCancel()
+    {
+        var layout = Windows();
+        Assert.NotNull(layout);
+        var s = Town();
+        s.LeaveGuild();
+        Assert.True(s.LeaveTown());
+        s.EnterDungeon(5, 23, 7, loadSaved: false); // s163: one step south is the archives' trap 2
+        var who = new DungeonMessage([GameText.S("core.p3.who_will_disarm")], [.. s.Party.Members.Select(m => m.Name)]);
+        s.CampaignAccess.DungeonEventPrompt = new PendingDungeonEvent(2, -2, who);
+        var prompt = new SessionPrompts(s).Current!;
+        var view = AmigaDisarmWindow.View(s, prompt, 1, layout!)!;
+        Assert.Equal(layout!.Heal, view.Window); // 0x127ce(92): the heal target's struct 0x23360
+        Assert.Equal("Who will disarm the trap?", view.Rows[0].Text); // 0x23084[92]
+        Assert.True(view.Rows[0].Highlight); // colour 8
+        Assert.Equal((layout.Heal!.Text[0].X, layout.Heal.Text[0].Y), (view.Rows[0].X, view.Rows[0].Y));
+        Assert.Equal(1 + 5 * s.Party.Members.Count, view.Rows.Count); // name, race, level, class, status a member
+        Assert.Equal(["A", "B"], view.Picks.Select(p => view.Rows[p.Row].Text));
+        Assert.Equal([Keys.D1, Keys.D2], view.Picks.Select(p => p.Key));
+        Assert.False(view.Rows[view.Picks[0].Row].Highlight);
+        Assert.True(view.Rows[view.Picks[1].Row].Highlight); // the cursor's row in colour 8
+        Assert.Equal(prompt.Options.Count + 1, prompt.EscapeChoice); // CANCEL
+        Assert.Null(AmigaDisarmWindow.Choice(Keys.C));
+        Assert.Equal(Keys.Enter, AmigaDisarmWindow.Choice(Keys.O));
+        Assert.Equal(Keys.Down, AmigaDisarmWindow.Choice(Keys.Down));
+        // The trap's Yes / No question keeps window 1.
+        s.CampaignAccess.DungeonEventPrompt = new PendingDungeonEvent(2, -1,
+            new DungeonMessage(["A spots a trap. Disarm it?"], [SessionPrompts.Yes, SessionPrompts.No]));
+        Assert.Null(AmigaDisarmWindow.View(s, new SessionPrompts(s).Current!, 0, layout));
+    }
+
+    [OriginalDataFact]
     public void AmigaShareWindow_BankSharesOnly_PicksAreTheCounts()
     {
         var layout = Windows();
@@ -272,7 +304,7 @@ public class P3TownScreenClientTests
         Press(d, s, Keys.O);                     // the first item
         Press(d, s, Keys.Down, Keys.Enter);      // B gets it
         Assert.Contains(item, b.InventoryItemIds);
-        Assert.True(d.IsOpen);                   // back to "Whose item shall be traded?"
+        Assert.True(d.IsOpen);                   // back to `p3town.trade_whose`
         Assert.Equal("", Press(d, s, Keys.C));
         Assert.False(d.IsOpen);
     }

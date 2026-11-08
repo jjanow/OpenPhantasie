@@ -56,7 +56,7 @@ public class DungeonTraversalTests
     [OriginalDataFact]
     public void StairsCell_OnlyPrintsTheDosText_s49()
     {
-        // OV2 0x2951: sprintf "STAIRS FROM LEVEL %-2d TO %-2d" (b − 0xd9, b − 0xd8), print, return 3 — no level change.
+        // OV2 0x2951: sprintf "`core.dungeon.stairs_from_level_x_to_x` %-2d TO %-2d" (b − 0xd9, b − 0xd8), print, return 3 — no level change.
         var traversal = Traversal;
         var state = new DungeonState { LevelId = 5, Level = traversal.GetLevel(5).CloneAsBuffer(), X = 4, Y = 7 };
         Assert.Equal(0xda, state.Level.Get(4, 8));

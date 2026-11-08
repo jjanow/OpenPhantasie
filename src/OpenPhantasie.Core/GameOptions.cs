@@ -148,7 +148,7 @@ public static class RuleOptionRegistry
         Manual: "manual", Dos: "dos", Remaster: "manual", Difference: "D-015");
 
     /// <summary>
-    /// D-016: what monster specials 17–20 ("THE PARTY'S ARMOR IS REDUCED") scale: the party's armor <c>@246</c>
+    /// D-016: what monster specials 17–20 (`core.combat.armor_reduced`) scale: the party's armor <c>@246</c>
     /// (<c>armor</c>, user s26: the effect matches the message) or weapon damage <c>@248</c> (<c>weapon</c>, DOS OV2
     /// <c>0x187f</c>, field id <c>0x39</c>). Same formula and rolls either way.
     /// </summary>
@@ -270,7 +270,7 @@ public static class RuleOptionRegistry
     /// <summary>D-031: wilderness treasure always drops (<c>manual</c>) or on <c>rand ≤ 2·L + 20</c>, with DOS's SCROLL 17 guard on the unshifted id (<c>dos</c>, OV2 <c>0x41aa</c>).</summary>
     public static readonly RuleOptionDescriptor WildernessTreasure = ManualOrDos("p1.wild-treasure", "D-031");
 
-    /// <summary>D-033: SUMMON ELEMENTAL needs six non-DEAD members (<c>manual</c>) or DOS's <c>[0x6490] == 5</c> index/count test (<c>dos</c>, OV2 <c>0x8cc</c>).</summary>
+    /// <summary>D-033: `core.spell.summon_elemental` needs six non-DEAD members (<c>manual</c>) or DOS's <c>[0x6490] == 5</c> index/count test (<c>dos</c>, OV2 <c>0x8cc</c>).</summary>
     public static readonly RuleOptionDescriptor SummonParty = ManualOrDos("p1.summon-party", "D-033");
 
     /// <summary>D-053: the end of combat shows and pools the totals (<c>manual</c>) or DOS's per-survivor shares, remainders lost (<c>dos</c>, OV2 <c>0x3fbe</c>).</summary>
@@ -422,7 +422,7 @@ public static class RuleOptionRegistry
     /// <summary>D2-042 (I's D-008 again): a wilderness inn stay takes two weeks (<c>manual</c>) or adds the ST's 1000 travel-time units, no aging (<c>st</c>).</summary>
     public static readonly RuleOptionDescriptor P2WildernessInnTime = ManualOrSt("p2.wild-inn-time", "D2-042");
 
-    /// <summary>D2-043 (I's D-053 again): the end of combat shows and pools the totals (<c>manual</c>) or the ST's "EACH SURVIVOR GETS" shares (<c>st</c>).</summary>
+    /// <summary>D2-043 (I's D-053 again): the end of combat shows and pools the totals (<c>manual</c>) or the ST's `core.combat.each_survivor_gets` shares (<c>st</c>).</summary>
     public static readonly RuleOptionDescriptor P2CombatShares = ManualOrSt("p2.combat-shares", "D2-043");
 
     /// <summary>D2-040 (I's D-055 again): a path step costs 30 (<c>manual</c>) or the ST's 60, as water (<c>st</c>).</summary>

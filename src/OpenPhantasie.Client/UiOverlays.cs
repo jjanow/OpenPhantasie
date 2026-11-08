@@ -226,7 +226,12 @@ public static partial class UiOverlays
                            ?? (elemental ? assets.PortraitElemental : assets.GetPortraitIdle((int)ch.Race));
             var px = r.X + (r.Width - PartyStripLayout.PortraitSize) / 2;
             var portraitRect = new Rectangle(px, r.Y + 2, PartyStripLayout.PortraitSize, portraitHeight);
-            if (ShowsBodyFigure(assets, session, ch, bodyFigures) && assets.BodyFigure is { } figure)
+            // II: a member dying this round: 0x18a02 first clears the portrait's rectangle (0x19b28, pen 0), then the mark
+            // (s163, seen live: the remaster had drawn the mark over the portrait).
+            var marked = deathMark is not null && deathMark(ch) && assets.PortraitDeathMark is not null;
+            if (marked)
+                Fill(batch, pixel, portraitRect, Color.Black);
+            else if (ShowsBodyFigure(assets, session, ch, bodyFigures) && assets.BodyFigure is { } figure)
                 DrawBodyFigure(batch, pixel, assets, figure, ch, portraitRect.Location);
             else if (portrait is not null)
                 DrawPortrait(batch, portrait, portraitRect);
@@ -742,12 +747,20 @@ public static partial class UiOverlays
     {
         DrawCombatScreen(batch, pixel, assets, session, settings, presenter, data);
         if (presenter.P2Run?.ActiveBox is { } box && presenter.P2Lines?.Invoke()?.EndBoxes is { } boxes)
-            DrawP2EndBox(batch, pixel, boxes, box.Rows); // over everything, as the ST's objc_draw
-        // s156: a rock's miss (0x18c6c): the rock sprite at its spot of the 320×200 screen, over everything.
+            DrawP2EndBox(batch, pixel, boxes, box.Rows, FontSources.ForRole(assets.Pack, P2EndBoxFontRole)); // over everything, as the ST's objc_draw
+        // s156: a rock's miss (0x18c6c): the rock sprite over everything; s163: the ST's screen spot moved onto the
+        // remaster's monster area (the rank box) by the pack's rock_miss_area.
         if (presenter.P2Run?.Sparkle is { Target: null } && presenter.P2Lines?.Invoke()?.Sparkle is { } miss
             && assets.Get(miss.Rock) is { } rock)
-            batch.Draw(rock, new Rectangle(miss.RockMissX, miss.RockMissY, rock.Width, rock.Height), Color.White);
+        {
+            var area = LastRankBox;
+            var (x, y) = miss.RockMissOn(area.X, area.Y, area.Width, area.Height, rock.Width, rock.Height);
+            batch.Draw(rock, new Rectangle(x, y, rock.Width, rock.Height), Color.White);
+        }
     }
+
+    /// <summary>s163: the combat screen's monster area (the rank box) as last drawn, for the rock's miss.</summary>
+    public static Rectangle LastRankBox { get; private set; } = new(8, 92, 146, 80);
 
     /// <summary>
     /// s156, II ST's pose (<c>0x186de</c> / <c>0x188fc</c>, FORMAT.md 7.3): the attacking picture <paramref name="attacking"/>,
@@ -777,7 +790,8 @@ public static partial class UiOverlays
     /// with its border drawn inward, each row's characters in the ST's 8-px cells from <see cref="StEndBoxes.Layout"/>
     /// (the remaster's glyphs centred in each cell: TOS's 8×8 font is not on the disks `[~]`).
     /// </summary>
-    public static void DrawP2EndBox(SpriteBatch batch, Texture2D pixel, StEndBoxes boxes, IReadOnlyList<string> rows)
+    public static void DrawP2EndBox(SpriteBatch batch, Texture2D pixel, StEndBoxes boxes, IReadOnlyList<string> rows,
+        IFontSource? font = null)
     {
         var layout = boxes.Layout(rows);
         var rect = new Rectangle(layout.X, layout.Y, layout.Width, layout.Height);
@@ -785,27 +799,24 @@ public static partial class UiOverlays
         Fill(batch, pixel, new Rectangle(rect.X + boxes.Border, rect.Y + boxes.Border, rect.Width - 2 * boxes.Border,
             rect.Height - 2 * boxes.Border), VirtualScreen.ParseColor(boxes.FillColour));
         var ink = VirtualScreen.ParseColor(boxes.TextColour);
-        var dy = Math.Max(0, (boxes.Cell - PixelFont.GlyphHeight) / 2);
         foreach (var (x, y, text) in layout.Rows)
-            for (var i = 0; i < text.Length; i++)
-            {
-                var glyph = text[i].ToString();
-                if (glyph == " ")
-                    continue;
-                var dx = Math.Max(0, (boxes.Cell - PixelFont.Measure(glyph)) / 2);
-                PixelFont.Draw(batch, pixel, x + boxes.Cell * i + dx, y + dy, glyph, ink);
-            }
+            DrawCells(batch, pixel, boxes.Cell, x, y, text, ink, font);
     }
+
+    /// <summary>s160: the pack's font role of II ST's end-of-fight boxes (OUT.RSC trees 40 / 41: G_TEXT, font 3 = the
+    /// system 8×8; FORMAT.md 7.3a): EmuTOS's 8×8.</summary>
+    public const string P2EndBoxFontRole = "p2.end_box";
 
     /// <summary>
     /// s158: II ST's alert box (<see cref="P2AlertBox"/>, AES <c>form_alert</c>; FORMAT.md 7.4) as <see cref="StAlertLook"/>
     /// lays it out on the 320×200 screen: the outline, the box with its one-pixel border, the lines and the button(s) in
-    /// <paramref name="fill"/> / <paramref name="ink"/> (VDI 0 / 1 of the palette the mode shows); the remaster's glyphs
-    /// centred in the 8-px cells (TOS's font is not on the disks `[~]`). The button is drawn selected while
-    /// <paramref name="held"/> is over it. A click on a button is Return; the rest of the screen takes no click.
+    /// <paramref name="fill"/> / <paramref name="ink"/> (VDI 0 / 1 of the palette the mode shows); the text in
+    /// <paramref name="font"/> (s160: the pack's <c>p2.alert</c> role, EmuTOS's 8×8 system font; TOS's own is not on the
+    /// disks), one glyph per 8-px cell. The button is drawn selected while <paramref name="held"/> is over it. A click on
+    /// a button is Return; the rest of the screen takes no click.
     /// </summary>
     public static void DrawStAlert(SpriteBatch batch, Texture2D pixel, StAlertLook look, StAlert alert, Color fill,
-        Color ink, Point? held = null)
+        Color ink, Point? held = null, IFontSource? font = null)
     {
         var layout = look.Layout(alert);
         static Rectangle R((int X, int Y, int W, int H) r) => new(r.X, r.Y, r.W, r.H);
@@ -815,7 +826,7 @@ public static partial class UiOverlays
         Outline(batch, pixel, outline, ink); // OUTLINED: a line 3 px outside the box
         Outline(batch, pixel, box, ink); // the root's own border, 1 px inward
         foreach (var (x, y, text) in layout.Lines)
-            DrawCells(batch, pixel, look.Cell, x, y, text, ink);
+            DrawCells(batch, pixel, look.Cell, x, y, text, ink, font);
         Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, ScreenBottom), new BackdropTag()));
         foreach (var (x, y, w, h, text) in layout.Buttons)
         {
@@ -826,15 +837,24 @@ public static partial class UiOverlays
             Fill(batch, pixel, frame, ink);
             Fill(batch, pixel, inner, down ? ink : fill);
             var start = x + Math.Max(0, (w - look.Cell * text.Length) / 2);
-            DrawCells(batch, pixel, look.Cell, start, y, text, down ? fill : ink);
+            DrawCells(batch, pixel, look.Cell, start, y, text, down ? fill : ink, font);
             Hits?.Add(new HitRegion(frame) { Click = [Keys.Enter] });
         }
     }
 
-    /// <summary>One remaster glyph centred in each <paramref name="cell"/>-px cell of a text from (x, y).</summary>
-    private static void DrawCells(SpriteBatch batch, Texture2D pixel, int cell, int x, int y, string text, Color ink)
+    /// <summary>s160: the pack's font role of II ST's alert boxes (<see cref="DrawStAlert"/>): EmuTOS's 8×8.</summary>
+    public const string P2AlertFontRole = "p2.alert";
+
+    /// <summary>
+    /// One glyph of <paramref name="font"/> (null = the current font) centred in each <paramref name="cell"/>-px cell of a
+    /// text from (x, y): an 8×8 font fills its cells from their top-left as GEM draws it (the EmuTOS shots: UNUSABLE's
+    /// top row 2 cells under the box's), the remaster's 5×7 sits in the middle.
+    /// </summary>
+    public static void DrawCells(SpriteBatch batch, Texture2D pixel, int cell, int x, int y, string text, Color ink,
+        IFontSource? font = null)
     {
-        var dy = Math.Max(0, (cell - PixelFont.GlyphHeight) / 2);
+        using var scope = PixelFont.With(font);
+        var dy = Math.Max(0, (cell - PixelFont.Font.Height) / 2);
         for (var i = 0; i < text.Length; i++)
         {
             var glyph = text[i].ToString();
@@ -904,6 +924,7 @@ public static partial class UiOverlays
         var rx = tall ? 166 : 156;
         var logRows = tall ? 2 : 3;
         var rankBox = new Rectangle(8, top, rx - 10, inside - logRows * PixelFont.LineHeight - top - 1);
+        LastRankBox = rankBox;
         if (session.Combat is not null || presenter.P2RankRows is not null)
             DrawRankBox(batch, pixel, assets, session.Combat, presenter, rankBox);
 
@@ -1016,10 +1037,14 @@ public static partial class UiOverlays
         // s156: while II's round plays, the ranks as they stood before it, less the monsters erased so far (0x186de mode 0).
         List<string> lines;
         List<IReadOnlyList<Monster>> living;
+        IReadOnlyList<Monster>? kinds = null;
         if (presenter.P2RankRows is { } p2Rows)
         {
             living = p2Rows.ToList();
-            lines = living.Select((r, i) => UiText.F("combattext.rank_x_x_x_s", i + 1, r.Count, r[0].Name)).ToList();
+            // s163: a rank emptied in the round keeps its row (monster slots), "RANK n : 0 …" (the ST draws no line).
+            IReadOnlyList<Monster> rowKinds = presenter.P2RankKinds ?? [.. living.Select(r => r[0])];
+            kinds = rowKinds;
+            lines = living.Select((r, i) => UiText.F("combattext.rank_x_x_x_s", i + 1, r.Count, rowKinds[i].Name)).ToList();
         }
         else if (combat is not null)
         {
@@ -1028,6 +1053,11 @@ public static partial class UiOverlays
         }
         else
             return;
+        if (presenter.P2RankSlots(combat) is { } slots && slots.Count == lines.Count)
+        {
+            DrawRankSlots(batch, pixel, assets, presenter, box, lines, slots, kinds);
+            return;
+        }
         var pose = presenter.P2Run?.Pose is { Monster: not null } p ? p : null;
         var sparkle = presenter.P2Run?.Sparkle is { Target: not null } sp ? sp : null;
         var sparkleLayout = presenter.P2Lines?.Invoke()?.Sparkle;
@@ -1079,6 +1109,117 @@ public static partial class UiOverlays
                     var lineY = y + 3 + k * PixelFont.LineHeight;
                     if (lineY >= box.Y && lineY + PixelFont.GlyphHeight <= box.Bottom) // a line shows whole or not at all
                         PixelFont.Draw(batch, pixel, art.Right + 4, lineY, text[k], Color.White);
+                }
+                y += height;
+            }
+        });
+        if (presenter.AsksRank)
+            for (var i = 0; i < rows.Count; i++)
+                if (Rectangle.Intersect(new Rectangle(box.X, tops[i], inner.Width, rows[i].Height), box) is { IsEmpty: false } hit)
+                    Hits?.Add(new HitRegion(hit) { Click = [HitTest.Digit(i + 1)] });
+        DrawScrollBar(batch, pixel, scroll, box);
+    }
+
+    /// <summary>Pixels between two monster slots of a rank, across and down (s162).</summary>
+    public const int SlotGap = 2;
+
+    /// <summary>
+    /// s162: where each monster slot of a rank goes (II ST, <see cref="StCombatLines.MonsterSlots"/>): left to right from
+    /// (<paramref name="left"/>, <paramref name="top"/>), <see cref="SlotGap"/> apart, each at its own size; a slot that
+    /// would run past <paramref name="width"/> starts a new line (the first of a line always stays, so nothing is cut).
+    /// </summary>
+    public static List<Rectangle> SlotRects(IReadOnlyList<Point> sizes, int left, int top, int width)
+    {
+        ArgumentNullException.ThrowIfNull(sizes);
+        var rects = new List<Rectangle>();
+        int x = left, y = top, lineHeight = 0;
+        foreach (var size in sizes)
+        {
+            if (x > left && x + size.X > left + width)
+            {
+                x = left;
+                y += lineHeight + SlotGap;
+                lineHeight = 0;
+            }
+            rects.Add(new Rectangle(x, y, size.X, size.Y));
+            x += size.X + SlotGap;
+            lineHeight = Math.Max(lineHeight, size.Y);
+        }
+        return rects;
+    }
+
+    /// <summary>
+    /// s162, II ST's ranks with a picture per monster (<c>0x18288</c>: each group a row of its own monsters): per rank its
+    /// line (wrapped), then each monster's idle picture 1:1 in its slot (<see cref="SlotRects"/>); the pose, the sparkle and
+    /// the erase on the monster's own slot (<c>0x186de</c> / <c>0x18b16</c>), an erased slot left empty (a rank with every
+    /// monster erased an empty row, sized by its kind in <paramref name="kinds"/>, until the re-rank). Scrolls as
+    /// <see cref="DrawRankBox"/>.
+    /// </summary>
+    private static void DrawRankSlots(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, CombatPresenter presenter,
+        Rectangle box, IReadOnlyList<string> lines, IReadOnlyList<IReadOnlyList<Monster?>> slots,
+        IReadOnlyList<Monster>? kinds)
+    {
+        var pose = presenter.P2Run?.Pose is { Monster: not null } p ? p : null;
+        var sparkle = presenter.P2Run?.Sparkle is { Target: not null } sp ? sp : null;
+        var sparkleLayout = presenter.P2Lines?.Invoke()?.Sparkle;
+        var inner = new Rectangle(box.X, box.Y, box.Width - ScrollBox.BarWidth - 2, box.Height);
+        var rows = new List<(IReadOnlyList<string> Text, List<(Monster? Monster, Texture2D? Picture, Rectangle At)> Slots, int Height)>();
+        var y0 = 0;
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var text = Lines(lines[i], Math.Max(1, (inner.Width - 4) / PixelFont.Advance));
+            // The rank's own kind sizes its slots, so a row whose monsters are all erased keeps its height (s163).
+            var kind = kinds is not null && i < kinds.Count ? kinds[i] : slots[i].FirstOrDefault(m => m is not null);
+            var idle = kind is null ? null : assets.GetMonsterIdle(kind.Id);
+            var size = idle is null ? new Point(12, 12) : new Point(idle.Width, idle.Height);
+            var textHeight = 3 + text.Count * PixelFont.LineHeight;
+            var rects = SlotRects([.. slots[i].Select(_ => size)], 2, textHeight, inner.Width - 4);
+            var cells = new List<(Monster?, Texture2D?, Rectangle)>();
+            for (var k = 0; k < rects.Count; k++)
+            {
+                var m = slots[i][k];
+                var picture = m is null ? null : idle;
+                if (m is not null && pose is { Monster: { } posing } && ReferenceEquals(posing, m)
+                    && P2PoseArt(assets, presenter, PictureNames.MonsterAttacking(m.Id), pose.Silhouette) is { } posed)
+                    picture = posed;
+                cells.Add((m, picture, rects[k]));
+            }
+            var height = (rects.Count == 0 ? textHeight : rects.Max(r => r.Bottom)) + 2;
+            rows.Add((text, cells, height));
+            y0 += height;
+        }
+        var scroll = presenter.RankScroll;
+        var total = y0;
+        scroll.Set((total + RankScrollStep - 1) / RankScrollStep, Math.Max(1, box.Height / RankScrollStep));
+        if (scroll.Offset * RankScrollStep > Math.Max(0, total - box.Height))
+            scroll.ScrollTo((Math.Max(0, total - box.Height) + RankScrollStep - 1) / RankScrollStep);
+        HitScrollArea(scroll, box);
+        var y = box.Y - scroll.Offset * RankScrollStep;
+        var tops = new List<int>();
+        Clipped(batch, box, () =>
+        {
+            foreach (var (text, cells, height) in rows)
+            {
+                tops.Add(y);
+                for (var k = 0; k < text.Count; k++)
+                {
+                    var lineY = y + 3 + k * PixelFont.LineHeight;
+                    if (lineY >= box.Y && lineY + PixelFont.GlyphHeight <= box.Bottom) // a line shows whole or not at all
+                        PixelFont.Draw(batch, pixel, box.X + 2, lineY, text[k], Color.White);
+                }
+                foreach (var (monster, picture, at) in cells)
+                {
+                    var art = new Rectangle(box.X + at.X, y + at.Y, at.Width, at.Height);
+                    if (picture is not null)
+                        batch.Draw(picture, art, Color.White);
+                    else if (monster is not null)
+                        Fill(batch, pixel, art, new Color(90, 40, 40));
+                    // 0x18b16: the sparkle at its random spot inside the monster's own slot.
+                    if (monster is not null && sparkle is { Target: { } target } && ReferenceEquals(target, monster)
+                        && sparkleLayout is { } sl && assets.Get(sparkle.Rock ? sl.Rock : sl.Spell) is { } sprite)
+                        batch.Draw(sprite, new Rectangle(art.X + StCombatSparkle.Offset(sparkle.RollX, art.Width - sl.Size),
+                            art.Y + StCombatSparkle.Offset(sparkle.RollY, art.Height - sl.Size), sprite.Width, sprite.Height),
+                            Color.White);
                 }
                 y += height;
             }
@@ -1405,22 +1546,11 @@ public static partial class UiOverlays
             || assets.GetInPalette(PictureNames.Button("cancel"), layout.ButtonPalette, palette) is not { } cancel)
             return false;
         var (x0, y0, x1, y1) = (window.Box[0], window.Box[1], window.Box[2], window.Box[3]);
-        // Each line whole (s99): a wrapped row pushes the next line down, and text that would reach the buttons grows
-        // the box downward (moved up if it would leave the screen) — the original's lines always fit.
-        var rows = new List<(int X, int Y, string Text)>();
-        var (tx, ty) = window.Text[0];
-        for (var i = 0; i < lines.Count; i++)
-        {
-            var next = rows.Count == 0 ? ty : rows[^1].Y + 10;
-            (tx, ty) = i < window.Text.Count ? (window.Text[i].X, Math.Max(window.Text[i].Y, next)) : (tx, next);
-            foreach (var row in Lines(lines[i], Math.Max(1, (x1 - 3 - tx) / PixelFont.Advance)))
-            {
-                rows.Add((tx, ty, row));
-                ty += 10;
-            }
-        }
+        using var font = PixelFont.With(FontSources.Named(window.Font, window.FontFile)); // s162: window 1 in topaz 8
+        var pitch = KeepWindowRowPitch(window);
+        var rows = KeepWindowRows(window, lines);
         var buttonsTop = Math.Min(window.Ok.Y, window.Cancel.Y);
-        var grow = rows.Count == 0 ? 0 : Math.Max(0, rows[^1].Y + 10 + 2 - buttonsTop);
+        var grow = rows.Count == 0 ? 0 : Math.Max(0, rows[^1].Y + pitch + 2 - buttonsTop);
         var lift = Math.Max(0, y1 + grow - (ScreenBottom - 1));
         y0 -= lift;
         y1 += grow - lift;
@@ -1431,6 +1561,38 @@ public static partial class UiOverlays
             PixelFont.Draw(batch, pixel, x, y - lift, text, ink);
         DrawWindowButtons(batch, assets, layout, ok, cancel, ok0, cancel0, held, palette);
         return true;
+    }
+
+    /// <summary>
+    /// s162: the row pitch of a keep window's text: the font's line height when the pack names a font for the window (III
+    /// Amiga's window 1: topaz 8, <c>0x854</c> moves one 8-px row per "\r"), else the remaster's 10 px.
+    /// </summary>
+    public static int KeepWindowRowPitch(KeepWindowsLayout.Window window) =>
+        FontSources.Named(window.Font, window.FontFile) is { } f ? f.LineHeight : 10;
+
+    /// <summary>
+    /// A keep window's text rows (each line whole, s99: a line too wide for the box goes on at a word on the next row and
+    /// pushes the next line down; never cut), <see cref="KeepWindowRowPitch"/> apart, measured in the window's font.
+    /// </summary>
+    public static IReadOnlyList<(int X, int Y, string Text)> KeepWindowRows(KeepWindowsLayout.Window window,
+        IReadOnlyList<string> lines)
+    {
+        using var font = PixelFont.With(FontSources.Named(window.Font, window.FontFile));
+        var pitch = KeepWindowRowPitch(window);
+        var x1 = window.Box[2];
+        var rows = new List<(int X, int Y, string Text)>();
+        var (tx, ty) = window.Text[0];
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var next = rows.Count == 0 ? ty : rows[^1].Y + pitch;
+            (tx, ty) = i < window.Text.Count ? (window.Text[i].X, Math.Max(window.Text[i].Y, next)) : (tx, next);
+            foreach (var row in Lines(lines[i], Math.Max(1, (x1 - 3 - tx) / PixelFont.Advance)))
+            {
+                rows.Add((tx, ty, row));
+                ty += pitch;
+            }
+        }
+        return rows;
     }
 
     /// <summary>
@@ -1480,9 +1642,12 @@ public static partial class UiOverlays
     /// pack lacks the buttons.
     /// </summary>
     public static bool DrawAmigaWindow(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, KeepWindowsLayout layout,
-        AmigaWindowView view, Point? held)
+        AmigaWindowView view, Point? held, bool inDungeon = false)
     {
-        if (assets.Get(PictureNames.Button("ok")) is not { } ok || assets.Get(PictureNames.Button("cancel")) is not { } cancel)
+        // s163: in a dungeon the window shows in the dungeon palette (0x3904 keeps it, 8.7): the buttons and colour 8.
+        var palette = inDungeon ? layout.DungeonPalette : null;
+        if (assets.GetInPalette(PictureNames.Button("ok"), layout.ButtonPalette, palette) is not { } ok
+            || assets.GetInPalette(PictureNames.Button("cancel"), layout.ButtonPalette, palette) is not { } cancel)
             return false;
         var w = view.Window;
         var (x0, y0, x1, y1) = (w.Box[0], w.Box[1], w.Box[2], w.Box[3]);
@@ -1496,6 +1661,8 @@ public static partial class UiOverlays
         DrawWindowFrame(batch, pixel, layout, x0, y0 - lift, x1, y1 + grow - lift);
         var normal = VirtualScreen.ParseColor(layout.ListColours[0]);
         var bright = VirtualScreen.ParseColor(layout.ListColours[1]);
+        if (inDungeon)
+            (normal, bright) = (InPalette(assets, normal, MapPalette, DungeonPalette), InPalette(assets, bright, MapPalette, DungeonPalette));
         for (var i = 0; i < view.Rows.Count; i++)
         {
             var row = view.Rows[i];
@@ -1507,7 +1674,7 @@ public static partial class UiOverlays
             Hits?.Add(new HitRegion(new Rectangle(row.X - 1, row.Y - lift - 1, x1 - 2 - row.X, 8)) { Click = [key] });
         }
         DrawWindowButtons(batch, assets, layout, ok, cancel, (w.Ok.X, w.Ok.Y + grow - lift), (w.Cancel.X, w.Cancel.Y + grow - lift),
-            held);
+            held, palette);
         return true;
     }
 

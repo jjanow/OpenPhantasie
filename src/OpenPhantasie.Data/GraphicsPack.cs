@@ -34,7 +34,7 @@ public static class PictureNames
 
     /// <summary>
     /// Phantasie I DOS's party-defeat screens (OV1 <c>0x2af</c>, endgame.md section 4, s157): the temple with an empty
-    /// doorway ("YOU HAVE ARRIVED AT THE ASTRAL PLANE"), the same with the Great Demon's face ("THE GREAT DEMON APPEARS AND
+    /// doorway (`core.defeat.arrived_at_astral_plane`), the same with the Great Demon's face ("THE GREAT DEMON APPEARS AND
     /// SPEAKS:"), the ghost in every member's slot and the figure a revived member turns back into (by race byte, 15 =
     /// UNDEAD). Whole-screen pictures; <see cref="DefeatPicturesLayout"/> places the row and the line.
     /// </summary>
@@ -360,6 +360,12 @@ public sealed class GraphicsPack
     /// wait <c>+0x132</c> MoveSprite the party to y 200 (off the screen) before <c>Request</c> and back after <c>EndRequest</c>.
     /// </summary>
     public bool PartyHiddenUnderPrompts { get; init; }
+    /// <summary>
+    /// s162 (<c>map_layout.dungeon_unseen_colour</c>, "#RRGGBB"): the colour the dungeon map shows where no cell has been
+    /// seen, or null for black. I Amiga's h56 <c>+0xe2e</c> fills the map area (10, 16, 165 × 152) with pen 13 of the map
+    /// palette (<c>#888888</c>) before the seen cells' glyphs are blitted, when no saved map of the level is read.
+    /// </summary>
+    public string? DungeonUnseenColour { get; init; }
     /// <summary>Tile-drawn maps (overworld tile per map byte, dungeon glyph per cell) when the pack has them; null otherwise.</summary>
     public TileMapLayout? TileMaps { get; init; }
     /// <summary>The town screen's bar and name on the pack's town picture.</summary>
@@ -508,6 +514,10 @@ public sealed class GraphicsPack
                 ? CommandPanelSet.Load(Path.Combine(Path.GetDirectoryName(manifestPath) ?? "", cp)) : null,
             MapLayout = layout,
             PartyHiddenUnderPrompts = dto.MapLayout?.PartyHiddenUnderPrompts ?? false,
+            DungeonUnseenColour = dto.MapLayout?.DungeonUnseenColour is { } unseen
+                ? System.Text.RegularExpressions.Regex.IsMatch(unseen, "^#[0-9A-Fa-f]{6}$") ? unseen
+                    : throw new InvalidDataException($"{manifestPath}: map_layout.dungeon_unseen_colour must be #RRGGBB.")
+                : null,
             TileMaps = dto.TileMaps is { } tm ? TileMapLayout.FromDto(tm, manifestPath) : null,
             TownScreen = dto.TownScreen is { } ts ? TownLayout(ts, manifestPath) : TownScreenLayout.Default,
             BodyFigure = dto.BodyFigure is { } bf ? BodyFigureLayout.FromDto(bf, manifestPath) : null,
@@ -749,6 +759,7 @@ public sealed class GraphicsPack
         public string Format { get; set; } = "";
         public string File { get; set; } = "";
         [JsonPropertyName("party_hidden_under_prompts")] public bool PartyHiddenUnderPrompts { get; set; }
+        [JsonPropertyName("dungeon_unseen_colour")] public string? DungeonUnseenColour { get; set; }
     }
 
     internal sealed class ColourCycleDto
@@ -805,6 +816,17 @@ public sealed record TileMapLayout(
     public IReadOnlyDictionary<int, (int Columns, int Rows)> ViewCounters { get; init; } =
         new Dictionary<int, (int Columns, int Rows)>();
 
+    /// <summary>
+    /// Map bytes the pack's version draws as another tile in a region: (region, map byte) → tile (III DOS, ovl3
+    /// <c>0x0</c>: on Scandor six tiles are swapped, <c>reverse-engineering/dos/phantasie3/FORMAT.md</c> section 10). Only
+    /// the picture changes; the map byte the game plays is the same.
+    /// </summary>
+    public IReadOnlyDictionary<(int Region, int Tile), int> TileSwaps { get; init; } =
+        new Dictionary<(int Region, int Tile), int>();
+
+    /// <summary>The tile drawn for map byte <paramref name="tile"/> in region <paramref name="region"/> (<see cref="TileSwaps"/>).</summary>
+    public int DrawnTile(int region, int tile) => TileSwaps.TryGetValue((region, tile), out var swapped) ? swapped : tile;
+
     /// <summary>The glyph of a seen dungeon cell holding map byte <paramref name="cell"/>: the first matching range, else the default.</summary>
     public int DungeonGlyphFor(int cell)
     {
@@ -834,8 +856,15 @@ public sealed record TileMapLayout(
             r => r is [var region, > 0, > 0] ? region
                 : throw new InvalidDataException($"{manifestPath}: tile_maps view_counters entries are [region, columns, rows]."),
             r => (r[1], r[2]));
+        var swaps = (dto.TileSwaps ?? []).ToDictionary(
+            r => r is [var region, var from, _] ? (region, from)
+                : throw new InvalidDataException($"{manifestPath}: tile_maps tile_swaps entries are [region, map byte, tile]."),
+            r => r[2]);
         return new TileMapLayout(tile[0], tile[1], view[0], view[1], glyph[0], glyph[1],
-            dto.DungeonUnseen, dto.DungeonParty, dto.DungeonDefault, ranges) { PastMap = past, ViewCounters = counters };
+            dto.DungeonUnseen, dto.DungeonParty, dto.DungeonDefault, ranges)
+        {
+            PastMap = past, ViewCounters = counters, TileSwaps = swaps,
+        };
     }
 
     internal sealed class Dto
@@ -849,6 +878,7 @@ public sealed record TileMapLayout(
         [JsonPropertyName("dungeon_cells")] public List<int[]>? DungeonCells { get; set; }
         [JsonPropertyName("past_map")] public List<int[]>? PastMap { get; set; }
         [JsonPropertyName("view_counters")] public List<int[]>? ViewCounters { get; set; }
+        [JsonPropertyName("tile_swaps")] public List<int[]>? TileSwaps { get; set; }
     }
 }
 
@@ -1004,13 +1034,13 @@ public sealed record KeepWindowsLayout(
     /// <summary>The town's Bank window (window 9, s117), or null.</summary>
     public Window? Bank { get; init; }
 
-    /// <summary>Trade's member windows, "Whose item shall be traded?" / "Who gets the item?" (window 6, s117), or null.</summary>
+    /// <summary>Trade's member windows, `p3town.trade_whose` / `p3town.trade_who_gets` (window 6, s117), or null.</summary>
     public Window? TradeWho { get; init; }
 
-    /// <summary>Trade's "Trade which item?" window (window 10, s117), or null.</summary>
+    /// <summary>Trade's `p3town.trade_which` window (window 10, s117), or null.</summary>
     public Window? TradeItem { get; init; }
 
-    /// <summary>The combat orders screen's "Target rank 1? (or 2)" (window 20, <c>0x19806</c>, s118): OK = rank 1, CANCEL = 2; or null.</summary>
+    /// <summary>The combat orders screen's `p3combat.rank_question` (window 20, <c>0x19806</c>, s118): OK = rank 1, CANCEL = 2; or null.</summary>
     public Window? Rank { get; init; }
 
     /// <summary>
@@ -1020,13 +1050,13 @@ public sealed record KeepWindowsLayout(
     public Window? Spell { get; init; }
 
     /// <summary>
-    /// The heal target window (window 6, <c>0x127ce(33)</c>, s119): the title "Who shall be healed in combat?", then the
+    /// The heal target window (window 6, <c>0x127ce(33)</c>, s119): the title `p3combat.heal_question`, then the
     /// first member row's name, race, level, class and status origins (rows 8 px apart); or null.
     /// </summary>
     public Window? Heal { get; init; }
 
     /// <summary>
-    /// The fight's "Monster Identification:" (M on the field, <c>0x1a264(1)</c>, s120): window 23 moved to (16, 128)–(300, 191);
+    /// The fight's `p3field.monster_identification` (M on the field, <c>0x1a264(1)</c>, s120): window 23 moved to (16, 128)–(300, 191);
     /// <see cref="InfoWindow.Text"/> = the title, then rank 1's row ("Rank", its digit, ":", the count, the name); rank 2
     /// one row above (<c>0x1a44c</c>: row 22 − rank); or null.
     /// </summary>
@@ -1082,6 +1112,15 @@ public sealed record KeepWindowsLayout(
     {
         /// <summary>The MORE button's top-left corner (window 11), or null.</summary>
         public (int X, int Y)? More { get; init; }
+
+        /// <summary>
+        /// s162: the text's font id (III Amiga's window 1: topaz 8, the screen font <c>0x854</c> draws a window title with,
+        /// one 8-px row per line), or null = the pack's font with the remaster's 10-px rows.
+        /// </summary>
+        public string? Font { get; init; }
+
+        /// <summary>The <see cref="Font"/>'s file next to the manifest (<c>fonts/&lt;id&gt;.json</c>), or null.</summary>
+        public string? FontFile { get; init; }
     }
 
     /// <summary>A window with one OK button (window 7): the box (x0, y0, x1, y1 inclusive), the text origin and colour, OK's corner.</summary>
@@ -1141,6 +1180,7 @@ public sealed record KeepWindowsLayout(
                 ? new Window(box, [.. text.Select(t => (t[0], t[1]))], (ox, oy), (cx, cy))
                 {
                     More = w.More is [var mx, var my] ? (mx, my) : null,
+                    Font = w.Font, FontFile = CombatFieldLayout.FontFileFor(w.Font, manifestPath),
                 }
                 : throw new InvalidDataException($"{manifestPath}: bad keep_windows window.");
         if (dto.FrameColours is not { Count: 2 } frame || dto.ButtonSize is not [> 0 and var bw, > 0 and var bh])
@@ -1255,6 +1295,7 @@ public sealed record KeepWindowsLayout(
         public int[]? Ok { get; set; }
         public int[]? Cancel { get; set; }
         public int[]? More { get; set; }
+        public string? Font { get; set; }
     }
 }
 

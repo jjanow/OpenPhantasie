@@ -60,7 +60,7 @@ public sealed class TownMenu
     public static readonly string[] OptionLabels =
         ["Cast spell", "Use item", "Show party", "Save game", "Auto save", "Sound", "Printout", "Exit"];
 
-    /// <summary>III's DOS bank (<c>p3.bank</c> = <c>dos</c>, ovl2 <c>0x297a</c>): "Withdraw all gold", "Deposit some gold".</summary>
+    /// <summary>III's DOS bank (<c>p3.bank</c> = <c>dos</c>, ovl2 <c>0x297a</c>): `p3town.bank_withdraw_all`, `p3town.bank_deposit_some`.</summary>
     public static readonly string[] DosBankLabels = ["Withdraw all", "Deposit some", "Exit"];
 
     /// <summary>The Bank list is III's DOS bank (<see cref="DosBankLabels"/>); set from the save's rules.</summary>

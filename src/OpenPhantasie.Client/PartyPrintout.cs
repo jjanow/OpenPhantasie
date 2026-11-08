@@ -39,12 +39,18 @@ public static class PartyPrintout
     }
 
     /// <summary>Writes the printout beside the save file; returns the path.</summary>
-    public static string WriteFile(Party party, GameDataRepository data)
+    public static string WriteFile(Party party, GameDataRepository data) => WriteLines(Lines(party, data));
+
+    /// <summary>
+    /// Writes <paramref name="lines"/> as a printout beside the save file (s163: also a scroll read in I Amiga's town,
+    /// h29 <c>+0x24e</c>'s YES); returns the path.
+    /// </summary>
+    public static string WriteLines(IEnumerable<string> lines)
     {
         var dir = ClientSettings.DataDirectory;
         Directory.CreateDirectory(dir);
         var path = Path.Combine(dir, $"printout-{DateTime.Now:yyyyMMdd-HHmmss}.txt");
-        File.WriteAllLines(path, Lines(party, data));
+        File.WriteAllLines(path, lines);
         return path;
     }
 }

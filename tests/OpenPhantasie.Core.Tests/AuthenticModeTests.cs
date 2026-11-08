@@ -184,7 +184,7 @@ public class AuthenticModeTests
         Assert.True(hero.Stats.Con < conAfterFirst);       // a second CON loss
     }
 
-    // ---- D-016: "THE PARTY'S ARMOR IS REDUCED" --------------------------------------------------------------------
+    // ---- D-016: `core.combat.armor_reduced` --------------------------------------------------------------------
 
     [OriginalDataTheory]
     [InlineData("armor", 4, 20)]

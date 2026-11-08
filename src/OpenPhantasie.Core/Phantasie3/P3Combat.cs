@@ -93,7 +93,7 @@ public static class P3Combat
     /// <item>Aim: Attack % ≥ 150 → Aim at rank 1, else Thrust (manual, D3-013); DOS always Aims.</item>
     /// <item>Parry; Cast Spell (spell checks are the caster's, not decoded here).</item>
     /// </list>
-    /// <paramref name="pickedRank"/> is the answer to "Target which rank?" when the menu would ask (1 or 2). A Thrust that is
+    /// <paramref name="pickedRank"/> is the answer to `p3combat.x_target_which_rank` when the menu would ask (1 or 2). A Thrust that is
     /// a fallback goes at rank 1, as DOS stores it, except that under the manual rule a Thief's chosen rank carries through
     /// (the manual lets Thieves thrust, attack or slash at any rank; how a fallback keeps the rank is manual-silent).
     /// </summary>

@@ -43,6 +43,29 @@ public sealed record StCombatSparkle(int Sound, string Spell, string Rock, int P
     public int Count(int amount) => Math.Abs(amount) / Math.Max(1, Per) + 1;
 
     /// <summary>
+    /// s163: the ST's monster area the rock's miss spot belongs to, (x, y, width, height) of the 320×200 screen (the field
+    /// cleared from y 13 by <c>0x18458</c>, the groups stacked up from <c>[0x23eb4]</c> − 3 = 147), or null: the spot is
+    /// drawn as it is.
+    /// </summary>
+    public IReadOnlyList<int>? RockMissArea { get; init; }
+
+    /// <summary>
+    /// s163: where the rock's miss goes on a monster area of the remaster's own layout (<paramref name="left"/>,
+    /// <paramref name="top"/>, <paramref name="width"/> × <paramref name="height"/>): the ST's spot moved by the same
+    /// fraction of <see cref="RockMissArea"/>, then kept inside the area with the <paramref name="spriteW"/> ×
+    /// <paramref name="spriteH"/> sprite whole (the ST's (100, 10) lies 3 px above its field: the area's top edge). The
+    /// remaster's placement `[~]`; without <see cref="RockMissArea"/> the ST's screen spot.
+    /// </summary>
+    public (int X, int Y) RockMissOn(int left, int top, int width, int height, int spriteW, int spriteH)
+    {
+        if (RockMissArea is not [var ax, var ay, var aw, var ah] || aw <= 0 || ah <= 0)
+            return (RockMissX, RockMissY);
+        var x = left + (RockMissX - ax) * width / aw;
+        var y = top + (RockMissY - ay) * height / ah;
+        return (Math.Max(left, Math.Min(x, left + width - spriteW)), Math.Max(top, Math.Min(y, top + height - spriteH)));
+    }
+
+    /// <summary>
     /// <c>0x18a8a(n)</c> = <c>rand() / (32767 / n)</c> for a roll 0..32767: 0..n; 0 when n ≤ 0 (a picture no bigger than
     /// the sprite).
     /// </summary>
@@ -75,6 +98,13 @@ public sealed record StCombatLines(
 
     /// <summary>s156: the spell sparkle and the rock's miss (<c>0x18b16</c> / <c>0x18c6c</c>), or null.</summary>
     public StCombatSparkle? Sparkle { get; init; }
+
+    /// <summary>
+    /// s162: a picture per monster (FORMAT.md 7.3 "The poses"): the ST lays each group out as a row of its own monsters
+    /// (<c>0x18288</c>), poses, sparkles and erases the monster's own slot, and an erased slot keeps its place (<c>0x18856</c>
+    /// counts the slots of nonzero width) until the round's re-rank. False: one picture per rank.
+    /// </summary>
+    public bool MonsterSlots { get; init; }
 
     /// <summary>The Speed word <c>[0x1fefa]</c> for a Speed choice: 1 fast, 2 normal, 3 slow (the menu's ms).</summary>
     public int SpeedMs(int speed) => speed switch
@@ -116,10 +146,15 @@ public sealed record StCombatLines(
         {
             AttackPoseMs = dto.AttackPoseMs,
             SilhouettePens = dto.SilhouettePens is { Count: 2 } pens ? pens : null,
+            MonsterSlots = dto.MonsterSlots,
             Sparkle = dto.Sparkle is not { } sp ? null
                 : sp.RockMiss is not { Count: 2 } miss || string.IsNullOrEmpty(sp.Spell) || string.IsNullOrEmpty(sp.Rock)
                     ? throw Bad("sparkle needs spell, rock and rock_miss [x, y]")
-                    : new StCombatSparkle(sp.Sound, sp.Spell, sp.Rock, sp.Per, sp.Size, sp.HoldMs, miss[0], miss[1]),
+                    : sp.RockMissArea is { } area && area.Count != 4 ? throw Bad("sparkle rock_miss_area needs [x, y, w, h]")
+                    : new StCombatSparkle(sp.Sound, sp.Spell, sp.Rock, sp.Per, sp.Size, sp.HoldMs, miss[0], miss[1])
+                    {
+                        RockMissArea = sp.RockMissArea,
+                    },
         };
     }
 
@@ -136,6 +171,7 @@ public sealed record StCombatLines(
         [JsonPropertyName("round_end_sound")] public int RoundEndSound { get; set; } = -1;
         [JsonPropertyName("attack_pose_ms")] public double AttackPoseMs { get; set; }
         [JsonPropertyName("silhouette_pens")] public List<int>? SilhouettePens { get; set; }
+        [JsonPropertyName("monster_slots")] public bool MonsterSlots { get; set; }
         public SparkleDto? Sparkle { get; set; }
         public DeathDto? Death { get; set; }
         public Dictionary<string, Dictionary<string, SideDto>>? Lines { get; set; }
@@ -157,6 +193,7 @@ public sealed record StCombatLines(
         public int Size { get; set; } = 16;
         [JsonPropertyName("hold_ms")] public double HoldMs { get; set; }
         [JsonPropertyName("rock_miss")] public List<int>? RockMiss { get; set; }
+        [JsonPropertyName("rock_miss_area")] public List<int>? RockMissArea { get; set; }
     }
 
     internal sealed class SideDto

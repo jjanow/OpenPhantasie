@@ -61,7 +61,8 @@ public static class GameDataLocator
     /// <summary>
     /// The importer's string files for the table in <paramref name="folder"/> (<c>shared</c>, <c>phantasie1</c> …):
     /// <c>&lt;import&gt;/GameData/&lt;folder&gt;/strings/&lt;language&gt;.&lt;profile&gt;.json</c>, the games' own lines
-    /// that the public tables carry only as "..." (10-importer.md 7.6). Empty without an import (tests, dev builds).
+    /// that the public tables carry only as "..." (10-importer.md 7.6), fallback files first. Empty without an import
+    /// (tests, dev builds).
     /// </summary>
     public static IReadOnlyList<string> ImportedStringFiles(string folder, string language = "en")
     {
@@ -70,9 +71,22 @@ public static class GameDataLocator
         var dir = Path.Combine(ImportRoot, "GameData", folder, "strings");
         if (!Directory.Exists(dir))
             return [];
+        // The remaster's own wording for lines a version lacks (en.fallback.<profile>.json) goes under every other
+        // imported file, so a version that holds the line still wins. A version's lines in its own wording
+        // (en.own.<profile>.json, in its game's folder) go on top, but only while that game's tables come from that
+        // version (10-importer.md 7.6).
+        var fallback = language + ".fallback.";
+        var own = language + ".own.";
+        _state.Tables.TryGetValue(folder, out var tables);
         return Directory.EnumerateFiles(dir, language + ".*.json")
-            .Where(f => !Path.GetFileName(f).Equals(language + ".sources.json", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(f => f, StringComparer.Ordinal)
+            .Select(f => (Path: f, Name: Path.GetFileName(f)))
+            .Where(f => !f.Name.Equals(language + ".sources.json", StringComparison.OrdinalIgnoreCase))
+            .Where(f => !f.Name.StartsWith(own, StringComparison.OrdinalIgnoreCase)
+                        || f.Name.Equals($"{own}{tables}.json", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(f => f.Name.StartsWith(fallback, StringComparison.OrdinalIgnoreCase) ? 0
+                : f.Name.StartsWith(own, StringComparison.OrdinalIgnoreCase) ? 2 : 1)
+            .ThenBy(f => f.Path, StringComparer.Ordinal)
+            .Select(f => f.Path)
             .ToList();
     }
 
@@ -132,6 +146,9 @@ public static class GameDataLocator
     {
         public static readonly ImportState Empty = new();
         public HashSet<string> TableGames { get; } = new(StringComparer.Ordinal);
+
+        /// <summary>Game folder → the version profile its tables come from.</summary>
+        public Dictionary<string, string> Tables { get; } = new(StringComparer.Ordinal);
         public HashSet<string> Outputs { get; } = new(StringComparer.Ordinal);
         public Dictionary<string, Dictionary<string, string>> Art { get; } = new(StringComparer.Ordinal);
         public Dictionary<string, List<string>> Versions { get; } = new(StringComparer.Ordinal);
@@ -151,7 +168,10 @@ public static class GameDataLocator
                 {
                     if (g.Value.TryGetProperty("tables", out var t) && t.ValueKind == JsonValueKind.String
                         && Directory.Exists(Path.Combine(root, "GameData", g.Name)))
+                    {
                         state.TableGames.Add(g.Name);
+                        state.Tables[g.Name] = t.GetString() ?? "";
+                    }
                     var art = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                     if (g.Value.TryGetProperty("art", out var a) && a.ValueKind == JsonValueKind.Object)
                         foreach (var p in a.EnumerateObject())

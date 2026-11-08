@@ -10,7 +10,8 @@ namespace OpenPhantasie.Importer.Pipelines.P1Amiga;
 /// <c>extract_amiga_map_graphics.py</c>, <c>build_amiga_asset_manifest.py</c> and <c>extract_amiga_fonts.py</c>.
 /// <para>Reads I's DOS tables (<c>overworld.json</c>, <c>map-patches.json</c>, <c>monsters.json</c>, <c>names.json</c>)
 /// for the map pictures and the asset manifest, so it runs after <c>p1-dos-1987</c>; topaz 8 comes from the Kickstart
-/// 1.3 ROM when the player gave it (profile <c>kickstart-1.3</c>), otherwise it is skipped with a warning.</para>
+/// 1.3 ROM when the player gave it (profile <c>kickstart-1.3</c>); otherwise it is skipped and the import report offers
+/// to add the ROM (the profile's <c>companions</c>, s160).</para>
 /// </summary>
 public sealed class P1AmigaPipeline : IImportPipeline
 {
@@ -63,9 +64,7 @@ public sealed class P1AmigaPipeline : IImportPipeline
         ctx.WritePng(Root + "ui/fonts/amiga-z6font-6.png", AmigaFonts.Preview(z6));
 
         // Topaz 8 (the screen font) is the Kickstart ROM's, imported by KickstartFontPipeline when the ROM is given.
-        if (ctx.OptionalFiles("kickstart-1.3") is null)
-            ctx.Warn("No Kickstart 1.3 ROM was given, so the Amiga screen font (topaz 8: menu bar and menus) was not " +
-                     "imported; the menus use the remaster's font. Add a Kickstart 1.3 (34.5) ROM and import again.");
+        // Without it the import report offers to add the ROM (profiles.json companions, s160), so no warning here.
     }
 
     /// <summary>The topaz 8 files (I's font JSON and preview, III's copy) from a Kickstart 1.3 ROM; false when none.</summary>

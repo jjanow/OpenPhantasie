@@ -89,7 +89,10 @@ waits for SPACE, adds the question (`ending.save_question`) and sounds the first
 question (`P4EndingStep.Question`, panel `_confirm`), so a save made at it reloads into the ending as §1.1 says; Y / O
 saves (the shell's save) and N / C does not, then `AnswerEnding` sounds the second beep and the Client opens
 `_acgamend(1)` with the final screen's lines kept in the box (`parity/shots/p4-remaster-ending-save-question.png`,
-`-ending-select-game.png`, taken before the box kept the final lines). `_xblack` before `_deadmsg`'s `_acgamend(1)` is not drawn `[~]`.
+`-ending-select-game.png`, taken before the box kept the final lines). s162: the final screen is drawn in its own titled
+window with every line at the original's place (FORMAT.md 6.9 "The final screen"; Core `P4TownScene.EndingFinal`: no
+picture from `_endstory` on), the question in font 1, bold, colour 2; a wiped-out party's `_deadmsg` and its `_xblack`
+before `_acgamend(1)` are drawn (FORMAT.md 6.9 "The wiped-out party").
 
 This matches the registration card (the "complete code shown on the final screen" and the score go on postcard ②).
 

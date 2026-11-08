@@ -5,7 +5,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Client;
 
 /// <summary>
-/// CONTINUE SAVED GAME (manual, ENCORE: "Give the Guild number of the character you want to call up"; D-069): the Load key
+/// `continue.continue_saved_game` (manual, ENCORE: "Give the Guild number of the character you want to call up"; D-069): the Load key
 /// reads the save and asks for a Guild number (1..22, as L)IST MEMBERS shows them), then <see cref="GameSession.Continue"/>
 /// calls up that character's party where it was. Digits type the number (Up/Down step it), Return loads, Esc cancels.
 /// A number that names nobody is refused and asked again.

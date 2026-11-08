@@ -290,6 +290,11 @@ public sealed class OptionsScreen
         rows.Add(Described("options.title_screen", OnOff(g.TitleScreen), _ => Set(() => g.TitleScreen = !g.TitleScreen)));
         // s108: the original's title tune under those pictures (on = as the original).
         rows.Add(Described("options.title_tune", OnOff(g.TitleTune), _ => Set(() => g.TitleTune = !g.TitleTune)));
+        if (game is GameId.P1 or GameId.P3)
+        {
+            // s160: the A500's output filters on the Amiga's Paula sounds (on = as the A500).
+            rows.Add(Described("options.a500_filter", OnOff(g.A500Filter), _ => Set(() => g.A500Filter = !g.A500Filter)));
+        }
         if (game is GameId.P3 or GameId.P1)
         {
             // s117: the Amiga's combat field, bank and trade windows (on = as the original), and its Speed menu; I's

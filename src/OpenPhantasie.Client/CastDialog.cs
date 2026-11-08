@@ -5,7 +5,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Client;
 
 /// <summary>
-/// Option → Cast spell outside combat (<see cref="GameSession.CastSpell"/>): "WHO WILL CAST SPELL:" → spell → HEALING target.
+/// Option → Cast spell outside combat (<see cref="GameSession.CastSpell"/>): `cast.who_will_cast_spell` → spell → HEALING target.
 /// Lists only the caster's known spells that can be cast here (D-035, manual: rejected before any MP is spent).
 /// </summary>
 public sealed class CastDialog : IModalDialog, IPagedDialog
@@ -93,7 +93,7 @@ public sealed class CastDialog : IModalDialog, IPagedDialog
                     if (_spells.Count == 0)
                     {
                         _step = Step.Closed;
-                        // s158: no spell known at all has its own line (III: S443 "This character knows no spells.", DOS
+                        // s158: no spell known at all has its own line (III: S443 `cast.x_knows_no_spells`, DOS
                         // root 0x8d8a / Amiga 0x84e0 / 0xb8aa); known spells none of which is castable here keep the other.
                         return Array.IndexOf(_caster.SpellsKnown, 1) < 0
                             ? UiText.F("cast.x_knows_no_spells", _caster.Name)

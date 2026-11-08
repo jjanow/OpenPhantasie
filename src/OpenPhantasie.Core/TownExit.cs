@@ -7,7 +7,7 @@ namespace OpenPhantasie.Core;
 /// computes the average level <c>[0x63ec]</c> (<see cref="GameSession.TownExitAverageLevel"/>: the next town entry's
 /// Armory restock, <see cref="ArmoryRestock"/>; combat surrender reads it live) and the highest SCORE <c>[0x63ea]</c>
 /// (<see cref="GameSession.HighestScore"/>; sole reader OV2 <c>0x7246</c>, the Black Knights flee test, s41 xref). DOS refuses to leave with an empty party
-/// ("You must assemble a group.").
+/// (`core.town.you_must_assemble_a_group`).
 /// </summary>
 public static class TownExit
 {

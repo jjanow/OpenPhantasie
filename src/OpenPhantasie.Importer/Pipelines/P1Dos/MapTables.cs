@@ -115,12 +115,12 @@ internal static class MapTables
 
     // ---- dungeons (extract_maps.py + extract_dungeon_events.py) -------------------------------------------------
 
-    // The committed dungeons.json carries three top-level notes that no script writes today: the old extract_maps.py
-    // _note ("grid geometry TBD", commit 13a3d839; the script now writes "raw feature bytes; [C] grid = first 1254 B =
-    // 33x38, then side tables / events / scripts (dungeon-representation.md).") and the hand-added _grid_byte_length /
-    // _grid_note (13a3d839, 48a09246). extract_dungeon_events.py edits the file in place, so they stayed. They are
-    // ours, so they are constants here, in the committed key order.
-    private const string DungeonNote = "raw feature bytes; grid geometry TBD from movement code.";
+    // The committed dungeons.json carries three top-level notes: _note, which takes extract_maps.py's wording (user
+    // s159; before s160 the file kept the script's old "grid geometry TBD" note of commit 13a3d839), and the hand-added
+    // _grid_byte_length / _grid_note (13a3d839, 48a09246), which no script writes (extract_dungeon_events.py edits the
+    // file in place, so they stayed). They are ours, so they are constants here, in the committed key order.
+    public const string DungeonNote =
+        "raw feature bytes; [C] grid = first 1254 B = 33x38, then side tables / events / scripts (dungeon-representation.md).";
     private const int GridByteLength = 1254;
 
     private const string GridNote =

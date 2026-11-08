@@ -91,7 +91,7 @@ public class P2FieldCuesTests
     [InlineData(new byte[] { 13, 5, 6, 0 }, new string[0])]
     [InlineData(new byte[] { 14, 5, 7, 7 }, new[] { FieldCues.EventNoise })]
     [InlineData(new byte[] { 15, 5, 7, 7 }, new string[0])]
-    [InlineData(new byte[] { 1, 0 }, new string[0])] // "SMOKE FILLS THE AIR" 0x11aa0: silent
+    [InlineData(new byte[] { 1, 0 }, new string[0])] // `core.script.smoke_fills_the_air` 0x11aa0: silent
     [InlineData(new byte[] { 7, 1 }, new string[0])] // the gold ops are silent on the ST (III sounds them)
     [InlineData(new byte[] { 9, 0 }, new string[0])]
     [InlineData(new byte[] { 3 | More, 0, 14 | More, 5, 7, 7, 12, 5, 6, 0 },

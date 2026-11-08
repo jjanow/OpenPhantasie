@@ -261,7 +261,9 @@ Mode 7 removes the VBL colour cycling (`0x137e6`), frees the dungeon buffers (`0
    DEFAULT / EXIT, centred, border 1 px outside, `te_font` 5 = the small font; so (247, 175)…(318, 198) and the button
    262…303 × 182…191 with its border, as the remaster draws it from the s80 shots) at the bottom right (319 − w, 199 − h),
    `form_do` until OK. The palette is the one the dungeon left: VDI 3 = register 2 of `map` (`#249100`; live shot
-   `p2-endgame-filmon-1.png` (34,136,0) = `0x140`) and the button in register 15 (red) `[C]` live.
+   `p2-endgame-filmon-1.png` (34,136,0) = `0x140`) and the button in register 15 (red) `[C]` live. s162: the whole page
+   is `map` (DNG8's map view sets it, `0x5cea`; the colour cycle runs on the overworld only, FORMAT.md 10.1, and mode 7
+   removes it), and the page shows only registers 0 (the fill), 2 and 15 `[C]`.
 3. The mouse off; `final2.pic` opened for 2 bytes (existence check); the screen cleared; `0x19abc`: when `[0x23f76]`
    (data value 1) is set, all 16 registers := 0 (black). `final2.pic` read to the screen (25600 B: rows 0…159);
    `crowd.pic` (11160 B) into the `MSTR2` buffer `[0x24f34]` (3 frames of 235×31, 3720 B each).
@@ -293,9 +295,20 @@ Mode 7 removes the VBL colour cycling (`0x137e6`), frees the dungeon buffers (`0
 
 - **Line** (`0x12a16(text)`): rect (0, 190, 320, 10) cleared, then `v_justified(160, 192, text, 310, word on, char on)`:
   the text centred on x 160 and stretched to 310 px (x 5 … 315); then `0x16cbe(3000)`: `evnt_multi` timer 3000 ms,
-  ended early by a key or a click. The line stays until the next one. The s80 title shot ("KLEPTO - the bold from
-  Ferronrah", 32 characters, 5 spaces, 256 px natural) spreads 54 px as ≈ 4 px per word gap and the rest (≈ 1.1 px)
-  per character gap: GEM caps the word gaps at half a character cell `[~]` (one capture).
+  ended early by a key or a click. The line stays until the next one. **Spacing** (s160, read from EmuTOS 1.4
+  `vdi/vdi_text.c` `vdi_v_justified` / `output_text`, integer arithmetic `[C]` against the shot): natural width w (8 px a
+  character), s spaces, n characters, max 310; each space gets (310 − w) / s more, capped at ± max_cell_width / 2 = 4
+  (the cap drops the remainder, else the first (310 − w) mod s spaces get 1 more); then w' = w + that; each character
+  gap gets (310 − w') / (n − 1) and the first (310 − w') mod (n − 1) gaps 1 more (negative for a line wider than 310:
+  it closes up); the text starts at 160 − 310 / 2 = 5. The s80 title shot ("KLEPTO - the bold from Ferronrah": 54 px
+  extra, +4 per space, 34 over 31 gaps = 1 and 3 more) puts every glyph where this says: x 5, 15, 25, 35, 44, 53, 75 …
+  (`P2StFontTests`).
+- **Fonts** (s160, user s159): TOS's 8×8 is not on the disks; the remaster draws EmuTOS's 8×8 system font
+  (`GameData/phantasie2/graphics/fonts/emutos-st-8x8.json`, GPL-2.0+, `tools/scripts/emutos_st_font.py`), the pages in
+  its VDI italic (F_SKEW: skew mask 0x5555 rotated once per row from the bottom, rows 0…7 4, 3, 3, 2, 2, 1, 1, 0 px
+  right; `emutos-st-8x8-italic.json`). Top-aligned skewed `v_gtext` starts the cell left_offset + right_offset = 4 px left
+  of its x (`vdi_text.c`, vertical alignment 5): pack `font_dx` −4. Both pages match the s80 shots pixel for pixel
+  (`p2-endgame-filmon-1.png`, `p2-endgame-closing.png`; the closing page also on a s160 Xvfb shot of the Client).
 - **Sounds:** sound 32 once per presented member, and (s135) the OK form's click after each page: `0xae1a` ends with
   `0xb7e6` = Dosound(`0x21ab0`) (channel A on the triangle envelope, 7 ticks; `0xb7e6` has 24 callers, `0xae1a` is one). The I Amiga ending's sounds are not in II.
 - **Remaster (s128):** Core `Phantasie2Campaign.ResolveEnding` puts the screen in `GameSession.PendingVictoryScene`
@@ -303,11 +316,17 @@ Mode 7 removes the VBL colour cycling (`0x137e6`), frees the dungeon buffers (`0
   `ClosingPage`); with the ST pack's `ending_scene` the Client runs I's `VictoryScreen` with II's steps (door spot,
   crowd, pages); without one the prompt box shows every line and waits for a key. s135: sound 32 plays with each cheer
   (pack `sound_effects` format `atari-st-dosound` = PHANT.PRG's table, `ending_scene.crowd.sound` 32; Sound switch on)
-  and the click when OK closes a page (pack number 33 = `0x21ab0`, the pages' `sound`), neither waited for; the ST's "next sound 32 waits for the last" only bites when keys cut the title lines and is not
-  modelled `[~]`. s136 live (Xvfb, the Client's own null sink, `--test-party --test-game 2 --p2-victory`): the click
+  and the click when OK closes a page (pack number 33 = `0x21ab0`, the pages' `sound`), neither waited for. s163: the
+  next sound 32 waits for the last (step 7.4's `0xb8f2`), the other pose on the door spot meanwhile
+  (`VictoryScreen` CheerWait, the sound's length from the pack's script); seen live on Xvfb (s163, keys every ~0.75 s:
+  before the change one 32 started 3.85 s after the last, inside its 4.14 s; `P2VictoryScreenTests.CheerSound_TheNext32WaitsForTheLast_WhenKeysCutTheTitles`). s136 live (Xvfb, the Client's own null sink, `--test-party --test-game 2 --p2-victory`): the click
   after Return on the intro page (0.5 s burst) and sound 32 at each cheer (14.5 s, 21 s, 27.5 s, each a ~4 s swell
   and fade in the recording) are heard; the s135 "not heard" does not come back (the code path is unchanged).
-  Not done: italic page text and TOS's 8×8 font (the remaster's 5×7 font) `[~]`.
+  s160: the pages in EmuTOS's 8×8 italic, the bottom lines in its plain 8×8 with `v_justified`'s own spacing (above);
+  s162: the OK button's label in EmuTOS's 6×6 small font (`te_font` 5: `GameData/phantasie2/graphics/fonts/
+  emutos-st-6x6.json`, GPL-2.0+, `emutos_st_font.py`; the pages' `button_font`), centred in the G_BOXTEXT inside the
+  1-px border with its cell's top centred in the 8-px row: the O at (277, 184) and the K at (283, 184) as the s80
+  shot, pixel for pixel (`P2StFontTests`).
 
 ## 8. Lose: party defeat (mode 6 → `0xfe18` → `0x12678`; screens `0x12bea`) `[C]` (live s82)
 

@@ -38,6 +38,10 @@ public class P2VictoryScreenTests
         Assert.Equal("#00FF00", layout.Palette[layout.TextPen]); // VDI 5 → register 6 of `combat` (green, s80 title shot)
         Assert.Equal((40, 127, 10, 330), (layout.Crowd!.X, layout.Crowd.Y, layout.Crowd.Flashes, layout.Crowd.FlashTicks));
         Assert.Equal("#249100", layout.IntroPage!.Palette![layout.IntroPage.TextPen]);   // map register 2 (s80 shot 0x140)
+        // s162: the intro page keeps the palette the dungeon left: `map` (0x5cea, DNG8's map view; the cycle 0x1382e runs on
+        // the overworld only, FORMAT.md 10.1), so every register is map's; the page shows 0 (the black fill), 2 and 15.
+        Assert.Equal(Pack().Palettes["map"], layout.IntroPage.Palette);
+        Assert.Equal(("#000000", "#FF0000"), (layout.IntroPage.Palette[0], layout.IntroPage.Palette[layout.IntroPage.ButtonPen]));
         Assert.Null(layout.ClosingPage!.Palette);
         Assert.Equal("#FFB600", layout.Palette[layout.ClosingPage.TextPen]);            // register 4 (s80 shot 0x750)
         var pack = Pack();
@@ -156,6 +160,30 @@ public class P2VictoryScreenTests
             Assert.Equal(at, starts[k].At, 6);
             Assert.Equal(0, loud.At(at).Crowd);
         }
+    }
+
+    [OriginalDataFact]
+    public void CheerSound_TheNext32WaitsForTheLast_WhenKeysCutTheTitles()
+    {
+        // s163, endgame.md 7.1 step 7.4: 0xb80e(32) waits (0xb8f2, Speed 20) for the running 32, after the other pose. Uncut
+        // titles (3 s + 3.3 s of crowd) leave a 4.14 s sound room; a key at each title's start leaves 3.3 s.
+        const double len = 4.14;
+        var plain = new VictoryScreen(Layout(), Scene, stSounds: true, stSoundSeconds: n => n == 32 ? len : 0);
+        plain.Key(1.0);
+        var uncut = plain.SoundStarts().Where(s => s.Sound == 32).Select(s => s.At).ToList();
+        for (var k = 1; k < uncut.Count; k++)
+            Assert.Equal(6.3, uncut[k] - uncut[k - 1], 6); // no wait: as before
+        var cut = new VictoryScreen(Layout(), Scene, stSounds: true, stSoundSeconds: n => n == 32 ? len : 0);
+        cut.Key(1.0);
+        for (var round = 0; round < 40; round++) // a key every 0.25 s cuts each title line as it starts
+            cut.Key(cut.GhostsAt + 0.001 + round * 0.25);
+        var starts = cut.SoundStarts().Where(s => s.Sound == 32).Select(s => s.At).ToList();
+        Assert.Equal(5, starts.Count);
+        for (var k = 1; k < starts.Count; k++)
+            Assert.True(starts[k] - starts[k - 1] >= len - 1e-6, $"32 #{k} started {starts[k] - starts[k - 1]:F3} s after the last");
+        Assert.Contains(starts.Zip(starts.Skip(1)), p => Math.Abs(p.Second - p.First - len) < 1e-6); // the wait bit
+        var waiting = cut.At(starts[1] - 0.1);
+        Assert.True(waiting.StagePose); // the other pose shows while it waits
     }
 
     [OriginalDataFact]

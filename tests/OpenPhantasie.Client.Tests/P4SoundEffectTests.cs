@@ -72,7 +72,7 @@ public class P4SoundEffectTests
     {
         var fx = Pack().AdpcmEffects!;
         var image = fx.TryLoadImage()!;
-        var r = AdpcmRenderer.For(fx, image, [2])!;
+        var r = AdpcmRenderer.For(fx, image, [2], outputFilter: false)!;
         Assert.Equal((long)Math.Ceiling(1000 / (fx.SampleRateHz / 44100)), r.Length); // 1000 samples ≈ 192 ms
         var pcm = r.RenderAll();
         var src = fx.Samples(image, 2)!;

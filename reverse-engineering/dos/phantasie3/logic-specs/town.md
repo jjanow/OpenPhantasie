@@ -78,7 +78,7 @@ drop(i):                                         # ovl2 0x3d09…0x3d8e (s98 re-
   it ("G) Trade Item", "[original text]") `[C]` strings. The manual describes Trade Items, selling by trading to
   "adventurer 7" (PDF 6 / pr.7) and the tip "while in town adventurers may trade items without having to redistribute
   them" (PDF 14 / pr.23) — **D3-027**.
-- **Distribute** (Options ▸ Distribute, "Are you sure you want to redistribute?", then ovl2 `0x0000` "[original text]"
+- **Distribute** (Options ▸ Distribute, "[original text]", then ovl2 `0x0000` "[original text]"
   and the disburse / sell screen ovl2 `0x061f` "Disburse or Sell for" / "Player: Class: SH AR BW WP") is the only way
   to move an item from one character to another or to sell it in DOS. It needs an assembled party and the party not
   dead. Item usability uses the attribute sums of `../FORMAT.md` §4.1.
@@ -106,6 +106,17 @@ drop(i):                                         # ovl2 0x3d09…0x3d8e (s98 re-
   via Options menu → Load Game" and "All other rules are as stated in the rulebook"; the ST and Amiga cards say "To
   save the game, click on the Save Option … This is the only time a game will be saved." — **D3-028**.
 - One save slot per data disk (load: "There is not a saved game on this data disk to load").
+- **The questions `[C]` (s160 static).** `town_other_options` asks before Distribute, Load, Save and Quit, and the Guild
+  before a Purge, each through root `0x1820`(text, 2), the two-item Yes / No menu with **"No" lit** (Return on "No", `N`
+  or Esc = no; `Y` or Return on "Yes" = yes; `dungeon-events.md` 2.2): Distribute (root `0x83a0`: refused with S405 when
+  the party is empty (`FAR:0xb614` = 0) or the defeat flag `FAR:0xfc9a` is set, then "Are you sure you want to
+  redistribute?" `DS:0x58e2` at `0x83c1`, then `0x83d4` the hand-out); Load (S447 at `0x83f1`, then `load_game`
+  `0x7f8b`); Save (S390 at `0x8440`, then `save_game` `0x8176`); Quit (S389 at `0x8465`); Purge (guild_menu: S406 / S448
+  refusals first, then S407 at `0xb075`, then root `0x864a`). The Amiga asks the same lines in window 1 (FORMAT.md 8.4).
+  The manual names none of these questions (its Purge says "Use with caution"): not a conflict. **Built s160** (user
+  s159: under every III layout): `P3ConfirmQuestion` / `Game1.P3Confirm.cs`, window 1 under the Amiga look, this menu
+  otherwise; the remaster's game menu / F5 / F9 Save and Load ask too while the party is in a town or the Guild (DOS III's
+  only Load / Save are the town's), not outside a town; leaving town with Auto save never asks.
 
 ## 5. Mystic `[C]` (ovl2 `0x2ca2`)
 
@@ -156,7 +167,7 @@ See `elementals.md`.
 `cast_spell_noncombat` (root `0x8e50`) for spell 54 (`0x36`):
 
 ```
-if not in_town (FAR:0xe596 == 0): "You cannot cast this here." (pointer DS:0x19d0); no cost
+if not in_town (FAR:0xe596 == 0): "[original text]" (pointer DS:0x19d0); no cost
 t = menu("Transport to which town?", DS:0x560: 14 rows) + 1     # string 435
 if t == current town: "The party is already in this town." (string 436); no cost
 if t < 1 or t > 14: nothing, no cost (Esc)

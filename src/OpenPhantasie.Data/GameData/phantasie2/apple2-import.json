@@ -1,0 +1,771 @@
+{
+ "_schema": "openphantasie.p2-apple2-import/v1",
+ "_source": "Remaster data for a Phantasie II import from the Apple II copy (profile p2-apple2), applied by the importer (OpenPhantasie.Importer.Pipelines.P2Apple2.A2StValues). Numbers, the compass word map and the manual's spell names; no text from the game disks.",
+ "_note": "User s159 (DIFFERENCES-II D2-046..D2-050): an Apple-only import plays the Atari ST's world, monster numbers, town data and cells whatever the source; it keeps the Apple's own text with its scroll compass words turned to the ST orientation, and takes spell names from the manual's list.",
+ "_st_cells": "Every number where the Apple's data differs from the ST's (tools/scripts/diff_a2_p2_vs_st.py, reverse-engineering/apple2/phantasie2/FORMAT.md section 5), as a path into the GameData file the Apple import builds (ST shape): a string is an object key, a number an array index, an object picks the array element whose fields match; byte = an offset into a hex string. A cell holding the Apple value gets the ST value; fog = a map tile whose fog (tile + 120) is kept. D2-009's cells need nothing (the Apple already has the manual's values); OUT1's unused feature record 14 at (25, 0) (ST dest_y 32, Apple 0; no cell uses it) is outside the decision and stays as the Apple has it.",
+ "st_cells": [
+  {
+   "decision": "D2-047",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 6
+    },
+    "companions"
+   ],
+   "apple": [
+    1,
+    1
+   ],
+   "st": [
+    0,
+    0
+   ]
+  },
+  {
+   "decision": "D2-047",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 53
+    },
+    "reaction_modifier"
+   ],
+   "apple": -10,
+   "st": 0
+  },
+  {
+   "decision": "D2-047",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 53
+    },
+    "treasure_items"
+   ],
+   "apple": [
+    0,
+    0
+   ],
+   "st": [
+    0,
+    135
+   ]
+  },
+  {
+   "decision": "D2-047",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 74
+    },
+    "damage"
+   ],
+   "apple": 40,
+   "st": 35
+  },
+  {
+   "decision": "D2-047",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 76
+    },
+    "attack_power"
+   ],
+   "apple": 350,
+   "st": 300
+  },
+  {
+   "decision": "D2-047",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 77
+    },
+    "attack_power"
+   ],
+   "apple": 800,
+   "st": 400
+  },
+  {
+   "decision": "D2-049",
+   "file": "creation-tables.json",
+   "path": [
+    "skill_coefficients",
+    "by_class_level",
+    "MONK",
+    9,
+    6
+   ],
+   "apple": 0,
+   "st": 14
+  },
+  {
+   "decision": "D2-049",
+   "file": "creation-tables.json",
+   "path": [
+    "skill_coefficients",
+    "by_class_level",
+    "PRIEST",
+    14,
+    8
+   ],
+   "apple": 0,
+   "st": 4
+  },
+  {
+   "decision": "D2-048",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 4
+    },
+    "stock",
+    126
+   ],
+   "apple": 0,
+   "st": 5
+  },
+  {
+   "decision": "D2-048",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 4
+    },
+    "stock",
+    127
+   ],
+   "apple": 5,
+   "st": 0
+  },
+  {
+   "decision": "D2-048",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 5
+    },
+    "stock",
+    126
+   ],
+   "apple": 0,
+   "st": 5
+  },
+  {
+   "decision": "D2-048",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 5
+    },
+    "stock",
+    127
+   ],
+   "apple": 5,
+   "st": 0
+  },
+  {
+   "decision": "D2-048",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 8
+    },
+    "price_index"
+   ],
+   "apple": 255,
+   "st": 150
+  },
+  {
+   "decision": "D2-049",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    22
+   ],
+   "fog": true,
+   "apple": 100,
+   "st": 101
+  },
+  {
+   "decision": "D2-049",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    1,
+    22
+   ],
+   "fog": true,
+   "apple": 100,
+   "st": 101
+  },
+  {
+   "decision": "D2-049",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "tiles",
+    12,
+    5
+   ],
+   "fog": true,
+   "apple": 1,
+   "st": 21
+  },
+  {
+   "decision": "D2-049",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "tiles",
+    13,
+    5
+   ],
+   "fog": true,
+   "apple": 1,
+   "st": 21
+  },
+  {
+   "decision": "D2-049",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "tiles",
+    14,
+    5
+   ],
+   "fog": true,
+   "apple": 1,
+   "st": 21
+  },
+  {
+   "decision": "D2-049",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "tiles",
+    15,
+    5
+   ],
+   "fog": true,
+   "apple": 1,
+   "st": 21
+  },
+  {
+   "decision": "D2-049",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT17.DAT",
+    "tiles",
+    6,
+    20
+   ],
+   "fog": true,
+   "apple": 76,
+   "st": 72
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 17,
+     "y": 12
+    },
+    "dest_y"
+   ],
+   "apple": 37,
+   "st": 0
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 17,
+     "y": 13
+    },
+    "dest_x"
+   ],
+   "apple": 16,
+   "st": 0
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 17,
+     "y": 13
+    },
+    "dest_y"
+   ],
+   "apple": 37,
+   "st": 18
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 17,
+     "y": 14
+    },
+    "dest_x"
+   ],
+   "apple": 29,
+   "st": 3
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 18,
+     "y": 12
+    },
+    "dest_x"
+   ],
+   "apple": 0,
+   "st": 16
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 18,
+     "y": 12
+    },
+    "dest_y"
+   ],
+   "apple": 18,
+   "st": 0
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 18,
+     "y": 14
+    },
+    "dest_x"
+   ],
+   "apple": 32,
+   "st": 16
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 18,
+     "y": 14
+    },
+    "dest_y"
+   ],
+   "apple": 18,
+   "st": 37
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 19,
+     "y": 12
+    },
+    "dest_x"
+   ],
+   "apple": 3,
+   "st": 29
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 19,
+     "y": 13
+    },
+    "dest_x"
+   ],
+   "apple": 16,
+   "st": 32
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 19,
+     "y": 13
+    },
+    "dest_y"
+   ],
+   "apple": 0,
+   "st": 18
+  },
+  {
+   "decision": "D2-046",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "features",
+    {
+     "x": 19,
+     "y": 14
+    },
+    "dest_y"
+   ],
+   "apple": 0,
+   "st": 37
+  },
+  {
+   "decision": "D2-049",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT31.DAT",
+    "tiles",
+    18,
+    17
+   ],
+   "fog": true,
+   "apple": 100,
+   "st": 85
+  },
+  {
+   "decision": "D2-049",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT31.DAT",
+    "tiles",
+    19,
+    17
+   ],
+   "fog": true,
+   "apple": 100,
+   "st": 85
+  },
+  {
+   "decision": "D2-049",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 1233,
+   "apple": 17,
+   "st": 0
+  },
+  {
+   "decision": "D2-049",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG8",
+    "raw_hex"
+   ],
+   "byte": 1095,
+   "apple": 141,
+   "st": 133
+  }
+ ],
+ "_scroll_compass": "D2-046: the Apple draws the map turned a quarter and its scrolls follow its own compass. Each word on the left, at the start of a word (SOUTH-, NORTHERN), becomes the one on the right, all at once; the scroll box's closing ! keeps its column.",
+ "scroll_compass": {
+  "NORTH": "EAST",
+  "EAST": "SOUTH",
+  "SOUTH": "WEST",
+  "WEST": "NORTH"
+ },
+ "_spell_names": "D2-050: the Apple has no spell names (it numbers its spells). Slots 0-53: the manual's spell list (combined rulebook p.12, PDF 8), as its table prints them (slot 47 with the S its descriptions drop). Slots 56 and 57 (the divine spells #57 and #58): the manual names none, remaster wording [~].",
+ "spell_names": [
+  {
+   "slot": 0,
+   "name": "HEALING 1"
+  },
+  {
+   "slot": 1,
+   "name": "HEALING 2"
+  },
+  {
+   "slot": 2,
+   "name": "HEALING 3"
+  },
+  {
+   "slot": 3,
+   "name": "HEALING 4"
+  },
+  {
+   "slot": 4,
+   "name": "FIREFLASH 1"
+  },
+  {
+   "slot": 5,
+   "name": "FIREFLASH 2"
+  },
+  {
+   "slot": 6,
+   "name": "FIREFLASH 3"
+  },
+  {
+   "slot": 7,
+   "name": "FIREFLASH 4"
+  },
+  {
+   "slot": 8,
+   "name": "QUICKNESS 1"
+  },
+  {
+   "slot": 9,
+   "name": "QUICKNESS 2"
+  },
+  {
+   "slot": 10,
+   "name": "QUICKNESS 3"
+  },
+  {
+   "slot": 11,
+   "name": "QUICKNESS 4"
+  },
+  {
+   "slot": 12,
+   "name": "STRENGTH 1"
+  },
+  {
+   "slot": 13,
+   "name": "STRENGTH 2"
+  },
+  {
+   "slot": 14,
+   "name": "STRENGTH 3"
+  },
+  {
+   "slot": 15,
+   "name": "STRENGTH 4"
+  },
+  {
+   "slot": 16,
+   "name": "PROTECTION 1"
+  },
+  {
+   "slot": 17,
+   "name": "PROTECTION 2"
+  },
+  {
+   "slot": 18,
+   "name": "PROTECTION 3"
+  },
+  {
+   "slot": 19,
+   "name": "PROTECTION 4"
+  },
+  {
+   "slot": 20,
+   "name": "CONFUSION 1"
+  },
+  {
+   "slot": 21,
+   "name": "CONFUSION 2"
+  },
+  {
+   "slot": 22,
+   "name": "CONFUSION 3"
+  },
+  {
+   "slot": 23,
+   "name": "CONFUSION 4"
+  },
+  {
+   "slot": 24,
+   "name": "WEAKNESS 1"
+  },
+  {
+   "slot": 25,
+   "name": "WEAKNESS 2"
+  },
+  {
+   "slot": 26,
+   "name": "WEAKNESS 3"
+  },
+  {
+   "slot": 27,
+   "name": "WEAKNESS 4"
+  },
+  {
+   "slot": 28,
+   "name": "BINDING 1"
+  },
+  {
+   "slot": 29,
+   "name": "BINDING 2"
+  },
+  {
+   "slot": 30,
+   "name": "BINDING 3"
+  },
+  {
+   "slot": 31,
+   "name": "BINDING 4"
+  },
+  {
+   "slot": 32,
+   "name": "MINDBLAST 1"
+  },
+  {
+   "slot": 33,
+   "name": "MINDBLAST 2"
+  },
+  {
+   "slot": 34,
+   "name": "MINDBLAST 3"
+  },
+  {
+   "slot": 35,
+   "name": "MINDBLAST 4"
+  },
+  {
+   "slot": 36,
+   "name": "FLAMEBOLT 1"
+  },
+  {
+   "slot": 37,
+   "name": "FLAMEBOLT 2"
+  },
+  {
+   "slot": 38,
+   "name": "FLAMEBOLT 3"
+  },
+  {
+   "slot": 39,
+   "name": "FLAMEBOLT 4"
+  },
+  {
+   "slot": 40,
+   "name": "CHARM"
+  },
+  {
+   "slot": 41,
+   "name": "SLEEP"
+  },
+  {
+   "slot": 42,
+   "name": "TELEPORTATION"
+  },
+  {
+   "slot": 43,
+   "name": "RESURRECTION"
+  },
+  {
+   "slot": 44,
+   "name": "NINJA 2"
+  },
+  {
+   "slot": 45,
+   "name": "FEAR"
+  },
+  {
+   "slot": 46,
+   "name": "DISSOLVE"
+  },
+  {
+   "slot": 47,
+   "name": "SUMMONS ELEMENTAL"
+  },
+  {
+   "slot": 48,
+   "name": "DISPELL UNDEAD"
+  },
+  {
+   "slot": 49,
+   "name": "NINJA 1"
+  },
+  {
+   "slot": 50,
+   "name": "AWAKEN"
+  },
+  {
+   "slot": 51,
+   "name": "MONSTER EVALUATION"
+  },
+  {
+   "slot": 52,
+   "name": "VISION"
+  },
+  {
+   "slot": 53,
+   "name": "TRANSPORTATION"
+  },
+  {
+   "slot": 56,
+   "name": "DIVINE #57",
+   "remaster": true
+  },
+  {
+   "slot": 57,
+   "name": "DIVINE #58",
+   "remaster": true
+  }
+ ]
+}

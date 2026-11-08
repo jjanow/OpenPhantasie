@@ -182,7 +182,7 @@ Free: no gold is taken and **no time passes** (no `_dayout`, no age change; MSX2
 day-counter write either). For each member:
 
 1. If condition ≠ Dead: "<name> slept."; then, if the MP-growth flag (+72) is set: clear it and, if rand(100) ≤
-   (magic level +36 − max MP +37) × 20, max MP +1 ("'s MP went up!"). What sets +72 is not read `[?]`.
+   (magic level +36 − max MP +37) × 20, max MP +1 (" MP went up!", printed after "slept." on the member's row). What sets +72 is not read `[?]`.
 2. Current MP = max MP, current HP = max HP.
 3. Wounds: `_heal(member, 2)` removes up to 2 points of body-part injury. The six body parts are 2-bit levels packed in
    +0C (`_pa`). It first clears parts at level 2 (each costs 2), then level 1; **level-3 parts are never healed** by the

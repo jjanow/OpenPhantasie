@@ -60,7 +60,7 @@ public sealed partial class GameSession
     /// <summary>
     /// Phase 09 T5, the I / II → III transfer (<c>phantasie3/FORMAT.md</c> section 6, D3-001…D3-007, D3-016, D3-030): a menu
     /// action any time (D3-030, the manual's utilities option), adding the kept characters to III's Guild roster
-    /// (<see cref="Phantasie3Campaign.AdmitTransferred"/>). DOS's per-character "Will you keep this character?" is
+    /// (<see cref="Phantasie3Campaign.AdmitTransferred"/>). DOS's per-character `transfer.keep_question` is
     /// <paramref name="keep"/> (source slot indices; null keeps everyone). The source's elementals are never in a remaster
     /// roster. A character that finds no room (D3-029's roster limit) or whose name is already in the Guild stays behind.
     /// <c>p3.transfer-roster</c> = <c>erase</c> (the manual's text, D3-003) first erases every III character, the party with

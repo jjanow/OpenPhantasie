@@ -23,7 +23,7 @@ public sealed partial class Phantasie3Campaign
 
     /// <summary>
     /// Entry (ovl4 <c>0x62d</c>): the dungeon's encounter chance <c>FAR:0xdd8c</c> := 10; the party stands on the
-    /// entrance exit cell, so "An exit. Will you take it?" is the first question (live s82). Facing is the shared south.
+    /// entrance exit cell, so `core.prompt.an_exit_take_it` is the first question (live s82). Facing is the shared south.
     /// </summary>
     public void OnDungeonEntered(GameSession session)
     {
@@ -179,9 +179,16 @@ public sealed partial class Phantasie3Campaign
 
     /// <summary>
     /// The answer lit when a III dungeon Yes / No question opens (ovl4 <c>0x1b81</c> → root <c>0x1820</c> → menu
-    /// <c>0x75a3</c>, s108 static [C]): "… spots a trap. Disarm it?" "Yes" (1, ovl4 <c>0x116c</c>), "… hears monsters.
+    /// <c>0x75a3</c>, s108 static [C]): "… `core.p3.x_spots_a_trap`" "Yes" (1, ovl4 <c>0x116c</c>), "… hears monsters.
     /// Continue?" "No" (2, <c>0x100d</c>); null for any other event prompt.
     /// </summary>
+    /// <summary>
+    /// True for "Who will disarm the trap?" (ovl4 <c>0x1189</c>: the member picker <c>0x18bd(92)</c>; Amiga window 6,
+    /// <c>0x127ce(92)</c>): one choice per party member, and one more (<see cref="SessionPrompt.EscapeChoice"/>) for the
+    /// picker's cancel.
+    /// </summary>
+    public static bool AsksDisarmer(PendingDungeonEvent prompt) => prompt.MessageId == WhoPrompt;
+
     public static int? YesNoHighlight(PendingDungeonEvent prompt) =>
         prompt.MessageId != YesNoPrompt ? null : prompt.Feature is >= 2 and <= 6 ? 1 : 2;
 
@@ -193,7 +200,7 @@ public sealed partial class Phantasie3Campaign
     }
 
     /// <summary>
-    /// "An exit. Will you take it?" YES (ovl4 <c>0x95b</c>): scores are recomputed; only the exit entry's destination byte
+    /// `core.prompt.an_exit_take_it` YES (ovl4 <c>0x95b</c>): scores are recomputed; only the exit entry's destination byte
     /// is read: 29 / 31 / 41 put the party on the Light / Dark / Netherworld plane at its arrival square, anything else
     /// leaves it on the dungeon's own square.
     /// </summary>
@@ -291,7 +298,7 @@ public sealed partial class Phantasie3Campaign
     {
         var access = session.CampaignAccess;
         var prompt = access.DungeonEventPrompt ?? throw new InvalidOperationException("No dungeon event is waiting for an answer.");
-        if (choice < 1 || choice > prompt.Message.Options.Count)
+        if (choice < 1 || choice > prompt.Message.Options.Count + (prompt.MessageId == WhoPrompt ? 1 : 0))
             throw new ArgumentOutOfRangeException(nameof(choice));
         access.DungeonEventPrompt = null;
         var d = access.RequireDungeon();
@@ -304,6 +311,18 @@ public sealed partial class Phantasie3Campaign
         }
         if (prompt.MessageId == WhoPrompt)
         {
+            // ovl4 0x1189…0x11bc (Amiga 0x1c6d6…0x1c71a, s163 static): the picker asks again while the pick is Dead or Out;
+            // its cancel (the choice after the members) leaves the trap as No does (step result −1 at 0x1265).
+            if (choice > session.Party.Members.Count)
+            {
+                DungeonTraversal.StepBack(d);
+                return;
+            }
+            if (session.Party.Members[choice - 1].Status is CharacterStatus.Dead or CharacterStatus.Out)
+            {
+                access.DungeonEventPrompt = prompt;
+                return;
+            }
             Disarm(session, d, level, cell, choice - 1);
             return;
         }
@@ -337,7 +356,11 @@ public sealed partial class Phantasie3Campaign
         session.BeginDungeonCombat(DoorMonster(cell, DungeonLevelL(level)), SurpriseFor(FightMode.PartySurprise));
     }
 
-    /// <summary>The chosen member (not Dead or Out) rolls Disarm: success clears the trap, failure springs it.</summary>
+    /// <summary>
+    /// The chosen member (not Dead or Out) rolls Disarm: success clears the trap, failure springs it. s163: success leaves
+    /// the party where it came from, as No does (ovl4 <c>0x120d</c> → <c>0x1265</c>, step result −1; Amiga <c>0x1c762</c> →
+    /// <c>0x1c7c2</c>; seen live: the next step went onto the disarmed cell).
+    /// </summary>
     private static void Disarm(GameSession session, DungeonState d, DungeonLevel level, byte cell, int memberIndex)
     {
         var m = (uint)memberIndex < (uint)session.Party.Members.Count ? session.Party.Members[memberIndex] : null;
@@ -345,6 +368,7 @@ public sealed partial class Phantasie3Campaign
             && P3Dice.Rnd(session.CampaignAccess.Rng, 100) <= m.Skills.DisarmTrap)
         {
             level.Set(d.X, d.Y, SpentTrapCell);
+            DungeonTraversal.StepBack(d);
             session.Note(GameText.F("core.p3.x_disarms_the_trap", m.Name));
             session.PlaySound(P3Sounds.MemberLine);
             return;

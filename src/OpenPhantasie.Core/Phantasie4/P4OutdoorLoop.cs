@@ -591,6 +591,7 @@ public sealed class P4OutdoorLoop
         PendingFight = null;
         _window.Clear();
         _window.Line(GameText.S("p4x.0x44097"));
+        _window.Line(GameText.S("p4x.0x440b0")); // s162: _deadmsg prints both lines wherever the party falls
         Prompt = P4OutdoorPrompt.PartyLost;
     }
 

@@ -33,6 +33,7 @@ public partial class Game1
             _delayedCues.Clear();
             _defeatSounds.Reset();
             _fade = null;
+            _fadePending = false;
             _fadeFilter = null;
             _p2Alert.Close();
             if (_screen is not null)
@@ -103,9 +104,12 @@ public partial class Game1
         {
             _transportPicks = _transportDialog.Picks;
             PlayClick(); // 0x25b4: after form_do, the cancel too
-            // s158: I Amiga plays 22 once a town is picked (h26 +0xe4a, before its fade; the list's cancel has none).
+            // s162: I Amiga's list window plays the tone after each gadget (h26 +0xdb6, the cancel too); s158: then 22 once a
+            // town is picked (h26 +0xe4a, before its fade). Each blocks: they play in turn.
+            if (P1MapCues && _assets!.Pack!.CueSounds!.ListTone is int listTone)
+                PlayP1CueInTurn(listTone);
             if (P1MapCues && _assets!.Pack!.CueSounds!.Transport is int transport && _transportDialog.LastPickWasTown)
-                PlayP1Cue(transport);
+                PlayP1CueInTurn(transport);
         }
         if (_guildAddDialog is { } add && add.MoveQuestions != _moveQuestions)
         {
@@ -134,10 +138,34 @@ public partial class Game1
                     else
                         PlayFieldSound(sound, FieldSoundsWait(field, PlayerSpeedMs));
                 }
-            if (cues.Contains(FieldCues.Transport) && _assets?.Pack?.TransportFade is { } fade)
-                StartTransportFade(fade); // s140: 0x260a's fade follows sound 22
+            // s162: I Amiga's cues that beep before their alert (pack cue_sounds.cues: town.cast_done, D O N E !).
+            if (P1MapCues && _assets!.Pack!.CueSounds!.Cues is { Count: > 0 } beeps)
+                foreach (var cue in cues)
+                    if (beeps.TryGetValue(cue, out var beep))
+                    {
+                        PlayP1CueInTurn(beep);
+                        if (cue == FieldCues.TownCastDone) // s163: then requester 0 "D O N E !" (h26 +0x38)
+                            OpenP1TownHeld("done");
+                    }
+            if (cues.Contains(FieldCues.Transport) && _assets?.Pack?.TransportFade is { } fade
+                && (!fade.OriginalScreensOnly || CurrentGameSettings.OriginalScreens))
+            {
+                if (fade.AfterSound)
+                {
+                    // s162: I Amiga's h26 +0xe30 fades only after the list's tone and 22 have ended (h89 blocks).
+                    _fadePending = true;
+                    _p1Holds.Defer(_updateSeconds, 0, () =>
+                    {
+                        _fadePending = false;
+                        if (_session?.Mode == GameMode.Town)
+                            StartTransportFade(fade);
+                    });
+                }
+                else
+                    StartTransportFade(fade); // s140: 0x260a's fade follows sound 22
+            }
         }
-        if (_fade is null && _screen is { Frozen: true })
+        if (_fade is null && !_fadePending && _screen is { Frozen: true })
             _screen.Unfreeze(); // s158: a pick that moved nobody (no Transport cue): the frame goes on
         // s140: the alert boxes' beep (0x1628 / 0x1668): the session's new lines and the lines dialogs returned.
         var logLines = session.LogSequence != _logSerial ? session.LogSince(_logSerial) : [];
@@ -208,6 +236,7 @@ public partial class Game1
     private P2AlertBeeps? _alertBeeps;
     private readonly P2DefeatSounds _defeatSounds = new();
     private StTransportFade? _fade;
+    private bool _fadePending; // s162: I Amiga's fade waits for the sounds before it (frame kept frozen meanwhile)
     private double _fadeStart;
     private TransportFadeFilter? _fadeFilter;
 
@@ -241,7 +270,8 @@ public partial class Game1
     /// <summary>s140: a line a dialog returned this frame, for the alerts' beep (<see cref="P2AlertBeeps"/>).</summary>
     private void NoteAlertLine(string? line)
     {
-        if (!string.IsNullOrWhiteSpace(line) && _assets?.Pack?.FieldSounds?.Alerts is not null)
+        if (!string.IsNullOrWhiteSpace(line)
+            && (_assets?.Pack?.FieldSounds?.Alerts is not null || P1MapCues && _assets?.Pack?.CueSounds?.Alerts is not null))
             _alertDialogLines.Add(line);
     }
 
@@ -268,7 +298,7 @@ public partial class Game1
 
     /// <summary>
     /// s158: II ST's TRANSPORTATION fades the old town's screen with the picker still drawn (<c>0x19158</c> only clears the
-    /// button's SELECTED bit): as a town is picked (before Core moves the party and before this frame is drawn) the last
+    /// button's SELECTED bit; s162: I Amiga's list requester too, ended by h8 <c>+0x12ea</c> after the fade): as a town is picked (before Core moves the party and before this frame is drawn) the last
     /// frame is kept on screen. Only with the pack's fade; the cue starts the fade next frame, or the frame is let go.
     /// </summary>
     private void FreezeForTransport()
@@ -296,7 +326,8 @@ public partial class Game1
         return (Color.Black, Color.White);
     }
 
-    /// <summary>True while II ST's TRANSPORTATION fade runs: the ST reads no key then (<c>0x260a</c>).</summary>
+    /// <summary>True while II ST's (s162: and I Amiga's, h26 <c>+0xe30</c>) TRANSPORTATION fade runs: no key is read then
+    /// (<c>0x260a</c>: Setcolor and Vsync only; the Amiga: SetRGB4 and WaitTOF only).</summary>
     private bool TransportFading => _fade is not null;
 
     /// <summary>
@@ -308,7 +339,9 @@ public partial class Game1
         if (_fade is not { } fade || _fadeFilter is not { } filter)
             return;
         var t = _updateSeconds - _fadeStart;
-        if (t >= fade.TotalSeconds || _session?.Mode != GameMode.Town)
+        if (t >= fade.TotalSeconds && _screen is { Frozen: true } && _session?.Mode == GameMode.Town)
+            _screen.Unfreeze(); // s163: the new town is drawn under the DisplayBeeps' flash (filmed)
+        if (t >= fade.EndSeconds || _session?.Mode != GameMode.Town)
         {
             _fade = null;
             _fadeFilter = null;

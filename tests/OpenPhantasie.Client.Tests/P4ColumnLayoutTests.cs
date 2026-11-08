@@ -69,6 +69,33 @@ public class P4ColumnLayoutTests
     }
 
     [Fact]
+    public void FightSpellList_ColumnGivesWay_BesideTheField()
+    {
+        // s160 (user s159): the combat spell list opens at the panel's place right of the field (336 × 300 pack at half
+        // scale from (4, 4)); its 360-row window reaches row 197. The column narrows to the field's side, the help goes
+        // under the field in the width left of the list, and nothing reaches the list.
+        var field = new Rectangle(4, 4, 168, 150);
+        foreach (var listWidth in new[] { 136, 159 })
+        {
+            var stripLeft = 316 - (int)Math.Ceiling((listWidth + 1) * 0.5f);
+            Assert.True(stripLeft > field.Right + 4, $"{listWidth}");
+            var right = stripLeft - 4;
+            var l = P4DungeonScreen.LayOutColumn(field, field.Right + 4, right, 197, c => c >= 30 ? 1 : 2, c => 4 * (c >= 30 ? 1 : 3));
+            Assert.Equal(4, l.NoteX);
+            Assert.Equal((right - 6) / PixelFont.Advance, l.NoteCols);
+            Assert.True(l.NoteTop >= field.Bottom + 2);
+            Assert.True(l.NoteTop + PixelFont.GlyphHeight <= 196);
+            Assert.True(l.Box.Right <= right && l.Party.Right <= right, $"{listWidth}");
+            Assert.Equal(field.Right + 4, l.Box.X);
+            Assert.True(l.Party.Bottom <= l.NoteTop - 3);
+        }
+        // Closed, the fight's full-width column comes back (no strip in a fight).
+        var closed = P4DungeonScreen.LayOutColumn(field, field.Right + 4, 316, null, _ => 1, _ => 4);
+        Assert.Equal((field.Right + 4, 316 - field.Right - 4), (closed.Box.X, closed.Box.Width));
+        Assert.Equal(field.Right + 5, closed.NoteX);
+    }
+
+    [Fact]
     public void HelpLines_BreakBetweenKeyGroups_KeepingTheirSpacing()
     {
         var lines = P4DungeonScreen.HelpLines("Numpad/arrows move  E examine  F profile  C spell  U use  S system", 30);

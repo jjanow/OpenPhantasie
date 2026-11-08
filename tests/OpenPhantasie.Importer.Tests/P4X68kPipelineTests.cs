@@ -125,6 +125,10 @@ public class P4X68kPipelineTests
         {
             var dir = Path.Combine(shipped, "phantasie4");
             Directory.CreateDirectory(Path.Combine(dir, "strings"));
+            // s163: the shipped common fallback (shared / I lines), as the public repo ships it.
+            Directory.CreateDirectory(Path.Combine(shipped, "phantasie1", "strings"));
+            File.Copy(Repo.Path("src/OpenPhantasie.Data/GameData/phantasie1/strings/fallback.en.json"),
+                Path.Combine(shipped, "phantasie1", "strings", "fallback.en.json"));
             var rules = JsonNode.Parse(File.ReadAllBytes(Repo.Path(GameDataDir + "rule-tables.json")))!.AsObject();
             foreach (var path in P4GameData.RuleTablePathsFromCopy)
             {

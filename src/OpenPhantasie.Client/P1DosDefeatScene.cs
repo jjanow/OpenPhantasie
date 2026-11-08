@@ -23,9 +23,9 @@ public readonly record struct DosDefeatFrame(bool Face, int Fates, string? Line)
 
 /// <summary>
 /// s157: Phantasie I DOS's party-defeat screens line by line (OV1 <c>0x2af</c> / <c>0x3bc</c>, endgame.md section 4):
-/// "YOUR PARTY HAS BEEN DEFEATED" on black (the defeat prompt), then on the outcome prompt, one line per
-/// <see cref="P1DosDefeatClock"/> step: line 0 "YOU HAVE ARRIVED AT THE ASTRAL PLANE" over the temple with an empty
-/// doorway and a ghost per member; line 1 "THE GREAT DEMON APPEARS AND SPEAKS:" over the temple with the face; line
+/// `core.defeat.your_party_has_been_defeated` on black (the defeat prompt), then on the outcome prompt, one line per
+/// <see cref="P1DosDefeatClock"/> step: line 0 `core.defeat.arrived_at_astral_plane` over the temple with an empty
+/// doorway and a ghost per member; line 1 `core.defeat.great_demon_speaks` over the temple with the face; line
 /// 2 + i member i's fate, drawn before its line (a figure or a cleared slot). No MonoGame types.
 /// </summary>
 public static class P1DosDefeatScene

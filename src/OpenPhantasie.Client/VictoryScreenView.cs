@@ -55,11 +55,11 @@ public sealed class VictoryScreenView
         batch.Draw(_texture, new Rectangle(0, 0, Width, Height), Color.White);
         if (frame.Text is { } line && frame.Shows(_layout.TextPen))
         {
+            using var font = PixelFont.With(SpeechFont(_layout)); // II ST (s160): EmuTOS's 8×8; I Amiga: z6font
             if (_layout.JustifyWidth > 0)
                 DrawJustified(batch, pixel, line.Trim(), _layout.JustifyWidth, _palette[_layout.TextPen]);
             else
             {
-                using var font = PixelFont.With(SpeechFont(_layout));
                 var (x, text) = SpeechLine(line);
                 PixelFont.Draw(batch, pixel, x, _layout.TextY, text, _palette[_layout.TextPen]);
             }
@@ -69,6 +69,28 @@ public sealed class VictoryScreenView
 
     /// <summary>The speech line's font (I Amiga: z6font, the window's font, s153), or null for the pack's own.</summary>
     public static IFontSource? SpeechFont(EndingSceneLayout layout) => FontSources.Named(layout.Font, layout.FontFile);
+
+    /// <summary>A text page's font (II ST, s160: EmuTOS's 8×8 italic), or null for the pack's own.</summary>
+    public static IFontSource? PageFont(EndingPage page) => FontSources.Named(page.Font, page.FontFile);
+
+    /// <summary>s162: the OK label's font (II ST: EmuTOS's 6×6 small font, <c>te_font</c> 5), or null for the pack's own.</summary>
+    public static IFontSource? ButtonFont(EndingPage page) => FontSources.Named(page.ButtonFont, page.ButtonFontFile);
+
+    /// <summary>The OK form's button (GEM tree 18 at (319 − w, 199 − h), measured on the s80 shots): its border box.</summary>
+    public static readonly Rectangle OkButton = new(262, 182, 42, 10);
+
+    /// <summary>
+    /// s162: where the OK label starts in the current font: centred in the G_BOXTEXT inside the button's 1-px border
+    /// (OUT.RSC tree 18: 5 × 1 cells at (2, 1), <c>te_just</c> centred), the cell's top centred in the 8-px row as
+    /// <c>objc_draw</c> places a 6-px font: the s80 shot's O at (277, 184).
+    /// </summary>
+    public static Point OkLabelAt(string label)
+    {
+        ArgumentNullException.ThrowIfNull(label);
+        var inner = new Rectangle(OkButton.X + 1, OkButton.Y + 1, OkButton.Width - 2, OkButton.Height - 2);
+        return new Point(inner.X + (inner.Width - PixelFont.Measure(label)) / 2,
+            inner.Y + Math.Max(0, (inner.Height - PixelFont.Font.Height) / 2));
+    }
 
     /// <summary>
     /// A centred speech line in the current font: DOS pads its lines with spaces to justify them; the Amiga centres
@@ -82,10 +104,14 @@ public sealed class VictoryScreenView
     }
 
     /// <summary>
-    /// The x of each character of II's bottom line (TOS <c>v_justified</c>, word and character spacing on): the line
-    /// centred on the screen and stretched to <paramref name="width"/>. Each space gets up to half a character cell
-    /// more, the rest is spread over the gaps between characters (fitted to the s80 title shot <c>[~]</c>). A line wider
-    /// than <paramref name="width"/> keeps its natural spacing.
+    /// The x of each character of II's bottom line in the current font: TOS <c>v_justified</c> with word and character
+    /// spacing on, centred on the screen (s160, read from EmuTOS <c>vdi_text.c</c> <c>vdi_v_justified</c> /
+    /// <c>output_text</c>, integer arithmetic as there): the line starts at 160 − <paramref name="width"/> / 2; each space
+    /// gets (width − natural) / spaces more, capped at ± half the font's widest cell (the cap drops the remainder), the
+    /// first remainder spaces one more; what is left over is spread over the gaps between characters,
+    /// (rest) / (characters − 1) each and one more for the first remainder ones. A line wider than
+    /// <paramref name="width"/> is closed up the same way (negative gaps), as the ST does. Matches the s80 title shot
+    /// ("KLEPTO - the bold from Ferronrah": 5, 15, 25, 35, 44, …) pixel for pixel.
     /// </summary>
     public static IReadOnlyList<int> JustifiedXs(string text, int width)
     {
@@ -93,17 +119,47 @@ public sealed class VictoryScreenView
         var xs = new List<int>();
         if (text.Length == 0)
             return xs;
-        var natural = PixelFont.Measure(text);
-        var extra = Math.Max(0, width - natural);
+        var advances = text.Select(c => PixelFont.Font.Glyph(c).Advance).ToArray();
+        var natural = advances.Sum();
         var spaces = text.Count(c => c == ' ');
-        var perSpace = spaces == 0 ? 0 : Math.Min((double)extra / spaces, PixelFont.Advance / 2.0);
-        var gaps = text.Length - 1;
-        var perGap = gaps == 0 ? 0 : (extra - perSpace * spaces) / gaps;
-        var x = (Width - Math.Max(natural, width)) / 2.0;
-        foreach (var ch in text)
+        int delWord = 0, rmWord = 0, wordDir = 1;
+        if (spaces > 0)
         {
-            xs.Add((int)Math.Round(x));
-            x += PixelFont.Measure(ch.ToString()) + perGap + (ch == ' ' ? perSpace : 0);
+            delWord = (width - natural) / spaces;
+            rmWord = (width - natural) % spaces;
+            if (rmWord < 0)
+                (wordDir, rmWord) = (-1, -rmWord);
+            var expand = advances.Max() / 2; // max_cell_width / 2
+            if (delWord > expand || delWord < -expand)
+                (delWord, rmWord) = (Math.Clamp(delWord, -expand, expand), 0);
+            natural += delWord * spaces + rmWord * wordDir;
+        }
+        int delChar = 0, rmChar = 0, charDir = 1;
+        if (text.Length > 1)
+        {
+            delChar = (width - natural) / (text.Length - 1);
+            rmChar = (width - natural) % (text.Length - 1);
+            if (rmChar < 0)
+                (charDir, rmChar) = (-1, -rmChar);
+        }
+        var x = Width / 2 - width / 2;
+        for (var i = 0; i < text.Length; i++)
+        {
+            xs.Add(x);
+            x += advances[i] + delChar;
+            if (rmChar > 0)
+            {
+                x += charDir;
+                rmChar--;
+            }
+            if (text[i] != ' ')
+                continue;
+            x += delWord;
+            if (rmWord > 0)
+            {
+                x += wordDir;
+                rmWord--;
+            }
         }
         return xs;
     }
@@ -118,7 +174,8 @@ public sealed class VictoryScreenView
 
     /// <summary>
     /// II's text pages (TOS <c>v_gtext</c> on a black screen, then the OK form at the bottom right): the lines as the ST
-    /// prints them, the form in the button pen; a page without its own palette dims with the fade-out.
+    /// prints them in the page's font (<see cref="PageFont"/>), the form in the button pen; a page without its own palette
+    /// dims with the fade-out; the OK label in the page's button font (s162: EmuTOS's 6×6 small font, <c>te_font</c> 5).
     /// </summary>
     private void DrawPage(SpriteBatch batch, Texture2D pixel, VictoryScreen screen, VictoryScreen.Frame frame)
     {
@@ -129,15 +186,21 @@ public sealed class VictoryScreenView
         Color[] palette = page.Palette is { } own ? [.. own.Select(VirtualScreen.ParseColor)] : _palette;
         Color Pen(int pen) => page.Palette is not null || frame.Shows(pen) ? palette[pen] : Color.Black;
         batch.Draw(pixel, new Rectangle(0, 0, Width, UiOverlays.ScreenBottom), Color.Black);
-        for (var i = 0; i < lines.Count; i++)
-            PixelFont.Draw(batch, pixel, page.X, page.Y + i * page.LineGap, lines[i].TrimEnd(), Pen(page.TextPen));
+        using (PixelFont.With(PageFont(page))) // s160: EmuTOS's 8×8 italic, its cell 4 px left of the v_gtext point
+            for (var i = 0; i < lines.Count; i++)
+                PixelFont.Draw(batch, pixel, page.X + page.FontDx, page.Y + i * page.LineGap, lines[i].TrimEnd(),
+                    Pen(page.TextPen));
         // The OK form (GEM tree 18 at (319 − w, 199 − h)), measured on the s80 shots: frame 247…318 × 175…198, button
         // 262…303 × 182…191.
         var button = Pen(page.ButtonPen);
         Outline(batch, pixel, new Rectangle(247, 175, 72, 24), button);
-        Outline(batch, pixel, new Rectangle(262, 182, 42, 10), button);
+        Outline(batch, pixel, OkButton, button);
         const string ok = "OK";
-        PixelFont.Draw(batch, pixel, 262 + (42 - PixelFont.Measure(ok)) / 2, 184, ok, button);
+        using (PixelFont.With(ButtonFont(page)))
+        {
+            var at = OkLabelAt(ok);
+            PixelFont.Draw(batch, pixel, at.X, at.Y, ok, button);
+        }
     }
 
     private static void Outline(SpriteBatch batch, Texture2D pixel, Rectangle r, Color colour)

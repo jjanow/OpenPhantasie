@@ -126,6 +126,7 @@ public sealed partial class P4DungeonScreen
                             break;
                         case (_, { } page, _):
                             _spellPage = page;
+                            BoxScroll.ForgetFollow(); // s160: the new page's cursor line into view
                             break;
                         default:
                             ResetBattleUi();
@@ -181,6 +182,7 @@ public sealed partial class P4DungeonScreen
                 _mode = BattleMode.Spells;
                 Cursor = 0;
                 _spellPage = 0;
+                BoxScroll.ForgetFollow(); // s160: the narrow column scrolls to the list's cursor line at once
                 break;
             default:
                 if (!b.Order(new P4Order(kind)))

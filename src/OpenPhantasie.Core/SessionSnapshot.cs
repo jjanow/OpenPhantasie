@@ -61,7 +61,7 @@ public sealed class SessionSnapshot
     /// <summary>Who found each <see cref="PendingTreasure"/> item (null = none named; III's fight finds name one).</summary>
     public string?[] PendingTreasureFinders { get; set; } = Array.Empty<string?>();
 
-    /// <summary>"YOUR PARTY HAS BEEN DEFEATED" is waiting (<see cref="GameSession.PartyDefeatPending"/>; s41).</summary>
+    /// <summary>`core.defeat.your_party_has_been_defeated` is waiting (<see cref="GameSession.PartyDefeatPending"/>; s41).</summary>
     public bool PartyDefeatPending { get; set; }
 
     /// <summary>
@@ -123,10 +123,10 @@ public sealed class WildernessSnapshot
     /// <summary>The entry question's place name (III's "&lt;name&gt; Will you enter?", <see cref="OverworldEntryPrompt.Name"/>); null = I's text.</summary>
     public string? EntryName { get; set; }
 
-    /// <summary>The dungeon entry is at its second question, "Load previously saved dungeon?" (<see cref="OverworldEntryPrompt.AsksLoad"/>).</summary>
+    /// <summary>The dungeon entry is at its second question, `core.p3.load_saved_dungeon` (<see cref="OverworldEntryPrompt.AsksLoad"/>).</summary>
     public bool EntryAsksLoad { get; set; }
 
-    /// <summary>A pending "A TOWN. ENTER?" / "A DUNGEON. ENTER?" (<see cref="GameSession.EntryPrompt"/>); null = none.</summary>
+    /// <summary>A pending "A TOWN. ENTER?" / `core.overworld.a_dungeon_enter` (<see cref="GameSession.EntryPrompt"/>); null = none.</summary>
     public OverworldEntryKind? EntryKind { get; set; }
     public int EntryId { get; set; }
     public int EntryDestX { get; set; }
@@ -149,7 +149,7 @@ public sealed class DungeonSnapshot
     /// <summary>The live 2500-byte level buffer (s36; replaces ClearedEventKeys). Null in older saves.</summary>
     public byte[]? LevelBuffer { get; set; }
 
-    /// <summary>"AN EXIT. TAKE IT?" was waiting for an answer.</summary>
+    /// <summary>`core.prompt.an_exit_take_it` was waiting for an answer.</summary>
     public bool ExitPending { get; set; }
 
     /// <summary>Previous cell (<c>[0x751e]/[0x7520]</c>, the step-back target). Null in pre-s39 saves → the current cell.</summary>
@@ -165,7 +165,7 @@ public sealed class DungeonSnapshot
     /// <summary>"%s SPOTS A TRAP" waiting for D)ISARM / L)EAVE (s41: modal prompts survive a save).</summary>
     public DungeonTrapPromptSnapshot? TrapPrompt { get; set; }
 
-    /// <summary>"%s HEARS MONSTERS. GO BACK ?": the listener's party index; null = no lock prompt.</summary>
+    /// <summary>"%s `core.dungeon.x_hears_monsters_go_back`": the listener's party index; null = no lock prompt.</summary>
     public int? LockListener { get; set; }
     public string? LockMessage { get; set; }
 

@@ -109,6 +109,11 @@
     ]
   },
   "font": "remaster-5x7",
+  "_fonts_note": "s160 (user, s159): the ST draws its alert boxes (AES form_alert) and end-of-fight boxes (OUT.RSC trees 40 / 41, G_TEXT font 3) in the TOS ROM's 8x8 system font, which is not on the disks; the look was measured on EmuTOS, so these places use EmuTOS's 8x8 font (fonts/emutos-st-8x8.json, GPL-2.0-or-later, tools/scripts/emutos_st_font.py; matches the EmuTOS alert shots pixel for pixel). Glyphs it lacks come from the pack's font. The ending's own fonts are in ending_scene.",
+  "fonts": {
+    "p2.alert": "emutos-st-8x8",
+    "p2.end_box": "emutos-st-8x8"
+  },
   "map_layout": {
     "format": "amiga-maps/v1",
     "file": "maps/maps.json"
@@ -292,7 +297,7 @@
     }
   },
   "combat_lines": {
-    "_note": "0x18cc2(text, n): sound n (n >= 0; at Speed >= sound_wait_speed it first waits for the running sound, unless the last was no_wait_after), the text, then Speed ms unless the text has short_text characters or fewer or hold is false (a key ends the hold). attack (s156, 0x186a8 = pose mode 1): the actor's attacking picture for attack_pose_ms first (no key, every Speed), then the idle one (a member's swing 0x86fe and rock 0x7748, a monster's swing 0x8ac4; a rock's own MISSES has none). pose (mode 2, 0x18f7a): the actor's silhouette (silhouette_pens of the combat palette: the attacking picture's shape in the first, the rest of its rectangle in the second) pose_ms when Speed > pose_speed, else pose_fast_ms, then the attack pose (the member's cast 0x79fc, the monster's special 0x8d8c). erase (mode 0, 0x9b06): the monster's picture cleared before its line. pre: sounds played first without a line (a breath: the special's blank line, sound 9). death: the member's mark, death.sound, death.hold_ms, wait for the sound, the row re-laid (0x18a02). round_end_sound: 0x18416 at each of combat_round's seven exits, after the round's last line and before combat_victory's boxes. sparkle: 0x18b16 before a damage spell's (or a rock's) damage line on a monster, amount / per + 1 times: sound, the sprite (spell: amount >= 0; rock: the rock's damage, negative) at a random 16x16 spot inside the monster's picture (x + rand(w - 16), y + rand(h - 16)), hold_ms (no key), the sound silenced (0xb9e2); rock_miss: 0x18c6c after a rock's MISSES, the rock sprite at the screen spot, hold_ms, no sound. Lines not listed: no sound [?], the Speed hold.",
+    "_note": "0x18cc2(text, n): sound n (n >= 0; at Speed >= sound_wait_speed it first waits for the running sound, unless the last was no_wait_after), the text, then Speed ms unless the text has short_text characters or fewer or hold is false (a key ends the hold). attack (s156, 0x186a8 = pose mode 1): the actor's attacking picture for attack_pose_ms first (no key, every Speed), then the idle one (a member's swing 0x86fe and rock 0x7748, a monster's swing 0x8ac4; a rock's own MISSES has none). pose (mode 2, 0x18f7a): the actor's silhouette (silhouette_pens of the combat palette: the attacking picture's shape in the first, the rest of its rectangle in the second) pose_ms when Speed > pose_speed, else pose_fast_ms, then the attack pose (the member's cast 0x79fc, the monster's special 0x8d8c). erase (mode 0, 0x9b06): the monster's picture cleared before its line. pre: sounds played first without a line (a breath: the special's blank line, sound 9). death: the member's mark, death.sound, death.hold_ms, wait for the sound, the row re-laid (0x18a02). round_end_sound: 0x18416 at each of combat_round's seven exits, after the round's last line and before combat_victory's boxes. sparkle: 0x18b16 before a damage spell's (or a rock's) damage line on a monster, amount / per + 1 times: sound, the sprite (spell: amount >= 0; rock: the rock's damage, negative) at a random 16x16 spot inside the monster's picture (x + rand(w - 16), y + rand(h - 16)), hold_ms (no key), the sound silenced (0xb9e2); rock_miss: 0x18c6c after a rock's MISSES, the rock sprite at the screen spot, hold_ms, no sound; rock_miss_area: the ST's monster area (x, y, w, h) the spot lies in (s163). Lines not listed: no sound [?], the Speed hold. monster_slots (s162, 0x18288 / 0x18856): a picture per monster, each group a row of its own monsters; the poses, sparkles and erases on the monster's own slot, an erased slot keeping its place until the round's re-rank.",
     "speed_ms": {
       "fast": 5,
       "normal": 10,
@@ -309,6 +314,7 @@
       15,
       0
     ],
+    "monster_slots": true,
     "fight_start_sound": 17,
     "round_end_sound": 18,
     "sparkle": {
@@ -321,6 +327,12 @@
       "rock_miss": [
         100,
         10
+      ],
+      "rock_miss_area": [
+        0,
+        13,
+        320,
+        134
       ]
     },
     "death": {
@@ -461,7 +473,7 @@
       }
     },
     "end_boxes": {
-      "_note": "0xa25a(text) -> 0xa124: tree 40, the text centred in center_columns (0x17266: floor((35 - len) / 2) spaces first) into object 1, then 0x16dce(40, 12, 75, Speed + one_line.hold_ms): the background saved, objc_draw, evnt_multi (a key, a click or the timer ends it), the combat screen redrawn (0x18446). 0xa272(a, b) -> 0xa1c2: tree 41, a in object 1 (upper row), b in object 2 (lower row), Speed + two_line.hold_ms. pairs: [upper, lower] string ids shown as one two-line box (0xa3da: 'EACH SURVIVOR GETS' over '%ld XP AND %ld GP'; 0xa4fa: 'PLUTO'S MINION IS KILLED !' over '%s TAKES AN AMULET'; both seen live s82). outside_round_keys: lines that are boxes only outside a round (the morale check's 'MONSTERS RUN' 0xa066; in a round the spell's line, sound 2). sounds: played before the box (0xb80e: 0xa05a plays 2 before 'MONSTERS RUN'); the other boxes have none. Font: TOS 8x8 not drawn, the remaster's glyphs centred in the 8-px cells [~].",
+      "_note": "0xa25a(text) -> 0xa124: tree 40, the text centred in center_columns (0x17266: floor((35 - len) / 2) spaces first) into object 1, then 0x16dce(40, 12, 75, Speed + one_line.hold_ms): the background saved, objc_draw, evnt_multi (a key, a click or the timer ends it), the combat screen redrawn (0x18446). 0xa272(a, b) -> 0xa1c2: tree 41, a in object 1 (upper row), b in object 2 (lower row), Speed + two_line.hold_ms. pairs: [upper, lower] string ids shown as one two-line box (0xa3da: 'EACH SURVIVOR GETS' over '%ld XP AND %ld GP'; 0xa4fa: 'PLUTO'S MINION IS KILLED !' over '%s TAKES AN AMULET'; both seen live s82). outside_round_keys: lines that are boxes only outside a round (the morale check's 'MONSTERS RUN' 0xa066; in a round the spell's line, sound 2). sounds: played before the box (0xb80e: 0xa05a plays 2 before 'MONSTERS RUN'); the other boxes have none. Font (s160): EmuTOS's 8x8 system font, the pack's fonts role p2.end_box, one glyph per 8-px cell from its top-left.",
       "palette": "combat",
       "x": 12,
       "y": 75,
@@ -727,7 +739,7 @@
         }
       ],
       "look": {
-        "_note": "AES form_alert, measured on EmuTOS 1.4 in Hatari (parity/shots/p2-endgame-wand-improved.png, p2-endgame-wand-unusable.png, p2-train-*.png; EmuTOS's form_alert comes from DRI's GEM AES as TOS's does) [~]: root box (widest line + 2) x (lines + 4) cells, its 1-px border inward, OUTLINED 3 px outside; centred in area (x, y, w, h); lines from cell (1, 1); one blank row, then the buttons (widest label + 1 cells each, button_gap cells apart, the row centred on whole cells), the default button's border 3 px outside. Colours: VDI 0 (fill) = register fill_pen, VDI 1 (lines, text) = register ink_pen of the palette the game mode shows. Font: TOS's 8x8 is not on the disks: the remaster's glyphs centred in the 8-px cells [~].",
+        "_note": "AES form_alert, measured on EmuTOS 1.4 in Hatari (parity/shots/p2-endgame-wand-improved.png, p2-endgame-wand-unusable.png, p2-train-*.png; EmuTOS's form_alert comes from DRI's GEM AES as TOS's does) [~]: root box (widest line + 2) x (lines + 4) cells, its 1-px border inward, OUTLINED 3 px outside; centred in area (x, y, w, h); lines from cell (1, 1); one blank row, then the buttons (widest label + 1 cells each, button_gap cells apart, the row centred on whole cells), the default button's border 3 px outside. Colours: VDI 0 (fill) = register fill_pen, VDI 1 (lines, text) = register ink_pen of the palette the game mode shows. Font (s160): TOS's 8x8 is not on the disks; EmuTOS's 8x8 (the pack's fonts role p2.alert), one glyph per 8-px cell from its top-left, as the shots pixel for pixel. Only Return / Enter (the default button, EmuTOS fm_keybd) or a click on the button closes the box.",
         "cell": 8,
         "outline": 3,
         "button_border": 3,
@@ -778,7 +790,7 @@
     "ending.crowd.2": "screens/crowd-2.png"
   },
   "ending_scene": {
-    "_note": "0x12f2a: intro page (10 lines by v_gtext at (2, 50 + 10i), VDI 3 = register 2 of the map palette the dungeon left, the OK form until OK; italic and TOS's 8x8 font not drawn [~]); final2.pic on black; registers 0..15 := combat, 10 Vsync each (vbl_hz 60, as the colour cycle); bottom lines (0x12a16: v_justified centred on 160, y 192, 310 wide, VDI 5 = register 6; each 3000 ms or a key) 'Filmon speaks:', 'Presenting ...'; evnt_timer 2000; per record 0..n-1 (n = OK members): its idle portrait on the door spot (150,75), its title line, the other pose (PARTY2), sound 32 (s135: Dosound, not waited for), crowd frames 0/1 x10 at (40,127) 330 ms apart, its portrait in row slot d7 (y 158, I's gap rule) and crowd frame 2; the door spot cleared; the wand lines and a blank line; closing page (21 lines at (2, 4 + 8i), VDI 4 = register 4, OK form); registers 15..0 := 0, 10 Vsync each.",
+    "_note": "0x12f2a: intro page (10 lines by v_gtext at (2, 50 + 10i), VDI 3 = register 2 of the map palette the dungeon left, the OK form until OK; s160: italic 8x8 = EmuTOS's font in VDI italic (intro_page.font, font_dx -4: top-aligned skewed text starts left_offset + right_offset px left of the point, EmuTOS vdi_text.c), the OK label (G_BOXTEXT te_font 5) in EmuTOS's 6x6 small font, button_font, s162: the s80 shot's O at (277, 184) pixel for pixel); final2.pic on black; registers 0..15 := combat, 10 Vsync each (vbl_hz 60, as the colour cycle); bottom lines (0x12a16: v_justified centred on 160, y 192, 310 wide, VDI 5 = register 6, plain 8x8 = font; spacing EmuTOS's vdi_v_justified, s160; each 3000 ms or a key) 'Filmon speaks:', 'Presenting ...'; evnt_timer 2000; per record 0..n-1 (n = OK members): its idle portrait on the door spot (150,75), its title line, the other pose (PARTY2), sound 32 (s135: Dosound, not waited for), crowd frames 0/1 x10 at (40,127) 330 ms apart, its portrait in row slot d7 (y 158, I's gap rule) and crowd frame 2; the door spot cleared; the wand lines and a blank line; closing page (21 lines at (2, 4 + 8i), VDI 4 = register 4, OK form); registers 15..0 := 0, 10 Vsync each.",
     "palette": [
       "#000000",
       "#B64824",
@@ -821,6 +833,7 @@
       "flash_ticks": 330,
       "sound": 32
     },
+    "font": "emutos-st-8x8",
     "text_y": 192,
     "text_pen": 6,
     "line_ticks": 3000,
@@ -849,7 +862,10 @@
       "line_gap": 10,
       "text_pen": 2,
       "button_pen": 15,
-      "sound": 33
+      "sound": 33,
+      "font": "emutos-st-8x8-italic",
+      "font_dx": -4,
+      "button_font": "emutos-st-6x6"
     },
     "closing_page": {
       "x": 2,
@@ -857,7 +873,10 @@
       "line_gap": 8,
       "text_pen": 4,
       "button_pen": 15,
-      "sound": 33
+      "sound": 33,
+      "font": "emutos-st-8x8-italic",
+      "font_dx": -4,
+      "button_font": "emutos-st-6x6"
     }
   },
   "picture_sets": [

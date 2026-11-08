@@ -129,7 +129,7 @@ public class AmigaOrdersScreenTests
         Assert.Equal(new Rectangle(0, 1, 48, 10), UiOverlays.FieldMenuTitleSpan(0, "File")); // 0x2b1c(column, 1, length + 2, 10)
         Assert.Equal(new Rectangle(48, 1, 72, 10), UiOverlays.FieldMenuTitleSpan(6, "Options"));
         Assert.Equal(new Rectangle(0, 12, 80, 16), FieldBox(0));    // "?) Info " 8 + 1 → 10 cells
-        Assert.Equal(new Rectangle(48, 12, 144, 64), FieldBox(1));  // "B) Beg for mercy " 17 + 1 → 18
+        Assert.Equal(new Rectangle(48, 12, 144, 64), FieldBox(1));  // "`p3field.item.B` " 17 + 1 → 18
         Assert.Equal(new Rectangle(112, 12, 96, 32), FieldBox(2));  // column 15 → 14; "=)  Normal " 11 + 1 → 12
         Assert.Equal(new Rectangle(48, 32, 144, 8), UiOverlays.FieldMenuItemRow(FieldBox(1), 2)); // text row 2 + i
     }
