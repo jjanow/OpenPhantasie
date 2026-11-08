@@ -1,16 +1,25 @@
 namespace OpenPhantasie.Importer.Pipelines.P1Dos;
 
 /// <summary>
-/// PHANTASI.COM unpacked (port of <c>re_common.py</c>, s22). The file is a small COM loader stub with an embedded MZ
-/// header at file 0xf0 whose entry point is a Microsoft EXEPACK stub ("RB" at image CS:0). Data tables are read from
-/// the unpacked load image at <c>DS = 0x0c9f</c> paragraphs (relocations not applied).
+/// I's DOS program unpacked (port of <c>re_common.py</c>, s22). Two packings give the same load image:
+/// <list type="bullet">
+/// <item>SSI 1987 <c>PHANTASI.COM</c>: a small COM loader stub with an embedded MZ header at file 0xf0 whose entry
+/// point is a Microsoft EXEPACK stub ("RB" at image CS:0).</item>
+/// <item>WizardWorks Bonus Edition (1990/91, the Memorial Set's I) <c>PHANTASI.EXE</c>: LZEXE 0.90 around the same
+/// EXEPACK image (inner CS 0x83b). Unpacked it equals 1987's except DS:0x3094 (0, not 1: saves are not created
+/// hidden; <c>reverse-engineering/dos/bonus-edition.md</c>).</item>
+/// </list>
+/// Data tables are read from the unpacked load image at <c>DS = 0x0c9f</c> paragraphs (relocations not applied).
 /// </summary>
 internal sealed class ComImage
 {
     private const int ComMzOffset = 0xF0;
     private const int ComDsPara = 0x0C9F;
 
-    public ComImage(byte[] phantasiCom) => Image = Unpack(phantasiCom);
+    /// <summary>The program file names, 1987's first.</summary>
+    public static readonly string[] ProgramFiles = ["PHANTASI.COM", "PHANTASI.EXE"];
+
+    public ComImage(byte[] program) => Image = UnpackAny(program);
 
     public byte[] Image { get; }
 
@@ -20,6 +29,11 @@ internal sealed class ComImage
     /// <summary>The NUL-terminated latin-1 string at <c>DS:ds</c> (read through a 0x40-byte window).</summary>
     public string CString(int ds) => Py.Latin1(Py.UntilNul(Ds(ds, 0x40)));
 
+    /// <summary>Either program file: an LZEXE-packed EXE (Bonus) or the 1987 COM.</summary>
+    public static byte[] UnpackAny(byte[] program) =>
+        LzExe.Is(program) ? UnpackExe(program) : Unpack(program);
+
+    /// <summary>1987's <c>PHANTASI.COM</c>.</summary>
     public static byte[] Unpack(byte[] f)
     {
         const int mz = ComMzOffset;
@@ -28,14 +42,31 @@ internal sealed class ComImage
         var cparhdr = Py.U16(f, mz + 8);
         var cs = Py.U16(f, mz + 0x16);
         var img = mz + cparhdr * 16;
-        var hdr = img + cs * 16;
+        return Exepack(f.AsSpan(img), cs, "PHANTASI.COM");
+    }
+
+    /// <summary>The Bonus Edition's <c>PHANTASI.EXE</c>: LZEXE 0.90, then the same EXEPACK image.</summary>
+    public static byte[] UnpackExe(byte[] exe)
+    {
+        var (image, cs) = LzExe.Unpack(exe);
+        return Exepack(image, cs, "PHANTASI.EXE");
+    }
+
+    /// <summary>Expands an EXEPACK load image whose stub header sits at <c>cs</c> paragraphs.</summary>
+    private static byte[] Exepack(ReadOnlySpan<byte> image, int cs, string what)
+    {
+        var hdr = cs * 16;
+        if (image.Length < hdr + 16)
+            throw Py.Bad($"{what}: EXEPACK header past the image end");
         // struct "<HHHHHHH2s": the 7th word is dest_len, then the signature.
-        var destLen = Py.U16(f, hdr + 12);
-        if (f[hdr + 14] != (byte)'R' || f[hdr + 15] != (byte)'B')
-            throw Py.Bad("PHANTASI.COM: EXEPACK signature missing");
+        var destLen = image[hdr + 12] | image[hdr + 13] << 8;
+        if (image[hdr + 14] != (byte)'R' || image[hdr + 15] != (byte)'B')
+            throw Py.Bad($"{what}: EXEPACK signature missing");
         var output = new byte[destLen * 16];
-        Array.Copy(f, img, output, 0, hdr - img);
-        var src = hdr - img;
+        if (hdr > output.Length)
+            throw Py.Bad($"{what}: EXEPACK image longer than its output");
+        image[..hdr].CopyTo(output);
+        var src = hdr;
         while (output[src - 1] == 0xFF) // the stub skips up to 15 bytes of 0xff padding
             src--;
         var dst = output.Length;
@@ -59,7 +90,7 @@ internal sealed class ComImage
             }
             else
             {
-                throw Py.Bad($"PHANTASI.COM: bad EXEPACK opcode {op:x2}");
+                throw Py.Bad($"{what}: bad EXEPACK opcode {op:x2}");
             }
             dst -= cnt;
             if ((op & 1) != 0)

@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using OpenPhantasie.Importer.Pipelines.P1Dos;
+using OpenPhantasie.Importer.Profiles;
 
 namespace OpenPhantasie.Importer.Pipelines;
 
@@ -14,14 +15,17 @@ namespace OpenPhantasie.Importer.Pipelines;
 /// <para>Not written here: <c>asset-manifest.json</c> (its <c>map_tiles</c> are ours, its <c>assets</c> come from the
 /// Amiga pack), the class (a) files, <c>guild.json</c> (a test fixture) and <c>strings/en.json</c>.</para>
 /// </summary>
-public sealed class P1DosPipeline : IImportPipeline
+public class P1DosPipeline : IImportPipeline
 {
     public const string Game = "phantasie1";
 
     /// <summary>The CGA pack root (<c>graphics/dos-cga.json</c> "root"), kept under the import's <c>files/</c>.</summary>
     public const string CgaRoot = "reverse-engineering/dos/extracted";
 
-    public string ProfileId => "p1-dos-1987";
+    /// <summary>The profile whose <c>strings/en.sources.json</c> alternatives this pipeline resolves.</summary>
+    public const string StringSourcesProfile = "p1-dos-1987";
+
+    public virtual string ProfileId => StringSourcesProfile;
     public int RecipeVersion => 1;
 
     public void Run(ImportContext ctx)
@@ -29,7 +33,7 @@ public sealed class P1DosPipeline : IImportPipeline
         byte[] Read(string name) => ctx.Files.Read(name);
 
         ctx.Progress("program tables");
-        var com = new ComImage(Read("PHANTASI.COM"));
+        var com = new ComImage(ProgramFile(ctx.Files));
         var twnsInt = Read("TWNS.INT");
         var items = ComTables.Items(com);
         var names = ComTables.Names(com, twnsInt);
@@ -64,6 +68,22 @@ public sealed class P1DosPipeline : IImportPipeline
             ctx.WritePng($"{CgaRoot}/ui/{path}", image, forceAlpha: true);
 
         // The game's own lines of the string tables (10-importer.md 7.6).
-        ImportedStrings.Write(ctx);
+        // The Bonus build's image and overlays hold them at 1987's offsets, so it resolves 1987's alternatives.
+        ImportedStrings.Write(ctx, sourcesProfile: StringSourcesProfile);
     }
+
+    /// <summary>The program file: 1987's <c>PHANTASI.COM</c> or the Bonus Edition's <c>PHANTASI.EXE</c>.</summary>
+    internal static byte[] ProgramFile(FileSet files) =>
+        ComImage.ProgramFiles.Select(n => files.Find(n)?.Data).FirstOrDefault(d => d is not null)
+        ?? throw new FileNotFoundException("PHANTASI.COM / PHANTASI.EXE not found");
+}
+
+/// <summary>
+/// Phantasie I, DOS, WizardWorks Bonus Edition Ver 1.0 9/21/90 (sold as Bonus v1.1 1991; the Memorial Set's I).
+/// Its program is 1987's repacked (<see cref="ComImage"/>), and every data file and every table, art or string offset
+/// the 1987 pipeline reads is unchanged (<c>reverse-engineering/dos/bonus-edition.md</c>), so it runs the same steps.
+/// </summary>
+public sealed class P1DosBonusPipeline : P1DosPipeline
+{
+    public override string ProfileId => "p1-dos-bonus-1991";
 }

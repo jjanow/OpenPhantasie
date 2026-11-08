@@ -96,6 +96,8 @@ public class ContainerTests
     [InlineData("p1-dos-1987", "reverse-engineering/dos/original-images/phantasie1/phantasie-1987-ssi-360k.ima")]
     [InlineData("p1-dos-1987", "reverse-engineering/dos/original-images/phantasie1/phantasie-1987-ssi-360k.zip")]
     [InlineData("p1-dos-1987", "reverse-engineering/dos/original-files")]
+    [InlineData("p1-dos-bonus-1991", "reverse-engineering/dos/original-images/phantasie1/bonus-v1.1-1991-wizardworks")]
+    [InlineData("p1-dos-bonus-1991", "reverse-engineering/dos/original-images/phantasie1/memorial-set-gog")]
     [InlineData("p1-amiga-1.0", "reverse-engineering/amiga/original-images/phantasie1/phantasie-v1.0-1987-ssi.adf")]
     [InlineData("p3-dos-1988", "reverse-engineering/dos/original-images/phantasie3/phantasie3-1988-ssi-360k.ima")]
     [InlineData("p3-amiga-1.0", "reverse-engineering/amiga/original-images/phantasie3/phantasie3-v1.0-1987-ssi.adf")]
@@ -131,7 +133,6 @@ public class ContainerTests
     [RequiresFilesTheory("reverse-engineering/apple2/original-images")]
     [InlineData("p2-apple2", "reverse-engineering/apple2/original-images/phantasie2/woz-original")]
     [InlineData("p1-c64", "reverse-engineering/c64/original-images/phantasie1/en")]
-    [InlineData("p1-dos-bonus-1991", "reverse-engineering/dos/original-images/phantasie1/bonus-v1.1-1991-wizardworks")]
     [InlineData("p4-pc98", "reverse-engineering/pc98/original-images/phantasie4")]
     public void Recognises_UnsupportedVersions(string profile, string source)
     {

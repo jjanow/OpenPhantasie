@@ -93,12 +93,15 @@ public static class ImportedStrings
     /// <paramref name="extra"/> adds more resolved ids for a table (Phantasie IV's lines that equal the Japanese).
     /// Lines in the version's own wording go, from every table, to <paramref name="ownWordingGame"/>'s
     /// <see cref="OwnWordingFile"/>; null leaves them out (another version's tables won).
+    /// <paramref name="sourcesProfile"/> resolves another profile's alternatives from this version's files (a
+    /// repacked build whose offsets are the same); the output still goes to this profile's file.
     /// </summary>
     public static void Write(ImportContext ctx, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? extra = null,
-        string? ownWordingGame = null)
+        string? ownWordingGame = null, string? sourcesProfile = null)
     {
         var files = new FileCache(ctx.Files);
         var profile = ctx.Profile.Id;
+        var from = sourcesProfile ?? profile;
         var tables = Tables.Concat(extra?.Keys ?? []).Distinct();
         var own = new JsonObject();
         foreach (var table in tables)
@@ -110,7 +113,7 @@ public static class ImportedStrings
                     if (alts is not JsonArray list)
                         continue;
                     foreach (var alt in list)
-                        if (alt?["from"]?.GetValue<string>() == profile && alt["parts"] is JsonArray parts
+                        if (alt?["from"]?.GetValue<string>() == from && alt["parts"] is JsonArray parts
                             && Resolve(parts, files) is { } text)
                         {
                             if (alt["wording"] is null)
@@ -186,7 +189,8 @@ public static class ImportedStrings
             byte[]? Raw(string name) => set.Find(name)?.Data;
             var data = key switch
             {
-                "PHANTASI.COM:unpacked" => Raw("PHANTASI.COM") is { } com ? ComImage.Unpack(com) : null,
+                // The Bonus Edition's PHANTASI.EXE unpacks to the same image (ComImage).
+                "PHANTASI.COM:unpacked" => (Raw("PHANTASI.COM") ?? Raw("PHANTASI.EXE")) is { } com ? ComImage.UnpackAny(com) : null,
                 "MAIN.EXE:root" => Raw("MAIN.EXE") is { } exe ? P3Exe.UnpackRoot(exe) : null,
                 _ when key.EndsWith(":page", StringComparison.Ordinal) =>
                     Raw(key[..^5]) is { } page ? Encoding.Latin1.GetBytes(string.Join("\n", A2Text.TextPage(page))) : null,

@@ -222,8 +222,8 @@ come from, and I's 682 ids and the shared `p3*` / `p4` areas are not tagged.
 | Game | Version (repo images) | Feeds today | Scripts | Status |
 |---|---|---|---|---|
 | I | **DOS SSI 1987** (`dos/…/phantasie-1987-ssi-360k.ima`, files in `dos/original-files/`) | every I table (b, c) + DOS CGA pack | `re_common`, `extract_monsters` / `_items` / `_names` / `_towns` / `_maps` / `_elementals` / `_level_tables`, `decrypt_messages`, `decrypt_scrolls`, `extract_dungeon_events`, `build_item_descriptions`, `extract_dos_map_tiles`, `extract_dos_town_picture` | supported (parity reference) |
-| I | DOS Bonus v1.1 (WizardWorks 1991) | nothing: `PHANTASI.EXE`, not `.COM`; the extractors read DS offsets of the `.COM` image | — | recognised, not supported until diffed |
-| I | Memorial Set DOS I (Steam app 2702050, GOG product 1919929332; DOSBox): the **Bonus Edition Ver 1.0 9/21/90**, every game file = Bonus v1.1's (s166, `dos/original-images/memorial-set-gog/README.md`) | nothing (as Bonus v1.1) | — | recognised as `p1-dos-bonus-1991`, not supported |
+| I | DOS Bonus Edition Ver 1.1 11/12/90 (WizardWorks 1991 `.ima`) | every I table + DOS CGA pack, as 1987 (s168: `PHANTASI.EXE` is LZEXE 0.90 over the same EXEPACK image; unpacked it is 1987's but one byte; every data file and every offset read is the same, `dos/bonus-edition.md`) | as 1987 (+ `re_common.unpack_phantasi`) | supported (`p1-dos-bonus-1991`, `P1DosBonusPipeline`: output equal to 1987's) |
+| I | Memorial Set DOS I (Steam app 2702050, GOG product 1919929332; DOSBox): the **Bonus Edition Ver 1.0 9/21/90**, every game file = Ver 1.1's (s166, `dos/original-images/memorial-set-gog/README.md`) | as Bonus Ver 1.1 | as 1987 | supported (s168, found as `p1-dos-bonus-1991`, unplayed) |
 | I | **Amiga v1.0 1987** (`.adf`, also `.zip`) | Amiga pack: art, map pictures, title tune, sounds. The map pictures need I's DOS `overworld.json` | `amiga_gfx_common`, `extract_amiga_graphics`, `extract_amiga_map_graphics`, `build_amiga_asset_manifest`, `extract_amiga_fonts` (topaz 8 needs the Kickstart 1.3 ROM) (disk unpack: amitools `xdftool`) | supported for art only; its data files (`dng*`, `mess*`, `out*.dat`, `twns.*`, `scrolls.dtx`) have no extractor, so Amiga alone can't build I's tables |
 | I | C64 en / de (`.d64`) | files only | `extract_c64_d64.py` | recognised, no extractor |
 | I | Apple II, Atari ST (v2.0 en, v1.0 de), Atari 8-bit, MSX2, PC-88, PC-98, X1 | — | — | recognised by hash only |
@@ -238,8 +238,8 @@ come from, and I's 682 ids and the shared `p3*` / `p4` areas are not tagged.
 | IV | **X68000 Ver.1.02** (`.dim`) | every IV table, `ja.json`, X68000 pack, tunes, voices | `x68k_dim`, `x68k_x`, `extract_x68k_p4_tables` / `_creation` / `_text`, `x68k_p4_events`, `build_p4_gamedata`, `x68k_p4_pkh`, `x68k_p4_pix`, `x68k_p4_fonts`, `x68k_p4_panels`, `x68k_p4_anim` | supported |
 | IV | PC-98 (`.hdm`), MSX2 (`.dsk`, + 2008 patch images), PC-88 (`.d88`) | nothing; IV's string ids are X68000 addresses | — (`msx2_p4_dis.py` is a disassembler) | not supported |
 
-Consequence (s166, checked on the GOG install): a player with only the Memorial Set can build II's (Apple, since s167) and
-III's tables; I's is the Bonus build (no pipeline). Neither I nor III gets **default art** from it
+Consequence (s166, checked on the GOG install): a player with only the Memorial Set can build I's (the Bonus build,
+since s168), II's (Apple, since s167) and III's tables. Neither I nor III gets **default art** from it
 (the DOS CGA is never the default: `phantasie1/graphics/index.json`, user 2026-10-25).
 (Since s158 / s160 the CGA packs are drawn when no Amiga pack is imported: `fallback_order` in both indexes; s158 added
 the Apple II II importer.)
@@ -529,8 +529,10 @@ run or earlier) the ST's tables win and the Apple adds only `apple2.json` + its 
 - **II Apple II:** run in the Client (s163, 7.5): the ending and the Mystic seen; MONSTER EVALUATION in a fight's spell
   window not seen. Memorial Set disks (DOS 3.3 sector order): read and found since s167 (`RdosVolume.TryOpen` reads
   both orders and keeps the longer catalog; catalog sector 0 is the same in both); their saves are the pristine sha1s.
-- **I Bonus Edition** (the Memorial Set's I, s166): `PHANTASI.EXE`, `OV1.OVR`, `OV2.OVR` and `IBMCOVER` differ from 1987;
-  diff them before a pipeline reads this build.
+- **I Bonus Edition** (the Memorial Set's I): imported since s168 (`dos/bonus-edition.md`: `OV1.OVR` / `OV2.OVR` differ
+  only in the hidden-save flag and the manual page lines; `IBMCOVER`, the WizardWorks cover, is not read).
+  An import made before s168 recorded only the versions it imported, so the recipe re-run (4.4) does not find I in
+  it: the player imports the Memorial Set again (II / III are re-imported unchanged).
 - **Recipe re-runs** (4.4) and the CLI's `--check` (4.1): built s163.
 - **Played-copy hashes for I Amiga `OUT*.DAT`** (3.3 row): eleven pristine sha1s in the profile (s163); `OUT1` / `5` /
   `9` / `10` / `11` / `13` / `14` have none (the only dump played them).
@@ -798,6 +800,10 @@ Taken from the unpacked copies in the repo.
 | I DOS 1987 | `PAT` | 450 | `0d2a8b41008609482390f16feb02389b11d30c49` |
 | I DOS 1987 | `PELNOR.IBM` | 16384 | `fc8415d91dc1e3ce5c14887f9b3f7be22885aa05` |
 | I DOS 1987 | `SCROLLS.DTX` | 16000 | `389814ca45f5c4c60aa5919fafb7f1efe8d360e8` |
+| I DOS Bonus | `PHANTASI.EXE` | 21101 | `9ea72256094488bd00568205520e5b20df6298ca` |
+| I DOS Bonus | `OV1.OVR` | 25703 | `3cd725a48954cb7ba508890c769eed153a2b6928` |
+| I DOS Bonus | `OV2.OVR` | 32963 | `bf215b3d4d376ca532b2264dd8204e699fbfc27e` |
+| I DOS Bonus | `TWNS.INT`, `PAT`, `PELNOR.IBM`, `SCROLLS.DTX` | | as 1987 (Ver 1.0 and 1.1 alike) |
 | I Amiga v1.0 | `game` | 193804 | `fc3ce94d649684ea3003b404f662dec74ddd5e9e` |
 | I Amiga v1.0 | `tamb.dat` | 2850 | `a2e342a5ed03642bc0d15c3d001aaf613f36e6ff` |
 | I Amiga v1.0 | `twns.int` | 13000 | `d1d6e5d4b9243f48b08eceb8cb3652527b5b92c4` |

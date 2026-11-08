@@ -15,7 +15,7 @@ machine.
 
 | Game | Version | What it gives |
 |---|---|---|
-| Phantasie I | DOS, SSI 1987 (360K disk image or the game's folder) | the game (tables, text, maps) and the DOS CGA pictures |
+| Phantasie I | DOS, SSI 1987 or the WizardWorks Bonus Edition, including the Steam / GOG "Phantasie Memorial Set" (360K disk image or the game's folder) | the game (tables, text, maps) and the DOS CGA pictures |
 | Phantasie I | Amiga v1.0, 1987 (`.adf`) | the Amiga pictures, title music and sounds (needs the DOS copy for the game itself) |
 | | Amiga Kickstart 1.3 ROM | the Amiga screen font (optional, for the Amiga look) |
 | Phantasie II | Atari ST v1.0 (two `.stx` or `.st` disks) | the game and the Atari ST pictures and music |
@@ -27,7 +27,7 @@ machine.
 Copies are recognised by their content (checksums of the program and data files), not by file or folder names, so
 an installed store version can be pointed at directly. A copy that has been played is imported as it is; the import
 report says what that changes (for DOS Phantasie I: map regions already explored and fixed fights already won).
-Other versions (DOS Phantasie I Bonus Edition, which is also the Memorial Set's I; C64, Apple II Phantasie I / III,
+Other versions (C64, Apple II Phantasie I / III,
 PC-88, PC-98, MSX2, …) are recognised but cannot be imported yet.
 
 ## Building and running

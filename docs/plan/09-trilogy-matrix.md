@@ -55,8 +55,9 @@ Notes:
   fresh default saves, so starting state comes from the `.INT` files or a new game. The C64 "v1.0/v1.2"
   labels rest only on archive item names `[?]`.
 - Not found anywhere: the English Atari ST Phantasie I v1.0 two-disk original; a clean (uncracked) Apple II Phantasie III.
-- Phantasie I DOS Bonus Edition v1.1 (WizardWorks 1991) is a later build (`PHANTASI.EXE`, not `.COM`). It is not the parity
-  reference; worth a diff someday to see whether it fixes any of the DOS faults in `DIFFERENCES.md`.
+- Phantasie I DOS Bonus Edition v1.1 (WizardWorks 1991, also the Memorial Set's I) is 1987's program repacked
+  (`PHANTASI.EXE`, LZEXE over EXEPACK): diffed s168 (`dos/bonus-edition.md`), it fixes none of the DOS faults in
+  `DIFFERENCES.md` (saves are no longer hidden files, the manual page lines changed). The importer reads it as 1987.
 
 ## 2. Feature matrix
 

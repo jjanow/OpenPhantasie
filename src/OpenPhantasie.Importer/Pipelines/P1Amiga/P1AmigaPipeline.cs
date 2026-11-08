@@ -9,7 +9,7 @@ namespace OpenPhantasie.Importer.Pipelines.P1Amiga;
 /// tune; <c>game</c>, the sound effects). Ports <c>amiga_gfx_common.py</c>, <c>extract_amiga_graphics.py</c>,
 /// <c>extract_amiga_map_graphics.py</c>, <c>build_amiga_asset_manifest.py</c> and <c>extract_amiga_fonts.py</c>.
 /// <para>Reads I's DOS tables (<c>overworld.json</c>, <c>map-patches.json</c>, <c>monsters.json</c>, <c>names.json</c>)
-/// for the map pictures and the asset manifest, so it runs after <c>p1-dos-1987</c>; topaz 8 comes from the Kickstart
+/// for the map pictures and the asset manifest, so it runs after <c>p1-dos-1987</c> (or the Bonus build); topaz 8 comes from the Kickstart
 /// 1.3 ROM when the player gave it (profile <c>kickstart-1.3</c>); otherwise it is skipped and the import report offers
 /// to add the ROM (the profile's <c>companions</c>, s160).</para>
 /// </summary>
@@ -28,7 +28,7 @@ public sealed class P1AmigaPipeline : IImportPipeline
 
     public string ProfileId => "p1-amiga-1.0";
     public int RecipeVersion => 1;
-    public IReadOnlyList<string> RunsAfter => ["p1-dos-1987"];
+    public IReadOnlyList<string> RunsAfter => ["p1-dos-1987", "p1-dos-bonus-1991"];
 
     public void Run(ImportContext ctx)
     {

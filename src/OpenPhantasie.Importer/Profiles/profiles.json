@@ -193,19 +193,183 @@
   {
    "id": "p1-dos-bonus-1991",
    "game": "phantasie1",
-   "title": "Phantasie I (DOS, Bonus v1.1, WizardWorks 1991)",
+   "title": "Phantasie I (DOS, WizardWorks Bonus Edition 1990/91)",
    "platform": "dos",
-   "status": "recognised",
-   "reason": "its PHANTASI.EXE differs from the 1987 PHANTASI.COM the extractors read (not diffed yet)",
+   "status": "supported",
+   "feeds": [
+    "tables",
+    "art:dos-cga"
+   ],
+   "disks": [
+    {
+     "label": "game disk",
+     "key_files": [
+      {
+       "name": "PHANTASI.EXE",
+       "size": 21101,
+       "sha1": "9ea72256094488bd00568205520e5b20df6298ca"
+      },
+      {
+       "name": "OV1.OVR",
+       "size": 25703,
+       "sha1": "3cd725a48954cb7ba508890c769eed153a2b6928"
+      },
+      {
+       "name": "OV2.OVR",
+       "size": 32963,
+       "sha1": "bf215b3d4d376ca532b2264dd8204e699fbfc27e"
+      },
+      {
+       "name": "TWNS.INT",
+       "size": 12987,
+       "sha1": "82532a99586d62c5b2a33060038e9755cbddecbf"
+      },
+      {
+       "name": "PAT",
+       "size": 450,
+       "sha1": "0d2a8b41008609482390f16feb02389b11d30c49"
+      },
+      {
+       "name": "PELNOR.IBM",
+       "size": 16384,
+       "sha1": "fc8415d91dc1e3ce5c14887f9b3f7be22885aa05"
+      },
+      {
+       "name": "SCROLLS.DTX",
+       "size": 16000,
+       "sha1": "389814ca45f5c4c60aa5919fafb7f1efe8d360e8"
+      }
+     ]
+    }
+   ],
    "name_markers": [
     "PHANTASI.EXE",
     "OV1.OVR",
+    "OV2.OVR",
     "TWNS.INT"
+   ],
+   "mutable_files": [
+    {
+     "name": "TWNS.DAT",
+     "size": 3492,
+     "sha1": "02b894b0e3062550645d8af7038ad69cc4d40b7d"
+    },
+    {
+     "name": "GUILD.DAT",
+     "size": 6204,
+     "sha1": "332b0ae35ec735928c3a4a7fc94d871bb6a2ffd6"
+    },
+    {
+     "name": "SACK.DAT",
+     "size": 120,
+     "sha1": "b110a88a11436b215220486c1081dec2fb0f389a"
+    },
+    {
+     "name": "DNG.SAV",
+     "size": 6386,
+     "sha1": "032ca136dcd1db2b085f27e5cfff90d20fe6701c"
+    },
+    {
+     "name": "DNGX.SAV",
+     "size": 2500,
+     "sha1": "6cfed8d692b0a1890d5957e00f3c422b332ae827"
+    },
+    {
+     "name": "OUT1.DAT",
+     "size": 1024,
+     "sha1": "0f19a43c9039d860d7932b6e4d79edc20f3e17d3"
+    },
+    {
+     "name": "OUT2.DAT",
+     "size": 1024,
+     "sha1": "0a95ee7b77940d7fc62a4d946510094aca53300c"
+    },
+    {
+     "name": "OUT3.DAT",
+     "size": 1024,
+     "sha1": "77830607c56c98d99f5fd1d2bb03c8e33a03c07a"
+    },
+    {
+     "name": "OUT4.DAT",
+     "size": 1024,
+     "sha1": "1d7df6ba371363356de5089faf1683184c637988"
+    },
+    {
+     "name": "OUT5.DAT",
+     "size": 1024,
+     "sha1": "8a594c8bdc2fd797a2e6039b46435bf8534838dd"
+    },
+    {
+     "name": "OUT6.DAT",
+     "size": 1024,
+     "sha1": "0b30aba9120445defe291b841d605e39b1782ca2"
+    },
+    {
+     "name": "OUT7.DAT",
+     "size": 1024,
+     "sha1": "09ef05e4e2577ddecae9354d38eb750aad3c05ca"
+    },
+    {
+     "name": "OUT8.DAT",
+     "size": 1024,
+     "sha1": "6c60e9c99c2975760144ebf54ca0726be2db4120"
+    },
+    {
+     "name": "OUT9.DAT",
+     "size": 1024,
+     "sha1": "0abb3c03035d88530f69705a7cbf08093724bf66"
+    },
+    {
+     "name": "OUT10.DAT",
+     "size": 1024,
+     "sha1": "d838e7c099b9dca02028e8844bbcd2187887e943"
+    },
+    {
+     "name": "OUT11.DAT",
+     "size": 1024,
+     "sha1": "5793fd735cde89ea793d941ea76abedaa86308e4"
+    },
+    {
+     "name": "OUT12.DAT",
+     "size": 1024,
+     "sha1": "c2b2071f1fad61e63f1268771e3b6c63661c171a"
+    },
+    {
+     "name": "OUT13.DAT",
+     "size": 1024,
+     "sha1": "5e1c3b15b15d415a968714c2ece2f19ddb637f01"
+    },
+    {
+     "name": "OUT14.DAT",
+     "size": 1024,
+     "sha1": "7e2c55aa13932b45199013d0030a6f9f9e0f0c58"
+    },
+    {
+     "name": "OUT15.DAT",
+     "size": 1024,
+     "sha1": "ac9641b371615d9c5993d1cf7ede7fa5951787ea"
+    },
+    {
+     "name": "OUT16.DAT",
+     "size": 1024,
+     "sha1": "7aba93b33ac1d14b1a3ff5e5c6bc3034abd5b839"
+    },
+    {
+     "name": "OUT18.DAT",
+     "size": 1024,
+     "sha1": "efc2e4e1618a83d7ff5ea8a01dc9d0556faaf077"
+    },
+    {
+     "name": "OUT19.DAT",
+     "size": 1024,
+     "sha1": "b0a1627ea13922b83ad38099c042f438749a046d"
+    }
    ],
    "images": [
     {
      "sha1": "87bc9e6a9a28c0290ce31dd305bc6477735ed0d6",
-     "size": 368640
+     "size": 368640,
+     "note": "Bonus v1.1 reference dump (.ima); the Memorial Set's I has the same game files"
     }
    ]
   },
