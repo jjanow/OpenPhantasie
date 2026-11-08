@@ -54,6 +54,17 @@ public sealed class UseItemDialog : IModalDialog, IPagedDialog
     /// </summary>
     public int? ScrollItem => _step == Step.Text && _pictureItem is null ? _scrollItem : null;
 
+    /// <summary>
+    /// s165: the scroll's rows as <c>SCROLLS.DTX</c> stores them (entry n − 121: 20 rows, leading blanks kept, no title, not
+    /// wrapped) while its text is up, or null (no text, a picture, or a game whose scroll items name records). I Amiga's
+    /// requester 19 prints these (h29 <c>+0x2c4</c>: ITexts 0x98–0xab at the 40-byte rows).
+    /// </summary>
+    public IReadOnlyList<string>? ScrollRows =>
+        _step == Step.Text && _scrollItem is int id && _pictureItem is null && !_data.ScrollItemRecords.ContainsKey(id)
+        && _data.Scrolls.FirstOrDefault(sc => sc.Id == id - 120) is { } scroll
+            ? scroll.Lines
+            : null;
+
     /// <summary>Counts the scrolls opened, so the Client picks a scroll frame's random edges once per reading.</summary>
     public int ScrollReads { get; private set; }
 

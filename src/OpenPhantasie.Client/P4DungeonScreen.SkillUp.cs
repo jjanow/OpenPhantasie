@@ -92,6 +92,8 @@ public sealed partial class P4DungeonScreen
             P4TrainingNote.PoorCondition => "poor_condition",
             P4TrainingNote.NothingMoreToTeach => "nothing_more",
             P4TrainingNote.NeedsExperience => "needs_experience",
+            P4TrainingNote.NotWorthy => "not_worthy",
+            P4TrainingNote.Offer => "offer",
             _ => "cost",
         };
         var pieces = new List<(int? X, int? Y, string Text, int Font, int Colour)>
@@ -101,9 +103,17 @@ public sealed partial class P4DungeonScreen
         IEnumerable<TrainingHallSegment> segments = hall.Notes.TryGetValue(key, out var note) ? note : [];
         if (window.ShortOfGold)
             segments = segments.Append(hall.ShortOfGold);
+        // s165: _mage's result row at (16, 64) in colour 2 (the pack's "results").
+        TrainingHallSegment? result = window.Result is { } r && hall.Results is { } results
+            && results.TryGetValue(r == P4LessonResult.Learned ? "learned" : "failed", out var rs) ? rs : null;
+        if (result is not null)
+            segments = segments.Append(result);
         foreach (var s in segments)
             pieces.Add((s.X, s.Y, s.Number ? window.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)
-                : text(s), s.Font, s.Colour ?? hall.TextColour));
+                // The original prints "その魔法を学んだ。" alone; the English line (" learned the spell.", starting with a
+                // space) needs its subject, so the member's name goes before it, as in the text column `[~]`.
+                : ReferenceEquals(s, result) && text(s) is { } t && t.StartsWith(' ') ? window.Member + t : text(s),
+                s.Font, s.Colour ?? hall.TextColour));
         return [.. FlowText(pieces.Select(p => (p.X, p.Y, p.Text, p.Font, p.Colour, 0)), hall.Name.X, hall.Name.Y, right,
             hall.LineStep, (t, font, _) => width(t, font)).Select(r => (r.X, r.Y, r.Text, r.Font, r.Colour))];
     }

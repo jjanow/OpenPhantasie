@@ -509,9 +509,31 @@ below are the window's. Each row is **32 pixels high**: the icon `_wputc(win, _i
   key. Shots `parity/shots/p4-remaster-armory-window.png`, `-trade-window.png`, `-share-out-window.png`,
   `-use-window.png`, `-use-window-dungeon.png` (a location map: the window takes the view's place and fits). The text column keeps its lines and keys (as the training hall's). `[~]`: an English name that
   would reach the points column takes the row's two 16-dot lines (split at the space that leaves both shortest; the
-  original's names fit one line); Share out's equipment table under its divider (`_init_eq` / `_disp_eq`) is not read
-  or drawn; Identify's window is drawn by the same code as Use's, not seen live; the Armory's message line is the
+  original's names fit one line); Identify's window is drawn by the same code as Use's, not seen live; the Armory's message line is the
   remaster's last box line.
+
+**Share out's equipment table (s165, static `[C]`; `_init_eq` `0x9F4E`, `_disp_eq` `0x9D5A`, `_dvitmlst`'s slot box,
+  `_distribute`'s member buttons; every call site asserted by `x68k_p4_panels.py` → the pack's
+  `item_windows._distribute.equipment`):** under the divider `_whole(win, 16, 208, 280, 4)`: the headers # 名前 職業 武 鎧 盾
+  弓 投 (`0x40BBD` … `0x40BD5`) at x 16 / 32 / 136 / 184 / 208 / 232 / 256 / 280, y 224; a colour-0 line `_wfbox(win, 0,
+  16, 239, 280, 1)`; member m's row at y = 240 + 16 m: m + 1 by `_wlocdi(win, 16, y, 1, m + 1)` in colour 2 (`_fgcol`
+  `0x3A2F6` = 2 around it), the name at x 32, the class name (`0x3DC14` table: P4.X's own English names "Thief" …
+  "Gargoyle") at x 136 character by character while the width printed so far is below 32 (`_flen`, `0xA048`: "Thie",
+  "Figh", "Shad"); `_disp_eq` clears the values (`_wfbox(win, 14, 184, y, 112, 16)`) and prints `_wlocdc(win, x, y, 2,
+  value)` of record +6B (weapon) at 184, +B7 (armour) 208, +B6 (shield) 232, +6A (bow) 256, +69 (thrown) 280: the best
+  usable item's points `_equip` left (`_set_dx` clears them with the items for D Share out; `_equip` runs again for a
+  member given an item he can use, then `_disp_eq`). `_distribute` puts a member button over each row (`_setbtn(-1, win,
+  16, 240 + 16 m, 280, 16, '1' + m)`; a member with no free slot has it off, `0xA46A`). `_dvitmlst` boxes the placed
+  item's slot in the header: `_wxbox(win, 15, _pwaku[kind], 224, 16, 15)` with `_pwaku` (`0x40B54`) = 0, 184, 208, 232,
+  256, 280 and kind by id: ≤ 8 shield (3), ≤ 27 armour (2), ≤ 63 weapon (1), ≤ 75 bow (4), ≤ 84 thrown (5), else none (the
+  last box XORed again before the next). **Built (s165):** the Client draws the table under the divider with the rows'
+  values from Core's `P4Equipment.Best` (the same best-usable-item rule, so the same numbers as `_equip`'s bytes after
+  `_set_dx` / a give; on the arrival share-out the original shows the bytes the last `_equip` left `[~]`), the slot box
+  lit (XOR 15) and the member rows clickable (`parity/shots/p4-remaster-share-out-equipment.png`,
+  `-share-out-equipment-given.png`, a temporary preview change giving the party pack items, not committed). `[~]`: the
+  English headers ("Wpn", "Arm" …) are wider than the 24-pixel step, so the value columns move to a step of the widest
+  header + 2 and left to end inside the window (172, 199, …); the box takes the English header's width when wider than
+  16. Not seen on XEiJ (from the code only).
 
 **Command panel (s136, static) `[C]`:** every icon menu goes through `_mkicon(count, table, clear, title)` (`0x61F4`):
 with `clear` ≠ 0 it runs `_clrbtn` / `_clrbtd` and opens window 34 = `_wopen(34, 496, 48, 136, 324, 1, title)` (title ""
@@ -938,20 +960,43 @@ unless tagged; P4.X read from the `jsr` sites, `tools/scripts/x68k_p4_panels.py`
   picture). s163: the inn's, the bank's, the banquet's and the cell's windows are drawn at the original's 352 rows with
   what the original holds in them ("Building windows under the picture" below). The final screen and the Town Gate are
   drawn in their windows (below). s163: the item windows (`_armory`, `_distribute`, `_trade`, `_setuse`, `_setident`) are
-  drawn titled with the original's rows ("Item lists" above). Still without bar / frame (their content is the remaster's
-  box text in the picture's place, not the original's window layout): `_mage` (the Magic Training Hall; read s163,
-  below, not built) and `_gatebank`'s share-out (312 × 160 at (160, 132), its rows not read) `[~]`.
-- **`_mage`'s own window (s163, static `[C]`, not built yet):** at each member pick `_wopen(32, 160, 32, 312, 352, 1,
+  drawn titled with the original's rows ("Item lists" above). s165: `_mage`'s window and `_gatebank`'s share-out are
+  read and drawn too (below).
+- **`_mage`'s own window (s163, static `[C]`; built s165):** at each member pick `_wopen(32, 160, 32, 312, 352, 1,
   "魔法訓練場")` (`0x3A96`), `_amark`, the name `_wlocpr(32, 16, 16, name)`; then one note, as `_trang`'s: on the branch
-  that offers nothing (its test before `0x35C4` not read `[~]`), level byte over 30 → `_wprint("はもはやこれ以上教える事は
+  that offers nothing (s165, read: condition +0A ≠ 1 → poor health at `0x3556`; else the quota compare `0x3574` (`bgt` →
+  refused) or no open spell (`0x357C`) → refused at `0x3584`: Score +09 ≥ 125 (`0x35A8`, `bcc`) or level +08 > 30
+  (`0x35D4`, else `bls` → "not yet worthy")), Score ≥ 125 or level byte over 30 → `_wprint("はもはやこれ以上教える事は
   ない。")` after the name (`0x35DC`), else `_wlocpr(32, 16, 32, "[original text]")` (`0x360A`); poor condition `_wprint("[original text]")` +
   `_wlocpr(32, 32, 32, "[original text]")` (`0x3972` / `0x399E`); else the offer: `_wlocpr(32, 120, 16, "どの魔法も")`
   (on the name's row), `_wlocpr(32, 16, 32, "１つにつき")`, `_font(1, −1, 8, −1)` + `_wdoutl(32, 137, price)` (font 1,
   colour 8, left-aligned), `_font(0, −1, −2, −1)`, `_wprint(" [original text]")`, `_wlocpr(32, 16, 48, "さて、どの魔法を学ぶ
   のじゃ？")`, then `_getmagic(member, 8)` (the spell list in window 34); after a pick `_font(0, −1, 2, −1)` (colour 2),
   `_wfbox(32, 14, 0, 64, 311, 16)` and at (16, 64) "[original text]" / "×落第だ。" / "[original text]", `_font(0, −1,
-  −2, −1)`; the offer loops while picks are left. The remaster prints these lines in its box (the window's layout is the
-  pack's next step, as `trang`).
+  −2, −1)`; the offer loops while picks are left (`0x395C`, the offer printed again at `0x36F0`; the result row stays up
+  through the next `_getmagic`); short of gold `_wclose(34)` and the member pick, window 32 still up. **Built (s165):**
+  the pack's `mage` (the `trang` shape plus `results` / `result_clear`; call sites asserted by `x68k_p4_panels.py`),
+  Core `P4TrainingWindow` with `Hall` = `_mage`, notes `NotWorthy` / `Offer` and the `Result` (failed / learned); the
+  Client draws it as the training hall's titled window (`parity/shots/p4-remaster-mage-not-worthy.png`,
+  `-mage-offer.png`, `-mage-short.png`; spells opened by a temporary preview change, not committed). The text column
+  keeps its lines and keys. `[~]`: the English "learned" line (" learned the spell.") gets the member's name before it
+  (the original's "[original text]" has no subject); the remaster's SPACE wait after each lesson (`_mage` calls no
+  `_spc_wait`) is kept. Not seen on XEiJ.
+- **`_gatebank`'s share-out window (s165, static `[C]`; `0x4EF0`, every call site asserted by `x68k_p4_panels.py` → the
+  pack's `gatebank`):** only with a party (`_par`+0C ≠ 0); `_clrtdraw`, `_font(0, 0, 0, 14)`, `_wopen(-1, 160, 132,
+  312, 160, 1, "[original text]")`, `_wactive`, `_clrbtn`; "[original text] " (`0x3FEBC`) at (68, 136), the pool × 10 by
+  `_wdoutl(win, 8, …)` (8 digits, each leading zero two spaces), " EXP" (`0x3FECC`); `_whole(win, 264, 32, 40, 92)`;
+  four share buttons `_setbtn(-1, win, 272, 40 + 20 i, 24, 16, '0' + i, 64, 1)` drawn "  " + digit + "  " on colour-4
+  cells (`0x789AC` = 4, 14 after); then member m in order: the name at (32, 16 + 16 m), `_wloc(win, 164, y)` (only the
+  text place: `_wloc` stores x / y, `_mgetc` draws no cursor), the "0" button's enable = condition ≠ Okay, `_mgetc`, the
+  share `_wdouti(win, 1, n)` at x 164; per share = pool × 10 / (Σ + 0.0001); each row's x 164 is overwritten by
+  `_wdoutl(win, 8, share × per)` and record +04 += it (cap 9 999 999); pool = 0; `_spc_wait`; `_wclose`; `_font(0, 0, 0,
+  16)`. **Built (s165):** Core `P4TownLoop.GateShare` (the pool while asked, each member's gain through the new SPACE
+  wait: the remaster went straight on to the aging before), the Client's titled window at the original's place (100
+  rows below the other windows' top), the rows coming up member by member, the gains over the shares
+  (`parity/shots/p4-remaster-gatebank-shares.png`, `-gatebank-gains.png`, pool set by a temporary preview change). `[~]`:
+  a save made at its wait loads without the window; the manual's entry gold deposit (D4-030) has no window of the
+  original's (text column only). Not seen on XEiJ.
 - **The final screen (s162, `_endstory` `0xA9E6`–`0xAC30` read, static `[C]`):** `_clrtdraw`, `_wopen(32, 160, 32, 312,
   352, 1, "Phantasie IV")`; `_font(0, 8, 1, 16)` and the heading "THE GAME END" (`0x413C8`) by `_wprcen` centred on x 140
   at y 48 (font 0, **shadow**, colour 1); `_font(0, 0, 0, 16)`; lines 0–1 of `0x40D1C` at (32, 80) / (32, 96);
@@ -1015,14 +1060,19 @@ unless tagged; P4.X read from the `jsr` sites, `tools/scripts/x68k_p4_panels.py`
     band with the share buttons (a click gives that share), the withdraw band with the typed amount at x 224), the gold /
     per-share line, and `_endmsg`'s white window over the street or under the banquet / cell picture, and no longer
     prints those lines in the text column. English rows that would pass the box wrap and push the later rows and the
-    box / window down (the user's fit rule). Shots `parity/shots/p4-remaster-inn-window.png`, `-bank-window.png`,
+    box / window down (the user's fit rule). s165: the deposit asks member by member as `_deposit` does (`0x4A8E`): a
+    member's row (name at x 64) comes up at his turn, his share at x 196 once given (one digit key or share button; the
+    "0" button off for a member in good health); `_wloc(win, 196, y)` only places that digit, no cursor is drawn (read
+    s165: `_wloc` `0x32C68` stores the window's x / y; `_mgetc` `0x301FA` calls only mouse-cursor and button routines).
+    The same member-by-member entry serves `_gatebank` and the manual's entry deposit. The outdoor inn (s165): `_oinn`
+    → `_inn` opens INN.PKH's titled window with the sleepers' box over the map and waits for SPACE again; then
+    `_dayout(1000)` (Core `P4OutdoorLoop.InnRows`, kept by a save at that wait;
+    `parity/shots/p4-remaster-outdoor-inn-window.png`, the party placed at the Skull inn by a temporary preview change).
+    Shots `parity/shots/p4-remaster-inn-window.png`, `-bank-window.png`,
     `-bank-withdraw.png`, `-bank-deposit.png`, `-ending-street-message.png`, `-ending-cell-message.png`. `[~]`: the
-    deposit's rows all show at once with the remaster's shares (the original asks member by member, each row appearing
-    as its share is given; the share cursor at x 196 not drawn); `_deposit`'s `_wcls(34)` leaves the Command window's
-    title and grey (the remaster shows no panel there); the outdoor inns: `_oinn` (`0x14F98`) calls `_inn` too (after
-    "paid 256 gold" and its `_spc_wait`), so the original opens INN.PKH's 352-row window with the box over the map and
-    waits again for SPACE, while the remaster's `P4OutdoorLoop.InnStay` prints the rows in the outdoor box and goes on
-    (no inn picture, no second wait); the deposit and withdraw windows are from the code only (no XEiJ
+    `_deposit`'s `_wcls(34)` leaves the Command window's
+    title and grey (the remaster shows no panel there); the outdoor inn's sleeper lines stay in the outdoor text box after
+    its window closes (the original's message window never had them); the deposit and withdraw windows are from the code only (no XEiJ
     shot of them; the account table, the inn's box and `_endmsg`'s window over the street and in the cell match the s162
     XEiJ shots).
 - **The wiped-out party (s162, `_deadmsg` `0x1E308` read, static `[C]`):** `_xblack` (`0x31EDC` = `_fbox2(0, 768, 512,

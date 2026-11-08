@@ -143,7 +143,7 @@ No random encounters start on Water, Lava or the River Styx (terrain 10 / 8 / 15
 `0x1f9…0x213`) `[C]` — the manual's "no encounters on water" agrees.
 
 Water (tiles 0–25), when entered on foot: root `0x2426(0, 1, …)` makes each member roll Swim ("swims." / "sinks for
-… damage" / "escapes unscathed.", strings 514–516) `[~]` (routine not traced in full); the manual's swim rule (PDF 4 /
+… damage" / "[original text]", strings 514–516) `[~]` (routine not traced in full); the manual's swim rule (PDF 4 /
 pr.3, PDF 7 / pr.9).
 
 ## 6. Party death: the Astral Plane `[C]` (root `0x1e71`)

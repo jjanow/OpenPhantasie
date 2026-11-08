@@ -236,6 +236,35 @@ public static class P1MapRequesters
     }
 
     /// <summary>
+    /// s165: requester 19, a scroll's text in the town's Use item (h29 <c>+0x2c4</c> → <c>h86 +0(0x13)</c>): the frame, the
+    /// stored <paramref name="rows"/> in upper case (the Amiga's <c>scrolls.dtx</c> is DOS's text upper-cased, leading
+    /// blanks kept) one to an IText, and O.K. (sends Return: the text closes, then h29 <c>+0x318</c>'s tone), with its
+    /// stored pens on <paramref name="palette"/> (the town's). Null when a row would not fit: the caller keeps the
+    /// remaster's panel, so no line is ever dropped.
+    /// </summary>
+    public static RequesterScene? ScrollText(SheetPage p, IReadOnlyList<string> palette, IReadOnlyList<string> rows)
+    {
+        ArgumentNullException.ThrowIfNull(p);
+        ArgumentNullException.ThrowIfNull(palette);
+        ArgumentNullException.ThrowIfNull(rows);
+        var shown = rows.Select(r => (r ?? "").TrimEnd().ToUpperInvariant()).ToList();
+        while (shown.Count > 0 && shown[^1].Length == 0)
+            shown.RemoveAt(shown.Count - 1);
+        if (shown.Count > p.Rows.Count
+            || shown.Select((r, i) => p.Rows[i].X + r.Length * GlyphAdvance).Any(right => right + EdgeRoom > p.Box.W))
+            return null;
+        var ops = new List<RequesterOp>();
+        Frame(ops, p.Box, p.FillPen, p.Borders);
+        for (var i = 0; i < shown.Count; i++)
+            if (shown[i].Trim().Length > 0)
+                Text(ops, p.Box, (p.Rows[i].X, p.Rows[i].Y), p.Rows[i].Pen, shown[i]);
+        var g = p.Exit;
+        var box = new Box(p.Box.X + g.Rect.X, p.Box.Y + g.Rect.Y, g.Rect.W, g.Rect.H);
+        Button(ops, box, g.FacePen, g.BorderPen, UiText.S(g.Label), g.TextX, g.TextY, g.TextPen);
+        return new RequesterScene(palette, ops, [new RequesterHit(box, Keys.Enter, 0)]);
+    }
+
+    /// <summary>
     /// s158: the sheet's SPELLS view, the fight's requester 12 `inspect.spells_available` (h29 <c>+0xe90</c> → h23 <c>+0x570(record
     /// +0x60, 1)</c>: every known spell in slot order, none ghosted, browse only; live s158 over the map,
     /// <c>p1-amiga-map-sheet-spells</c>): the box and title, the list's frame and fill, a page of <paramref name="spells"/>
@@ -341,6 +370,8 @@ public static class P1MapRequesters
     {
         ArgumentNullException.ThrowIfNull(layout);
         IEnumerable<string> ids = [.. layout.Menus.Values, .. layout.Oks.Values, .. layout.Kinds.Values, .. layout.Town.Values];
+        if (layout.ScrollText is { } scroll)
+            ids = ids.Append(scroll.Exit.Label);
         if (layout.BlackKnights is { } k)
             ids = ids.Append(k.Title).Concat(k.Buttons.Select(b => b.Label));
         if (layout.Sheet is { } s)

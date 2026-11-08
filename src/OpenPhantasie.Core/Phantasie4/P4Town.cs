@@ -148,3 +148,9 @@ public static class P4Town
 
 /// <summary>s163: a row of the inn's window (<c>_inn</c>): party member <see cref="Member"/> slept, and gained 1 max MP when <see cref="MpUp"/>.</summary>
 public sealed record P4InnRow(int Member, string Name, bool MpUp);
+
+/// <summary>
+/// s165: <c>_gatebank</c>'s share-out window: the party's experience shared out (<see cref="Pool"/>, the stored pool × 10)
+/// and, after the shares, each member's <see cref="Gains"/> (share × per share) in party order; null while asking.
+/// </summary>
+public sealed record P4GateShare(long Pool, IReadOnlyList<long>? Gains);

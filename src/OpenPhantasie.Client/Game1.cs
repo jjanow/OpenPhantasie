@@ -31,7 +31,9 @@ public partial class Game1 : Game
     private string _help = "";
     private readonly MessageBandClock _messageBand = new(); // when the town screen's band shows the message
     private readonly AmigaMessageBox _amigaMessage = new(); // III Amiga's window 7 for town / guild lines (s135)
+    private readonly P3DamageReportBox _damageReport = new(); // III's Damage Report window (s165, Amiga 0x1d4ea)
     private readonly P2AlertBox _p2Alert = new(); // s158: II ST's form_alert boxes (FORMAT.md 7.4)
+    private readonly P2FieldBox _p2FieldBox = new(); // s165: II ST's timed box in the field (0xa18c, tree 40)
     private double _updateSeconds; // Update's game clock (the town door flash)
     // III's open door while the party goes in (Amiga 0xacc8, s102): which door, until when, then what runs.
     private (string Door, double Until, Action? Then)? _doorFlash;
@@ -990,9 +992,12 @@ public partial class Game1 : Game
         UpdateVictoryScreen(_updateSeconds);
         UpdateP1DefeatScreen(_updateSeconds); // s153: I Amiga's defeat screens run by themselves
         UpdateP1DosDefeat(_updateSeconds); // s154: I DOS's defeat lines run by themselves (5.00 s each)
+        UpdateP2DefeatHold(); // s165: II ST's DEFEATED page goes on after its 3000 ms hold
         UpdateP1CueSounds(); // s153: the map's step tone, 19 / 27 before their menus
         UpdateP1SheetTone(); // s158: the tone after the sheet's answers, its views' EXIT and PURGE / KEEP
         UpdateP1ScrollBeep(); // s162: the printout question's beep as a scroll is read in town
+        UpdateP1ListTones(); // s165: the town's and the Guild's list tones (choosers' cancel, lists, Show party's close)
+        UpdateP1AfterFight(); // s165: the fight's field under its finds' KEEP IT? until they are answered
         UpdateCombatEffects();
         if (_delayedCues.Count > 0 && (_input.NewKeys(keys).Any() || _mouse.AnyPressed))
             CutDelayedCues(); // s141: a key or a click ends a timed box's hold
@@ -1088,6 +1093,15 @@ public partial class Game1 : Game
             return;
         }
 
+        // s165: II ST's timed field box (field Resurrection's 0xa18c) owns the frame's keys and clicks while up: any of
+        // them, or its hold running out, ends it (0x16cbe); the key goes no further (no step, no field click).
+        if (_session is not null && _p2FieldBox.Update(_updateSeconds, _input.NewKeys(keys).Any() || _mouse.AnyPressed))
+        {
+            _input.EndFrame(keys, pad);
+            base.Update(gameTime);
+            return;
+        }
+
         if (_session is { } clickSession && FieldCommandKeys(clickSession, keys))
             PlayClick(); // s141: II ST's field loop 0x16fea clicks (0x1719a) on every key it takes
 
@@ -1096,6 +1110,16 @@ public partial class Game1 : Game
         {
             if (!_amigaMessage.Shown)
                 SetFeedback("", OpenModal?.Help ?? HelpForMode(_session.Mode)); // the line went in the window, not the band
+            _input.EndFrame(keys, pad);
+            base.Update(gameTime);
+            return;
+        }
+
+        // s165: III's Damage Report owns the frame's keys while up: any key or OK closes it, unseen below.
+        if (_session is not null && _damageReport.HandleKeys(_input.NewKeys(keys)))
+        {
+            if (!_damageReport.Shown)
+                _help = OpenModal?.Help ?? HelpForMode(_session.Mode);
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
             return;
@@ -1177,11 +1201,16 @@ public partial class Game1 : Game
                     AfterSnapshotApplied();
                     _qol = QoLProgress.LoadOrDefault();
                 }
-                SetFeedback(line.Length > 0 ? line : _message, modal.IsOpen ? modal.Help : HelpForMode(_session.Mode));
-                NoteAlertLine(line); // s140: II ST's alert boxes beep first (0x1628 / 0x1668)
-                OfferAmigaMessage(line);
-                if (line.Length > 0 && !modal.IsOpen)
-                    _messageBand.Restart(); // a dialog's outcome, shown again when it repeats the last one
+                if (line.Length > 0 && OfferP2FieldBox(_session, line))
+                    SetFeedback("", modal.IsOpen ? modal.Help : HelpForMode(_session.Mode)); // s165: the line is in the box
+                else
+                {
+                    SetFeedback(line.Length > 0 ? line : _message, modal.IsOpen ? modal.Help : HelpForMode(_session.Mode));
+                    NoteAlertLine(line); // s140: II ST's alert boxes beep first (0x1628 / 0x1668)
+                    OfferAmigaMessage(line);
+                    if (line.Length > 0 && !modal.IsOpen)
+                        _messageBand.Restart(); // a dialog's outcome, shown again when it repeats the last one
+                }
                 if (_session.Mode == GameMode.Town)
                     RefreshTownStock();
                 if (_gameMenu.TakeChoice() is { } picked)
@@ -1294,6 +1323,7 @@ public partial class Game1 : Game
             TrackExplorationAndEncounters();
         }
 
+        OfferDamageReport();
         if (_session is not null)
         {
             // Every way into a town (new game, Guild exit, wilderness, TRANSPORTATION, load) lands on the menu bar.
@@ -1471,7 +1501,9 @@ public partial class Game1 : Game
         }
         if (_session.DungeonPage is null)
             _pageEdges = null; // the next page draws a new frame (Amiga: the first text of a step)
-        if (CurrentPrompt is { } prompt && !_showInventory && !_showBestiary && !DosPagesUp)
+        // s165: III's Damage Report comes before what follows it (a wiped party's Astral Plane, 0x1d4b4 after 0x1d4ea):
+        // the prompt under it waits undrawn, so its scene (and the scene's sounds) start only after OK.
+        if (CurrentPrompt is { } prompt && !_showInventory && !_showBestiary && !DosPagesUp && !_damageReport.Shown)
         {
             // II: the DECOR temple behind the defeat prompts; III: the Astral Plane behind the outcome (I keeps its box).
             // The scene is the whole ST screen; its text goes one line at a time on the bottom line, no box (s98).
@@ -1500,11 +1532,14 @@ public partial class Game1 : Game
                     ? DefeatScene.FatesShown(lines.Count(l => !string.IsNullOrWhiteSpace(l)),
                         _defeatPager.Index(prompt.Kind, lines), defeat.Fates.Count)
                     : 0;
-                UpdateDefeatSounds(prompt.Kind, frame, fates); // s140: 23 / 22 / 20 / 21 (FORMAT.md 7.4)
+                // s165: the banner is up once a step's report lines paged in front of it are through
+                var banner = prompt.Kind == SessionPromptKind.PartyDefeat && !_defeatPager.HasMore(prompt.Kind, lines);
+                UpdateDefeatSounds(prompt.Kind, frame, fates, banner); // s140: 23 / 22 / 20 / 21 (FORMAT.md 7.4)
                 scene = UiOverlays.DrawDefeatScene(_spriteBatch, _pixel, _assets, prompt.Kind, frame,
                     !_defeatSounds.GhostsShown ? [] // s156: the ghost row after line 1's hold (0x12d54)
                         : DefeatScene.Row(_session, _prompts.ShownDefeat, prompt.Kind, frame.ShowBehindDoor, fates),
-                    _defeatPager.Current(prompt.Kind, lines), awaitsReturn: lines.Count >= shown.Lines.Count);
+                    _defeatPager.Current(prompt.Kind, lines),
+                    awaitsReturn: lines.Count >= shown.Lines.Count && !(banner && P2DefeatHolds)); // s165: goes on by itself
                 _defeatSceneLines = lines;
                 _defeatSceneHeld = lines.Count < shown.Lines.Count;
             }
@@ -1722,6 +1757,25 @@ public partial class Game1 : Game
             UiOverlays.Hits?.Clear();
             UiOverlays.DrawMessageWindow(_spriteBatch, _pixel, _assets, messageLayout, messageWindow, _amigaMessage.Text,
                 _mouse.LeftDown ? _mouse.Position : null, inDungeon: _session.Mode == GameMode.Dungeon);
+        }
+        // s165: II ST's timed field box (0xa18c: tree 40 at (12, 75)) in the pens of the palette the mode shows.
+        if (_p2FieldBox.Rows is { } fieldBoxRows && _assets?.Pack?.StCombatLines?.EndBoxes is { } fieldBoxes)
+        {
+            UiOverlays.Hits?.Clear(); // any click ends it (Update), nothing under it takes one
+            UiOverlays.DrawP2EndBox(_spriteBatch, _pixel, fieldBoxes, fieldBoxRows,
+                FontSources.ForRole(_assets.Pack, UiOverlays.P2EndBoxFontRole), P2FieldBoxPalette(_p2FieldBox.Mode));
+        }
+        // s165: III's Damage Report over everything; only its OK takes a click (the panel: a click anywhere).
+        if (_damageReport.Report is { } damage)
+        {
+            UiOverlays.Hits?.Clear();
+            if (!(DamageReportWindow is { } reportWindow && UiOverlays.DrawDamageReportWindow(_spriteBatch, _pixel, _assets!,
+                    _assets!.KeepWindows!, reportWindow, damage, _mouse.LeftDown ? _mouse.Position : null,
+                    inDungeon: _session.Mode == GameMode.Dungeon)))
+            {
+                UiOverlays.DrawTextPanel(_spriteBatch, _pixel, P3DamageReportBox.PanelLines(damage));
+                UiOverlays.Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, UiOverlays.ScreenBottom)) { Click = [Keys.Enter] });
+            }
         }
         // s158: II ST's alert box (form_alert) over everything; only its button takes a click.
         if (_p2Alert.Current is { } stAlert && _assets?.Pack?.FieldSounds?.Alerts?.Look is { } alertLook)
@@ -1951,6 +2005,8 @@ public partial class Game1 : Game
     private void HandlePrompt(KeyboardState keys, SessionPrompt prompt)
     {
         if (HandleP1DefeatKeys(keys, prompt))
+            return;
+        if (HandleP2DefeatHoldKeys(keys, prompt))
             return;
         if (_victory is not null && prompt.Kind == SessionPromptKind.VictoryScene)
         {
@@ -2341,6 +2397,7 @@ public partial class Game1 : Game
     {
         if (_input.Pressed(GameAction.ToggleTown, keys, pad) || _input.NewKeys(keys).Contains(Keys.Back))
         {
+            P1ArmoryTone(); // s165: the stock list's EXIT (h26 +0x8f6)
             _townMenu.LeaveArmory();
             SetFeedback(s.CurrentTown?.Name ?? "", HelpForMode(s.Mode));
             _messageBand.Restart();
@@ -2355,6 +2412,7 @@ public partial class Game1 : Game
         if (shopper is not null && _input.Pressed(GameAction.Confirm, keys, pad) && _townStock.Count > 0)
         {
             PlayClick(); // s141: II ST's Armory list clicks on a pick (0x1f8a), before any alert
+            P1ArmoryTone(); // s165: I Amiga's tone after the row's gadget (h26 +0x8f6), before the buy's alerts
             var item = _townStock[Math.Clamp(_townCursor, 0, _townStock.Count - 1)];
             var result = s.Buy(shopper, item.Id);
             RefreshTownStock();
@@ -2416,6 +2474,7 @@ public partial class Game1 : Game
                 break;
             case TownChoice.ShowParty:
                 refused = _inspectDialog.Open(s);
+                NoteP1ShowParty(s); // s165: its close plays the list tone (h26 +0x33e)
                 break;
             // s160: III asks `p3bar.confirm_distribute` after the empty-party refusal (root 0x83a0…0x83c1),
             // before any share moves, on every route (D, the Option / Inn list, the bar); the town-entry hand-out never asks.
@@ -2666,6 +2725,20 @@ public partial class Game1 : Game
         if (_defeatCause.Count == 0 && CurrentPrompt is { Kind: SessionPromptKind.PartyDefeat } prompt)
             _defeatCause = DefeatReport.Fit(
                 s.LogSince(_fightMark).Where(n => !prompt.Lines.Any(l => l.Trim() == n.Trim())), prompt.Lines.Count);
+        // s165: I Amiga asks a fight's finds on the fight field (h44 +0x942 / +0x956, before h53 +0x2a4 leaves it): the field
+        // stays as state 12's set-up left it while KEEP IT? waits (UpdateP1AfterFight drops it).
+        if (s.Game == GameId.P1 && CurrentGameSettings.OriginalScreens && _combatUi.P1Layout is not null
+            && s.PendingTreasure.Count > 0 && s.Mode is GameMode.Overworld or GameMode.Dungeon)
+            _combatUi.P1AfterFight = new P1CombatFieldSnapshot(
+                [.. s.Party.Members.Where(m => m.Status != CharacterStatus.Dead)], []);
+    }
+
+    /// <summary>s165: the after-fight field (<see cref="CombatPresenter.P1AfterFight"/>) goes once no find waits or the map is left.</summary>
+    private void UpdateP1AfterFight()
+    {
+        if (_combatUi.P1AfterFight is not null
+            && (_session is not { } s || s.PendingTreasure.Count == 0 || s.Mode is not (GameMode.Overworld or GameMode.Dungeon)))
+            _combatUi.P1AfterFight = null;
     }
 
     private void TrackExplorationAndEncounters()
@@ -2913,7 +2986,9 @@ public partial class Game1 : Game
         _confirm.Close();
         _guildPickDialog.Close();
         _amigaMessage.Close();
+        _damageReport.Close();
         _p2Alert.Close();
+        _p2FieldBox.Close();
         _p1OkSpec = null;
         _p1About = false;
         _p1TownHeld = null;
@@ -3497,6 +3572,32 @@ public partial class Game1 : Game
         if (_amigaMessage.Offer(_assets?.KeepWindows?.Message,
                 _session is { Game: GameId.P3 } && CurrentGameSettings.OriginalScreens, line))
             _help = UiText.S("p3combat.message_help");
+    }
+
+    /// <summary>
+    /// s165: III's Damage Report window under AMIGA SCREENS with the pack's window (<see cref="KeepWindowsLayout.DamageReport"/>),
+    /// or null (the remaster's text panel shows the report).
+    /// </summary>
+    private KeepWindowsLayout.InfoWindow? DamageReportWindow =>
+        _session is { Game: GameId.P3 } && CurrentGameSettings.OriginalScreens && _assets?.KeepWindows is { DamageReport: { } w }
+            ? w : null;
+
+    /// <summary>
+    /// s165: a III step or answer that made a Damage Report (<see cref="GameSession.DamageReport"/>) opens its window; the
+    /// member lines then leave the band, the prompt's note and the defeat box (the window holds them; "A trap!!!" stays).
+    /// </summary>
+    private void OfferDamageReport()
+    {
+        if (!_damageReport.Offer(_session) || _damageReport.Report is not { } report)
+            return;
+        var noted = report.Notes.Select(n => n.Trim()).ToHashSet();
+        if (_promptNoteLines.Count > 0)
+            _promptNote = string.Join(" ", _promptNoteLines = [.. _promptNoteLines.Where(n => !noted.Contains(n.Trim()))]);
+        _defeatCause = [.. _defeatCause.Where(n => !noted.Contains(n.Trim()))];
+        _message = P3DamageReportBox.WithoutReportLines(_message, report);
+        if (_promptFeedback is { } shown)
+            _promptFeedback = (P3DamageReportBox.WithoutReportLines(shown.Message, report), shown.Help);
+        _help = UiText.S("p3combat.message_help"); // any key or OK closes it, as window 7
     }
 
     /// <summary>

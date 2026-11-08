@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using OpenPhantasie.Core;
 using OpenPhantasie.Data;
 
@@ -36,6 +37,7 @@ public partial class Game1
             _fadePending = false;
             _fadeFilter = null;
             _p2Alert.Close();
+            _p2FieldBox.Close();
             if (_screen is not null)
             {
                 _screen.Fade = null;
@@ -120,9 +122,10 @@ public partial class Game1
         {
             var cues = session.CuesSince(_cueSerial);
             _cueSerial = session.CueSequence;
-            // s156: I Amiga: 12 after a Resurrection cast outside a fight (h38 +0x466, after its requester-23 box).
+            // s156: I Amiga: 12 after a Resurrection cast outside a fight (h38 +0x466); s165: after its requester-23 box
+            // "%s IS RESURRECTED" (h44 +0x466) over the map, which plays first (StartP1ResurrectedBox).
             if (P1MapCues && _assets!.Pack!.CueSounds!.Resurrected is int raised && cues.Contains(FieldCues.FieldResurrected)
-                && _settings.Sound)
+                && !StartP1ResurrectedBox(session, raised) && _settings.Sound)
                 _effects.Play(_assets.Pack.DosoundEffects, raised);
             if (field is not null)
                 foreach (var cue in cues)
@@ -185,8 +188,9 @@ public partial class Game1
             // s158: I Amiga's alerts beep first (h26 +0x6e / +0x1a8: h89 +0xe0, then the requester); the beep blocks.
             if (!ReferenceEquals(_alertBeeps?.Alerts, p1Alerts))
                 _alertBeeps = new P2AlertBeeps(p1Alerts);
+            // s165: in turn after a list tone of the same answer (h26 +0x614 / +0x8f6 play before the pick runs).
             if (_alertBeeps.BeepsFor(logLines, _alertDialogLines, session.Mode) > 0)
-                PlayP1Cue(_alertBeeps.Sound);
+                PlayP1CueInTurn(_alertBeeps.Sound);
         }
         _alertDialogLines.Clear();
         if (field is not null)
@@ -279,13 +283,64 @@ public partial class Game1
     /// s140: II ST's defeat scene sounds (<see cref="P2DefeatSounds"/>) for the frame the scene draws: the door's at once,
     /// the others after the running sound (the scene's Speed 20 waits whatever the player picked).
     /// </summary>
-    private void UpdateDefeatSounds(SessionPromptKind kind, DefeatSceneFrame frame, int fatesShown)
+    private void UpdateDefeatSounds(SessionPromptKind kind, DefeatSceneFrame frame, int fatesShown, bool bannerShown = true)
     {
         if (_assets?.Pack?.FieldSounds?.Defeat is not { } defeat)
             return;
-        foreach (var step in _defeatSounds.Observe(defeat, kind, frame, fatesShown, _updateSeconds))
+        foreach (var step in _defeatSounds.Observe(defeat, kind, frame, fatesShown, _updateSeconds, bannerShown))
             PlayFieldSound(step.Sound, waits: !step.Now && FieldSoundsWait(_assets.Pack.FieldSounds, defeat.SpeedMs));
     }
+
+    /// <summary>
+    /// s165: II ST's defeat page holds "YOUR PARTY HAS BEEN DEFEATED" 3000 ms and goes on by itself (<c>0x12a16</c> →
+    /// <c>0x16cbe</c>(3000), then the ghost row, 23 and the astral line): with the ST pack's defeat scene the page is
+    /// left as its hold ends (<see cref="P2DefeatSounds.HoldOver"/>, the ghosts' moment). Elsewhere it waits for a key.
+    /// </summary>
+    private bool P2DefeatHolds => _session is { Game: GameId.P2 } && _assets?.Pack?.FieldSounds?.Defeat is not null
+                                 && _assets.Decor is not null;
+
+    private void UpdateP2DefeatHold()
+    {
+        if (P2DefeatHolds && _splash is null && OpenModal is null && CurrentPrompt is { Kind: SessionPromptKind.PartyDefeat } prompt
+            && _defeatSounds.HoldOver)
+            AnswerPrompt(prompt, 1);
+    }
+
+    /// <summary>
+    /// s165: while the DEFEATED line's hold runs, any key or a click ends it (<c>0x16cbe</c>: <c>evnt_multi</c> keyboard |
+    /// button | timer), not only the keys that answer the prompt. True when it answered.
+    /// </summary>
+    private bool HandleP2DefeatHoldKeys(KeyboardState keys, SessionPrompt prompt)
+    {
+        if (!P2DefeatHolds || prompt.Kind != SessionPromptKind.PartyDefeat || !_defeatSounds.HoldRunning
+            || !_input.NewKeys(keys).Any() && !_mouse.LeftPressed)
+            return false;
+        AnswerPrompt(prompt, 1);
+        return true;
+    }
+
+    /// <summary>
+    /// s165: a dialog's <paramref name="line"/> that II ST shows in its timed field box (a new cue whose
+    /// <see cref="FieldCueDelay.BoxPalettes"/> names the mode: field Resurrection, <c>0x92c8</c> → <c>0xa18c</c>) opens
+    /// <see cref="P2FieldBox"/>, held Speed + tree 40's hold (<c>0xa16a</c>). True when it did (the line then stays off the
+    /// message line, as the ST writes none there).
+    /// </summary>
+    private bool OfferP2FieldBox(GameSession session, string line)
+    {
+        if (_assets?.Pack?.FieldSounds is not { } field || _assets.Pack.StCombatLines?.EndBoxes is not { } boxes
+            || session.CueSequence == _cueSerial)
+            return false;
+        var mode = session.Mode.ToString().ToLowerInvariant();
+        if (!session.CuesSince(_cueSerial).Any(c => field.Delays.TryGetValue(c, out var d) && d.BoxPalettes?.ContainsKey(mode) == true))
+            return false;
+        _p2FieldBox.Open(line, mode, _updateSeconds, (PlayerSpeedMs ?? 0) + boxes.OneLine.HoldMs);
+        return true;
+    }
+
+    /// <summary>s165: the palette <see cref="P2FieldBox"/> takes its pens from in <paramref name="mode"/>, or null.</summary>
+    private IReadOnlyList<string>? P2FieldBoxPalette(string mode) =>
+        _assets?.Pack?.FieldSounds?.Delays.Values.Select(d => d.BoxPalettes?.GetValueOrDefault(mode)).FirstOrDefault(n => n is not null)
+            is { } name ? _assets.Pack.Palettes?.GetValueOrDefault(name) : null;
 
     private void StartTransportFade(StTransportFade fade)
     {

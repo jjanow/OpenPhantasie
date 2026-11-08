@@ -776,7 +776,7 @@ every fight `0x2437e` holds the map palette (8.4 "Button palette").
   | `0xde0c` Training | `0xe36c` "This character is at maximum level." | none: the dispatch's T tests only the status and the class (`0xb92a`…); DOS guild_menu item 1 refuses level ≥ 21 with S417 "[original text]" (root `0xad25`), Core's rule, so `core.p3.cannot_train` reads S417 (s158) and this Amiga line has no remaster moment `[~]` |
   | `0xec76` Use Item | `0xefe6` "…unable to do this.", `0xf13a` "This character's health improves.", `0xf1dc` "This character's magic restores." | none: the remaster's item lines are I's `[~]`; s158: the dispatch's "…not carrying anything." (`0xba7c`, U by a member with no item; DOS root `0x8cc6` S416) = `useitem.x_carries_nothing` in III's table: window 7 (the remaster tests carried and worn items; whether `+0x26` counts worn ones not read `[~]`) |
   | `0xf2c0` Trade | `0xf5be` "[original text]" | `core.p3.cant_carry_anymore`: window 7 |
-  | `0xf770` Cast outside a fight (s162 `[C]` static, the routine at `0xf8f6`: MP < 1 → too low; the list `0xf770`; cost > MP → too low; ids 1–4 → `0xfcbe`; 44 → a target (status > 0 → not dead, else raised and "restored"); 54 outside a town or 52 in a town → "cannot cast this here"; 54 to the same town → "already in this town"; every other id → "cannot cast this here") | `0xf950` / `0xf9a0` "…magic is too low!", `0xfa08` "This character is not dead.", `0xfa22` "This character's life is restored.", `0xfa4c` / `0xfb02` / `0xfb1e` "[original text]", `0xfa7a` "The party is already in this town." | s162: III's table says Core's out-of-fight refusals in these words, all window 7: `core.magic.not_enough_mp` = S484 "[original text]", `core.magic.cant_cast_here` and `.only_in_combat` = S434 "[original text]" (the remaster's list leaves most refused spells out, so rarely reached); "not dead" / "restored" / "already in this town": no remaster equivalent (Resurrection's target, Transportation's town pick) `[~]` |
+  | `0xf770` Cast outside a fight (s162 `[C]` static, the routine at `0xf8f6`: MP < 1 → too low; the list `0xf770`; cost > MP → too low; ids 1–4 → `0xfcbe`; 44 → a target (status > 0 → not dead, else raised and "restored"); 54 outside a town or 52 in a town → "cannot cast this here"; 54 to the same town → "already in this town"; every other id → "cannot cast this here") | `0xf950` / `0xf9a0` "…magic is too low!", `0xfa08` "This character is not dead.", `0xfa22` "This character's life is restored.", `0xfa4c` / `0xfb02` / `0xfb1e` "[original text]", `0xfa7a` "The party is already in this town." | s162: III's table says Core's out-of-fight refusals in these words, all window 7: `core.magic.not_enough_mp` = S484 "[original text]", `core.magic.cant_cast_here` and `.only_in_combat` = S434 "[original text]" (the remaster's list leaves most refused spells out, so rarely reached); "not dead" / "restored" / "already in this town": no remaster equivalent (Resurrection's target, Transportation's town pick) `[~]`. s165: the order is built: III's Cast refuses "…magic is too low!" with current magic < 1 right after the caster pick (before the list) and with the picked spell's cost above the magic before the heal target (`SpellCaster.OutOfCombatMagicRefusal`, `CastDialog`; the routine's code starts at `0xf8f8`, its callers `0x84c4` / `0xb8aa` refuse "knows no spells" first). DOS III's `cast_spell_noncombat` root `0x8e50` has the same order (`0x8e9c` magic < 1, the list `0x90d9`, `0x8eeb` the cost, then `0x194d` the target), so no DOS ↔ Amiga difference; I / II keep theirs |
   | `0xfcbe` heal outside a fight | `0xfd42` "[original text]" | s163: Core says it after every out-of-fight III heal (`core.p3.character_health_improves`; DOS root `0x194d` prints the same text at `0x19be` once the target is picked, where I's DOS prints nothing), window 7; watched on Xvfb (`p3-remaster-s163-window7-health-improves.png`) |
   | `0xfed6` Monster Evaluate | `0xff2e` "The approximate level of the monsters\r      within this region is" + the level (`0x1aa40` + 1, × 2, at most 12; s162: the text is copied to a buffer and the level's digits (`0x1d8a`, itoa) written at byte 66, after "is "; DOS root `0x1b02` does the same at `bp − 0xe`) | s162: III's `core.magic.monsters_at_level_x` = that text with the row joined ("… monsters within this region is {0}", the band's one line), window 7 (the level itself is Core's rule, D-056); s163: the text keeps the programs' "\r" and row 2's six blanks (one byte span in both, `en.sources.json`), so window 7 prints row 2 one 8-px row down from the title column with its six blank cells (`UiOverlays.MessageRows`); the remaster's one-line band turns the break into a space (`Game1.OneLine`). Not seen in the Client: the test party knows no Monster Evaluate `[~]` |
   | `0x103f2` Learn Spells | `0x1058a` "[original text]", `0x1068a` "[original text]\r[original text]" | `core.guild.learn_no_more` (III's wording since s156) and `core.guild.learn_cant_afford` (s158: DOS ovl2 `0x1d12` prints the same DS text when the party's gold is below the cost; Core tests the same after the pick, DOS before the list): window 7 |
@@ -851,8 +851,9 @@ every fight `0x2437e` holds the map palette (8.4 "Button palette").
   for a roster whose members are all in the party (III lists them and refuses each pick; seen s163 on the band with six
   members and an elemental, where the Amiga's Add says "The party is fully assembled." or "You can only add an
   elemental." by the word `0x240e2`, not read), Use Item's lines. s163: the out-of-fight caster's "…magic is too low!"
-  watched in window 7 (the remaster asks the heal target first, then refuses; `0xf8f6` tests the cost before the target
-  `[~]`).
+  watched in window 7. s165: `0xf8f6` tests the magic before the list and the cost before the target, and so does the
+  remaster now (watched: Folnar with 2 MP picks Healing IV → window 7 at once, no target asked;
+  `parity/shots/p3-remaster-s165-cast-refused-before-target.png`).
 - **Button palette `[C]` static (s128).** The spell / heal / rank windows sit on the orders screen. `0x18c48` sets
   black (`0x11ae`), draws, then sets `0x2437e` and `0x24070` = 1 (`0x19058`), so `0x3904` keeps that palette.
   `0x2437e` is written only when a `.cmp` / `.set` / sheet is loaded (`0x123c` / `0x27d8` copy the file's 16 colours):
@@ -1063,14 +1064,41 @@ number pad moves the party (8 / 2 / 4 / 6; the diagonals did nothing); on the ov
   steps the party back after a disarm (before s163 a Dead / Out pick sprang the trap, there was no cancel and a disarm
   left the party on the cell); the Client draws the question as window 6 under AMIGA SCREENS
   (`AmigaDisarmWindow`, pack `keep_windows.heal`, the dungeon palette through `DrawAmigaWindow(inDungeon)`; Up / Down,
-  Return / O, C / Esc = CANCEL, a digit or a click on a row picks). **Watched in the Client s163** (Xvfb `:157`, III test
+  Return / O, C / Esc = CANCEL). **The picker's keys (s165 `[C]` static, `0x127ce` loop `0x12922`…`0x12996`):**
+  `0x3ba0` returns 1 for Return / O / OK (the cursor's member), 0 for C / CANCEL (−1), `'2'` moves the cursor down and
+  `'8'` up (wrapping, `0x128ba`), anything else (the other digits too) does nothing. A press on a member row (`0x17a6`,
+  the band `0x1776` set at `0x12850`: rows 9…, columns 2–37) on another row stores that row in `0x2432e` and posts `'8'`,
+  which the loop reads as "move there" (`0x12952`); a press on the lit row posts nothing. Built s165: 8 / 2 (and the
+  number pad's) move the cursor, the other digits do nothing, a click on a row only moves the cursor
+  (`AmigaPromptRowTag`, `PromptMenu.MoveTo`), OK / Return takes it; watched (`p3-remaster-s165-window6-row-press-moves-cursor.png`:
+  3 did nothing, 2 2 moved to LEFTY, a click on SWAT's row moved the cursor there, a second click nothing, O took SWAT).
+  The combat heal window (`0x127ce(33)`, `CombatPresenter.AmigaPickRow`) already moved the cursor on a press. **Watched in the Client s163** (Xvfb `:157`, III test
   party, `--p1-dungeon 5 23 7` / `5 3 15` / `5 15 22`: the archives' trap 2, door 0xc5 and locked door 0xc6): window 1
   "LEFTY [original text]" → OK → window 6 → O on LEFTY → window 7 "LEFTY [original text]" (a click on OK
   closed it); CANCEL clicked in window 6 left the trap unsprung; "LEFTY [original text]" in window 1, CANCEL
   clicked (the party back), the step again, OK clicked → the fight; "LEFTY picks the lock." in window 7
   (`parity/shots/p3-remaster-s163-window1-spots-trap.png`, `-window6-who-disarms.png`, `-window7-disarms-the-trap.png`,
-  `-window1-hears-monsters.png`, `-window7-picks-the-lock.png`). Not drawn: a sprung trap's Damage Report window
-  (`0x1d4ea`; the remaster's band shows "A trap!!!" and each member's damage) `[~]`.
+  `-window1-hears-monsters.png`, `-window7-picks-the-lock.png`).
+  **The Damage Report (s165 `[C]` static, `0x1d4ea`):** every party-damage call `0x1d24a(die, add, kind)` (a sprung trap
+  `0x1c7b6` (die, 0, 0), op 16 `0x1cc78` (a, 1, 0), ops 1–4 `0x1cb00` (a, 1, 2), lava `0xa676` (13, 1, 3), the swim
+  `0xa6b8` (0, 1, 1)) rolls each member, then shows window 6 (struct `0x23360`, box (8, 44)–(312, 160)) with its button
+  count `+26` set to 1 (OK only at (56, 135); 2 again after), sound 42 (`0x1d516`), "Damage Report" (`0x1d74c`) by
+  `0x854` at cell (13, 7) colour 9, and a row a member (`0x240e0`, party order) from row 9: the name at column 2 colour
+  15; at column 10 a damage of 0 prints the kind's zero line from the dungeon message table `0x23a62` (kind 0 → 12
+  "[original text]", 1 → 14 "swims.", 2 / 3 → 16 "[original text]"), else the next message ("takes " / "sinks for "),
+  the number (`0x1d8a`) and " damage." colour 15 or, past the member's HP (the routine adds 500), " [original text]"
+  colour 9; a member already at HP ≤ 0 "is dead." colour 10. Then `0x3ba0` with key 0 (any key or OK), the window's
+  ground put back (`0x274a`), and only then the wiped-party test (`0x1d4b4` sets `0x2411c`, `0x1dc16`). Built: Core
+  records the report (`GameSession.DamageReport`, `P3DamageReport`: every member a row, the dead too) from
+  `Phantasie3Campaign.DamageParty` (trap / op 16 "[original text]", ops 1–4 / lava "[original text]"); the Client
+  (`P3DamageReportBox`) shows it over everything and it owns the keys: under AMIGA SCREENS window 6 as above (pack
+  `keep_windows.damage_report`, colours as indices of the palette in force, the dungeon's below), else the remaster's
+  text panel; the member lines leave the band ("A trap!!!" stays), the prompt's note and the defeat box. Watched
+  (`p3-remaster-s165-damage-report-window6.png`, `-after-damage-report.png`): SWAT's failed disarm → six "takes n
+  damage." rows, none cut, "A TRAP!!!" on the band; OK clicked → the map. `[~]`: the rows are in the pack's font (as
+  the s163 window 6), not topaz 8; Core's swim reports through its own lines, not this window (kind 1 not used); the
+  Amiga's damage is `rnd % die + add` (0…die − 1 for the trap, 0 = "[original text]"), Core rolls 1…die (rules, not
+  changed here).
 - **Scandor's south edge `[C]` seen** (`p3-amiga-scandor-south-edge-1-at-24-73.png`, `-2-north-no-scroll.png`). The
   save patched on a disk copy (block `0x24564` at `gamesave.dat` + 8518: centre (24, 70), view (4, 7), party (24, 73),
   still in Pendragon; leaving the town puts the party on its saved cell). The view shows rows 66–74. A step north

@@ -150,6 +150,12 @@
     "core.p3.area.body": "...",
     "core.p3.injury.injured": "...",
     "core.p3.injury.broken": "...",
-    "core.p3.injury.gone": "..."
+    "core.p3.injury.gone": "...",
+    "core.p3.damage_report": "...",
+    "core.p3.report_avoids_the_trap": "...",
+    "core.p3.report_escapes_unscathed": "...",
+    "core.p3.report_takes_x_damage": "... {0} ...",
+    "core.p3.report_takes_x_damage_and_dies": "... {0} ...",
+    "core.p3.report_is_dead": "..."
   }
 }

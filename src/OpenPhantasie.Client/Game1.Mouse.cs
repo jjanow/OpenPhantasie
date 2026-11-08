@@ -163,6 +163,9 @@ public partial class Game1
             case BackdropTag when clicked && _combatUi.P1FieldShown:
                 _combatUi.P1Click(); // s138: a click on I Amiga's field during sound 17's black ends it, as a key does
                 break;
+            case AmigaPromptRowTag row when clicked && CurrentPrompt is { } rowPrompt:
+                _promptMenu.MoveTo(rowPrompt, row.Cursor); // s165: window 6's row press moves the cursor (0x17a6)
+                break;
             case AmigaRowTag row when clicked && _session is { } session:
                 _combatUi.AmigaPickRow(session, row.Row); // 0x17a6: a press moves the cursor; OK takes it
                 break;

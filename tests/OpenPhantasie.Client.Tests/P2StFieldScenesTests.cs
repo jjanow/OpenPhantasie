@@ -76,6 +76,50 @@ public class P2StFieldScenesTests
     }
 
     [OriginalDataFact]
+    public void Defeat_PageGoesOnAfterTheLinesHold_AKeyEndsItEarlier()
+    {
+        // s165: 0x12a16 holds line 1 by 0x16cbe(3000) (evnt_multi keyboard | button | timer) and the ST goes on by itself.
+        var map = Pack().FieldSounds!.Defeat!;
+        var run = new P2DefeatSounds();
+        var closed = new DefeatSceneFrame(DefeatScene.DoorHeightClosed, false);
+        Assert.False(run.HoldRunning);
+        Assert.False(run.HoldOver);
+        Seen(run, map, SessionPromptKind.PartyDefeat, closed, now: 10);
+        Assert.True(run.HoldRunning); // a key or a click now ends the hold
+        Assert.False(run.HoldOver);
+        Seen(run, map, SessionPromptKind.PartyDefeat, closed, now: 12.9);
+        Assert.False(run.HoldOver);
+        Seen(run, map, SessionPromptKind.PartyDefeat, closed, now: 13);
+        Assert.True(run.HoldOver); // the front end leaves the page
+        Assert.False(run.HoldRunning);
+        Seen(run, map, SessionPromptKind.DefeatOutcome, closed, now: 13.02);
+        Assert.False(run.HoldOver); // only on the defeat page
+        Seen(run, map, SessionPromptKind.None, closed, now: 30);
+        Seen(run, map, SessionPromptKind.PartyDefeat, closed, now: 40); // a new defeat holds afresh
+        Assert.False(run.HoldOver);
+        Assert.True(run.HoldRunning);
+    }
+
+    [OriginalDataFact]
+    public void Defeat_ReportLinesInFront_TheHoldStartsWithTheBanner()
+    {
+        // s165: a trap's report lines paged before "YOUR PARTY HAS BEEN DEFEATED" (Return each): the hold, the ghost row
+        // and 23 count from the banner, not from the page.
+        var map = Pack().FieldSounds!.Defeat!;
+        var run = new P2DefeatSounds();
+        var closed = new DefeatSceneFrame(DefeatScene.DoorHeightClosed, false);
+        Assert.Empty(run.Observe(map, SessionPromptKind.PartyDefeat, closed, 0, 10, bannerShown: false));
+        Assert.Empty(run.Observe(map, SessionPromptKind.PartyDefeat, closed, 0, 20, bannerShown: false));
+        Assert.False(run.HoldRunning);
+        Assert.False(run.GhostsShown);
+        Assert.Empty(run.Observe(map, SessionPromptKind.PartyDefeat, closed, 0, 21, bannerShown: true));
+        Assert.True(run.HoldRunning);
+        Assert.Empty(run.Observe(map, SessionPromptKind.PartyDefeat, closed, 0, 23.9));
+        Assert.Equal([new P2DefeatSounds.Step(23, false)], run.Observe(map, SessionPromptKind.PartyDefeat, closed, 0, 24));
+        Assert.True(run.HoldOver);
+    }
+
+    [OriginalDataFact]
     public void Defeat_PageLeftBeforeTheHold_GhostsThenDoor()
     {
         // A key ends the ST's 3000 ms hold: the ghost row, 23, then (after the astral line) 22, which waits for 23.

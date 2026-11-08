@@ -117,6 +117,13 @@ public sealed class P4OutdoorLoop
     /// <summary>The message window.</summary>
     public IReadOnlyList<string> Box => _window.Lines;
 
+    /// <summary>
+    /// s165: the outdoor inn's rows (<c>_oinn</c> → <c>_inn</c>: INN.PKH's titled window with the sleepers' box, as the town
+    /// inn's <see cref="P4TownLoop.InnRows"/>) while <c>_inn</c>'s SPACE wait is up; else null. Kept by a save made at
+    /// that wait.
+    /// </summary>
+    public IReadOnlyList<P4InnRow>? InnRows { get; private set; }
+
     public P4OutdoorFight? PendingFight { get; private set; }
 
     /// <summary>Where the party went (<see cref="P4OutdoorPrompt.Left"/>): a town (square 0, 0) or a location map's entry.</summary>
@@ -129,7 +136,7 @@ public sealed class P4OutdoorLoop
 
     private enum Stage
     {
-        Idle, PassTop, Tile, AfterHandler, Encounter, AfterPass, InnStay, Barrier, FightAfterWait, Stopped,
+        Idle, PassTop, Tile, AfterHandler, Encounter, AfterPass, InnStay, InnDone, Barrier, FightAfterWait, Stopped,
     }
 
     /// <summary>The open question (<see cref="P4OutdoorPrompt.Confirm"/>).</summary>
@@ -333,6 +340,7 @@ public sealed class P4OutdoorLoop
                 case Stage.Encounter: EncounterRoll(); break;
                 case Stage.AfterPass: AfterPass(); break;
                 case Stage.InnStay: InnStay(); break;
+                case Stage.InnDone: InnDone(); break;
                 case Stage.Barrier: Confirm(Ask.Barrier); _window.Print(GameText.S("p4x.0x430af")); break;
                 case Stage.FightAfterWait:
                     PendingFight = _fightAfterWait;
@@ -501,10 +509,21 @@ public sealed class P4OutdoorLoop
         }
     }
 
-    /// <summary>The outdoor inn stay after paying: <c>_inn</c>, 1000 hours, and the party reloaded on the same square.</summary>
+    /// <summary>
+    /// The outdoor inn stay after paying and the first SPACE (<c>_oinn</c> 0x14F98): <c>_inn</c> opens INN.PKH's window with
+    /// the sleepers' rows and waits for SPACE again (s165: its <c>_spc_wait</c>, skipped before); then <see cref="InnDone"/>.
+    /// </summary>
     private void InnStay()
     {
-        P4Town.InnStay(Party, _window, _tables.Services, _rng, _tables.Towns);
+        InnRows = P4Town.InnStay(Party, _window, _tables.Services, _rng, _tables.Towns);
+        _stage = Stage.InnDone;
+        WaitKey();
+    }
+
+    /// <summary>After <c>_inn</c>'s wait: <c>_dayout(1000)</c> and the party reloaded on the same square.</summary>
+    private void InnDone()
+    {
+        InnRows = null;
         Party.PassHours(InnHours);
         Transfer = new P4Transfer(P4Transfer.Outdoors, Map, X, Y, 0);
         _stage = Stage.AfterHandler;
@@ -898,7 +917,7 @@ public sealed class P4OutdoorLoop
 
     public P4OutdoorSnapshot Capture() => new(
         Map, X, Y, OldX, OldY, Drift, Prompt, [.. _window.Lines], PendingFight, Transfer, _stage.ToString(), _ask.ToString(),
-        _lastType, _watf, _check, _einf3, _fightAfterWait, _forced, MapOverview, OverviewBlock);
+        _lastType, _watf, _check, _einf3, _fightAfterWait, _forced, MapOverview, OverviewBlock, InnRows is null ? null : [.. InnRows]);
 
     public void Restore(P4OutdoorSnapshot s)
     {
@@ -913,6 +932,7 @@ public sealed class P4OutdoorLoop
         (_lastType, _watf, _check, _einf3, _fightAfterWait, _forced, MapOverview) =
             (s.LastType, s.Watf, s.Check, s.Einf3, s.FightAfterWait, s.Forced, s.MapOverview);
         OverviewBlock = s.OverviewBlock >= 0 ? s.OverviewBlock : T.Overview.BlockFor(Map, -1, jump: true);
+        InnRows = s.InnRows; // s165: the outdoor inn's rows through its second wait
     }
 }
 
@@ -920,4 +940,4 @@ public sealed class P4OutdoorLoop
 public sealed record P4OutdoorSnapshot(
     int Map, int X, int Y, int OldX, int OldY, int Drift, P4OutdoorPrompt Prompt, string[] Box, P4OutdoorFight? PendingFight,
     P4Transfer? Transfer, string Stage, string Ask, int LastType, bool Watf, bool Check, bool Einf3,
-    P4OutdoorFight? FightAfterWait, bool Forced, bool MapOverview, int OverviewBlock = -1);
+    P4OutdoorFight? FightAfterWait, bool Forced, bool MapOverview, int OverviewBlock = -1, P4InnRow[]? InnRows = null);

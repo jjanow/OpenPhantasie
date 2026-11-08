@@ -790,15 +790,18 @@ public static partial class UiOverlays
     /// with its border drawn inward, each row's characters in the ST's 8-px cells from <see cref="StEndBoxes.Layout"/>
     /// (the remaster's glyphs centred in each cell: TOS's 8×8 font is not on the disks `[~]`).
     /// </summary>
+    /// <remarks>s165: <paramref name="palette"/> colours the box from the registers of the palette the screen shows (field
+    /// Resurrection's box over the map, <see cref="P2FieldBox"/>); null = the pack's own (combat) colours.</remarks>
     public static void DrawP2EndBox(SpriteBatch batch, Texture2D pixel, StEndBoxes boxes, IReadOnlyList<string> rows,
-        IFontSource? font = null)
+        IFontSource? font = null, IReadOnlyList<string>? palette = null)
     {
         var layout = boxes.Layout(rows);
+        var (border, fill, textColour) = boxes.Colours(palette);
         var rect = new Rectangle(layout.X, layout.Y, layout.Width, layout.Height);
-        Fill(batch, pixel, rect, VirtualScreen.ParseColor(boxes.BorderColour));
+        Fill(batch, pixel, rect, VirtualScreen.ParseColor(border));
         Fill(batch, pixel, new Rectangle(rect.X + boxes.Border, rect.Y + boxes.Border, rect.Width - 2 * boxes.Border,
-            rect.Height - 2 * boxes.Border), VirtualScreen.ParseColor(boxes.FillColour));
-        var ink = VirtualScreen.ParseColor(boxes.TextColour);
+            rect.Height - 2 * boxes.Border), VirtualScreen.ParseColor(fill));
+        var ink = VirtualScreen.ParseColor(textColour);
         foreach (var (x, y, text) in layout.Rows)
             DrawCells(batch, pixel, boxes.Cell, x, y, text, ink, font);
     }
@@ -1672,6 +1675,11 @@ public static partial class UiOverlays
         {
             var row = view.Rows[index];
             Hits?.Add(new HitRegion(new Rectangle(row.X - 1, row.Y - lift - 1, x1 - 2 - row.X, 8)) { Click = [key] });
+        }
+        foreach (var (index, cursor) in view.CursorRows ?? [])
+        {
+            var row = view.Rows[index];
+            Hits?.Add(new HitRegion(new Rectangle(row.X - 1, row.Y - lift - 1, x1 - 2 - row.X, 8), new AmigaPromptRowTag(cursor)));
         }
         DrawWindowButtons(batch, assets, layout, ok, cancel, (w.Ok.X, w.Ok.Y + grow - lift), (w.Cancel.X, w.Cancel.Y + grow - lift),
             held, palette);

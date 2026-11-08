@@ -412,6 +412,32 @@ public class P1CombatFieldTests
         Assert.Null(ui.P1Shown);
     }
 
+    /// <summary>
+    /// s165: a won fight's finds are asked on the field (h44 <c>+0x942</c> / <c>+0x956</c>, before h53 <c>+0x2a4</c>): the
+    /// front end's after-fight field shows while the presenter is idle, only on I's field, and a new fight drops it.
+    /// </summary>
+    [OriginalDataFact]
+    public void AfterFightField_ShowsWhileIdle_ANewFightDropsIt_s165()
+    {
+        var s = ClientSessions.Overworld();
+        var onField = true;
+        var ui = new CombatPresenter(new ClientSettings())
+        {
+            P1Layout = Layout(), AmigaP1Field = () => onField, P1SoundSeconds = _ => 0,
+        };
+        Assert.False(ui.P1FieldShown);
+        ui.P1AfterFight = new P1CombatFieldSnapshot([.. s.Party.Members], []);
+        Assert.True(ui.P1AfterFightShown);
+        Assert.True(ui.P1FieldShown);
+        onField = false; // AMIGA SCREENS off: the map as before
+        Assert.False(ui.P1AfterFightShown);
+        onField = true;
+        s.BeginWildernessCombat(ClientSessions.Data.Monsters.First(m => m.HpBase <= 8).Id, SurpriseFlags.Normal);
+        ui.Start(s);
+        Assert.Null(ui.P1AfterFight);
+        Assert.False(ui.P1AfterFightShown);
+    }
+
     [OriginalDataFact]
     public void FightStart_PresenterHoldsTheBlack_UntilAKey()
     {

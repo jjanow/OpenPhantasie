@@ -235,6 +235,53 @@ public partial class Game1
         return null;
     }
 
+    private (int Town, int Guild)? _p1ListToneCounts;
+    private bool _p1ShowPartyUp;
+
+    /// <summary>
+    /// s165: I Amiga's list tone (pack <c>cue_sounds.list_tone</c>, h89 <c>+0xd2</c>; FORMAT.md "Sound effects") at the
+    /// town's and the Guild's list moments the remaster has, once a frame. Town: a member chooser's cancel (h23
+    /// <c>+0x22a</c>: Cast spell's WHO WILL CAST A SPELL? and HEALING's target, the Bank's WHO WILL WITHDRAW?) and Show
+    /// party's close (h26 <c>+0x33e</c>, <see cref="NoteP1ShowParty"/>). Guild: the choosers' cancel (DROP, LEARN,
+    /// TRAINED), New's race and class picks (h23 <c>+0xa34</c>) and the roster list's answers (h26 <c>+0x614</c>: Add,
+    /// Purge, Rename, Inspect's who list). The Armory's (h26 <c>+0x8f6</c>) plays from its input (<see cref="P1ArmoryTone"/>).
+    /// </summary>
+    private void UpdateP1ListTones()
+    {
+        var counts = (Town: _castDialog.ChooserCancels + _withdrawDialog.ChooserCancels,
+            Guild: _guildDropDialog.ChooserCancels + _guildWhoDialog.ChooserCancels + _guildNewDialog.ListTones
+                + _guildAddDialog.ListTones + _guildPickDialog.ListTones + _inspectDialog.WhoTones);
+        var before = _p1ListToneCounts;
+        _p1ListToneCounts = counts;
+        var mode = _session?.Mode;
+        var showPartyClosed = _p1ShowPartyUp && !_inspectDialog.IsOpen;
+        if (showPartyClosed || mode != GameMode.Town)
+            _p1ShowPartyUp = false;
+        if (before is not { } b || !P1MapCues || _assets!.Pack!.CueSounds!.ListTone is not int tone)
+            return;
+        if ((mode == GameMode.Town && (counts.Town > b.Town || showPartyClosed))
+            || (mode == GameMode.Guild && counts.Guild > b.Guild))
+            PlayP1Cue(tone);
+    }
+
+    /// <summary>s165: the town's Show party (h26 <c>+0x322</c>: requester 6, then the tone <c>+0x33e</c> when it closes) opened.</summary>
+    private void NoteP1ShowParty(GameSession s)
+    {
+        if (s.Mode == GameMode.Town && _inspectDialog.IsOpen)
+            _p1ShowPartyUp = true;
+    }
+
+    /// <summary>
+    /// s165: I Amiga's Armory stock list (h26 <c>+0x660</c>: "%-9s IS SHOPPING", the stock in "%-29.29s" rows) plays the
+    /// list tone after each gadget (<c>+0x8f6</c>), before the buy runs: the remaster's buy (Return on a row) and its
+    /// leaving (EXIT). Its scroll gadgets have no remaster moment (the cursor keys move a row) `[~]`.
+    /// </summary>
+    private void P1ArmoryTone()
+    {
+        if (P1MapCues && _assets!.Pack!.CueSounds!.ListTone is int tone)
+            PlayP1Cue(tone);
+    }
+
     /// <summary>Drops the holds (a load, the main menu).</summary>
     private void ResetP1Holds()
     {

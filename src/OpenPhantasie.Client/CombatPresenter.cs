@@ -348,8 +348,19 @@ public sealed class CombatPresenter
         return null;
     }
 
-    /// <summary>True while I Amiga's combat screen is up (a round playing, Party Options or the orders).</summary>
-    public bool P1FieldShown => P1Run is not null || (IsPresenting && _p1Party) || P1OpeningPending;
+    /// <summary>True while I Amiga's combat screen is up (a round playing, Party Options or the orders, s165 the finds after it).</summary>
+    public bool P1FieldShown => P1Run is not null || (IsPresenting && _p1Party) || P1OpeningPending || P1AfterFightShown;
+
+    /// <summary>
+    /// s165: the field a won fight leaves while its finds are asked (h44 <c>+0x942</c> / <c>+0x956</c>: "YOU FIND %s.|KEEP
+    /// IT?" through h86 <c>+0x32a</c>, before h53 <c>+0x2a4</c> leaves the fight screen), as state 12's set-up left it
+    /// (h44 <c>+0x614</c> → h53 <c>+0xfc</c> / <c>+0x274</c>: the row as it stands, the groups emptied, the frame, no line).
+    /// Set by the front end after the fight when an item waits, null when none; a new fight drops it.
+    /// </summary>
+    public P1CombatFieldSnapshot? P1AfterFight { get; set; }
+
+    /// <summary>s165: the after-fight field (<see cref="P1AfterFight"/>) is what the I field shows now.</summary>
+    public bool P1AfterFightShown => P1AfterFight is not null && !IsPresenting && P1Run is null && OnP1Field;
 
     /// <summary>
     /// A surprise opening whose round 1 has not been planned yet (the frame between <see cref="Start"/> and the first
@@ -779,6 +790,7 @@ public sealed class CombatPresenter
         InfoBox = [];
         FieldWindow = AmigaFieldWindow.None;
         P1LastLine = null;
+        P1AfterFight = null; // s165: a new fight's own field
         P1Banner = session.Mode == GameMode.Combat ? RemasterBanner(session.Log) : null; // D-058, s140: no wait
         _p1ToneThen = null;
         P1FightSerial++;
@@ -827,6 +839,7 @@ public sealed class CombatPresenter
 
     public void Cancel()
     {
+        P1AfterFight = null;
         InfoBox = [];
         FieldWindow = AmigaFieldWindow.None;
         Phase = CombatPhase.Idle;

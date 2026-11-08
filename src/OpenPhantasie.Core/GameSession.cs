@@ -376,6 +376,21 @@ public sealed partial class GameSession
     }
 
     /// <summary>
+    /// s165: III's last Damage Report (<see cref="P3DamageReport"/>, Amiga <c>0x1d4ea</c>); null before any. A front end
+    /// shows a report once, when <see cref="DamageReportSerial"/> moves on.
+    /// </summary>
+    public P3DamageReport? DamageReport { get; private set; }
+
+    /// <summary>Number of Damage Reports ever made (never reset); see <see cref="DamageReport"/>.</summary>
+    public long DamageReportSerial { get; private set; }
+
+    internal void Report(P3DamageReport report)
+    {
+        DamageReport = report;
+        DamageReportSerial++;
+    }
+
+    /// <summary>
     /// Number of game sounds ever started through <see cref="PlaySound"/> (never reset). A front end compares two values to
     /// play exactly the sounds started in between (<see cref="SoundsSince"/>).
     /// </summary>

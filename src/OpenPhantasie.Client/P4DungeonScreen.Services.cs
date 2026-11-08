@@ -246,7 +246,7 @@ public sealed partial class P4DungeonScreen
             lines.Add(new(UiText.F("p4.town.share_gold_x", W.ShareAmount), MenuLineStyle.Header));
             var n = Game.Party.Members.Count;
             for (var i = 0; i < n; i++)
-                lines.Add(Option(i, $"{Game.Party.Members[i].Name,-10} {(_shares.Length == n ? _shares[i] : 1)}"));
+                lines.Add(Option(i, ShareLine(i)));
         }
         else
             AddPrompt(lines, W.Prompt, W.Choices, W.WhoEnabled);

@@ -400,11 +400,36 @@ public class Phantasie4OutdoorTests
         o.Arrive(1, 4, 13); // the Skull inn
         Assert.Contains(o.Box, l => l.Contains("Skull"));
         o.Answer(true);
-        o.Continue();
+        var (days, hour) = (party.DaysOut, party.Daytime);
+        o.Continue(); // _oinn's own wait ("paid 256 gold"), then _inn
         Assert.Equal(5000 - 256, party.Gold);
         Assert.Equal(30, party.Members[0].Hp);
+        // s165: _inn's window with the sleepers' rows and its own SPACE wait; _dayout(1000) only after it.
+        Assert.Equal(P4OutdoorPrompt.Wait, o.Prompt);
+        Assert.Equal([0, 1, 2], o.InnRows!.Select(r => r.Member));
+        Assert.Equal((days, hour), (party.DaysOut, party.Daytime));
+        o.Continue();
+        Assert.Null(o.InnRows);
         Assert.Equal((42, 8), (party.DaysOut, party.Daytime)); // 8 + 1000 + 8 hours (arrival, stay, reload)
         Assert.Equal(P4OutdoorPrompt.Confirm, o.Prompt);
+    }
+
+    [OriginalDataFact]
+    public void TheOutdoorInn_ASaveAtItsSecondWait_KeepsTheRows()
+    {
+        var party = Party();
+        var o = Loop(party, new ScriptRng());
+        o.Arrive(1, 4, 13);
+        o.Answer(true);
+        o.Continue();
+        var snap = o.Capture();
+        var copy = Loop(party, new ScriptRng());
+        copy.Restore(snap);
+        Assert.Equal(P4OutdoorPrompt.Wait, copy.Prompt);
+        Assert.Equal(o.InnRows, copy.InnRows);
+        copy.Continue();
+        Assert.Null(copy.InnRows);
+        Assert.Equal(P4OutdoorPrompt.Confirm, copy.Prompt);
     }
 
     [OriginalDataFact]
@@ -459,8 +484,14 @@ public class Phantasie4OutdoorTests
         Assert.Equal(0, party.Gold);
         Assert.Equal([2498L, 1249L, 1249L], party.Members.Select(m => m.Account)); // 5000 / 4.0001 per share
         Assert.Equal(P4ShareKind.Experience, w.SharesFor);
+        Assert.Equal(new P4GateShare(900, null), w.GateShare); // s165: _gatebank's window while the shares are asked
         w.EnterShares([1, 1, 1]);
         Assert.Equal([299L, 299L, 299L], party.Members.Select(m => m.Experience)); // 900 / 3.0001, the rest lost
+        // s165: _gatebank writes each gain over its share and waits for SPACE (0x529E) before the aging.
+        Assert.Equal(P4TownPrompt.Wait, w.Prompt);
+        Assert.Equal([299L, 299L, 299L], w.GateShare!.Gains!);
+        w.Continue();
+        Assert.Null(w.GateShare);
         Assert.Equal(P4TownPrompt.Menu, w.Prompt);
         Assert.All(party.Members, m => Assert.Equal(2, m.Town));
         Assert.Equal(8, party.ShopStock.Sum()); // _igen8: 8 random items added to the live stock

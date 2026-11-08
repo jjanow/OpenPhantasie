@@ -833,7 +833,7 @@ expanded by `+0x9bc`). Period, volume and length come per step from the script; 
   O.K. / ABORT: O.K. writes the scroll's lines to a text file, the remaster's printer, as the Printout does; a failed write
   asks again with its beep); the Printout asks PREPARE PRINTER first (ABORT writes nothing). The beep plays at each
   question (`PrintoutBeeps`), the requester shows with it (the Amiga: after it `[~]`). Requester 19 (the scroll's
-  text) is not drawn: the remaster's text panel stands in `[~]`. Tests `P1MapRequesterTests.TownAlerts_DoneAndPrintout_s163`,
+  text): **built s165** ("Requester 19" below). Tests `P1MapRequesterTests.TownAlerts_DoneAndPrintout_s163`,
   `TownAndGuildDialogTests.UseItem_AmigaTown_AsksPrintoutBeforeTheScroll_s163`; seen on Xvfb
   (`parity/shots/p1-remaster-town-done.png` after a town Healing I, `-town-prepare-printer.png` from Option › Printout;
   the scroll's question only in the test, the test party carries no scroll).
@@ -841,18 +841,37 @@ expanded by `+0x9bc`). Period, volume and length come per step from the script; 
   item h8 `+0x1342`, 2 Printout h29 `+0x10ba`, 3 Show party h26 `+0x322`, 10 the Guild, 11 the Armory h8 `+0`, 12 the
   Bank h8 `+0x608`, 13 the Inn h8 `+0x6be`, 14 h8 `+0xc44`, 15 the Temple h8 `+0xd84`): h23 `+0x88e` the Temple's rank
   requester 5 ("… THE GODS", h8 `+0xf46`); h23 `+0xa34` Guild › New's list window (h23 `+0x970`, from `+0x8d8` "CREATING
-  %s", h5 `+0x914`), after each gadget; h23 `+0xbf8` the window of h23 `+0xb5a` (from h8 `+0xae8`, the rows "%c
+  %s", h5 `+0x914`; **s165:** only when gadget 1 (O.K.) comes with a row SELECTED, not after every gadget nor on the
+  cancel; `+0x970(1)` = requester 1, the races (h23 `+0x8cc`, gadgets 7–12), `+0x970(2)` = requester 2, the classes
+  (gadgets 13–18)); h23 `+0xbf8` the window of h23 `+0xb5a` (from h8 `+0xae8`, the rows "%c
   %-10.9s%-4.3s%4d%4d%4d", h8 `+0x93c`) `[~]` which building not traced; h26 `+0x16a` Use item's item list (requester 17,
   h26 `+0xee` from h8 `+0x1392`), after its answer; h26 `+0x33e` Show party (requester 6 through h23 `+0x246(7)`), after
-  it closes; h26 `+0x614` / `+0x8f6` the Armory's two lists (h26 `+0x4d0` "%-10.9s%-9.8s%-5.4s%-5.5s", `+0x758`
-  "%-29.29s" / ARMORY IS EMPTY), after each gadget; h26 `+0xafe` the Inn's report (requester 15, "%-9s IS RESTING %s",
+  it closes; h26 `+0x614` / `+0x8f6` after each gadget of two list windows. **Correction s165 (static) `[C]`:** `+0x614`
+  is not the Armory's: it ends h26 `+0x412`, the Guild's roster list (the rows "%-10.9s%-9.8s%-5.4s%-5.5s" = name, race,
+  class, status of every record with `+0x5c` set, h26 `+0x4d0`), reached through `+0x3a6` (h5 `+0xcae` "WHOM DO YOU WANT
+  TO ADD?") and `+0x346` (h5 `+0xe62` PURGE, `+0xf1a` RENAMING, `+0x196a` INSPECT); gadget 2 / 3 scroll by six, 0 is
+  EXIT. `+0x8f6` is the Armory's stock list (h26 `+0x660`: "%-9s IS SHOPPING", the gold "%-6u", the stock in "%-29.29s",
+  ARMORY IS EMPTY[SORRY]; gadgets 2 / 3 scroll by five, 1 and 0 leave); h26 `+0xafe` the Inn's report (requester 15, "%-9s IS RESTING %s",
   h8 `+0x778`), after it closes; h29 `+0x318` the scroll's text (above); h29 `+0x75e` / `+0x7dc` the town entry's
   hand-out (h5 `+0x34a` → h8 `+0x16d6`: the list h29 `+0x322`, then "%u GOLD" / "AND %u XP", requester h29 `+0x76c`).
   **Built s163:** Use item's (`UseItemDialog.Tones`, pack `cue_sounds.list_tone`): the member choosers' cancel (h23
-  `+0x22a`: WHO WILL USE? h8 `+0x1354`, a potion's ON WHOM? `+0x13fe`), the item list's answer (h26 `+0x16a`) and the scroll text's close (h29 `+0x318`). Not wired `[~]`: the
-  other member choosers' cancel, the Temple (no remaster moment), Guild › New's list, h23 `+0xb5a`'s window, Show party,
-  the Armory's lists, the Inn's report and the entry hand-out (the remaster's screens differ: a line, a panel or the
-  inspect pages).
+  `+0x22a`: WHO WILL USE? h8 `+0x1354`, a potion's ON WHOM? `+0x13fe`), the item list's answer (h26 `+0x16a`) and the scroll text's close (h29 `+0x318`).
+  **s165 (static) `[C]`, the other choosers** (h23 `+0x1f8`'s titles): h5 `+0xdc2` [original text], `+0x1116`
+  WHO WILL LEARN?, `+0x13c2` [original text]; h8 `+0x84` WHO WILL SHOP?, `+0x642` [original text],
+  `+0xfa2` WHO WILL CAST A SPELL?, `+0x11a2` [original text] HEAL?. **Built s165** (pack `cue_sounds.list_tone`,
+  `Game1.UpdateP1ListTones` from the dialogs' counters): the choosers' cancel (Cast spell's caster and HEALING's target in
+  the town, the Bank's withdraw picker, the Guild's Drop, Learn and Training lists); Guild › New's race and class picks
+  (`+0xa34`; a descendant's T5 lists are the remaster's, no tone); the roster list's answers (`+0x614`: a row picked or
+  Esc in Add, Purge, Rename and the Guild's Inspect who list); the Armory's (`+0x8f6`: a buy and leaving, before the buy's
+  alerts, which now play in turn after the tone); Show party's close (`+0x33e`, the remaster's Inspect pages opened by the
+  town's Show party). The cursor keys stand for the lists' scroll gadgets and play nothing `[~]`. **No remaster moment:**
+  WHO WILL SHOP? (the remaster's shopper is the town's member row, changed by 1–6: no chooser opens); the Temple
+  (`+0x88e`); the Inn's report `+0xafe` (requester 15 "%-9s IS RESTING %s": the remaster's town Inn puts the rest on the
+  message line and opens its menu at once, nothing closes); the entry hand-out `+0x75e` / `+0x7dc` (h5 `+0x34a` → h8
+  `+0x16d6`: when h13 `+0x7cc` / `+0x7ce` hold gold / XP, the shares window h29 `+0x322`, then "%u GOLD|AND %u XP" (gold
+  × 10 / the shares, XP / the shares) into each member's bank `+0x106` and EX. PTS `+0x10a`; I's remaster pays nothing on
+  town entry, `ICampaign.PaysOutOnTownEntry` is III's only; what fills the two words not traced `[?]`); h23 `+0xb5a`'s
+  window (`+0xbf8`, building not traced `[?]`).
   h32 `+0x5e4` / `+0x636` the defeat's raw tone. **Built s153:** pack
   `cue_sounds` (`CueSounds`, Client `Game1.P1Cues.cs`): under AMIGA SCREENS the step tone at each one-cell overworld /
   dungeon move, 19 when "A TOWN. ENTER?" / "[original text]" opens, 27 when the BLACK KNIGHTS menu opens. s158: 22 before
@@ -908,8 +927,12 @@ under it: `parity/shots/p1-remaster-town-transport-flash.png`; the remaster's na
   (`+0x466`). s153's note joined the two branches: the remaster's 12 before the field line is the Amiga's order. **Built
   s154:** `line_sounds` `then_blank` (the line cleared after its wait). Left `[~]`: the row re-laid at once (the remaster
   shows the member at the next set-up). **Built s156:** outside a fight, 12 after the remaster's camp cast result
-  (pack `cue_sounds.resurrected`, Core's `FieldCues.FieldResurrected`); the requester-23 box and its hold before it not
-  drawn `[~]`.
+  (pack `cue_sounds.resurrected`, Core's `FieldCues.FieldResurrected`). **Built s165:** the box first: requester 23 with
+  one row "%s IS RESURRECTED" (h38's string, Core's `core.magic.x_is_resurrected` the same text) over the overworld or
+  the dungeon, its whole seconds and clock cut, keys swallowed, the party sprite off (`P1MapMessageRun.ResurrectionLayout`,
+  `Game1.StartP1ResurrectedBox`), then 12 with its hold when it closes; the line stays empty. Seen on Xvfb
+  (`parity/shots/p1-remaster-map-box-resurrected.png`, `--test-level 10 --field-dead`, the remaster's map layout); not
+  filmed on the Amiga `[~]`.
 - **Hold, live (s153, `working/capture_s153_sounds.md`) `[C]` / constants `[~]`:** recorded with sound (an own null sink,
   window and sound in one ffmpeg) for the first time in fights, the spell list, the map and the victory / defeat
   screens. Each step costs its `Delay` plus **3.7 ms per channel it sends** (the player writes, FINISHes and `WaitIO`s each
@@ -1356,7 +1379,10 @@ Read with a hunk loader (HUNK_HEADER / CODE / DATA / BSS / RELOC32) and capstone
   18, 25, 32). **"YOU FIND %s[original text]"** (h45 `+0xcf`, the item's h12 `+0x7aa` name) is h44 `+0xfe4(item,
   random)`: from the dungeon's op 6 (h41 `+0x1716`) over the dungeon, and after a fight (h44 `+0x942` / `+0x956`, items
   h4 `+0xe4` / `+0xe6`) **before** h53 `+0x2a4` leaves the fight screen, so that one sits over the fight field in the combat
-  palette (the remaster asks over the map: map palette `[~]`). The remaster prints Core's item name (the longest,
+  palette. **Built s165:** after a won fight with a find, the I field stays as state 12's set-up left it (the row as it
+  stands, the groups emptied, the frame, the bar, no line: `CombatPresenter.P1AfterFight`) until every KEEP IT? is
+  answered, and the requester takes the combat palette (the same screen pens); a dungeon op 6 find stays over the
+  dungeon. From the code only, not filmed `[~]`. The remaster prints Core's item name (the longest,
   "SAPPHIRE A"…"E", makes a 20-cell line, inside the 23 cells), not h12 `+0x7aa`'s `[~]`. h44 `+0x9c4` "WRONG MONSTER # !!![SORRY]", h50 `+0x9e0`
   "MONSTERS ARE LEVEL %-2d[SORRY]", h56 `+0x7d8` / `+0x816` "IS OPENED[SORRY]" / "IS CLOSED[SORRY]", h71 `+0xe76` "YOU CAN'T
   AFFORD IT[SORRY]" (the wilderness inn), h41 `+0x1e4e` "NOT USED BUT ACTIVATED![SORRY]". Town: h5 `+0x109c` "NAME IS NOT
@@ -1428,6 +1454,23 @@ Read with a hunk loader (HUNK_HEADER / CODE / DATA / BSS / RELOC32) and capstone
   `-map-sheet-potions.png`, `p1-remaster-guild-new-purge-keep.png`, `p1-remaster-dungeon-requester-exit.png`,
   `-dungeon-requester-save-map.png`. Tests `P1MapRequesterTests`, `P1MapBarTests`, `P1ReportWindowTests`, Core
   `DungeonWindowTests.ALoadWhileAMenuWaits_KeepsTheStoredCells`.
+
+## Requester 19, a scroll's text (s165, static) `[C]`
+
+- **h29 `+0x24e(item − 121)`** (from the town's Use item, h8 `+0x155e`, items 121–140): h20 `+0xa0` reads the scroll's
+  800 bytes from `scrolls.dtx` (20 rows of 40, NUL-ended, upper case, leading blanks kept: DOS's text upper-cased, the
+  same rows, checked over all 20 scrolls), asks DO YOU WANT PRINTOUT?, and on NO / ABORT (`+0x2c4`) points ITexts
+  0x98–0xab at the rows, shows requester 19 (`h86 +0(0x13)`) and plays the tone (`+0x318`) after it.
+- **Requester 19** (h84 `+0x3fc6 + 19 · 0x70`): Left 33, Top 14, 254 × 172, backfill 6; Borders `0x1b9a` (0, 0) 254 × 172
+  and `0x1baa` (1, 1) 252 × 170, pen 2; ReqText ITexts 0x98–0xab pen 0 JAM1 z6font at (8, 8 + 7k); one gadget (h84
+  `+0x2e96`, id 1, GRELRIGHT | GRELBOTTOM (−71, −17) 64 × 9 → (182, 154) in the box, Borders 0 / 1 / 4) with IText 8.
+  h86 `+0x55a` points ITexts at the slot table h84 `+0xd4a` (IText i → slot i for i < 5, slot i + 1 from 5 on), so IText
+  8 is slot 9, "O.K." (h84 `+0x28b`); requester 14's EXIT (IText 7) is slot 8 "EXIT", which fits. Requesters 0–19 keep
+  their stored pens in the town.
+- **Built s165:** pack `map_requesters.scroll_text`, `P1MapRequesters.ScrollText` (stored pens on `town_palette`, the rows
+  upper-cased as stored, O.K. sends Return: the text closes with its tone); `UseItemDialog.ScrollRows`. A row past the
+  border or more than 20 rows keeps the remaster's panel (none of I's scrolls). Test
+  `P1MapRequesterTests.ScrollText_IsRequester19_EveryScrollFits_s165`. Not filmed (no scroll in a master-disk party) `[~]`.
 
 ## Overworld / dungeon map graphics (s52) — the graphics the remaster shows
 

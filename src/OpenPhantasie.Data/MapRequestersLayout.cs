@@ -57,6 +57,13 @@ public sealed record MapRequestersLayout(IReadOnlyList<string> Palette)
     /// <summary>s156: the town's palette (h69 <c>+0x54</c>), for the requesters the town shows with their stored pens.</summary>
     public IReadOnlyList<string>? TownPalette { get; init; }
 
+    /// <summary>
+    /// s165: requester 19 (h84 <c>+0x3fc6 + 19 · 0x70</c>), a scroll's text in the town's Use item (h29 <c>+0x2c4</c>: the
+    /// 20 stored rows into ITexts 0x98–0xab, then <c>h86 +0(0x13)</c>), with its stored pens on <see cref="TownPalette"/>;
+    /// its one gadget is O.K. (IText 8 → slot 9). Null: the remaster's text panel.
+    /// </summary>
+    public SheetPage? ScrollText { get; init; }
+
     /// <summary>The inverse of <see cref="PenRemap"/> (h69 <c>+0x1ac</c>, h77 <c>+0x1230</c>): screen pen → stored pen.</summary>
     public IReadOnlyList<int> PenUnmap
     {
@@ -101,6 +108,7 @@ public sealed record MapRequestersLayout(IReadOnlyList<string> Palette)
                 : dto.PenRemap.Count == 16 && dto.PenRemap.Order().SequenceEqual(Enumerable.Range(0, 16)) ? [.. dto.PenRemap]
                 : throw Bad("pen_remap must be a permutation of the 16 pens"),
             TownPalette = dto.TownPalette is null ? null : PaletteOf(dto.TownPalette),
+            ScrollText = dto.ScrollText is { } scroll ? SheetPage.FromDto(scroll, Bad) : null,
         };
     }
 
@@ -120,6 +128,7 @@ public sealed record MapRequestersLayout(IReadOnlyList<string> Palette)
         public SheetRequester.Dto? Sheet { get; set; }
         [JsonPropertyName("pen_remap")] public List<int>? PenRemap { get; set; }
         [JsonPropertyName("town_palette")] public string? TownPalette { get; set; }
+        [JsonPropertyName("scroll_text")] public SheetPage.Dto? ScrollText { get; set; }
     }
 }
 

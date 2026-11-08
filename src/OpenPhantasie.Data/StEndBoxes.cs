@@ -25,6 +25,21 @@ public sealed record StEndBoxes(
     StEndBoxShape OneLine, StEndBoxShape TwoLine, IReadOnlyList<string> Keys, IReadOnlyList<string> OutsideRoundKeys,
     IReadOnlyList<IReadOnlyList<string>> Pairs, IReadOnlyDictionary<string, int> Sounds)
 {
+    /// <summary>s165: the registers of <see cref="BorderColour"/>, <see cref="FillColour"/> and <see cref="TextColour"/> (VDI 0 /
+    /// 6 / 0 of the root G_BOX and its G_TEXT), for a box shown over another palette (<see cref="Colours"/>).</summary>
+    public (int Border, int Fill, int Text) Pens { get; init; } = (-1, -1, -1);
+
+    /// <summary>
+    /// s165: the box's border, fill and text colours ("#RRGGBB") in <paramref name="palette"/> (the palette the screen shows:
+    /// the box's G_BOX draws in VDI pens, so the field's <c>map</c> registers colour it there); the pack's own colours when
+    /// the palette lacks a pen or no pens are known.
+    /// </summary>
+    public (string Border, string Fill, string Text) Colours(IReadOnlyList<string>? palette)
+    {
+        string Pen(int pen, string fallback) => palette is not null && pen >= 0 && pen < palette.Count ? palette[pen] : fallback;
+        return (Pen(Pens.Border, BorderColour), Pen(Pens.Fill, FillColour), Pen(Pens.Text, TextColour));
+    }
+
     /// <summary><c>0x17266(str, buf, 35)</c>: the spaces put before a text of <paramref name="length"/> characters.</summary>
     public int Pad(int length) => Math.Max(0, (CenterColumns - length) / 2);
 
@@ -69,7 +84,10 @@ public sealed record StEndBoxes(
         return new StEndBoxes(dto.X, dto.Y, dto.Cell, dto.CenterColumns, dto.Border, Pen(dto.BorderPen), Pen(dto.FillPen),
             Pen(dto.TextPen), Shape(dto.OneLine, "one_line"), Shape(dto.TwoLine, "two_line"), [.. dto.Keys ?? []],
             [.. dto.OutsideRoundKeys ?? []], [.. pairs.Select(p => (IReadOnlyList<string>)[.. p])],
-            new Dictionary<string, int>(dto.Sounds ?? [], StringComparer.Ordinal));
+            new Dictionary<string, int>(dto.Sounds ?? [], StringComparer.Ordinal))
+        {
+            Pens = (dto.BorderPen, dto.FillPen, dto.TextPen),
+        };
     }
 
     internal sealed class Dto

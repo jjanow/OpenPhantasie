@@ -231,6 +231,50 @@ public static partial class UiOverlays
     }
 
     /// <summary>
+    /// s165: III's Damage Report (<see cref="P3DamageReportBox"/>, Amiga <c>0x1d4ea</c>): window 6's box and frame, the
+    /// title "Damage Report" in colour [0], then a member a row 8 px apart from <c>Text[1]</c> (the name, colour [1]) and
+    /// <c>Text[2]</c> (the line: colour [1], [2] for "… and dies.", [3] for "is dead."), and the one OK. The colours are
+    /// indices of the palette in force: the window's own, or the pack's dungeon palette while the party is in a dungeon
+    /// (<c>0x3904</c> keeps it). Rows that would reach OK grow the box down, never cut. False when the pack lacks OK.
+    /// </summary>
+    public static bool DrawDamageReportWindow(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, KeepWindowsLayout layout,
+        KeepWindowsLayout.InfoWindow w, P3DamageReport report, Point? held, bool inDungeon = false)
+    {
+        var palette = inDungeon && layout.DungeonPalette is { } dungeon ? dungeon : w.Palette;
+        if (w.Ok is not { } okAt
+            || assets.GetInPalette(PictureNames.Button("ok"), layout.ButtonPalette, inDungeon ? layout.DungeonPalette : null) is not { } ok)
+            return false;
+        Color C(int index) => assets.PaletteColour(palette, index) ?? DosWhite;
+        var (nameX, rowY) = w.Text[1];
+        var lineX = w.Text[2].X;
+        var grow = Math.Max(0, rowY + 8 * report.Rows.Count + 2 - okAt.Y);
+        DrawWindowFrame(batch, pixel, assets.PaletteColour(palette, 0) ?? DosBlack, C(w.Frame[0]), C(w.Frame[1]),
+            w.Box[0], w.Box[1], w.Box[2], w.Box[3] + grow);
+        PixelFont.Draw(batch, pixel, w.Text[0].X, w.Text[0].Y, P3DamageReport.Title, C(w.Colours[0]));
+        for (var i = 0; i < report.Rows.Count; i++)
+        {
+            var row = report.Rows[i];
+            var y = rowY + 8 * i;
+            PixelFont.Draw(batch, pixel, nameX, y, row.Name, C(w.Colours[1]));
+            var ink = row.Outcome switch
+            {
+                P3DamageOutcome.Died => w.Colours[2],
+                P3DamageOutcome.AlreadyDead => w.Colours[3],
+                _ => w.Colours[1],
+            };
+            PixelFont.Draw(batch, pixel, lineX, y, row.Text(report.Kind), C(ink));
+        }
+        var area = new Rectangle(okAt.X, okAt.Y + grow, layout.ButtonWidth, layout.ButtonHeight);
+        var picture = held is { } p && area.Contains(p)
+            && assets.GetInPalette(PictureNames.Button("ok", chosen: true), layout.ButtonPalette,
+                inDungeon ? layout.DungeonPalette : null) is { } down
+            ? down : ok;
+        batch.Draw(picture, new Rectangle(area.X, area.Y, picture.Width, picture.Height), Color.White);
+        Hits?.Add(new HitRegion(area) { Click = [Keys.O] });
+        return true;
+    }
+
+    /// <summary>
     /// s162: <paramref name="colour"/>, a colour of the pack's palette <paramref name="from"/>, as the same index shows in
     /// <paramref name="to"/> (a window's text drawn while another palette is in force); the colour itself when
     /// <paramref name="from"/> does not hold it or <paramref name="to"/> lacks that index.

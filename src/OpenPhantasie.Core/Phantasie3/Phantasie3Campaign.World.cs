@@ -76,7 +76,7 @@ public sealed partial class Phantasie3Campaign
         {
             kind = OverworldMoveKind.Lava;
             session.Note(GameText.S("core.p3.lava_burns"));
-            if (DamageParty(session, 13)) // root 0x2426(13, 1, 3): the trap-damage routine, rnd(13) each [~]
+            if (DamageParty(session, 13, P3DamageReportKind.Escape)) // root 0x2426(13, 1, 3) / Amiga 0xa676: rnd(13) each [~]
                 session.CampaignAccess.PartyDefeatPending = true;
         }
 
@@ -118,16 +118,27 @@ public sealed partial class Phantasie3Campaign
     }
 
     /// <summary>Every member with HP &gt; 0 takes <c>rnd(die)</c>; true when nobody is left alive.</summary>
-    internal static bool DamageParty(GameSession session, int die)
+    internal static bool DamageParty(GameSession session, int die, P3DamageReportKind kind = P3DamageReportKind.Trap)
     {
         session.PlaySound(P3Sounds.Loss); // the Damage Report window plays 42 whatever the die (Amiga 0x1d516)
-        if (die <= 0)
-            return false;
+        var lead = session.LastMessage;
+        var mark = session.LogSequence;
         var rng = session.CampaignAccess.Rng;
+        var rows = new List<P3DamageReportRow>();
         foreach (var m in session.Party.Members)
         {
+            // s165: every member has a row in the report (Amiga 0x1d4ea): one already at 0 HP "is dead."; a die of 0
+            // hurts nobody [~] and each living member gets the kind's unhurt line.
             if (m.HpCur <= 0 || m.Status == CharacterStatus.Dead)
+            {
+                rows.Add(new P3DamageReportRow(m.Name, P3DamageOutcome.AlreadyDead, 0));
                 continue;
+            }
+            if (die <= 0)
+            {
+                rows.Add(new P3DamageReportRow(m.Name, P3DamageOutcome.Unhurt, 0));
+                continue;
+            }
             var d = P3Dice.Rnd(rng, die);
             session.Note(GameText.F("core.p3.damage_report_x_x", m.Name, d));
             if (m.HpCur <= d)
@@ -135,10 +146,17 @@ public sealed partial class Phantasie3Campaign
                 m.HpCur = 0;
                 m.Status = CharacterStatus.Dead;
                 session.Note(GameText.F("core.p3.x_dies", m.Name));
+                rows.Add(new P3DamageReportRow(m.Name, P3DamageOutcome.Died, d));
             }
             else
+            {
                 m.HpCur -= d;
+                rows.Add(new P3DamageReportRow(m.Name, P3DamageOutcome.Damaged, d));
+            }
         }
+        session.Report(new P3DamageReport(kind, rows, session.LogSince(mark), lead));
+        if (die <= 0)
+            return false;
         return session.Party.Members.Count > 0 && session.Party.Members.All(m => m.Status == CharacterStatus.Dead);
     }
 

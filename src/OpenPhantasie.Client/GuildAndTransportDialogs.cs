@@ -136,6 +136,12 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
     public int MoveQuestions { get; private set; }
 
     /// <summary>
+    /// s165: counts the roster list's answers (a row picked, or Esc / Backspace): I Amiga's list window h26 <c>+0x412</c>
+    /// ("WHOM DO YOU WANT TO ADD?", h5 <c>+0xcae</c>) plays the tone after each gadget (<c>+0x614</c>), before the pick runs.
+    /// </summary>
+    public int ListTones { get; private set; }
+
+    /// <summary>
     /// s162: III's move question shows in the Amiga's window 1 (<c>0xd24c</c> through <c>0xaae2</c>: OK / CANCEL, no
     /// highlight, Return = OK; <see cref="Game1.KeepWindowChoice"/>), set by the Client from
     /// <see cref="P3ConfirmQuestion.InWindow"/>. Off: the Yes / No panel.
@@ -243,6 +249,7 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
             switch (key)
             {
                 case Keys.Escape or Keys.Back:
+                    ListTones++;
                     _open = false;
                     return "";
                 case Keys.Up:
@@ -252,6 +259,7 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
                     Cursor = Math.Min(rows.Count - 1, Cursor + 1);
                     break;
                 case Keys.Enter or Keys.Space when rows.Count > 0:
+                    ListTones++;
                     var row = rows[Math.Clamp(Cursor, 0, rows.Count - 1)];
                     if (row.Member is null)
                     {
@@ -302,6 +310,9 @@ public sealed class GuildDropDialog : IModalDialog
 
     public string Help => UiText.S("guild.1_6_drop_esc_done");
 
+    /// <summary>s165: counts the chooser left by Esc / Backspace (I Amiga's list tone, h23 <c>+0x22a</c> from h5 <c>+0xdc2</c>).</summary>
+    public int ChooserCancels { get; private set; }
+
     public string? Open(GameSession session)
     {
         if (session.Mode is not (GameMode.Guild or GameMode.Title))
@@ -321,6 +332,7 @@ public sealed class GuildDropDialog : IModalDialog
         {
             if (key is Keys.Escape or Keys.Back)
             {
+                ChooserCancels++;
                 IsOpen = false;
                 return "";
             }
@@ -364,6 +376,12 @@ public sealed class GuildPartyPickDialog : IModalDialog
 
     /// <summary>s156: the member whose training cost waits for AGREE / NOT, or null.</summary>
     public Character? ConfirmingTraining => _confirming;
+
+    /// <summary>
+    /// s165: counts the WHO list left by Esc / Backspace (I Amiga's list tone, h23 <c>+0x22a</c> from h5 <c>+0x1116</c>
+    /// "WHO WILL LEARN?" / <c>+0x13c2</c> "WHO IS GOING TO BE TRAINED?").
+    /// </summary>
+    public int ChooserCancels { get; private set; }
 
     public string Help => _skillMember is not null ? UiText.S("p3train.help")
         : _confirming is not null ? UiText.S("guild.a_agree_n_not") : UiText.S("guild.1_6_choose_esc_done");
@@ -449,6 +467,7 @@ public sealed class GuildPartyPickDialog : IModalDialog
             }
             if (key is Keys.Escape or Keys.Back)
             {
+                ChooserCancels++;
                 _onPick = null;
                 _training = false;
                 return "";

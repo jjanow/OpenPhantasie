@@ -289,6 +289,42 @@ public class P1MapRequesterTests
     /// line with O.K. (one button, gadget 0 at x 47), the two printout questions one line with two buttons; stored pens on
     /// the town palette as the Guild's move question.
     /// </summary>
+    /// <summary>
+    /// s165: a scroll's text is requester 19 (h29 <c>+0x2c4</c> → <c>h86 +0(0x13)</c>, FORMAT.md "Requester 19"): (33, 14)
+    /// 254 × 172, backfill 6, two pen-2 outlines, the stored rows in upper case at (8, 8 + 7k) pen 0 with their leading
+    /// blanks, O.K. at GREL (−71, −17) = (182, 154) 64 × 9 (Return), stored pens on the town palette. Every one of I's 20
+    /// scrolls fits (at most 20 rows, each inside the borders), so the panel never stands in.
+    /// </summary>
+    [OriginalDataFact]
+    public void ScrollText_IsRequester19_EveryScrollFits_s165()
+    {
+        var l = Layout();
+        var p = l.ScrollText!;
+        Assert.Equal(new Box(33, 14, 254, 172), p.Box);
+        Assert.Equal(20, p.Rows.Count);
+        Assert.Equal((8, 8 + 7 * 19, 0), p.Rows[19]);
+        var data = ClientSessions.Data;
+        Assert.Equal(20, data.Scrolls.Count);
+        foreach (var scroll in data.Scrolls)
+            Assert.NotNull(P1MapRequesters.ScrollText(p, l.TownPalette!, scroll.Lines));
+        var first = P1MapRequesters.ScrollText(p, l.TownPalette!, data.Scrolls.First(sc => sc.Id == 1).Lines)!;
+        Assert.Equal(new Box(33, 14, 254, 172), first.Ops[0].Rect);
+        Assert.Equal(6, first.Ops[0].Pen);
+        Assert.Equal([2, 2, 2, 2], first.Ops.Where(o => o.Kind == RequesterOpKind.Outline).Select(o => o.Pen));
+        var title = first.Ops.First(o => o.Kind == RequesterOpKind.Text);
+        Assert.Equal("       THE HISTORY OF GELNOR", title.Text); // scrolls.dtx row 0, its blanks centre it
+        Assert.Equal((41, 22), (title.Rect.X, title.Rect.Y));
+        Assert.DoesNotContain(first.Ops, o => o.Kind == RequesterOpKind.Text && o.Text.Any(char.IsLower));
+        var ok = Assert.Single(first.Buttons);
+        Assert.Equal(new Box(215, 168, 64, 9), ok.Rect);
+        Assert.Equal(Keys.Enter, ok.Click);
+        Assert.Contains(first.Ops, o => o.Text == "O.K." && o.Rect.X == 235 && o.Rect.Y == 170 && o.Pen == 0);
+        Assert.Equal(l.TownPalette, first.Palette);
+        // A row past the borders or a 21st row: no requester (the remaster's panel keeps every line).
+        Assert.Null(P1MapRequesters.ScrollText(p, l.TownPalette!, [new string('X', 41)]));
+        Assert.Null(P1MapRequesters.ScrollText(p, l.TownPalette!, [.. Enumerable.Repeat("A", 21)]));
+    }
+
     [OriginalDataFact]
     public void TownAlerts_DoneAndPrintout_s163()
     {

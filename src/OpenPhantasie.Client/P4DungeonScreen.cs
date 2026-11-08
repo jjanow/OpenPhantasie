@@ -253,32 +253,43 @@ public sealed partial class P4DungeonScreen
         }
     }
 
+    /// <summary>
+    /// s165: the shares as the original asks them (<c>_deposit</c> 0x4A8E, <c>_gatebank</c> 0x4FEC): member by member in
+    /// party order, one key (or share button) each; the share is written on the member's row (x 196 / 164; <c>_wloc</c>
+    /// only places the text, no cursor is drawn) and the next member's row comes up; after the last member the shares go
+    /// in. The "0" button is off for a member in good health (its enable field = condition ≠ Okay), so 0 does nothing
+    /// for him. Returns the shares given so far, and whether they are complete.
+    /// </summary>
+    public static (List<int> Shares, bool Done) GiveShare(IReadOnlyList<int> given, IReadOnlyList<P4Member> members, int share)
+    {
+        ArgumentNullException.ThrowIfNull(given);
+        ArgumentNullException.ThrowIfNull(members);
+        var list = given.Take(members.Count).ToList();
+        if (list.Count < members.Count && share is >= 0 and <= 3
+            && (share > 0 || members[list.Count].Condition != P4Member.Okay))
+            list.Add(share);
+        return (list, list.Count == members.Count && members.Count > 0);
+    }
+
+    /// <summary>The text column's line for member <paramref name="i"/> while the shares are asked: his share once given,
+    /// "?" while it is his turn, nothing after.</summary>
+    private string ShareLine(int i) =>
+        $"{Game.Party.Members[i].Name,-10} {(i < _shares.Length ? _shares[i].ToString(System.Globalization.CultureInfo.InvariantCulture) : i == _shares.Length ? "?" : "")}";
+
     private void ShareKey(Keys key)
     {
-        var n = Game.Party.Members.Count;
-        if (_shares.Length != n)
-            _shares = Enumerable.Repeat(1, n).ToArray();
-        if (key == Keys.Up)
-            Cursor = (Cursor + n - 1) % n;
-        else if (key == Keys.Down)
-            Cursor = (Cursor + 1) % n;
-        else if (key is >= Keys.D0 and <= Keys.D3)
-            _shares[Cursor % n] = key - Keys.D0;
-        else if (key is >= Keys.NumPad0 and <= Keys.NumPad3)
-            _shares[Cursor % n] = key - Keys.NumPad0;
-        else if (key == Keys.Enter)
-        {
-            try
-            {
-                W.EnterShares(_shares);
-                _shares = [];
-                Cursor = 0;
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                Note = UiText.S("p4.town.share_okay_needs_one");
-            }
-        }
+        int? share = key is >= Keys.D0 and <= Keys.D3 ? key - Keys.D0
+            : key is >= Keys.NumPad0 and <= Keys.NumPad3 ? key - Keys.NumPad0 : null;
+        if (share is not int s)
+            return;
+        var (list, done) = GiveShare(_shares, Game.Party.Members, s);
+        _shares = [.. list];
+        Cursor = Math.Min(list.Count, Math.Max(0, Game.Party.Members.Count - 1));
+        if (!done)
+            return;
+        W.EnterShares(_shares);
+        _shares = [];
+        Cursor = 0;
     }
 
     private void DungeonKey(Keys key)
@@ -428,8 +439,9 @@ public sealed partial class P4DungeonScreen
         };
         if (Game.Party.Ship == P4ShipState.Aboard)
             lines.Add(new(UiText.S("p4.outdoor.aboard"), MenuLineStyle.Dim));
-        foreach (var l in O.Box)
-            lines.Add(new(l, MenuLineStyle.Normal));
+        if (!InnWindowUp) // s165: the outdoor inn's rows are in _inn's window under its picture
+            foreach (var l in O.Box)
+                lines.Add(new(l, MenuLineStyle.Normal));
         switch (O.Prompt)
         {
             case P4OutdoorPrompt.Confirm:
@@ -474,7 +486,7 @@ public sealed partial class P4DungeonScreen
                     : UiText.F("p4.town.share_xp_x", W.ShareAmount), MenuLineStyle.Header));
                 var n = Game.Party.Members.Count;
                 for (var i = 0; i < n; i++)
-                    lines.Add(Option(i, $"{Game.Party.Members[i].Name,-10} {(_shares.Length == n ? _shares[i] : 1)}"));
+                    lines.Add(Option(i, ShareLine(i)));
                 break;
             case P4TownPrompt.Confirm:
                 lines.Add(new(UiText.S("p4.outdoor.yes_no"), MenuLineStyle.Selected));
@@ -521,7 +533,7 @@ public sealed partial class P4DungeonScreen
             P4TownPrompt.Wait when W.CanLeaveHistory => UiText.S("p4.hall.help_history"),
             P4TownPrompt.Wait => UiText.S("p4.dungeon.help_wait"),
             P4TownPrompt.Confirm => UiText.S("p4.outdoor.help_confirm"),
-            P4TownPrompt.Shares => UiText.S("p4.town.help_shares"),
+            P4TownPrompt.Shares => UiText.S("p4.town.help_shares_each"),
             P4TownPrompt.Ending when W.EndingStep == P4EndingStep.Question => UiText.S("p4.town.help_save_question"),
             _ => UiText.S("p4.dungeon.help_left"),
         }
@@ -567,13 +579,14 @@ public sealed partial class P4DungeonScreen
     /// </summary>
     public string? SceneName => Game.Battle is not null || !Game.LoopBuilt ? null
         : MenuOpen ? (M!.ReadingScroll ? "p4.scroll" : Game.Place == P4Place.Outdoors ? OutdoorScene : null)
-        : Game.Place == P4Place.Outdoors ? OutdoorScene
+        // s165: an outdoor inn (_oinn → _inn) opens INN.PKH's window over the map through _inn's SPACE wait.
+        : Game.Place == P4Place.Outdoors ? (O.InnRows is not null ? InnScene : OutdoorScene)
         : Game.Place != P4Place.Town ? null
         : W.Scene switch
         {
             P4TownScene.Street when W.Site is { } site => $"p4.street.{site.Type}",
             P4TownScene.Guild => "p4.guild",
-            P4TownScene.Inn => "p4.inn",
+            P4TownScene.Inn => InnScene,
             P4TownScene.Bank => "p4.bank",
             P4TownScene.Shipwright => "p4.shipwright",
             P4TownScene.Mystic => "p4.mystic",
@@ -593,7 +606,7 @@ public sealed partial class P4DungeonScreen
     public static string? TitledWindowName(string? scene) => scene switch
     {
         "p4.guild" => "_guildmenu",
-        "p4.inn" => "_inn",
+        InnScene => "_inn",
         "p4.bank" => "_bank",
         "p4.mystic" => "_mystic",
         HallScene => "_hall",
@@ -717,10 +730,13 @@ public sealed partial class P4DungeonScreen
             return;
         // s156: _trang's own window 32 in the picture's place (the training hall has no picture: _trang's _clrtdraw), a
         // level-up's _sklup window in its lower part.
-        if (CoreTrainingWindow is { } hallUp && Assets?.PackPixelsPerLayoutPixel is > 0 && Extras?.TrainingHall is { } hall
-            && TrainingHallArea(hall, hallUp, Extras.SkillUp, 1f / Assets.PackPixelsPerLayoutPixel) is var (hw, hh)
+        // s165: _mage's window 32 is drawn the same way from the pack's "mage" (no level-up window in it).
+        if (CoreTrainingWindow is { } hallUp && Assets?.PackPixelsPerLayoutPixel is > 0
+            && (hallUp.Hall == P4TrainingWindow.MagicHall ? Extras?.MagicHall : Extras?.TrainingHall) is { } hall
+            && (hallUp.Hall == P4TrainingWindow.MagicHall ? null : Extras!.SkillUp) is var hallSkills
+            && TrainingHallArea(hall, hallUp, hallSkills, 1f / Assets.PackPixelsPerLayoutPixel) is var (hw, hh)
             && DrawTitledBeside(batch, pixel, hw, hh, PanelText(hall.Title, hall.TitleText),
-                (origin, k) => DrawTrainingWindow(batch, pixel, hall, hallUp, CoreSkillWindow, Extras.SkillUp, origin, k)))
+                (origin, k) => DrawTrainingWindow(batch, pixel, hall, hallUp, CoreSkillWindow, hallSkills, origin, k)))
             return;
         // s152: _sklup's window 32 in the picture's place (the training hall has no picture: _trang's _clrtdraw).
         if (CoreSkillWindow is { } skills && Assets?.PackPixelsPerLayoutPixel is > 0 && Extras?.SkillUp is { } sk
@@ -728,6 +744,8 @@ public sealed partial class P4DungeonScreen
                 (origin, k) => DrawSkillWindow(batch, pixel, sk, skills, origin, k)))
             return;
         if (DrawFinalScreen(batch, pixel)) // s162: _endstory's own titled window
+            return;
+        if (DrawGateBank(batch, pixel)) // s165: _gatebank's share-out window while the entry's shares are asked / its wait
             return;
         if (DrawTownGate(batch, pixel)) // s162: _townent's Town Gate window while the aging wait is up
             return;

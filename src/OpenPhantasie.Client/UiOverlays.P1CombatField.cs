@@ -53,7 +53,9 @@ public static partial class UiOverlays
         if (!presenter.P1FieldShown || presenter.P1Layout is not { } layout)
             return false;
         // The fight's last boxes (requester 23) may still play after Core has closed the encounter: the snapshot holds the field.
-        if ((presenter.P1Snapshot ?? (session.Combat is { } combat ? P1CombatFieldSnapshot.Of(session.Party, combat) : null))
+        // s165: after a won fight its finds are asked over the field as state 12's set-up left it (presenter.P1AfterFight).
+        if ((presenter.P1Snapshot ?? (session.Combat is { } combat ? P1CombatFieldSnapshot.Of(session.Party, combat) : null)
+                ?? (presenter.P1AfterFightShown ? presenter.P1AfterFight : null))
             is not { } snapshot)
             return false;
         // The window's text (the line, the requesters) in the game's z6font, the bar in the screen's topaz 8 (s134).
@@ -144,7 +146,8 @@ public static partial class UiOverlays
 
         // The line (h80 +0x84a(text, 3, 185)): centred on 320, the last printed one stays; before the fight's first line the
         // remaster's D-058 flash (no wait, s140).
-        if ((state?.Text ?? presenter.P1LastLine ?? presenter.P1Banner) is { Length: > 0 } text)
+        if (!presenter.P1AfterFightShown // s165: the set-up's fill cleared the line before the finds
+            && (state?.Text ?? presenter.P1LastLine ?? presenter.P1Banner) is { Length: > 0 } text)
             PixelFont.Draw(batch, pixel, (320 - PixelFont.Measure(text.Trim())) / 2, layout.LineY, text.Trim(), pens[layout.LinePen]);
 
         // A party spell's sparkle (h53 +0xab8 -> h77 +0xf2a, s133): a hardware sprite over the field at a random 16x16

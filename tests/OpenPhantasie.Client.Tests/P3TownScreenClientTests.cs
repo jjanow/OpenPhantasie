@@ -245,14 +245,33 @@ public class P3TownScreenClientTests
         Assert.True(view.Rows[0].Highlight); // colour 8
         Assert.Equal((layout.Heal!.Text[0].X, layout.Heal.Text[0].Y), (view.Rows[0].X, view.Rows[0].Y));
         Assert.Equal(1 + 5 * s.Party.Members.Count, view.Rows.Count); // name, race, level, class, status a member
-        Assert.Equal(["A", "B"], view.Picks.Select(p => view.Rows[p.Row].Text));
-        Assert.Equal([Keys.D1, Keys.D2], view.Picks.Select(p => p.Key));
-        Assert.False(view.Rows[view.Picks[0].Row].Highlight);
-        Assert.True(view.Rows[view.Picks[1].Row].Highlight); // the cursor's row in colour 8
+        // s165: a row press only moves the cursor (0x17a6): no row picks, each member row is a cursor row.
+        Assert.Empty(view.Picks);
+        var rows = view.CursorRows!;
+        Assert.Equal(["A", "B"], rows.Select(r => view.Rows[r.Row].Text));
+        Assert.Equal([0, 1], rows.Select(r => r.Cursor));
+        Assert.False(view.Rows[rows[0].Row].Highlight);
+        Assert.True(view.Rows[rows[1].Row].Highlight); // the cursor's row in colour 8
         Assert.Equal(prompt.Options.Count + 1, prompt.EscapeChoice); // CANCEL
         Assert.Null(AmigaDisarmWindow.Choice(Keys.C));
         Assert.Equal(Keys.Enter, AmigaDisarmWindow.Choice(Keys.O));
         Assert.Equal(Keys.Down, AmigaDisarmWindow.Choice(Keys.Down));
+        // s165: 8 / 2 move the cursor (0x12952 / 0x12976), any other digit does nothing.
+        Assert.Equal(Keys.Up, AmigaDisarmWindow.Choice(Keys.D8));
+        Assert.Equal(Keys.Down, AmigaDisarmWindow.Choice(Keys.D2));
+        Assert.Equal(Keys.Up, AmigaDisarmWindow.Choice(Keys.NumPad8));
+        Assert.Equal(Keys.Down, AmigaDisarmWindow.Choice(Keys.NumPad2));
+        Assert.Equal(Keys.None, AmigaDisarmWindow.Choice(Keys.D1));
+        Assert.Equal(Keys.None, AmigaDisarmWindow.Choice(Keys.NumPad1));
+        var menu = new PromptMenu();
+        Assert.Null(menu.HandleKey(prompt, AmigaDisarmWindow.Choice(Keys.D1)!.Value)); // a digit picks nobody
+        Assert.Null(menu.HandleKey(prompt, AmigaDisarmWindow.Choice(Keys.D2)!.Value));
+        Assert.Equal(1, menu.CursorFor(prompt));
+        Assert.Null(menu.HandleKey(prompt, AmigaDisarmWindow.Choice(Keys.D8)!.Value));
+        Assert.Equal(0, menu.CursorFor(prompt));
+        menu.MoveTo(prompt, 1); // a press on B's row: the cursor there, nothing picked
+        Assert.Equal(1, menu.CursorFor(prompt));
+        Assert.Equal(2, menu.HandleKey(prompt, AmigaDisarmWindow.Choice(Keys.O)!.Value)); // OK takes B
         // The trap's Yes / No question keeps window 1.
         s.CampaignAccess.DungeonEventPrompt = new PendingDungeonEvent(2, -1,
             new DungeonMessage(["A spots a trap. Disarm it?"], [SessionPrompts.Yes, SessionPrompts.No]));

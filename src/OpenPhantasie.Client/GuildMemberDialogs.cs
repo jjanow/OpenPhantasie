@@ -93,6 +93,13 @@ public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog
     /// </summary>
     public Character? RolledMember => _step == Step.Accept && !_descendant ? _rolled : null;
 
+    /// <summary>
+    /// s165: counts the plain roll's race and class picks: I Amiga's list window h23 <c>+0x970</c> (requester 1, the races,
+    /// h23 <c>+0x8cc</c>; requester 2, the classes under "CREATING %s", <c>+0x8d8</c>) plays the tone (<c>+0xa34</c>) when
+    /// O.K. is pressed with a row selected, not on its cancel. A descendant's lists (T5, the remaster's) are not counted.
+    /// </summary>
+    public int ListTones { get; private set; }
+
     public ListPage? Page { get; private set; }
 
     public string? TypingAlphabet => _step == Step.Name ? NameEntry.Alphabet : null;
@@ -289,6 +296,8 @@ public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog
                     }
                     if (DialogKeys.Digit(key) is var r and >= 1 and <= 6 && (!_descendant || r <= BaseRaceRows))
                     {
+                        if (!_descendant)
+                            ListTones++;
                         _race = r - 1;
                         _error = "";
                         _step = Step.Class;
@@ -306,6 +315,8 @@ public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog
                     }
                     if (DialogKeys.Digit(key) is var c and >= 1 and <= 6)
                     {
+                        if (!_descendant)
+                            ListTones++;
                         var cls = (CharacterClass)(c - 1);
                         if (_descendant)
                         {
@@ -447,6 +458,13 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
     /// </summary>
     public Character? PurgeAsked { get; private set; }
 
+    /// <summary>
+    /// s165: counts the Purge / Rename list's answers (a row picked, or Esc / Backspace): I Amiga's roster list h26
+    /// <c>+0x346</c> → <c>+0x412</c> ("WHOM DO YOU WANT TO PURGE?" h5 <c>+0xe62</c>, "WHO NEEDS RENAMING?" <c>+0xf1a</c>)
+    /// plays the tone after each gadget (<c>+0x614</c>). III's Examine list is not counted.
+    /// </summary>
+    public int ListTones { get; private set; }
+
     public bool IsOpen => _open && PurgeAsked is null;
 
     public string? TypingAlphabet => _open && _renaming is not null ? NameEntry.Alphabet : null;
@@ -548,6 +566,8 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
             switch (key)
             {
                 case Keys.Escape or Keys.Back:
+                    if (_examine is null)
+                        ListTones++;
                     _open = false;
                     return "";
                 case Keys.Up:
@@ -557,6 +577,8 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
                     Cursor = Math.Min(rows.Count - 1, Cursor + 1);
                     break;
                 case Keys.Enter or Keys.Space when rows.Count > 0:
+                    if (_examine is null)
+                        ListTones++;
                     var member = rows[Math.Clamp(Cursor, 0, rows.Count - 1)];
                     if (_examine is { } examine)
                     {

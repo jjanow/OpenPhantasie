@@ -11,7 +11,8 @@ namespace OpenPhantasie.Client;
 /// <c>_setuse</c>, <c>_setident</c> / <c>_tritmlst</c>), each the titled 312 × 352 window <c>_wopen(-1, 160, 32, 312, 352,
 /// 1, title)</c> with the original's rows: the letter in colour 2, the icon, the name, the points / price / users columns
 /// at their x, the headers, the colour-0 line and the sunken frames. The text column keeps its lines and keys (as the
-/// training hall's); a click on a row presses its key. `[~]`: Share out's equipment table under its divider is not read.
+/// training hall's); a click on a row presses its key. s165: Share out's equipment table under its divider
+/// (<c>_init_eq</c> / <c>_disp_eq</c>), its rows the member buttons.
 /// </summary>
 public sealed partial class P4DungeonScreen
 {
@@ -171,5 +172,160 @@ public sealed partial class P4DungeonScreen
         foreach (var (x, y, t, colour) in ItemWindowText(windows, layout, rows, member, message, s => PanelText(s.Label, s.Text),
                      t => PackWidth(t, k)))
             PackText(batch, pixel, origin + new Vector2(x * k, y * k), t, Pal(colour, Color.Black), k);
+        if (layout.Equipment is { } eq && !MenuOpen && W.IconMenu == "_distribute")
+            DrawEquipmentTable(batch, pixel, windows, eq, origin, k);
+    }
+
+    // --- Share out's equipment table (_init_eq / _disp_eq) -----------------------------------------------------------------
+
+    /// <summary>One member's row of the equipment table: name, class name, and each slot's value (the pack's slot names).</summary>
+    public sealed record EquipmentRow(string Name, string Class, IReadOnlyDictionary<string, int> Values);
+
+    /// <summary>The pack's slot name of an item kind (the table's columns), or null for an item with no slot.</summary>
+    public static string? SlotName(P4ItemKind kind) => kind switch
+    {
+        P4ItemKind.Weapon => "weapon",
+        P4ItemKind.Armour => "armour",
+        P4ItemKind.Shield => "shield",
+        P4ItemKind.Bow => "bow",
+        P4ItemKind.Thrown => "thrown",
+        _ => null,
+    };
+
+    /// <summary>
+    /// <c>_init_eq</c>'s class name: its characters while the width printed so far is below <paramref name="limit"/>
+    /// (<c>_flen</c>, 0xA048): the original's own cut (its class names are English: "Thie", "Figh", "Shad" …).
+    /// </summary>
+    public static string ClassCut(string name, int limit, Func<string, int> width)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(width);
+        var n = 0;
+        var used = 0;
+        while (n < name.Length && used < limit)
+        {
+            used += width(name[n].ToString());
+            n++;
+        }
+        return name[..n];
+    }
+
+    /// <summary>
+    /// The value columns' x (pack pixels): the original's (184 + 24 · i) while every header fits its 24-pixel step; when a
+    /// translated header is wider (English "Wpn", "Arm" … run into each other at 24), the step grows to the widest header +
+    /// 2 and the columns move left just enough to end inside the window (<paramref name="right"/>), never into the class
+    /// column `[~]`.
+    /// </summary>
+    public static List<(string Slot, int X)> EquipmentColumns(EquipmentTable eq, int widestHeader, int right)
+    {
+        ArgumentNullException.ThrowIfNull(eq);
+        var xs = eq.Values;
+        if (xs.Count < 2)
+            return [.. xs];
+        var step = xs[1].X - xs[0].X;
+        if (widestHeader + 2 <= step)
+            return [.. xs];
+        step = widestHeader + 2;
+        var start = Math.Max(eq.ClassX + eq.ClassWidth + 4, Math.Min(xs[0].X, right - step * xs.Count));
+        return [.. xs.Select((v, i) => (v.Slot, start + step * i))];
+    }
+
+    /// <summary>
+    /// s165: the equipment table's text (pack pixels in Share out's window, FORMAT.md 6.9 "Item lists"): the headers (the
+    /// one over <paramref name="litSlot"/>'s column in ink ^ xor: its box is lit), then member m's row: m + 1 in colour 2,
+    /// the name, the class cut by <see cref="ClassCut"/>, each slot's value padded to two digits.
+    /// </summary>
+    public static List<(int X, int Y, string Text, int Colour)> EquipmentText(EquipmentTable eq, int ink,
+        IReadOnlyList<EquipmentRow> rows, string? litSlot, Func<TrainingHallSegment, string> text, Func<string, int> width,
+        int right = 304)
+    {
+        ArgumentNullException.ThrowIfNull(eq);
+        ArgumentNullException.ThrowIfNull(rows);
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(width);
+        var columns = EquipmentColumns(eq, ValueHeaderWidth(eq, text, width), right);
+        // A value header's x is its column's (the pack's header x = the column's original x).
+        int HeaderX(TrainingHallSegment h) =>
+            eq.Values.Select((v, i) => (v, i)).Where(p => p.v.X == h.X).Select(p => (int?)columns[p.i].X).FirstOrDefault()
+            ?? h.X ?? 0;
+        int? litX = litSlot is null ? null : columns.Where(v => v.Slot == litSlot).Select(v => (int?)v.X).FirstOrDefault();
+        var list = eq.Headers.Select(h => (HeaderX(h), h.Y ?? eq.HeaderY, text(h),
+            litX is not null && HeaderX(h) == litX ? ink ^ eq.KindBoxXor : h.Colour ?? ink)).ToList();
+        for (var m = 0; m < rows.Count; m++)
+        {
+            var y = eq.RowY + eq.RowStep * m;
+            var r = rows[m];
+            list.Add((eq.NumberX, y, (m + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), eq.NumberColour));
+            list.Add((eq.NameX, y, r.Name, ink));
+            list.Add((eq.ClassX, y, ClassCut(r.Class, eq.ClassWidth, width), ink));
+            foreach (var (slot, x) in columns)
+                list.Add((x, y, PaddedAmount(r.Values.GetValueOrDefault(slot), eq.ValueDigits), ink));
+        }
+        return list;
+    }
+
+    /// <summary>The widest of the value columns' headers (pack pixels) as shown.</summary>
+    public static int ValueHeaderWidth(EquipmentTable eq, Func<TrainingHallSegment, string> text, Func<string, int> width)
+    {
+        ArgumentNullException.ThrowIfNull(eq);
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(width);
+        var xs = eq.Values.Select(v => v.X).ToHashSet();
+        return eq.Headers.Where(h => h.X is int x && xs.Contains(x)).Select(h => width(text(h))).DefaultIfEmpty(0).Max();
+    }
+
+    /// <summary>The party's equipment rows now: <c>_equip</c>'s best usable item per slot and its points (D4-018).</summary>
+    private List<EquipmentRow> EquipmentRows()
+    {
+        var s = Game.Services!;
+        var rows = new List<EquipmentRow>();
+        foreach (var m in Game.Party.Members)
+        {
+            var best = P4Equipment.Best(Game.Options, Game.Tables.Towns, s.Items, m);
+            int Value(int id) => id == 0 ? 0 : P4Town.ItemPoints(Game.Options, Game.Tables.Towns, id, s.Items[id]?.Points ?? 0);
+            rows.Add(new(m.Name, P4Names.At(s.Names.Classes, m.Class), new Dictionary<string, int>
+            {
+                ["weapon"] = Value(best.Weapon), ["armour"] = Value(best.Armour), ["shield"] = Value(best.Shield),
+                ["bow"] = Value(best.Bow), ["thrown"] = Value(best.Thrown),
+            }));
+        }
+        return rows;
+    }
+
+    /// <summary>
+    /// s165: the equipment table under Share out's divider: the header (the placed item's slot boxed: <c>_wxbox</c> XOR 15
+    /// over a 16 × 15 cell, as wide as the English header when that is wider), the colour-0 line, the rows; each row is a
+    /// member button (<c>_setbtn(-1, win, 16, 240 + 16 m, 280, 16, '1' + m)</c>): a click gives the item to him.
+    /// </summary>
+    private void DrawEquipmentTable(SpriteBatch batch, Texture2D pixel, ItemWindows windows, EquipmentTable eq, Vector2 origin,
+        float k)
+    {
+        void Box(float x, float y, float w, float h, Color c) =>
+            batch.Draw(pixel, origin + new Vector2(x * k, y * k), null, c, 0f, Vector2.Zero, new Vector2(w * k, h * k),
+                SpriteEffects.None, 0f);
+        var ink = windows.TextColour;
+        var litSlot = Game.Services!.Items[W.HeldItem] is { } held ? SlotName(held.Slot) : null;
+        var columns = EquipmentColumns(eq, ValueHeaderWidth(eq, s => PanelText(s.Label, s.Text), t => PackWidth(t, k)), 304);
+        var litIndex = litSlot is null ? -1 : columns.FindIndex(v => v.Slot == litSlot);
+        if (litIndex >= 0 && eq.Headers.FirstOrDefault(h => h.X == eq.Values[litIndex].X) is { } head)
+            Box(columns[litIndex].X, eq.KindBoxY, Math.Max(eq.KindBoxWidth, PackWidth(PanelText(head.Label, head.Text), k)),
+                eq.KindBoxHeight, Pal(windows.BackColour ^ eq.KindBoxXor, Color.DarkGray));
+        Box(eq.Line.X, eq.Line.Y, eq.Line.Width, eq.Line.Height, Pal(eq.LineColour, Color.Black));
+        var rows = EquipmentRows();
+        foreach (var (x, y, t, colour) in EquipmentText(eq, ink, rows, litSlot, s => PanelText(s.Label, s.Text),
+                     t => PackWidth(t, k)))
+            PackText(batch, pixel, origin + new Vector2(x * k, y * k), t, Pal(colour, Color.Black), k);
+        if (W.Prompt != P4TownPrompt.Pick)
+            return;
+        for (var m = 0; m < rows.Count && m < W.Choices.Count; m++)
+        {
+            if (!W.Choices[m].Enabled)
+                continue; // _distribute turns a full member's buttons off (0xA46A)
+            var (press, line) = ListPress(m);
+            var y = eq.RowY + eq.RowStep * m;
+            UiOverlays.Hits?.Add(new HitRegion(new Rectangle((int)(origin.X + eq.Button.X * k), (int)(origin.Y + y * k),
+                (int)Math.Ceiling(eq.Button.Width * k), (int)Math.Ceiling(eq.Button.Height * k)),
+                new P4PanelIconTag("_disp_eq", m, line)) { Click = [press] });
+        }
     }
 }

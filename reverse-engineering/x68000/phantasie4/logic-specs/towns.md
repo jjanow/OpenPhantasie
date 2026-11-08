@@ -61,6 +61,9 @@ Done on every arrival except a reload inside town (`_cmovf` = 2). Order:
      condition is not Okay; an Okay member must take 1–3 `[~]` (button-enable field read from `_bank`'s use of it).
    - per share = trunc(pool × 10 / (0.0001 + Σ shares)); each member's experience (+04) += per share × shares, cap
      9 999 999. The pool is set to 0 (the remainder is lost).
+   - s165 (window read, `../FORMAT.md` 6.9 "`_gatebank`'s share-out window"): each member's row comes up at his turn,
+     the share is shown at x 164 and, after the last share, overwritten by the experience he got; then a **SPACE wait**
+     (`_spc_wait` `0x529E`) before the aging. The remaster waits there too since s165.
    - **Party gold is not touched** here or anywhere else on entry (see D4-030).
 2. **Aging** (rest of `_townent`) `[C]`, for each member:
    - age (+1E, in 1/26 year) += trunc(`_par`+16 / 0x700), cap 65 000; then `_par`+16 = 0 (the remainder is lost).
@@ -197,7 +200,8 @@ loop `0x216E`–`0x21A6`).
 
 **Outdoor inns** (`_oinn` `0x14F98`, "There is the %s Inn here"): need party gold > 255; cost **256** gold ("256ｺﾞｰﾙﾄﾞを
 支払った"; manual p. 27: "250 gold plus tax"), then `_inn()` and `_dayout(1000)`, and the party reloads on the same
-square `[C]`.
+square `[C]`. `_inn` shows INN.PKH's window with the sleepers' box and waits for SPACE (its own `_spc_wait`, after
+`_oinn`'s), so an outdoor stay has two waits; the hours pass after the second (s165: built so).
 
 ## 5. Bank (`_bank` `0x57A4`, `_deposit` `0x4992`, `_withdraw` `0x5414`) `[C]`
 
@@ -209,7 +213,8 @@ says the same). The bank is the same in every town (one account per character).
 
 Screen: the accounts and balances of the party; D Deposit (disabled when party gold = 0), W Withdraw (disabled when party
 gold = 65 535), L Leave. Deposit asks one share per member in party order (buttons 0–3; 0 enabled only for a member who
-is not Okay), shows "Per share N GP", then waits for SPACE. Withdraw goes through the members in order showing balance and
+is not Okay; a member's row comes up at his turn and his share is written at x 196, no cursor drawn: s165),
+shows "Per share N GP", then waits for SPACE. Withdraw goes through the members in order showing balance and
 limit; a member with limit 0 is skipped, the others type an amount (cut to the limit); then SPACE.
 
 - **Deposit:** each member picks a share 0–3 (0 only for members not Okay, as in §2.1 `[~]`); per share =

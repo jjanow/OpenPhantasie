@@ -223,6 +223,12 @@ public sealed record ContinueRowTag(int Row);
 /// <summary>A row of III Amiga's spell / heal window on the combat orders screen: a press moves the cursor there (s119).</summary>
 public sealed record AmigaRowTag(int Row);
 
+/// <summary>
+/// s165: a member row of III Amiga's window 6 for an open prompt (the disarm question): a press puts the prompt's cursor on
+/// answer <paramref name="Cursor"/> (0-based) and picks nothing (<c>0x17a6</c>); OK / Return takes it.
+/// </summary>
+public sealed record AmigaPromptRowTag(int Cursor);
+
 /// <summary>A title on III Amiga's fight menu bar: a press pulls its menu down or closes it (s119).</summary>
 public sealed record AmigaMenuTitleTag(int Menu);
 

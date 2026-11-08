@@ -295,6 +295,25 @@ public static class SpellCaster
     }
 
     /// <summary>
+    /// s165: III's out-of-fight caster refuses on the magic before it asks anything more (Amiga <c>0xf8f6</c>, code from
+    /// <c>0xf8f8</c>, <c>[C]</c> static; its callers <c>0x84c4</c> / <c>0xb8aa</c> refuse "knows no spells" first): with no
+    /// spell picked yet (<paramref name="spellIndex"/> null) a current magic below 1 refuses before the list opens
+    /// (<c>0xf940</c>); with a spell picked, its cost above the current magic refuses before any target window
+    /// (<c>0xf990</c>, then <c>0xfcbe</c> / <c>0x127ce(44)</c> ask the target). Returns `core.magic.not_enough_mp` (window 7,
+    /// <c>0xaaac</c>) or null. Null for every other game: I / II keep their own order (the cast itself refuses).
+    /// </summary>
+    public static string? OutOfCombatMagicRefusal(Character caster, int? spellIndex, GameId game)
+    {
+        ArgumentNullException.ThrowIfNull(caster);
+        if (game != GameId.P3)
+            return null;
+        var tooLow = spellIndex is int id
+            ? caster.MagicCur < Magic.MagicPointCost(id, SpellSlots.For(game))
+            : caster.MagicCur < 1;
+        return tooLow ? GameText.S("core.magic.not_enough_mp") : null;
+    }
+
+    /// <summary>
     /// The spells the combat picker offers: combat-only and everywhere spells (D-063 manual: N spells can't be cast in
     /// combat), or every known spell under <c>p1.combat-spell-list</c> = <c>dos</c> (COM <c>0x139c</c>) or, in III,
     /// <c>p3.combat-spell-list</c> = <c>dos</c> (DOS III's picker; the pick is then refused, <see cref="P3CombatModule.CastRefusal"/>).

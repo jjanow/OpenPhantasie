@@ -225,8 +225,8 @@ of the slowest member)." Candidate conflict (duration; and no outdoor effect). T
 - **Surprise pairs** (`_oencgo(einf1, einf2)`): night watch heard (0, 0), not heard or no watch (0, 1); sleeping monsters
   attacked (1, 0); "took you by surprise" (0, 1); "You took the monsters by surprise" (1, 0); approach (0, 0). `_einf3` is
   set at the top of `_oencchk` and cleared only by attacking sleeping monsters: every other fight waits for a key first.
-- **`_oinn`**: party gold ≥ 256 (`bcs`), "Rest at the inn?", −256, two lines, a key, `_inn`, `_dayout(1000)`, reload on the
-  same square (whose step then asks again). **`_opool`** prints "teleported" only on yes.
+- **`_oinn`**: party gold ≥ 256 (`bcs`), "Rest at the inn?", −256, two lines, a key, `_inn` (INN.PKH's window, the
+  sleepers' rows, its own key: s165), `_dayout(1000)`, reload on the same square (whose step then asks again). **`_opool`** prints "teleported" only on yes.
 
 ### 9.1 Remaster build (s97, `P4OutdoorLoop`)
 

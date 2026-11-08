@@ -101,9 +101,35 @@ public sealed record FinalScreenWindow(int TextColour, int LineStep, TrainingHal
 /// window is titled (<c>_wopen</c> flag 1): <see cref="Title"/> is its bar's string id (<see cref="TitleText"/> the
 /// original's text).
 /// </summary>
+/// <para>s165: the same shape holds <c>_mage</c>'s window (the pack's <c>mage</c>): notes <c>poor_condition</c>,
+/// <c>nothing_more</c>, <c>not_worthy</c>, <c>offer</c>; <see cref="Results"/> (<c>failed</c>, <c>learned</c>) and
+/// <see cref="ShortOfGold"/> at their own place after a pick, the row <see cref="ResultClear"/> cleared first.</para>
 public sealed record TrainingHallWindow(PanelRect Window, int BackColour, int TextColour, int LineStep, (int X, int Y) Name,
     IReadOnlyDictionary<string, IReadOnlyList<TrainingHallSegment>> Notes, TrainingHallSegment ShortOfGold,
-    string Title = "", string TitleText = "");
+    string Title = "", string TitleText = "", IReadOnlyDictionary<string, TrainingHallSegment>? Results = null,
+    PanelRect? ResultClear = null);
+
+/// <summary>
+/// s165: <c>_gatebank</c>'s experience share-out window (titled <c>_gatebank</c>, 312 × 160): the <see cref="Pool"/> line
+/// (the party's experience × 10 padded to <see cref="PoolDigits"/>, then <see cref="PoolUnit"/>), the share
+/// <see cref="Buttons"/> in their sunken <see cref="Frame"/>, member m's name at (<see cref="NameX"/>, <see cref="RowY"/> +
+/// <see cref="RowStep"/> · m) once his share is asked, the share at <see cref="ShareX"/>, overwritten after the last share by
+/// the experience given (<see cref="GainDigits"/>).
+/// </summary>
+public sealed record GateBankWindow(int TextColour, TrainingHallSegment Pool, int PoolDigits, TrainingHallSegment PoolUnit,
+    PanelRect Frame, BankShareButtons Buttons, int RowY, int RowStep, int NameX, int ShareX, int GainDigits);
+
+/// <summary>
+/// s165: Share out's equipment table under its divider (<c>_init_eq</c> / <c>_disp_eq</c>): the <see cref="Headers"/> at
+/// <see cref="HeaderY"/>, the colour-0 <see cref="Line"/>, member m's row at <see cref="RowY"/> + <see cref="RowStep"/> · m:
+/// m + 1 in <see cref="NumberColour"/>, the name, the class name cut while its width is below <see cref="ClassWidth"/>, each
+/// slot's value (<see cref="Values"/>: slot name and x) padded to <see cref="ValueDigits"/>; a member button over the row;
+/// the placed item's slot column boxed in the header (<c>_wxbox</c> XOR <see cref="KindBoxXor"/>).
+/// </summary>
+public sealed record EquipmentTable(int HeaderY, IReadOnlyList<TrainingHallSegment> Headers, PanelRect Line, int LineColour,
+    int RowY, int RowStep, int NumberX, int NumberColour, int NameX, int ClassX, int ClassWidth, int ValueDigits,
+    IReadOnlyList<(string Slot, int X)> Values, PanelRect Clear, int ClearColour, PanelRect Button, int KindBoxY,
+    int KindBoxWidth, int KindBoxHeight, int KindBoxXor);
 
 /// <summary>
 /// s162: a titled window (<c>_wopen(win, x, y, width, height, 1, title)</c>) a building, the town gate, an item command or
@@ -184,7 +210,7 @@ public sealed record ItemRowLayout(int Top, int Step, int Count, int? LetterX, i
 /// <summary>s163: one item window's layout (<c>_armory</c>, <c>_trade</c> = Trade / Use / Identify, <c>_distribute</c>).</summary>
 public sealed record ItemWindowLayout(ItemRowLayout Rows, IReadOnlyList<TrainingHallSegment> Headers, PanelRect Line,
     int LineColour, IReadOnlyList<PanelRect> Frames, TrainingHallSegment? More, TrainingHallSegment? NotUsable,
-    (int X, int Y)? Member, (int X, int Y)? Message, int LitXor);
+    (int X, int Y)? Member, (int X, int Y)? Message, int LitXor, EquipmentTable? Equipment = null);
 
 /// <summary>s163: the item windows (the pack's <c>item_windows</c>): colours and each window's layout by its key.</summary>
 public sealed record ItemWindows(int LetterColour, int TextColour, int BackColour,
@@ -195,7 +221,8 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
     ShipwrightWindow? Shipwright, SkillUpWindow? SkillUp = null, TrainingHallWindow? TrainingHall = null,
     IReadOnlyDictionary<string, TitledWindow>? Titled = null, FinalScreenWindow? FinalScreen = null,
     DeadMessageWindow? DeadMessage = null, TownGateWindow? TownGate = null, InnWindow? Inn = null, BankWindow? Bank = null,
-    EndMessageWindow? EndMessage = null, ItemWindows? ItemWindows = null)
+    EndMessageWindow? EndMessage = null, ItemWindows? ItemWindows = null, TrainingHallWindow? MagicHall = null,
+    GateBankWindow? GateBank = null)
 {
     public static PanelExtras Load(string path)
     {
@@ -226,11 +253,7 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
                     new(sr.Count, sr.Top, sr.Step, sr.KeyX, sr.SkillX, sr.NowX, sr.AfterX, sr.Digits, sr.Back, R(btn)),
                     (sp.X, sp.Y), (stt.X, stt.Y), k.TextColour, k.CellColour)
                 : null,
-            d.Trang is { Window: { } tw, Name: { } tn, Notes: { } notes, ShortOfGold: { } shortOf } tr
-                ? new(R(tw), tr.BackColour, tr.TextColour, tr.LineStep, (tn.X, tn.Y),
-                    notes.ToDictionary(p => p.Key, p => (IReadOnlyList<TrainingHallSegment>)[.. p.Value.Select(Seg)]),
-                    Seg(shortOf), tr.Title ?? "", tr.TitleText ?? "")
-                : null,
+            Hall(d.Trang),
             (d.Titled ?? []).Where(p => p.Value.Window is not null).ToDictionary(p => p.Key,
                 p => new TitledWindow(p.Key, R(p.Value.Window), p.Value.Title ?? "", p.Value.TitleText ?? ""),
                 StringComparer.Ordinal),
@@ -258,7 +281,26 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
                 ? new(R(ew), em.LowerOffset, em.UpperBlocks ?? [], em.TextX, em.TextY, em.LineStep, em.Lines, em.Fill,
                     em.TextColour, em.SceneY ?? [])
                 : null,
-            d.ItemWindows is { } iw ? Items(iw) : null);
+            d.ItemWindows is { } iw ? Items(iw) : null,
+            Hall(d.Mage),
+            d.GateBank is { Pool: { } gp, PoolUnit: { } gu, Frame: { } gf, Buttons: { } gb, Columns: { } gc } gate2
+                ? new(gate2.TextColour, Seg(gp), gate2.PoolDigits, Seg(gu), R(gf),
+                    new(gb.X, gb.Y, gb.Step, gb.Width, gb.Height, gb.Count, gb.Colour, gb.Pad?.Text ?? ""), gate2.RowY, gate2.RowStep,
+                    gc.GetValueOrDefault("name"), gc.GetValueOrDefault("share"), gate2.GainDigits)
+                : null);
+        TrainingHallWindow? Hall(TrangDto? tr) =>
+            tr is { Window: { } tw, Name: { } tn, Notes: { } notes, ShortOfGold: { } shortOf }
+                ? new(R(tw), tr.BackColour, tr.TextColour, tr.LineStep, (tn.X, tn.Y),
+                    notes.ToDictionary(p => p.Key, p => (IReadOnlyList<TrainingHallSegment>)[.. p.Value.Select(Seg)]),
+                    Seg(shortOf), tr.Title ?? "", tr.TitleText ?? "",
+                    tr.Results?.ToDictionary(p => p.Key, p => Seg(p.Value)), tr.ResultClear is { } rc ? R(rc) : null)
+                : null;
+        EquipmentTable? Equipment(EquipmentDto? e) =>
+            e is { Headers: { } eh, Line: { } el, Values: { } ev, Clear: { } ec, Button: { } eb, KindBox: { } ek }
+                ? new(e.HeaderY, [.. eh.Select(Seg)], R(el), el.Colour, e.RowY, e.RowStep, e.NumberX, e.NumberColour, e.NameX,
+                    e.ClassX, e.ClassWidth, e.ValueDigits, [.. ev.Select(v => (v.Slot ?? "", v.X))],
+                    new(ec.X, 0, ec.Width, 0), ec.Colour, new(eb.X, 0, eb.Width, eb.Height), ek.Y, ek.Width, ek.Height, ek.Xor)
+                : null;
         ItemWindows Items(Dictionary<string, JsonElement> iw)
         {
             int Int(string key) => iw.TryGetValue(key, out var e) && e.ValueKind == JsonValueKind.Number ? e.GetInt32() : 0;
@@ -272,7 +314,8 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
                         r.UsersX, r.UsersStep),
                     [.. (w.Headers ?? []).Select(Seg)], R(w.Line), w.Line?.Colour ?? 0, [.. (w.Frames ?? []).Select(R)],
                     w.More is { } more ? Seg(more) : null, w.NotUsable is { } nu ? Seg(nu) : null,
-                    w.Member is { } mm ? (mm.X, mm.Y) : null, w.Message is { } msg ? (msg.X, msg.Y) : null, w.LitXor);
+                    w.Member is { } mm ? (mm.X, mm.Y) : null, w.Message is { } msg ? (msg.X, msg.Y) : null, w.LitXor,
+                    Equipment(w.Equipment));
             }
             return new(Int("letter_colour"), Int("text_colour"), Int("back_colour"), windows);
         }
@@ -300,6 +343,55 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
         [JsonPropertyName("bank")] public BankDto? Bank { get; set; }
         [JsonPropertyName("endmsg")] public EndMsgDto? EndMsg { get; set; }
         [JsonPropertyName("item_windows")] public Dictionary<string, JsonElement>? ItemWindows { get; set; }
+        [JsonPropertyName("mage")] public TrangDto? Mage { get; set; }
+        [JsonPropertyName("gatebank")] public GateBankDto? GateBank { get; set; }
+    }
+
+    private sealed class GateBankDto
+    {
+        [JsonPropertyName("text_colour")] public int TextColour { get; set; }
+        [JsonPropertyName("pool")] public SegmentDto? Pool { get; set; }
+        [JsonPropertyName("pool_digits")] public int PoolDigits { get; set; }
+        [JsonPropertyName("pool_unit")] public SegmentDto? PoolUnit { get; set; }
+        [JsonPropertyName("frame")] public RectDto? Frame { get; set; }
+        [JsonPropertyName("buttons")] public BankButtonsDto? Buttons { get; set; }
+        [JsonPropertyName("row_y")] public int RowY { get; set; }
+        [JsonPropertyName("row_step")] public int RowStep { get; set; }
+        [JsonPropertyName("columns")] public Dictionary<string, int>? Columns { get; set; }
+        [JsonPropertyName("gain_digits")] public int GainDigits { get; set; }
+    }
+
+    private sealed class EquipmentValueDto
+    {
+        [JsonPropertyName("slot")] public string? Slot { get; set; }
+        [JsonPropertyName("x")] public int X { get; set; }
+    }
+
+    private sealed class KindBoxDto
+    {
+        [JsonPropertyName("y")] public int Y { get; set; }
+        [JsonPropertyName("width")] public int Width { get; set; }
+        [JsonPropertyName("height")] public int Height { get; set; }
+        [JsonPropertyName("xor")] public int Xor { get; set; }
+    }
+
+    private sealed class EquipmentDto
+    {
+        [JsonPropertyName("header_y")] public int HeaderY { get; set; }
+        [JsonPropertyName("headers")] public List<SegmentDto>? Headers { get; set; }
+        [JsonPropertyName("line")] public RectDto? Line { get; set; }
+        [JsonPropertyName("row_y")] public int RowY { get; set; }
+        [JsonPropertyName("row_step")] public int RowStep { get; set; }
+        [JsonPropertyName("number_x")] public int NumberX { get; set; }
+        [JsonPropertyName("number_colour")] public int NumberColour { get; set; }
+        [JsonPropertyName("name_x")] public int NameX { get; set; }
+        [JsonPropertyName("class_x")] public int ClassX { get; set; }
+        [JsonPropertyName("class_width")] public int ClassWidth { get; set; }
+        [JsonPropertyName("value_digits")] public int ValueDigits { get; set; }
+        [JsonPropertyName("values")] public List<EquipmentValueDto>? Values { get; set; }
+        [JsonPropertyName("clear")] public RectDto? Clear { get; set; }
+        [JsonPropertyName("button")] public RectDto? Button { get; set; }
+        [JsonPropertyName("kind_box")] public KindBoxDto? KindBox { get; set; }
     }
 
     private sealed class ItemRowsDto
@@ -329,6 +421,7 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
         [JsonPropertyName("member")] public RectDto? Member { get; set; }
         [JsonPropertyName("message")] public RectDto? Message { get; set; }
         [JsonPropertyName("lit_xor")] public int LitXor { get; set; }
+        [JsonPropertyName("equipment")] public EquipmentDto? Equipment { get; set; }
     }
 
     private sealed class InnDto
@@ -462,6 +555,8 @@ public sealed record PanelExtras(PanelTitleStyle? Title, PanelHover? Hover, Even
         [JsonPropertyName("name")] public RectDto? Name { get; set; }
         [JsonPropertyName("notes")] public Dictionary<string, List<SegmentDto>>? Notes { get; set; }
         [JsonPropertyName("short_of_gold")] public SegmentDto? ShortOfGold { get; set; }
+        [JsonPropertyName("results")] public Dictionary<string, SegmentDto>? Results { get; set; }
+        [JsonPropertyName("result_clear")] public RectDto? ResultClear { get; set; }
         [JsonPropertyName("title")] public string? Title { get; set; }
         [JsonPropertyName("title_text")] public string? TitleText { get; set; }
     }

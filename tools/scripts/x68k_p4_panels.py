@@ -617,6 +617,7 @@ def main() -> None:
         "lines": [seg(DEAD_LINE_1_TEXT, x=220, y=16), seg(DEAD_LINE_2_TEXT, x=220, y=32)],
     }
     building_windows(out, img, jsr, pushed_before, seg)
+    share_windows(out, img, jsr, pushed_before, seg)
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(OUT, len(panels), "panels")
 
@@ -728,7 +729,13 @@ def building_windows(out: dict, img: bytes, jsr, pushed_before, seg) -> None:
                             "padded to points_digits at points_x (or not_usable when the marked member cannot use it), the "
                             "price padded to price_digits at price_x, the users' digits m + 1 at users_x + users_step * m; "
                             "headers, the colour-0 line, sunken frames (_whole) and the member's name at their places. "
-                            "_distribute's equipment table under its divider is not read [~].")
+                            "s165: _distribute's equipment table under its divider (equipment: _init_eq / _disp_eq): the "
+                            "headers at y header_y, a colour-0 line, member m's row at y row_y + row_step * m: m + 1 in "
+                            "number_colour at number_x, the name at name_x, the class name at class_x cut while its width is "
+                            "below class_width (_flen), each slot's value (record +6B / +B7 / +B6 / +6A / +69) padded to "
+                            "value_digits at its x (clear: the values' cells cleared first); a member button over the row "
+                            "(button x / width / height, key '1' + m); the placed item's slot boxed in the header (kind_box: "
+                            "_wxbox XOR xor at the slot's x).")
     out["item_windows"] = {
         "letter_colour": 2, "text_colour": 0, "back_colour": 14,
         "_armory": {"rows": {"top": 32, "step": 32, "count": 6, "letter_x": 32, "icon_x": 44, "name_x": 80,
@@ -745,7 +752,8 @@ def building_windows(out: dict, img: bytes, jsr, pushed_before, seg) -> None:
                                  "points_digits": 3, "users_x": 240, "users_step": 8},
                         "headers": [seg(0x40BAC, x=48, y=16), seg(0x40BB1, x=192, y=16), seg(0x40BB7, x=240, y=16)],
                         "line": {"x": 16, "y": 31, "width": 280, "height": 1, "colour": 0},
-                        "frames": [{"x": 16, "y": 208, "width": 280, "height": 4}], "lit_xor": 15},
+                        "frames": [{"x": 16, "y": 208, "width": 280, "height": 4}], "lit_xor": 15,
+                        "equipment": equipment_table(img, jsr, pushed_before, seg)},
     }
     out["_endmsg"] = ("s163: _endmsg(block)'s window 33 for each ending page: untitled (white, colour 15, black frame and "
                       "shadow) at window (x, y) of the screen, y + lower_offset for blocks > 3 other than 6; line k at "
@@ -758,5 +766,108 @@ def building_windows(out: dict, img: bytes, jsr, pushed_before, seg) -> None:
                      "scene_y": {"p4.ending.street": 20, "p4.ending.banquet": 32, "p4.ending.cell": 32}}
 
 
+def equipment_table(img: bytes, jsr, pushed_before, seg) -> dict:
+    """s165: Share out's equipment table under its divider (_init_eq 0x9F4E, _disp_eq 0x9D5A; the placed item's slot boxed
+    by _dvitmlst through _pwaku 0x40B54; the member buttons from _distribute 0xA2BE)."""
+    wlocpr, wfbox, wlocdi, wloc, wlocdc, wxbox, setbtn, flen = (
+        0x3403C, 0x3302E, 0x343B6, 0x32C68, 0x34338, 0x33090, 0x2F9EA, 0x39D64)
+    heads = ((0x40BBD, 16), (0x40BBF, 32), (0x40BC4, 136), (0x40BC9, 184), (0x40BCC, 208), (0x40BCF, 232), (0x40BD2, 256),
+             (0x40BD5, 280))
+    head_sites = (0xA0CC, 0xA0F6, 0xA120, 0xA14A, 0xA174, 0xA19E, 0xA1C8, 0xA1F2)
+    for site, (a, x) in zip(head_sites, heads):
+        assert jsr(site, wlocpr) and all(pushed_before(site, v, 10) for v in (a, 224, x)), hex(site)
+    # _disp_eq: _wfbox(win, 14, 184, y, 112, 16), then _wlocdc(win, x, y, 2, record + off) for the five slots.
+    values = (("weapon", 184, 0x6B, 0x9DE6), ("armour", 208, 0xB7, 0x9E34), ("shield", 232, 0xB6, 0x9E82),
+              ("bow", 256, 0x6A, 0x9ED0), ("thrown", 280, 0x69, 0x9F1E))
+    pmb = 0x79708  # the party's record 0 (FORMAT.md 6.2: +0A condition at 0x79712)
+    for _, x, off, site in values:
+        assert jsr(site, wlocdc) and all(pushed_before(site, v, 22) for v in (2, x, pmb + off)), hex(site)
+    for site, target, vals, span in (
+            (0x9D98, wfbox, (16, 112, 184, 14), 14), (0xA224, wfbox, (1, 280, 239, 16), 14),
+            (0x9F8E, wlocdi, (1, 16, 240), 16), (0x9FD2, wlocpr, (32,), 10), (0x9FF4, wloc, (136,), 8),
+            (0xA072, flen, (), 0), (0x99EE, wxbox, (15, 16, 224), 14), (0xA308, setbtn, (1, 64, 16, 280, 240), 22)):
+        assert jsr(site, target) and all(pushed_before(site, v, span) for v in vals), hex(site)
+    assert pushed_before(0xA054, 32, 4)  # the class name's loop: while the width so far is below 32
+    pwaku = list(struct.unpack_from(">6i", img, 0x40B54))
+    assert pwaku == [0, 184, 208, 232, 256, 280], pwaku
+    return {"site": "0x9F4E", "header_y": 224,
+            "headers": [seg(a, x=x, y=224) for a, x in heads],
+            "line": {"x": 16, "y": 239, "width": 280, "height": 1, "colour": 0},
+            "row_y": 240, "row_step": 16, "number_x": 16, "number_colour": 2, "name_x": 32, "class_x": 136,
+            "class_width": 32, "value_digits": 2,
+            "values": [{"slot": slot, "x": x} for slot, x, _, _ in values],
+            "clear": {"x": 184, "width": 112, "colour": 14},
+            "button": {"x": 16, "width": 280, "height": 16},
+            "kind_box": {"y": 224, "width": 16, "height": 15, "xor": 15}}
+
+
+def share_windows(out: dict, img: bytes, jsr, pushed_before, seg) -> None:
+    """s165: _mage's own window 32 (0x34B0) and _gatebank's experience share-out window (0x4EF0), each call site's pushes
+    checked against the disassembly."""
+    wprint, wlocpr, wfbox, whole, wdouti, wdoutl, wloc, font, setbtn, wopen, spc_wait = (
+        0x32CE4, 0x3403C, 0x3302E, 0x32F6E, 0x34386, 0x343FC, 0x32C68, 0x2E16A, 0x2F9EA, 0x3379E, 0x6A4C)
+    title, poor, poor_2, nothing, not_worthy = 0x3FC1C, 0x3FCE5, 0x3FCF6, 0x3FC27, 0x3FC48
+    offer, each, gold, question, short, failed, learned = 0x3FC6B, 0x3FC76, 0x3FC81, 0x3FC97, 0x3FCB4, 0x3FCC7, 0x3FCD2
+    for site, target, values, span in (
+            (0x3A96, wopen, (title, 1, 352, 312, 32, 160), 14), (0x3AF2, wlocpr, (16, 32), 12),
+            (0x397E, wprint, (poor, 32), 8), (0x399E, wlocpr, (poor_2, 32), 12),
+            (0x35E8, wprint, (nothing, 32), 8), (0x360A, wlocpr, (not_worthy, 32, 16), 12),
+            (0x3708, wlocpr, (offer, 16, 120, 32), 12), (0x372A, wlocpr, (each, 32, 16), 12),
+            (0x374C, font, (8, 1), 12), (0x3766, wdoutl, (137, 32), 8), (0x379A, wprint, (gold, 32), 8),
+            (0x37BA, wlocpr, (question, 48, 16, 32), 12), (0x37FC, font, (2,), 12),
+            (0x3826, wfbox, (16, 311, 64, 14, 32), 16), (0x3854, wlocpr, (short, 64, 16, 32), 12),
+            (0x38E4, wlocpr, (failed, 64, 16, 32), 12), (0x3908, wlocpr, (learned, 64, 16, 32), 12)):
+        assert jsr(site, target) and all(pushed_before(site, v, span) for v in values), hex(site)
+    # The refusals (0x3584): record +09 (Score, 0x79711) >= 125 or +08 (level, 0x79710) > 30 -> "nothing more", else
+    # "not yet worthy".
+    assert pushed_before(0x35AE, 125, 4) and pushed_before(0x35DA, 30, 4)
+    assert pushed_before(0x35AE, 0x79711, 12) and pushed_before(0x35DA, 0x79710, 12)
+    out["_mage"] = ("s165: _mage's own titled window 32 (0x3A96), opened again at each member pick, as trang: the name at "
+                    "name (x, y), then one note: poor_condition, nothing_more (record +09 >= 125 or level > 30), "
+                    "not_worthy (else, when the quota is spent or no spell is open) or offer (the price: _wdoutl(32, 137, n) "
+                    "in font 1 colour 8 after 'each'); after a pick the result row is cleared (result_clear) and "
+                    "short_of_gold / results.failed / results.learned printed at (16, 64) in colour 2; it stays up through "
+                    "the next spell list.")
+    out["mage"] = {
+        "site": "0x34B0", "window": {"x": 160, "y": 32, "width": 312, "height": 352}, "back_colour": 14,
+        "title": f"p4x.0x{title:x}", "title_text": text(img, title),
+        "text_colour": 0, "line_step": 16, "name": {"x": 16, "y": 16},
+        "notes": {
+            "poor_condition": [seg(poor), seg(poor_2, x=32, y=32)],
+            "nothing_more": [seg(nothing)],
+            "not_worthy": [seg(not_worthy, x=16, y=32)],
+            "offer": [seg(offer, x=120, y=16), seg(each, x=16, y=32), {"number": True, "font": 1, "colour": 8}, seg(gold),
+                      seg(question, x=16, y=48)],
+        },
+        "short_of_gold": seg(short, x=16, y=64, colour=2),
+        "results": {"failed": seg(failed, x=16, y=64, colour=2), "learned": seg(learned, x=16, y=64, colour=2)},
+        "result_clear": {"x": 0, "y": 64, "width": 311, "height": 16, "colour": 14},
+    }
+    pool, pool_unit, pad = 0x3FEBC, 0x3FECC, 0x3FED1
+    for site, target, values, span in (
+            (0x5326, wopen, (0x3FEAF, 1, 160, 312, 132, 160), 14), (0x535C, font, (14,), 12),
+            (0x537E, wlocpr, (pool, 136, 68), 10), (0x53A8, wdoutl, (8,), 8), (0x53BE, wprint, (pool_unit,), 6),
+            (0x53FA, whole, (92, 40, 32, 264), 12), (0x4F40, setbtn, (1, 64, 16, 24, 40, 272), 24),
+            (0x4F80, wloc, (40, 272), 12), (0x4F96, wprint, (pad,), 6), (0x4FC2, wprint, (0x3FED4,), 6),
+            (0x5028, wlocpr, (32, 16), 14), (0x5042, wloc, (164,), 8), (0x50CA, wdouti, (1,), 8),
+            (0x51AA, wloc, (164,), 8), (0x51E2, wdoutl, (8,), 8), (0x529E, spc_wait, (), 0)):
+        assert jsr(site, target) and all(pushed_before(site, v, span) for v in values), hex(site)
+    assert text(img, pad) == text(img, 0x3FED4) == "  "
+    out["_gatebank"] = ("s165: _gatebank's share-out window (titled._gatebank, 312 x 160 at (160, 132)): the pool line (the "
+                        "party's experience x 10, _wdoutl(win, pool_digits)) then pool_unit; the share buttons ' n ' (n = "
+                        "0-3) at (x, y + step * n) on colour cells inside the sunken frame; member m's name at (name, row_y "
+                        "+ row_step * m), shown when his share is asked; the share digit at x share; after the last share "
+                        "each row's share is overwritten at x share by the experience given (_wdoutl(win, gain_digits)), "
+                        "then a SPACE wait.")
+    out["gatebank"] = {
+        "site": "0x4EF0", "text_colour": 0,
+        "pool": seg(pool, x=68, y=136), "pool_digits": 8, "pool_unit": seg(pool_unit),
+        "frame": {"x": 264, "y": 32, "width": 40, "height": 92},
+        "buttons": {"x": 272, "y": 40, "step": 20, "width": 24, "height": 16, "count": 4, "colour": 4, "pad": seg(pad)},
+        "row_y": 16, "row_step": 16, "columns": {"name": 32, "share": 164}, "gain_digits": 8,
+    }
+
+
 if __name__ == "__main__":
     main()
+

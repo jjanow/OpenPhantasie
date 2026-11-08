@@ -378,15 +378,29 @@ public sealed partial class P4TownLoop
             var m = Party.Members[who];
             var known = m.Spells.Count(s => s == 1);
             var open = m.Spells.Count(s => s >= 2);
+            // s165: _wopen(32, 160, 32, 312, 352, 1, "魔法訓練場") at each member pick (0x3A96): the name, then one note
+            // (FORMAT.md 6.9 "_mage's own window"); the Client draws it as the training hall's.
+            const string hall = P4TrainingWindow.MagicHall;
             if (m.Condition != P4Member.Okay)
+            {
+                TrainingWindow = new(m.Name, P4TrainingNote.PoorCondition, 0, false, hall);
                 _window.Line(m.Name + GameText.S("p4x.0x3fce5") + " " + GameText.S("p4x.0x3fcf6"));
+            }
             else if (!P4Training.MayLearnMore(_tables.Training, m.Class, m.Level, m.Abilities[1], known, open))
-                _window.Line(m.Score >= _tables.Training.ScoreGate || m.Level > P4Training.MaxLevel(_options, _tables.Training, m.Class)
-                    ? m.Name + GameText.S("p4x.0x3fc27") : GameText.S("p4x.0x3fc48"));
+            {
+                // The refusal (0x3584): Score (+09) >= 125 (0x35A8) or level (+08) > 30 (0x35D4) -> "nothing more", else
+                // "not yet worthy" at (16, 32).
+                var nothing = m.Score >= _tables.Training.ScoreGate
+                    || m.Level > P4Training.MaxLevel(_options, _tables.Training, m.Class);
+                TrainingWindow = new(m.Name, nothing ? P4TrainingNote.NothingMoreToTeach : P4TrainingNote.NotWorthy, 0, false, hall);
+                _window.Line(nothing ? m.Name + GameText.S("p4x.0x3fc27") : GameText.S("p4x.0x3fc48"));
+            }
             else
             {
                 var price = P4Training.SpellPrice(_tables.Training, m.Class, m.Level, m.Abilities[1], m.Abilities[4],
                     P4Town.PriceIndex(_tables.Towns, Town));
+                // The offer is printed again before every spell list (0x36F0); the last pick's result row stays under it.
+                TrainingWindow = new(m.Name, P4TrainingNote.Offer, price, false, hall);
                 var page = 0;
                 while (m.Spells.Any(s => s == 2))
                 {
@@ -417,6 +431,7 @@ public sealed partial class P4TownLoop
                     var spell = spells[_choice];
                     if (Party.Gold < price)
                     {
+                        TrainingWindow = TrainingWindow with { ShortOfGold = true, Result = null };
                         _window.Line(GameText.S("p4x.0x3fcb4"));
                         break;
                     }
@@ -425,16 +440,23 @@ public sealed partial class P4TownLoop
                     if (P4Training.LessonSucceeds(_rng, m.Abilities[1]))
                     {
                         m.Spells[spell - 1] = 1;
+                        TrainingWindow = TrainingWindow with { Result = P4LessonResult.Learned };
                         _window.Line(m.Name + GameText.S("p4x.0x3fcd2"));
                     }
                     else
+                    {
+                        TrainingWindow = TrainingWindow with { Result = P4LessonResult.Failed };
                         _window.Line(GameText.S("p4x.0x3fcc7"));
+                    }
                     yield return Icons("", P4TownPrompt.Wait); // _mage calls no _spc_wait
                 }
             }
             yield return Who(menu: "_mage"); // E: End training = SPACE
             if (_choice < 0)
+            {
+                TrainingWindow = null; // _clrtdraw, _wclose(32)
                 yield break;
+            }
             who = _choice;
         }
     }

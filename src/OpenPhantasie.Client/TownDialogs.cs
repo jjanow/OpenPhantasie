@@ -72,6 +72,9 @@ public sealed class WithdrawDialog : IModalDialog, IAmigaWindowDialog
     /// <summary>True while the member picker is shown (no amount field open).</summary>
     public bool Picking => _open && _member is null;
 
+    /// <summary>s165: counts the member picker left by Esc / Backspace (I Amiga's list tone, h23 <c>+0x22a</c> from h8 <c>+0x642</c>).</summary>
+    public int ChooserCancels { get; private set; }
+
     /// <summary>
     /// True while the dialog shows as III Amiga's window (set by the front end before keys): O = OK, C / Esc = CANCEL. Off
     /// (I, II, the remaster's panel) the keys are DOS's.
@@ -169,6 +172,7 @@ public sealed class WithdrawDialog : IModalDialog, IAmigaWindowDialog
                 var count = session.Party.Members.Count;
                 if (key is Keys.Escape or Keys.Back || AmigaKeys && key == Keys.C)
                 {
+                    ChooserCancels++;
                     _open = false; // Esc at the picker is the only way out (0x2944)
                     return "";
                 }

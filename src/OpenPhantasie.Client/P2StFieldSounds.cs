@@ -39,12 +39,29 @@ public sealed class P2DefeatSounds
     public bool GhostsShown { get; private set; } = true;
 
     /// <summary>
+    /// s165: the defeat page's first line is up and its hold runs (<c>0x12a16</c>: the bottom line, then <c>0x16cbe</c>(3000)):
+    /// any key or a click ends it early (<c>0x16cbe</c>'s <c>evnt_multi</c> keyboard | button | timer; <c>0x16d56</c> first
+    /// drains what was queued before).
+    /// </summary>
+    public bool HoldRunning => _kind == SessionPromptKind.PartyDefeat && _ghostsDue is not null;
+
+    /// <summary>
+    /// s165: the defeat page's first line has had its hold (the ghosts' moment, <see cref="FieldDefeatSounds.GhostsAfterMs"/>)
+    /// and the page is still up: the ST goes on by itself (<c>0x12d54</c> the ghost row, <c>0x12d5e</c> 23, <c>0x12d6a</c> the
+    /// astral line), so the front end leaves the page.
+    /// </summary>
+    public bool HoldOver => _kind == SessionPromptKind.PartyDefeat && _holdOver;
+
+    private bool _holdOver;
+
+    /// <summary>
     /// The sounds due this frame for the defeat page <paramref name="kind"/> showing <paramref name="frame"/> at
     /// <paramref name="now"/> seconds, with <paramref name="fatesShown"/> fate lines printed
-    /// (<see cref="DefeatScene.FatesShown"/>). Any other page resets.
+    /// (<see cref="DefeatScene.FatesShown"/>). Any other page resets. <paramref name="bannerShown"/> (s165): the defeat page
+    /// shows its line "YOUR PARTY HAS BEEN DEFEATED" (a step's report lines paged in front of it hold the line's hold back).
     /// </summary>
     public IReadOnlyList<Step> Observe(FieldDefeatSounds map, SessionPromptKind kind, DefeatSceneFrame frame, int fatesShown,
-        double now = 0)
+        double now = 0, bool bannerShown = true)
     {
         ArgumentNullException.ThrowIfNull(map);
         var steps = new List<Step>();
@@ -59,11 +76,20 @@ public sealed class P2DefeatSounds
         {
             if (previous != SessionPromptKind.PartyDefeat)
             {
+                _bannerSeen = false;
+                _holdOver = false;
+                GhostsShown = false;
+            }
+            if (bannerShown && !_bannerSeen)
+            {
+                _bannerSeen = true; // s165: the line's hold starts as the line shows
                 _ghostsDue = now + map.GhostsAfterMs / 1000.0;
-                GhostsShown = map.GhostsAfterMs <= 0;
             }
             if (_ghostsDue is { } due && now >= due)
+            {
                 Ghosts(steps, map);
+                _holdOver = true;
+            }
             _face = false;
             _fates = 0;
             return steps;
@@ -94,8 +120,12 @@ public sealed class P2DefeatSounds
         _face = false;
         _fates = 0;
         _ghostsDue = null;
+        _bannerSeen = false;
+        _holdOver = false;
         GhostsShown = true;
     }
+
+    private bool _bannerSeen;
 
     private void Ghosts(List<Step> steps, FieldDefeatSounds map)
     {

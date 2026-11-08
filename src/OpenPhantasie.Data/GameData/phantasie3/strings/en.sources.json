@@ -3276,6 +3276,162 @@
      ]
     ]
    }
+  ],
+  "core.p3.damage_report": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      90375,
+      13
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      120692,
+      13
+     ]
+    ]
+   }
+  ],
+  "core.p3.report_avoids_the_trap": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      100267,
+      16
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      27415,
+      16
+     ]
+    ]
+   }
+  ],
+  "core.p3.report_escapes_unscathed": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      100309,
+      18
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      27457,
+      18
+     ]
+    ]
+   }
+  ],
+  "core.p3.report_takes_x_damage": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      100284,
+      5
+     ],
+     " {0} ",
+     [
+      "MAIN.EXE",
+      90408,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      27432,
+      5
+     ],
+     " {0} ",
+     [
+      "PhantasieIII",
+      120725,
+      7
+     ]
+    ]
+   }
+  ],
+  "core.p3.report_takes_x_damage_and_dies": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      100284,
+      5
+     ],
+     " {0} ",
+     [
+      "MAIN.EXE",
+      90390,
+      16
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      27432,
+      5
+     ],
+     " {0} ",
+     [
+      "PhantasieIII",
+      120707,
+      16
+     ]
+    ]
+   }
+  ],
+  "core.p3.report_is_dead": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      90416,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      120733,
+      8
+     ]
+    ]
+   }
   ]
  }
 }

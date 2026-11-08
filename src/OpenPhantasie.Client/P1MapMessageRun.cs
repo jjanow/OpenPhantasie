@@ -283,6 +283,26 @@ public sealed class P1MapMessageRun
         }
     }
 
+    /// <summary>The string id of the out-of-fight Resurrection's line (h38 <c>+0x2ea</c>'s requester-23 box, s165).</summary>
+    public const string ResurrectedKey = "core.magic.x_is_resurrected";
+
+    /// <summary>
+    /// s165: <paramref name="layout"/> with only <see cref="ResurrectedKey"/> as a box, on the overworld and in the dungeon
+    /// (h38 <c>+0x2ea</c> outside a round shows "%s IS RESURRECTED" in requester 23, h44 <c>+0x466</c>: one row, the same
+    /// timing); the step keys, splits, texts and sounds left out, so no step or fight line ever boxes through it.
+    /// </summary>
+    public static MapMessageLayout ResurrectionLayout(MapMessageLayout layout)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        return layout with
+        {
+            Keys = [ResurrectedKey], DungeonKeys = [ResurrectedKey],
+            Splits = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal),
+            Texts = new Dictionary<string, string>(StringComparer.Ordinal),
+            Sounds = new Dictionary<string, int>(StringComparer.Ordinal),
+        };
+    }
+
     /// <summary>s141: the sound the original plays before <paramref name="text"/>'s box (<see cref="MapMessageLayout.Sounds"/>), or null.</summary>
     public static int? SoundFor(MapMessageLayout layout, string text, bool dungeon = false)
     {

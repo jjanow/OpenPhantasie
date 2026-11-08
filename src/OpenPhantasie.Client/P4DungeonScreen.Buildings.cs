@@ -19,8 +19,15 @@ public sealed partial class P4DungeonScreen
 
     private bool InTownScene => Game.LoopBuilt && Game.Battle is null && Game.Place == P4Place.Town;
 
-    /// <summary>True while the inn's rows are up (the SPACE wait after the stay).</summary>
-    private bool InnWindowUp => InTownScene && SceneName == "p4.inn" && W.InnRows is not null && Extras?.Inn is not null;
+    /// <summary>The inn's picture (the town inn's scene; s165: an outdoor inn's too).</summary>
+    public const string InnScene = "p4.inn";
+
+    /// <summary>The inn's rows now: the town inn's, or (s165) an outdoor inn's (<c>_oinn</c> → <c>_inn</c>).</summary>
+    private IReadOnlyList<P4InnRow>? InnRowsNow => !Game.LoopBuilt || Game.Battle is not null ? null
+        : Game.Place == P4Place.Town ? W.InnRows : Game.Place == P4Place.Outdoors && !MenuOpen ? O.InnRows : null;
+
+    /// <summary>True while the inn's rows are up (the SPACE wait after the stay, in town or at an outdoor inn).</summary>
+    private bool InnWindowUp => SceneName == InnScene && InnRowsNow is not null && Extras?.Inn is not null;
 
     /// <summary>True while the bank is open with its window data.</summary>
     private bool BankWindowUp => InTownScene && SceneName == "p4.bank" && W.BankWindow is not null && Extras?.Bank is not null;
@@ -56,7 +63,7 @@ public sealed partial class P4DungeonScreen
     }
 
     private (List<(int X, int Y, string Text)> Rows, int BoxHeight) InnRows(InnWindow inn, float k) =>
-        InnText(inn, W.InnRows ?? [], Game.Party.Members.Count, s => PanelText(s.Label, s.Text), t => PackWidth(t, k));
+        InnText(inn, InnRowsNow ?? [], Game.Party.Members.Count, s => PanelText(s.Label, s.Text), t => PackWidth(t, k));
 
     private void DrawInnWindow(SpriteBatch batch, Texture2D pixel, Vector2 origin, float k)
     {
@@ -111,6 +118,10 @@ public sealed partial class P4DungeonScreen
             case P4BankView.Deposit:
                 for (var i = 0; i < members.Count; i++)
                 {
+                    // s165: _deposit asks member by member (0x4A8E): his name comes up at his turn, the share at x 196 once
+                    // given (_wloc places it; no cursor is drawn); later members' rows are still empty.
+                    if (view.Rows.Count == 0 && shares is not null && i > shares.Count)
+                        break;
                     var y = table.RowY + table.RowStep * i;
                     list.Add((Col("name"), y, members[i].Name, false, ink));
                     var share = view.Rows.Count > i ? view.Rows[i].Share : shares is { } s && s.Count > i ? s[i] : null;
@@ -168,21 +179,7 @@ public sealed partial class P4DungeonScreen
         Box(table.Line, table.LineColour, Color.Black);
         if (view.View == P4BankView.Deposit)
         {
-            var b = bank.Buttons;
-            for (var n = 0; n < b.Count; n++)
-            {
-                var digit = n.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                var y = b.Y + b.Step * n;
-                // _wprint("  "), _wputc('0' + n), _wprint("  ") on colour-4 cells (_bgcol 4): as wide as the advances.
-                Box(new PanelRect(b.X, y, 2 * PackWidth(b.Pad, k) + PackWidth(digit, k), b.Height), b.Colour, Color.SteelBlue);
-                PackText(batch, pixel, origin + new Vector2((b.X + PackWidth(b.Pad, k)) * k, y * k), digit,
-                    Pal(bank.TextColour, Color.Black), k);
-                // _setbtn(-1, win, x, y, 24, 16, '0' + n): a click gives the share, as the digit key does here.
-                if (W.Prompt == P4TownPrompt.Shares)
-                    UiOverlays.Hits?.Add(new HitRegion(new Rectangle((int)(origin.X + b.X * k), (int)(origin.Y + y * k),
-                        (int)Math.Ceiling(b.Width * k), (int)Math.Ceiling(b.Height * k)), new P4PanelIconTag("_deposit", n))
-                    { Click = [Microsoft.Xna.Framework.Input.Keys.D0 + n] });
-            }
+            DrawShareButtons(batch, pixel, origin, k, bank.Buttons, bank.TextColour, "_deposit");
             if (view.PerShare is not null)
                 Box(bank.ClearPer, bank.ClearColour, Color.LightGray);
         }
@@ -194,6 +191,105 @@ public sealed partial class P4DungeonScreen
             PackText(batch, pixel, origin + new Vector2(left * k, y * k), t, Pal(colour, Color.Black), k);
         }
     }
+
+    /// <summary>
+    /// The share buttons " n " (n = 0–3) of <c>_deposit</c> and <c>_gatebank</c>: <c>_wprint("  ")</c>, <c>_wputc('0' + n)</c>,
+    /// <c>_wprint("  ")</c> on colour cells as wide as the advances. While the shares are asked a click gives the share
+    /// (<c>_setbtn(-1, win, x, y, 24, 16, '0' + n)</c>), as the digit key does; the "0" button is off for a member in good
+    /// health (its enable field, s165).
+    /// </summary>
+    private void DrawShareButtons(SpriteBatch batch, Texture2D pixel, Vector2 origin, float k, BankShareButtons b, int ink,
+        string tag)
+    {
+        var asking = W.Prompt == P4TownPrompt.Shares;
+        var members = Game.Party.Members;
+        var zeroOn = asking && _shares.Length < members.Count && members[_shares.Length].Condition != P4Member.Okay;
+        for (var n = 0; n < b.Count; n++)
+        {
+            var digit = n.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var y = b.Y + b.Step * n;
+            var cell = new PanelRect(b.X, y, 2 * PackWidth(b.Pad, k) + PackWidth(digit, k), b.Height);
+            batch.Draw(pixel, origin + new Vector2(cell.X * k, cell.Y * k), null, Pal(b.Colour, Color.SteelBlue), 0f, Vector2.Zero,
+                new Vector2(cell.Width * k, cell.Height * k), SpriteEffects.None, 0f);
+            PackText(batch, pixel, origin + new Vector2((b.X + PackWidth(b.Pad, k)) * k, y * k), digit, Pal(ink, Color.Black), k);
+            if (asking && (n > 0 || zeroOn))
+                UiOverlays.Hits?.Add(new HitRegion(new Rectangle((int)(origin.X + b.X * k), (int)(origin.Y + y * k),
+                    (int)Math.Ceiling(b.Width * k), (int)Math.Ceiling(b.Height * k)), new P4PanelIconTag(tag, n))
+                { Click = [Microsoft.Xna.Framework.Input.Keys.D0 + n] });
+        }
+    }
+
+    // --- The experience share-out (_gatebank) --------------------------------------------------------------------------
+
+    /// <summary>The titled window key of <c>_gatebank</c>'s share-out (the pack's <c>titled</c>).</summary>
+    public const string GateBankWindowName = "_gatebank";
+
+    /// <summary>
+    /// s165: <c>_gatebank</c>'s pieces (pack pixels in its window, FORMAT.md 6.9): the pool line, then member m's row at
+    /// (name x, row y + step · m), shown once his share is asked (<paramref name="shares"/>: the shares given so far, null
+    /// = every row), the share digit at x 164, and after the shares (<see cref="P4GateShare.Gains"/>) the experience given
+    /// in its place, padded to 8 digits.
+    /// </summary>
+    public static List<(int X, int Y, string Text)> GateBankText(GateBankWindow gate, P4GateShare share,
+        IReadOnlyList<P4Member> members, IReadOnlyList<int>? shares, Func<TrainingHallSegment, string> text)
+    {
+        ArgumentNullException.ThrowIfNull(gate);
+        ArgumentNullException.ThrowIfNull(share);
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentNullException.ThrowIfNull(text);
+        var list = new List<(int, int, string)>
+        {
+            (gate.Pool.X ?? 0, gate.Pool.Y ?? 0, text(gate.Pool) + PaddedAmount(share.Pool, gate.PoolDigits) + text(gate.PoolUnit)),
+        };
+        for (var i = 0; i < members.Count; i++)
+        {
+            if (share.Gains is null && shares is not null && i > shares.Count)
+                break;
+            var y = gate.RowY + gate.RowStep * i;
+            list.Add((gate.NameX, y, members[i].Name));
+            if (share.Gains is { } gains && i < gains.Count)
+                list.Add((gate.ShareX, y, PaddedAmount(gains[i], gate.GainDigits)));
+            else if (shares is not null && i < shares.Count)
+                list.Add((gate.ShareX, y, shares[i].ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+        return list;
+    }
+
+    /// <summary>The share-out's window is up: the entry's experience shares or their wait, in town, the pack loaded.</summary>
+    private bool GateBankUp => InTownScene && W.GateShare is not null && Extras?.GateBank is not null
+        && Extras.Titled?.ContainsKey(GateBankWindowName) == true && Assets?.PackPixelsPerLayoutPixel is > 0;
+
+    /// <summary>
+    /// s165: <c>_gatebank</c>'s titled window (312 × 160) at the original's place, 100 rows below the other windows' top
+    /// ((160, 132) against their (160, 32)); the screen above it stays clear (<c>_clrtdraw</c>).
+    /// </summary>
+    private bool DrawGateBank(SpriteBatch batch, Texture2D pixel)
+    {
+        if (!GateBankUp)
+            return false;
+        var gate = Extras!.GateBank!;
+        var window = Extras.Titled![GateBankWindowName];
+        var drop = Math.Max(0, window.Window.Y - TitledWindowTop);
+        var (w, h) = TitledArea(window.Window.Width, window.Window.Height);
+        var k = 1f / Assets!.PackPixelsPerLayoutPixel;
+        var shares = W.Prompt == P4TownPrompt.Shares ? _shares : null;
+        return DrawBeside(batch, pixel, w, drop + h, (origin, scale) =>
+        {
+            var top = origin + new Vector2(0, drop * scale);
+            DrawTitledFrame(batch, pixel, top, window.Window.Width + 2, window.Window.Height,
+                PanelText(window.Title, window.TitleText), scale);
+            var at = top + new Vector2(1, PanelTitleRows) * scale;
+            batch.Draw(pixel, at, null, Pal(14, Color.LightGray), 0f, Vector2.Zero,
+                new Vector2(window.Window.Width * scale, window.Window.Height * scale), SpriteEffects.None, 0f);
+            DrawSunken(batch, pixel, at, gate.Frame, scale);
+            DrawShareButtons(batch, pixel, at, scale, gate.Buttons, gate.TextColour, GateBankWindowName);
+            foreach (var (x, y, t) in GateBankText(gate, W.GateShare!, Game.Party.Members, shares, s => PanelText(s.Label, s.Text)))
+                PackText(batch, pixel, at + new Vector2(x * scale, y * scale), t, Pal(gate.TextColour, Color.Black), scale);
+        }, 0, (int)Math.Floor((drop + h) * k));
+    }
+
+    /// <summary>The y of the titled windows the remaster puts at the picture's place (<c>_wopen(…, 160, 32, …)</c>).</summary>
+    private const int TitledWindowTop = 32;
 
     // --- The ending's message window ---------------------------------------------------------------------------------------
 

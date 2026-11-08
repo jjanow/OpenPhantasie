@@ -973,7 +973,7 @@
     "p3combat.message_help": "Any key/OK: close",
     "p3combat.select_spell_x": "... {0}...",
     "p3combat.heal_question": "...",
-    "p3combat.member_window_help": "Up/Down move  O/Enter ok  C/Esc cancel  1-6 pick",
+    "p3combat.member_window_help": "Up/Down or 8/2 move  O/Enter ok  C/Esc cancel",
     "p3combat.window_status.0": "...",
     "p3combat.window_status.1": "...",
     "p3combat.window_status.2": "...",
@@ -1266,8 +1266,6 @@
     "p4.town.gold_x": "Party gold {0}",
     "p4.town.share_gold_x": "Pay {0} gold into the accounts: shares",
     "p4.town.share_xp_x": "Share out {0} experience: shares",
-    "p4.town.share_okay_needs_one": "A member in good health takes a share of 1 to 3.",
-    "p4.town.help_shares": "Up/Down member  0-3 share  Enter done  F5 save",
     "p4.town.ending_not_built": "The ending is not built yet for IV.",
     "p4.town.game_over": "The game is over: F5 save, Esc for the main menu.",
     "p4.town.no_save_inside": "Leave the building or close the menu before saving.",
@@ -1292,6 +1290,8 @@
     "p4.profile.skills_x": "Skills: {0}",
     "game.event_page_any_key": "Any key continues",
     "game.dos_leaving_x": "LEAVING {0}",
-    "game.event_page_number": "1-9 choose  PgUp/PgDn scroll"
+    "game.event_page_number": "1-9 choose  PgUp/PgDn scroll",
+    "p1field.scroll.ok": "...",
+    "p4.town.help_shares_each": "0-3 this member's share  F5 save"
   }
 }

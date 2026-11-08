@@ -369,6 +369,10 @@ Changes vs I:
   ms after line 1, 22 3090 ms after the astral line, the door 6.87 s (413 VBL at 60 Hz, drawing included), 20 3010 ms
   after it, each fate line within 15 ms of its 21's start, both waiting for the running sound; the remaster plays 23
   3000 ms after the defeat page shows (s141).
+- **The page goes on by itself (s165, FORMAT.md 7.4) `[C]`:** line 1's hold is `0x16cbe(3000)`: the timer, any key or a
+  click ends it (keys pressed before are drained, `0x16d56`); nothing waits for a key. The remaster leaves the DEFEATED
+  page as the hold ends (or on any key or click), with the ghost row and 23; seen live on Xvfb s165. The astral line's
+  own 3000 ms before the door is not modelled `[~]`.
 - Scroll M ("Departed Souls") describes this judgement in-world. The manual says nothing about it (as for I).
 
 ## 9. Origin `@284` `[C]`

@@ -394,7 +394,13 @@ internal static class P4Panels
                                   "padded to points_digits at points_x (or not_usable when the marked member cannot use it), the " +
                                   "price padded to price_digits at price_x, the users' digits m + 1 at users_x + users_step * m; " +
                                   "headers, the colour-0 line, sunken frames (_whole) and the member's name at their places. " +
-                                  "_distribute's equipment table under its divider is not read [~].";
+                                  "s165: _distribute's equipment table under its divider (equipment: _init_eq / _disp_eq): the " +
+                                  "headers at y header_y, a colour-0 line, member m's row at y row_y + row_step * m: m + 1 in " +
+                                  "number_colour at number_x, the name at name_x, the class name at class_x cut while its width is " +
+                                  "below class_width (_flen), each slot's value (record +6B / +B7 / +B6 / +6A / +69) padded to " +
+                                  "value_digits at its x (clear: the values' cells cleared first); a member button over the row " +
+                                  "(button x / width / height, key '1' + m); the placed item's slot boxed in the header (kind_box: " +
+                                  "_wxbox XOR xor at the slot's x).";
         outObj["item_windows"] = Obj(
             ("letter_colour", 2), ("text_colour", 0), ("back_colour", 14),
             ("_armory", Obj(
@@ -416,7 +422,7 @@ internal static class P4Panels
                 ("headers", ArrOf(Seg(0x40BAC, ("x", 48), ("y", 16)), Seg(0x40BB1, ("x", 192), ("y", 16)),
                     Seg(0x40BB7, ("x", 240), ("y", 16)))),
                 ("line", Rect(16, 31, 280, 1, 0)),
-                ("frames", ArrOf(Win(16, 208, 280, 4))), ("lit_xor", 15))));
+                ("frames", ArrOf(Win(16, 208, 280, 4))), ("lit_xor", 15), ("equipment", EquipmentTable(Seg)))));
         outObj["_endmsg"] = "s163: _endmsg(block)'s window 33 for each ending page: untitled (white, colour 15, black frame and " +
                             "shadow) at window (x, y) of the screen, y + lower_offset for blocks > 3 other than 6; line k at " +
                             "(text_x, text_y + line_step * k), at most 3 a page, ink colour 0. _common_proc's Lord titles go in " +
@@ -426,6 +432,63 @@ internal static class P4Panels
             ("upper_blocks", ArrOf(0, 1, 2, 3, 6)), ("text_x", 16), ("text_y", 4), ("line_step", 14), ("lines", 3),
             ("fill", 15), ("text_colour", 0),
             ("scene_y", Obj(("p4.ending.street", 20), ("p4.ending.banquet", 32), ("p4.ending.cell", 32))));
+        ShareWindows(outObj, img, Seg);
+    }
+
+    /// <summary>s165: Share out's equipment table under its divider (x68k_p4_panels.py equipment_table).</summary>
+    private static JsonObject EquipmentTable(Func<int, (string, object?)[], JsonObject> seg)
+    {
+        JsonObject Head(int a, int x) => seg(a, [("x", x), ("y", 224)]);
+        return Obj(("site", "0x9F4E"), ("header_y", 224),
+            ("headers", ArrOf(Head(0x40BBD, 16), Head(0x40BBF, 32), Head(0x40BC4, 136), Head(0x40BC9, 184), Head(0x40BCC, 208),
+                Head(0x40BCF, 232), Head(0x40BD2, 256), Head(0x40BD5, 280))),
+            ("line", Obj(("x", 16), ("y", 239), ("width", 280), ("height", 1), ("colour", 0))),
+            ("row_y", 240), ("row_step", 16), ("number_x", 16), ("number_colour", 2), ("name_x", 32), ("class_x", 136),
+            ("class_width", 32), ("value_digits", 2),
+            ("values", ArrOf(Obj(("slot", "weapon"), ("x", 184)), Obj(("slot", "armour"), ("x", 208)),
+                Obj(("slot", "shield"), ("x", 232)), Obj(("slot", "bow"), ("x", 256)), Obj(("slot", "thrown"), ("x", 280)))),
+            ("clear", Obj(("x", 184), ("width", 112), ("colour", 14))),
+            ("button", Obj(("x", 16), ("width", 280), ("height", 16))),
+            ("kind_box", Obj(("y", 224), ("width", 16), ("height", 15), ("xor", 15))));
+    }
+
+    /// <summary>s165: _mage's own window and _gatebank's share-out window (x68k_p4_panels.py share_windows).</summary>
+    private static void ShareWindows(JsonObject outObj, byte[] img, Func<int, (string, object?)[], JsonObject> seg)
+    {
+        JsonObject Seg(int a, params (string, object?)[] kw) => seg(a, kw);
+        outObj["_mage"] = "s165: _mage's own titled window 32 (0x3A96), opened again at each member pick, as trang: the name at " +
+                          "name (x, y), then one note: poor_condition, nothing_more (record +09 >= 125 or level > 30), " +
+                          "not_worthy (else, when the quota is spent or no spell is open) or offer (the price: _wdoutl(32, 137, n) " +
+                          "in font 1 colour 8 after 'each'); after a pick the result row is cleared (result_clear) and " +
+                          "short_of_gold / results.failed / results.learned printed at (16, 64) in colour 2; it stays up through " +
+                          "the next spell list.";
+        outObj["mage"] = Obj(
+            ("site", "0x34B0"), ("window", Win(160, 32, 312, 352)), ("back_colour", 14),
+            ("title", P4xId(0x3FC1C)), ("title_text", Text(img, 0x3FC1C)),
+            ("text_colour", 0), ("line_step", 16), ("name", Obj(("x", 16), ("y", 16))),
+            ("notes", Obj(
+                ("poor_condition", ArrOf(Seg(0x3FCE5), Seg(0x3FCF6, ("x", 32), ("y", 32)))),
+                ("nothing_more", ArrOf(Seg(0x3FC27))),
+                ("not_worthy", ArrOf(Seg(0x3FC48, ("x", 16), ("y", 32)))),
+                ("offer", ArrOf(Seg(0x3FC6B, ("x", 120), ("y", 16)), Seg(0x3FC76, ("x", 16), ("y", 32)),
+                    Obj(("number", true), ("font", 1), ("colour", 8)), Seg(0x3FC81), Seg(0x3FC97, ("x", 16), ("y", 48)))))),
+            ("short_of_gold", Seg(0x3FCB4, ("x", 16), ("y", 64), ("colour", 2))),
+            ("results", Obj(("failed", Seg(0x3FCC7, ("x", 16), ("y", 64), ("colour", 2))),
+                ("learned", Seg(0x3FCD2, ("x", 16), ("y", 64), ("colour", 2))))),
+            ("result_clear", Obj(("x", 0), ("y", 64), ("width", 311), ("height", 16), ("colour", 14))));
+        outObj["_gatebank"] = "s165: _gatebank's share-out window (titled._gatebank, 312 x 160 at (160, 132)): the pool line (the " +
+                              "party's experience x 10, _wdoutl(win, pool_digits)) then pool_unit; the share buttons ' n ' (n = " +
+                              "0-3) at (x, y + step * n) on colour cells inside the sunken frame; member m's name at (name, row_y " +
+                              "+ row_step * m), shown when his share is asked; the share digit at x share; after the last share " +
+                              "each row's share is overwritten at x share by the experience given (_wdoutl(win, gain_digits)), " +
+                              "then a SPACE wait.";
+        outObj["gatebank"] = Obj(
+            ("site", "0x4EF0"), ("text_colour", 0),
+            ("pool", Seg(0x3FEBC, ("x", 68), ("y", 136))), ("pool_digits", 8), ("pool_unit", Seg(0x3FECC)),
+            ("frame", Win(264, 32, 40, 92)),
+            ("buttons", Obj(("x", 272), ("y", 40), ("step", 20), ("width", 24), ("height", 16), ("count", 4), ("colour", 4),
+                ("pad", Seg(0x3FED1)))),
+            ("row_y", 16), ("row_step", 16), ("columns", Obj(("name", 32), ("share", 164))), ("gain_digits", 8));
     }
 
     private static JsonObject Lists(byte[] img, JsonObject panels)

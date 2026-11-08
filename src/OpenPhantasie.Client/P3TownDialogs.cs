@@ -251,9 +251,13 @@ public sealed class TradeDialog : IModalDialog, IAmigaWindowDialog
 /// <summary>One text row of an Amiga list window: where it starts, its text, and whether it is yellow (a value or the pick).</summary>
 public sealed record AmigaWindowRow(int X, int Y, string Text, bool Highlight);
 
-/// <summary>An Amiga window to draw (s117): the pack's window, its rows, and the row a click picks (row index → key).</summary>
+/// <summary>
+/// An Amiga window to draw (s117): the pack's window, its rows, and the row a click picks (row index → key). s165:
+/// <paramref name="CursorRows"/> are rows a press only puts the cursor on (row index → the prompt's 0-based answer,
+/// <see cref="AmigaPromptRowTag"/>), as the original's member picker <c>0x127ce</c> does.
+/// </summary>
 public sealed record AmigaWindowView(KeepWindowsLayout.Window Window, IReadOnlyList<AmigaWindowRow> Rows,
-    IReadOnlyList<(int Row, Keys Key)> Picks);
+    IReadOnlyList<(int Row, Keys Key)> Picks, IReadOnlyList<(int Row, int Cursor)>? CursorRows = null);
 
 /// <summary>A dialog that draws as the original's own window when the pack has one (III Amiga, s117).</summary>
 public interface IAmigaWindowDialog
@@ -435,9 +439,13 @@ public static class AmigaShareWindow
 /// s163: III's "Who will disarm the trap?" (<see cref="Phantasie3Campaign.AsksDisarmer"/>) as III Amiga's window 6 under
 /// AMIGA SCREENS: <c>0x1c6d6</c> calls the member picker <c>0x127ce(92)</c>, the heal target's window (struct
 /// <c>0x23360</c>, pack <c>keep_windows.heal</c>): the title (<c>0x23084[92]</c>, colour 8) at cell (5, 7), one member a
-/// row (<c>0x12ac8</c>: name, race, level, class, status; colour 4, the cursor's row 8), OK / CANCEL. Up / Down move the
-/// cursor, Return or O take it, C (and Esc) = CANCEL, the prompt's <see cref="SessionPrompt.EscapeChoice"/>; a digit or a
-/// click on a row picks that member (the Amiga's row press only moves the cursor <c>[~]</c>).
+/// row (<c>0x12ac8</c>: name, race, level, class, status; colour 4, the cursor's row 8), OK / CANCEL. s165, the picker's
+/// loop read (<c>0x12922</c>…<c>0x12996</c>, <c>[C]</c> static): <c>0x3ba0</c> returns 1 for Return / O / OK (the cursor's
+/// member), 0 for C / CANCEL (−1), <c>'2'</c> moves the cursor down and <c>'8'</c> up (wrapping, <c>0x128ba</c>); any
+/// other key, the other digits too, does nothing. A press on another member's row (<c>0x17a6</c>, band columns 2–37)
+/// posts <c>'8'</c> with that row in <c>0x2432e</c>, which moves the cursor there; a press on the lit row posts nothing.
+/// So here Up / 8 and Down / 2 move the cursor, Return or O take it, C (and Esc) = CANCEL, the prompt's
+/// <see cref="SessionPrompt.EscapeChoice"/>, and a click on a row only moves the cursor (<see cref="AmigaWindowView.CursorRows"/>).
 /// </summary>
 public static class AmigaDisarmWindow
 {
@@ -452,7 +460,7 @@ public static class AmigaDisarmWindow
             return null;
         var t = w.Text;
         var rows = new List<AmigaWindowRow> { new(t[0].X, t[0].Y, prompt.Lines.Count > 0 ? prompt.Lines[0] : "", true) };
-        var picks = new List<(int, Keys)>();
+        var cursorRows = new List<(int, int)>();
         var members = session.Party.Members;
         for (var i = 0; i < members.Count; i++)
         {
@@ -462,20 +470,23 @@ public static class AmigaDisarmWindow
                 UiText.Name(m.Class), UiText.S($"p3combat.window_status.{(int)P3Fight.StatusOf(m)}")];
             for (var c = 0; c < cells.Length; c++)
                 rows.Add(new(t[1 + c].X, y, cells[c], i == cursor));
-            if (i < 9)
-                picks.Add((rows.Count - cells.Length, Keys.D1 + i));
+            cursorRows.Add((rows.Count - cells.Length, i));
         }
-        return new AmigaWindowView(w, rows, picks);
+        return new AmigaWindowView(w, rows, [], cursorRows);
     }
 
     /// <summary>
     /// The key the prompt menu gets for <paramref name="key"/>: O = OK (Return, the cursor's member), null for C = CANCEL
-    /// (the front end answers the prompt's escape choice); any other key unchanged (arrows, digits, Return).
+    /// (the front end answers the prompt's escape choice), 8 = Up and 2 = Down (the number pad's too); any other digit
+    /// <see cref="Keys.None"/> (it picks nothing, <c>0x12952</c>…); any other key unchanged (arrows, Return).
     /// </summary>
     public static Keys? Choice(Keys key) => key switch
     {
         Keys.O => Keys.Enter,
         Keys.C => null,
+        Keys.D8 or Keys.NumPad8 => Keys.Up,
+        Keys.D2 or Keys.NumPad2 => Keys.Down,
+        >= Keys.D0 and <= Keys.D9 or >= Keys.NumPad0 and <= Keys.NumPad9 => Keys.None,
         _ => key,
     };
 }

@@ -142,7 +142,8 @@ number, `Int`, `Cha` = the trainee's.
    ```
    quota = L × Int^1.177 / 90 × (c + a)        a = −2 for Fighter (c = 3), else +1
    ```
-   If `known > quota` or `open = 0`: refused — "nothing more I can teach" when record +09 ≥ 125 or level ≥ 31, else "not
+   If `known > quota` or `open = 0`: refused (s165, read: `0x3584`; +09 ≥ 125 at `0x35A8`, level +08 > 30 at
+   `0x35D4`) — "nothing more I can teach" when record +09 ≥ 125 or level ≥ 31, else "not
    yet worthy to learn". (`c + a`: Thief 1, Monk 2, Ranger 3, Fighter 1, Priest 5, Wizard 6, Shadow Warrior 7,
    Gargoyle 8.) Whether `known = quota` still allows one more is read from a float compare (`bgt`) `[~]`.
 2. **Price per spell (integer arithmetic, each division truncates):**

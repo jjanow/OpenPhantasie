@@ -88,7 +88,7 @@ Paired with an Amiga function by shared strings: **47**. Amiga `PhantasieIII`: 7
 | root | `0x1e18` | 89 | plane_from_town | town 15/16/17 -> plane 1/2/4 (logic-specs/planes.md §2) |  |
 | root | `0x1e71` | 1461 | party_death_astral_plane | DS:0x2800/lit "pics.cmp"; DS:0x2809/lit "Your party has arrived at the "; DS:0x2859/lit "A Great Demon appears and spea"; S500/idx "\D\DNGX.DAT"; rec 8 fields (rank,hp,race); resurrect / undead L20 / destroy, random town (logic-specs/planes.md §6) | `0x1dc16` (2) |
 | root | `0x2426` | 509 |  | rec 4 fields (hp,status) |  |
-| root | `0x2623` | 541 | trap_damage_report | DS:0x288a/lit "Damage Report"; S501/idx "DNGX"; DS:0x2898/lit "damage and dies."; DS:0x28aa/lit "damage."; +2 str; "Damage Report" | `0x1d4ea` (3) |
+| root | `0x2623` | 541 | trap_damage_report | DS:0x288a/lit "Damage Report"; S501/idx "DNGX"; DS:0x2898/lit "[original text]"; DS:0x28aa/lit "damage."; +2 str; "Damage Report" | `0x1d4ea` (3) |
 | root | `0x2c31` | 40 | random_1_to_n | rand() % n + 1 |  |
 | root | `0x7b92` | 48 | disk_error_box | S552 "Disk Error! A save may have be"; S552 |  |
 | root | `0x7bc2` | 61 | str_at_this_point_please_remove | S548 "At this point, please remove t"; S549 "At this point, please remove t" |  |

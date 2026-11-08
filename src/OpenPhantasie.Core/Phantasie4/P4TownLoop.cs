@@ -165,6 +165,7 @@ public sealed partial class P4TownLoop
         Transfer = null;
         GateRows = null;
         InnRows = null;
+        GateShare = null;
         _scene = P4TownScene.None; // _town clears the area before _townent / _welcome; _tload draws the street last
         _window.Clear();
         Prompt = P4TownPrompt.Menu;
@@ -214,6 +215,7 @@ public sealed partial class P4TownLoop
     {
         SharesFor = kind;
         Prompt = P4TownPrompt.Shares;
+        GateShare = kind == P4ShareKind.Experience ? new(Party.ExperiencePool * 10, null) : null;
     }
 
     /// <summary>
@@ -248,10 +250,15 @@ public sealed partial class P4TownLoop
         }
         else
         {
+            var pool = Party.ExperiencePool * 10;
             var xp = P4Town.ShareExperience(Party.ExperiencePool, Party.Members.Select(m => m.Experience).ToList(), shares);
             for (var i = 0; i < xp.Length; i++)
                 Party.Members[i].Experience = xp[i];
             Party.ExperiencePool = 0;
+            // s165: _gatebank writes each member's share × per share over his share (x 164), then _spc_wait (0x529E).
+            GateShare = new(pool, P4Town.ShareOut(pool, shares));
+            Prompt = P4TownPrompt.Wait;
+            return;
         }
         Prompt = P4TownPrompt.Menu;
         Run();
@@ -313,6 +320,13 @@ public sealed partial class P4TownLoop
     /// each living member who slept, at the member's own row; else null.
     /// </summary>
     public IReadOnlyList<P4InnRow>? InnRows { get; private set; }
+
+    /// <summary>
+    /// s165: <c>_gatebank</c>'s share-out window (<c>_wopen(-1, 160, 132, 312, 160, 1, "経験値の分配")</c>) while the entry's
+    /// experience shares are asked (the pool, no gains yet) and through its SPACE wait after them (each member's gain);
+    /// else null. The entry's gold deposit (D4-030, manual only) has no window of the original's.
+    /// </summary>
+    public P4GateShare? GateShare { get; private set; }
 
     /// <summary>
     /// <c>_town</c>'s Pendragon test, then <c>_tload</c>: with the first ending flag set Pendragon runs the ending instead of
@@ -509,6 +523,7 @@ public sealed partial class P4TownLoop
         Require(P4TownPrompt.Wait);
         GateRows = null;
         InnRows = null;
+        GateShare = null;
         if (_screen is not null)
         {
             Resume();
@@ -543,6 +558,9 @@ public sealed partial class P4TownLoop
         _window.Restore(s.Box);
         GateRows = null; // a save at the aging wait reloads its lines in the box only [~]
         InnRows = null;
+        // s165: a save while the shares are asked shows the share-out window again; one at its wait does not [~].
+        GateShare = s.Prompt == P4TownPrompt.Shares && s.SharesFor == P4ShareKind.Experience
+            ? new(Party.ExperiencePool * 10, null) : null;
         BankWindow = null;
         EndingBlock = null;
         SharesFor = s.SharesFor;

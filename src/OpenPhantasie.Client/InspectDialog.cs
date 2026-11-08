@@ -68,6 +68,13 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
     /// <summary>s158: the first spell of requester 12's page (h23 <c>+0x570</c>'s scroll offset; 0 when the view opens).</summary>
     public int AmigaSpellFirst { get; private set; }
 
+    /// <summary>
+    /// s165: counts the who list's answers (a member picked, or Esc / Backspace). In the Guild, I Amiga's Inspect lists in
+    /// h26 <c>+0x346</c> → <c>+0x412</c> ("WHOM DO YOU WANT TO INSPECT?", h5 <c>+0x196a</c>), which plays the tone after
+    /// each gadget (<c>+0x614</c>); the Client plays it there only.
+    /// </summary>
+    public int WhoTones { get; private set; }
+
     public string Help => _step switch
     {
         Step.Summary => UiText.S("inspect.any_key"),
@@ -126,10 +133,14 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
                     break;
                 case Step.Who:
                     if (key is Keys.Escape or Keys.Back)
+                    {
+                        WhoTones++;
                         return Close();
+                    }
                     var d = DialogKeys.Digit(key);
                     if (d >= 1 && d <= session.Party.Members.Count)
                     {
+                        WhoTones++;
                         _who = session.Party.Members[d - 1];
                         _step = Step.Sheet;
                         _menus.Sync(PageMenu);

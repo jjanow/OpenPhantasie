@@ -43,7 +43,12 @@ public sealed record FieldSounds(IReadOnlyDictionary<string, int> Cues, int? Wai
         {
             if (string.IsNullOrWhiteSpace(moment) || delay.HoldMs < 0 || delay.AfterMs < 0)
                 throw new InvalidDataException($"{manifestPath}: field_sounds.cue_delays: bad delay for '{moment}'.");
-            delays[moment] = new FieldCueDelay(delay.HoldMs, delay.PlusSpeed, delay.AfterMs);
+            delays[moment] = new FieldCueDelay(delay.HoldMs, delay.PlusSpeed, delay.AfterMs)
+            {
+                BoxPalettes = delay.BoxPalettes is { Count: > 0 } box
+                    ? new Dictionary<string, string>(box, StringComparer.Ordinal)
+                    : null,
+            };
         }
         return new FieldSounds(cues, dto.WaitSpeedMs)
         {
@@ -105,6 +110,7 @@ public sealed record FieldSounds(IReadOnlyDictionary<string, int> Cues, int? Wai
         [JsonPropertyName("hold_ms")] public int HoldMs { get; set; }
         [JsonPropertyName("plus_speed")] public bool PlusSpeed { get; set; }
         [JsonPropertyName("after_ms")] public int AfterMs { get; set; }
+        [JsonPropertyName("box_palettes")] public Dictionary<string, string>? BoxPalettes { get; set; }
     }
 
     public sealed class DefeatDto
@@ -160,6 +166,14 @@ public sealed record FieldDefeatSounds(int SpeedMs, int Ghosts, int Door, int De
 /// </summary>
 public sealed record FieldCueDelay(int HoldMs, bool PlusSpeed, int AfterMs)
 {
+    /// <summary>
+    /// s165: the cue's line shows in the end-of-fight one-line box (<see cref="StEndBoxes.OneLine"/>, OUT.RSC tree 40:
+    /// <c>0xa18c</c> → <c>0xa124</c>, at (12, 75), held Speed + its hold, a key or a click ending it) instead of on the
+    /// message line, its pens taken from the palette named here for the game mode (<c>overworld</c>, <c>dungeon</c>);
+    /// null = no box.
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? BoxPalettes { get; init; }
+
     /// <summary>The wait in ms at the Speed word <paramref name="speedMs"/> (null: none added).</summary>
     public int Ms(int? speedMs) => (PlusSpeed ? speedMs ?? 0 : 0) + HoldMs + AfterMs;
 }

@@ -79,8 +79,11 @@ ST_CUE_DELAYS = {
     "field.resurrected": {
         "_note": "0x92ce 0xa18c: the box (shown ~95 ms after the call), its hold Speed + hold_ms (0x16dce -> 0x16cbe, a key "
                  "ends it), the party-view redraw 0x17210 (after_ms, measured 355 ms on Hatari s141 [~]), then sound 12 "
-                 "(0x92d8).",
+                 "(0x92d8). s165: box_palettes: the line shows in end_boxes' one-line box (tree 40 at (12, 75), 0xa124; "
+                 "0x92c8 calls only 0xa18c, nothing on the message line), its pens (border 0, fill 3 = VDI 6, text 0) "
+                 "in the palette the mode shows.",
         "hold_ms": 1000, "plus_speed": True, "after_ms": 355,
+        "box_palettes": {"overworld": "map", "dungeon": "map"},
     },
 }
 TOWN_MODES = ["town", "guild", "title"]  # PHANT.RSC is loaded for the town (0xec36 -> 0x4706)

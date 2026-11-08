@@ -258,6 +258,57 @@ public class Phantasie4TownServicesTests
     }
 
     [OriginalDataFact]
+    public void MagicHall_Window_OfferThenTheResultRow_KeptThroughTheMemberPick()
+    {
+        // s165: _mage's window 32 (FORMAT.md 6.9): the offer with the price, after a pick the result row at (16, 64).
+        var party = Party();
+        var m = party.Members[0];
+        m.Class = P4Ids.Wizard;
+        m.Level = 3;
+        m.Spells[8] = 2;
+        var w = Town(party, new ScriptRng(), Code);
+        party.Gold = 20000;
+        w.Enter(P4Building.Guild);
+        w.Choose(2); // M
+        var price = P4Training.SpellPrice(T.Training, P4Ids.Wizard, 3, 15, 12, P4Town.PriceIndex(T.Towns, 2));
+        Assert.Equal(new P4TrainingWindow("M0", P4TrainingNote.Offer, price, false, P4TrainingWindow.MagicHall),
+            w.TrainingWindow);
+        w.Choose(0);
+        Assert.Equal(P4LessonResult.Learned, w.TrainingWindow!.Result);
+        w.Continue();
+        Assert.Equal(P4TownPrompt.Who, w.Prompt);
+        Assert.Equal(P4LessonResult.Learned, w.TrainingWindow!.Result); // window 32 stays up through the member pick
+        w.Choose(-1); // E: End training
+        Assert.Null(w.TrainingWindow);
+    }
+
+    [OriginalDataFact]
+    public void MagicHall_Window_Refusals_AndShortOfGold()
+    {
+        var party = Party();
+        foreach (var x in party.Members)
+            (x.Class, x.Level) = (P4Ids.Wizard, 3);
+        party.Members[0].Condition = 2; // Sleep: poor health
+        party.Members[2].Score = 125;   // after an ending, no spell open: nothing more (record +09 >= 125, 0x35A8)
+        var w = Town(party, new ScriptRng(), Code);
+        w.Enter(P4Building.Guild);
+        w.Choose(2);
+        Assert.Equal((P4TrainingNote.PoorCondition, P4TrainingWindow.MagicHall),
+            (w.TrainingWindow!.Note, w.TrainingWindow.Hall));
+        w.Choose(1); // no open spell: not yet worthy (0x35F2)
+        Assert.Equal(P4TrainingNote.NotWorthy, w.TrainingWindow!.Note);
+        w.Choose(2);
+        Assert.Equal(P4TrainingNote.NothingMoreToTeach, w.TrainingWindow!.Note);
+        party.Members[1].Spells[8] = 2;
+        party.Gold = 0;
+        w.Choose(1);
+        Assert.Equal(P4TrainingNote.Offer, w.TrainingWindow!.Note);
+        w.Choose(0);
+        Assert.True(w.TrainingWindow!.ShortOfGold); // "You do not have enough gold." and the member is done
+        Assert.Equal(P4TownPrompt.Who, w.Prompt);
+    }
+
+    [OriginalDataFact]
     public void Creation_Lists_AreDrawnAsTheOriginalsWindows()
     {
         // s151: _racemenu / _classmenu / _set_fame_lst name their window-34 lists; the rows are the choices one for one.

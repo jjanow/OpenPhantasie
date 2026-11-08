@@ -15,6 +15,27 @@ public partial class Game1
     private long _mapRunFightMark;
     private long _mapMoveMark;
     private IReadOnlySet<string> _mapBoxed = new HashSet<string>();
+    private int? _mapRunThenSound;
+
+    /// <summary>
+    /// s165: I Amiga's out-of-fight Resurrection (h38 <c>+0x2ea</c> outside a round, state ≠ 5): requester 23 with one row
+    /// "%s IS RESURRECTED" (h44 <c>+0x466</c>, h3 + 60 polls, keys swallowed) over the overworld or the dungeon, then
+    /// <paramref name="sound"/> (12, <c>+0x466</c>) when it closes. The box is the cast's line in the session log (Core's
+    /// `core.magic.x_is_resurrected`, the Amiga's text). False when it does not apply (AMIGA SCREENS off, no
+    /// <c>map_message</c>, the town: there the Amiga's "D O N E !" stands): the caller plays the sound at once.
+    /// </summary>
+    private bool StartP1ResurrectedBox(GameSession s, int sound)
+    {
+        if (s.Game != GameId.P1 || s.Mode is not (GameMode.Overworld or GameMode.Dungeon) || !CurrentGameSettings.OriginalScreens
+            || _assets?.Pack?.MapMessage is not { } layout || _combatUi.IsPresenting)
+            return false;
+        var cast = P1MapMessageRun.ResurrectionLayout(layout);
+        if (s.LogSince(Math.Max(0, s.LogSequence - 4)).LastOrDefault(l => P1MapMessageRun.Rows(cast, l ?? "") is not null) is not { } line
+            || !StartMapMessages(cast, [line], s.LogSequence))
+            return false;
+        _mapRunThenSound = sound;
+        return true;
+    }
 
     /// <summary>True while a map box is up (or the run's last box has not closed yet).</summary>
     private bool MapBoxesUp => _mapRun is not null;
@@ -121,6 +142,11 @@ public partial class Game1
         }
         _mapRun = null;
         _mapRunWaiting = false;
+        if (_mapRunThenSound is int then)
+        {
+            _mapRunThenSound = null;
+            PlayP1Cue(then); // s165: 12 after the resurrection's box (h38 +0x466), its hold too
+        }
         if (s.Mode == GameMode.Combat && !_combatUi.IsPresenting && !_p1FightLoading)
         {
             NoteEncounterMonsters(s);
@@ -154,6 +180,7 @@ public partial class Game1
         ResetP1Holds(); // s154: a load or the main menu drops a pending step, question hold or pictures' read
         _mapRun = null;
         _mapRunWaiting = false;
+        _mapRunThenSound = null;
         _mapBoxed = new HashSet<string>();
     }
 }

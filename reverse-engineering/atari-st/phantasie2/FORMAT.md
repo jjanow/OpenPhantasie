@@ -754,8 +754,34 @@ combat round (7.3), the fight's start / end (17 / 18) and the ending (32, the cl
   key each, putting the ghosts and 23 behind them: `Game1.AfterFightEnded` adds no report after II's line-by-line round);
   the ghost row and 23 about 3 s after the page shows, 22 as the astral page opens (23 long over), 20 9.9 s later (door
   6.87 s + 3 s), then the 21s. Field Resurrection: "ZANDOR IS RESURRECTED" on the message line, 12 between 1.1 and 1.5 s
-  after it (frame steps 0.4 s; the rule's 1365 ms at normal). The remaster's defeat page waits for a key where the ST
-  goes on after its 3000 ms hold `[~]`.
+  after it (frame steps 0.4 s; the rule's 1365 ms at normal). s163: the remaster's defeat page waited for a key where the
+  ST goes on after its 3000 ms hold (built s165, below).
+- **The hold `0x16cbe(ms)` (s165 objdump) `[C]` static + live:** `0x16d56` first drains the queue (`evnt_multi` 51 =
+  keyboard | button | message | timer 10 ms, looped until the timer fires), then `evnt_multi` 35 (keyboard | button |
+  timer ms) until the timer (bit 5), a key (bit 0), a button (bit 1) or key code 0x20: any key or a click ends it, a key
+  pressed before the hold does not. Every ST hold of this kind (the defeat scene's lines `0x12a16`, the end boxes
+  `0x16dce`) goes through it.
+- **Remaster (s165), the defeat page goes on:** with the ST pack's `defeat_scene` the DEFEATED page is left as its line's
+  hold ends (`P2DefeatSounds.HoldOver`, the ghosts' moment `ghosts_after_ms` 3000; `Game1.UpdateP2DefeatHold`); while the
+  hold runs any key or a click ends it (`HandleP2DefeatHoldKeys`, not only the prompt's keys), and the page shows no
+  Return mark. A step's report lines paged in front of the banner (a trap or a swim that wipes the party,
+  `KeepStepTextUnderPrompt`) still take Return each; the hold, the ghost row and 23 count from the banner. Seen live on
+  Xvfb (`parity/shots/s165/remaster-p2-defeat-goes-on-strip.png`, BABY DRAGON, no key after the fight): the page left
+  ≥ 2.6 s after the first frame that showed it, with 23, then 22 and the door. Still: the astral line's own 3000 ms hold
+  (`0x12d6a` → `0x12a16`) before 22 and the door is not modelled (the door starts as the page changes) `[~]`.
+- **Remaster (s165), field Resurrection's box:** `0x92c8` calls only `0xa18c` (→ `0xa124`, tree 40) and writes nothing
+  to the message line (`0x18cc2` not called, live). The pack's `cue_delays.field.resurrected.box_palettes` (overworld /
+  dungeon → `map`) puts the cast's line in `end_boxes`' one-line box (`P2FieldBox`, `UiOverlays.DrawP2EndBox` with the
+  pens of that palette: border / text register 0, fill register 3), held Speed + `one_line.hold_ms` (1000), a key or a
+  click ending it (the key goes no further: no step, no field click); the message line stays empty; sound 12 keeps its
+  delay (hold, then 355 ms). The box goes as the hold ends; whether the ST's box stays partly shown during the 355 ms
+  party-view redraw `0x17210` is not measured `[?]`. **Live on Hatari (s165, overworld, `parity/shots/s165/p2-st-field-resurrection-box.png`)**
+  `[C]`: box x 12..315, y 75..114 (304 × 40), 2-px border inward in register 0 (black), fill register 3 = `$760` (the
+  map palette's `#FFDA00`; Hatari's own 8-bit scaling shows `#EECC00`), text black, "DRUM IS RESURRECTED" ink from
+  (93, 91) (= 12 + 8·(2 + 8) plus the glyph's 1-px side bearing); held 1010 ms untouched (`evnt_multi` mask 0x20), a key
+  ended it after 220 ms (mask 1), then the redraw and 12 355 ms later; registers 4 / 7 / 14 cycle meanwhile, 3 does
+  not. Remaster seen on Xvfb (`parity/shots/s165/remaster-p2-field-resurrection-box.png`). The dungeon's box is not
+  filmed (its palette taken as `map`, as the alerts' `[~]`).
 
 ## 8. Tools available
 

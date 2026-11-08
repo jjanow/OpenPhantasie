@@ -1,6 +1,6 @@
 {
  "_schema": "phantasie.strings-fallback/v1",
- "_note": "The remaster's own wording for the shared and Phantasie I table lines an import without I's tables lacks (10-importer.md 7.6): the ids with original parts (strings/en.sources.json) that the Atari ST II, the Apple II II, DOS III or X68000 IV does not give, for a game that shows them (II leaves out III's ids; IV shows only its Hall's core.p4. ids of these tables). Left out: I's Amiga field / map / town screens (p1field., p1map., p1town., amiga.), I's ending (core.endgame.) and IV's p4. ids. Single words, game terms (classes, races, stats, spell names), short labels and fixed-width sheet rows keep the table's text; lines are reworded, format items unchanged. The II, III and IV pipelines write it (II and III with their own game's fallback) to strings/en.fallback.<profile>.json in the import, under every other imported file, so a version that holds the line (DOS I, Amiga I, the game's own copy) still wins.",
+ "_note": "The remaster's own wording for the shared and Phantasie I table lines an import without I's tables lacks (10-importer.md 7.6): the ids with original parts (strings/en.sources.json) that the Atari ST II, the Apple II II, DOS III or X68000 IV does not give, for a game that shows them (II leaves out III's ids; IV shows only its Hall's core.p4. ids of these tables). Left out: I's Amiga field / map / town screens (p1field., p1map., p1town., amiga.; s165: but p1field.scroll.ok, requester 19's O.K. label, whose text the ST holds too), I's ending (core.endgame.) and IV's p4. ids. Single words, game terms (classes, races, stats, spell names), short labels and fixed-width sheet rows keep the table's text; lines are reworded, format items unchanged. The II, III and IV pipelines write it (II and III with their own game's fallback) to strings/en.fallback.<profile>.json in the import, under every other imported file, so a version that holds the line (DOS I, Amiga I, the game's own copy) still wins.",
  "language": "en",
  "tables": {
   "shared": {
@@ -87,7 +87,8 @@
    "core.p4.hall_no_ii_save": "No Phantasie II save was found. Save a Phantasie II game first.",
    "core.p4.hall_game_ii": "Phantasie II",
    "core.p4.hall_game_iii": "Phantasie III",
-   "core.p4.hall_list_ii": "== Phantasie II =="
+   "core.p4.hall_list_ii": "== Phantasie II ==",
+   "p1field.scroll.ok": "O.K."
   },
   "phantasie1": {
    "health.sleep": "SLEEP",

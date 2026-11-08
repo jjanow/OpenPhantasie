@@ -62,6 +62,17 @@ public sealed class PromptMenu
     }
 
     /// <summary>
+    /// s165: puts the highlight on answer <paramref name="index"/> (0-based) of <paramref name="prompt"/> without picking it
+    /// (III Amiga's window 6: a press on a member row only moves the cursor, <c>0x17a6</c>); out of range does nothing.
+    /// </summary>
+    public void MoveTo(SessionPrompt prompt, int index)
+    {
+        Sync(prompt);
+        if (index >= 0 && index < prompt.Options.Count)
+            Cursor = index;
+    }
+
+    /// <summary>
     /// One key for the open prompt: arrows move the highlight, Return/Space picks it, or a direct key picks an answer.
     /// Returns the 1-based answer for <see cref="SessionPrompts.Answer"/>, or null.
     /// </summary>

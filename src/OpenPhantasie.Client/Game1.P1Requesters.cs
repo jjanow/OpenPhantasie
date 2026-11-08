@@ -73,7 +73,11 @@ public partial class Game1
             SessionPromptKind.Treasure => s.PendingTreasureName ?? "",
             _ => "",
         };
-        return P1MapRequesters.Menu(layout, UiText.F(id!, arg), i => P1MapRequesters.ClickKey(prompt, i));
+        var scene = P1MapRequesters.Menu(layout, UiText.F(id!, arg), i => P1MapRequesters.ClickKey(prompt, i));
+        // s165: a fight's find is asked over the fight field (h44 +0x942 / +0x956): the same screen pens, the combat palette.
+        return prompt.Kind == SessionPromptKind.Treasure && _combatUi.P1AfterFightShown && _combatUi.P1Layout is { } field
+            ? scene with { Palette = field.Palette }
+            : scene;
     }
 
     /// <summary>
@@ -125,7 +129,10 @@ public partial class Game1
         return null;
     }
 
-    /// <summary>s163: the scroll's printout questions in the town's Use item (h29 <c>+0x1da</c> / <c>+0x1f6</c>), or null.</summary>
+    /// <summary>
+    /// s163: the scroll's printout questions in the town's Use item (h29 <c>+0x1da</c> / <c>+0x1f6</c>); s165: its text as
+    /// requester 19; or null.
+    /// </summary>
     private RequesterScene? P1UseItemRequesterFor(IModalDialog modal, GameSession s)
     {
         if (P1Requesters is not { } layout || s.Mode != GameMode.Town || !ReferenceEquals(modal, _useItemDialog))
@@ -134,6 +141,9 @@ public partial class Game1
             return P1MapRequesters.Town(layout, "scroll_printout", i => i == 0 ? Keys.Y : Keys.N);
         if (_useItemDialog.AskingPrinter)
             return P1MapRequesters.Town(layout, "prepare_printer", i => i == 0 ? Keys.Enter : Keys.Escape);
+        // s165: the scroll's text as requester 19 (h29 +0x2c4 → h86 +0(0x13)), its stored pens on the town palette.
+        if (layout is { ScrollText: { } scroll, TownPalette: { } palette } && _useItemDialog.ScrollRows is { } rows)
+            return P1MapRequesters.ScrollText(scroll, palette, rows);
         return null;
     }
 

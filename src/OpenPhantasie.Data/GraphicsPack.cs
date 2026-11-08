@@ -1069,6 +1069,14 @@ public sealed record KeepWindowsLayout(
     public InfoWindow? PartyHealth { get; init; }
 
     /// <summary>
+    /// s165: the Damage Report (Amiga <c>0x1d4ea</c>: window 6, struct <c>0x23360</c>, with one OK): <see cref="InfoWindow.Text"/>
+    /// = the title's origin, then the first member row's name and line origins (rows 8 px apart);
+    /// <see cref="InfoWindow.Colours"/> = title, a line, a "dies" line, an "is dead." line as indices of
+    /// <see cref="InfoWindow.Palette"/> (the dungeon's indices while the party is in a dungeon); or null.
+    /// </summary>
+    public InfoWindow? DamageReport { get; init; }
+
+    /// <summary>
     /// The message box (window 7, <c>0xaaac</c>, struct <c>0x23394</c>, s134): the box, the text's origin (the title cell;
     /// a "\r" in the text starts a row 8 px down at the same column), its colour and the one OK button; or null.
     /// </summary>
@@ -1165,7 +1173,11 @@ public sealed record KeepWindowsLayout(
     /// the original draws it): <see cref="Frame"/> = outer, inner frame (the fill is index 0), <see cref="Colours"/> per window.
     /// </summary>
     public sealed record InfoWindow(IReadOnlyList<int> Box, IReadOnlyList<(int X, int Y)> Text, string Palette,
-        IReadOnlyList<int> Frame, IReadOnlyList<int> Colours);
+        IReadOnlyList<int> Frame, IReadOnlyList<int> Colours)
+    {
+        /// <summary>s165: the one OK button's top-left corner (the Damage Report), or null: no button.</summary>
+        public (int X, int Y)? Ok { get; init; }
+    }
 
     internal static KeepWindowsLayout FromDto(Dto dto, string manifestPath)
     {
@@ -1173,6 +1185,9 @@ public sealed record KeepWindowsLayout(
             : w is { Box: [_, _, _, _] box, Text: { } text, Palette: { Length: > 0 } palette, Frame: [_, _] frame,
                 Colours: { } c } && text.Count == texts && text.All(t => t is [_, _]) && c.Length == colours
                 ? new InfoWindow(box, [.. text.Select(t => (t[0], t[1]))], palette, frame, c)
+                {
+                    Ok = w.Ok is [var ox, var oy] ? (ox, oy) : null,
+                }
                 : throw new InvalidDataException($"{manifestPath}: bad keep_windows info window.");
         Window W(WindowDto? w) =>
             w is { Box: [_, _, _, _] box, Text: { Count: > 0 } text, Ok: [var ox, var oy], Cancel: [var cx, var cy] }
@@ -1215,6 +1230,7 @@ public sealed record KeepWindowsLayout(
             Heal = Optional(dto.Heal),
             MonsterNames = Info(dto.MonsterNames, 6, 1),
             PartyHealth = Info(dto.PartyHealth, 8, 7),
+            DamageReport = Info(dto.DamageReport, 3, 4),
             Message = Message(dto.Message),
             Credits = Message(dto.Credits) is var credits && credits is null or { TextIds.Count: > 0 } ? credits
                 : throw new InvalidDataException($"{manifestPath}: keep_windows credits window without its text id."),
@@ -1250,6 +1266,7 @@ public sealed record KeepWindowsLayout(
         [JsonPropertyName("list_colours")] public List<string>? ListColours { get; set; }
         [JsonPropertyName("monster_names")] public InfoWindowDto? MonsterNames { get; set; }
         [JsonPropertyName("party_health")] public InfoWindowDto? PartyHealth { get; set; }
+        [JsonPropertyName("damage_report")] public InfoWindowDto? DamageReport { get; set; }
         public MessageWindowDto? Message { get; set; }
         public MessageWindowDto? Credits { get; set; }
         [JsonPropertyName("party_status")] public PartyStatusDto? PartyStatus { get; set; }
@@ -1276,6 +1293,7 @@ public sealed record KeepWindowsLayout(
         public string? Palette { get; set; }
         public int[]? Frame { get; set; }
         public int[]? Colours { get; set; }
+        public int[]? Ok { get; set; }
     }
 
     internal sealed class MessageWindowDto
