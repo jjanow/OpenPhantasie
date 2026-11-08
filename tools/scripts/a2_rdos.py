@@ -11,6 +11,9 @@ Format (decoded s158 from the 4am crack of Phantasie II, `reverse-engineering/ap
   25 sector count, 26..27 load address, 28..29 length in bytes, 30..31 first logical sector. Files are contiguous.
   A deleted entry has its first name byte replaced by 0x80 (TWN210's stale twin on side A).
 * Sectors 11..12 of track 1 hold RWTS code, not catalog entries.
+* The Memorial Set (GOG / Steam) ships the same disks in DOS 3.3 sector order: its sector s is the 4am image's
+  sector `DOS33_TO_IMAGE[s]` on every track (s166). Both orders share catalog sector 0, so `RdosDisk` reads the image
+  both ways and keeps the catalog with more entries (as the importer's `RdosVolume.TryOpen`).
 
 Usage (CLI): python3 -I a2_rdos.py <side.dsk> [--extract OUTDIR]
 Library: `RdosDisk(path).files` -> list of `RdosFile`; `disk.read(name)` -> bytes (exactly `length` bytes).
@@ -30,6 +33,17 @@ DSK_TRACK_BYTES = 16 * 256      # .dsk track stride (16 sectors)
 CATALOG_TRACK = 1
 CATALOG_SECTORS = 11            # track 1 sectors 0..10
 ENTRY_SIZE = 32
+DOS33_TO_IMAGE = (0, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 15)
+
+
+def from_dos33_order(image: bytes) -> bytes:
+    out = bytearray(len(image))
+    for t in range(len(image) // DSK_TRACK_BYTES):
+        for s in range(16):
+            src = t * DSK_TRACK_BYTES + s * 256
+            dst = t * DSK_TRACK_BYTES + DOS33_TO_IMAGE[s] * 256
+            out[dst:dst + 256] = image[src:src + 256]
+    return bytes(out)
 
 
 @dataclass(frozen=True)
@@ -45,10 +59,15 @@ class RdosFile:
 
 class RdosDisk:
     def __init__(self, path_or_bytes):
-        self.image = path_or_bytes if isinstance(path_or_bytes, (bytes, bytearray)) else Path(path_or_bytes).read_bytes()
-        if len(self.image) != 143360:
-            raise ValueError(f"not a 140K .dsk image ({len(self.image)} bytes)")
+        image = path_or_bytes if isinstance(path_or_bytes, (bytes, bytearray)) else Path(path_or_bytes).read_bytes()
+        if len(image) != 143360:
+            raise ValueError(f"not a 140K .dsk image ({len(image)} bytes)")
+        self.image = from_dos33_order(image)
+        remapped = self._catalog()
+        self.image = image
         self.files = self._catalog()
+        if len(remapped) > len(self.files):
+            self.image, self.files = from_dos33_order(image), remapped
 
     def sector(self, n: int) -> bytes:
         off = (n // SECTORS_PER_TRACK) * DSK_TRACK_BYTES + (n % SECTORS_PER_TRACK) * 256

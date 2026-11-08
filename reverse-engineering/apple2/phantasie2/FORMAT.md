@@ -120,8 +120,10 @@ Regions 1, 2, 3, 5, 6, 7, 8, 11, 12, 17, 18, 22, 26, 27, 28, 30, 31 (the ST's se
   pages, 20+ = 3), so text-cell args differ (OUT6, 18, 26, 28, 30) while the text agrees.
 - **Play rewrites the file** (OUTDOORS2 7700–7710 `STORE W$,2050,756` on leaving), changing only the fog. The shipped
   size is 768 B: only OUT26 and OUT30 still have it in the reference dump, and both are fully fogged as on the ST;
-  the shipped fog of the other 15 is on the Memorial Set's unplayed disk (s166, all 17 at 768 B; cells not yet compared
-  with the ST's start fog `[~]`).
+  the shipped fog of the other 15 is on the Memorial Set's unplayed disk (s166). There `OUTT2` is 756 B (stored back
+  before shipping) and `OUTT1` / `OUTT2` are open, the other 15 fully fogged: the ST's start fog cell for cell `[C]`
+  (s167, `MemorialSet_StartFogIsTheSts`). So 756 B does not mean played; the importer tells a played copy by the
+  Memorial disks' sha1s (profile `mutable_files`).
 
 **Orientation** `[C]`: the Apple draws CX across and CY down (`DRAW … AT 140 + 7·CX, 2 + 6·CY`, line 5040) and moves
 N = CY − 1, E = CX + 1 (lines 5220–5260). In ST terms Apple north = ST east, Apple east = ST south: **the Apple map is
@@ -157,7 +159,8 @@ Pluto's speech after he is beaten (DUNGON2 4300; on the ST a `strings/en.json` l
 
 `extracted/key-files.json` has the sha1 of each file the extract reads (side A: PHANTASIE II, TOWN2, OUTDOORS2, ITEM,
 TINFO, TF2, SHAPES, ICE DRAGON, INFO; side B: DUNGON2, DNG1, DNG8, SCROLLL0). Played files (`OUTT`, `TWN2n`, `CHAR2`)
-are not key files. Version string: INTRO2 192–193 "VERSION 1.0  2/5/86".
+are not key files; with `DNGSAV` / `DNGCHK` they are the profile's `mutable_files`, hashed from the Memorial Set's
+unplayed disks (s167). Version string: INTRO2 192–193 "VERSION 1.0  2/5/86".
 
 ## 5. Apple II vs ST: what the diff finds (s158, reference dump)
 

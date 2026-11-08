@@ -157,7 +157,6 @@ internal static class A2GameData
     private static JsonObject Overworld(JsonObject ow, List<string> warnings)
     {
         var regions = new JsonObject();
-        var played = new List<string>();
         foreach (var (key, node) in ow["regions"]!.AsObject())
         {
             var r = node!.AsObject();
@@ -186,22 +185,16 @@ internal static class A2GameData
                 }
                 feats.Add(o);
             }
-            if ((bool)r["a2_played"]!)
-                played.Add(key.Replace(".DAT", ""));
             regions[key] = J.O(("region_id", J.Clone(r["region_id"])), ("size", J.Clone(r["size"])), ("grid_width", 26),
                 ("grid_height", 20), ("tiles", tiles.DeepClone()), ("features", feats),
                 ("text_pages", J.A(pages.Select(p => (JsonNode?)J.O(("index", p.Key), ("text", p.Value))))),
                 ("embedded_text", new JsonArray()));
         }
-        if (played.Count > 0)
-            warnings.Add($"This Apple II copy has been played: on {string.Join(", ", played)} the fog is already lifted where the " +
-                         "party went (the Apple saves the region's map back to the disk). Fixed fights are not stored there, so " +
-                         "only the fog differs. An unplayed copy gives the original fog.");
         var rules = new JsonObject();
         foreach (var (k, v) in P2StExtract.ClassRules)
             rules[k] = v;
         return J.O(
-            ("_source", $"{Source}: OUTT<n> (side A; 768 B as shipped, 756 B once played) [C]"),
+            ("_source", $"{Source}: OUTT<n> (side A; 768 B, OUT2 756 B as shipped; 756 B once stored back) [C]"),
             ("_note", "26 x 20 grid as the ST build: the Apple stores the same bytes (cell (CX, CY) = the ST's (y, 25 - x)) and " +
                       "draws them turned a quarter; the map here is the ST's orientation, OUT28's entrances and the 9 cells " +
                       "where the Apple differs are the ST's (D2-046 / D2-049, user s159). Fog = tile + 120. " +

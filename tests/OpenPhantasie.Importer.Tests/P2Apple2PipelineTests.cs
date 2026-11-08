@@ -23,6 +23,8 @@ public class P2Apple2PipelineTests
     private const string Profile = "p2-apple2";
     private const string SideA = "reverse-engineering/apple2/original-images/phantasie2/4am-crack/phantasie2-4am-side-a.dsk";
     private const string SideB = "reverse-engineering/apple2/original-images/phantasie2/4am-crack/phantasie2-4am-side-b.dsk";
+    private const string MemA = "reverse-engineering/apple2/original-images/phantasie2/memorial-set-gog/PHANT2A.DSK";
+    private const string MemB = "reverse-engineering/apple2/original-images/phantasie2/memorial-set-gog/PHANT2B.DSK";
     private const string Woz = "reverse-engineering/apple2/original-images/phantasie2/woz-original/phantasie2-disk1-side-a.woz";
     private const string Extracted = "reverse-engineering/apple2/phantasie2/extracted";
     private const string ArtRoot = "reverse-engineering/apple2/phantasie2/extracted/graphics";
@@ -49,6 +51,49 @@ public class P2Apple2PipelineTests
         Assert.Equal(('A', 17744, 34), (town.Type, town.Length, town.Start));
         Assert.Equal(17744, vol.Read(town).Length);
         Assert.Null(RdosVolume.TryOpen(new byte[RdosVolume.ImageSize]));
+    }
+
+    [RequiresFilesFact(MemA, MemB)]
+    public void Rdos_ReadsTheMemorialSetsDos33Order()
+    {
+        // s166: the Memorial Set's disks are the same RDOS disks in DOS 3.3 sector order. Catalog sector 0 is the same in
+        // both orders, so the as-is read finds 8 entries; the reader keeps the order with the longer catalog.
+        foreach (var (mem, fam, count) in new[] { (MemA, SideA, 72), (MemB, SideB, 30) })
+        {
+            var raw = File.ReadAllBytes(Repo.Path(mem));
+            var vol = RdosVolume.TryOpen(raw)!;
+            Assert.Equal(count, vol.Entries.Count);
+            var reference = RdosVolume.TryOpen(File.ReadAllBytes(Repo.Path(fam)))!;
+            Assert.Equal(reference.Entries.Count, vol.Entries.Count);
+            var key = vol.Files.First(e => e.Name is "TOWN2" or "DUNGON2");
+            Assert.Equal(reference.Read(reference.Files.Single(e => e.Name == key.Name)), vol.Read(key));
+        }
+    }
+
+    [RequiresFilesFact(MemA, MemB)]
+    public void Detection_MemorialSetIsReady_AndUnplayed()
+    {
+        var r = PipelineHarness.Run(Profile, MemA, MemB);
+        Assert.Equal(DetectionStatus.Ready, r.Detection.Status);
+        Assert.Empty(r.Detection.PlayedFiles);
+        Assert.DoesNotContain(r.Warnings, w => w.Contains("played", StringComparison.Ordinal));
+    }
+
+    [RequiresFilesFact(MemA, MemB, StGameData + "/overworld.json")]
+    public void MemorialSet_StartFogIsTheSts()
+    {
+        // The unplayed Apple disk's fog (OUT1 / OUT2 open, the rest fogged) equals the ST's start fog cell for cell.
+        var apple = JsonNode.Parse(PipelineHarness.Run(Profile, MemA, MemB).Outputs["GameData/phantasie2/overworld.json"])!["regions"]!.AsObject();
+        var st = St("overworld.json")["regions"]!.AsObject();
+        Assert.Equal(st.Count, apple.Count);
+        foreach (var (key, region) in st)
+        {
+            var a = apple[key]!["tiles"]!.AsArray();
+            var t = region!["tiles"]!.AsArray();
+            for (var y = 0; y < t.Count; y++)
+                for (var x = 0; x < t[y]!.AsArray().Count; x++)
+                    Assert.True((int)t[y]![x]! >= 120 == (int)a[y]![x]! >= 120, $"{key} ({x}, {y}): fog differs");
+        }
     }
 
     [RequiresFilesFact(SideA, SideB, Woz)]
@@ -123,7 +168,16 @@ public class P2Apple2PipelineTests
         foreach (var d in new[] { "D2-046", "D2-047", "D2-048", "D2-049", "D2-050" })
             Assert.DoesNotContain(r.Warnings, w => w.Contains(d, StringComparison.Ordinal));
         Assert.DoesNotContain(r.Warnings, w => w.Contains("neither the Apple", StringComparison.Ordinal));
-        Assert.Contains(r.Warnings, w => w.Contains("has been played", StringComparison.Ordinal));
+        // The 4am crack is a played copy: the runner warns from the profile's pristine sha1s (the Memorial Set's,
+        // s166), not the pipeline. OUTT2 ships stored back (756 B), so its size alone says nothing.
+        Assert.DoesNotContain(r.Warnings, w => w.Contains("has been played", StringComparison.Ordinal));
+        Assert.Contains("OUTT1", r.Detection.PlayedFiles);
+        Assert.Contains("CHAR2", r.Detection.PlayedFiles);
+        Assert.DoesNotContain("OUTT2", r.Detection.PlayedFiles);
+        Assert.DoesNotContain("OUTT26", r.Detection.PlayedFiles);
+        var warning = ImportRunner.PlayedWarning(r.Detection);
+        Assert.Contains("fog is already lifted", warning);
+        Assert.DoesNotContain("fights", warning);
         // D2-050: spell names from the manual's list (CB p.12); the divine spells in the remaster's wording.
         var spells = Out("spells.json")["spells"]!.AsArray();
         Assert.Equal(56, spells.Count);

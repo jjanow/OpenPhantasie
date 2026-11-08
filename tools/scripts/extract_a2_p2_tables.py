@@ -298,8 +298,10 @@ def extract_overworld(disk_a: RdosDisk) -> dict:
     return {
         "_source": f"{SOURCE}: OUTT<n> (768 B as shipped; OUTDOORS2 450). "
                    "OUTDOORS2 7700-7710 STOREs the region back (756 B) on leaving it; the only bytes play changes are "
-                   "the fog flags (line 5030), so a played file (a2_played) has the true tiles / features / text but "
-                   "not the starting fog. In the reference dump only OUT26 and OUT30 are unplayed (all fogged)",
+                   "the fog flags (line 5030), so a stored-back file (a2_played) has the true tiles / features / text but "
+                   "maybe not the starting fog. OUT2 ships stored back (the Memorial Set's unplayed disk, s166: OUT1 / OUT2 "
+                   "open, the rest fogged, as the ST); a played copy is told by the profile's pristine sha1s. In the "
+                   "reference dump only OUT2, OUT26 and OUT30 are as shipped",
         "_note": "OUTDOORS2 reads cell (CX, CY) at LA + CY*20 + CX (CX 0..19, CY 0..25): the ST's (25 - x) * 20 + y "
                  "with CX = y, CY = 25 - x, so tiles here are ST-oriented [y][x] rows. The Apple draws CX across "
                  "and CY down (140 + 7*CX, 2 + 6*CY), i.e. the ST map turned a quarter. Fog = tile + 120. Features "

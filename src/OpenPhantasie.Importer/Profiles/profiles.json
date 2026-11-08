@@ -531,6 +531,158 @@
     "TOWN2",
     "OUTDOORS2"
    ],
+   "mutable_files": [
+    {
+     "name": "CHAR2",
+     "size": 6800,
+     "sha1": "43cc4536ceab39a0886099eeb97c859ac1ab6d5c"
+    },
+    {
+     "name": "OUTT1",
+     "size": 768,
+     "sha1": "fccef97797469e195f0b0a2c26f3a63313b50a09"
+    },
+    {
+     "name": "OUTT2",
+     "size": 756,
+     "sha1": "7c988b06505717978dc925e59f6ce13d39d69cc0"
+    },
+    {
+     "name": "OUTT3",
+     "size": 768,
+     "sha1": "b5b21dc6e03475afdfca69db5ac63622ab74858e"
+    },
+    {
+     "name": "OUTT5",
+     "size": 768,
+     "sha1": "6cb23b00f62f4d47de0db49804752aa99ecb9a74"
+    },
+    {
+     "name": "OUTT6",
+     "size": 768,
+     "sha1": "f65b3f05b7664d9f8ff8d9b9627adb21b9373ad4"
+    },
+    {
+     "name": "OUTT7",
+     "size": 768,
+     "sha1": "b2891b1d4e22816ac29a58b633fac7d3a4c7f40b"
+    },
+    {
+     "name": "OUTT8",
+     "size": 768,
+     "sha1": "6529edea54dcd51a8c8e3879bb4b0ac10fdaac85"
+    },
+    {
+     "name": "OUTT11",
+     "size": 768,
+     "sha1": "53af92b77f36fb65e4474e3d5933b7def48441f1"
+    },
+    {
+     "name": "OUTT12",
+     "size": 768,
+     "sha1": "193abf4540d6af0825b862d1469125d62c0c7ae6"
+    },
+    {
+     "name": "OUTT17",
+     "size": 768,
+     "sha1": "a82e6b0c4bc883fef8ed2ff2e7c4edc110276441"
+    },
+    {
+     "name": "OUTT18",
+     "size": 768,
+     "sha1": "77f648e8e39ba3f7a9e5494102d05c7b9d4320a7"
+    },
+    {
+     "name": "OUTT22",
+     "size": 768,
+     "sha1": "2d5bfa08f44561eddbe1c8f73d1ac421eaed7143"
+    },
+    {
+     "name": "OUTT26",
+     "size": 768,
+     "sha1": "9b83fe92020c6555c66310944be6246b56b33d74"
+    },
+    {
+     "name": "OUTT27",
+     "size": 768,
+     "sha1": "4e0217833116709f3b08ca7a2345e4c12c87fc43"
+    },
+    {
+     "name": "OUTT28",
+     "size": 768,
+     "sha1": "b69b9437dcd37d8daf12e1ede0dd8cd1a1b01e2f"
+    },
+    {
+     "name": "OUTT30",
+     "size": 768,
+     "sha1": "270368e78ff263dac14ded22b76e48f49ee45acb"
+    },
+    {
+     "name": "OUTT31",
+     "size": 768,
+     "sha1": "514e2bbb240d3814c9330935ea142541d5bcee40"
+    },
+    {
+     "name": "TWN21",
+     "size": 250,
+     "sha1": "06d7b2ce2454a8c881b404ed8174a9ab47b2eeeb"
+    },
+    {
+     "name": "TWN22",
+     "size": 250,
+     "sha1": "fd32c276453400c5823c1a69702d90e71d24a269"
+    },
+    {
+     "name": "TWN23",
+     "size": 250,
+     "sha1": "c9a5dd03e5a851c8d6e9697ae07f47359196de5d"
+    },
+    {
+     "name": "TWN24",
+     "size": 250,
+     "sha1": "58beffd7c9be76486cfb0030a5280c0de3ea8486"
+    },
+    {
+     "name": "TWN25",
+     "size": 250,
+     "sha1": "bbcced9501bc9f904dd262a59167e230a502c286"
+    },
+    {
+     "name": "TWN26",
+     "size": 250,
+     "sha1": "64e9567df49f730e4189d7864b432df25197eff3"
+    },
+    {
+     "name": "TWN27",
+     "size": 250,
+     "sha1": "feffd1c1419c57d038a240389897715f45c9e92c"
+    },
+    {
+     "name": "TWN28",
+     "size": 250,
+     "sha1": "4f6f0aa7b8da07a1c7be92bba2c3fe3b1bda8823"
+    },
+    {
+     "name": "TWN29",
+     "size": 250,
+     "sha1": "97c99cedab6a32222b6809450abe3ba28af5d5b4"
+    },
+    {
+     "name": "TWN210",
+     "size": 250,
+     "sha1": "6d57093e1c9b6d6a3c830b2acf2e303caa7ef3d0"
+    },
+    {
+     "name": "DNGCHK",
+     "size": 1,
+     "sha1": "2d0134ed3b9de132c720fe697b532b4c232ff9fe"
+    },
+    {
+     "name": "DNGSAV",
+     "size": 14334,
+     "sha1": "ded96aac429f47cd55a8e2884f832db76f6b9a0c"
+    }
+   ],
    "images": [
     {
      "sha1": "ffad268effaff2c501d5c3eb45f7db1a6998e088",
@@ -543,12 +695,22 @@
     {
      "sha1": "37dfa92285776b261605221f85fcf3fb6adc4842",
      "size": 233452,
-     "note": "WOZ flux image of the original disk: not readable (13-sector GCR with SSI protection); import the 4am crack .dsk pair"
+     "note": "WOZ flux image of the original disk: not readable (13-sector GCR with SSI protection); import a .dsk pair (the 4am crack or the Memorial Set)"
     },
     {
      "sha1": "b395fd5175d875063dd5bfcaee040457ea1cd603",
      "size": 233452,
-     "note": "WOZ flux image of the original disk: not readable (13-sector GCR with SSI protection); import the 4am crack .dsk pair"
+     "note": "WOZ flux image of the original disk: not readable (13-sector GCR with SSI protection); import a .dsk pair (the 4am crack or the Memorial Set)"
+    },
+    {
+     "sha1": "e21f26ddefd9d6d4fa1b966cece09cedfb42966b",
+     "size": 143360,
+     "note": "the Memorial Set's PHANT2A.DSK (GOG / Steam, unplayed), DOS 3.3 sector order"
+    },
+    {
+     "sha1": "2f5d2bce122ffa417ac4c2b2873881f386c58991",
+     "size": 143360,
+     "note": "the Memorial Set's PHANT2B.DSK (GOG / Steam, unplayed), DOS 3.3 sector order"
     }
    ]
   },

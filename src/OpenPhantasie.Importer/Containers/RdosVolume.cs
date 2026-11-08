@@ -9,6 +9,9 @@ namespace OpenPhantasie.Importer.Containers;
 /// logical sector n = <c>.dsk</c> track n / 13, sector n % 13; catalog = track 1 sectors 0-10, 32-byte entries ended
 /// by a first byte 0 (name 0-23 high-bit ASCII, 24 type, 25 sector count, 26 load, 28 length, 30 first sector); a
 /// deleted entry starts with 0x80. Files are contiguous.
+/// The Memorial Set (GOG / Steam) ships the same disks in DOS 3.3 sector order: its sector s is the 4am image's sector
+/// <c>[0,13,11,9,7,5,3,1,14,12,10,8,6,4,2,15][s]</c> on every track (s166). Both orders share catalog sector 0, so
+/// <see cref="TryOpen"/> reads the image both ways and keeps the catalog with more entries.
 /// </summary>
 public sealed class RdosVolume
 {
@@ -39,6 +42,25 @@ public sealed class RdosVolume
     {
         if (image.Length != ImageSize)
             return null;
+        var asIs = TryOpenInOrder(image);
+        var remapped = TryOpenInOrder(FromDos33Order(image));
+        return remapped is not null && (asIs is null || remapped.Entries.Count > asIs.Entries.Count) ? remapped : asIs;
+    }
+
+    /// <summary>DOS 3.3 → the 4am image's order (<c>tools/scripts/a2_rdos.py</c> <c>from_dos33_order</c>).</summary>
+    private static readonly int[] Dos33ToImage = [0, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 15];
+
+    public static byte[] FromDos33Order(byte[] image)
+    {
+        var o = new byte[image.Length];
+        for (var t = 0; t < image.Length / TrackBytes; t++)
+            for (var s = 0; s < 16; s++)
+                image.AsSpan(t * TrackBytes + s * 256, 256).CopyTo(o.AsSpan(t * TrackBytes + Dos33ToImage[s] * 256));
+        return o;
+    }
+
+    private static RdosVolume? TryOpenInOrder(byte[] image)
+    {
         var entries = new List<Entry>();
         const int logicalSectors = 35 * SectorsPerTrack;
         var ended = false;

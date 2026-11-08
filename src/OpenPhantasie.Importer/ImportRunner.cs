@@ -338,10 +338,11 @@ public sealed class ImportRunner
         if (!d.Profile.Feeds.Contains("tables"))
             return $"This copy of {d.Profile.Title} has been played ({files} changed). Only what play leaves as it was " +
                    "is read from those files, so the import is the same as from a fresh copy.";
+        // DOS I stores spent fixed fights in its regions; the Apple's II stores only the fog (FORMAT.md 3.6).
+        var fights = d.Profile.Game == "phantasie1" ? " and fixed fights already won stay gone" : "";
         return outs.Count > 0
             ? $"This copy of {d.Profile.Title} has been played ({files} changed). It was imported as it is: on the " +
-              $"saved map regions ({string.Join(", ", outs)}) the fog is already lifted and fixed fights already won " +
-              "stay gone. Import a fresh copy (an unplayed disk image, Steam \"verify files\", or the GOG installer) " +
+              $"saved map regions ({string.Join(", ", outs)}) the fog is already lifted{fights}. Import a fresh copy (an unplayed disk image, Steam \"verify files\", or the GOG installer) " +
               "to get the original maps."
             : $"This copy of {d.Profile.Title} has been played ({files} changed); those files are not read, so the " +
               "import is the same as from a fresh copy.";
