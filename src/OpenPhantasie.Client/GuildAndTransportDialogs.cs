@@ -137,7 +137,7 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
 
     /// <summary>
     /// s165: counts the roster list's answers (a row picked, or Esc / Backspace): I Amiga's list window h26 <c>+0x412</c>
-    /// ("WHOM DO YOU WANT TO ADD?", h5 <c>+0xcae</c>) plays the tone after each gadget (<c>+0x614</c>), before the pick runs.
+    /// (Add's member question, h5 <c>+0xcae</c>) plays the tone after each gadget (<c>+0x614</c>), before the pick runs.
     /// </summary>
     public int ListTones { get; private set; }
 
@@ -379,7 +379,7 @@ public sealed class GuildPartyPickDialog : IModalDialog
 
     /// <summary>
     /// s165: counts the WHO list left by Esc / Backspace (I Amiga's list tone, h23 <c>+0x22a</c> from h5 <c>+0x1116</c>
-    /// "WHO WILL LEARN?" / <c>+0x13c2</c> "WHO IS GOING TO BE TRAINED?").
+    /// `guild.who_will_learn` / <c>+0x13c2</c> `guild.who_is_going_to_be_trained`).
     /// </summary>
     public int ChooserCancels { get; private set; }
 

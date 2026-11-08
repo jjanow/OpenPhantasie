@@ -5,7 +5,7 @@
     "[C] MP cost = (DOS slot % 4) + 1 \u2014 OV2.OVR @ 0x47da / COM picker 0x160e; slot = index except DIVINE I (dos_slot 57 \u2192 2 MP, s41)",
     "[C] FIREFLASH\u2026FLAMEBOLT tier params recovered from OV2 cast switch (magic-spells.md); remaster FIREFLASH = D-029",
     "[C] HEALING heal = ((6*tier^2+4)*rng0_99)/100, floor 1 in combat (0x027d) and field (0x4930); town OV1 0x261a has no floor (D-010: manual everywhere)",
-    "[C] CHARM\u2026AWAKEN combat effects decoded s31/s33 (OV2 jump table 0x9d1, combat-resolution.md \u00a7Combat spell effects); values live in Core CombatSpells; SUMMON ELEMENTAL templates in elementals.json",
+    "[C] CHARM\u2026AWAKEN combat effects decoded s31/s33 (OV2 jump table 0x9d1, combat-resolution.md \u00a7Combat spell effects); values live in Core CombatSpells; `core.spell.summon_elemental` templates in elementals.json",
     "[C] MONSTER EVAL. / VISION / DIVINE I decoded s41 (OV2 0x4790, magic-spells.md \u00a7Wilderness/dungeon cast dispatch, \u00a7DIVINE I)"
   ],
   "spells": [
@@ -383,7 +383,7 @@
       "category": "C/A",
       "effect_summary": "Monsters dissolve; combat over (gold lost, XP kept).",
       "magic_point_cost": 3,
-      "effect_coefficients_note": "[C] rand <= 110 - 10*L \u2192 MONSTERS START DISSOLVING, combat over, gold 0, XP + front group (living-1)*XP (s31)"
+      "effect_coefficients_note": "[C] rand <= 110 - 10*L \u2192 `core.combat.monsters_start_dissolving`, combat over, gold 0, XP + front group (living-1)*XP (s31)"
     },
     {
       "id": "p1:47",
@@ -391,7 +391,7 @@
       "category": "C/P",
       "effect_summary": "Summon a Guild-prepped elemental as member 7.",
       "magic_point_cost": 4,
-      "effect_coefficients_note": "[C] no roll, no message; needs an elemental prepped in slot 7 at the Guild and 6 non-DEAD members (combat-resolution.md \u00a7SUMMON ELEMENTAL, s33)"
+      "effect_coefficients_note": "[C] no roll, no message; needs an elemental prepped in slot 7 at the Guild and 6 non-DEAD members (combat-resolution.md, the section on `core.spell.summon_elemental`, s33)"
     },
     {
       "id": "p1:48",
@@ -423,7 +423,7 @@
       "category": "N/WD",
       "effect_summary": "Shows the area's monster level (no roll).",
       "magic_point_cost": 4,
-      "effect_coefficients_note": "[C] OV2 0x4860 (s41): no roll; wilderness L = 2*(tile%10 + 1) max 12, dungeon L = 2*tier(buf 0x4e7) + 2; prints MONSTERS ARE AT LEVEL L"
+      "effect_coefficients_note": "[C] OV2 0x4860 (s41): no roll; wilderness L = 2*(tile%10 + 1) max 12, dungeon L = 2*tier(buf 0x4e7) + 2; prints `core.magic.monsters_at_level_x` with L"
     },
     {
       "id": "p1:52",

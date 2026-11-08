@@ -10,22 +10,12 @@ namespace OpenPhantasie.Client.Tests;
 /// s136: III Amiga's menu bar outside the towns (list <c>0x23910</c>, FORMAT.md 8.5): its menus, places (<c>0x12d6</c>'s
 /// rules, as the fight's bar) and the click-to-open / click-to-take state.
 /// </summary>
-public class AmigaOutsideBarTests
+public partial class AmigaOutsideBarTests
 {
     private static IReadOnlyList<string> Titles() => AmigaOutsideBar.Menus.Select(m => UiText.S(m.TitleId)).ToList();
 
     private static Rectangle Box(int menu) => UiOverlays.FieldMenuBox(UiOverlays.FieldMenuColumn(Titles(), menu),
         AmigaOutsideBar.Menus[menu].Items.Select(i => UiText.S(i.LabelId)).ToList());
-
-    [OriginalDataFact]
-    public void Menus_AreTheAmigasList0x23910()
-    {
-        Assert.Equal(["File", "Options", "Speed"], Titles());
-        Assert.Equal(["?) Info "], AmigaOutsideBar.Menus[0].Items.Select(i => UiText.S(i.LabelId)));
-        Assert.Equal(["C) Cast Spell", "E) Examine Member ", "P) Party Status", "U) Use Item"],
-            AmigaOutsideBar.Menus[1].Items.Select(i => UiText.S(i.LabelId)));
-        Assert.Equal(["+)  Fast", "=)  Normal ", "-)  Slow"], AmigaOutsideBar.Menus[2].Items.Select(i => UiText.S(i.LabelId)));
-    }
 
     [OriginalDataFact]
     public void Places_FollowTheCodes0x12d6()

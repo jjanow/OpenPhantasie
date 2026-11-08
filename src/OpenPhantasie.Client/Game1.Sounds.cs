@@ -292,7 +292,7 @@ public partial class Game1
     }
 
     /// <summary>
-    /// s165: II ST's defeat page holds "YOUR PARTY HAS BEEN DEFEATED" 3000 ms and goes on by itself (<c>0x12a16</c> →
+    /// s165: II ST's defeat page holds `core.defeat.your_party_has_been_defeated` 3000 ms and goes on by itself (<c>0x12a16</c> →
     /// <c>0x16cbe</c>(3000), then the ghost row, 23 and the astral line): with the ST pack's defeat scene the page is
     /// left as its hold ends (<see cref="P2DefeatSounds.HoldOver"/>, the ghosts' moment). Elsewhere it waits for a key.
     /// </summary>

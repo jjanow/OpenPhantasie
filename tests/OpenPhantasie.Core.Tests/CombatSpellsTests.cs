@@ -7,7 +7,7 @@ namespace OpenPhantasie.Core.Tests;
 /// Combat special spells CHARM … AWAKEN, OV2 jump table <c>0x9d1</c> (combat-resolution.md §Combat spell effects, s31).
 /// CHARM, TELEPORTATION, FEAR and DISPELL UNDEAD's target list follow the manual by user decision (D-021…D-024, s32).
 /// </summary>
-public class CombatSpellsTests
+public partial class CombatSpellsTests
 {
     /// <summary>Hands out exactly the scripted 0..99 rolls; any extra draw fails the test (pins DOS draw order).</summary>
     private sealed class StrictRandomSource : IRandomSource
@@ -78,30 +78,6 @@ public class CombatSpellsTests
         Assert.False(CombatSpells.Charm(enc, wiz, new StrictRandomSource(40, 20), log)); // 80 > 80 is false
         Assert.Equal(SpellCombatEnd.None, enc.SpellEnd);
         Assert.Empty(log);
-    }
-
-    [OriginalDataFact]
-    public void Charm_EndsTheRoundAtOnce_LikeGreetings()
-    {
-        // D-022: kill XP kept, no gold, treasure forfeited; the monsters never act after the charm.
-        var wiz = Caster(2, SpellId.Charm);
-        var orc = Mon();
-        orc.AttackPower = 300;
-        var enc = Encounter(wiz, 4, new[] { orc });
-        enc.RewardXp = 12;
-        enc.RewardGold = 90;
-        enc.SetAction(0, CombatAction.CastSpell(SpellId.Charm));
-
-        var rng = new LoopRandomSource(0, 41, 20); // ready 0, then 41·2 = 82 > 20·4 = 80
-        var end = new CombatResolver().ResolveRound(enc, rng);
-        Assert.True(end.EncounterOver);
-        Assert.False(end.PartyWon);
-        Assert.False(end.PartyWiped);
-        Assert.Equal(12, end.RewardXp);
-        Assert.Equal(0, end.RewardGold);
-        Assert.True(enc.TreasureForfeited);
-        Assert.Contains("MONSTERS ARE CHARMED", end.Log);
-        Assert.DoesNotContain(end.Log, l => l.StartsWith("ORC", StringComparison.Ordinal));
     }
 
     // --- TELEPORTATION (D-023 manual: always works, at once) ------------------------------
@@ -242,21 +218,6 @@ public class CombatSpellsTests
 
     // --- DISSOLVE (0x83c / 0x85b / 0x8c1) ------------------------------------------------
 
-    [OriginalDataTheory]
-    [InlineData(80, true)]   // 110 − 10·3
-    [InlineData(81, false)]
-    public void Dissolve_RollsAgainst110MinusTenL(int roll, bool works)
-    {
-        var wiz = Caster(5, SpellId.Dissolve);
-        var enc = Encounter(wiz, 3, new[] { Mon(), Mon() });
-        enc.RewardGold = 40;
-        var log = new List<string>();
-        Assert.Equal(works, CombatSpells.CastDissolve(enc, new StrictRandomSource(roll), log));
-        Assert.Equal(works ? 0 : 40, enc.RewardGold);
-        Assert.Equal(works, enc.Dissolved);
-        Assert.Equal(works ? new[] { "MONSTERS START DISSOLVING" } : Array.Empty<string>(), log);
-    }
-
     [Theory]
     [InlineData(1, 0)]   // last living index 0: a lone front monster pays nothing
     [InlineData(3, 2)]
@@ -341,39 +302,6 @@ public class CombatSpellsTests
         Assert.False(enc.DispellUndeadTried);
         Assert.Equal(SpellCombatEnd.None, enc.SpellEnd);
         Assert.Empty(log);
-    }
-
-    [OriginalDataTheory]
-    [InlineData(0, "MONSTERS START DISSOLVING")]  // v = 5·(5 − 2) − 0 = 15
-    [InlineData(19, "MONSTERS START DISSOLVING")] // v = −4
-    [InlineData(20, "MONSTERS RUN")]              // v = −5
-    [InlineData(59, "MONSTERS RUN")]              // v = −44
-    [InlineData(60, null)]                        // v = −45: nothing
-    public void DispellUndead_Bands(int roll, string? message)
-    {
-        var priest = Caster(5, SpellId.DispellUndead);
-        var enc = Encounter(priest, 2, new[] { Mon(xp: 154, level: 2, name: "GHOUL", undead: true), Mon(xp: 154, level: 2, undead: true) });
-        enc.RewardGold = 80;
-        var log = new List<string>();
-        CombatSpells.DispellUndead(enc, priest, new StrictRandomSource(roll), log);
-        Assert.True(enc.DispellUndeadTried);
-        if (message is null)
-        {
-            Assert.Empty(log);
-            Assert.Equal(SpellCombatEnd.None, enc.SpellEnd);
-            return;
-        }
-
-        Assert.Equal(new[] { message }, log);
-        Assert.Equal(SpellCombatEnd.Ended, enc.SpellEnd);
-        var dissolved = message.StartsWith("MONSTERS START", StringComparison.Ordinal);
-        Assert.Equal(dissolved, enc.Dissolved);
-        Assert.Equal(!dissolved, enc.MonstersFrozen);
-        Assert.Equal(dissolved ? 0 : 80, enc.RewardGold);
-
-        var end = CombatSpells.EndBySpell(enc);
-        Assert.Equal(dissolved, end.PartyWon);
-        Assert.Equal(dissolved ? 0 : 80, end.RewardGold); // a run pays the full gold
     }
 
     [Fact]

@@ -6,7 +6,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Client.Tests;
 
 /// <summary>Guild N)EW / P)URGE / R)ENAME / L)IST dialogs and the <c>--test-party</c> bootstrap.</summary>
-public class GuildMemberDialogTests
+public partial class GuildMemberDialogTests
 {
     private static GameSession InGuild()
     {
@@ -87,23 +87,6 @@ public class GuildMemberDialogTests
         var mark = s.SoundSequence;
         d.HandleKeys([Keys.Y], s);
         Assert.Empty(s.SoundsSince(mark));
-    }
-
-    [OriginalDataFact]
-    public void New_DuplicateName_IsRefused_AndAsksAgain()
-    {
-        var s = InGuild();
-        s.CreateAndEnroll("LEFTY", Race.Human, CharacterClass.Thief);
-        var d = new GuildNewDialog();
-        d.Open(s);
-        d.HandleKeys([Keys.D2], s);
-        d.HandleKeys([Keys.D4], s);
-        d.HandleKeys([Keys.Y], s);
-        d.HandleKeys([.. Type("lefty"), Keys.Enter], s);
-        Assert.Contains("Name is not unique!", d.Lines(s, ClientSessions.Data));
-        Assert.Single(s.Roster.Occupied);
-        d.HandleKeys([.. Type("swat"), Keys.Enter], s);
-        Assert.Equal(2, s.Roster.Occupied.Count());
     }
 
     [OriginalDataFact]

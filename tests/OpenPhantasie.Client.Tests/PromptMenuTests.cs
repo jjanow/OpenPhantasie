@@ -11,7 +11,7 @@ public class PromptMenuTests
         new(SessionPromptKind.DungeonExitTakeIt, [text], [SessionPrompts.Yes, SessionPrompts.No]);
 
     private static SessionPrompt Sleeping() =>
-        new(SessionPromptKind.WildernessEncounter, ["YOU SPOT SLEEPING MONSTERS!"], ["ATTACK", "LEAVE"]);
+        new(SessionPromptKind.WildernessEncounter, ["YOU SEE A CAMP OF TRAVELERS"], ["ATTACK", "LEAVE"]);
 
     private static SessionPrompt Hears() =>
         new(SessionPromptKind.WildernessEncounter, ["crusho HEARS MONSTERS"], ["RUN", "FIGHT"]);
@@ -49,7 +49,7 @@ public class PromptMenuTests
     }
 
     private static SessionPrompt Enter() =>
-        new(SessionPromptKind.OverworldEntry, ["A DUNGEON. ENTER?"], [SessionPrompts.Yes, SessionPrompts.No]) { MenuId = 0x1c };
+        new(SessionPromptKind.OverworldEntry, ["A CAVERN. ENTER?"], [SessionPrompts.Yes, SessionPrompts.No]) { MenuId = 0x1c };
 
     private static SessionPrompt SaveMap() =>
         new(SessionPromptKind.DungeonExitSaveMap, [SessionPrompts.ExitSaveMapText], [SessionPrompts.Yes, SessionPrompts.No])
@@ -133,7 +133,7 @@ public class PromptMenuTests
     public void YesNo_LeftAndRightBothToggle()
     {
         var menu = new PromptMenu();
-        var p = YesNo("AN EXIT. TAKE IT?");
+        var p = YesNo("A BRIDGE. CROSS IT?");
         menu.HandleKey(p, Keys.Left);
         Assert.Equal(1, menu.Cursor);
         menu.HandleKey(p, Keys.Left);
@@ -178,7 +178,7 @@ public class PromptMenuTests
     {
         // `core.prompt.an_exit_take_it`: ovl4 passes highlight 2 ("No") to 0x75a3 on every call, no memory.
         SessionPrompt Exit() =>
-            new(SessionPromptKind.DungeonExitTakeIt, ["An exit. Will you take it?"], [SessionPrompts.Yes, SessionPrompts.No])
+            new(SessionPromptKind.DungeonExitTakeIt, ["A bridge. Will you cross it?"], [SessionPrompts.Yes, SessionPrompts.No])
                 { Remembers = false, InitialChoice = 2, EscapeChoice = 2 };
         var menu = new PromptMenu();
         menu.Sync(Exit());
@@ -196,7 +196,7 @@ public class PromptMenuTests
     {
         // root 0xf2eb passes highlight 1 ("Yes") to its menu 0x75a3 on every call: no cursor memory.
         SessionPrompt Find() =>
-            new(SessionPromptKind.Treasure, ["HERO finds SWORD", "Will the party keep it?"], [SessionPrompts.Yes, SessionPrompts.No])
+            new(SessionPromptKind.Treasure, ["HERO finds SWORD", "Will the party take it?"], [SessionPrompts.Yes, SessionPrompts.No])
                 { Remembers = false };
         var menu = new PromptMenu();
         Assert.Null(menu.HandleKey(Find(), Keys.Right));

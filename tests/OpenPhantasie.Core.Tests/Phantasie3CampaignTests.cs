@@ -8,7 +8,7 @@ namespace OpenPhantasie.Core.Tests;
 /// (places, terrain, blocked squares, the encounter roll), dungeons (cells, exits to the planes, event programs, the
 /// archive altar and event gold options), training, the Mystic's score, the Astral Plane and the gods' reward.
 /// </summary>
-public class Phantasie3CampaignTests
+public partial class Phantasie3CampaignTests
 {
     internal static readonly GameDataRepository Data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P3));
 
@@ -43,25 +43,6 @@ public class Phantasie3CampaignTests
         Assert.True(Campaigns.IsBuilt(GameId.P3));
         Assert.Equal(GameId.P3, Campaigns.For(GameId.P3).Game);
         Assert.Throws<InvalidOperationException>(() => Phantasie3Campaign.Unloaded.World);
-    }
-
-    [OriginalDataFact]
-    public void Elemental_JoinsWithOneCharacter_AndAnotherCanStillJoin()
-    {
-        Assert.Equal(new ElementalRules(1, BlocksAdd: false, DropKeeps: true), Data.Rules.ElementalRulesOrDefault);
-        var s = NewGame();
-        s.OpenGuild();
-        Assert.False(s.TryAddElemental(0, out var none)); // ovl2 0x3a0a: `core.guild.party_not_assembled`
-        Assert.Equal("The party is not assembled.", none);
-        var a = s.CreateAndEnroll("HERO0", Race.Human, CharacterClass.Fighter);
-        Assert.True(s.TryAddToParty(a, out var err), err);
-        Assert.True(s.TryAddElemental(0, out err), err);
-        Assert.False(s.TryAddElemental(1, out err));
-        Assert.Equal(GameText.S("core.guild.elemental_already_joined"), err); // III's table: "An elemental is in the party."
-        var b = s.CreateAndEnroll("HERO1", Race.Elf, CharacterClass.Wizard);
-        Assert.True(s.TryAddToParty(b, out err), err); // III: Add is not blocked; the elemental stays in slot 7
-        Assert.Equal(2, s.Party.Members.Count);
-        Assert.NotNull(s.Party.Elemental);
     }
 
     [Fact]
@@ -238,51 +219,6 @@ public class Phantasie3CampaignTests
         Assert.Equal(5, Phantasie3Campaign.MonsterHp(5));
     }
 
-    /// <summary>s158 (Amiga <c>0x19c66</c>, FORMAT.md 7.2): the party getting away plays the driver's stop 33 first.</summary>
-    [OriginalDataFact]
-    public void EncounterOptions_PartyGetsAway_PlaysTheStop()
-    {
-        var rng = new Switchable(3);
-        var s = WithParty(rng);
-        s.LeaveTown();
-        s.BeginWildernessCombat(0); // a Skeleton
-        rng.Low = true;
-        var before = s.SoundSequence;
-        var flee = s.ChoosePartyOption(PartyOption.Flee);
-        Assert.Equal(PartyOptionOutcome.CombatOver, flee.Outcome);
-        Assert.Contains("The party gets away!", s.Log);
-        Assert.Equal([P3Sounds.Stop], s.SoundsSince(before));
-    }
-
-    [OriginalDataFact]
-    public void EncounterOptions_FleeFromAFinalBoss_IsBlocked_MercyTakesAllGoldAndNewItems()
-    {
-        var s = WithParty();
-        s.LeaveTown();
-        s.BeginWildernessCombat(Phantasie3Campaign.LordWood);
-        var flee = s.ChoosePartyOption(PartyOption.Flee);
-        Assert.Equal(PartyOptionOutcome.LoseRound, flee.Outcome);
-        Assert.Contains("You don't get away...", flee.Log);
-
-        Assert.DoesNotContain(P3Sounds.Stop, s.SoundsSince(0)); // `core.p3.you_dont_get_away` plays nothing
-
-        var rng = new Switchable(3);
-        var t = WithParty(rng);
-        t.LeaveTown();
-        t.Party.GoldCarried = 500;
-        t.Sack.Gold = 40;
-        t.Sack.ItemIds.Add(101);
-        t.BeginWildernessCombat(0); // a Skeleton: reaction −10, Mercy at rnd(100) < 50
-        rng.Low = true; // every rnd(n) = 1
-        var mercy = t.ChoosePartyOption(PartyOption.BegMercy);
-        Assert.Equal(PartyOptionOutcome.CombatOver, mercy.Outcome);
-        Assert.Contains("They take your gold!", t.Log);
-        Assert.Equal(0, t.Party.GoldCarried + t.Sack.Gold);
-        Assert.DoesNotContain(101, t.Sack.ItemIds); // D3-024: rnd(100) = 1 ≤ 50 takes the new item
-        Assert.Contains("They take some of your new items!", t.Log);
-        Assert.NotEqual(GameMode.Combat, t.Mode);
-    }
-
     /// <summary>A seeded source that can be switched to always give the lowest value (<c>rnd(n)</c> = 1).</summary>
     internal sealed class Switchable(int seed) : IDosRandomSource
     {
@@ -370,17 +306,5 @@ public class Phantasie3CampaignTests
         Assert.True(heal.Success);
         Assert.True(P3BodyAreas.Of(fighter).AllOkay);
         Assert.Equal(CharacterStatus.Ok, fighter.Status);
-    }
-
-    [OriginalDataFact]
-    public void TheMystic_RanksByTheScore()
-    {
-        var s = WithParty();
-        Assert.Equal("You are novice adventurers", s.ConsultMystic().Message);
-        foreach (var m in s.Party.Members)
-            m.P3.QuestBits = 0xff; // 116 + level / 6
-        Assert.Equal("You are expert adventurers", s.ConsultMystic().Message);
-        s.Party.Members[0].P3.Phantasie1Score = 120;
-        Assert.Equal("You are expert adventurers and heroes of Gelnor", s.ConsultMystic().Message);
     }
 }

@@ -4,7 +4,8 @@ using System.Text;
 namespace OpenPhantasie.Importer.Containers;
 
 /// <summary>
-/// SSI's RDOS 2.1 (Apple II, 13-sector) inside a 140K DOS-order <c>.dsk</c>, as Phantasie II's 4am crack keeps it.
+/// SSI's RDOS 2.1 (Apple II, 13-sector) inside a 140K DOS-order <c>.dsk</c>, as Phantasie II's 4am crack keeps it
+/// (and as <see cref="WozImage"/> decodes the original disks' <c>.woz</c> images).
 /// Port of <c>tools/scripts/a2_rdos.py</c> (format: <c>reverse-engineering/apple2/phantasie2/FORMAT.md</c> section 1):
 /// logical sector n = <c>.dsk</c> track n / 13, sector n % 13; catalog = track 1 sectors 0-10, 32-byte entries ended
 /// by a first byte 0 (name 0-23 high-bit ASCII, 24 type, 25 sector count, 26 load, 28 length, 30 first sector); a

@@ -428,6 +428,11 @@
    ],
    "mutable_files": [
     {
+     "name": "out1.dat",
+     "size": 2500,
+     "sha1": "15d94002fe6dd0dd2ba32e8a3dbb13ff66f9c109"
+    },
+    {
      "name": "out2.dat",
      "size": 2500,
      "sha1": "1a21e1056d4d71d4784cfbc95320430fddbb2e99"
@@ -441,6 +446,11 @@
      "name": "out4.dat",
      "size": 2500,
      "sha1": "d961bd829b8842fb58d19fcb900a1664261a273b"
+    },
+    {
+     "name": "out5.dat",
+     "size": 2500,
+     "sha1": "5e4378adda6667393e6a087953718d2c5c87e199"
     },
     {
      "name": "out6.dat",
@@ -458,9 +468,34 @@
      "sha1": "8ec6aa91c3b119e80b5e238c4dab4c2cb568cc52"
     },
     {
+     "name": "out9.dat",
+     "size": 2500,
+     "sha1": "fd11322f7881059f0045fb0897365dda488f80be"
+    },
+    {
+     "name": "out10.dat",
+     "size": 2500,
+     "sha1": "daa2e40bb75d9607d188a02717c917cf3d9f1b6b"
+    },
+    {
+     "name": "out11.dat",
+     "size": 2500,
+     "sha1": "a76d8fb7c6c5d2f5d537ece3611a46f6093e8d9c"
+    },
+    {
      "name": "out12.dat",
      "size": 2500,
      "sha1": "dd62a9894faeb99b33d8ab9126f0bf0cbaba6ed9"
+    },
+    {
+     "name": "out13.dat",
+     "size": 2500,
+     "sha1": "e212bf96308f8d22521bbf0b294b0bb23e6f8e6f"
+    },
+    {
+     "name": "out14.dat",
+     "size": 2500,
+     "sha1": "c16faf6f3a5aa1dd996d3b337f0a615d85e86c9f"
     },
     {
      "name": "out15.dat",
@@ -859,12 +894,12 @@
     {
      "sha1": "37dfa92285776b261605221f85fcf3fb6adc4842",
      "size": 233452,
-     "note": "WOZ flux image of the original disk: not readable (13-sector GCR with SSI protection); import a .dsk pair (the 4am crack or the Memorial Set)"
+     "note": "WOZ flux image of the original disk (a played copy, the 4am crack's source): decoded by WozImage (13-sector 5-and-3) and read as RDOS like the .dsk pair"
     },
     {
      "sha1": "b395fd5175d875063dd5bfcaee040457ea1cd603",
      "size": 233452,
-     "note": "WOZ flux image of the original disk: not readable (13-sector GCR with SSI protection); import a .dsk pair (the 4am crack or the Memorial Set)"
+     "note": "WOZ flux image of the original disk (a played copy, the 4am crack's source): decoded by WozImage (13-sector 5-and-3) and read as RDOS like the .dsk pair"
     },
     {
      "sha1": "e21f26ddefd9d6d4fa1b966cece09cedfb42966b",

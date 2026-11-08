@@ -436,7 +436,7 @@ public static class AmigaShareWindow
 }
 
 /// <summary>
-/// s163: III's "Who will disarm the trap?" (<see cref="Phantasie3Campaign.AsksDisarmer"/>) as III Amiga's window 6 under
+/// s163: III's `core.p3.who_will_disarm` (<see cref="Phantasie3Campaign.AsksDisarmer"/>) as III Amiga's window 6 under
 /// AMIGA SCREENS: <c>0x1c6d6</c> calls the member picker <c>0x127ce(92)</c>, the heal target's window (struct
 /// <c>0x23360</c>, pack <c>keep_windows.heal</c>): the title (<c>0x23084[92]</c>, colour 8) at cell (5, 7), one member a
 /// row (<c>0x12ac8</c>: name, race, level, class, status; colour 4, the cursor's row 8), OK / CANCEL. s165, the picker's

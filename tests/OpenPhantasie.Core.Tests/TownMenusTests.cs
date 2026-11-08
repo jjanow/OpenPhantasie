@@ -3,7 +3,7 @@ using OpenPhantasie.Data;
 
 namespace OpenPhantasie.Core.Tests;
 
-public class TownMenusTests
+public partial class TownMenusTests
 {
     private static GameDataRepository Data => GameDataRepository.LoadPhantasie1();
 
@@ -358,26 +358,6 @@ public class TownMenusTests
         Assert.Contains("novice", result.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    [OriginalDataTheory]
-    [InlineData(26, false, "You are novice adventurers.")]                                // score 9
-    [InlineData(110, false, "You are not yet ready to visit The Gods.")]
-    [InlineData(200, false, "You are experienced enough to visit The Gods.")]
-    [InlineData(200, true, "You are experienced enough to visit The Gods and face the tests.")]
-    [InlineData(260, true, "You are Heroes of Gelnor.")]
-    public void Mystic_PrintsTheDosTierLines_s49(int level, bool runes, string expected)
-    {
-        // OV1 0x3327 + table 0x5ecd, seen live in s49 (capture_s49_2026-10-23.md §2).
-        var (party, _, _, _) = FreshParty();
-        party.Members[0].Level = level;
-        if (runes)
-            for (var r = 0; r < 4; r++)
-                party.Members[0].Phantasie1.Runes[r] = 1;
-
-        var result = TownMenus.ConsultMystic(party);
-        Assert.EndsWith(expected, result.Message);
-        Assert.DoesNotContain("greater challenges", result.Message);
-    }
-
     [OriginalDataFact]
     public void Mystic_SkipsDeadAndSleepingMembersAndTheirItems()
     {
@@ -719,38 +699,6 @@ public class TownMenusTests
     }
 
     [OriginalDataFact]
-    public void Train_RefusesOnlyDead_SleepingMemberTrains_Ov1_119b()
-    {
-        // [C] OV1 0x119b: `cmp [bx+0x18], 0` — only status 0 (DEAD) is refused; SLEEP (2) trains. Manual silent.
-        var (party, hero, pelnor, _) = FreshParty();
-        hero.Stats = new CharacterStats(Str: 10, Int: 10, Dex: 10, Con: 10, Cha: 20, Luck: 10); // CHA 20 → cost 0
-        hero.Experience = 1000;
-        hero.Status = CharacterStatus.Sleep;
-        Assert.True(TownMenus.CanTrain(hero, out _));
-        var r = TownMenus.Train(party, hero, pelnor, Data.CreationTables, new SeededDosRandomSource(1));
-        Assert.Equal(TownTransactionKind.Ok, r.Kind);
-        Assert.Equal(2, hero.Level);
-
-        hero.Status = CharacterStatus.Dead;
-        Assert.False(TownMenus.CanTrain(hero, out var reason));
-        Assert.Equal("No one is wise enough to teach You!", reason);
-    }
-
-    [OriginalDataFact]
-    public void Train_XpShort_StillTellsTheCost_D050()
-    {
-        // Manual (D-050): "you will be told how many experience points are required and how much the training will cost".
-        var (party, hero, pelnor, _) = FreshParty();
-        hero.Stats = new CharacterStats(Str: 10, Int: 0, Dex: 12, Con: 0, Cha: 5, Luck: 0);
-        hero.Experience = 1;
-        var need = TownMenus.TrainingXpShortfall(hero);
-        Assert.True(need > 0);
-        var r = TownMenus.Train(party, hero, pelnor, Data.CreationTables, new SeededDosRandomSource(1));
-        Assert.Equal(TownTransactionKind.Failed, r.Kind);
-        Assert.Equal($"You need {need} more experience points. It will cost 337 gold.", r.Message);
-    }
-
-    [OriginalDataFact]
     public void GoldCap_65000_ExcessLost_D048()
     {
         var (party, hero, pelnor, catalog) = FreshParty();
@@ -868,31 +816,6 @@ public class TownMenusTests
         Array.Fill(hero.SpellsKnown, 0);
         hero.SpellsKnown[5] = 2;
         Assert.Equal(1, TownMenus.SpellLearnCount(hero)); // fighter L1 cap allows 5, only one is marked
-    }
-
-    [OriginalDataFact]
-    public void LearnSpell_FailedRoll_TakesFeeAndAge_ButNotTheSpell()
-    {
-        var (party, hero, pelnor, _) = FreshParty();
-        hero.Stats = hero.Stats with { Int = 13 };
-        Array.Fill(hero.SpellsKnown, 0);
-        hero.SpellsKnown[2] = 2;
-        party.GoldCarried = 1000;
-        Assert.False(TownMenus.SpellLearnRoll(hero, new FixedDosRandom(13 * 1638))); // 13 < 13 fails
-        Assert.True(TownMenus.SpellLearnRoll(hero, new FixedDosRandom(13 * 1638 - 1)));
-        var fee = TownMenus.SpellLearningGoldCost(hero, pelnor);
-        var age = hero.AgeClock;
-        var r = TownMenus.LearnSpell(party, hero, pelnor, 2, learned: false);
-        Assert.Equal("You've failed", r.Message);
-        Assert.Equal(2, hero.SpellsKnown[2]);
-        Assert.Equal(1000 - fee, party.GoldCarried);
-        Assert.Equal(age + 2, hero.AgeClock);
-        Assert.Equal("You've learned", TownMenus.LearnSpell(party, hero, pelnor, 2).Message);
-        Assert.Equal(1, hero.SpellsKnown[2]);
-        party.GoldCarried = 0;
-        hero.SpellsKnown[3] = 2;
-        Assert.Equal("You can't afford it!", TownMenus.LearnSpell(party, hero, pelnor, 3).Message);
-        Assert.Equal(age + 4, hero.AgeClock); // nothing taken
     }
 
     [Fact]

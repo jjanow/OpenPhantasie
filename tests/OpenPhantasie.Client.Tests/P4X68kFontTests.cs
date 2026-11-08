@@ -149,9 +149,9 @@ public class P4X68kFontTests
     [Fact]
     public void KanjiBanner_SitsWhereTheSystemMenuShotHasIt()
     {
-        // p4-x68k-system-menu.png: "ペンドラゴンの町", ink from window x 89 to 222. Six CG ROM kanji count 16 each in
+        // p4-x68k-system-menu.png: Pendragon's banner (six characters + "の町"), ink from window x 89 to 222. Six CG ROM kanji count 16 each in
         // _fsize (96): x = 136 − 48 = 88; eight bold kanji of 17 end at 88 + 136 = 224 (each kanji's last column blank).
-        var line = P4DungeonScreen.StreetBanner(new P4TownSite(1, "ペンドラゴン", 0, 9, 9, 10, null, null), false, t => t.Length * 16)!.Value;
+        var line = P4DungeonScreen.StreetBanner(new P4TownSite(1, "アイウエオカ", 0, 9, 9, 10, null, null), false, t => t.Length * 16)!.Value;
         Assert.Equal(88, line.X);
     }
 

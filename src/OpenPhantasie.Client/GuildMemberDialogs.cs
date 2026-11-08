@@ -460,7 +460,7 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
 
     /// <summary>
     /// s165: counts the Purge / Rename list's answers (a row picked, or Esc / Backspace): I Amiga's roster list h26
-    /// <c>+0x346</c> → <c>+0x412</c> ("WHOM DO YOU WANT TO PURGE?" h5 <c>+0xe62</c>, "WHO NEEDS RENAMING?" <c>+0xf1a</c>)
+    /// <c>+0x346</c> → <c>+0x412</c> (`member.whom_do_you_want_to_purge` h5 <c>+0xe62</c>, `member.who_needs_renaming` <c>+0xf1a</c>)
     /// plays the tone after each gadget (<c>+0x614</c>). III's Examine list is not counted.
     /// </summary>
     public int ListTones { get; private set; }
@@ -897,6 +897,109 @@ public static class TestParty
 
     /// <summary>The pool <see cref="P3EntryPayoutSwitch"/> brings to town (not a multiple of the six shares: a remainder).</summary>
     public const int EntryPayoutPool = 1003;
+
+    /// <summary>
+    /// s169: a developer switch to watch III's gods' reward (<see cref="RewardScene"/>): <c>--p3-reward good</c> (Zeus) or
+    /// <c>--p3-reward evil</c> (Pluto; the default) runs the campaign's reward at once, as after the last fight.
+    /// </summary>
+    public const string P3RewardSwitch = "--p3-reward";
+
+    /// <summary>Whether the reward after <see cref="P3RewardSwitch"/> is the good god's, or null without the switch.</summary>
+    public static bool? P3RewardGood(IReadOnlyList<string> args)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        var i = args.ToList().IndexOf(P3RewardSwitch);
+        return i < 0 ? null : i + 1 < args.Count && args[i + 1] == "good";
+    }
+
+    /// <summary>III's reward scene for <see cref="P3RewardSwitch"/>: the test party leaves the town and is rewarded.</summary>
+    public static void RunP3Reward(GameSession session, bool good)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        session.LeaveGuild();
+        session.LeaveTown();
+        ((Phantasie3Campaign)session.Campaign).Reward(session, good);
+    }
+
+    /// <summary>
+    /// s169: a developer switch to watch III's party defeat (the Astral Plane): the test party leaves the town, every member
+    /// DEAD at 0 HP, the defeat pending as after a lost fight.
+    /// </summary>
+    public const string P3AstralSwitch = "--p3-astral";
+
+    /// <summary>III's party defeat for <see cref="P3AstralSwitch"/>.</summary>
+    public static void P3Defeat(GameSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        session.LeaveGuild();
+        session.LeaveTown();
+        foreach (var m in session.Party.Members)
+        {
+            m.HpCur = 0;
+            m.Status = CharacterStatus.Dead;
+        }
+        session.CampaignAccess.PartyDefeatPending = true;
+    }
+
+    /// <summary>
+    /// s169: a developer switch to watch a III plane's map: <c>--p3-plane R X Y</c> puts the test party, out of the town, on
+    /// cell (X, Y) of map R (1 the Light plane, 2 the Dark plane, 4 the Netherworld).
+    /// </summary>
+    public const string P3PlaneSwitch = "--p3-plane";
+
+    /// <summary>The (map, x, y) after <see cref="P3PlaneSwitch"/>, or null without the switch or its three numbers.</summary>
+    public static (int Region, int X, int Y)? P3PlaneCell(IReadOnlyList<string> args)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        var i = args.ToList().IndexOf(P3PlaneSwitch);
+        if (i < 0 || i + 3 >= args.Count)
+            return null;
+        return int.TryParse(args[i + 1], out var r) && int.TryParse(args[i + 2], out var x) && int.TryParse(args[i + 3], out var y)
+            ? (r, x, y) : null;
+    }
+
+    /// <summary>
+    /// III's plane for <see cref="P3PlaneSwitch"/>: the test party leaves the town and stands on the cell (the planes are
+    /// 9 × 9, e.g. <c>1 6 7</c> the Castle of Light, <c>2 2 7</c> the Castle of Dark). A cell off that map leaves the party
+    /// where the town's exit put it (false).
+    /// </summary>
+    public static bool PutOnP3Plane(GameSession session, (int Region, int X, int Y) cell)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        session.LeaveGuild();
+        session.LeaveTown();
+        var was = (session.Overworld.RegionId, session.Overworld.X, session.Overworld.Y);
+        (session.Overworld.RegionId, session.Overworld.X, session.Overworld.Y) = cell;
+        if (!session.CurrentOverworldRegion.InBounds(cell.X, cell.Y))
+        {
+            (session.Overworld.RegionId, session.Overworld.X, session.Overworld.Y) = was;
+            return false;
+        }
+        session.CurrentOverworldRegion.RevealAround(cell.X, cell.Y);
+        return true;
+    }
+
+    /// <summary>
+    /// s169: a developer switch to read a III scroll: <c>--p3-scroll N</c> puts item N (121..140; 126 = Scroll IV, the map)
+    /// first in the first member's pack, so the field's Use reads it.
+    /// </summary>
+    public const string P3ScrollSwitch = "--p3-scroll";
+
+    /// <summary>The item after <see cref="P3ScrollSwitch"/>, or null without the switch or its number.</summary>
+    public static int? P3ScrollItem(IReadOnlyList<string> args)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        var i = args.ToList().IndexOf(P3ScrollSwitch);
+        return i >= 0 && i + 1 < args.Count && int.TryParse(args[i + 1], out var id) && id > 0 ? id : null;
+    }
+
+    /// <summary>III's scroll for <see cref="P3ScrollSwitch"/>: item <paramref name="itemId"/> first in member 0's pack.</summary>
+    public static void GiveP3Scroll(GameSession session, int itemId)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (session.Party.Members.Count > 0)
+            session.Party.Members[0].InventoryItemIds.Insert(0, itemId);
+    }
 
     /// <summary>III's town entry with a pool for <see cref="P3EntryPayoutSwitch"/>.</summary>
     public static void EnterP3TownWithPool(GameSession session)

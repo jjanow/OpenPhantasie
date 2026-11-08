@@ -180,13 +180,13 @@ public sealed record CueSounds(int? Step, int? OverworldEntry, int? BlackKnights
 
     /// <summary>
     /// s162: the beep before the printout question when a scroll is read in town (I Amiga h8 <c>+0x155e</c> → h29
-    /// <c>+0x24e</c> → <c>+0x1da</c>: h26 <c>+0x6e</c>, "DO YOU WANT PRINTOUT?[YES|NO]"; NO shows the text), or null.
+    /// <c>+0x24e</c> → <c>+0x1da</c>: h26 <c>+0x6e</c>, `p1field.req.printout`; NO shows the text), or null.
     /// </summary>
     public int? ScrollRead { get; init; }
 
     /// <summary>
     /// s162: the beep before the town Printout's question (I Amiga h5 <c>+0x6c4</c> → h29 <c>+0x10ba</c> → <c>+0x1f6</c>:
-    /// h26 <c>+0x6e</c>, "PREPARE PRINTER[O.K.|ABORT]", asked again until <c>prt:</c> opens), or null.
+    /// h26 <c>+0x6e</c>, `p1field.req.prepare_printer`, asked again until <c>prt:</c> opens), or null.
     /// </summary>
     public int? Printout { get; init; }
 

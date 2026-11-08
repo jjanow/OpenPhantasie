@@ -80,39 +80,6 @@ public partial class P1DosMapPagesTests
     }
 
     [OriginalDataFact]
-    public void OpTwelve_EachReportAndBandIsItsOwnPage()
-    {
-        var s = ClientSessions.Overworld();
-        s.EnterDungeon(2, 6, 28);
-        s.MoveDungeon(CardinalDirection.South);
-        var mark = s.LogSequence;
-        s.AnswerDungeonEvent(1); // BRIBE THEM: A SPELL IS CAST, the report, `core.script.the_party_is_moved`
-        var pages = P1DosMapPages.ForStep(Boxes(), s, mark)!;
-        Assert.Equal(["A SPELL IS CAST"], pages.Pages[0].Rows);
-        Assert.Equal(GameText.S("core.script.report"), pages.Pages[1].Rows[0]);
-        Assert.Equal(["THE PARTY IS MOVED"], pages.Pages[^1].Rows);
-        AllShown(s, mark, pages);
-    }
-
-    [OriginalDataFact]
-    public void OpTwelvesBand_ShowsThePartyOnTheEventCell_UntilItsKey()
-    {
-        // s156: DOS draws `core.script.the_party_is_moved` before the move (s58 live: the old row-24 line under it, the map unmoved).
-        var s = ClientSessions.Overworld();
-        s.EnterDungeon(2, 6, 28);
-        s.MoveDungeon(CardinalDirection.South);
-        var (level, x, y) = (s.Dungeon!.LevelId, s.Dungeon.X, s.Dungeon.Y);
-        var mark = s.LogSequence;
-        var moveMark = s.DungeonMoveSequence;
-        s.AnswerDungeonEvent(1); // BRIBE THEM: A SPELL IS CAST, the report, `core.script.the_party_is_moved`, then op 12's move
-        Assert.NotEqual((x, y), (s.Dungeon.X, s.Dungeon.Y));
-        var pages = P1DosMapPages.ForStep(Boxes(), s, mark, moveMark)!;
-        Assert.Equal(["THE PARTY IS MOVED"], pages.Pages[^1].Rows);
-        Assert.Equal(new P1MapMessageRun.PartyCell(level, x, y), pages.Pages[^1].PartyAt);
-        Assert.All(pages.Pages, p => Assert.NotNull(p.PartyAt)); // every page of this step comes before the move
-    }
-
-    [OriginalDataFact]
     public void AMessageCell_StaysOnTheLine_ADescriptionCellIsAPage()
     {
         var s = InDng1();
@@ -219,16 +186,6 @@ public partial class P1DosMapPagesTests
         Assert.Equal(new DosReportWindow(8, 29, 7, 16, (12, 8), (9, 10)), p.Reports["core.pool.a_magical_pool"]); // 0x658d
         Assert.Equal(new DosReportWindow(5, 32, 7, 16, (13, 8), (6, 10)), p.Reports["core.inn.in_the_inn"]); // 0x6749, s45 shot
         Assert.Equal(5, p.Reports.Count);
-    }
-
-    [OriginalDataFact]
-    public void TheWallBand_IsRowsNineToEleven_TheTextCentredAtColumnTwelve()
-    {
-        var page = Assert.Single(P1DosMapPages.Plan(Boxes(), [GameText.S("core.dungeon.that_is_the_wall")], [], dungeon: true)!.Pages);
-        var layout = P1DosPageLayout.For(Places(), page)!;
-        Assert.False(layout.Framed);
-        Assert.Equal((0, 39, 9, 11), (layout.Left, layout.Right, layout.Top, layout.Bottom)); // s154 shot: rules y 73-74 / 93-94
-        Assert.Equal(new P1DosPageLayout.Cell(12, 10, "THAT IS THE WALL"), Assert.Single(layout.Texts)); // x 96 live
     }
 
     [OriginalDataFact]

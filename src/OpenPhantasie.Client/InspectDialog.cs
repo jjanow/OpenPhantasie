@@ -70,7 +70,7 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
 
     /// <summary>
     /// s165: counts the who list's answers (a member picked, or Esc / Backspace). In the Guild, I Amiga's Inspect lists in
-    /// h26 <c>+0x346</c> → <c>+0x412</c> ("WHOM DO YOU WANT TO INSPECT?", h5 <c>+0x196a</c>), which plays the tone after
+    /// h26 <c>+0x346</c> → <c>+0x412</c> (`inspect.whom_do_you_want_to_inspect`, h5 <c>+0x196a</c>), which plays the tone after
     /// each gadget (<c>+0x614</c>); the Client plays it there only.
     /// </summary>
     public int WhoTones { get; private set; }

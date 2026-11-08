@@ -2,8 +2,8 @@ namespace OpenPhantasie.Core;
 
 /// <summary>
 /// Which zero-damage line III's Damage Report prints (Amiga <c>0x1d24a</c>'s third argument picks the pair from the dungeon
-/// message table <c>0x23a62</c>, s165 <c>[C]</c> static): 0 → messages 12 / 13 "avoids the trap." / "takes " (a sprung
-/// trap <c>0x1c7b6</c>, event op 16 <c>0x1cc78</c>), 2 or 3 → 16 / 17 "escapes unscathed." / "takes " (event ops 1–4
+/// message table <c>0x23a62</c>, s165 <c>[C]</c> static): 0 → messages 12 / 13 `core.p3.report_avoids_the_trap` / "takes " (a sprung
+/// trap <c>0x1c7b6</c>, event op 16 <c>0x1cc78</c>), 2 or 3 → 16 / 17 `core.p3.report_escapes_unscathed` / "takes " (event ops 1–4
 /// <c>0x1cb00</c>, lava <c>0xa676</c>). 1 → 14 / 15 "swims." / "sinks for " is the swim (<c>0xa6b8</c>), which Core's
 /// own swim does not report through here.
 /// </summary>
@@ -16,13 +16,13 @@ public enum P3DamageReportKind
 /// <summary>A member's line in III's Damage Report.</summary>
 public enum P3DamageOutcome
 {
-    /// <summary>Damage 0: the kind's own line ("avoids the trap." / "escapes unscathed."), colour 15.</summary>
+    /// <summary>Damage 0: the kind's own line (`core.p3.report_avoids_the_trap` / `core.p3.report_escapes_unscathed`), colour 15.</summary>
     Unhurt,
 
     /// <summary>"takes n damage.", colour 15.</summary>
     Damaged,
 
-    /// <summary>"takes n damage and dies." (the routine's +500 marker), colour 9.</summary>
+    /// <summary>`core.p3.report_takes_x_damage_and_dies` (the routine's +500 marker), colour 9.</summary>
     Died,
 
     /// <summary>HP 0 before the damage: "is dead.", colour 10 (Amiga <c>0x1d6b8</c>).</summary>

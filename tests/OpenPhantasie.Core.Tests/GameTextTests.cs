@@ -143,33 +143,6 @@ public partial class GameTextTests
         Assert.Equal([], shared.Strings.Keys.Where(k => k.StartsWith("core.", StringComparison.Ordinal) && game.Contains(k)).ToList());
     }
 
-    [OriginalDataFact]
-    public void AlignedTemplates_MatchTheOldInterpolation()
-    {
-        // Pre-T1.5 these were $"…" strings; the table must give byte-identical text.
-        Assert.Equal($"{"ALDO",-10} IS RESTING {"IN PEACE"}".TrimEnd(), GameText.F("core.inn.x_is_resting_x", "ALDO", "IN PEACE").TrimEnd());
-        Assert.Equal($"{"ALDO",-10} IS RESTING".TrimEnd(), GameText.F("core.inn.x_is_resting_x", "ALDO", "").TrimEnd());
-        Assert.Equal($"STAIRS FROM LEVEL {1,-2} TO {2,-2}".TrimEnd(), GameText.F("core.dungeon.stairs_from_level_x_to_x", 1, 2).TrimEnd());
-        Assert.Equal("STAIRS FROM LEVEL 1  TO 2", GameText.F("core.dungeon.stairs_from_level_x_to_x", 1, 2).TrimEnd());
-        Assert.Equal($"{"PRIESTO",-10}IS CHANGED", GameText.F("core.pool.x_is_changed", "PRIESTO"));
-        Assert.Equal("THE RIVER STYX", GameSession.BlockedMessage(17));
-        Assert.Equal(GameText.S("core.endgame.zeus_1"), Endgame.ZeusSpeech[0]);
-        Assert.Equal(["YES", "NO"], new[] { SessionPrompts.Yes, SessionPrompts.No });
-        Assert.Equal("Victory — return to an inn to distribute loot.", GameText.S("core.combat.victory_return_to_inn"));
-    }
-
-    [OriginalDataFact]
-    public void ITheNameFields_AreDosPercentTenPointNine_CutAtNineThenPadded()
-    {
-        // s156: DOS I's %-10.9s (trap, op report, swim, pool rows): a name over 9 characters (an import) is cut, then padded.
-        Assert.Equal("ARENTINOS DIES", GameText.F("core.dungeon.trap_x_dies", "ARENTINOSXYZ"));
-        Assert.Equal("ARENTINOS IS CHANGED", GameText.F("core.pool.x_is_changed", "ARENTINOSXYZ"));
-        Assert.Equal("ARENTINOS TAKES 7   DAMAGE", GameText.F("core.script.report_x_takes_x_damage", "ARENTINOSXYZ", 7));
-        Assert.Equal("ALDO      SWIMS", GameText.F("core.dungeon.x_swims", "ALDO"));
-        // The precision is for text only: numbers keep their own formats.
-        Assert.Equal("STAIRS FROM LEVEL 1  TO 2", GameText.F("core.dungeon.stairs_from_level_x_to_x", 1, 2).TrimEnd());
-    }
-
     [Fact]
     public void Unset_Throws_AndSourceIsTheLoadedTable()
     {

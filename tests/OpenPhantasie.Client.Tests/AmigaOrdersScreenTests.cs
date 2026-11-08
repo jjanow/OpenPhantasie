@@ -7,7 +7,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Client.Tests;
 
 /// <summary>III Amiga's combat orders screen (s118, FORMAT.md §8.3; <c>0x188e4</c> / <c>0x18c48</c>).</summary>
-public class AmigaOrdersScreenTests
+public partial class AmigaOrdersScreenTests
 {
     private static readonly GameDataRepository P3Data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P3));
 
@@ -331,82 +331,6 @@ public class AmigaOrdersScreenTests
     }
 
     [OriginalDataFact]
-    public void SpellWindow_RefusedSpells_ThrustWithTheMessage()
-    {
-        // s128: DOS III root 0xfc41 and the Amiga's 0x19430 alike: a refused pick is a message and Thrust (R1).
-        // D-063 (s129): the Amiga lists every known spell only under p3.combat-spell-list = dos.
-        var (s, ui) = AtOrders(options: GameOptions.ForPreset(GameId.P3).With("p3.combat-spell-list", "dos"));
-        Teach(s, 53, 4); // Transportation (#54) cannot be cast in combat
-        ui.HandleKey(s, Keys.D2);
-        ui.HandleKey(s, Keys.C);
-        Assert.Equal([53, 4], ui.AmigaSpellPage(s)); // every known spell is listed
-        ui.HandleKey(s, Keys.O);
-        Assert.Equal(-1, ui.OrderMember);
-        Assert.Equal("Thrusts (R1)", Line(s, ui, 1));
-        Assert.Equal("This spell cannot be cast in combat.", ui.CastNotice);
-        Assert.Equal(ui.CastNotice, ui.LastLine); // what the feedback line shows
-        Assert.True(ui.AmigaMessageShown); // window 7 (0xaaac)
-        ui.HandleKey(s, Keys.D2); // the next key only closes it (0x3ba0 with key 0)
-        Assert.Equal("", ui.CastNotice);
-        Assert.False(ui.AmigaMessageShown);
-        Assert.Equal(-1, ui.OrderMember);
-
-        var slots = SpellSlots.For(s.Options);
-        var dear = Enumerable.Range(4, 40).First(id => Magic.MagicPointCost(id, slots) > 1);
-        Teach(s, dear);
-        s.Party.Members[1].MagicCur = Magic.MagicPointCost(dear, slots) - 1; // above 0, below the cost: refused after the pick
-        ui.HandleKey(s, Keys.D2);
-        ui.HandleKey(s, Keys.C);
-        Assert.True(ui.AsksAmigaSpell);
-        ui.HandleKey(s, Keys.O);
-        Assert.Equal("Thrusts (R1)", Line(s, ui, 1));
-        Assert.Equal("This character's magic is too low!", ui.CastNotice);
-    }
-
-    [OriginalDataTheory]
-    [InlineData(false, "This character knows no spells.")]
-    [InlineData(true, "This character's magic is too low!")]
-    public void Cast_RefusedBeforeTheList_Window7_Thrust(bool knowsSpells, string message)
-    {
-        // s134 static: 0x19430 (spell count 0x249c6 <= 0) and 0x1943a (magic 0x2498e <= 0) show window 7 and store
-        // action 3 (Thrust, R1) without opening the spell window; DOS 0xffef / 0xffdf the same.
-        var (s, ui) = AtOrders();
-        if (knowsSpells)
-            Teach(s, 4);
-        else
-            Teach(s);
-        s.Party.Members[1].MagicCur = 0;
-        ui.HandleKey(s, Keys.D2);
-        ui.HandleKey(s, Keys.P);
-        ui.HandleKey(s, Keys.D2);
-        ui.HandleKey(s, Keys.C);
-        Assert.False(ui.AsksAmigaSpell);
-        Assert.Equal(-1, ui.OrderMember);
-        Assert.Equal("Thrusts (R1)", Line(s, ui, 1));
-        Assert.True(ui.AmigaMessageShown);
-        Assert.Equal(message, ui.CastNotice);
-        ui.HandleKey(s, Keys.F); // any key only closes the window: F does not fight
-        Assert.False(ui.AmigaMessageShown);
-        Assert.Equal(CombatPhase.Orders, ui.Phase);
-        ui.HandleKey(s, Keys.F);
-        Assert.Equal(CombatPhase.Resolving, ui.Phase);
-    }
-
-    [OriginalDataFact]
-    public void Cast_RefusedBeforeTheList_DosOrderList_TooForIII()
-    {
-        // The remaster's own order list (AMIGA SCREENS off): DOS III's 0xffef refuses Cast before the spell number.
-        var (s, ui) = AtOrders(amiga: false);
-        s.Party.Members[0].SpellsKnown = new int[s.Party.Members[0].SpellsKnown.Length]; // the Fighter knows none
-        var cast = CombatPresenter.MenuChoices(s).ToList().IndexOf(CombatChoice.Cast);
-        Assert.True(cast >= 0);
-        ui.HandleKey(s, Keys.D1 + cast);
-        Assert.Equal("", ui.SpellDigits);
-        Assert.Equal("This character knows no spells.", ui.CastNotice);
-        Assert.False(ui.AmigaMessageShown);
-    }
-
-    [OriginalDataFact]
     public void SpellWindow_Manual_ListsOnlyCombatAndEverywhereSpells_D063()
     {
         var (s, ui) = AtOrders();
@@ -414,24 +338,6 @@ public class AmigaOrdersScreenTests
         ui.HandleKey(s, Keys.D2);
         ui.HandleKey(s, Keys.C);
         Assert.Equal([4], ui.AmigaSpellPage(s)); // Transportation (N) is left off
-    }
-
-    [OriginalDataFact]
-    public void OwnOrdersList_III_RefusedSpellNumber_IsThrustWithTheMessage()
-    {
-        // s128: the remaster's own list (AMIGA SCREENS off) follows the same DOS III rule, not I's Parry path.
-        var (s, ui) = AtOrders(amiga: false);
-        Teach(s, 53, 4);
-        ui.HandleKey(s, Keys.Enter); // the Fighter keeps his order
-        Assert.Equal(1, ui.OrderMember);
-        ui.HandleKey(s, Keys.D8); // Cast Spell
-        ui.HandleKey(s, Keys.D5);
-        ui.HandleKey(s, Keys.D4); // #54 Transportation
-        ui.HandleKey(s, Keys.Enter);
-        Assert.Equal(P3CombatModule.Pack(new P3ActionChoice(P3Action.Thrust, 1)), s.Combat!.Prep[1].PackedAction);
-        Assert.Equal("This spell cannot be cast in combat.", ui.LastLine);
-        ui.HandleKey(s, Keys.Enter); // the next key clears it
-        Assert.Equal("", ui.CastNotice);
     }
 
     [OriginalDataFact]
@@ -484,55 +390,6 @@ public class AmigaOrdersScreenTests
         var (_, ui) = AtOrders(amiga: false);
         Assert.False(ui.AmigaOrdersShown);
         Assert.Equal(0, ui.OrderMember);
-    }
-
-    /// <summary>
-    /// s156: AMIGA SCREENS off, III's rank question is DOS's Yes / No menu with One / Two (root <c>0x10d58</c>): One lit,
-    /// the arrows move the light, Return takes it, Y = One, N / Esc = Two.
-    /// </summary>
-    [OriginalDataTheory]
-    [InlineData(new[] { Keys.Enter }, 1)]
-    [InlineData(new[] { Keys.Right, Keys.Enter }, 2)]
-    [InlineData(new[] { Keys.Y }, 1)]
-    [InlineData(new[] { Keys.N }, 2)]
-    [InlineData(new[] { Keys.Escape }, 2)]
-    [InlineData(new[] { Keys.D2 }, 2)]
-    public void RankQuestion_AmigaScreensOff_IsDosOneTwoMenu(Keys[] keys, int rank)
-    {
-        var (s, ui) = AtOrders(amiga: false);
-        Assert.Equal(2, s.Combat!.Ranks.Count(r => !r.IsWiped)); // this seed meets two groups
-        for (var i = 0; i < 3; i++)
-            ui.HandleKey(s, Keys.Enter); // Fighter, Priest, Wizard keep their orders
-        Assert.Equal(3, ui.OrderMember); // the Thief
-        var thrust = CombatPresenter.MenuChoices(s).ToList().IndexOf(CombatChoice.Thrust);
-        ui.HandleKey(s, Keys.D1 + thrust); // a Thief's Thrust asks the rank (D3-012)
-        Assert.Equal("HERO3: Target which rank?  > 1 One    2 Two", ui.LastLine);
-        Assert.Equal([Keys.D1, Keys.D2], PanelMouse.Hotkeys(ui.LastLine, commandList: true).Select(h => h.Key));
-        Assert.True(ui.AsksDosRank(s));
-        foreach (var key in keys)
-            ui.HandleKey(s, key);
-        Assert.False(ui.AsksDosRank(s));
-        Assert.Equal(P3CombatModule.Pack(new P3ActionChoice(P3Action.Thrust, rank)), s.Combat.Prep[3].PackedAction);
-    }
-
-    [OriginalDataFact]
-    public void RankQuestion_AmigaScreensOff_BackspaceOut_TheNextQuestionLightsOne()
-    {
-        var (s, ui) = AtOrders(amiga: false);
-        var thrust = CombatPresenter.MenuChoices(s).ToList().IndexOf(CombatChoice.Thrust);
-        void AskThief()
-        {
-            for (var i = 0; i < 3; i++)
-                ui.HandleKey(s, Keys.Enter);
-            ui.HandleKey(s, Keys.D1 + thrust);
-        }
-        AskThief();
-        ui.HandleKey(s, Keys.Right); // Two lit
-        Assert.Contains("> 2 Two", ui.LastLine);
-        ui.HandleKey(s, Keys.Back); // the order list again from the first member
-        Assert.Equal(0, ui.OrderMember);
-        AskThief();
-        Assert.Equal("HERO3: Target which rank?  > 1 One    2 Two", ui.LastLine);
     }
 
     [Theory]

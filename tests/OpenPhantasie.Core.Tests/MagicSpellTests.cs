@@ -2,7 +2,7 @@ using OpenPhantasie.Core;
 
 namespace OpenPhantasie.Core.Tests;
 
-public class MagicSpellTests
+public partial class MagicSpellTests
 {
     private sealed class ScriptedRandomSource : IDosRandomSource
     {
@@ -297,36 +297,6 @@ public class MagicSpellTests
         Assert.Contains(result.Log, l => l.Contains("CHARMED", StringComparison.Ordinal));
     }
 
-    [OriginalDataFact]
-    public void ResolveRound_DispellUndead_DissolvesAndPaysFrontGroupXp()
-    {
-        // OV2 0x8fc → 0x85b (s31): SKELETON is undead (D-024 data flag); v = 5·(5 − 1) − 0 > −5 → dissolve.
-        var party = new Party();
-        var priest = MakeCaster("Priest", SpellId.DispellUndead);
-        priest.Class = CharacterClass.Priest;
-        priest.Level = 5;
-        party.Members.Add(priest);
-
-        var enc = new CombatEncounter(party) { RewardXp = 100, RewardGold = 50, MonsterLevel = 1 };
-        enc.AddRank(
-            new Monster { Name = "SKELETON", HitPoints = 20, Level = 1, ExperienceValue = 77, Undead = true },
-            new Monster { Name = "SKELETON", HitPoints = 20, Level = 1, ExperienceValue = 77, Undead = true });
-        enc.Prepare();
-        enc.SetAction(0, CombatAction.CastSpell(SpellId.DispellUndead));
-
-        var resolver = new CombatResolver();
-        var round = resolver.ResolveRound(enc, new ScriptedRandomSource(0));
-        Assert.False(round.EncounterOver); // the round plays out; the end comes at the next round top
-        Assert.Contains("MONSTERS START DISSOLVING", round.Log);
-
-        var end = resolver.ResolveRound(enc, new ScriptedRandomSource(0));
-        Assert.True(end.EncounterOver);
-        Assert.True(end.PartyWon);
-        Assert.Equal(177, end.RewardXp); // 100 + 77 · (2 living − 1)
-        Assert.Equal(0, end.RewardGold);
-        Assert.Contains("MONSTERS KILLED", end.Log);
-    }
-
     [Fact]
     public void ResolveRound_AwakenWakesSleepingPartyMembers()
     {
@@ -430,19 +400,6 @@ public class MagicSpellTests
     public void MonsterEvalLevel_MatchesOv2_0x4860(CastLocation where, int terrain, int tier, int expected) =>
         Assert.Equal(expected, SpellCaster.MonsterEvalLevel(where, terrain, tier));
 
-    [OriginalDataFact]
-    public void CastOutOfCombat_MonsterEval_PrintsLevel_NoRoll()
-    {
-        var party = new Party();
-        var caster = MakeCaster("Caster", SpellId.MonsterEval);
-        party.Members.Add(caster);
-        var result = SpellCaster.CastOutOfCombat(party, caster, SpellId.MonsterEval, null,
-            new ScriptedRandomSource(0), CastLocation.Dungeon, new FieldCastContext(DungeonTier: 2));
-        Assert.True(result.Success);
-        Assert.Equal("MONSTERS ARE AT LEVEL 6", result.Message);
-        Assert.Equal(6, caster.MagicCur); // 51 % 4 + 1 = 4
-    }
-
     [Fact]
     public void ManualMonsterEval_D056_RoundedAverage_WhenRollIsRight()
     {
@@ -455,29 +412,6 @@ public class MagicSpellTests
     [InlineData(1, 0, 1)]  // −1, floored at 1
     public void ManualMonsterEval_D056_OffByOne_WhenRollIsWrong(int average, int offset, int expected) =>
         Assert.Equal(expected, SpellCaster.ManualMonsterEvalLevel([average, average], new ScriptedRandomSource(SpellCaster.MonsterEvalErrorChance - 1, offset)));
-
-    [OriginalDataFact]
-    public void Session_MonsterEval_D056_ReadsTheLocalMonsterPool()
-    {
-        var data = OpenPhantasie.Data.GameDataRepository.LoadPhantasie1();
-        var session = OpenPhantasie.Data.GameSessionFactory.Create(data, new SeededDosRandomSource(3));
-        session.OpenGuild();
-        var hero = session.CreateAndEnroll("Seer", Race.Human, CharacterClass.Wizard);
-        Assert.True(session.TryAddToParty(hero, out _));
-        hero.SpellsKnown[SpellId.MonsterEval] = 1;
-        hero.MagicCur = hero.MagicMax = hero.MpCeiling = 10;
-        session.DepartGuildToWilderness();
-        var region = session.CurrentOverworldRegion;
-        var t = region.GetNormalized(session.Overworld.X, session.Overworld.Y) % 10;
-        var expected = (int)Math.Round(Enumerable.Range(12 * t, 12).Where(id => data.Monsters.Any(m => m.Id == id)).Select(id => data.GetMonster(id).Level).Average(),
-            MidpointRounding.AwayFromZero);
-
-        var result = session.CastSpell(hero, SpellId.MonsterEval);
-
-        // The seeded roll may land in the 20 % error band: right answer, or off by 1–2.
-        var shown = int.Parse(result.Message!["MONSTERS ARE AT LEVEL ".Length..]);
-        Assert.InRange(shown, Math.Max(1, expected - 2), expected + 2);
-    }
 
     [Theory]
     [InlineData(0, 1)]

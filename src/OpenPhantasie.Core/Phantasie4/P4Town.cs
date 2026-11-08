@@ -89,7 +89,7 @@ public static class P4Town
             var m = party.Members[index];
             if (m.Alive)
             {
-                // s163: _inn prints " MP が上がった !" after " は眠った．" on the member's row (both _wprint).
+                // s163: _inn prints `p4x.0x3f6fc` after `p4x.0x3f6f0` on the member's row (both _wprint).
                 var mpUp = services is not null && rng is not null && P4TownRules.InnMpGrowth(services, rng, m);
                 window.Line(m.Name + GameText.S("p4x.0x3f6f0") + (mpUp ? GameText.S("p4x.0x3f6fc") : ""));
                 rows.Add(new(index, m.Name, mpUp));

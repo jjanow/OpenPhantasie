@@ -8,7 +8,7 @@ namespace OpenPhantasie.Core.Tests;
 /// multi-step combat and town flows, the Client lists). Each is a <c>manual</c> / <c>dos</c> rules option; each test pins
 /// both values, and the manual value is today's rule.
 /// </summary>
-public class AuthenticModeRestTests
+public partial class AuthenticModeRestTests
 {
     private static readonly GameDataRepository Data = GameDataRepository.LoadPhantasie1();
 
@@ -427,37 +427,6 @@ public class AuthenticModeRestTests
         s.DepartGuildToWilderness();
         s.BeginWildernessCombat(Data.Monsters.First(m => m.HpBase <= 8).Id, SurpriseFlags.Normal);
         return s;
-    }
-
-    [OriginalDataTheory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Victory_PaysTheSavesShares_D053(bool dos)
-    {
-        var s = WildernessFight(dos ? Dos(RuleOptionRegistry.CombatShares) : Manual, "A", "B");
-        var enc = s.Combat!;
-        foreach (var m in enc.AllMonsters)
-            m.HitPoints = 0;
-        enc.RewardXp = 308;
-        enc.RewardGold = 101;
-        var mark = s.LogSequence;
-        var xp0 = s.Sack.Experience;
-        var gold0 = s.Sack.Gold;
-        s.ResolveCombatRound();
-        var lines = s.LogSince(mark);
-        if (dos)
-        {
-            // 2 survivors: ⌊308/20⌋·10 = 150 XP and 50 GP each; DOS prints only the shares.
-            Assert.Contains("150 XP AND 50 GP", lines);
-            Assert.Contains("EACH SURVIVOR GETS", lines);
-            Assert.DoesNotContain("308 XP AND 101 GP", lines);
-            Assert.Equal((300L, 100L), (s.Sack.Experience - xp0, s.Sack.Gold - gold0));
-        }
-        else
-        {
-            Assert.Contains("308 EXPERIENCE POINTS AND 101 GOLD", lines);
-            Assert.Equal((308L, 101L), (s.Sack.Experience - xp0, s.Sack.Gold - gold0));
-        }
     }
 
     [OriginalDataFact]

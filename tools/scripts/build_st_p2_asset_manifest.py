@@ -63,10 +63,10 @@ ST_FIELD_CUES = {
 # for the one before (0xb8f2), whatever the player picked.
 ST_DEFEAT_SOUNDS = {
     "_note": "0x12678 sets Speed [0x1fefa] := 20 (restored at 0x127ae): every 0xb80e waits for the running sound. 0x12bea: "
-             "'YOUR PARTY HAS BEEN DEFEATED' (0x12a16: the line, 3000 ms or a key), the ghost row (0x12b5e(0)), ghosts "
-             "(0x12d5e), 'YOU HAVE ARRIVED AT THE ASTRAL PLANE' (3000 ms), door (0x12d86) then the door's 90 steps of 4 "
-             "VBL, (5th defeat: the sign, 3000 ms), 3000 ms, demon (0x12e36), the face, 'THE GREAT DEMON APPEARS AND "
-             "SPEAKS:'; then fate (0x126d2) before each member's fate, DESTROYED included. Traced live s141 (Hatari): 23 "
+             "`core.defeat.your_party_has_been_defeated` (0x12a16: the line, 3000 ms or a key), the ghost row (0x12b5e(0)), ghosts "
+             "(0x12d5e), `core.defeat.arrived_at_astral_plane` (3000 ms), door (0x12d86) then the door's 90 steps of 4 "
+             "VBL, (5th defeat: the sign, 3000 ms), 3000 ms, demon (0x12e36), the face, "
+             "`core.defeat.great_demon_speaks`; then fate (0x126d2) before each member's fate, DESTROYED included. Traced live s141 (Hatari): 23 "
              "3060 ms after line 1 (ghosts_after_ms: the line's hold), 22 3090 ms after the astral line, the door 6.87 s "
              "(413 VBL at 60 Hz, drawing included), 20 3010 ms after it; each fate line follows its 21 within 15 ms, and "
              "21 waits for the running sound (20 ~5.3 s, 21 ~3.9 s).",
@@ -110,7 +110,8 @@ ST_ALERTS = [
     {"key": "core.guild.no_one_wise_enough", "modes": TOWN_MODES,
      "st": "PHANT.RSC 5 'No one is wise enough to teach You': guild_train (0xce22 -> 0x15f2)"},
     {"key": "core.guild.move_not_in_town", "modes": TOWN_MODES,
-     "st": "PHANT.RSC 6 'Not in the town / it takes 2 months / to get here' YES / NO: guild_add (0xd51a -> 0x2366)"},
+     "st": "PHANT.RSC 6 `core.guild.move_not_in_town` / `core.guild.move_takes_2_months` / "
+           "`core.guild.move_to_get_here` YES / NO: guild_add (0xd51a -> 0x2366)"},
     {"key": "core.guild.learn_no_more", "modes": TOWN_MODES,
      "st": "PHANT.RSC 7 'You can't learn any more': 0x974 (0x98a)"},
     {"key": "core.magic.x_drinks_healing_x_x", "modes": ["town"],
@@ -267,8 +268,9 @@ ST_END_BOXES = {
              "spaces first) into object 1, then 0x16dce(40, 12, 75, Speed + one_line.hold_ms): the background saved, "
              "objc_draw, evnt_multi (a key, a click or the timer ends it), the combat screen redrawn (0x18446). "
              "0xa272(a, b) -> 0xa1c2: tree 41, a in object 1 (upper row), b in object 2 (lower row), Speed + "
-             "two_line.hold_ms. pairs: [upper, lower] string ids shown as one two-line box (0xa3da: 'EACH SURVIVOR GETS' "
-             "over '%ld XP AND %ld GP'; 0xa4fa: 'PLUTO'S MINION IS KILLED !' over '%s TAKES AN AMULET'; both seen live "
+             "two_line.hold_ms. pairs: [upper, lower] string ids shown as one two-line box (0xa3da: "
+             "`core.combat.each_survivor_gets` over `core.combat.x_xp_and_x_gp`; 0xa4fa: "
+             "`core.p2.plutos_minion_is_killed` over `core.p2.x_takes_an_amulet`; both seen live "
              "s82). outside_round_keys: lines that are boxes only outside a round (the morale check's 'MONSTERS RUN' "
              "0xa066; in a round the spell's line, sound 2). sounds: played before the box (0xb80e: 0xa05a plays 2 "
              "before 'MONSTERS RUN'); the other boxes have none. Font (s160): EmuTOS's 8x8 system font, the pack's "

@@ -8,7 +8,7 @@ namespace OpenPhantasie.Core.Tests;
 /// BLOW on a just-killed member), D-016 (the armor-reduced special) and Q2 (the payout remainder). Each is pinned for its
 /// preset values and for both behaviours; the manual value keeps today's play.
 /// </summary>
-public class AuthenticModeTests
+public partial class AuthenticModeTests
 {
     private static readonly GameDataRepository Data = GameDataRepository.LoadPhantasie1();
 
@@ -185,26 +185,6 @@ public class AuthenticModeTests
     }
 
     // ---- D-016: `core.combat.armor_reduced` --------------------------------------------------------------------
-
-    [OriginalDataTheory]
-    [InlineData("armor", 4, 20)]
-    [InlineData("weapon", 10, 8)]
-    public void ArmorReduced_ScalesArmorOrWeaponDamage_D016(string value, int armor, int weapon)
-    {
-        var mon = Caster(17, 17, 17); // power 8
-        var a = Member("A");
-        var enc = Encounter(With("p1.armor-reduced", value), mon, a);
-        enc.Prep[0].ArmorEff = 10;
-        Assert.Equal(20, enc.Prep[0].WeaponDamageEff);
-        var log = new List<string>();
-
-        // pick 0; scaled 50·8/100 = 4; resist 0 → affected; field (f·4 + 5)/10: armor 10 → 4, weapon 20 → 8
-        MonsterSpecials.Use(enc, enc.Ranks[0], mon, new ScriptedRandomSource(0, 50, 0), log);
-
-        Assert.Equal(armor, enc.Prep[0].ArmorEff);
-        Assert.Equal(weapon, enc.Prep[0].WeaponDamageEff);
-        Assert.Contains("THE PARTY'S ARMOR IS REDUCED", log); // the same message either way
-    }
 
     // ---- Q2: the town-entry payout remainder ----------------------------------------------------------------------
 

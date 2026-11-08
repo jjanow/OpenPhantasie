@@ -241,7 +241,7 @@ public partial class Game1
     /// <summary>
     /// s165: I Amiga's list tone (pack <c>cue_sounds.list_tone</c>, h89 <c>+0xd2</c>; FORMAT.md "Sound effects") at the
     /// town's and the Guild's list moments the remaster has, once a frame. Town: a member chooser's cancel (h23
-    /// <c>+0x22a</c>: Cast spell's WHO WILL CAST A SPELL? and HEALING's target, the Bank's WHO WILL WITHDRAW?) and Show
+    /// <c>+0x22a</c>: Cast spell's WHO WILL CAST A SPELL? and HEALING's target, the Bank's `towndlg.who_will_withdraw`) and Show
     /// party's close (h26 <c>+0x33e</c>, <see cref="NoteP1ShowParty"/>). Guild: the choosers' cancel (DROP, LEARN,
     /// TRAINED), New's race and class picks (h23 <c>+0xa34</c>) and the roster list's answers (h26 <c>+0x614</c>: Add,
     /// Purge, Rename, Inspect's who list). The Armory's (h26 <c>+0x8f6</c>) plays from its input (<see cref="P1ArmoryTone"/>).

@@ -112,4 +112,4 @@ depends on Applesoft speed [?]; the pack shows only the last screen, until a key
 - [~] Replaying CEMETARY2 / WIN's drawings (shapes at ROT 8–56) would need ROT support in the rasterizer (Applesoft
   rotates by 64ths of a turn, only multiples of 16 exact).
 - [~] The colour model is an emulator-style approximation; the original monitor look varies.
-- The `.woz` originals are not read (FORMAT.md); SHAPES and ICE DRAGON are not among the 4am-patched sectors [~].
+- SHAPES and ICE DRAGON equal the `.woz` originals' (s169, FORMAT.md section 1: only `SSI.INIT2` and RDOS differ) [C].

@@ -355,7 +355,7 @@ public class TitleTuneTests
         Assert.Equal(500.0, TitleTuneCarry.Earlier(900, 500));
         Assert.Equal(900.0, TitleTuneCarry.Earlier(900, null));
 
-        string[] log = ["The monsters flee!"];
+        string[] log = ["The bandits scatter!"];
         var run = CombatFieldRun.Plan(log, [new CombatLineTag(0, null, null, CombatSwing.None, P3Sounds.Stop)], [], [], [], [],
             _ => false, AmigaCombatSpeed.Normal);
         Assert.Equal([(0, P3Sounds.Stop)], run.SoundPlays(60));

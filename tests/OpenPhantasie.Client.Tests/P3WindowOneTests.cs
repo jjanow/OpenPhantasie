@@ -9,7 +9,7 @@ namespace OpenPhantasie.Client.Tests;
 /// prints the title in the screen font, topaz 8, one 8-px row per "\r" (the s125 / s128 shots match the ROM glyphs), and
 /// Guild › Add's move question (S445, <c>0xd24c</c>) is asked there too.
 /// </summary>
-public class P3WindowOneTests
+public partial class P3WindowOneTests
 {
     private static readonly GameDataRepository P3Data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P3));
 
@@ -24,18 +24,6 @@ public class P3WindowOneTests
         Assert.Equal(8, UiOverlays.KeepWindowRowPitch(w));
         var rows = UiOverlays.KeepWindowRows(w, ["Are you sure you want to load an old", "game over this current one?"]);
         Assert.Equal([(8, 80, "Are you sure you want to load an old"), (8, 88, "game over this current one?")], rows);
-    }
-
-    /// <summary>A line wider than the box (38 topaz cells from x 8) goes on at a word on the next row, never cut.</summary>
-    [OriginalDataFact]
-    public void WindowOne_LongLineWrapsAtAWord_NothingCut()
-    {
-        const string line = "Bartholomewsson hears monsters. Continue?"; // 41 characters
-        var rows = UiOverlays.KeepWindowRows(WindowOne, [line]);
-        Assert.Equal(2, rows.Count);
-        Assert.Equal((8, 88), (rows[1].X, rows[1].Y));
-        Assert.Equal(line, string.Join(" ", rows.Select(r => r.Text)));
-        Assert.All(rows, r => Assert.True(r.Text.Length <= 38, r.Text));
     }
 
     [Fact]

@@ -84,7 +84,7 @@ public sealed class Phantasie3DungeonScript
             switch (type)
             {
                 case 1 or 2 or 3 or 4:
-                    // s165: the report's "escapes unscathed." pair (Amiga 0x1cb00: 0x1d24a(a1, 1, 2)).
+                    // s165: the report's `core.p3.report_escapes_unscathed` pair (Amiga 0x1cb00: 0x1d24a(a1, 1, 2)).
                     if (Phantasie3Campaign.DamageParty(_session, a1, P3DamageReportKind.Escape))
                     {
                         _session.CampaignAccess.PartyDefeatPending = true;

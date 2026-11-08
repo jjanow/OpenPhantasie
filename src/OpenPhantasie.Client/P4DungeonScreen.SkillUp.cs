@@ -110,7 +110,7 @@ public sealed partial class P4DungeonScreen
             segments = segments.Append(result);
         foreach (var s in segments)
             pieces.Add((s.X, s.Y, s.Number ? window.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)
-                // The original prints "その魔法を学んだ。" alone; the English line (" learned the spell.", starting with a
+                // The original prints `p4x.0x3fcd2` alone; the English line (" learned the spell.", starting with a
                 // space) needs its subject, so the member's name goes before it, as in the text column `[~]`.
                 : ReferenceEquals(s, result) && text(s) is { } t && t.StartsWith(' ') ? window.Member + t : text(s),
                 s.Font, s.Colour ?? hall.TextColour));

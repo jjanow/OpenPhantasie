@@ -9,7 +9,7 @@ namespace OpenPhantasie.Client.Tests;
 /// s136, II ST's combat round line by line (<c>reverse-engineering/atari-st/phantasie2/FORMAT.md</c> 7.3): each line's
 /// sound, the Speed hold, the sound waits, the member's "DIES" sequence, and the presenter playing a round that way.
 /// </summary>
-public class P2CombatLineRunTests
+public partial class P2CombatLineRunTests
 {
     private const int Fast = 1, Normal = 2, Slow = 3;
 
@@ -28,21 +28,6 @@ public class P2CombatLineRunTests
         new(Paced(), P2CombatLineRun.Classify(Paced(), lines, [], [Hero]), speed, seconds ?? Seconds);
 
     [OriginalDataFact]
-    public void Classify_MemberAndMonsterLines_TakeTheirOwnSounds()
-    {
-        var entries = P2CombatLineRun.Classify(Table(),
-            ["Hero HITS", "ORC HITS", "Hero MISSES", "ORC MISSES", "ORC TAKES 5 DAMAGE", "MAGIC IS DRAINED", "ORC DIES",
-             "Hero DIES", "SOMETHING ELSE"], [], [Hero]);
-        Assert.Equal([3, 5, 4, 8, -1, 6, 16], entries.Take(7).Select(e => e.Sound!.Sound));
-        Assert.Same(Hero, entries[0].Member);
-        Assert.Equal(CombatLineSide.Monster, entries[1].Side);
-        Assert.Null(entries[1].Member);
-        Assert.True(entries[7].Sound!.Death);
-        Assert.Same(Hero, entries[7].Member);
-        Assert.Null(entries[8].Sound); // not in the table: no sound [?]
-    }
-
-    [OriginalDataFact]
     public void EndBox_MonstersKilled_HoldsSpeedPlus1000_NoSound()
     {
         // 0xa124: tree 40 shown by 0x16dce(40, 12, 75, S + 1000); no sound call.
@@ -54,24 +39,6 @@ public class P2CombatLineRunTests
         run.Advance(1);
         Assert.Null(run.ActiveBox);
         Assert.True(run.Done);
-    }
-
-    [OriginalDataTheory]
-    [InlineData(Fast, 1005)]
-    [InlineData(Normal, 1010)]
-    [InlineData(Slow, 2000)]
-    public void EndBox_WaitFollowsSpeed_AndAKeyEndsIt(int speed, double ms)
-    {
-        var run = Run(speed, null, "MONSTERS KILLED", "Hero HITS");
-        run.Advance(ms - 1);
-        Assert.NotNull(run.ActiveBox);
-        run.Advance(1);
-        Assert.Null(run.ActiveBox);
-        Assert.Equal(2, run.Printed); // the box is over, the next line printed
-        var again = Run(speed, null, "MONSTERS SURRENDER");
-        Assert.NotNull(again.ActiveBox);
-        again.Key();
-        Assert.True(again.Done);
     }
 
     [OriginalDataFact]
@@ -94,62 +61,6 @@ public class P2CombatLineRunTests
         Assert.Contains("core.combat.monsters_take_gold", b.Keys);
         Assert.Equal(2, b.SoundFor("core.combat.monsters_run"));
         Assert.Equal(-1, b.SoundFor("core.combat.monsters_killed"));
-    }
-
-    [OriginalDataFact]
-    public void EndBoxes_Layout_MatchesTheLiveShots()
-    {
-        // s82 shots p2-minion-xp.png / p2-minion-amulet.png (1280×800 = 4× the ST): orange x 14..306, y 77..121 = tree 41 at
-        // (12, 75) less its 2-px border; rows at y 83 / 99; text x = 12 + 8·(1 + ⌊(35 − len) / 2⌋).
-        var b = Table().EndBoxes!;
-        var xp = b.Layout(["EACH SURVIVOR GETS", "4220 XP AND 0 GP"]);
-        Assert.Equal((12, 75, 296, 48), (xp.X, xp.Y, xp.Width, xp.Height));
-        Assert.Equal([(84, 83, "EACH SURVIVOR GETS"), (92, 99, "4220 XP AND 0 GP")], xp.Rows);
-        var minion = b.Layout(["PLUTO'S MINION IS KILLED !", "GLADE TAKES AN AMULET"]);
-        Assert.Equal([52, 76], minion.Rows.Select(r => r.X));
-        var one = b.Layout(["MONSTERS KILLED"]);
-        Assert.Equal((304, 40), (one.Width, one.Height));
-        Assert.Equal((12 + 8 * (2 + 10), 75 + 16), (one.Rows[0].X, one.Rows[0].Y));
-        // A text longer than the box widens it (nothing cut).
-        var wide = b.Layout([new string('W', 40)]);
-        Assert.Equal(8 * (2 + 40 + 2), wide.Width);
-    }
-
-    [OriginalDataTheory]
-    [InlineData("4220 XP AND 0 GP", "EACH SURVIVOR GETS")] // Core's order (DepositSurvivorShares)
-    [InlineData("EACH SURVIVOR GETS", "4220 XP AND 0 GP")]
-    public void EndBox_XpPair_IsOneTwoLineBox_UpperRowFirst_HeldSpeedPlus1500(string first, string second)
-    {
-        // 0xa3da: 0xa272(`core.combat.each_survivor_gets`, buf) → tree 41, Speed + 1500 (0xa238), no sound.
-        var run = Run(Normal, null, first, second, "Hero HITS");
-        Assert.Equal(["EACH SURVIVOR GETS", "4220 XP AND 0 GP"], run.ActiveBox!.Rows);
-        Assert.Equal(2, run.Printed); // both lines in the log at once
-        Assert.Empty(run.SoundPlays);
-        run.Advance(1509);
-        Assert.NotNull(run.ActiveBox);
-        run.Advance(1);
-        Assert.Null(run.ActiveBox);
-        Assert.Equal(3, run.Printed);
-    }
-
-    [OriginalDataFact]
-    public void EndBox_MinionPair_KilledAboveTheAmulet_AKeyEndsIt()
-    {
-        var run = Run(Fast, null, "PLUTO'S MINION IS KILLED !", "Hero TAKES AN AMULET");
-        Assert.Equal(["PLUTO'S MINION IS KILLED !", "Hero TAKES AN AMULET"], run.ActiveBox!.Rows);
-        run.Key();
-        Assert.True(run.Done);
-    }
-
-    [OriginalDataFact]
-    public void EndBox_TheMinionBox_FollowsTheXpBox_TreasureLinesAfter()
-    {
-        // s156 (0xa3da, then 0xa4fa in combat_victory): Core notes the treasure between them; the ST shows both boxes first.
-        var entries = P2CombatLineRun.Classify(Table(),
-            ["4220 XP AND 0 GP", "EACH SURVIVOR GETS", "THE PARTY FINDS A CHEST", "PLUTO'S MINION IS KILLED !",
-             "Hero TAKES AN AMULET"], [], [Hero]);
-        Assert.Equal(["4220 XP AND 0 GP", "EACH SURVIVOR GETS", "PLUTO'S MINION IS KILLED !", "Hero TAKES AN AMULET",
-            "THE PARTY FINDS A CHEST"], entries.Select(e => e.Text));
     }
 
     [OriginalDataFact]
@@ -184,74 +95,6 @@ public class P2CombatLineRunTests
         Assert.Null(inside.ActiveBox);
         Assert.Equal([2], inside.SoundPlays);
         Assert.Null(P2CombatLineRun.Classify(Table(), ["MONSTERS RUN"], [], [Hero])[0].BoxKey);
-    }
-
-    [OriginalDataFact]
-    public void EndBox_BegAnswer_IsABox()
-    {
-        var run = Run(Normal, null, "MONSTERS STOP AND TAKE YOUR GOLD");
-        Assert.Equal("MONSTERS STOP AND TAKE YOUR GOLD", run.ActiveBox!.Text);
-    }
-
-    [OriginalDataTheory]
-    [InlineData(1)] // THREATEN
-    [InlineData(2)] // GREETINGS
-    public void Presenter_APartyOptionsRefusal_PlaysItsBox_ThenTheOrders(int option)
-    {
-        for (var seed = 1; seed < 120; seed++)
-        {
-            var s = ClientSessions.Fight(seed);
-            var ui = new CombatPresenter(new ClientSettings()) { P2Lines = Table, P2SoundSeconds = Seconds };
-            ui.Start(s);
-            if (ui.Phase != CombatPhase.PartyOptions)
-                continue;
-            while (ui.OptionCursor != option)
-                ui.HandleKey(s, Keys.Down);
-            var before = ui.Log.Count;
-            ui.HandleKey(s, Keys.Enter);
-            if (ui.P2Run?.ActiveBox is not { } box || box.Text != "MONSTERS DON'T RESPOND")
-                continue;
-            Assert.Equal(CombatPhase.Resolving, ui.Phase);
-            Assert.False(ui.AwaitingInput);
-            Assert.Equal(["MONSTERS DON'T RESPOND"], ui.Log.Skip(before));
-            ui.Update(s, 1009, fastForward: false);
-            Assert.NotNull(ui.P2Run);
-            ui.Update(s, 1, fastForward: false);
-            Assert.Null(ui.P2Run);
-            Assert.Equal(CombatPhase.Orders, ui.Phase);
-            Assert.Equal(["MONSTERS DON'T RESPOND"], ui.Log.Skip(before)); // once
-            return;
-        }
-        Assert.Fail("no seed refused the option");
-    }
-
-    [OriginalDataFact]
-    public void Presenter_BeggingEndsTheFight_AfterItsBoxes()
-    {
-        for (var seed = 1; seed < 40; seed++)
-        {
-            var s = ClientSessions.Fight(seed);
-            var ui = new CombatPresenter(new ClientSettings()) { P2Lines = Table, P2SoundSeconds = Seconds };
-            ui.Start(s);
-            if (ui.Phase != CombatPhase.PartyOptions)
-                continue;
-            while (ui.OptionCursor != 0)
-                ui.HandleKey(s, Keys.Up);
-            ui.HandleKey(s, Keys.Enter);
-            if (s.Mode == GameMode.Combat)
-                continue; // refused (the DOS roll)
-            Assert.Equal("MONSTERS STOP AND TAKE YOUR GOLD", ui.P2Run!.ActiveBox!.Text);
-            Assert.True(ui.IsPresenting);
-            var ends = 0;
-            for (var t = 0; t < 1000 && ui.IsPresenting; t++)
-                if (ui.Update(s, 10, fastForward: false))
-                    ends++;
-            Assert.Equal(1, ends);
-            Assert.Equal(CombatPhase.Idle, ui.Phase);
-            Assert.Null(ui.P2Run);
-            return;
-        }
-        Assert.Fail("no seed let the party beg");
     }
 
     [OriginalDataFact]

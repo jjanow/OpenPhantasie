@@ -349,6 +349,14 @@ public partial class Game1 : Game
                 TestParty.StartP3Fight(_session, p3Monster);
             else if (game == GameId.P3 && Environment.GetCommandLineArgs().Contains(TestParty.P3EntryPayoutSwitch))
                 TestParty.EnterP3TownWithPool(_session); // s144: the D3-071 "Shares for NAME :" prompts
+            else if (game == GameId.P3 && TestParty.P3RewardGood(Environment.GetCommandLineArgs()) is bool good)
+                TestParty.RunP3Reward(_session, good); // s169: the gods' reward scene on demand
+            else if (game == GameId.P3 && Environment.GetCommandLineArgs().Contains(TestParty.P3AstralSwitch))
+                TestParty.P3Defeat(_session); // s169: the Astral Plane on demand
+            else if (game == GameId.P3 && TestParty.P3ScrollItem(Environment.GetCommandLineArgs()) is int scroll)
+                TestParty.GiveP3Scroll(_session, scroll); // s169: a scroll to read (126: Scroll IV's map)
+            else if (game == GameId.P3 && TestParty.P3PlaneCell(Environment.GetCommandLineArgs()) is { } planeCell)
+                TestParty.PutOnP3Plane(_session, planeCell); // s169: a plane's map (DOS: CGA palette 1)
             else if (game == GameId.P2 && Environment.GetCommandLineArgs().Contains(TestParty.P2VictorySwitch))
                 TestParty.RunP2Ending(_session);
             else if (Environment.GetCommandLineArgs().Contains(TestParty.FieldDeadSwitch))
@@ -393,6 +401,45 @@ public partial class Game1 : Game
     }
 
     /// <summary>The game tab's graphics pack if it is present and drawable, else the game's default pack.</summary>
+    /// <summary>s169: the pack's <see cref="GraphicsPack.ScenePalettes"/> keys (III DOS's CGA palette 1 screens, FORMAT.md section 10).</summary>
+    private const string SceneDungeon = "dungeon", ScenePlane = "plane", SceneCombatField = "combat_field",
+        SceneReward = "reward", SceneAstral = "astral";
+
+    /// <summary>s169: the screen key of the frame being drawn (the last screen drawn names it), or null.</summary>
+    private string? _frameScene;
+
+    private readonly Dictionary<(GraphicsPack Pack, string Scene), ScreenPalette?> _scenePalettes = new();
+
+    /// <summary>
+    /// s169: the frame palette for screen <paramref name="scene"/> when the pack shows it in another palette than its
+    /// pictures are cut in (<see cref="GraphicsPack.ScenePalettes"/>): every pixel takes the cut palette's nearest
+    /// colour's index, shown in the screen's palette, as CGA's palette register does for the whole screen; else null.
+    /// </summary>
+    private ScreenPalette? ScenePaletteFor(string? scene)
+    {
+        if (scene is null || _assets?.Pack is not { CutPalette: { } cut } pack
+            || pack.ScenePalettes.GetValueOrDefault(scene) is not { } shown || shown == cut)
+            return null;
+        if (!_scenePalettes.TryGetValue((pack, scene), out var palette))
+            _scenePalettes[(pack, scene)] = palette =
+                ScreenPalette.Mapped(pack.Palettes[cut], pack.Palettes[shown]);
+        return palette;
+    }
+
+    /// <summary>
+    /// s169: the screen key of what the mode view shows (<see cref="ScenePaletteFor"/>): III DOS's dungeon map
+    /// (ovl4 <c>0x7dd</c>), a plane's map (root <c>0x79e</c>: any map but Scandor's), the fight's field (root
+    /// <c>0x1080a</c>; not the orders screen, <c>0xf9ca</c>); null elsewhere.
+    /// </summary>
+    private string? ModeScene(GameSession s) => ViewMode(s) switch
+    {
+        GameMode.Dungeon => SceneDungeon,
+        GameMode.Overworld when s.Overworld.RegionId != Phantasie3Campaign.Scandor && s.Game == GameId.P3 => ScenePlane,
+        GameMode.Combat when _combatUi.FieldRun is not null
+            || (!_combatUi.AmigaOrdersShown && _combatUi.AmigaFieldMenuShown) => SceneCombatField, // as the overlays pick
+        _ => null,
+    };
+
     private GraphicsPack? ChosenPack(GameId game) =>
         _packs?.Find(_settings.Game(game).Graphics ?? "") is { } chosen && FontSources.CanDraw(chosen)
             ? chosen
@@ -1358,6 +1405,7 @@ public partial class Game1 : Game
             return;
         }
         BeginHits(); // the draw routines register what the mouse can hit (nothing extra is drawn)
+        _frameScene = null; // s169: each screen below names its own (III DOS's CGA palette 1 screens)
         UiOverlays.Screen = _screen; // a scrolling box's content is clipped to it (UiOverlays.Clipped)
         _screen.PaletteOverride = null; // s157: a screen that needs its own palette sets it while it draws
         if (_p4 is not null)
@@ -1401,6 +1449,7 @@ public partial class Game1 : Game
             base.Draw(gameTime);
             return;
         }
+        _frameScene = ModeScene(_session);
         DrawModeView(_session, _pixel, _assets);
         var messageShows = _messageBand.Shows(_message, gameTime.TotalGameTime.TotalSeconds, UiOverlays.TownMessageSeconds);
         if (P1MapScreen(_session) is { } p1Map)
@@ -1548,6 +1597,7 @@ public partial class Game1 : Game
             else if (_session.Game == GameId.P3 && prompt.Kind == SessionPromptKind.DefeatOutcome
                      && _assets?.SceneAstralPlane is not null && _prompts.ShownDefeat is { } astralDefeat)
             {
+                _frameScene = SceneAstral; // s169: III DOS shows the Astral Plane in CGA palette 1 (root 0x1eba)
                 var lines = shown.Lines;
                 var index = _defeatPager.Index(prompt.Kind, lines);
                 var fates = DefeatScene.FatesShown(lines.Count(l => !string.IsNullOrWhiteSpace(l)), index,
@@ -1583,6 +1633,8 @@ public partial class Game1 : Game
                     _rewardEdgesFor = reward;
                 }
                 var rewardPage = _defeatPager.Index(prompt.Kind, pages);
+                // s169: III DOS: the intro, its flashes and the god in CGA palette 1 (ovl4 0x3e), the speech's page in 0
+                _frameScene = rewardPage < GodsRewardScene.SpeechPage ? SceneReward : null;
                 var now = gameTime.TotalGameTime.TotalSeconds;
                 _rewardClock.Observe(reward, rewardPage, now, _assets.RewardScene?.Flash, n => Random.Shared.Next(n));
                 scene = UiOverlays.DrawRewardScene(_spriteBatch, _pixel, _assets, reward, rewardPage,
@@ -1608,6 +1660,7 @@ public partial class Game1 : Game
             // or "Press a number" at the foot; the frame's random edges picked once per page.
             else if (EventPageFor(prompt) is { } eventPage && _assets?.ScrollFrame is { } pageFrame)
             {
+                _frameScene = null; // s169: III DOS's text page selects palette 0 (root 0x4a3)
                 _defeatSceneLines = null; // no pager: a key answers the page
                 _defeatPager.Reset();
                 _pageEdges ??= pageFrame.Pick(n => Random.Shared.Next(n));
@@ -1641,7 +1694,7 @@ public partial class Game1 : Game
                 scene = UiOverlays.DrawAmigaWindow(_spriteBatch, _pixel, _assets!, _assets!.KeepWindows!, shareView,
                     _mouse.LeftDown ? _mouse.Position : null);
             }
-            // s163: III's "Who will disarm the trap?" in the Amiga's window 6 (0x127ce(92)).
+            // s163: III's `core.p3.who_will_disarm` in the Amiga's window 6 (0x127ce(92)).
             else if (AmigaDisarmWindowFor(prompt) is { } disarmView)
             {
                 _defeatSceneLines = null;
@@ -1684,9 +1737,24 @@ public partial class Game1 : Game
                 UiOverlays.Hits?.Clear();
                 UiOverlays.Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, 200)) { Click = [Keys.Enter] });
             }
-            // A picture scroll (III's Scroll IV) shows the pack's full-screen picture, as the Amiga does (0x1f7ee).
-            else if (modal is UseItemDialog { PictureItem: { } scrollItem } && _assets?.GetScrollPicture(scrollItem) is { } scrollPicture)
-                _spriteBatch.Draw(scrollPicture, new Rectangle(0, 0, 320, 200), Color.White);
+            // A picture scroll (III's Scroll IV) shows the pack's full-screen picture, as the Amiga does (0x1f7ee); s169: a
+            // pack whose page places it (III DOS, root 0x124) draws the text page's frame and the picture on it.
+            else if (modal is UseItemDialog { PictureItem: { } scrollItem } pictureDialog
+                     && _assets?.GetScrollPicture(scrollItem) is { } scrollPicture)
+            {
+                if (_assets.ScrollFrame is { PictureAt: [var px, var py] } pictureFrame)
+                {
+                    if (_scrollEdges is null || _scrollEdgesRead != pictureDialog.ScrollReads)
+                    {
+                        _scrollEdges = pictureFrame.Pick(n => Random.Shared.Next(n));
+                        _scrollEdgesRead = pictureDialog.ScrollReads;
+                    }
+                    UiOverlays.DrawScrollFrame(_spriteBatch, _pixel, _assets, pictureFrame, _scrollEdges, []);
+                    _spriteBatch.Draw(scrollPicture, new Rectangle(px, py, scrollPicture.Width, scrollPicture.Height), Color.White);
+                }
+                else
+                    _spriteBatch.Draw(scrollPicture, new Rectangle(0, 0, 320, 200), Color.White);
+            }
             // A text scroll on the pack's parchment (III Amiga 0x1e2c2), its random edges picked once per reading.
             else if (modal is UseItemDialog { ScrollItem: not null } reading && _assets?.ScrollFrame is { } frame)
             {
@@ -1786,6 +1854,8 @@ public partial class Game1 : Game
                 _mouse.LeftDown ? _mouse.Position : null, FontSources.ForRole(_assets.Pack, UiOverlays.P2AlertFontRole));
         }
         _spriteBatch.End();
+        if (ScenePaletteFor(_frameScene) is { } scenePalette)
+            _screen.PaletteOverride = scenePalette; // s169: III DOS's CGA palette 1 screens
         _screen.EndAndPresent(_spriteBatch, _pixel);
         EndHits();
 
@@ -2532,7 +2602,7 @@ public partial class Game1 : Game
     }
 
     /// <summary>
-    /// s163: I Amiga's town Printout (h29 <c>+0x10ba</c>) asks "PREPARE PRINTER[O.K.|ABORT]" first (h29 <c>+0x1f6</c>, its
+    /// s163: I Amiga's town Printout (h29 <c>+0x10ba</c>) asks `p1field.req.prepare_printer` first (h29 <c>+0x1f6</c>, its
     /// beep before it): O.K. prints (a failed write asks again), ABORT prints nothing. False: no requester (the DOS path,
     /// another game, an empty party), the Printout runs at once.
     /// </summary>
@@ -2565,7 +2635,7 @@ public partial class Game1 : Game
     {
         if (s.Party.Members.Count == 0)
             return UiText.S("game.no_party");
-        // s162: I Amiga's "PREPARE PRINTER[O.K.|ABORT]" beeps first (h29 +0x1f6 -> h26 +0x6e); here without its requester
+        // s162: I Amiga's `p1field.req.prepare_printer` beeps first (h29 +0x1f6 -> h26 +0x6e); here without its requester
         // (a pack without map_requesters.town.prepare_printer).
         if (P1MapCues && _assets!.Pack!.CueSounds!.Printout is int beep)
             PlayP1CueInTurn(beep);
@@ -2718,7 +2788,7 @@ public partial class Game1 : Game
     private void AfterFightEnded(GameSession s)
     {
         // s163: II ST's round has played line by line on the combat screen (P2CombatLineRun), and the ST's defeat scene
-        // opens on "YOUR PARTY HAS BEEN DEFEATED" (0x12a16): no report pages in front of it, which put the ghost row and
+        // opens on `core.defeat.your_party_has_been_defeated` (0x12a16): no report pages in front of it, which put the ghost row and
         // sound 23 one key per line later (seen live on Xvfb).
         if (_combatUi.P2Lines?.Invoke() is not null)
             return;

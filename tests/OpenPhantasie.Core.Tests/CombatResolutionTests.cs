@@ -3,7 +3,7 @@ using OpenPhantasie.Data;
 
 namespace OpenPhantasie.Core.Tests;
 
-public class CombatResolutionTests
+public partial class CombatResolutionTests
 {
     /// <summary>Yields a fixed sequence of Next() results, then repeats the last.</summary>
     private sealed class ScriptedRandomSource : IRandomSource
@@ -675,28 +675,6 @@ public class CombatResolutionTests
         var sack = new LootSack { Experience = CombatEncounter.XpPoolCap - 20 };
         sack.DepositRewards(100, 0);
         Assert.Equal(655_350, sack.Experience);
-    }
-
-    [OriginalDataFact]
-    public void Session_EndOfCombat_DepositsEncounterTotals_D053()
-    {
-        var data = GameDataRepository.LoadPhantasie1();
-        var session = GameSessionFactory.Create(data, new SeededDosRandomSource(11));
-        session.OpenGuild();
-        var hero = session.CreateAndEnroll("Beggar", Race.Human, CharacterClass.Fighter);
-        Assert.True(session.TryAddToParty(hero, out _));
-        session.DepartGuildToWilderness();
-        session.BeginWildernessCombat(data.Monsters.First(m => m.HpBase <= 8).Id);
-        session.Combat!.RewardXp = 308;
-        var sleeper = new Character { Name = "Z", Status = CharacterStatus.Sleep, HpCur = 5, HpMax = 5 };
-        session.Party.Members.Add(sleeper); // DOS would pay 308 / 20 = 15 → 150 each, pool 300
-        session.ChoosePartyOption(PartyOption.BegMercy);
-
-        // Manual (D-053): the whole total is shown and pooled; the split waits for town entry.
-        Assert.Null(session.Combat);
-        Assert.Equal(308, session.Sack.Experience);
-        Assert.Contains("308 EXPERIENCE POINTS AND 0 GOLD", session.Log);
-        Assert.DoesNotContain(session.Log, l => l.StartsWith("EACH SURVIVOR", StringComparison.Ordinal));
     }
 
     [OriginalDataFact]

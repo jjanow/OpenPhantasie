@@ -51,16 +51,18 @@ BODY_PIECES = [(4, 8, 0, "head"), (1, 0, 8, "right-arm"), (5, 8, 8, None), (9, 1
 BODY_STATES = 4
 
 
-def cga(data: bytes, width: int, height: int) -> Image.Image:
+def cga(data: bytes, width: int, height: int, clear_zero: bool = False) -> Image.Image:
+    """clear_zero: colour 0 left transparent (an OR blit, the flash root 0x1537), the rest opaque."""
     per_row = width // 4
     if len(data) < per_row * height:
         raise ValueError(f"{len(data)} bytes for {width}x{height}")
-    im = Image.new("RGB", (width, height))
+    im = Image.new("RGBA" if clear_zero else "RGB", (width, height))
     px = im.load()
     for y in range(height):
         for x in range(width):
             b = data[y * per_row + x // 4]
-            px[x, y] = PALETTE[(b >> (6 - 2 * (x % 4))) & 3]
+            c = (b >> (6 - 2 * (x % 4))) & 3
+            px[x, y] = (PALETTE[c] + ((255 if c else 0),)) if clear_zero else PALETTE[c]
     return im
 
 
@@ -192,13 +194,15 @@ def main() -> None:
         for i, (piece, x, y, area) in enumerate(BODY_PIECES):
             off = SHAPE_BODY + 192 * state + 16 * piece
             save(cga(shapes[off:off + 16], 8, 8), f"body/{9 * state + i}.png", piece=piece, state=state, area=area)
-    # Blocks not drawn by the pack yet (FORMAT.md section 10: their meaning is [?]).
+    # The flash (root 0x1537, an OR blit: colour 0 transparent) and the text page's frame (root 0x4a3 / 0x636);
+    # FORMAT.md section 10.
     for k in range(3):
         off = SHAPE_SPARKLE + 144 * k
-        save(cga(shapes[off:off + 144], 24, 24), f"shapes/frame24-{k}.png", note="root 0x15cf animation frame [?]")
+        save(cga(shapes[off:off + 144], 24, 24, clear_zero=True), f"shapes/frame24-{k}.png",
+             note="the flash's frame k (root 0x1537), colour 0 transparent")
     for k in range(15):
         off = SHAPE_GLYPHS8 + 16 * k
-        save(cga(shapes[off:off + 16], 8, 8), f"shapes/glyph8-{k:02d}.png", note="root 0x636 glyph [?]")
+        save(cga(shapes[off:off + 16], 8, 8), f"shapes/glyph8-{k:02d}.png", note="the text page's frame glyph k (root 0x4a3)")
 
     # Monsters, by monster id (CREATURE.DAT: 80 records of 38 B, name in the first 14, byte 27 the picture).
     creature = (SRC / "CREATURE.DAT").read_bytes()

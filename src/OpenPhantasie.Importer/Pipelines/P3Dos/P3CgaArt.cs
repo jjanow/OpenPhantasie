@@ -68,8 +68,11 @@ public static class P3CgaArt
         return null;
     }
 
-    /// <summary>2-bpp rows (4 pixels a byte, high bits first) to an image.</summary>
-    public static RgbaImage Cga(ReadOnlySpan<byte> data, int width, int height)
+    /// <summary>
+    /// 2-bpp rows (4 pixels a byte, high bits first) to an image; with <paramref name="clearZero"/> colour 0 stays
+    /// transparent (the flash, root <c>0x1537</c>: an OR blit).
+    /// </summary>
+    public static RgbaImage Cga(ReadOnlySpan<byte> data, int width, int height, bool clearZero = false)
     {
         var perRow = width / 4;
         if (data.Length < perRow * height)
@@ -78,8 +81,9 @@ public static class P3CgaArt
         for (var y = 0; y < height; y++)
             for (var x = 0; x < width; x++)
             {
-                var c = Palette[(data[y * perRow + x / 4] >> (6 - 2 * (x % 4))) & 3];
-                im.Set(x, y, c.R, c.G, c.B);
+                var i = (data[y * perRow + x / 4] >> (6 - 2 * (x % 4))) & 3;
+                var c = Palette[i];
+                im.Set(x, y, c.R, c.G, c.B, clearZero && i == 0 ? (byte)0 : (byte)255);
             }
         return im;
     }
@@ -214,7 +218,7 @@ public static class P3CgaArt
             for (var i = 0; i < BodyPieces.Length; i++)
                 images[$"body/{9 * set + i}.png"] = Cga(shapes.AsSpan(ShapeBody + 192 * set + 16 * BodyPieces[i], 16), 8, 8);
         for (var k = 0; k < 3; k++)
-            images[$"shapes/frame24-{k}.png"] = Cga(shapes.AsSpan(ShapeSparkle + 144 * k, 144), 24, 24);
+            images[$"shapes/frame24-{k}.png"] = Cga(shapes.AsSpan(ShapeSparkle + 144 * k, 144), 24, 24, clearZero: true);
         for (var k = 0; k < 15; k++)
             images[$"shapes/glyph8-{k:00}.png"] = Cga(shapes.AsSpan(ShapeGlyphs8 + 16 * k, 16), 8, 8);
 

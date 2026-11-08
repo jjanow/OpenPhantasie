@@ -105,6 +105,18 @@ public class P3DosPipelineTests
     }
 
     [Fact]
+    public void Cga_ClearZero_LeavesColour0Transparent()
+    {
+        // s169: the flash (root 0x1537) is an OR blit: colour 0 never paints; the rest is palette 0, opaque.
+        byte[] row = [0b00_01_10_11];
+        var plain = P3CgaArt.Cga(row, 4, 1);
+        var flash = P3CgaArt.Cga(row, 4, 1, clearZero: true);
+        Assert.Equal(new byte[] { 0, 0, 0, 255, 0x55, 0xFF, 0x55, 255 }, plain.Pixels[..8]);
+        Assert.Equal(new byte[] { 0, 0, 0, 0, 0x55, 0xFF, 0x55, 255, 0xFF, 0x55, 0x55, 255, 0xFF, 0xFF, 0x55, 255 },
+            flash.Pixels);
+    }
+
+    [Fact]
     public void Unpack_RowOrder_FillsRowByRow()
     {
         byte[] packed = [1, 2, 0x11, 0x22, 0, 0x7E, 0x3E, 0x00];

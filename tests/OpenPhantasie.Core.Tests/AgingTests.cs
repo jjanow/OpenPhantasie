@@ -3,7 +3,7 @@ using OpenPhantasie.Data;
 
 namespace OpenPhantasie.Core.Tests;
 
-public class AgingTests
+public partial class AgingTests
 {
     private static CharacterCreationTables Tables => GameDataRepository.LoadPhantasie1().CreationTables;
 
@@ -196,14 +196,6 @@ public class AgingTests
         for (var x = 19; x <= 21; x++)
             Assert.True(region.GetRaw(x, y) < OverworldRegion.FogOffset, $"({x},{y}) still fogged");
     }
-
-    [OriginalDataTheory]
-    [InlineData(1, "THAT IS THE OCEAN")]
-    [InlineData(16, "THAT IS THE OCEAN")]
-    [InlineData(17, "THE RIVER STYX")]
-    [InlineData(19, "THE RIVER STYX")]
-    public void BlockedStep_Message_ByRegion(int region, string text) =>
-        Assert.Equal(text, GameSession.BlockedMessage(region)); // [C] OV2 0x618e, [D✓] s65
 
     [OriginalDataFact]
     public void GameSession_LeaveTown_RefusedWithEmptyParty()

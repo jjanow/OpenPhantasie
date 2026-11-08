@@ -322,7 +322,7 @@ public sealed partial class P4TownLoop
     public IReadOnlyList<P4InnRow>? InnRows { get; private set; }
 
     /// <summary>
-    /// s165: <c>_gatebank</c>'s share-out window (<c>_wopen(-1, 160, 132, 312, 160, 1, "経験値の分配")</c>) while the entry's
+    /// s165: <c>_gatebank</c>'s share-out window (<c>_wopen(-1, 160, 132, 312, 160, 1, p4x.0x3feaf)</c>) while the entry's
     /// experience shares are asked (the pool, no gains yet) and through its SPACE wait after them (each member's gain);
     /// else null. The entry's gold deposit (D4-030, manual only) has no window of the original's.
     /// </summary>

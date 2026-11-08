@@ -98,7 +98,6 @@ public class ContainerTests
     [InlineData("p1-dos-1987", "reverse-engineering/dos/original-files")]
     [InlineData("p1-dos-bonus-1991", "reverse-engineering/dos/original-images/phantasie1/bonus-v1.1-1991-wizardworks")]
     [InlineData("p1-dos-bonus-1991", "reverse-engineering/dos/original-images/phantasie1/memorial-set-gog")]
-    [InlineData("p1-amiga-1.0", "reverse-engineering/amiga/original-images/phantasie1/phantasie-v1.0-1987-ssi.adf")]
     [InlineData("p3-dos-1988", "reverse-engineering/dos/original-images/phantasie3/phantasie3-1988-ssi-360k.ima")]
     [InlineData("p3-amiga-1.0", "reverse-engineering/amiga/original-images/phantasie3/phantasie3-v1.0-1987-ssi.adf")]
     [InlineData("kickstart-1.3", "reverse-engineering/amiga/original-images/kickstart")]
@@ -131,14 +130,14 @@ public class ContainerTests
     }
 
     [RequiresFilesTheory("reverse-engineering/apple2/original-images")]
-    [InlineData("p2-apple2", "reverse-engineering/apple2/original-images/phantasie2/woz-original")]
+    [InlineData("p1-apple2", "reverse-engineering/apple2/original-images/phantasie1/woz-original")]
     [InlineData("p1-c64", "reverse-engineering/c64/original-images/phantasie1/en")]
     [InlineData("p4-pc98", "reverse-engineering/pc98/original-images/phantasie4")]
     public void Recognises_UnsupportedVersions(string profile, string source)
     {
         var scan = ImportRunner.Scan([Repo.Path(source)]);
         var d = Assert.Single(scan.Detections, x => x.Profile.Id == profile);
-        Assert.NotEqual(DetectionStatus.Ready, d.Status); // the Apple II .woz is a supported version's unreadable image
+        Assert.Equal(DetectionStatus.Recognised, d.Status); // the Apple I .woz is read (WozImage) but has no importer
         Assert.Empty(scan.Importable);
     }
 

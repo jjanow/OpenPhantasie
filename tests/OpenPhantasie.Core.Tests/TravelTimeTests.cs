@@ -4,7 +4,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Core.Tests;
 
 /// <summary>P0.3 (s36): travel-time counter <c>[0x63f2]</c>, town-entry aging, night encounter, wilderness inn.</summary>
-public class TravelTimeTests
+public partial class TravelTimeTests
 {
     private static readonly GameDataRepository Data = GameDataRepository.LoadPhantasie1();
 
@@ -246,23 +246,6 @@ public class TravelTimeTests
     }
 
     [OriginalDataFact]
-    public void AfterPrep_Heard_NobodySleeps_DeadWatcher_EveryoneSleeps()
-    {
-        var a = Member("a");
-        var b = Member("b");
-        var heard = NightEncounter.ApplyAfterPrep(PartyOf(a, b), new NightEncounterRoll(0, 0, Heard: true));
-        Assert.Equal(["a IS ON WATCH AND HEARS THE MONSTERS"], heard);
-        Assert.Equal(CharacterStatus.Ok, b.Status);
-
-        var dead = Member("dead", CharacterStatus.Dead);
-        var c = Member("c");
-        var none = NightEncounter.ApplyAfterPrep(PartyOf(dead, c), new NightEncounterRoll(0, 0, Heard: false));
-        Assert.Empty(none);
-        Assert.Equal(CharacterStatus.Sleep, c.Status);
-        Assert.Equal(CharacterStatus.Dead, dead.Status);
-    }
-
-    [OriginalDataFact]
     public void GameSession_RandomEncounterAtNight_StartsFightWithSleepingParty()
     {
         var t = Data.CreateTraversal();
@@ -319,32 +302,6 @@ public class TravelTimeTests
         Assert.Equal(200, party.GoldCarried);
         Assert.Equal(3, m.HpCur);
         Assert.Equal(500, m.AgeClock);
-    }
-
-    [OriginalDataFact]
-    public void Inn_Stay_Charges256_RefillsAll_DeadGetNoLine_AgesAllByOne_D008_D047()
-    {
-        var caster = Member("averylongname");
-        caster.CastSinceRest = true;
-        caster.MpCeiling = 12; // gap 2: passes when roll < 40 (D-046)
-        var sleeper = Member("sleeper", CharacterStatus.Sleep);
-        var dead = Member("dead", CharacterStatus.Dead);
-        var party = PartyOf(caster, sleeper, dead);
-        party.GoldCarried = 200;
-        var sack = new LootSack { Gold = 100 };
-
-        var r = WildernessInn.Stay(party, sack, new Scripted(39));
-
-        Assert.Equal(TownTransactionKind.Ok, r.Kind);
-        Assert.Equal(0, party.GoldCarried);
-        Assert.Equal(44, sack.Gold);
-        Assert.Equal(11, caster.MagicMax);
-        Assert.False(caster.CastSinceRest);
-        Assert.Equal((11, 20), (caster.MagicCur, caster.HpCur));
-        Assert.Equal((10, 20, CharacterStatus.Sleep), (sleeper.MagicCur, sleeper.HpCur, sleeper.Status));
-        Assert.Equal((10, 20, CharacterStatus.Dead), (dead.MagicCur, dead.HpCur, dead.Status)); // D-047 manual
-        Assert.All(party.Members, m => Assert.Equal(501, m.AgeClock)); // D-008: +1 age unit, no time
-        Assert.Equal("IN THE INN:; averylong GAINS MORE MAGIC; sleeper   IS RESTING", r.Message);
     }
 
     [Theory]

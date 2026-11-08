@@ -11,7 +11,7 @@ namespace OpenPhantasie.Client.Tests;
 /// combat resurrection's cleared line; the defeat door's raw tone, the 5th defeat's sign and the z6font lines; the water's
 /// stored colours after a redraw.
 /// </summary>
-public class P1MapHoldsTests
+public partial class P1MapHoldsTests
 {
     private static GraphicsPack Pack => GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")!;
 
@@ -145,46 +145,6 @@ public class P1MapHoldsTests
         Assert.Contains(run.Lines, x => x.Text == " " && x.PrintMs >= shown.EndMs); // +0xb80(" ", -1) after its wait
         Assert.Equal(line, run.At(shown.PrintMs + 1).Text);
         Assert.Equal(" ", run.At(shown.EndMs + 1).Text);
-    }
-
-    [OriginalDataFact]
-    public void Defeat_RawToneUnderTheDoor_TheSignOnThe5th_AndZ6Font()
-    {
-        var pack = Pack;
-        var l = pack.DefeatScreen!;
-        Assert.Equal((0, (int?)6000, 60), (l.ToneChannel, l.TonePeriod, l.ToneVolume)); // h89 +0x7ca
-        Assert.Equal(((int?)5, 139, 39, 180), (l.SignDefeat, l.SignX, l.SignY, l.SignPolls)); // h32 +0x642..+0x678
-        Assert.Equal("amiga-z6font-6", l.Font);
-        var defeat = new PartyDefeatResult
-        {
-            Fates = [(new Character { Name = "A", Race = Race.Human }, DefeatFate.Destroyed)],
-            Log = ["YOUR PARTY HAS BEEN DEFEATED", "YOU HAVE ARRIVED AT THE ASTRAL PLANE", "THE GREAT DEMON APPEARS AND SPEAKS:",
-                   "A YOU HAVE BEEN DESTROYED"],
-        };
-        var fx = pack.DosoundEffects!;
-        var image = fx.TryLoadImage()!;
-        var plain = new P1DefeatScreen(l, defeat, n => fx.Hold(image, n), defeatsThisRun: 4);
-        var fifth = new P1DefeatScreen(l, defeat, n => fx.Hold(image, n), defeatsThisRun: 5);
-        // 23, then the tone from the lead to the door's last step, then 20.
-        var (start, end) = plain.Tone;
-        var sounds = plain.SoundStarts();
-        Assert.True(sounds[0].Sound == 23 && sounds[0].End <= start);
-        Assert.Equal(plain.DoorAt - l.DoorLeadSeconds, start, 6);
-        Assert.Equal(plain.DoorAt + l.DoorSeconds, end, 6);
-        Assert.True(sounds[1].Sound == 20 && sounds[1].At >= end);
-        Assert.False(plain.At(end + 0.01).Sign);
-        // The 5th: the sign after the door, 180 polls, then the Delay, 20 and the face over it.
-        Assert.True(fifth.At(end + 0.01).Sign);
-        var shift = l.SignPolls * l.PollSeconds;
-        Assert.Equal(plain.SoundStarts()[1].At + shift, fifth.SoundStarts()[1].At, 6);
-        Assert.False(fifth.At(fifth.DoneAt - 0.01).Sign);
-        Assert.Equal(plain.DoneAt + shift, fifth.DoneAt, 6);
-        // A key ends the sign's wait.
-        fifth.Key(end + 0.5);
-        Assert.Equal(plain.SoundStarts()[1].At + 0.5, fifth.SoundStarts()[1].At, 6);
-        var tone = AmigaDosoundScore.Tone(0, 6000, 60, 359);
-        Assert.Equal(new PaulaNote(true, 6000, 60), tone.Steps.Single().Channels[0]);
-        Assert.False(tone.Steps[0].Channels[2].Sent);
     }
 
     [OriginalDataFact]

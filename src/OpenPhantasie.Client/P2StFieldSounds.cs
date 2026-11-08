@@ -58,7 +58,7 @@ public sealed class P2DefeatSounds
     /// The sounds due this frame for the defeat page <paramref name="kind"/> showing <paramref name="frame"/> at
     /// <paramref name="now"/> seconds, with <paramref name="fatesShown"/> fate lines printed
     /// (<see cref="DefeatScene.FatesShown"/>). Any other page resets. <paramref name="bannerShown"/> (s165): the defeat page
-    /// shows its line "YOUR PARTY HAS BEEN DEFEATED" (a step's report lines paged in front of it hold the line's hold back).
+    /// shows its line `core.defeat.your_party_has_been_defeated` (a step's report lines paged in front of it hold the line's hold back).
     /// </summary>
     public IReadOnlyList<Step> Observe(FieldDefeatSounds map, SessionPromptKind kind, DefeatSceneFrame frame, int fatesShown,
         double now = 0, bool bannerShown = true)

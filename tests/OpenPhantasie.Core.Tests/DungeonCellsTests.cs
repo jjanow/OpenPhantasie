@@ -522,21 +522,6 @@ public partial class DungeonCellsTests
         Assert.Equal((1, 0), (s.X, s.Y));
     }
 
-    [OriginalDataFact]
-    public void Lock_NotPicked_JamsForGood_AndStepsBack()
-    {
-        var (t, s) = OneCell(0xc6);
-        var party = PartyOf(Member("A", pick: 30));
-        var r = t.TryMove(s, CardinalDirection.East, party, new Rolls(30)); // strict <
-        Assert.Equal("NO ONE CAN PICK THE LOCK", r.Message);
-        Assert.True(r.SteppedBack);
-        Assert.Equal((0, 0), (s.X, s.Y));
-        Assert.Equal(0xc7, t.LevelOf(s).Get(1, 0));
-        var again = t.TryMove(s, CardinalDirection.East, party, new Rolls()); // kind 15: no roll
-        Assert.Equal("NO ONE CAN PICK THE LOCK", again.Message);
-        Assert.Equal((0, 0), (s.X, s.Y));
-    }
-
     [Fact]
     public void OpenDoor_DoesNothing()
     {
@@ -554,45 +539,11 @@ public partial class DungeonCellsTests
         Assert.Equal(new SurpriseFlags(true, 0), r.Surprise); // H: 51 > 50 → 0; F stays 1 (nobody heard)
     }
 
-    [OriginalDataFact]
-    public void Ambush_Heard_AsksGoBack()
-    {
-        var (t, s) = OneCell(0xbc);
-        var r = t.TryMove(s, CardinalDirection.East, PartyOf(Member("A", listen: 10)), new Rolls(9));
-        Assert.Equal(0, r.ListenerIndex);
-        Assert.Equal("A HEARS MONSTERS. GO BACK ?", r.Message);
-        Assert.Null(r.MonsterId);
-
-        var stay = DungeonTraversal.ResolveHeardMonsters(s, t.LevelOf(s), goBack: false, new Rolls(0, 51));
-        Assert.Equal(new SurpriseFlags(false, 1), stay.Surprise); // stalled: H 0 ≤ 50 → 1, F 51 > 50 and heard → 0
-        var back = DungeonTraversal.ResolveHeardMonsters(s, t.LevelOf(s), goBack: true, new Rolls());
-        Assert.True(back.SteppedBack);
-        Assert.Equal((0, 0), (s.X, s.Y));
-    }
-
     private static GameSession RoundTrip(GameSession s)
     {
         var copy = GameSessionFactory.Create(Data, new SeededDosRandomSource(1));
         copy.ApplySnapshot(SessionCodec.ReadJson(SessionCodec.WriteJson(s.CaptureSnapshot())));
         return copy;
-    }
-
-    [OriginalDataFact]
-    public void Session_CastSpell_MonsterEval_D056_ReadsTheDungeonWanderingPool()
-    {
-        // D-056 (manual): GameSession.CastSpell hands the level's wandering range T..T+12 to MONSTER EVAL.; the first roll
-        // (0..99) ≥ 20 reads it right. (DOS: 2·tier + 2, no roll.)
-        var rng = new Rolls();
-        var s = SessionInDng1(rng, out var hero);
-        hero.SpellsKnown[SpellId.MonsterEval] = 1;
-        hero.MagicMax = hero.MagicCur = 20;
-        var tier = DungeonEncounters.Tier(s.Dungeon!.Level!);
-        var ids = Enumerable.Range(tier, 13).Where(id => Data.Monsters.Any(m => m.Id == id));
-        var expected = (int)Math.Round(ids.Average(id => Data.GetMonster(id).Level), MidpointRounding.AwayFromZero);
-        rng.Then(50);
-        var r = s.CastSpell(hero, SpellId.MonsterEval);
-        Assert.True(r.Success, r.Message);
-        Assert.Equal($"MONSTERS ARE AT LEVEL {Math.Max(1, expected)}", r.Message);
     }
 
     [OriginalDataFact]

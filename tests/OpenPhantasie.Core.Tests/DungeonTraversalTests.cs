@@ -3,7 +3,7 @@ using OpenPhantasie.Data;
 
 namespace OpenPhantasie.Core.Tests;
 
-public class DungeonTraversalTests
+public partial class DungeonTraversalTests
 {
     private static DungeonTraversal Traversal =>
         GameDataRepository.LoadPhantasie1().CreateDungeonTraversal();
@@ -36,34 +36,6 @@ public class DungeonTraversalTests
         Assert.Equal(0, state.Y);
         Assert.Equal(0xd7, traversal.GetLevel(1).Get(20, 0));
         Assert.Equal(DungeonFeatureKind.ExitOrStairs, DungeonLevel.Classify(0xd7));
-    }
-
-    [OriginalDataFact]
-    public void MoveIntoWall_PrintsThatIsTheWall()
-    {
-        var traversal = Traversal;
-        var state = new DungeonState();
-        traversal.Enter(state, 1, 20, 0);
-
-        // West of entrance is wall (0)
-        var result = traversal.TryMove(state, CardinalDirection.West);
-        Assert.Equal(DungeonMoveKind.BlockedWall, result.Kind);
-        Assert.Equal("THAT IS THE WALL", result.Message);
-        Assert.Equal(20, state.X);
-        Assert.Equal(0, state.Y);
-    }
-
-    [OriginalDataFact]
-    public void StairsCell_OnlyPrintsTheDosText_s49()
-    {
-        // OV2 0x2951: sprintf "`core.dungeon.stairs_from_level_x_to_x` %-2d TO %-2d" (b − 0xd9, b − 0xd8), print, return 3 — no level change.
-        var traversal = Traversal;
-        var state = new DungeonState { LevelId = 5, Level = traversal.GetLevel(5).CloneAsBuffer(), X = 4, Y = 7 };
-        Assert.Equal(0xda, state.Level.Get(4, 8));
-        var r = traversal.TryMoveAbsolute(state, 4, 8);
-        Assert.Equal(DungeonMoveKind.TriggerStairs, r.Kind);
-        Assert.Equal("STAIRS FROM LEVEL 1  TO 2", r.Message);
-        Assert.Equal((5, 4, 8), (state.LevelId, state.X, state.Y));
     }
 
     [OriginalDataFact]

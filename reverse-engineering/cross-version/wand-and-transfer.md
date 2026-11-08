@@ -170,6 +170,7 @@ with `--WAND--` as I id 150 (PC-98 utility img near `0x7b00`) [C]. It is only us
 - MSX2 transfer: none found [?].
 - Amiga III: not decoded [?].
 - DOS III dungeon events: not decoded [?].
-- Apple II `.woz` originals: only the 4am crack was read.
+- Apple II `.woz` originals: only the 4am crack was read here (since s169 the `.woz` decodes; its files equal the crack's
+  but for `SSI.INIT` / `SSI.INIT2`, `QWERTY` and RDOS: `reverse-engineering/apple2/phantasie2/FORMAT.md` section 1).
 - C64 v1.2 side B: not on IA.
 - Linking each Apple III script record to its message: not done [~].

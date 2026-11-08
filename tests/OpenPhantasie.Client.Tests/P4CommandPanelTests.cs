@@ -626,7 +626,7 @@ public class P4CommandPanelTests
         var pages = lists["_getmagic.8"].Head;
         Assert.Equal(["1", "2", "3", "4", "5", "6"], pages.Select(h => h.Key));
         Assert.Equal([0, 16, 32, 48, 64, 80], pages.Select(h => h.Y));
-        Assert.Equal("p4x.0x44c38", pages[5].Label); // "6 :やめる"
+        Assert.Equal("p4x.0x44c38", pages[5].Label); // the Quit line
         // s152: the combat list's category lines (_spelltop(0), 0x44A98[0-5]) over the same window and rows.
         var combat = lists["_getmagic.0"];
         Assert.Equal((496, 32, 136, 360), combat.Window);

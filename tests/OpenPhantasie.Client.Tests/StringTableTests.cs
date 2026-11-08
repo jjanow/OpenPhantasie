@@ -121,36 +121,6 @@ public partial class StringTableTests
         Assert.Equal("Welcome to Pendragon. G enters the Guild.", P3.Get("game.welcome_to_pelnor_g_enters_the"));
     }
 
-    /// <summary>
-    /// s156 (Watch list "III guild / town lines"): where Core's refusal is DOS III's own condition, III's table says it in
-    /// DOS III's words (MAIN.EXE strings 411, 412, 409, 429; the Amiga's window 7 callers say the same, FORMAT.md 8.4).
-    /// </summary>
-    [OriginalDataTheory]
-    [InlineData("core.guild.party_is_full", "The party has 6 characters.", "Party is full (max 6).")]
-    [InlineData("core.guild.already_in_party", "This character is in the party.", "Already in the party.")]
-    [InlineData("core.guild.roster_full", "The character roster is full.", "Guild roster is full.")]
-    [InlineData("core.guild.learn_no_more", "You can learn no more at this time.", "You can't learn any more!")]
-    // s158: the town dispatch read key by key (Amiga 0xb1cc, DOS guild_menu 0xac21 / ovl2 learn 0x1d12, FORMAT.md 8.4).
-    [InlineData("core.guild.learn_cant_afford", "The party cannot afford anymore spells for this character.", "You can't afford it!")]
-    [InlineData("guild.no_one_to_drop", "The party is not assembled.", "No one to drop.")]
-    [InlineData("guild.add_members_to_a_party_first", "The party is not assembled.", "Add members to a party first.")]
-    [InlineData("guild.roster_empty", "The character roster is empty.", "No one to add.")]
-    [InlineData("cast.x_knows_no_spells", "This character knows no spells.", "{0} knows no spell that can be cast here.")]
-    [InlineData("useitem.x_carries_nothing", "This character is not carrying anything.", "{0} carries nothing.")]
-    public void P3GuildLines_AreDosIIIsOwn(string id, string p3, string p1)
-    {
-        Assert.Equal(p3, P3.Get(id));
-        Assert.Equal(p1, UiText.For(GameId.P1).Get(id));
-    }
-
-    /// <summary>s158: Core's III training refusal (Dead / Out, Undead, level 21) is DOS guild_menu item 1's S417.</summary>
-    [OriginalDataFact]
-    public void P3TrainingRefusal_IsS417()
-    {
-        Assert.Equal("This character is unable to do this.", P3.Get("core.p3.cannot_train"));
-        Assert.Equal(P3.Get("core.guild.party_not_assembled"), P3.Get("guild.no_one_to_drop")); // window 7 matches by text
-    }
-
     [OriginalDataFact]
     public void EveryTableEntry_IsUsed()
     {
@@ -180,13 +150,6 @@ public partial class StringTableTests
         foreach (var id in DynamicIds().Where(id => id.StartsWith("enum.", StringComparison.Ordinal)
                                                     && !id.StartsWith("enum.P3Skill.", StringComparison.Ordinal)))
             Assert.Equal(id[(id.LastIndexOf('.') + 1)..], En.Get(id));
-    }
-
-    [OriginalDataFact]
-    public void Format_WorksLikeInterpolation()
-    {
-        Assert.Equal("How much to withdraw? 00042", UiText.F("towndlg.how_much_to_withdraw_x", 42));
-        Assert.Equal($"{"SWAT",-10}", UiText.F("health.x_x_hp_x_x_mp", "SWAT", "OKAY", 1, 2, 3, 4)[..10]);
     }
 
     [Fact]

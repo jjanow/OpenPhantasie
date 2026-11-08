@@ -97,16 +97,15 @@ public class P2Apple2PipelineTests
     }
 
     [RequiresFilesFact(SideA, SideB, Woz)]
-    public void Detection_DskPairIsReady_WozIsRecognisedOnly()
+    public void Detection_DskPairIsReady_OneWozSideMissesTheOther()
     {
         var scan = ImportRunner.Scan([Repo.Path(SideA), Repo.Path(SideB)]);
         var d = Assert.Single(scan.Detections);
         Assert.Equal((Profile, DetectionStatus.Ready), (d.Profile.Id, d.Status));
+        // The .woz is read since s169 (WozImage); side A alone is the version with side B missing.
         var woz = ImportRunner.Scan([Repo.Path(Woz)]);
         var w = Assert.Single(woz.Detections);
-        Assert.Equal(Profile, w.Profile.Id);
-        Assert.NotEqual(DetectionStatus.Ready, w.Status);
-        Assert.Contains("WOZ", VersionProfiles.Get(Profile).Images.First(i => i.Size == 233452).Note);
+        Assert.Equal((Profile, DetectionStatus.MissingDisk), (w.Profile.Id, w.Status));
     }
 
     [RequiresFilesFact(SideA, SideB, Extracted)]
@@ -200,7 +199,7 @@ public class P2Apple2PipelineTests
     {
         var doc = JsonNode.Parse(File.ReadAllBytes(Repo.Path($"{StGameData}/{A2StValues.File}")))!;
         var cells = doc["st_cells"]!.AsArray();
-        Assert.Equal(36, cells.Count);
+        Assert.Equal(37, cells.Count); // s169: + OUT1's unused feature record 14
         foreach (var cell in cells)
         {
             JsonNode? node = St((string)cell!["file"]!);
@@ -333,8 +332,8 @@ public class P2Apple2PipelineTests
             if (!sf.SetEquals(af))
                 diffs.Add(key);
         }
-        // OUT1: unused feature record 14 at (25, 0), ST dest_y 32 / Apple 0 (no cell uses it; outside the decision).
-        Assert.Equal(["OUT1.DAT"], diffs);
+        // s169: OUT1's unused feature record 14 at (25, 0) (Apple dest_y 0) takes the ST's 32 like the other cells.
+        Assert.Empty(diffs);
         diffs.Clear();
 
         var ad = Out("dungeons.json")["levels"]!.AsObject();
@@ -642,6 +641,11 @@ public class P2Apple2PipelineTests
             Assert.True(s.TryAddToParty(rolled, out err), err);
             s.LeaveGuild();
             Assert.Equal(GameMode.Town, s.Mode);
+
+            // D2-050: the Filmon ending's line 14 in the Apple's words with its party size (WIN line 3116, PO + 1).
+            Phantasie2Campaign.ResolveEnding(s);
+            var scene = Assert.IsType<VictoryScene>(s.PendingVictoryScene);
+            Assert.Equal("WE ARE ALL DOOMED. THESE 1 BRAVE ADVEN-", scene.ClosingPage[13]);
         }
         finally
         {

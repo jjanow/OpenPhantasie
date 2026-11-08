@@ -9,7 +9,7 @@ namespace OpenPhantasie.Client.Tests;
 /// <c>+0x466</c>) from the lines Core logs, and D-058's remaster-only flashes, which open no box (user s140: shown without a
 /// wait, on the combat screen's line).
 /// </summary>
-public class P1DungeonMessageTests
+public partial class P1DungeonMessageTests
 {
     private static GraphicsPack Pack() => GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")!;
 
@@ -33,37 +33,6 @@ public class P1DungeonMessageTests
         Assert.DoesNotContain("core.encounter.an_encounter", l.DungeonKeys);
         Assert.Same(l.Keys, l.KeysFor(false));
         Assert.Same(l.DungeonKeys, l.KeysFor(true));
-    }
-
-    [OriginalDataFact]
-    public void TheWall_IsABox_WithTheAmigasText_InTheDungeonOnly()
-    {
-        // h41 +0x1a6: Core logs DOS's `core.dungeon.that_is_the_wall`; the box prints the Amiga's h42 +0x5d "THAT IS A WALL" (s157).
-        var l = Layout();
-        Assert.Equal(["THAT IS A WALL"], P1MapMessageRun.Rows(l, "THAT IS THE WALL", dungeon: true));
-        Assert.Null(P1MapMessageRun.Rows(l, "THAT IS THE WALL"));
-        Assert.Null(P1MapMessageRun.Rows(l, "THAT IS A WALL", dungeon: true)); // the key is Core's text, not the Amiga's
-        Assert.Equal(32, P1MapMessageRun.SoundFor(l, "THAT IS THE WALL", dungeon: true)); // the beep stays
-    }
-
-    [OriginalDataTheory]
-    [InlineData("VILMAR FAILS")]                        // +0x1ea via +0xb66 (trap disarm, after sound 29)
-    [InlineData("VILMAR SUCCEEDS")]                     // +0x1ea via +0xb7c
-    [InlineData("VILMAR PICKS THE LOCK")]               // +0x1ea via +0xf12
-    [InlineData("STAIRS FROM LEVEL 1  TO 2")]           // +0xe1a
-    [InlineData("NO ONE CAN PICK THE LOCK")]            // +0xe68
-    [InlineData("SMOKE FILLS THE AIR")]                 // op 1, +0x15ae
-    [InlineData("A SPELL IS CAST")]                     // op 3, +0x1870
-    [InlineData("THE PARTY GETS SOME GOLD")]            // op 7, +0x18d6
-    [InlineData("SOME OF YOUR GOLD IS TAKEN")]          // op 9, +0x1914
-    [InlineData("THE PARTY IS MOVED")]                  // op 12, +0x1976
-    [InlineData("YOU HEAR A NOISE IN THE DISTANCE")]    // op 14, +0x1a10
-    [InlineData("MONSTERS APPEAR")]                     // op 17, +0x1a6e
-    public void EachDungeonText_IsAOneRowBox_InTheDungeonOnly(string line)
-    {
-        var l = Layout();
-        Assert.Equal([line], P1MapMessageRun.Rows(l, line, dungeon: true));
-        Assert.Null(P1MapMessageRun.Rows(l, line)); // h41 is the dungeon's: the overworld's step (h74) has none of these
     }
 
     [OriginalDataFact]
@@ -91,37 +60,6 @@ public class P1DungeonMessageTests
             .ToList();
         Assert.NotEmpty(texts);
         Assert.DoesNotContain(texts, t => P1MapMessageRun.Rows(l, t, dungeon: true) is not null);
-    }
-
-    [OriginalDataFact]
-    public void AWallBump_IsABox()
-    {
-        var s = InDng1();
-        var mark = s.LogSequence;
-        Assert.Equal(DungeonMoveKind.BlockedWall, s.MoveDungeon(CardinalDirection.North).Kind); // off the level at (20, -1)
-        var run = P1MapMessageRun.ForStep(Layout(), s, mark, 10, null)!;
-        Assert.Equal(["THAT IS A WALL"], Assert.Single(run.Boxes).Rows);       // the Amiga's text (s157)
-        Assert.Contains("THAT IS THE WALL", s.LogSince(mark));                  // Core's (DOS's) stays in the log
-        Assert.Contains("THAT IS THE WALL", run.BoxedLines);                    // and leaves the message line
-        Assert.Equal(1000, run.LengthMs); // ⌊(10 + 60) / 60⌋ s, keys swallowed
-    }
-
-    [OriginalDataFact]
-    public void Stairs_AndAJammedLock_AreBoxes()
-    {
-        var s = InDng1();
-        s.Dungeon!.Level!.Set(20, 1, 0xda);
-        var mark = s.LogSequence;
-        s.MoveDungeon(CardinalDirection.South);
-        var stairs = Assert.Single(P1MapMessageRun.ForStep(Layout(), s, mark, 10, null)!.Boxes).Rows;
-        Assert.Equal(["STAIRS FROM LEVEL 1  TO 2"], stairs);
-        // h65 +0x1f4 centres by strlen: the Amiga's "…TO 2 " (26) and Core's trimmed 25 both get ⌊(40 − n) / 2⌋ = 7 cells.
-        Assert.Equal((40 - 26) / 2, (40 - stairs[0].Length) / 2);
-
-        s.Dungeon!.Level!.Set(20, 2, 0xc7); // jammed (kind 15): h41 +0xe68
-        mark = s.LogSequence;
-        s.MoveDungeon(CardinalDirection.South);
-        Assert.Equal(["NO ONE CAN PICK THE LOCK"], Assert.Single(P1MapMessageRun.ForStep(Layout(), s, mark, 10, null)!.Boxes).Rows);
     }
 
     [OriginalDataFact]
@@ -155,23 +93,6 @@ public class P1DungeonMessageTests
     // --- s141: the boxes' sounds, the party under op 12's box, the report between two boxes -----------------------------
 
     [OriginalDataFact]
-    public void Pack_NamesTheSoundBeforeEachBox()
-    {
-        var l = Layout();
-        Assert.Equal(32, P1MapMessageRun.SoundFor(l, "THAT IS THE WALL", dungeon: true)); // h41 +0x19a: h89 +0xe0, the beep
-        Assert.Equal(29, P1MapMessageRun.SoundFor(l, "VILMAR FAILS", dungeon: true));     // +0xb50
-        Assert.Null(P1MapMessageRun.SoundFor(l, "VILMAR SUCCEEDS", dungeon: true));
-        Assert.Equal(28, P1MapMessageRun.SoundFor(l, "A SPELL IS CAST", dungeon: true));  // +0x1862
-        Assert.Equal(16, P1MapMessageRun.SoundFor(l, "THE PARTY IS MOVED", dungeon: true)); // +0x1968
-        Assert.Equal(26, P1MapMessageRun.SoundFor(l, "YOU HEAR A NOISE IN THE DISTANCE", dungeon: true)); // +0x1a02
-        Assert.Null(P1MapMessageRun.SoundFor(l, "SMOKE FILLS THE AIR", dungeon: true));
-        Assert.Null(P1MapMessageRun.SoundFor(l, "MONSTERS APPEAR", dungeon: true));
-        Assert.Null(P1MapMessageRun.SoundFor(l, NightEncounter.Banner)); // h74's boxes have none
-        // 32 is h90 +0x10 itself (the default beep, as 1): the pack plays it.
-        Assert.Equal(Pack().DosoundEffects!.Sounds[1], Pack().DosoundEffects!.Sounds[32]);
-    }
-
-    [OriginalDataFact]
     public void AWallBump_TheBeepFirst_ThenTheBox()
     {
         var s = InDng1();
@@ -195,32 +116,6 @@ public class P1DungeonMessageTests
         var mark = s.LogSequence;
         s.AnswerDungeonEvent(1);
         return (s, mark);
-    }
-
-    [OriginalDataFact]
-    public void OpTwelve_TheBoxComesBeforeTheMove_AndTheReportBetweenTheBoxes()
-    {
-        var (s, mark) = BribeTheRobedMen();
-        Assert.Equal((14, 0), (s.Dungeon!.X, s.Dungeon.Y)); // Core has moved the party already
-        var run = P1MapMessageRun.ForStep(Layout(), s, mark, 10, null, n => n is 28 or 16 ? 0.1 : 0)!;
-        // h41: sound 28, A SPELL IS CAST, then the report (requester 21, waits for EXIT) over the event cell.
-        var spell = Assert.Single(run.Boxes);
-        Assert.Equal(["A SPELL IS CAST"], spell.Rows);
-        Assert.Equal(28, spell.Sound);
-        Assert.Equal(new P1MapMessageRun.PartyCell(2, 6, 29), spell.PartyAt);
-        Assert.Equal(GameText.S("core.script.report"), run.WaitLines[0]);
-        Assert.True(run.HasNext);
-        Assert.Equal(new P1MapMessageRun.PartyCell(2, 6, 29), run.PartyAt(run.LengthMs + 5000)); // the wait: still there
-        // Then sound 16 and `core.script.the_party_is_moved`, still over the event cell; the move after it.
-        var next = run.Next(null)!;
-        var moved = Assert.Single(next.Boxes);
-        Assert.Equal(["THE PARTY IS MOVED"], moved.Rows);
-        Assert.Equal((16, 0.0, 100.0), (moved.Sound, moved.SoundMs, moved.StartMs));
-        Assert.Equal(new P1MapMessageRun.PartyCell(2, 6, 29), moved.PartyAt);
-        Assert.Null(next.PartyAt(next.LengthMs)); // the box closed: Core's cell (14, 0)
-        Assert.False(next.HasNext);
-        Assert.Empty(next.WaitLines);
-        Assert.Contains("THE PARTY IS MOVED", run.BoxedLines);
     }
 
     [OriginalDataFact]

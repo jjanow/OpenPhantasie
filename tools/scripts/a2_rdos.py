@@ -19,7 +19,7 @@ Usage (CLI): python3 -I a2_rdos.py <side.dsk> [--extract OUTDIR]
 Library: `RdosDisk(path).files` -> list of `RdosFile`; `disk.read(name)` -> bytes (exactly `length` bytes).
 
 Port notes: pure byte arithmetic; no Apple II emulation needed. `.woz` originals are a 13-sector 5-and-3 GCR flux
-image and are not read here (see FORMAT.md "Containers").
+image; the C# importer decodes them (`WozImage.cs`, FORMAT.md section 1), this script does not.
 """
 from __future__ import annotations
 

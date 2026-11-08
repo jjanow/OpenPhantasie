@@ -156,8 +156,8 @@ Paired with an Amiga function by shared strings: **47**. Amiga `PhantasieIII`: 7
 | root | `0xd4ff` | 92 |  | rec 2 fields |  |
 | root | `0xd55b` | 469 |  | rec 5 fields (status,attack,bow) |  |
 | root | `0xd730` | 407 | combat_char_stats | tbl item_points; rec 8 fields (attack,firebow,shield,armour,weapon,bow); attack %, weapon/bow damage, bow %, defence (logic-specs/bows.md) |  |
-| root | `0xd8c7` | 1421 | combat_round | DS:0x6690/lit "[original text]"; DS:0x66a3/lit "The party teleports away"; rec 1 fields (status); "[original text]" | `0x154ec` (1) |
-| root | `0xe0a7` | 412 | night_encounter | DS:0x66d4/lit "[original text]"; DS:0x66e7/lit "is on watch"; DS:0x66f4/lit "and hears them!"; DS:0x6705/lit "[original text]"; +1 str; "[original text]" | `0x1aa8a` (4) |
+| root | `0xd8c7` | 1421 | combat_round | DS:0x6690/lit "[original text]"; DS:0x66a3/lit "The party teleports away"; rec 1 fields (status); `core.p3.monsters_flee` | `0x154ec` (1) |
+| root | `0xe0a7` | 412 | night_encounter | DS:0x66d4/lit "[original text]"; DS:0x66e7/lit "is on watch"; DS:0x66f4/lit "and hears them!"; DS:0x6705/lit "[original text]"; +1 str; the night-encounter line | `0x1aa8a` (4) |
 | root | `0xe243` | 81 | str_an_encounter | S472 "An encounter!" |  |
 | root | `0xe294` | 234 | str_hears_monsters_fight_or_try | DS:0x6774/lit "[original text]       Fight?" | `0x1ad26` (1) |
 | root | `0xe3e4` | 342 | fill_monster_group | group record from CREATURE.DAT |  |
@@ -173,7 +173,7 @@ Paired with an Amiga function by shared strings: **47**. Amiga `PhantasieIII`: 7
 | root | `0xefd8` | 363 | make_encounter | tbl monsters; rank 1 + companion rank 2 |  |
 | root | `0xf1eb` | 78 |  | rec 2 fields (status,race) |  |
 | root | `0xf239` | 178 |  | rec 1 fields (status) |  |
-| root | `0xf2eb` | 310 | found_item_keep | S150/idx "0"; DS:0x68c0/lit "[original text]"; "[original text]" | `0x1a044` (1) |
+| root | `0xf2eb` | 310 | found_item_keep | S150/idx "0"; DS:0x68c0/lit "[original text]"; `core.p3.will_the_party_keep_it` | `0x1a044` (1) |
 | root | `0xf421` | 63 | add_found_item | cap 60 (FORMAT.md §8, D3-020) |  |
 | root | `0xf460` | 44 | monster_strength | sum of levels, odd-HP members (logic-specs/encounters.md §1) |  |
 | root | `0xf713` | 129 | draw_combat_status_labels | S450 "Name: Status: Hits: Magic: Hea"; S450 |  |
@@ -189,8 +189,8 @@ Paired with an Amiga function by shared strings: **47**. Amiga `PhantasieIII`: 7
 | root | `0x10be4` | 212 | validate_action_body | Parry/Thrust forced by body areas |  |
 | root | `0x10cb8` | 59 | area_at_least | rec 1 fields (areas); rec area k >= v |  |
 | root | `0x10cf3` | 216 | choose_target_rank | S483 "[original text]"; S483; R1 -> R2 action codes |  |
-| root | `0x10dcb` | 73 | accept_surrender | DS:0x69e3/lit "[original text]"; S469 "No Response..."; "[original text]" |  |
-| root | `0x10e14` | 116 | beg_for_mercy | DS:0x69fb/lit "[original text]"; S469 "No Response..."; "[original text]" |  |
+| root | `0x10dcb` | 73 | accept_surrender | DS:0x69e3/lit "[original text]"; S469 "No Response..."; `core.p3.monsters_surrender` |  |
+| root | `0x10e14` | 116 | beg_for_mercy | DS:0x69fb/lit "[original text]"; S469 "No Response..."; `core.p3.they_take_your_gold` |  |
 | root | `0x10ecb` | 101 |  | rec 1 fields (status) |  |
 | root | `0x10f30` | 236 | flee | DS:0x6a10/lit "[original text]"; DS:0x6a26/lit "[original text]" | `0x19baa` (1) |
 | root | `0x1101c` | 217 | monster_identification | DS:0x6a3e/lit "[original text]" |  |

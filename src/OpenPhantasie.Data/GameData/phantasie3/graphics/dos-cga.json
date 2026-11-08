@@ -1,6 +1,6 @@
 {
   "_schema": "phantasie.graphics-pack/v1",
-  "_note": "DOS CGA Phantasie III art (s160; tools/scripts/extract_dos_p3_graphics.py, importer P3Dos/P3CgaArt.cs; formats in reverse-engineering/dos/phantasie3/FORMAT.md section 10). CGA palette 0 high on every DOS III screen [~] (shots s81-s156). Never the default (auto_select false): drawn when no Amiga III pack is present (index fallback_order, a DOS-only import) or when chosen. Screens: TOWN.CMP, PICS.CMP (title, Astral Plane, Zeus, Pluto). Overworld: WORLD.CGA's 250 tiles of 16x16, tile = map byte, a 9x9 view (ovl3 0x12f1); the party's cell draws tile 89 instead of the map tile (overworld.party, opaque). tile_swaps: while on Scandor (region 0) ovl3 0x0 draws six tiles as others. Dungeon: SHAPES.CGA's 8x5 glyphs 46..52 with the cell map of ovl4 0x21bb (the Amiga's numbers). Monsters by DOS's own picture choice (root 0x10b8b: byte 27, minus 1 above 27; an index past the giants shows picture 15), except D3-067 (user s161): Wolf, Mud Elemental and Troll Baby borrow an analogous creature's picture as the Amiga pack does (Wild Dog, the party elemental, the party Troll; DOS: Skeleton, Skeleton, Forest Elf). Party pictures by race (DS:0x9ea), the elemental 22, the grave 24. Body figure: root 0xdcf, four sets (Okay green, Injured yellow, Broken red, Gone black). Scroll IV (item 126): the map of Scandor. No buttons, windows, flashes or scroll frame: DOS has none of these pictures. Every picture is opaque (DOS blits copy colour 0).",
+  "_note": "DOS CGA Phantasie III art (s160; tools/scripts/extract_dos_p3_graphics.py, importer P3Dos/P3CgaArt.cs; formats in reverse-engineering/dos/phantasie3/FORMAT.md section 10). Two CGA palettes, high intensity [~] (DOSBox colours): every file is cut in palette 0; s169: the screens DOS shows in palette 1 (0x284:0xaaf) are recoloured index for index (scene_palettes). Never the default (auto_select false): drawn when no Amiga III pack is present (index fallback_order, a DOS-only import) or when chosen. Screens: TOWN.CMP, PICS.CMP (title, Astral Plane, Zeus, Pluto). Overworld: WORLD.CGA's 250 tiles of 16x16, tile = map byte, a 9x9 view (ovl3 0x12f1); the party's cell draws tile 89 instead of the map tile (overworld.party, opaque). tile_swaps: while on Scandor (region 0) ovl3 0x0 draws six tiles as others. Dungeon: SHAPES.CGA's 8x5 glyphs 46..52 with the cell map of ovl4 0x21bb (the Amiga's numbers). Monsters by DOS's own picture choice (root 0x10b8b: byte 27, minus 1 above 27; an index past the giants shows picture 15), except D3-067 (user s161): Wolf, Mud Elemental and Troll Baby borrow an analogous creature's picture as the Amiga pack does (Wild Dog, the party elemental, the party Troll; DOS: Skeleton, Skeleton, Forest Elf). Party pictures by race (DS:0x9ea), the elemental 22, the grave 24. Body figure: root 0xdcf, four sets (Okay green, Injured yellow, Broken red, Gone black). Scroll IV (item 126): the map of Scandor on the text page. s169: SHAPES.CGA's last two blocks are the flash (frame24, root 0x1537, an OR blit: colour 0 transparent) and the text page's frame (glyph8, root 0x4a3). No buttons or windows: DOS has none of these pictures. Every other picture is opaque (DOS blits copy colour 0).",
   "id": "dos-cga",
   "game": "phantasie3",
   "platform": "dos",
@@ -10,6 +10,19 @@
   "requires": ["overworld/tiles", "monsters", "screens/town.png"],
   "screen": { "width": 320, "height": 200, "pixel_aspect": [1, 1], "background": "#000000" },
   "palette": ["#000000", "#55FF55", "#FF5555", "#FFFF55"],
+  "palettes": {
+    "cga0": ["#000000", "#55FF55", "#FF5555", "#FFFF55"],
+    "cga1": ["#000000", "#55FFFF", "#FF55FF", "#FFFFFF"]
+  },
+  "scene_palettes": {
+    "_note": "s169 [C] (FORMAT.md section 10, 'Palette per screen'): 0x284:0xaaf(n) selects CGA palette n. 1 on the dungeon map (ovl4 0x7dd, 0xc5d, 0x147a), a plane's map (root 0x79e: the plane FAR 0xcc4 not 0; Scandor 0), the fight's field (root 0x1080a; the orders screen 0xf9ca is 0), the gods' intro and picture (ovl4 0x3e; the speech's text page is 0) and the Astral Plane (root 0x1eba; 0x240c sets 0 again before the scene ends [~] where). 0 everywhere else: title, town, Scandor, the text pages (root 0x4a3).",
+    "cut": "cga0",
+    "dungeon": "cga1",
+    "plane": "cga1",
+    "combat_field": "cga1",
+    "reward": "cga1",
+    "astral": "cga1"
+  },
   "tile_maps": {
     "overworld_tile": [16, 16],
     "overworld_view": [9, 9],
@@ -19,14 +32,18 @@
     "dungeon_default": 50,
     "dungeon_cells": [[0, 1, 46], [185, 199, 47], [200, 214, 48], [215, 217, 52], [221, 255, 49]],
     "_tile_swaps": "[region, map byte, tile drawn]: ovl3 0x0 swaps these while the plane (FAR 0xcc4) is 0, Scandor [C] (FORMAT.md section 10).",
-    "tile_swaps": [[0, 154, 144], [0, 166, 165], [0, 170, 181], [0, 187, 186], [0, 243, 237], [0, 249, 1]]
+    "tile_swaps": [[0, 154, 144], [0, 166, 165], [0, 170, 181], [0, 187, 186], [0, 243, 237], [0, 249, 1]],
+    "_view_counters": "s169 [C] (FORMAT.md section 10, 'Overworld view'): the size words FAR 0x97c8 (columns) / 0xcce (rows) the view ovl3 0x12f1 and its steps (ovl3 0x13ac...: the centre stays in 4 .. counter - 4, the Amiga's rule) run on, as root 0x125d sets them: Scandor 50 x 74 (also the start-up, ovl1 0x873), the Netherworld 31 x 15, the Light and Dark planes 9 x 8 (no effect on a 9 x 9 map: the whole plane shows). The view reads byte (y * columns + x) unchecked, so Scandor's column 50 is the next row's first cell; what lies past the last byte (Scandor (50, 74), the Netherworld (31, 15)) is not traced [?] (drawn black).",
+    "view_counters": [[0, 50, 74], [4, 31, 15]]
   },
   "town_screen": {
-    "_note": "The name sits on the picture's banner, black, centred near x 160 at y 16 (DOS shot s143_entry_done_town); the code that prints it is not traced [~]. Row 0-7 is the menu bar.",
+    "_note": "s169 [C] root 0xa9e2: twelve spaces at text cell (14, 2) in colour 3 on 3, then the town's name (string 111 + town) at cell 14 + ((12 - length) >> 1), row 2 (y 16), colour 0 on 3: centred in the 12 cells, an odd gap half a cell left ('Pendragon' at x 120, as the DOS shot s143_entry_done_town). Row 0-7 is the menu bar.",
     "bar_rows": 8,
     "name_x": 160,
     "name_y": 16,
-    "name_colour": "#000000"
+    "name_colour": "#000000",
+    "name_cells": 12,
+    "name_cell": 8
   },
   "body_figure": {
     "_note": "root 0xdcf: 3 x 4 cells of 8x8; set s of stored piece p at SHAPES.CGA 0x3c40 + 192 s + 16 p, drawn at cell (p div 4, p mod 4). Draw order and areas: head 4, right arm 1 (the viewer's left), chest 5 (always Okay), left arm 9, right leg 2 and 3, torso 6, left leg 10 and 11; file body/<9 s + i> for the i-th piece below. Gone draws its black set (not a clear).",
@@ -47,6 +64,38 @@
       { "area": "left-leg", "at": [16, 24] }
     ]
   },
+  "scroll_frame": {
+    "_note": "s169 [C] the text page, root 0x4a3 (FORMAT.md section 10): palette 0; the whole screen in colour 3 (window DS:0x5c8) or the fill (8,8)-(311,191) inclusive in colour 3; the frame (the first page only) of SHAPES.CGA's 8x8 glyphs: corners 0 / 1 at the top, 3 / 2 at the bottom (y 192); top 4 + (rnd and 2), right (column 39) 12 + (rnd and 2), bottom 7 + (rnd and 1), left 9 + (rnd and 2), so 5, 10 and 13 are never drawn; the text from cell (1, 1) in colour 0. Scroll pages (0x32f), the dungeon's event page (ovl4 0x1c91: its key prompt at cell (14, 23)), the god's speech (ovl4 0x1a5) and Scroll IV (0x16a: the map at (96, 8); its caption, the literal DS:0x2699, at cell (10, 23) in colour 2 is not drawn by the remaster [~]).",
+    "cell": 8,
+    "columns": 40,
+    "rows": 23,
+    "fill": [8, 8, 304, 184],
+    "fill_colour": "#FFFF55",
+    "text_colour": "#000000",
+    "top_corners": [0, 1],
+    "bottom_corners": [3, 2],
+    "top": [4, 6],
+    "bottom": [7, 8],
+    "left": [9, 11],
+    "right": [12, 14],
+    "picture_at": [96, 8]
+  },
+  "reward_scene": {
+    "_note": "s169 [C] the gods' reward, ovl4 0x0000 (FORMAT.md section 10): palette 1 (0x3e); the first intro line (DS:0x61a1) at cell (0, 11), then 0x396(1): 50 flashes 0x1537 at x = rnd mod 36 (+ rnd mod 3, at most 36) bytes, y = rnd mod 120 (+ 6 + rnd mod 22); frames 0, 1, 2 ORed over each other, each followed by the wait 0x452(w); w starts at 7 (0x4a) and goes 1 down every 5 flashes (from flash 0) to 1; then the second (DS:0x61c9) at (0, 9) and 0x396(0): w 1 up every 5 to 8. 0x452(w) waits max(1, floor(100 w / 60)) units of 10 ms (FAR 0xdd94 calibrated on the BIOS tick): w / 60 s here (vbl_hz 60, no extra VBL; DOS rounds down to 10 ms) [~]. The PC speaker's tone 0x66 before frame 1 is not played (no DOS sound in the pack). Then Zeus (argument good) or Pluto from PICS.CMP, the party, a key; the speech on the text page (palette 0).",
+    "flash": {
+      "pictures": ["reward.flash.0", "reward.flash.1", "reward.flash.2"],
+      "count": 50, "x_range": 36, "y_range": 120, "x_jitter": 3, "x_max": 36, "y_jitter": 22, "y_add": 6, "unit_x": 8,
+      "wait_start": 7, "wait_min": 1, "wait_max": 8, "wait_step_every": 5, "wait_extra_vbl": 0, "vbl_hz": 60,
+      "sound_frame": 1
+    }
+  },
+  "combat_flash": {
+    "_note": "s169 [C] the flash 0x1537 in a fight (FORMAT.md section 10): damage_monster (root 0xb14c) on the monster hit when its flag is set, at the group's field x (+0x3c + 2 i), y (+0x46), giant (+0x48); damage_character (0xbca4) on the member when its flag is set, at (6 slot, 140, 1). x += rnd mod 3 (+ 2 giant / member), at most 36 bytes; y += 6 + rnd mod 22; frames ORed, each followed by 0x452(6) = 100 ms (the wait word FAR 0xb5e8 is 6 in a fight; set back to 6 after the reward scene). The callers and their flags are the Amiga's (0x1833e / 0x17e16). The portraits' tops by rank are the remaster field's (the Amiga's 0x1b42e) [~]. No sound (the PC speaker's 0x66 is not played).",
+    "pictures": ["combat.flash.0", "combat.flash.1", "combat.flash.2"],
+    "wait": 6, "wait_extra_vbl": 0, "vbl_hz": 60, "unit_x": 8, "x_jitter": 3, "right_add": 2, "x_max": 36,
+    "y_jitter": 22, "y_add": 6, "sound_frame": 1,
+    "party_x_per_slot": 6, "party_x_add": 0, "party_y": 140, "portrait_x_per_slot": 48, "portrait_top_by_rank": [143, 138, 133]
+  },
   "pictures": {
     "title.cover": "screens/title.png",
     "town.backdrop": "screens/town.png",
@@ -57,7 +106,13 @@
     "scene.reward.evil": "screens/reward-evil.png",
     "portrait.elemental.idle": "portraits/idle/elemental.png",
     "portrait.elemental.attacking": "portraits/attacking/elemental.png",
-    "portrait.grave": "portraits/grave.png"
+    "portrait.grave": "portraits/grave.png",
+    "reward.flash.0": "shapes/frame24-0.png",
+    "reward.flash.1": "shapes/frame24-1.png",
+    "reward.flash.2": "shapes/frame24-2.png",
+    "combat.flash.0": "shapes/frame24-0.png",
+    "combat.flash.1": "shapes/frame24-1.png",
+    "combat.flash.2": "shapes/frame24-2.png"
   },
   "picture_sets": [
     { "name": "overworld.tile.{n}", "dir": "overworld/tiles", "prefix": "{n:D3}.", "ext": ".png" },
@@ -66,6 +121,7 @@
     { "name": "monster.{n}.attacking", "dir": "monsters/attacking", "prefix": "{n:D2}-", "ext": ".png" },
     { "name": "portrait.{n}.idle", "dir": "portraits/idle", "prefix": "{n:D2}-", "ext": ".png" },
     { "name": "portrait.{n}.attacking", "dir": "portraits/attacking", "prefix": "{n:D2}-", "ext": ".png" },
-    { "name": "body.piece.{n}", "dir": "body", "prefix": "{n}.", "ext": ".png" }
+    { "name": "body.piece.{n}", "dir": "body", "prefix": "{n}.", "ext": ".png" },
+    { "name": "scroll.frame.{n}", "dir": "shapes", "prefix": "glyph8-{n:D2}.", "ext": ".png" }
   ]
 }

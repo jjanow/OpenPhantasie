@@ -79,7 +79,7 @@ public class DefeatSceneTests
     public void OutcomePage_ShowsOnlyTheAstralLine_UntilTheFace()
     {
         var astral = GameText.S("core.defeat.arrived_at_astral_plane");
-        IReadOnlyList<string> lines = [astral, "THE GREAT DEMON APPEARS AND SPEAKS:", "A YOU HAVE BEEN RESURRECTED"];
+        IReadOnlyList<string> lines = [astral, "THE OLD HERMIT STEPS UP AND SAYS:", "A YOU HAVE BEEN RESURRECTED"];
         Assert.Equal([astral], DefeatScene.LinesShown(SessionPromptKind.DefeatOutcome, lines, new DefeatSceneFrame(46, false)));
         Assert.Equal(lines, DefeatScene.LinesShown(SessionPromptKind.DefeatOutcome, lines, new DefeatSceneFrame(0, true)));
         Assert.Equal(lines, DefeatScene.LinesShown(SessionPromptKind.PartyDefeat, lines, new DefeatSceneFrame(90, false)));
@@ -173,7 +173,7 @@ public class DefeatSceneTests
     public void DefeatScenePager_ShowsOneLineAtATime_ThenAnswers()
     {
         var pager = new DefeatScenePager();
-        string[] page = ["YOU HAVE ARRIVED AT THE ASTRAL PLANE", "", "THE GREAT DEMON APPEARS AND SPEAKS:", "A YOU HAVE BEEN DESTROYED"];
+        string[] page = ["YOU HAVE REACHED THE MISTY GATEWAY", "", "THE OLD HERMIT STEPS UP AND SAYS:", "A YOU HAVE BEEN DESTROYED"];
         var kind = SessionPromptKind.DefeatOutcome;
         Assert.Equal(page[0], pager.Current(kind, page));
         Assert.True(pager.HasMore(kind, page));
@@ -185,7 +185,7 @@ public class DefeatSceneTests
         Assert.False(pager.Advance(kind, page)); // the last line: Return answers the prompt
 
         // A new page starts at its first line; so does the same page after Reset.
-        string[] banner = ["YOUR PARTY HAS BEEN DEFEATED"];
+        string[] banner = ["YOUR PARTY HAS LOST THE FIGHT"];
         Assert.Equal(banner[0], pager.Current(SessionPromptKind.PartyDefeat, banner));
         Assert.False(pager.Advance(SessionPromptKind.PartyDefeat, banner));
         Assert.Equal(page[0], pager.Current(kind, page));
@@ -211,8 +211,8 @@ public class DefeatSceneTests
         // on from there through the speech and the fates.
         var pager = new DefeatScenePager();
         var kind = SessionPromptKind.DefeatOutcome;
-        string[] before = ["YOU HAVE ARRIVED AT THE ASTRAL PLANE"];
-        string[] after = [before[0], "THE GREAT DEMON APPEARS AND SPEAKS:"];
+        string[] before = ["YOU HAVE REACHED THE MISTY GATEWAY"];
+        string[] after = [before[0], "THE OLD HERMIT STEPS UP AND SAYS:"];
         Assert.Equal(before[0], pager.Current(kind, before));
         Assert.False(pager.HasMore(kind, before));
         Assert.True(pager.Advance(kind, after));

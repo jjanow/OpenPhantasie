@@ -143,7 +143,7 @@ public static class SpellCaster
                 : Magic.HealingAmount(tier, rng.Next(0, 100));
             var gained = Magic.ApplyHealing(target, heal);
             P3Spells.CureBody(rules, target, spellIndex); // T4: III's healing cures body areas too
-            // [D✓] s65: I's DOS prints nothing for a town / field HEALING. III prints "The character's health improves..."
+            // [D✓] s65: I's DOS prints nothing for a town / field HEALING. III prints `core.p3.character_health_improves`
             // once the target is picked (DOS root 0x19be in 0x194d; Amiga 0xfd42 in 0xfcbe, window 7; s163 static).
             return MagicResult.Ok(
                 rules.Game == GameId.P3 ? GameText.S("core.p3.character_health_improves") : "",

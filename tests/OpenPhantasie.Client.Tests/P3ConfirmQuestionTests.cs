@@ -9,25 +9,11 @@ namespace OpenPhantasie.Client.Tests;
 /// DOS III asks each through root <c>0x1820</c>(text, 2): "No" lit, Return takes it, Y / N, Esc = No. The Amiga asks the
 /// same lines in window 1 (<c>0xaae2</c>): OK / CANCEL, Return = OK. One <see cref="P3ConfirmQuestion"/>, two looks.
 /// </summary>
-public class P3ConfirmQuestionTests
+public partial class P3ConfirmQuestionTests
 {
     private static readonly GameDataRepository P3Data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P3));
 
     private static string P3(string id) => UiText.For(GameId.P3).Get(id);
-
-    /// <summary>DOS III's own lines (S447, S390, the redistribute literal at DS:0x58e2, S407); the Amiga's are the same.</summary>
-    [OriginalDataFact]
-    public void Texts_AreDosIIIsLines_RowsSplitAtTheBreak()
-    {
-        Assert.Equal("Are you sure you want to load an old\rgame over this current one?", Game1.ConfirmText("load"));
-        Assert.Equal("Are you sure you want to save this\rgame over your previously saved one?", Game1.ConfirmText("save"));
-        Assert.Equal("Are you sure you want to redistribute?", Game1.ConfirmText("distribute"));
-        Assert.Equal("Are you sure you want to purge\rthis character permanently?", Game1.ConfirmText("purge"));
-        Assert.Equal(P3("p3bar.confirm_purge"), GuildPickDialog.PurgeQuestion); // shared lines: III's table has them
-        var q = new P3ConfirmQuestion();
-        q.Open(P3("p3bar.confirm_purge"), "purge");
-        Assert.Equal(["Are you sure you want to purge", "this character permanently?"], q.Lines);
-    }
 
     [Fact]
     public void Prompt_IsYesNo_NoLitEveryTime_EscIsNo()

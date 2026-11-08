@@ -91,8 +91,8 @@ public class AstralSceneTests
     [Fact]
     public void PromptBox_WrapsLongLines_NeverCutsThem()
     {
-        const string souls = "The souls of your defeated warriors begin the journey to the Astral Plane.";
-        var lines = UiOverlays.PromptLines([souls, "", "A Great Demon appears and speaks..."], 48);
+        const string souls = "The bells of your mountain villages start the evening to the Golden Spire.";
+        var lines = UiOverlays.PromptLines([souls, "", "A Tired Guard arrives and sleeps..."], 48);
         Assert.Equal(3, lines.Count);
         Assert.Equal(souls, string.Join(" ", lines.Take(2)));
         Assert.All(lines, l => Assert.True(PixelFont.Measure(l) <= 48 * PixelFont.Advance));

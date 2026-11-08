@@ -5,8 +5,8 @@ namespace OpenPhantasie.Importer.Containers;
 /// <summary>
 /// Turns what the player picked (files, folders, zips, disk images, in any mix) into <see cref="Container"/>s. Folders
 /// are searched recursively; zips are opened in memory; disk images are opened read-only and their file systems read
-/// (FAT12, Human68k, AmigaDOS, Pasti). Nothing is written next to the originals. Images we can't read a file system
-/// from (Apple II, C64, PC-88 …) still become containers with their image sha1, so detection can name them.
+/// (FAT12, Human68k, AmigaDOS, Pasti, Apple II RDOS from a <c>.dsk</c> or a <c>.woz</c>). Nothing is written next to the
+/// originals. Images we can't read a file system from (Apple II DOS 3.3, C64, PC-88 …) still become containers with their image sha1, so detection can name them.
 /// </summary>
 public static class SourceScanner
 {
@@ -234,19 +234,32 @@ public static class SourceScanner
             return true;
         }
 
+        // Apple II .woz flux image (the original SSI disks): decoded to the 13-sector image RdosVolume reads. The
+        // container keeps the .woz's own sha1, so image fingerprints still name it.
+        if (WozImage.IsWoz(data))
+        {
+            if (WozImage.TryDecode(data) is { } woz && RdosVolume.TryOpen(woz.Image) is { } wozRdos)
+            {
+                // Track 0 is RDOS's boot / DOS track (on SSI's disks its sector 12 has no data field: the 16-sector
+                // boot sector sits there); a sector missing elsewhere may be inside a game file.
+                var lost = woz.Missing.Where(m => m.Track > 0).ToList();
+                if (lost.Count > 0)
+                    notes.Add($"{description}: {lost.Count} sector(s) of the .woz did not decode (track.sector "
+                        + string.Join(", ", lost.Take(8).Select(m => $"{m.Track}.{m.Sector}")) + "); they read as zeros");
+                result.Add(RdosContainer("woz", description, sourcePath, sha1, data.Length, wozRdos));
+            }
+            else
+                result.Add(new Container("raw-image", description, sourcePath) { ImageSha1 = sha1, ImageSize = data.Length });
+            return true;
+        }
+
         if (!ImageExtensions.Contains(ext) && !LooksLikeImageSize(data.Length))
             return false;
 
         // Apple II RDOS (SSI's 13-sector DOS in a 140K .dsk: Phantasie II's 4am crack).
         if (data.Length == RdosVolume.ImageSize && RdosVolume.TryOpen(data) is { } rdos)
         {
-            var c = new Container("rdos", description, sourcePath) { ImageSha1 = sha1, ImageSize = data.Length };
-            foreach (var e in rdos.Files)
-            {
-                var entry = e;
-                c.Files.Add(new ImportFile(c, entry.Name, () => rdos.Read(entry), RdosVolume.SizeOf(entry)));
-            }
-            result.Add(c);
+            result.Add(RdosContainer("rdos", description, sourcePath, sha1, data.Length, rdos));
             return true;
         }
 
@@ -272,6 +285,17 @@ public static class SourceScanner
             return true;
         }
         return false;
+    }
+
+    private static Container RdosContainer(string kind, string description, string? sourcePath, string sha1, int size, RdosVolume rdos)
+    {
+        var c = new Container(kind, description, sourcePath) { ImageSha1 = sha1, ImageSize = size };
+        foreach (var e in rdos.Files)
+        {
+            var entry = e;
+            c.Files.Add(new ImportFile(c, entry.Name, () => rdos.Read(entry), RdosVolume.SizeOf(entry)));
+        }
+        return c;
     }
 
     private static void AddFat(Container c, Fat12Volume vol)

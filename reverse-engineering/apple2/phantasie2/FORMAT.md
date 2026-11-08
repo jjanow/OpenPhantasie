@@ -28,9 +28,37 @@ Tools (all `python3 -I`, run from the repo root):
   Track 1 sectors 11–12 hold RWTS code, not entries.
 - **Crack patches** (4am notes): side A `T0E,S07` = logical sector 189 = the first sector of `SSI.INIT2`, plus boot /
   RWTS sectors on track 0 of both sides. So `SSI.INIT2` differs from the original and is not a key file; every other
-  file should equal the original `[~]` (the `.woz` images are not decoded: 13-sector 5-and-3 GCR with SSI's protection,
-  `[?]`). The Memorial Set's II (s166) is a cracked `.dsk` pair in DOS 3.3 sector order (another crack: track 0 / RDOS differ),
-  unplayed: `reverse-engineering/apple2/original-images/SOURCES.txt`.
+  file equals the original `[C]` (s169, from the decoded `.woz`, below). The Memorial Set's II (s166) is a cracked
+  `.dsk` pair in DOS 3.3 sector order (another crack: track 0 / RDOS differ), unplayed:
+  `reverse-engineering/apple2/original-images/SOURCES.txt`.
+- **The `.woz` originals** (s169, `src/OpenPhantasie.Importer/Containers/WozImage.cs`) `[C]`. II's two sides are
+  WOZ 1 (Applesauce 1.0.5), I's two (`phantasie1/woz-original/`) WOZ 2 (Applesauce 1.88.4, INFO boot-sector format
+  3 = both 13- and 16-sector). Track t is the bit stream at `TMAP[4t]` (WOZ 1: 6656-byte records in `TRKS`, bit count
+  u16 at +6648; WOZ 2: `TRKS` entry t = first 512-byte block, block count, bit count). Every track 0–34 is a plain
+  13-sector track:
+  - address field `D5 AA B5`, 4-and-4 volume, track, sector, checksum (volume ^ track ^ sector), `DE AA`; I from track 1
+    on uses `D4 AA B7` instead (track 0 `D5 AA B5`), with `D5 AB` repeated as gap filler. These are what the 4am notes'
+    RWTS patches undo (`T00,S0A`: `C9D4 -> C9D5`, `B7 -> 96`; II: `B5 -> 96`);
+  - data field `D5 AA AD`, 410 + 1 bytes of 5-and-3 GCR (32-byte table `AB AD AE AF B5 … FE FF`, index = value),
+    each value XORed with the one before, the last one the checksum (the chain ends at 0);
+  - the 410 values to 256 bytes (DOS 3.2's layout, read off the sectors that equal the 4am `.dsk`): values 0–153 hold
+    the low 3 bits, 154–409 the top 5. Bytes 5g..5g+4 (g = 0–50) take their top bits from value 154 + 51k + 50 − g
+    (k = 0–4); with A = value 103 + g, B = 52 + g, C = 1 + g their low bits are A >> 2, B >> 2, C >> 2 for k = 0–2,
+    then bit 1 (k = 3) and bit 0 (k = 4) of A, B, C (A highest). Byte 255 = value 409 over value 0's low 3 bits.
+  - Track 0 sector 12 has an address field and no data field on all four disks: a 16-sector `D5 AA 96` sector (6-and-2,
+    the boot sector a 16-sector ROM loads) sits in its gap. It lies inside the `RDOS 2.1` file, which nothing reads;
+    the reader leaves it zero (so does the 4am `.dsk`). I's track 0 also has a `D4 AA B7` sector-0 address field
+    before that boot sector. Every other sector of tracks 0–34 decodes with good checksums (the reader reads each
+    track twice round, so a sector across the bit stream's end is found too); whatever SSI's protection check reads
+    does not stop the files being read.
+  - Decoded in the 4am layout (sector s of track t at `t * 4096 + s * 256`), every sector of tracks 1–34 equals the 4am
+    `.dsk` except the patches its notes list: II side A T14 S7 `$19` `20 A0 08 B0` (the crack: `BD 88 C0 90`); I side A
+    T33 S12 the same bytes and T34 S2 `$0F` `C6` (crack `A9`); I side B T34 S5 `$0F` `C6`. Track 0 differs (the
+    crack's own boot and RWTS). The catalogs are identical; besides `RDOS 2.1`, only `SSI.INIT2` (II A), `SSI.INIT`
+    and `QWERTY` (I A) and `QWERTY` (I B) differ.
+  - **The `.woz` disks are the same played copy** the crack was made from: their `CHAR2`, `TWN2x`, `OUTTn`, `DNGSAV`
+    equal the 4am dump's (and differ from the Memorial Set's). An import from the `.woz` pair gives output byte-equal
+    to the 4am pair's (`WozImageTests`) and the same "played copy" warning.
 - **The reference dump is a played copy** `[C]`: `CHAR2` holds a roster, `TWN21`–`TWN210` differ from their template,
   and 15 of the 17 `OUTT` files were rewritten (756 B instead of the shipped 768 B, fog partly lifted; section 3.6).
 

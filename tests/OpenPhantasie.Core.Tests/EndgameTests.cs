@@ -182,17 +182,6 @@ public partial class EndgameTests
     }
 
     [OriginalDataFact]
-    public void MoveOps_RecordWhereTheyLeft_AfterHowManyLines()
-    {
-        // s141 (I Amiga h41 +0x1964: the box before the move): op 3 (A SPELL IS CAST + report), op 12 to (3, 4), op 13 to (7, 8).
-        var level = ScriptLevel(0x01, 0x83, 1, 0x8c, 3, 4, 0, 0x0d, 7, 8, 0);
-        var hero = Hero();
-        var r = DungeonScript.Run(new DungeonState { X = 5, Y = 6 }, level, 0xdd, PartyOf(hero), new Host(), new Rng(0));
-        Assert.Equal(["A SPELL IS CAST", "REPORT:", "Hero", "THE PARTY IS MOVED"], r.Log);
-        Assert.Equal([new ScriptMove(4, 5, 6), new ScriptMove(4, 3, 4)], r.Moves);
-    }
-
-    [OriginalDataFact]
     public void ASession_RecordsAJammedLocksStepBack_AfterItsLine()
     {
         var session = GameSessionFactory.Create(Data, new SeededDosRandomSource(3));

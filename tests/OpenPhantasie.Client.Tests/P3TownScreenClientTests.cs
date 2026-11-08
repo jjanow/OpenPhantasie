@@ -6,7 +6,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Client.Tests;
 
 /// <summary>III's town screens in the Client: the DOS bank list, Trade Items and training's skill picks.</summary>
-public class P3TownScreenClientTests
+public partial class P3TownScreenClientTests
 {
     private static readonly GameDataRepository P3Data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P3));
 
@@ -52,16 +52,6 @@ public class P3TownScreenClientTests
         var unlimited = new InventoryScreen();
         unlimited.Open(Town(GameOptions.ForPreset(GameId.P3).With("p3.found-items", "unlimited")), P3Data);
         Assert.Null(unlimited.StashCapacity); // header "SACK n", not n/2147483647
-    }
-
-    [OriginalDataFact]
-    public void IIIPrompts_UseIIIsText_ExitSaveMapKeep()
-    {
-        var iii = UiText.For(GameId.P3);
-        Assert.Equal("An exit. Will you take it?", iii.Get("core.prompt.an_exit_take_it"));
-        Assert.Equal("Would you like to save this map?", iii.Get("core.prompt.save_dungeon_map"));
-        Assert.Equal("Keep {0}?", iii.Get("core.treasure.you_find_x_keep_it"));
-        Assert.Equal("AN EXIT. TAKE IT?", UiText.For(GameId.P1).Get("core.prompt.an_exit_take_it"));
     }
 
     [OriginalDataFact]
@@ -144,7 +134,7 @@ public class P3TownScreenClientTests
             Assert.Contains(view.Rows, r => r.Text == "200" && r.Highlight);       // members total in bank
             Assert.Contains(view.Rows, r => r.Text == UiText.S("p3town.bank_withdraw_all") && r.Highlight); // the pick
         }
-        Assert.Equal("", Press(d, s, Keys.Enter));           // Withdraw all gold: closes, no message
+        Assert.Equal("", Press(d, s, Keys.Enter));           // `p3town.bank_withdraw_all`: closes, no message
         Assert.Equal(200, s.Party.GoldCarried);
         Assert.False(d.IsOpen);
 
@@ -225,57 +215,6 @@ public class P3TownScreenClientTests
         Assert.Null(Press(d, s, Keys.O, Keys.C, Keys.Escape)); // DOS's field: no OK / CANCEL / Esc
         Assert.False(d.Picking);
         Assert.Equal(UiText.S("towndlg.type_amount_back_clear_digit_enter"), d.Help);
-    }
-
-    [OriginalDataFact]
-    public void AmigaDisarmWindow_IsWindow6_OneRowAMember_CIsCancel()
-    {
-        var layout = Windows();
-        Assert.NotNull(layout);
-        var s = Town();
-        s.LeaveGuild();
-        Assert.True(s.LeaveTown());
-        s.EnterDungeon(5, 23, 7, loadSaved: false); // s163: one step south is the archives' trap 2
-        var who = new DungeonMessage([GameText.S("core.p3.who_will_disarm")], [.. s.Party.Members.Select(m => m.Name)]);
-        s.CampaignAccess.DungeonEventPrompt = new PendingDungeonEvent(2, -2, who);
-        var prompt = new SessionPrompts(s).Current!;
-        var view = AmigaDisarmWindow.View(s, prompt, 1, layout!)!;
-        Assert.Equal(layout!.Heal, view.Window); // 0x127ce(92): the heal target's struct 0x23360
-        Assert.Equal("Who will disarm the trap?", view.Rows[0].Text); // 0x23084[92]
-        Assert.True(view.Rows[0].Highlight); // colour 8
-        Assert.Equal((layout.Heal!.Text[0].X, layout.Heal.Text[0].Y), (view.Rows[0].X, view.Rows[0].Y));
-        Assert.Equal(1 + 5 * s.Party.Members.Count, view.Rows.Count); // name, race, level, class, status a member
-        // s165: a row press only moves the cursor (0x17a6): no row picks, each member row is a cursor row.
-        Assert.Empty(view.Picks);
-        var rows = view.CursorRows!;
-        Assert.Equal(["A", "B"], rows.Select(r => view.Rows[r.Row].Text));
-        Assert.Equal([0, 1], rows.Select(r => r.Cursor));
-        Assert.False(view.Rows[rows[0].Row].Highlight);
-        Assert.True(view.Rows[rows[1].Row].Highlight); // the cursor's row in colour 8
-        Assert.Equal(prompt.Options.Count + 1, prompt.EscapeChoice); // CANCEL
-        Assert.Null(AmigaDisarmWindow.Choice(Keys.C));
-        Assert.Equal(Keys.Enter, AmigaDisarmWindow.Choice(Keys.O));
-        Assert.Equal(Keys.Down, AmigaDisarmWindow.Choice(Keys.Down));
-        // s165: 8 / 2 move the cursor (0x12952 / 0x12976), any other digit does nothing.
-        Assert.Equal(Keys.Up, AmigaDisarmWindow.Choice(Keys.D8));
-        Assert.Equal(Keys.Down, AmigaDisarmWindow.Choice(Keys.D2));
-        Assert.Equal(Keys.Up, AmigaDisarmWindow.Choice(Keys.NumPad8));
-        Assert.Equal(Keys.Down, AmigaDisarmWindow.Choice(Keys.NumPad2));
-        Assert.Equal(Keys.None, AmigaDisarmWindow.Choice(Keys.D1));
-        Assert.Equal(Keys.None, AmigaDisarmWindow.Choice(Keys.NumPad1));
-        var menu = new PromptMenu();
-        Assert.Null(menu.HandleKey(prompt, AmigaDisarmWindow.Choice(Keys.D1)!.Value)); // a digit picks nobody
-        Assert.Null(menu.HandleKey(prompt, AmigaDisarmWindow.Choice(Keys.D2)!.Value));
-        Assert.Equal(1, menu.CursorFor(prompt));
-        Assert.Null(menu.HandleKey(prompt, AmigaDisarmWindow.Choice(Keys.D8)!.Value));
-        Assert.Equal(0, menu.CursorFor(prompt));
-        menu.MoveTo(prompt, 1); // a press on B's row: the cursor there, nothing picked
-        Assert.Equal(1, menu.CursorFor(prompt));
-        Assert.Equal(2, menu.HandleKey(prompt, AmigaDisarmWindow.Choice(Keys.O)!.Value)); // OK takes B
-        // The trap's Yes / No question keeps window 1.
-        s.CampaignAccess.DungeonEventPrompt = new PendingDungeonEvent(2, -1,
-            new DungeonMessage(["A spots a trap. Disarm it?"], [SessionPrompts.Yes, SessionPrompts.No]));
-        Assert.Null(AmigaDisarmWindow.View(s, new SessionPrompts(s).Current!, 0, layout));
     }
 
     [OriginalDataFact]

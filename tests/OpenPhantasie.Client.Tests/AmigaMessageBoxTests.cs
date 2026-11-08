@@ -8,7 +8,7 @@ namespace OpenPhantasie.Client.Tests;
 /// s135: III Amiga's message box (window 7, <c>0xaaac</c>) for the town / guild lines whose Amiga equivalent goes through
 /// it (FORMAT.md 8.4, the caller table): the pack's text ids, the gate and the wait that takes its closing key.
 /// </summary>
-public class AmigaMessageBoxTests
+public partial class AmigaMessageBoxTests
 {
     private static KeepWindowsLayout.MessageWindow Window =>
         GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P3)).Find("amiga")!.KeepWindows!.Message!;
@@ -40,29 +40,11 @@ public class AmigaMessageBoxTests
     [InlineData("{0} picks the lock.", " picks the lock.", false)]
     [InlineData("The approximate level of the monsters within this region is {0}",
         "The approximate level of the monsters within this region is 6", true)]
-    [InlineData("The party is not assembled.", "The party is not assembled.", true)]
-    [InlineData("The party is not assembled.", "The party is not assembled", false)]
+    [InlineData("The ferry is not available.", "The ferry is not available.", true)]
+    [InlineData("The ferry is not available.", "The ferry is not available", false)]
     [InlineData("A (b) [c]? {0,-10}", "A (b) [c]? x", true)]
     public void Matches_FillsEachFormatItem(string text, string line, bool expected) =>
         Assert.Equal(expected, AmigaMessageBox.Matches(text, line));
-
-    [OriginalDataFact]
-    public void Window7_TakesTheDungeonStepAndCasterLinesInIIIsWords()
-    {
-        var p3 = UiText.For(GameId.P3);
-        bool Takes(string line) => Window.TextIds.Any(id => AmigaMessageBox.Matches(p3.Get(id), line));
-        Assert.True(Takes("SWAT picks the lock."));
-        Assert.True(Takes("SWAT disarms the trap."));
-        Assert.True(Takes("You cannot cast this here.")); // S434 (DOS) / 0x23138 (Amiga)
-        Assert.True(Takes("This character's magic is too low!")); // S484 / 0x23200
-        // Monster Evaluate (DOS root 0x1b02, Amiga 0xfed6): the text with the level written at byte 66, after "is ";
-        // s163: with its "\r" and row 2's six leading blanks, as both programs hold it.
-        Assert.Equal("The approximate level of the monsters\r      within this region is 4",
-            p3.Format("core.magic.monsters_at_level_x", 4));
-        Assert.True(Takes(p3.Format("core.magic.monsters_at_level_x", 4)));
-        Assert.True(Takes("The character's health improves...")); // s163: DOS root 0x19be, Amiga 0xfd42
-        Assert.False(Takes("SWAT hears monsters. Continue?")); // window 1, not 7
-    }
 
     [OriginalDataFact]
     public void MonsterEvaluate_Row2_KeepsItsSixBlanks_TheBandOneLine()

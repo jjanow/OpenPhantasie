@@ -408,7 +408,7 @@ public sealed class P4OutdoorLoop
                 break;
             case TownTile:
                 var town = _atlas.Towns[MapData.Towns[sub]];
-                // "\n%s" + "の町にきた。" for maps below 13: the English line puts the name after "the town of".
+                // "\n%s" + `p4x.0x43279` for maps below 13: the English line puts the name after "the town of".
                 _window.Line(town.Id < 13 ? GameText.S("p4x.0x43279") + " " + town.Name + "." : town.Name);
                 _window.Print(GameText.S("p4x.0x43286"));
                 Confirm(Ask.Town);

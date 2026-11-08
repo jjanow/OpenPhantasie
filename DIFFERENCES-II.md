@@ -606,7 +606,9 @@ and `strings/fallback.en.json`).
   cells need nothing (the Apple agrees with that decision).
 - **Remaster:** ST values (D2-009: the manual's). Apple-only import (s160): the two skill cells, the 9 map cells (a fogged
   cell keeps its fog) and the 2 dungeon bytes set to the ST's from `apple2-import.json`; every number of the Apple build
-  now equals the ST build's except OUT1's unused feature record 14 (no cell uses it).
+  now equals the ST build's. s169: OUT1's feature record 14 at (25, 0) (Apple dest_y 0, ST 32) takes the ST's value too
+  (`apple2-import.json`, keyed by the record's index); it is unused either way: record 13 sits on the same blocked cell
+  (tile 100) and the lookup finds it first.
 
 ## D2-050 — Text
 
@@ -630,11 +632,23 @@ and `strings/fallback.en.json`).
 - **Remaster:** ST text (built). Apple-only import (s160): names, scrolls and dungeon text are the Apple's (scroll compass
   turned, D2-046). Spell names: the manual's list (CB p.12: HEALING 1 ... SUMMONS ELEMENTAL, MONSTER EVALUATION ...,
   `apple2-import.json`); the two divine spells, which the manual does not name, are "DIVINE #57" / "DIVINE #58"
-  (remaster wording `[~]`). String tables: the 217 verbatim ids and the 95 in the Apple's own wording come from the
+  (remaster wording `[~]`). s169 search: no Apple file holds a spell name (both 4am sides and the Memorial Set pair, with
+  the high bit stripped: no DIVINE but DNG3's "[original text]", no FIREFLASH, VISION, EVALUATION);
+  the Apple asks "WHICH SPELL?" by number and refuses #57 / #58 by number (OUTDOORS2 lines 6950-6970). The manual says
+  only "DIVINE SPELLS (#58+)" (CB p.14) and "divine spells (#55 and above)". The ST's spell table names them: slot
+  56 (#57) DIVINE II, slot 57 (#58) DIVINE I (`reverse-engineering/atari-st/phantasie2/FORMAT.md` section 3). Whether
+  the Apple import takes the ST's two names is the user's call `[U]`. String tables: the 217 verbatim ids and the 95 in the Apple's own wording come from the
   player's Apple programs (`p2-apple2` alternatives in `en.sources.json`, the own-wording ones from
   `tools/scripts/p2_apple2_own_wording.json`, applied to II only and only while II's tables are the Apple's, so I keeps
   DOS I's lines and an ST import keeps the ST's); the 18 it lacks take the remaster's wording
   (`GameData/phantasie2/strings/fallback.en.json`), laid under every imported file so a DOS I or ST import still wins.
-  The Filmon ending keeps the ST's line ids with the Apple's 40-column lines (the counts match); the Apple's party-size
-  number in "THESE n BRAVE ADVEN-" is left out (the id has no placeholder) `[~]`. Not checked in the Client yet: the
-  18-character MONSTER EVALUATION in II's spell windows (fit or scroll) and the Apple ending lines on the ending screens.
+  The Filmon ending keeps the ST's line ids with the Apple's 40-column lines (the counts match). s169: the Apple's
+  party size is in, as the Apple prints it: WIN line 3116 `PRINT "...THESE "PO + 1" BRAVE ADVEN-"` with `PO = PEEK(SA +
+  1203)`, the party's last index (DEAD members count), so the own-wording line is "WE ARE ALL DOOMED. THESE {0} BRAVE
+  ADVEN-" and Core fills {0} with the party's member count (the ST's line has no number and ignores it). A summoned
+  elemental at the ceremony counts as a member `[~]` (the Apple has no elementals). Seen in the Client (s169, Xvfb,
+  Apple-only import): the 18-character MONSTER EVALUATION fits whole in the wilderness cast window
+  (`parity/shots/s169-p2-apple2-field-cast-monster-evaluation.png`). It is never in a fight's spell window: it is a
+  wilderness / dungeon spell (`N/WD`), the remaster's II fight list holds the combat-castable spells (D-063's
+  `p1.combat-spell-list` is I's option only), and the Apple's fight takes `CAST SPELL #` 1-51 only (OUTDOORS2 and DUNGON2
+  line 1310), so #52 can't be cast in an Apple fight either.

@@ -17,8 +17,8 @@ public class P1DosDefeatSceneTests
         Fates = [(new Character { Name = "A", Race = Race.Human }, DefeatFate.Destroyed),
                  (new Character { Name = "B", Race = Race.Undead }, DefeatFate.Undead),
                  (new Character { Name = "C", Race = Race.Elf }, DefeatFate.Resurrected)],
-        Log = ["YOUR PARTY HAS BEEN DEFEATED", "YOU HAVE ARRIVED AT THE ASTRAL PLANE", "THE GREAT DEMON APPEARS AND SPEAKS:",
-               "A YOU HAVE BEEN DESTROYED", "B YOUR STATUS IS UNDEAD", "C YOU HAVE BEEN RESURRECTED"],
+        Log = ["YOUR PARTY HAS LOST THE FIGHT", "YOU HAVE REACHED THE MISTY GATEWAY", "THE OLD HERMIT STEPS UP AND SAYS:",
+               "A YOU ARE GONE FOR GOOD", "B YOU WALK AS THE DEAD", "C YOU ARE WHOLE AGAIN"],
     };
 
     // The outcome prompt's lines (SessionPrompts: the log without the defeat banner).
@@ -29,10 +29,10 @@ public class P1DosDefeatSceneTests
     {
         var d = Defeat();
         var lines = Lines(d);
-        Assert.Equal(new DosDefeatFrame(false, 0, "YOU HAVE ARRIVED AT THE ASTRAL PLANE"), P1DosDefeatScene.At(0, lines, 3));
-        Assert.Equal(new DosDefeatFrame(true, 0, "THE GREAT DEMON APPEARS AND SPEAKS:"), P1DosDefeatScene.At(1, lines, 3));
-        Assert.Equal(new DosDefeatFrame(true, 1, "A YOU HAVE BEEN DESTROYED"), P1DosDefeatScene.At(2, lines, 3)); // fate, then its line
-        Assert.Equal(new DosDefeatFrame(true, 3, "C YOU HAVE BEEN RESURRECTED"), P1DosDefeatScene.At(4, lines, 3));
+        Assert.Equal(new DosDefeatFrame(false, 0, "YOU HAVE REACHED THE MISTY GATEWAY"), P1DosDefeatScene.At(0, lines, 3));
+        Assert.Equal(new DosDefeatFrame(true, 0, "THE OLD HERMIT STEPS UP AND SAYS:"), P1DosDefeatScene.At(1, lines, 3));
+        Assert.Equal(new DosDefeatFrame(true, 1, "A YOU ARE GONE FOR GOOD"), P1DosDefeatScene.At(2, lines, 3)); // fate, then its line
+        Assert.Equal(new DosDefeatFrame(true, 3, "C YOU ARE WHOLE AGAIN"), P1DosDefeatScene.At(4, lines, 3));
         Assert.Equal(P1DosDefeatScene.At(4, lines, 3), P1DosDefeatScene.At(5, lines, 3)); // the clock's end keeps the last
     }
 

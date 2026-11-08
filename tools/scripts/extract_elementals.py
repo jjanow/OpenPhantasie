@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Extract the three SUMMON ELEMENTAL templates from TWNS.INT into elementals.json.
+"""Extract the three summoned-elemental templates from TWNS.INT into elementals.json.
 
 The last 3 x 282 bytes of TWNS.INT (file 12141, 12423, 12705) are character records: FIRE ELEM, WATER ELEM,
 EARTH ELEM. The 6204 zero bytes before them (= 22 records = GUILD.DAT) are the roster buffer, so the elementals
 are roster records 22-24 (Guild numbers 23-25). Guild -> Add copies one of them into party slot 7 (OV1 0x2786).
-See combat-resolution.md section "SUMMON ELEMENTAL" (s33).
+See combat-resolution.md the summon-elemental section (s33).
 
 The script checks that every field it does not export is zero (spells: 1 known / 2 otherwise), so nothing in the
 records is silently dropped.
@@ -77,7 +77,7 @@ def main() -> None:
         "_source": "TWNS.INT tail, 3 x 282-byte character records at file 12141/12423/12705 "
                    "(tools/scripts/extract_elementals.py). Roster records 22-24.",
         "_notes": "Every field not listed is 0, including @12 defense and the combat fields @246/@248/@250 "
-                  "(DOS prep never reaches party slot 7, combat-resolution.md section SUMMON ELEMENTAL). "
+                  "(DOS prep never reaches party slot 7, combat-resolution.md, the summon-elemental section). "
                   "known_spells: record @0x60 slots set to 1; every other slot is 2. race 15 = UNDEAD (displayed); "
                   "birth_race 16 is outside the race table. class 3 = FIGHTER.",
         "elementals": templates,

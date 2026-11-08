@@ -183,7 +183,7 @@ public sealed partial class Phantasie3Campaign
     /// Continue?" "No" (2, <c>0x100d</c>); null for any other event prompt.
     /// </summary>
     /// <summary>
-    /// True for "Who will disarm the trap?" (ovl4 <c>0x1189</c>: the member picker <c>0x18bd(92)</c>; Amiga window 6,
+    /// True for `core.p3.who_will_disarm` (ovl4 <c>0x1189</c>: the member picker <c>0x18bd(92)</c>; Amiga window 6,
     /// <c>0x127ce(92)</c>): one choice per party member, and one more (<see cref="SessionPrompt.EscapeChoice"/>) for the
     /// picker's cancel.
     /// </summary>

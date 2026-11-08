@@ -8,7 +8,7 @@ namespace OpenPhantasie.Core.Tests;
 /// <c>towns.md</c> with the s81 decisions (D2-030/031/032/040) and the endgame chain of <c>endgame.md</c> (oracle:
 /// <c>parity/endgame-live.md</c>).
 /// </summary>
-public class Phantasie2CampaignTests
+public partial class Phantasie2CampaignTests
 {
     private static readonly GameDataRepository Data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P2));
 
@@ -265,46 +265,6 @@ public class Phantasie2CampaignTests
     }
 
     [OriginalDataFact]
-    public void Dragon_FeedTheOrb_RunsTheFilmonEnding()
-    {
-        var s = AtTheDragon(Phantasie2Campaign.DragonGateScore);
-        s.AnswerDungeonEvent(2); // APPROACH: SCORE >= 100 passes, >= 101 fails → GOTO EVENT 2
-        Assert.Equal(["ATTACK", "TALK", "FEED IT"], s.DungeonEventPrompt!.Message.Options.Select(o => o.Trim()));
-        s.AnswerDungeonEvent(2); // TALK: a line, then back to event 2
-        Assert.Equal(["ATTACK", "TALK", "FEED IT"], s.DungeonEventPrompt!.Message.Options.Select(o => o.Trim()));
-        s.AnswerDungeonEvent(3); // FEED IT → event 3
-        Assert.Equal(["GOLD", "THE ORB", "MEMBER"], s.DungeonEventPrompt!.Message.Options.Select(o => o.Trim()));
-        s.AnswerDungeonEvent(2); // THE ORB → SET SCORE 200, ENDING
-
-        Assert.Equal(GameMode.Town, s.Mode);
-        Assert.Equal(1, s.CurrentTownId);
-        Assert.Null(s.Dungeon);
-        Assert.Equal(EndgameOutcome.Victory, s.LastEndgame);
-        var members = s.Party.Members;
-        Assert.All(members.Take(4), m => Assert.Equal(Phantasie2Campaign.OrbDestroyedScore, m.P2.QuestScore));
-        Assert.Equal(Phantasie2Campaign.DragonGateScore, members[^1].P2.QuestScore); // the dead member keeps 100
-        Assert.Equal(4, s.Sack.Items.Count(i => i == Phantasie2Campaign.FilmonWandId)); // one wand per OK member
-        // The ceremony screen (endgame.md §7.1) waits for the front end: titles for records 0..n−1, n = OK members.
-        var scene = Assert.IsType<VictoryScene>(s.PendingVictoryScene);
-        Assert.Equal(10, scene.IntroPage.Count);
-        Assert.Equal(21, scene.ClosingPage.Count);
-        Assert.EndsWith("The end.", scene.ClosingPage[^1]);
-        Assert.Equal("Presenting the heroes of Ferronrah", scene.HeaderLines[1]);
-        Assert.Equal(4, scene.Titles.Count);
-        Assert.All(scene.Titles.Select((t, i) => (t, i)), x => Assert.StartsWith(members[x.i].Name + " - the ", x.t));
-        Assert.All(scene.Titles, t => Assert.EndsWith(" from Ferronrah", t));
-        Assert.Equal(members.Select(m => m.Status == CharacterStatus.Ok), scene.Slots.Select(v => v.Granted));
-        Assert.Equal(["They will each receive a wand of", "Filmon which has great power but", "can  only  be  used  once ."],
-            scene.SpeechLines.Skip(1).Take(3));
-        var prompts = new SessionPrompts(s);
-        Assert.Equal(SessionPromptKind.VictoryScene, prompts.Current!.Kind);
-        Assert.Equal(scene.Lines, prompts.Current.Lines); // without a pack scene the box shows every line
-        Assert.Equal(10 + 2 + 4 + 5 + 21, prompts.Current.Lines.Count);
-        prompts.Answer(1);
-        Assert.Null(s.PendingVictoryScene);
-    }
-
-    [OriginalDataFact]
     public void Dragon_Attack_RewritesTheCell_AndASavedMapKeepsTheDragonGone()
     {
         // live s82 (parity/encounters-endgame-live.md): ATTACK makes (32,33) 0x8e and fights PLUTO'S ICE DRAGON; after a
@@ -355,31 +315,6 @@ public class Phantasie2CampaignTests
     }
 
     [OriginalDataFact]
-    public void Mystic_ScoresTheOrbAndRunes_AndRaisesEveryMembersScore()
-    {
-        var s = WithParty(members: 3);
-        var a = s.Party.Members[0];
-        a.InventoryItemIds.Add(Phantasie2Campaign.OrbId);
-        for (var k = 0; k < 8; k++)
-            s.Party.Members[k % 2].P2.BeastRunes[k] = true;
-        s.Party.Members[2].Status = CharacterStatus.Dead;
-        var r = s.ConsultMystic();
-        Assert.Equal("Your score is  100. You are ready to destroy the orb.", r.Message);
-        Assert.All(s.Party.Members, m => Assert.Equal(100, m.P2.QuestScore)); // the dead one too
-
-        Assert.Equal((60, 4, false), Phantasie2Campaign.MysticScore(new[] { new Character { Phantasie2 = new() { BeastRunes = [true, true, true, true, true, true, false, false] } } }));
-        Assert.Equal((20, 1, true), Phantasie2Campaign.MysticScore(new[] { Carrier(score: 120) }));
-        Assert.Equal(5, Phantasie2Campaign.MysticScore(new[] { new Character { Phantasie2 = new() { QuestScore = 200 } } }).Rank);
-
-        static Character Carrier(int score)
-        {
-            var c = new Character { Score = score };
-            c.InventoryItemIds.Add(Phantasie2Campaign.OrbId);
-            return c;
-        }
-    }
-
-    [OriginalDataFact]
     public void Wand_OfFilmon_BumpsStats_OnlyAtScore200()
     {
         var s = WithParty(members: 2);
@@ -414,31 +349,6 @@ public class Phantasie2CampaignTests
         Assert.Equal("YOU ARE CHANGED", s.UseCampaignItem(s.Party.Members[0], amulet, 0).Message);
         Assert.Equal([true, true, false], s.Party.Members.Select(m => m.P2.BeastRunes[2]));
         Assert.Null(s.ItemUseOptions(s.Party.Members[0], 4)); // a shield has no campaign use
-    }
-
-    [OriginalDataFact]
-    public void Minion_Killed_DropsItsAmulet_AndLaterBecomesAPlainFight()
-    {
-        var s = WithParty(members: 4);
-        foreach (var m in s.Party.Members)
-            m.HpCur = m.HpMax = 2000;
-        Assert.True(s.LeaveTown());
-        var enc = s.BeginWildernessCombat(17); // minion 1, PLUTO'S GIANT CONST.
-        Assert.Equal(1, Phantasie2Campaign.MinionOf(enc));
-        Assert.Contains(s.Log, l => l == "PLUTO'S MINION ! !");
-        foreach (var mon in enc.AllMonsters)
-            mon.HitPoints = 1;
-        s.FightToEnd();
-        var log = s.Log.ToList();
-        var takes = log.FindLastIndex(l => l.EndsWith("TAKES AN AMULET"));
-        Assert.True(takes > 0, string.Join("\n", s.Log.TakeLast(30)));
-        Assert.Equal("PLUTO'S MINION IS KILLED !", log[takes - 1]); // live s82: KILLED above TAKES in one box
-        Assert.Contains(Phantasie2Campaign.AmuletBase + 1, s.Sack.Items);
-        Assert.All(s.Party.Members, m => Assert.True(m.P2.MinionKilled[0]));
-
-        var again = s.BeginWildernessCombat(17); // killed already: a 0..35 monster instead
-        Assert.Null(Phantasie2Campaign.MinionOf(again));
-        Assert.InRange(again.FirstMonsterId, 0, 35);
     }
 
     [OriginalDataFact]
@@ -486,34 +396,6 @@ public class Phantasie2CampaignTests
             (s.Overworld.RegionId, s.Overworld.X, s.Overworld.Y));
     }
 
-    [OriginalDataTheory]
-    [InlineData("manual")]
-    [InlineData("st")]
-    public void D2043_Victory_PaysTotals_OrStSurvivorShares(string value)
-    {
-        var s = WithParty(options: GameOptions.ForPreset(GameId.P2).With(RuleOptionRegistry.P2CombatShares.Id, value), members: 2);
-        Assert.True(s.LeaveTown());
-        var enc = s.BeginWildernessCombat(0);
-        foreach (var m in enc.AllMonsters)
-            m.HitPoints = 0;
-        enc.RewardXp = 308;
-        enc.RewardGold = 101;
-        var mark = s.LogSequence;
-        var (xp0, gold0) = (s.Sack.Experience, s.Sack.Gold);
-        s.ResolveCombatRound();
-        var lines = s.LogSince(mark);
-        if (value == "st") // 2 survivors: ⌊308/20⌋·10 = 150 XP and 50 GP each (DOS I's rule, ST pooling [~])
-        {
-            Assert.Contains("EACH SURVIVOR GETS", lines);
-            Assert.Equal((300L, 100L), (s.Sack.Experience - xp0, s.Sack.Gold - gold0));
-        }
-        else
-        {
-            Assert.Contains("308 EXPERIENCE POINTS AND 101 GOLD", lines);
-            Assert.Equal((308L, 101L), (s.Sack.Experience - xp0, s.Sack.Gold - gold0));
-        }
-    }
-
     [OriginalDataFact]
     public void PartyDefeat_II_FifthDefeatOfTheRun_ShowsTheOutOfDemonsSign()
     {
@@ -548,36 +430,6 @@ public class Phantasie2CampaignTests
         Assert.Equal([SessionPromptKind.PartyDefeat, SessionPromptKind.DefeatOutcome], kinds[3]);
         Assert.Equal([SessionPromptKind.PartyDefeat, SessionPromptKind.DefeatDemonSign, SessionPromptKind.DefeatOutcome], kinds[4]);
         Assert.Equal([SessionPromptKind.PartyDefeat, SessionPromptKind.DefeatOutcome], kinds[5]);
-    }
-
-    [OriginalDataFact]
-    public void PartyDefeat_II_FateLines_OnePerMember()
-    {
-        // live s83 (parity/encounters-endgame-live.md §9): a three-member party (L15, L3, CON 0) wiped by a night fight
-        // shows "GLADE YOU HAVE BEEN RESURRECTED", "YOSHI YOU HAVE BEEN `core.defeat.x_status_undead`", "FOREST YOU HAVE BEEN
-        // DESTROYED" and nothing for the empty record past the party (mode 6 hands 0x12678 the last index, not the count).
-        var s = WithParty(members: 3);
-        Assert.True(s.LeaveTown());
-        s.BeginWildernessCombat(0);
-        var (a, b, c) = (s.Party.Members[0], s.Party.Members[1], s.Party.Members[2]);
-        a.Level = 15; // rand/0x2000 <= 3 < 13: resurrected
-        b.Level = 3;  // 1/4 resurrected, else rand/0x2aab <= 2 < 3: undead
-        c.Stats = c.Stats with { Con = 0 }; // destroyed, no draw
-        foreach (var m in s.Party.Members)
-        {
-            m.HpCur = 0;
-            m.Status = CharacterStatus.Dead;
-        }
-        s.ResolveCombatRound();
-        var result = s.ResolvePartyDefeat();
-        var fates = result.Log.Skip(3).ToList(); // after the banner, the Astral Plane and the Great Demon
-        Assert.True(fates.Count == 3, string.Join("\n", result.Log));
-        Assert.Equal("HERO0 YOU HAVE BEEN RESURRECTED", fates[0]);
-        // The test process reads I's string table first (GameTextSetup); II's table holds `core.defeat.x_status_undead`.
-        Assert.Contains(fates[1], new[] { "HERO1 YOU HAVE BEEN RESURRECTED", GameText.F("core.defeat.x_status_undead", "HERO1") });
-        Assert.Equal("{0} YOU HAVE BEEN GRANTED UNDEAD STATUS", GameTextSetup.PhantasieII.Get("core.defeat.x_status_undead"));
-        Assert.Equal("HERO2 YOU HAVE BEEN DESTROYED", fates[2]);
-        Assert.Equal(2, s.Party.Members.Count);
     }
 
     [OriginalDataFact]
@@ -623,31 +475,6 @@ public class Phantasie2CampaignTests
         for (var r1 = 0; r1 <= 100; r1++)
         for (var r2 = 0; r2 <= 100; r2++)
             Assert.Equal(r1 * r2 * 72 / 10000, Phantasie2Campaign.DivineIiBaseMonster(r1, r2));
-    }
-
-    [OriginalDataFact]
-    public void DivineI_InADungeon_ADeityGivesTheLevelsAdvice_ElsewhereOnlySpendsMp()
-    {
-        var rng = new Words(W(40));
-        var s = WithParty(rng, members: 2);
-        var caster = s.Party.Members[1];
-        var spells = caster.SpellsKnown;
-        Array.Resize(ref spells, SpellId.DivineIi + 1);
-        spells[SpellId.DivineI] = 1;
-        caster.SpellsKnown = spells;
-        caster.MagicCur = 4;
-        Assert.True(s.LeaveTown());
-
-        var away = s.CastSpell(caster, SpellId.DivineI); // the wilderness: nothing but the MP
-        Assert.True(away.Success);
-        Assert.Equal(2, caster.MagicCur); // spell 58: 2 MP
-
-        s.EnterDungeon(1, 1, 1);
-        rng.Then(W(100), W(100)); // index 4, past the table: ZEUS meanwhile (D2-044)
-        s.CastSpell(caster, SpellId.DivineI);
-        Assert.Equal(0, caster.MagicCur);
-        Assert.Contains("ZEUS APPEARS AND GIVES YOU ADVICE", s.Log);
-        Assert.Contains(s.Log, l => l.Contains("ORACLE")); // DNG1 message 105
     }
 
     [Fact]
@@ -743,28 +570,6 @@ public class Phantasie2CampaignTests
         Assert.False(roll.Heard);
         Assert.Empty(NightEncounter.ApplyAfterPrep(party, roll));
         Assert.All(party.Members, m => Assert.Equal(CharacterStatus.Sleep, m.Status));
-    }
-
-    [OriginalDataFact]
-    public void NightWatch_AtR100_WithSixMembersAndAGuildElemental_TheElementalWatches()
-    {
-        // s92 static: with a Guild elemental the party size stays 6 and the elemental is record 6 (ST 0x83e2), so r = 100
-        // puts the elemental itself on watch, with its own LISTEN and name.
-        var party = new Party();
-        for (var i = 0; i < 6; i++)
-            party.Members.Add(new Character { Name = "M" + i, Status = CharacterStatus.Ok });
-        party.Elemental = new Character { Name = "AIR", Status = CharacterStatus.Ok, Skills = new(0, 0, 0, 0, 0, 100, 0, 0) };
-        var heard = NightEncounter.TryRoll(party, 1, new Words(W(0), W(0), 32767, W(50)), Data.Rules.EncounterRulesOrDefault)!;
-        Assert.Equal(6, heard.WatchSlot);
-        Assert.True(heard.Heard); // 50 < LISTEN 100
-        Assert.Equal(["AIR IS ON WATCH AND HEARS THE MONSTERS"], NightEncounter.ApplyAfterPrep(party, heard));
-
-        party.Elemental.Skills = new(0, 0, 0, 0, 0, 0, 0, 0);
-        var slept = NightEncounter.TryRoll(party, 1, new Words(W(0), W(0), 32767, W(50)), Data.Rules.EncounterRulesOrDefault)!;
-        Assert.False(slept.Heard);
-        Assert.Equal(["AIR IS ON WATCH"], NightEncounter.ApplyAfterPrep(party, slept));
-        Assert.All(party.Members, m => Assert.Equal(CharacterStatus.Sleep, m.Status));
-        Assert.Equal(CharacterStatus.Ok, party.Elemental.Status);
     }
 
     [OriginalDataFact]

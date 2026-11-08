@@ -7,7 +7,7 @@ namespace OpenPhantasie.Core.Tests;
 /// PLAN P3.2 Authentic mode, the survey tranche: the DECIDED manual-side D-entries whose DOS side is one contained switch,
 /// as <c>manual</c> / <c>dos</c> rules options. Each test pins both values; the manual value is today's rule.
 /// </summary>
-public class AuthenticModeSwitchesTests
+public partial class AuthenticModeSwitchesTests
 {
     private static readonly GameDataRepository Data = GameDataRepository.LoadPhantasie1();
 
@@ -390,19 +390,6 @@ public class AuthenticModeSwitchesTests
         s.TravelTime = 0;
         s.MoveOverworld(CardinalDirection.East);
         Assert.Equal(cost, s.TravelTime);
-    }
-
-    [OriginalDataTheory]
-    [InlineData(false, "MONSTERS ARE AT LEVEL 3")] // the nearby pool's average (roll 99: no error)
-    [InlineData(true, "MONSTERS ARE AT LEVEL 6")]  // DOS: dungeon 2·tier + 2
-    public void MonsterEval_D056(bool dos, string text)
-    {
-        var caster = Caster(SpellId.MonsterEval);
-        var party = new Party();
-        party.Members.Add(caster);
-        var r = SpellCaster.CastOutOfCombat(party, caster, SpellId.MonsterEval, null, new Scripted(99), CastLocation.Dungeon,
-            new FieldCastContext(DungeonTier: 2, NearbyMonsterLevels: [2, 3, 4]), dos ? Dos(RuleOptionRegistry.MonsterEval) : Manual);
-        Assert.Equal(text, r.Message);
     }
 
     [OriginalDataTheory]

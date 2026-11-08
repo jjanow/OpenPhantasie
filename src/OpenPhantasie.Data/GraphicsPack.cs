@@ -331,6 +331,15 @@ public sealed class GraphicsPack
     /// </summary>
     public IReadOnlyDictionary<string, IReadOnlyList<string>> Palettes { get; init; } =
         new Dictionary<string, IReadOnlyList<string>>();
+    /// <summary>
+    /// s169: screens the original showed in another palette than the one the pictures were cut in (III DOS: CGA palette
+    /// 1 on the dungeon, the planes, the fight's field, the gods and the Astral Plane; FORMAT.md section 10): screen key
+    /// → a <see cref="Palettes"/> name. <see cref="CutPalette"/> names the palette the files hold; the Client shows
+    /// the whole frame of such a screen index for index (<c>Game1.ScenePaletteFor</c>). Empty for most packs.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ScenePalettes { get; init; } = new Dictionary<string, string>();
+    /// <summary>The <see cref="Palettes"/> name the pack's pictures are cut in (<see cref="ScenePalettes"/>), or null.</summary>
+    public string? CutPalette { get; init; }
     /// <summary>The platform's hardware colour cycle (the ST overworld's water), or null.</summary>
     public ColourCycle? ColourCycle { get; init; }
     /// <summary>Font id the pack's text uses (<c>remaster-5x7</c>, built into the Client, is the default).</summary>
@@ -466,6 +475,13 @@ public sealed class GraphicsPack
         foreach (var colour in (dto.Palettes ?? []).Values.SelectMany(p => p ?? []))
             if (!HexColour.IsMatch(colour ?? ""))
                 throw new InvalidDataException($"{manifestPath}: palette colour '{colour}' is not #RRGGBB.");
+        var scenePalettes = (dto.ScenePalettes ?? []).Where(p => !p.Key.StartsWith('_'))
+            .ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
+        var cutPalette = scenePalettes.Remove("cut", out var cut) ? cut : null;
+        if (scenePalettes.Count > 0 && (cutPalette is null || dto.Palettes?.GetValueOrDefault(cutPalette) is not { } cutColours
+            || scenePalettes.Values.Any(n => (dto.Palettes ?? []).GetValueOrDefault(n) is not { } c || c.Count != cutColours.Count)))
+            throw new InvalidDataException($"{manifestPath}: scene_palettes: 'cut' and every screen's palette must be "
+                + "named palettes of the same size.");
         ColourCycle? cycle = null;
         if (dto.ColourCycle is { } cc)
         {
@@ -505,6 +521,8 @@ public sealed class GraphicsPack
             Screen = screen,
             Palette = dto.Palette ?? [],
             Palettes = (dto.Palettes ?? []).ToDictionary(p => p.Key, p => (IReadOnlyList<string>)(p.Value ?? [])),
+            ScenePalettes = scenePalettes,
+            CutPalette = scenePalettes.Count > 0 ? cutPalette : null,
             ColourCycle = cycle,
             Font = font,
             FontFile = File.Exists(fontFile) ? fontFile : null,
@@ -690,6 +708,7 @@ public sealed class GraphicsPack
         public ScreenDto? Screen { get; set; }
         public List<string>? Palette { get; set; }
         public Dictionary<string, List<string>>? Palettes { get; set; }
+        [JsonPropertyName("scene_palettes")] public Dictionary<string, string>? ScenePalettes { get; set; }
         [JsonPropertyName("colour_cycle")] public ColourCycleDto? ColourCycle { get; set; }
         public string? Font { get; set; }
         public Dictionary<string, string>? Fonts { get; set; }
@@ -965,6 +984,12 @@ public sealed record ScrollFrameLayout(
     IReadOnlyList<int> TopCorners, IReadOnlyList<int> BottomCorners,
     IReadOnlyList<int> Top, IReadOnlyList<int> Bottom, IReadOnlyList<int> Left, IReadOnlyList<int> Right)
 {
+    /// <summary>
+    /// s169: where a picture scroll's picture sits on this page (III DOS: Scroll IV's 120×168 map at (96, 8) on the text
+    /// page, root <c>0x124</c>), or null: the picture is a whole screen of its own (III Amiga, <c>0x1f7ee</c>).
+    /// </summary>
+    public IReadOnlyList<int>? PictureAt { get; init; }
+
     /// <summary>One edge cell: its column, row (0 = top, <see cref="Rows"/> + 1 = bottom) and piece slot.</summary>
     public readonly record struct Edge(int Column, int Row, int Slot);
 
@@ -999,8 +1024,13 @@ public sealed record ScrollFrameLayout(
             !Two(dto.TopCorners) || !Two(dto.BottomCorners) || !Some(dto.Top) || !Some(dto.Bottom) || !Some(dto.Left) ||
             !Some(dto.Right))
             throw new InvalidDataException($"{manifestPath}: bad scroll_frame.");
+        if (dto.PictureAt is not (null or [>= 0, >= 0]))
+            throw new InvalidDataException($"{manifestPath}: bad scroll_frame.picture_at.");
         return new ScrollFrameLayout(dto.Cell, dto.Columns, dto.Rows, dto.Fill, dto.FillColour ?? "#000000",
-            dto.TextColour ?? "#FFFFFF", dto.TopCorners!, dto.BottomCorners!, dto.Top!, dto.Bottom!, dto.Left!, dto.Right!);
+            dto.TextColour ?? "#FFFFFF", dto.TopCorners!, dto.BottomCorners!, dto.Top!, dto.Bottom!, dto.Left!, dto.Right!)
+        {
+            PictureAt = dto.PictureAt,
+        };
     }
 
     internal sealed class Dto
@@ -1013,6 +1043,7 @@ public sealed record ScrollFrameLayout(
         [JsonPropertyName("text_colour")] public string? TextColour { get; set; }
         [JsonPropertyName("top_corners")] public List<int>? TopCorners { get; set; }
         [JsonPropertyName("bottom_corners")] public List<int>? BottomCorners { get; set; }
+        [JsonPropertyName("picture_at")] public int[]? PictureAt { get; set; }
         public List<int>? Top { get; set; }
         public List<int>? Bottom { get; set; }
         public List<int>? Left { get; set; }

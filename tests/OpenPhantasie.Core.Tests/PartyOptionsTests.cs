@@ -4,7 +4,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Core.Tests;
 
 /// <summary>Per-round party options, OV2 <c>0x3b70</c> (<c>combat-resolution.md</c> §Party options).</summary>
-public class PartyOptionsTests
+public partial class PartyOptionsTests
 {
     private sealed class StrictRandomSource : IRandomSource
     {
@@ -122,21 +122,6 @@ public class PartyOptionsTests
 
     // --- Options -----------------------------------------------------------------------------
 
-    [OriginalDataFact]
-    public void Beg_AlwaysWorks_D017_KeepsKillXpAndForfeitsSack()
-    {
-        var enc = Setup(reaction: -30); // DOS would need rand < 60
-        enc.RewardXp = 100;
-        var rng = new StrictRandomSource(); // no roll at all
-        var r = PartyOptions.Choose(enc, PartyOption.BegMercy, rng, inDungeon: false, terrainClass: 0);
-        Assert.Equal(PartyOptionOutcome.CombatOver, r.Outcome);
-        Assert.True(r.ForfeitsSack);
-        Assert.Equal(100, r.End!.RewardXp);
-        Assert.Equal(0, r.End.RewardGold);
-        Assert.True(enc.TreasureForfeited);
-        Assert.Equal("MONSTERS STOP AND TAKE YOUR GOLD", r.Log[0]);
-    }
-
     [Fact]
     public void Sack_ForfeitToBeggars_ClearsGoldAndEveryOtherItemOfTheFirst50()
     {
@@ -149,31 +134,6 @@ public class PartyOptionsTests
         var expected = Enumerable.Range(1, 55).Select(i => i <= 49 && i % 2 == 1 ? 0 : i);
         Assert.Equal(expected, sack.ItemIds);
         Assert.Equal(30, sack.ItemCount);
-    }
-
-    [OriginalDataTheory]
-    // odds = 15·XP/XP₀ + 3·avg level − 3·L; L = 2. Party levels 4 and 5 → avg 4 (truncated).
-    [InlineData(0, 6, true)]     // 0 + 12 − 6 = 6; rand ≤ 6
-    [InlineData(0, 7, false)]
-    [InlineData(200, 36, true)]  // 15·200/100 = 30 → 36
-    [InlineData(200, 37, false)]
-    public void Threaten_UsesKillRatioPartyLevelAndL(long xp, int roll, bool surrenders)
-    {
-        var enc = Setup(levels: new[] { 4, 5 });
-        enc.RewardXp = xp;
-        var r = PartyOptions.Choose(enc, PartyOption.Threaten, new StrictRandomSource(roll), inDungeon: true, terrainClass: 0);
-        if (surrenders)
-        {
-            Assert.Equal(PartyOptionOutcome.CombatOver, r.Outcome);
-            Assert.Equal("MONSTERS SURRENDER", r.Log[0]);
-            Assert.Equal(500, r.End!.RewardGold);
-            Assert.True(enc.SurrenderTreasure);
-        }
-        else
-        {
-            Assert.Equal(PartyOptionOutcome.GiveOrders, r.Outcome);
-            Assert.Equal("MONSTERS DON'T RESPOND", r.Log[0]);
-        }
     }
 
     [Fact]

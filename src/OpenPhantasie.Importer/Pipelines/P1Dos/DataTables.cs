@@ -145,7 +145,7 @@ internal static class DataTables
             ["_source"] = "TWNS.INT tail, 3 x 282-byte character records at file 12141/12423/12705 " +
                           "(tools/scripts/extract_elementals.py). Roster records 22-24.",
             ["_notes"] = "Every field not listed is 0, including @12 defense and the combat fields @246/@248/@250 " +
-                         "(DOS prep never reaches party slot 7, combat-resolution.md section SUMMON ELEMENTAL). " +
+                         "(DOS prep never reaches party slot 7, combat-resolution.md, the summon-elemental section). " +
                          "known_spells: record @0x60 slots set to 1; every other slot is 2. race 15 = UNDEAD (displayed); " +
                          "birth_race 16 is outside the race table. class 3 = FIGHTER.",
             ["elementals"] = templates,

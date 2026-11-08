@@ -8,7 +8,7 @@ namespace OpenPhantasie.Client.Tests;
 /// I Amiga's victory screen (h32 <c>+0x6d0</c>, s127 static): the pen-by-pen fade, the 2.4 s hold, the ghosts and Zeus'
 /// arm, one portrait per granted member 2.4 s apart, the speech line by line (180 ticks or a key), the fade-out.
 /// </summary>
-public class VictoryScreenTests
+public partial class VictoryScreenTests
 {
     private static EndingSceneLayout Layout() =>
         GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")!.EndingScene!;
@@ -40,18 +40,6 @@ public class VictoryScreenTests
         Assert.True(layout.QueuedKeys);
         Assert.Equal(new EndingDiskWaits(3.5, 6.09, 1, 3.47), layout.Disk); // s153 refit
         Assert.Equal(7, layout.SpeechKeys!.Count);
-    }
-
-    [OriginalDataFact]
-    public void Speech_TheAmigasLineBreaks()
-    {
-        var zeus = new VictoryScene(Scene.Slots, Endgame.ZeusSpeech);
-        var lines = new VictoryScreen(Layout(), zeus).SpeechLines;
-        Assert.Equal("Your Quest is over, now go and rest to", lines[2]);
-        Assert.Equal("prepare You for the next adventure.", lines[3]);
-        Assert.Equal("I grant You Your First Divine Spell.", lines[4]);
-        Assert.Equal(Endgame.ZeusSpeech[0], lines[0]);
-        Assert.Equal(["one", "two", "three"], new VictoryScreen(Layout(), Scene).SpeechLines); // other lines kept
     }
 
     [OriginalDataFact]
