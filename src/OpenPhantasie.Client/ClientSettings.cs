@@ -60,6 +60,9 @@ public sealed class ClientSettings
 
     /// <summary>Open the window maximized (the picture still scales by whole steps, letterboxed). F11 goes back to a scaled window.</summary>
     public bool StartMaximized { get; set; } = true;
+
+    /// <summary>s174: ask GitHub for a newer release at each start (release builds only); a newer one opens the update screen.</summary>
+    public bool CheckUpdatesAtStart { get; set; } = true;
     /// <summary>
     /// The manual's T)IME LAG (wilderness command, D-073): 0 is the fastest melee, 9 the slowest. The manual gives no
     /// default; DOS's own Speed menu starts on "normal", so the remaster starts in the middle.

@@ -57,6 +57,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-070 | Outside-town keys: the manual's Adventure Menu has E = move east (3 / N W E S, I, U, T, L); the Amiga's bar has E = Examine Member, P = Party Status, and no letter moves | DECIDED · manual: E moves east |
 | D3-071 | XP pool / found items: the manual divides the experience "when they reach a town" (the Amiga and DOS on town entry); the remaster paid out only by the town's Distribute | DECIDED (user s142): manual · paid out on town entry (DOS order, s143) |
 | D3-072 | I / II → III transfer XP: the manual's characters keep "enough remaining experience … to train up several levels"; DOS gives 100 XP per old level (one or two trainings for most) | DECIDED: DOS (user s148) · built (s147) |
+| D3-073 | Armory list: the manual lists an item the buyer cannot use "as Unusable" and shows the point value of equipment; DOS prints "N/A" in the Pt Val column, and also for the three requirement-0 items (Cloth +1, Robes +1, Self Bow) | PENDING `[U]` (s174) · not built |
 
 ---
 
@@ -932,3 +933,23 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 - **Decision:** DECIDED (user, s148, 2026-11-02): keep DOS's system, 100 XP per old level.
 - **Remaster:** DOS's 100 × old level (`rule-tables.json` `transfer.xp_per_level`), under every preset; no option.
 - **Side effects:** only transferred characters; their first trainings and their power when they arrive.
+
+## D3-073 — Armory list: "Unusable" or "N/A", and the requirement-0 items
+
+- **Manual:** "The list will show the Item Number (used to buy the item), the Item Name, the Cost (in Gold Pieces), and
+  the Point Value of Weapons and Equipment. If the buyer does not have the necessary minimum attributes to use an item,
+  the Item will be listed as Unusable." (III PDF 6, Armory.)
+- **Code:** DOS III's list routine (ovl2 `0x32c8`, s174 `[C]` static, not seen live) prints the name, a **Pt Val** text and
+  the cost per row. The Pt Val text is **"N/A"** when the item's requirement (`DS:0x11a2`) is above the shopper's
+  attribute sum (`0x39b5`: STR; bows STR + DEX; melee 2·STR + DEX), and also **"N/A"** whenever the requirement is 0:
+  every potion, scroll and treasure (no points), and the three equipment items with requirement 0, **31 Cloth +1,
+  32 Robes +1 and 41 Self Bow**, which anyone can use and which have points 2, 3 and 1. Otherwise it prints the points.
+  The word "Unusable" is not in DOS III; the Amiga program has neither word. Apple II III (disk 1 side A, BASIC line 1220)
+  prints `"  UNUSABLE"` in the points column and the points of every usable item, so the manual describes the Apple II.
+  So DOS differs from the manual twice: the word (N/A for Unusable), and no point value for three usable items.
+- **Decision:** PENDING (user).
+- **Remaster:** not built: III's Armory list (shared with I, `UiOverlays.DrawArmory`) shows name, stock and price per
+  row, with no Pt Val column and no marker (the after-buy UNUSABLE line uses III's gate, s173).
+- **Side effects:** none until built. Building either side touches only the III Armory list (`UiOverlays` Armory rows,
+  `TownMenus.ListBuyPrice` callers); I's list is unaffected.
+- **Spec:** `reverse-engineering/dos/phantasie3/logic-specs/town.md` section 7 ("The list rows").

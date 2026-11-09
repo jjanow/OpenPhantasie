@@ -77,6 +77,7 @@ public sealed class OptionsScreen
         DetailBox.Reset();
         Changed = false;
         ImportRequested = false;
+        UpdateRequested = false;
         IsOpen = true;
     }
 
@@ -123,7 +124,7 @@ public sealed class OptionsScreen
                 case Keys.Right or Keys.Enter or Keys.Space:
                     Change(rows, +1);
                     if (!IsOpen)
-                        return true; // a row that closes the screen (IMPORT GAMES)
+                        return true; // a row that closes the screen (IMPORT GAMES, UPDATE NOW)
                     break;
             }
         }
@@ -266,8 +267,21 @@ public sealed class OptionsScreen
                 ImportRequested = true;
                 IsOpen = false;
             }));
+        // s174: the self-updater (remaster only). The check at start is a switch; UPDATE NOW checks at once (from the main
+        // menu only: an update replaces the program and restarts it).
+        rows.Add(Described("options.update.at_start", OnOff(_settings.CheckUpdatesAtStart),
+            _ => Set(() => _settings.CheckUpdatesAtStart = !_settings.CheckUpdatesAtStart)));
+        if (_running is null)
+            rows.Add(Described("options.update.now_row", "v" + Updates.AppVersion.Text, _ =>
+            {
+                UpdateRequested = true;
+                IsOpen = false;
+            }));
         return rows;
     }
+
+    /// <summary>s174: the UPDATE NOW row was picked: the screen closed and the shell opens the update screen.</summary>
+    public bool UpdateRequested { get; set; }
 
     /// <summary>The IMPORT GAMES row was picked: the screen closed and the shell opens the import screen.</summary>
     public bool ImportRequested { get; set; }

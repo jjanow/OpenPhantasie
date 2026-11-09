@@ -280,7 +280,14 @@ public partial class Game1
     /// <summary>Main menu: the arrows to the row (+ Return); Options: its own pointing (rows skip headers).</summary>
     private void MenuLine(int line, int column, bool clicked)
     {
-        if (_import.IsOpen)
+        if (_update.IsOpen)
+        {
+            if (clicked)
+                _update.Click(line);
+            else if (_update.RowOfLine(line) is int updateRow && updateRow != _update.Cursor)
+                _input.Inject([Keys.Down]);
+        }
+        else if (_import.IsOpen)
         {
             if (_import.RowOfLine(line) is int importRow)
             {

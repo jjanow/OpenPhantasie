@@ -375,6 +375,14 @@ public sealed partial class Phantasie3Campaign : ICampaign
     {
     }
 
+    /// <summary>
+    /// The hand-out screen's member columns (ovl2 <c>0x0de6</c>, header "SH AR BW WP", s174 <c>[C]</c> static): the table
+    /// points of the worn shield (<c>+0x68</c>), armour (<c>+0x6a</c>), bow (<c>+0x86</c>) and weapon (<c>+0x6c</c>). That is
+    /// III's slot order in <c>rules.json</c>, so the columns are the layout's slots.
+    /// </summary>
+    public IReadOnlyList<string>? HandOutWornColumns(GameSession session) =>
+        session.Equipment.Slots.Select(s => s.Id).ToArray();
+
     public (bool May, string Reason)? CanTrain(GameSession session, Character member) =>
         P3Training.MayTrain(Trainee(member)) ? (true, "") : (false, GameText.S("core.p3.cannot_train"));
 

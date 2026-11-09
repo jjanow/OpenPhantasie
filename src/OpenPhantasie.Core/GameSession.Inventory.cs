@@ -102,6 +102,16 @@ public sealed partial class GameSession
         Campaign.ReadyBestEquipment(this, member);
     }
 
+    /// <summary>
+    /// The hand-out screen's worn-item point columns for <paramref name="member"/> in this game's order
+    /// (<see cref="ICampaign.HandOutWornColumns"/>: III's SH AR BW WP), or null for I's WPN ARM SHL row.
+    /// </summary>
+    public IReadOnlyList<int>? HandOutWornPoints(Character member)
+    {
+        ArgumentNullException.ThrowIfNull(member);
+        return Campaign.HandOutWornColumns(this)?.Select(slot => ItemPoints(WornItems.Get(member, slot))).ToArray();
+    }
+
     /// <summary>This game's gate, point values and best-gear pick, for the static helpers (hand-out, Trade).</summary>
     public GearRules Gear => new(ItemGate, ItemPoints, ReadyBestEquipment);
 

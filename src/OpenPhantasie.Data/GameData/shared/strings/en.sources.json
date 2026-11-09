@@ -801,6 +801,65 @@
     ]
    }
   ],
+  "core.item.bow_damage_x": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     "BOW: DAMAGE {0} ",
+     [
+      "OV2.OVR",
+      31502,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     "BOW: DAMAGE {0} ",
+     [
+      "game",
+      40973,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     "BOW: DAMAGE {0} ",
+     [
+      "PHANT.PRG",
+      130632,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2",
+    "parts": [
+     "BOW: DAMAGE {0} ",
+     [
+      "OUTDOORS2",
+      17184,
+      6
+     ]
+    ]
+   }
+  ],
+  "distribute.name_class_sh_ar_bw_wp": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV1.OVR",
+      24059,
+      17
+     ],
+     "  SH  AR  BW  WP   #"
+    ]
+   }
+  ],
   "inventory.give_x_to_whom": [
    {
     "from": "p2-st-1.0",

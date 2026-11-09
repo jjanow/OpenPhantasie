@@ -19,7 +19,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project="$root/src/OpenPhantasie.Client"
 config=Debug
 out="$project/bin/$config/net10.0"
-dll="$out/OpenPhantasie.Client.dll"
+dll="$out/OpenPhantasie.dll"
 stamp="$out/.play-built" # touched after each build: copied data files don't change the dll's time
 
 rebuild=0

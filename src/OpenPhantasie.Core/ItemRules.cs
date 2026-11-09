@@ -46,7 +46,8 @@ public static class ItemRules
         }
         else if (id is >= 41 and <= 100)
         {
-            lines.Add(GameText.F("core.item.weapon_damage_x", points));
+            // A bow by the catalog's kind (III 41–60, the manual's "Bows" table, III PDF 11) gets its own label; I and II have none.
+            lines.Add(GameText.F(item.Kind == "bow" ? "core.item.bow_damage_x" : "core.item.weapon_damage_x", points));
             lines.Add(need > 0 ? NeedsLine(check, need) : GameText.S("core.item.anyone_can_use"));
         }
         else if (Magic.IsHealingPotion(id))

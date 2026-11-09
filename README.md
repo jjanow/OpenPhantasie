@@ -30,6 +30,34 @@ report says what that changes (for DOS Phantasie I: map regions already explored
 Other versions (C64, Apple II Phantasie I / III,
 PC-88, PC-98, MSX2, …) are recognised but cannot be imported yet.
 
+## Downloading and playing
+
+Ready-to-run builds for **Windows**, **Linux** and **macOS** are on the
+[Releases page](https://github.com/jjanow/OpenPhantasie/releases). Nothing else needs to be installed.
+
+| System | File | To start |
+|---|---|---|
+| Windows (64-bit) | `OpenPhantasie-<version>-win-x64.zip` | unzip it and run `OpenPhantasie.exe` (Windows may warn about an unknown publisher: More info, Run anyway) |
+| Linux (64-bit) | `OpenPhantasie-<version>-linux-x64.tar.gz` | unpack it (`tar xzf …`) and run `OpenPhantasie/OpenPhantasie` |
+| macOS, Apple silicon | `OpenPhantasie-<version>-osx-arm64.tar.gz` | unpack it and open `OpenPhantasie.app` |
+| macOS, Intel | `OpenPhantasie-<version>-osx-x64.tar.gz` | as above |
+
+The macOS app is not notarised, so the first start is refused ("cannot be verified"). Either right-click the app and
+choose Open, or run `xattr -dr com.apple.quarantine OpenPhantasie.app` once in Terminal.
+
+Keep the game in a folder you can write to (your home folder, not Program Files or /Applications owned by another
+user), so it can update itself.
+
+### Updates
+
+OpenPhantasie checks for a newer release each time it starts and offers to install it; the release notes show first
+and nothing changes unless you choose UPDATE NOW. The check can be switched off in Options → General → CHECK UPDATES AT
+START, and Options → General → UPDATE NOW checks at any time (it also shows the version you have). An update replaces
+the program's folder and restarts the game; your settings, saves and imported games are in your user data folder (see
+below) and are kept. The check asks GitHub's public releases page and sends nothing else.
+
+Builds you make yourself (below) report version `0.0.0-dev` and never update themselves.
+
 ## Building and running
 
 You need the [.NET 10 SDK](https://dotnet.microsoft.com/download).
@@ -54,6 +82,18 @@ dotnet run --project src/OpenPhantasie.Importer.Cli -- <path>... [--out DIR] [--
 Settings, saves and the import live in your user data folder: `~/.local/share/OpenPhantasie` on Linux,
 `%LOCALAPPDATA%\OpenPhantasie` on Windows, `~/Library/Application Support/OpenPhantasie` on macOS (the import is in its
 `import/` subfolder; delete that folder to start over).
+
+## Making the downloads
+
+`.github/workflows/build.yml` runs the tests and builds the four downloads on every push (as workflow artifacts); a
+tag `v1.2.3` also publishes them as release 1.2.3, with `docs/release-notes/v1.2.3.md` as its notes when that file exists.
+The same packaging runs locally:
+
+```sh
+python3 tools/scripts/package_release.py --rid linux-x64 --version 1.2.3 --out dist
+```
+
+(`--rid` is `win-x64`, `linux-x64`, `osx-x64` or `osx-arm64`; a macOS build is signed ad hoc only when made on a Mac.)
 
 ## Tests
 

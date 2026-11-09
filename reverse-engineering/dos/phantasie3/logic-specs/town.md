@@ -150,12 +150,42 @@ See `elementals.md`.
   (`0x3282…0x32ba`) it calls ready-best `0x37f1` on the record itself, then copies the shopping copy back over the
   record. So the bought items arrive carried and the worn slots stay as they were on entering the Armory: buying wears
   nothing (the next ready-best is the town-entry payout or a hand-out give). The buy itself never calls the gate
-  `0x39b5`; the list routine `0x32c8` does (`0x3319`), the manual's "the Item will be listed as Unusable". Remaster: no
-  auto-wear for III (`ICampaign.AfterArmoryBuy`); its after-buy UNUSABLE line uses III's gate; the list itself shows no
-  Unusable marker yet.
+  `0x39b5`; the list routine `0x32c8` does (`0x3319`). Remaster: no auto-wear for III (`ICampaign.AfterArmoryBuy`); its
+  after-buy UNUSABLE line uses III's gate.
+- **The list rows** (ovl2 `0x32c8`, s174 `[C]` static, not seen live): the price list (root `0xf22`, 5 columns of
+  `0x16a` B from `-0x2180`: id, price, stock, points `DS:0x113c[id]`, requirement `DS:0x11a2[id]`; both 0 for ids > 100)
+  gives each row a 30-space line: the name (`S150 + id`) at column 0, the **Pt Val** text at column 18 (`+0x12`), the
+  price at column 23 (`+0x17`), cut at 28; header "Item:       Pt Val: Cost:" (`DS:0x5ee7`). The Pt Val text is
+  - **"N/A"** (`DS:0x5f7a`) when the requirement is 0: every potion, scroll and treasure, and also the three
+    requirement-0 items **31 Cloth +1, 32 Robes +1 and 41 Self Bow** (the only zeros of `DS:0x11a2` for ids 1–100;
+    points 2, 3, 1), which anyone can use;
+  - **"N/A"** (`DS:0x5f7e`) when the requirement is above the shopper's sum (`0x39b5(STR +0x0a, DEX +0x0e, id)` of the
+    shopping copy `FAR:0x9de8`, signed `jg`), i.e. the item is unusable;
+  - else the points (`itoa`, base 10).
+  The manual: the list shows "the Item Number …, the Item Name, the Cost …, and the Point Value of Weapons and
+  Equipment. If the buyer does not have the necessary minimum attributes to use an item, the Item will be listed as
+  Unusable" (III PDF 6, Armory). Apple II III (disk 1 side A, line 1220) prints `"  UNUSABLE"` in the points column and
+  the points of every usable item, requirement 0 included, so the manual follows the Apple II. **DOS differs in the
+  word (N/A) and shows no points for the three requirement-0 items: D3-073, PENDING `[U]`.** Remaster: the list (shared with
+  I, `UiOverlays.DrawArmory`) shows name, stock and price, no Pt Val column and no marker, until the user decides (not
+  built).
 - **The hand-out** (`0x061f`, s173 `[C]` static): the "who can use" column is `0x39b5(STR, DEX, id)` ≥ the table
   requirement for ids < 101 (`0x0788`); each item given to a character is appended to its list and ready-best `0x37f1`
   runs for that character at once (`0x0b25`). The screen never clears a worn slot.
+- **The hand-out's member rows** (s174 `[C]` static): header "Player: Class:  SH AR BW WP Status" (`DS:0x5ade`, drawn at
+  x 4, y 11). Each row (`0x0c25`, 36 characters): the party number at column 0, the name at 2, the class (`S103 +
+  class`) at 10, the status (`S135 + status`) at 30; then `0x0de6` writes, with 9 items carried (`+0x26` ≥ 9), "has 9
+  items." at column 18, else the **table points** (`DS:0x113c`) of the worn **shield** (`+0x68`) at 18, **armour**
+  (`+0x6a`) at 21, **bow** (`+0x86`) at 24 and **weapon** (`+0x6c`) at 27. The item rows below are not I's format (a
+  `Y` / `N` per member, `*` on the current item, `0x06f5…0x08e3`; not read further `[?]`). Remaster (s174): III's member
+  rows show SH AR BW WP (`ICampaign.HandOutWornColumns` = III's `rules.json` slot order, points by
+  `GameSession.ItemPoints`), header `distribute.name_class_sh_ar_bw_wp`; I, II and IV keep WPN ARM SHL (the hook defaults to null). Not built `[~]`: the
+  remaster keeps its item-count column and SELL / SACK rows where DOS shows the status and "has 9 items."; the item rows
+  keep I's line (points, kind letter, member digits), so a III bow's kind letter is still `W`.
+- **The describe line for a bow** (s174): DOS III has no item-description screen (I's U)SE line is the remaster's, D-061),
+  so the label is the remaster's own wording: items of kind `bow` (`items.json`, III 41–60, the manual's "Bows" table, III PDF 11)
+  print `core.item.bow_damage_x` "BOW: DAMAGE n POINTS" where I's id range 41–100 prints "WEAPON:" (`ItemRules.Describe`).
+  I's and II's catalogs have no bow kind, so they are unchanged; IV's catalog has bows (64–75) and gets the same label.
 - **Sell** (Distribute, §3): stock of the current town +1 (ovl2 `0xab3`); a kind at 0 first raises byte 0 (ovl2 `0xa8f`).
   No cap: a potion row at 200+ would wrap past 255 `[~]`.
 - **Entering a town** (root `0xa911`): ages the party (ovl3 `0x65a`, `planes.md` §3a), then rebuilds the price list from

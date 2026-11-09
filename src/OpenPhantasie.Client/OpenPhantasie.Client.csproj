@@ -8,7 +8,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>OpenPhantasie.Client</RootNamespace>
+    <!-- s174: a local build is 0.0.0-dev and never updates itself; CI sets the release's version (-p:Version=1.2.3). -->
+    <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
+    <!-- The player's program file: OpenPhantasie(.exe). -->
+    <AssemblyName>OpenPhantasie</AssemblyName>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- s174: where the self-updater looks for releases (owner/name on GitHub); CI may pass another. -->
+    <AssemblyMetadata Include="UpdateRepository" Value="$(UpdateRepository)" Condition="'$(UpdateRepository)' != ''" />
+    <AssemblyMetadata Include="UpdateRepository" Value="jjanow/OpenPhantasie" Condition="'$(UpdateRepository)' == ''" />
+  </ItemGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Icon.ico</ApplicationIcon>

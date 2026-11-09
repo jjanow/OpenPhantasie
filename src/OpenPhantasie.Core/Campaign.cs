@@ -180,6 +180,13 @@ public interface ICampaign
     /// </summary>
     void AfterArmoryBuy(GameSession session, Character shopper, int itemId) => TownMenus.AutoEquipIfBetter(shopper, itemId);
 
+    /// <summary>
+    /// The hand-out screen's worn-item columns, left to right (slot ids), each showing the worn item's points
+    /// (<see cref="ItemPoints"/>). Default null: I's row (DOS OV1 <c>0x2bed</c>, WPN ARM SHL = damage B, armour soak,
+    /// shield soak). III: ovl2 <c>0x0de6</c>, "SH AR BW WP" = shield, armour, bow, weapon.
+    /// </summary>
+    IReadOnlyList<string>? HandOutWornColumns(GameSession session) => null;
+
     // --- Optional hooks a game with its own world rules uses (T4, III; I and II use none) ---------------------------
 
     /// <summary>

@@ -10,10 +10,16 @@ namespace OpenPhantasie.Client;
 /// (found items), one row per member, then the pooled items with "&lt;====" on the current one. The DOS menu cursor moves
 /// over SELL, SACK and the members and starts on member 1; Enter gives. The manual's keys work too: 1–6 a member, 7 sell.
 /// There is no cancel (DOS asks again until every item is placed); a refused pick (full member / sack) beeps in DOS.
+/// A game with its own worn columns (<see cref="GameSession.HandOutWornPoints"/>; III's ovl2 <c>0x0de6</c> "SH AR BW WP")
+/// shows those points in place of WPN ARM SHL.
 /// </summary>
 public sealed class DistributeDialog : IModalDialog
 {
     public static string Header => UiText.S("distribute.name_class_wpn_arm_shl");
+
+    /// <summary>The header row for <paramref name="session"/>'s game: I's, or the worn-point columns' (III: SH AR BW WP).</summary>
+    public static string HeaderFor(GameSession session) =>
+        session.Campaign.HandOutWornColumns(session) is null ? Header : UiText.S("distribute.name_class_sh_ar_bw_wp");
 
     private static string[] ClassNames => [UiText.S("distribute.thief"), UiText.S("distribute.monk"), UiText.S("distribute.ranger"), UiText.S("distribute.fighter"), UiText.S("distribute.priest"), UiText.S("distribute.wizard")];
 
@@ -42,7 +48,7 @@ public sealed class DistributeDialog : IModalDialog
         string Mark(int row) => row == Cursor ? ">" : " ";
         var lines = new List<string>
         {
-            Header,
+            HeaderFor(session),
             $"{Mark(0)}{"SELL",-22}{party.GoldCarried,10}",
             $"{Mark(1)}{"SACK",-31}{session.Sack.ItemCount}",
         };
@@ -51,7 +57,10 @@ public sealed class DistributeDialog : IModalDialog
             var m = party.Members[i];
             var name = m.Name.Length > 9 ? m.Name[..9] : m.Name;
             var cls = (uint)m.Class < ClassNames.Length ? ClassNames[(int)m.Class][..3] : "?";
-            lines.Add($"{Mark(i + 2)}{i + 1,-2}{name,-11}{cls,-4}{m.WeaponDamageB,4}{m.ArmorSoak,4}{m.ShieldSoak,4}{CarriedItems.Count(m),4}");
+            var worn = session.HandOutWornPoints(m) is { } points
+                ? string.Concat(points.Select(p => $"{p,4}"))
+                : $"{m.WeaponDamageB,4}{m.ArmorSoak,4}{m.ShieldSoak,4}";
+            lines.Add($"{Mark(i + 2)}{i + 1,-2}{name,-11}{cls,-4}{worn}{CarriedItems.Count(m),4}");
         }
         lines.Add(_note.Length > 0 ? _note : "---------------------------------");
         // Every item still to hand out (s99): the panel scrolls when the list runs past the screen.

@@ -1,5 +1,10 @@
 using OpenPhantasie.Client;
+using OpenPhantasie.Client.Updates;
 using OpenPhantasie.Data;
+
+// s174: a finished self-update left the replaced files beside the new ones (.update-old); they go now.
+if (AppVersion.IsRelease)
+    UpdateInstaller.CleanUp(UpdateInstaller.InstallRoot(AppContext.BaseDirectory));
 
 // s163: the player's import before the switches are checked (--test-game asks whether the game is playable, which in
 // a build without built-in GameData means imported); Game1.Initialize sets the same root again.

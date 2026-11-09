@@ -76,7 +76,11 @@ own D-entry.
   string table), then for a rules option the value each preset gives and its D-entry. A longer text scrolls with [ and ],
   the wheel over the box or its bar, and starts at its top for each row. Every row must have a `.desc` string (pinned by
   a Client test).
-- **General tab:** window scale, start maximized. (Key bindings stay in the settings file until a rebinding screen exists.
+- **General tab:** window scale, start maximized, then (main menu only) IMPORT GAMES (s158), **CHECK UPDATES AT START**
+  (s174, on by default; release builds ask GitHub's latest release at start and open the update screen when a newer one
+  has a download for this machine; a failed check says nothing) and (main menu only) **UPDATE NOW** (value: the running
+  version; opens the update screen and checks at once; `UpdateScreen`, `Updates/`; packaging and CI in `10-importer.md`
+  section 8.4). (Key bindings stay in the settings file until a rebinding screen exists.
   Sound and T)IME LAG are I's own options, D-073: the manual's wilderness **T** by default, or rows of I's tab, below.)
 - **Game tab**, top to bottom: presentation (graphics, title screen and title tune (section 8), on I and III **Amiga
   audio filter** (section 8), diagonal moves, status lines, continue from a list, new inventory screen, **time lag and

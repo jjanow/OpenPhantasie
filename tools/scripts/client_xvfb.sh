@@ -12,7 +12,8 @@
 #   client_xvfb.sh stop   :N                  stop the Client, metacity and Xvfb on :N (only that display)
 #
 # Settings and saves go to a throwaway XDG home (CLIENT_HOME, default /tmp/phantasie-client-N) so the real ones stay
-# untouched. Log: $CLIENT_HOME/client.log. Sound goes to a PulseAudio null sink of its own (phantasie_xvfb_N, s114),
+# untouched. Log: $CLIENT_HOME/client.log. CLIENT_PROGRAM runs another program instead of play.sh (s174: a packaged
+# build, e.g. to try the self-updater). Sound goes to a PulseAudio null sink of its own (phantasie_xvfb_N, s114),
 # never the user's speakers; `audio` records that sink's monitor.
 #
 # Why each step (s73, s113): MonoGame/SDL polls key state once per frame, so a key is held HOLD seconds (default 0.12)
@@ -34,7 +35,7 @@ export DISPLAY=$disp
 xvfb_pid() { pgrep -x Xvfb -a | awk -v d="$disp" '$3 == d { print $1 }'; }
 client_pid() {
   local p
-  for p in $(pgrep -f '[O]penPhantasie\.Client\.dll' || true); do
+  for p in $(pgrep -f '[O]penPhantasie\.dll' || true); do
     tr '\0' '\n' < "/proc/$p/environ" 2>/dev/null | grep -qx "DISPLAY=$disp" && echo "$p"
   done
   [[ -f $home/client.pid ]] && cat "$home/client.pid" || true
@@ -83,7 +84,7 @@ case $cmd in
       pactl load-module module-null-sink sink_name="$sink" > "$home/sink.module"
     fi
     # OpenAL Soft would pick PipeWire directly and ignore PULSE_SINK (s114): force its pulse backend.
-    env -u WAYLAND_DISPLAY SDL_VIDEODRIVER=x11 ALSOFT_DRIVERS=pulse PULSE_SINK=$sink XDG_DATA_HOME=$home XDG_CONFIG_HOME=$home setsid "$repo/play.sh" "$@" > "$home/client.log" 2>&1 &
+    env -u WAYLAND_DISPLAY SDL_VIDEODRIVER=x11 ALSOFT_DRIVERS=pulse PULSE_SINK=$sink XDG_DATA_HOME=$home XDG_CONFIG_HOME=$home setsid "${CLIENT_PROGRAM:-$repo/play.sh}" "$@" > "$home/client.log" 2>&1 &
     echo $! > "$home/client.pid"
     w=$(WAIT_TICKS=900 window) # up to 3 minutes: play.sh may build first
     sleep 1

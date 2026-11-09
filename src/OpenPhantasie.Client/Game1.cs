@@ -110,6 +110,9 @@ public partial class Game1 : Game
     private readonly MainMenuScreen _mainMenu = new();
     private OptionsScreen _options = null!;
     private ImportScreen _import = null!;
+    private UpdateScreen _update = null!;
+    /// <summary>s174: the start-up update check (CHECK UPDATES AT START, release builds only); its result opens the update screen.</summary>
+    private Task<Updates.UpdateCheckResult>? _launchCheck;
     private bool _optionsFromGameMenu; // Esc from in-game Options goes back to the game menu
     private readonly Dictionary<GameId, IReadOnlyList<(string Id, string Name)>> _packLists = new();
 
@@ -178,6 +181,12 @@ public partial class Game1 : Game
         _options = new OptionsScreen(_settings, PackList);
         _import = new ImportScreen(importRoot) { OnImported = () => AfterImport(importRoot) };
         Window.FileDrop += (_, e) => _import.AddPaths(e.Files);
+        var updates = Updates.UpdateService.ForThisBuild();
+        _update = new UpdateScreen(c => updates.CheckAsync(c), (release, progress) => InstallUpdate(updates, release, progress),
+            Updates.AppVersion.IsRelease);
+        if (_settings.CheckUpdatesAtStart && Updates.AppVersion.IsRelease && _testLevel is null && _p4Map is null
+            && _p4Town is null && _p4Ending is null && _titlePreview is null)
+            _launchCheck = Task.Run(() => updates.CheckAsync());
         _withdrawDialog = new WithdrawDialog(_members);
         Window.TextInput += (_, e) =>
         {
@@ -206,6 +215,45 @@ public partial class Game1 : Game
         if (_titlePreview is GameId preview)
             BeginSplash(preview, force: true, preview == GameId.P4 ? StartNewPhantasie4 : () => StartGame(preview),
                 preview == GameId.P4 ? LoadSavedPhantasie4 : null);
+    }
+
+    /// <summary>
+    /// s174: the start-up check's result once, if it found a newer release with a build for this machine. A failed check
+    /// (no connection, the site down) says nothing: the player didn't ask.
+    /// </summary>
+    private Updates.UpdateCheckResult? LaunchCheckFound()
+    {
+        if (_launchCheck is not { IsCompleted: true } done)
+            return null;
+        _launchCheck = null;
+        return done.IsCompletedSuccessfully && done.Result.Outcome == Updates.UpdateCheckOutcome.Available ? done.Result : null;
+    }
+
+    /// <summary>s174: download <paramref name="release"/> into the install's work folder and put it over the install.</summary>
+    private static async Task InstallUpdate(Updates.UpdateService updates, Updates.UpdateRelease release, IProgress<double> progress)
+    {
+        var root = Updates.UpdateInstaller.InstallRoot(AppContext.BaseDirectory);
+        if (!Updates.UpdateInstaller.CanWrite(root))
+            throw new UnauthorizedAccessException(UiText.F("options.update.read_only", root));
+        var program = Environment.ProcessPath ?? throw new InvalidOperationException("no program path");
+        var archive = Path.Combine(root, Updates.UpdateInstaller.WorkFolder, release.AssetName);
+        await updates.DownloadAsync(release, archive, progress).ConfigureAwait(false);
+        progress.Report(1.0);
+        Updates.UpdateInstaller.Install(archive, root, Path.GetRelativePath(root, program));
+    }
+
+    /// <summary>s174: the new build is in place: start it and close this one (settings are saved as they change).</summary>
+    private void RestartAfterUpdate()
+    {
+        try
+        {
+            Updates.UpdateInstaller.Relaunch(Environment.ProcessPath!);
+        }
+        catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
+        {
+            // the files are in place; the player starts it by hand
+        }
+        Exit();
     }
 
     /// <summary>Show IV's screen for the game <paramref name="start"/> builds (T6.3). IV's text is set first: entering a map
@@ -1105,10 +1153,20 @@ public partial class Game1 : Game
             return;
         }
 
-        // T5.0: the Options screen and the main menu own every key while shown (s158: and the import screen).
-        if (_options.IsOpen || _import.IsOpen || _session is null)
+        // T5.0: the Options screen and the main menu own every key while shown (s158: and the import screen; s174: and the
+        // update screen).
+        if (_session is null && !_options.IsOpen && !_import.IsOpen && !_update.IsOpen && LaunchCheckFound() is { } found)
+            _update.OpenWith(found);
+        if (_options.IsOpen || _import.IsOpen || _update.IsOpen || _session is null)
         {
-            if (_import.IsOpen)
+            if (_update.IsOpen)
+            {
+                _update.Update();
+                _update.HandleKeys(_input.NewKeys(keys));
+                if (_update.RestartRequested)
+                    RestartAfterUpdate();
+            }
+            else if (_import.IsOpen)
             {
                 _import.Update();
                 _import.HandleKeys(_input.NewKeys(keys));
@@ -1121,6 +1179,11 @@ public partial class Game1 : Game
                 {
                     _options.ImportRequested = false;
                     _import.Open(firstRun: false);
+                }
+                if (_options.UpdateRequested)
+                {
+                    _options.UpdateRequested = false;
+                    _update.Open();
                 }
             }
             else if (_mainMenu.HandleKeys(_input.NewKeys(keys)) is var (choice, game))
@@ -1427,11 +1490,13 @@ public partial class Game1 : Game
             base.Draw(gameTime);
             return;
         }
-        if (_options.IsOpen || _import.IsOpen || _session is null || _data is null)
+        if (_options.IsOpen || _import.IsOpen || _update.IsOpen || _session is null || _data is null)
         {
             _screen.Begin();
             _screen.BeginLayout(_spriteBatch);
-            if (_import.IsOpen)
+            if (_update.IsOpen)
+                UiOverlays.DrawMenuScreen(_spriteBatch, _pixel, _update.Lines(), _update.Help);
+            else if (_import.IsOpen)
                 UiOverlays.DrawMenuScreen(_spriteBatch, _pixel, _import.Lines(), _import.Help);
             else if (_options.IsOpen)
                 UiOverlays.DrawOptionsScreen(_spriteBatch, _pixel, _options);

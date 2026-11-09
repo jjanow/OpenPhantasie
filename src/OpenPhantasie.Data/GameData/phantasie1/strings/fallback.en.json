@@ -88,7 +88,9 @@
    "core.p4.hall_game_ii": "Phantasie II",
    "core.p4.hall_game_iii": "Phantasie III",
    "core.p4.hall_list_ii": "== Phantasie II ==",
-   "p1field.scroll.ok": "O.K."
+   "p1field.scroll.ok": "O.K.",
+   "core.item.bow_damage_x": "BOW: {0} DAMAGE POINTS",
+   "distribute.name_class_sh_ar_bw_wp": "MEMBER      CLASS  SH  AR  BW  WP   #"
   },
   "phantasie1": {
    "health.sleep": "SLEEP",

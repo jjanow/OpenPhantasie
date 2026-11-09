@@ -238,7 +238,39 @@ public class InventoryGameGearTests
     public void III_GodBowLine_PrintsTablePointsAndStrPlusDex()
     {
         var lines = P3().DescribeItem(GodBow);
-        Assert.Equal("WEAPON: DAMAGE 20 POINTS", lines[1]); // I's formula: 10
-        Assert.Equal("NEEDS STR + DEX OF 38", lines[2]);     // I's: 2·STR + DEX of 40
+        Assert.Equal("BOW: DAMAGE 20 POINTS", lines[1]);  // s174: the manual's "Bows" (I's formula: 10, as WEAPON:)
+        Assert.Equal("NEEDS STR + DEX OF 38", lines[2]); // I's: 2·STR + DEX of 40
+        Assert.Equal("WEAPON: DAMAGE 4 POINTS", P3().DescribeItem(Mace)[1]); // III's melee weapons keep WEAPON:
+    }
+
+    [OriginalDataTheory]
+    [InlineData(GameId.P1)]
+    [InlineData(GameId.P2)]
+    public void IAndII_ItemId45_StillPrintsWeapon(GameId game)
+    {
+        Assert.StartsWith("WEAPON: DAMAGE ", Game(game).DescribeItem(ShortBow)[1]); // no bow kind in I's / II's catalog
+    }
+
+    [OriginalDataFact]
+    public void III_HandOutColumns_AreShieldArmourBowWeaponTablePoints()
+    {
+        var s = P3();
+        var a = Carrying(s, 0, 4, GodArmour, SelfBow, Mace); // Small Shield 4, God Armour 11, Self Bow 1, Mace 4
+        a.WornShield = 4;
+        a.WornArmor = GodArmour;
+        a.WornBow = SelfBow;
+        a.WornWeapon = Mace;
+        Assert.Equal([4, 11, 1, 4], s.HandOutWornPoints(a)); // ovl2 0x0de6: SH AR BW WP, DS:0x113c points
+        a.WornBow = 0;
+        Assert.Equal([4, 11, 0, 4], s.HandOutWornPoints(a));
+    }
+
+    [OriginalDataTheory]
+    [InlineData(GameId.P1)]
+    [InlineData(GameId.P2)]
+    public void IAndII_HandOutColumns_AreIsRow(GameId game)
+    {
+        var s = Game(game);
+        Assert.Null(s.HandOutWornPoints(s.Party.Members[0])); // the Client keeps WPN ARM SHL
     }
 }

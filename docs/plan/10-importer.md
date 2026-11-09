@@ -697,6 +697,34 @@ X68000 IV) + the public shipped GameData give all 88 GameData files JSON-equal t
 as `StringTable.ForGame` does); the Apple II II import is byte-identical to the private build's; the public Client on
 Xvfb lists all four games and starts I with the imported Amiga art.
 
+### 8.4 Player builds, CI and the self-updater (s174)
+
+- **Downloads:** `tools/scripts/package_release.py --rid <rid> --version <v>` publishes the Client self-contained
+  (`OpenPhantasieBuiltInGameData=false`, so a build holds only the shipped GameData; players import their copies) and
+  packs `OpenPhantasie-<v>-win-x64.zip` (folder `OpenPhantasie/`, `OpenPhantasie.exe`), `-linux-x64.tar.gz` (folder
+  `OpenPhantasie/`) or `-osx-x64` / `-osx-arm64.tar.gz` (an `OpenPhantasie.app`, program in `Contents/MacOS/`, signed ad
+  hoc by `codesign` on a Mac; not notarised). The program file is `OpenPhantasie` (the Client's `AssemblyName`, s174). The
+  script deletes nothing: `--out` must not hold its `work-<rid>` folder.
+- **CI:** `tools/public/github/workflows/build.yml`, exported as the public repo's `.github/workflows/build.yml` (the
+  private repo runs no CI). Every push / pull request: tests (Ubuntu), then the four downloads as artifacts (Windows on
+  `windows-latest` so the icon goes into the .exe, both macOS builds on `macos-latest`), version `0.0.0-ci.<run>`. A tag
+  `v1.2.3`: version 1.2.3 and a GitHub release with `docs/release-notes/v1.2.3.md` as its notes (exported with the docs).
+- **Version:** a local build is `0.0.0-dev` (the Client's `Version` default); CI passes `-p:Version`. Only a version
+  without a `-` suffix is a release build (`AppVersion.IsRelease`), and only a release build checks or updates.
+- **Updater** (`src/OpenPhantasie.Client/Updates/`): `UpdateService` asks `GET /repos/<UpdateRepository>/releases/latest`
+  (no sign-in; the repository is assembly metadata, `jjanow/OpenPhantasie` unless CI passes another; a private
+  repository answers 404, read as "no release") and picks the asset `OpenPhantasie-*-<platform>.zip|.tar.gz` for this
+  machine. `UpdateInstaller` downloads into `<install>/.update/`, unpacks, finds the folder laid out as the install (the
+  one holding the program at the same relative path, so a top folder or an `.app` is fine), then moves every file in,
+  renaming each one it replaces to `*.update-old` (all or nothing: a failed move puts everything back). The new process
+  is started and the old one exits; at the next start a release build deletes the `*.update-old` files and the work
+  folder. The install folder must be writable, else the screen says so and points to the releases page. Settings, saves
+  and the import live in the user data folder and are not touched. `OPENPHANTASIE_UPDATE_API` points the check at
+  another API root (testing).
+- **Checked (s174):** Linux on Xvfb end to end: a packaged 1.0.0 against a local server offering 1.0.1 opened the update
+  screen at start with the notes, downloaded, installed, restarted as 1.0.1 (old files cleaned), and UPDATE NOW then said
+  "latest version". Windows (renaming the running .exe / DLLs) and macOS (the bundle) are by the code and CI only `[~]`.
+
 ## Appendix A: master images in the repo (reference fingerprints)
 
 `reverse-engineering/<platform>/original-images/`, SOURCES.txt files left out. Size in bytes, sha1.

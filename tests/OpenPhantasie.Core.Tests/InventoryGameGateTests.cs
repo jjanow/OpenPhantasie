@@ -99,7 +99,7 @@ public class InventoryGameGateTests
     {
         var p3 = P3();
         var bow = p3.DescribeItem(SelfBowPlus1);
-        Assert.Equal("WEAPON: DAMAGE 2 POINTS", bow[1]);
+        Assert.Equal("BOW: DAMAGE 2 POINTS", bow[1]); // s174: III's bows print the manual's "Bows" label
         Assert.Equal("NEEDS STR + DEX OF 2", bow[2]);
         Assert.Equal("ANYONE CAN WEAR IT", p3.DescribeItem(RobesPlus1)[2]);
 
