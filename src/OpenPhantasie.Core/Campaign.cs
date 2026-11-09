@@ -141,6 +141,15 @@ public interface ICampaign
     TownTransactionResult UseItem(GameSession session, Character user, int itemId, int option) =>
         throw new NotSupportedException($"Item {itemId} has no campaign use.");
 
+    /// <summary>
+    /// The game's own strength gate: can <paramref name="member"/> use <paramref name="itemId"/> (shields, armour, weapons;
+    /// any other item passes)? The inventory screen asks this (<see cref="GameSession.CanWear"/>). Default: I's
+    /// <see cref="ItemRules.IsUsable"/> (DOS OV1 <c>0x3053</c>, gate computed from the id). II keeps the default: its
+    /// <c>items.json</c> gates are I's id formulas `[~]` (checked live only for the transfer starter kit). III overrides it
+    /// with its table rule (<c>P3TownEntryPayout.CanUse</c>).
+    /// </summary>
+    bool CanUseItem(GameSession session, Character member, int itemId) => ItemRules.IsUsable(itemId, member.Stats);
+
     // --- Optional hooks a game with its own world rules uses (T4, III; I and II use none) ---------------------------
 
     /// <summary>

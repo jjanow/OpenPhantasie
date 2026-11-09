@@ -51,6 +51,8 @@ own D-entry.
  NEW INVENTORY SCREEN OFF
  TIME LAG AND SOUND  T COMMAND
  COLORBLIND PALETTE  OFF
+ TERRAIN KEY         OFF                ← II only
+ MYSTIC SKIP         OFF                ← IV only
  RULES FOR NEW GAMES
  PRESET              ORIGINAL (MANUAL)
  SUMMONED ELEMENTAL  FULL STATS
@@ -78,8 +80,18 @@ own D-entry.
 - **Game tab**, top to bottom: presentation (graphics, title screen and title tune (section 8), on I and III **Amiga
   audio filter** (section 8), diagonal moves, status lines, continue from a list, new inventory screen, **time lag and
   sound**: `T COMMAND` / `IN OPTIONS`, the D-073 QoL switch; with `IN OPTIONS` a TIME LAG 0–9 row and a SOUND row follow and T is no command), **colorblind palette** (P3
-  QoL, off = the original colours), then **Rules for new games**: the preset row, every rules option of that game, then
-  the feature modules of other games ("from other games"), which show "NOT BUILT" until they are decoded.
+  QoL, off = the original colours), on II **terrain key** and on IV **Mystic skip** (both s171 P3 QoL, below), then
+  **Rules for new games**: the preset row, every rules option of that game, then the feature modules of other games
+  ("from other games"), which show "NOT BUILT" until they are decoded.
+- **Terrain key** (II only, `terrainKey`, `options.terrain_key`; off = the ST, no key, D2-014): the rulebook's terrain
+  key beside the wilderness map, rows from `GameData/phantasie2/terrain-key.json` (string id of the manual's name + the
+  pack pictures as swatches: the ST fill patterns `overworld.pattern.N`, the map icons, the party sprite). The party keeps
+  its first row of cards and the key takes the room under it; both scroll (wheel, bar) what does not fit. Shown only when
+  the pack holds the pictures (the ST pack, not the Apple II's).
+- **Mystic skip** (IV only, `mysticSkip`, `options.mystic_skip`; off = P4.X): Space, Return, a left click or the pad's A
+  during the Mystic's three counted loops (~23 s, no keys in P4.X) runs their remaining passes at once
+  (`P4MysticReading.SkipLoops`): the same final picture, then the original wait for a key. The score and verdict are the
+  town loop's either way. That input closes nothing.
 - **Combat speed** (presentation, per game): I and III show AMIGA SCREENS and COMBAT SPEED (the Amiga's Speed menu, s117 /
   s132); **II shows COMBAT SPEED only** (s136: the ST's Speed menu, FAST 5 / NORMAL 10 / SLOW 1000 ms a combat line; at
   NORMAL and SLOW each combat sound waits for the one before, `reverse-engineering/atari-st/phantasie2/FORMAT.md` 7.3).
@@ -95,7 +107,7 @@ own D-entry.
 | Scope | Examples | Changed | Stored |
 |---|---|---|---|
 | **Global** | window scale, start maximized, key bindings, DOS save folder | any time | `settings.json` top level |
-| **Per-game presentation** | graphics pack, title screen and title tune (section 8), diagonal moves (D-076), status lines (D-077), continue from a list (D-069 QoL), inventory screen, combat speed (I, II, III), time lag and sound in the options (D-073 QoL; the lag and sound values themselves stay top level), colorblind palette (P3 QoL) | any time, also in game | `settings.json` → `games.<p1>` |
+| **Per-game presentation** | graphics pack, title screen and title tune (section 8), diagonal moves (D-076), status lines (D-077), continue from a list (D-069 QoL), inventory screen, combat speed (I, II, III), time lag and sound in the options (D-073 QoL; the lag and sound values themselves stay top level), colorblind palette (P3 QoL), terrain key (II) and Mystic skip (IV) (s171 P3 QoL) | any time, also in game | `settings.json` → `games.<p1>` |
 | **Per-game rules** | DOS-vs-manual choices, QoL rule toggles, cross-game feature modules, transfer and lineage options | game tab = defaults for **new** games | copied into the save at new game; locked |
 
 Presets cover **rules only**. Presentation switches stay outside them, so a fresh install (diagonal moves ON at the user's
@@ -201,10 +213,22 @@ request) never reads as "Custom".
   is a note, everyone left out is named in a clamp warning; the remaster save keeps them all); DOS import gives no D-002
   size note. The I → II transfer converts every slot of a grown roster when II's save has `guild-limit` = `none`, else
   the ST's first 22 (`GameSession.TransferFromPhantasieI`).
+- **Elementals across the games (P3 QoL, user D3-040):** three every-game options limited to I, II and III
+  (`RuleOptionDescriptor.Games`; IV picks its elemental when the party is formed and has no Guild Add / Drop / Purge of
+  one, so they are not in its tab), listed before `guild-limit`. Every preset gives `game` = the game's own rule, so no
+  preset changed; the other values are a player choice through Custom, each an original's decoded rule:
+  `elemental-load` (`game`: I and II six characters first and nobody after it, III one character and more in front of
+  it; `phantasie-i`, `phantasie-iii`), `elemental-drop` (`game`: I and II every Drop unloads it, III it stays while a
+  character is left; `phantasie-i`, `phantasie-iii`) and `elemental-purge` (D3-040; `game`: I and II purge and unload,
+  III `p3.purge`; `phantasie-i` unloads, `as-drop` does what this save's Drop does (III's manual), `refused` = DOS III's
+  "Drop first"; any value but `game` replaces `p3.purge`). Core: `ElementalGuildRules` (`GameSession.GuildElementalRules`,
+  `GameSession.PurgeRule`); summoning in combat (D-033) and I's town-entry unload keep the game's own rules. In every game
+  and value no elemental leaves the game: the records stay in the Guild (`ElementalTemplates`), Purge refuses an
+  elemental (`GuildHall.PurgeRefusal`, also a record of race 16 in a roster), and Drop / Purge only unload the party copy.
 - The original-code preset keeps the id `dos`; its label is per game: `options.preset.dos.<game>` when the string table
   has it (II: "ORIGINAL (ATARI ST)"), else `options.preset.dos` (`OptionPresetExtensions.LabelId`).
 - I's menu order: elemental prep, item stash, Armory restock, gold cap, rename party members, stunning blow, armor reduced,
-  payout remainder, then the P3.2 switches in the order above, then the every-game options (`guild-limit`).
+  payout remainder, then the P3.2 switches in the order above, then the every-game options (`elemental-load`, `elemental-drop`, `elemental-purge`, `guild-limit`).
 - The time lag (D-073) is **not** a rules option: it changes pacing, not the game, so it is a presentation switch (sections 2 and 3).
 - Each later rules item (`PLAN.md` P3.2) adds one descriptor and nothing else.
 

@@ -121,8 +121,9 @@ public sealed class ItemCatalogEntry
     public int? Points { get; init; }
 
     /// <summary>
-    /// Phantasie III's attribute requirement (<c>DS:0x11a2 + id</c>, <c>items.json</c> <c>min_str</c>); null in I / II, whose
-    /// gate comes from <see cref="ItemRules.CombatGate"/>.
+    /// The item's attribute requirement (<c>items.json</c> <c>min_str</c>; III's table <c>DS:0x11a2 + id</c>). I's and II's
+    /// files hold I's id formulas (<see cref="ItemRules.CombatGate"/>), which their gates still compute; III's gate reads it
+    /// (<c>P3TownEntryPayout.CanUse</c>). Null when the item has none.
     /// </summary>
     public int? Requirement { get; init; }
 

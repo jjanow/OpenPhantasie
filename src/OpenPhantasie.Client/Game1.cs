@@ -1090,7 +1090,15 @@ public partial class Game1 : Game
         {
             _p4.Tick(gameTime.ElapsedGameTime.TotalMilliseconds); // s110: IV's picture animations, the open door
             _p4.Pointer = IsMouseVisible ? _mouse.Position : null; // s151: buttons under the pointer are lit (_xbtn)
-            if (_p4.HandleKeys(_input.NewKeys(keys)) is { } request)
+            _p4.MysticSkippable = _settings.Game(GameId.P4).MysticSkip;
+            // QoL MYSTIC SKIP: Space / Return, a left click or the pad's A ends the Mystic's counted loops; that input
+            // goes nowhere else this frame, so it does not also close the Mystic in its wait.
+            if (_p4.MysticBusy && _p4.MysticSkippable
+                && (_input.NewKeys(keys).Any(P4DungeonScreen.IsMysticSkipKey) || _input.NewButtons(pad).Contains(Buttons.A)
+                    || _mouse.LeftClick is not null)
+                && _p4.SkipMystic())
+                _pendingClick = null;
+            else if (_p4.HandleKeys(_input.NewKeys(keys)) is { } request)
                 RunPhantasie4Request(request);
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
@@ -3195,21 +3203,25 @@ public partial class Game1 : Game
                     _spriteBatch!.Draw(pixel, pr, Color.White);
                 }
 
-                UiOverlays.DrawFieldSidebar(_spriteBatch!, pixel, assets, session, !_settings.Game(session.Game).TimeLagInOptions);
+                UiOverlays.DrawFieldSidebar(_spriteBatch!, pixel, assets, session, !_settings.Game(session.Game).TimeLagInOptions,
+                    TerrainKeyFor(session));
                 break;
             }
             case GameMode.Dungeon when session.Dungeon is not null:
             {
                 FillBackdrop(pixel, new Color(10, 10, 14));
                 var level = session.Dungeon.Level ?? _dungeonView!.GetLevel(session.Dungeon.LevelId);
-                // s170: the original's own glyph map (III Amiga / DOS) already shows the cells the party has seen, so
-                // the remaster's auto-map box is not drawn over it: it covered the sidebar's second member card (black on
-                // the CGA pack, whose palette has no grey). Neither original draws such a box.
-                var tileDungeon = false;
+                // s170: the I / II auto-map box at (222, 16) covered the sidebar's second member card over a tile
+                // dungeon (black on the CGA pack, whose palette has no grey), so it is not drawn there. s171: the tile
+                // dungeon gets its own whole-level overview instead, inside the view left of the cards, in the corner
+                // away from the party (DrawTileDungeonOverview). Neither original draws a box: the Amiga's dungeon
+                // screen is the whole 24 x 30 level itself (Amiga FORMAT.md section 5), the remaster's 160-px view 20
+                // columns of it.
+                (TileMapLayout Tiles, Rectangle View, Rectangle Party)? tileDungeon = null;
                 if (assets.TileMaps is { } tileMaps && assets.GetDungeonCell(tileMaps.UnseenGlyph) is not null)
                 {
-                    DrawTileDungeon(session.Dungeon, level, tileMaps, assets, pixel, 4, oy);
-                    tileDungeon = true;
+                    var (view, party) = DrawTileDungeon(session.Dungeon, level, tileMaps, assets, pixel, 4, oy);
+                    tileDungeon = (tileMaps, view, party);
                 }
                 else if (assets.Maps is { } maps && _data?.MapTiles is { } glyphRule)
                 {
@@ -3265,7 +3277,11 @@ public partial class Game1 : Game
 
                 UiOverlays.DrawFieldSidebar(_spriteBatch!, pixel, assets, session, !_settings.Game(session.Game).TimeLagInOptions);
 
-                if (_settings.AutoMapVisible && !tileDungeon)
+                if (_settings.AutoMapVisible && tileDungeon is { } td)
+                    UiOverlays.DrawTileDungeonOverview(_spriteBatch!, pixel, level, session.Dungeon, _qol, td.Tiles,
+                        glyph => DungeonGlyphColour(assets, glyph),
+                        UiOverlays.TileOverviewPlacement(td.View, td.Party, level.GridWidth, level.GridHeight));
+                else if (_settings.AutoMapVisible)
                     UiOverlays.DrawAutoMapOverlay(
                         _spriteBatch!, pixel, level, session.Dungeon, _qol, ox, oy, scale);
                 break;
@@ -3297,6 +3313,23 @@ public partial class Game1 : Game
     // fits the content area (the Amiga shows the whole 26×20 region at (4,15); the remaster layout keeps a sidebar —
     // P2 layout). Then as the Amiga: fogged cells black (h56 0x860), town / inn / dungeon icons (h56 0x5a4, hidden
     // under fog), the party sprite (h77 0xdfe) at its cell's top-left.
+    private readonly Dictionary<GameId, IReadOnlyList<TerrainKeyEntry>> _terrainKeys = [];
+
+    /// <summary>
+    /// QoL TERRAIN KEY (<see cref="GameSettings.TerrainKey"/>, off = the original: no key): the game's
+    /// <c>terrain-key.json</c> rows on the wilderness map when the switch is on and the pack holds their pictures (II's ST
+    /// pack); else null.
+    /// </summary>
+    private IReadOnlyList<TerrainKeyEntry>? TerrainKeyFor(GameSession session)
+    {
+        if (!_settings.Game(session.Game).TerrainKey || ViewMode(session) != GameMode.Overworld)
+            return null;
+        if (!_terrainKeys.TryGetValue(session.Game, out var key))
+            _terrainKeys[session.Game] = key = TerrainKey.For(session.Game);
+        var assets = _assets;
+        return assets is not null && key.Any(e => e.Pictures.Any(p => assets.Get(p) is not null)) ? key : null;
+    }
+
     private const int OverworldViewCols = 13;
     private const int OverworldViewRows = 16;
 
@@ -3559,8 +3592,9 @@ public partial class Game1 : Game
     private const int TileDungeonWidth = 160;
     private const int TileDungeonHeight = UiOverlays.ContentBottom - UiOverlays.ContentTop;
 
-    private void DrawTileDungeon(DungeonState state, DungeonLevel level, TileMapLayout tiles, AssetCatalog assets,
-        Texture2D pixel, int left, int top)
+    /// <summary>The tile dungeon's view; returns its screen rectangle and the party's glyph in it (the s171 overview's placement).</summary>
+    private (Rectangle View, Rectangle Party) DrawTileDungeon(DungeonState state, DungeonLevel level, TileMapLayout tiles,
+        AssetCatalog assets, Texture2D pixel, int left, int top)
     {
         var gw = tiles.GlyphWidth;
         var gh = tiles.GlyphHeight;
@@ -3583,7 +3617,23 @@ public partial class Game1 : Game
             else
                 _spriteBatch!.Draw(pixel, dest, glyph == tiles.PartyGlyph ? Color.Red : Color.Gray);
         }
+        return (new Rectangle(left, top, cols * gw, rows * gh),
+            new Rectangle(left + (state.X - x0) * gw, top + (state.Y - y0) * gh, gw, gh));
     }
+
+    /// <summary>s171: a dungeon glyph's colour in the overview box (<see cref="UiOverlays.DominantColour"/>), read once per texture.</summary>
+    private Color DungeonGlyphColour(AssetCatalog assets, int glyph)
+    {
+        if (assets.GetDungeonCell(glyph) is not { } tex)
+            return Color.Gray;
+        if (_glyphColours.TryGetValue(tex, out var c))
+            return c;
+        var data = new Color[tex.Width * tex.Height];
+        tex.GetData(data);
+        return _glyphColours[tex] = UiOverlays.DominantColour(data, Color.Gray);
+    }
+
+    private readonly Dictionary<Texture2D, Color> _glyphColours = new(ReferenceEqualityComparer.Instance);
 
     private void FillBackdrop(Texture2D pixel, Color color) =>
         _spriteBatch!.Draw(pixel,

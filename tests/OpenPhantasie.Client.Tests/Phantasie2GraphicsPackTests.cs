@@ -149,6 +149,26 @@ public class Phantasie2GraphicsPackTests
     }
 
     [OriginalDataFact]
+    public void D2014_TerrainKey_ListsTheManualsRows_WithTheStsPictures()
+    {
+        // s171 QoL TERRAIN KEY: the rulebook's key (Apple II page + p.27), each row's swatches from the ST pack.
+        var key = TerrainKey.For(GameId.P2);
+        var table = StringTable.Load(GameDataLocator.GameFolder(GameId.P2));
+        Assert.Equal(
+            ["PARTY", "TOWN/INN", "DUNGEON", "PATH", "DESERT", "GRASSLAND/FOREST", "MOUNTAINS/HILLS", "RIVER/LAKE",
+                "MOLTEN LAVA", "MIST", "DARK VOIDS"],
+            key.Select(e => table.Get(e.Label)));
+        Assert.All(key, e => Assert.NotEmpty(e.Pictures));
+        Assert.All(key.SelectMany(e => e.Pictures), p => Assert.NotNull(St.Resolve(p)));
+        // terrain.md section 5: lava = class 8, mist = 11, dark voids = 7, water = 10.
+        Assert.Equal([PictureNames.OverworldPattern(8)], key.Single(e => e.Label.EndsWith("molten_lava")).Pictures);
+        Assert.Equal([PictureNames.OverworldPattern(11)], key.Single(e => e.Label.EndsWith(".mist")).Pictures);
+        Assert.Equal([PictureNames.OverworldPattern(7)], key.Single(e => e.Label.EndsWith("dark_voids")).Pictures);
+        Assert.Equal([PictureNames.OverworldPattern(10)], key.Single(e => e.Label.EndsWith("river_lake")).Pictures);
+        Assert.Empty(TerrainKey.For(GameId.P1)); // the key is II's (the ST shows none; I has no such file)
+    }
+
+    [OriginalDataFact]
     public void AmigaIPack_HasNoPatterns_SoNoBorrowing()
     {
         var i = GraphicsPackCatalog.Load(GameDataRepository.DefaultPhantasie1Path).Find("amiga")!;

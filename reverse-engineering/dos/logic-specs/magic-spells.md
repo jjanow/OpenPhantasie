@@ -204,10 +204,12 @@ for i in 0 .. party_size-1 ([0x648e]), in party order:
 - **Side writes [C] (s41):** `[0x74fa+2i] = 4` is the raised member's combat order = 4 "no action" (the round loop
   skips orders ≤ 4, `0x1b1`), so it does nothing for the rest of the round; `[0x5b96+2i] = 4` is its previous-order
   mirror, so next round's default order is PARRY (< 10, `combat-resolution.md` §Action encoding). `0x43ae` rebuilds
-  the non-DEAD member list `[0x64a2]` (monster targets) and returns count − 1; `[0x6490]` is the non-DEAD count used
-  as the end-of-combat gold/XP divisor, so a member raised in combat shares the payout. Called from the field cast
-  too, where the writes are harmless (the next encounter rebuilds them). Core: `Prep[i].PackedAction := Cleared` on a
-  combat raise; target list and survivor count are derived from status (`CombatEncounter.Survivors`).
+  the non-DEAD member list `[0x64a2]` (special targets) and returns count − 1, which is dropped; `[0x6490]` only gets
+  + 1, so it stays the last living index or the count, whichever it was (`combat-resolution.md` §[original text] "The
+  living list and its word"). The end of combat recounts it (`0x3fa9`), so a member raised in combat shares the payout.
+  Called from the field cast too, where the word and list stay in RAM until the next rebuild. Core:
+  `Prep[i].PackedAction := Cleared` on a combat raise; the survivor count is derived from status
+  (`CombatEncounter.Survivors`); `Party.DosLiving.Resurrected` keeps DOS's list and word for D-033 `dos`.
 - Same rule as town (OV1 `0x2693`): auto-target in party order, one roll per eligible corpse, HP max, no CON change.
   The only difference is the roll: OV2 uses `rand/328` (0..99, chance `(50+5Δ)/100`), town `rand/327` (0..100,
   chance `/101`). The C64's `/100` matches OV2. No `@92` empty-slot check here.

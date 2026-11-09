@@ -702,8 +702,19 @@ public sealed partial class GameSession
         ArgumentNullException.ThrowIfNull(member);
         if (IsInOtherParty(member)) // D-069 (manual silent): continue that party and D)ROP the member first
             return SeveralParties.OtherPartyRefusal;
-        return GuildHall.PurgeRefusal(Roster, Party, member, Options.P3PurgeRule());
+        if (_elementalTemplates.Contains(member)) // the Guild's elemental records: never purged (every game and option)
+            return GameText.S("core.guild.cannot_purge_elemental");
+        return GuildHall.PurgeRefusal(Roster, Party, member, PurgeRule);
     }
+
+    /// <summary>
+    /// The Guild's elemental rules this save plays by: the game's rules.json block (<see cref="RulesProfile.Elementals"/>)
+    /// under the every-game options <c>elemental-load</c> / <c>elemental-drop</c> (<see cref="ElementalGuildRules.Elementals"/>).
+    /// </summary>
+    public ElementalRules GuildElementalRules => Options.Elementals(Party.Rules.ElementalRulesOrDefault);
+
+    /// <summary>What Guild P)URGE does to a party member and a loaded elemental (<c>elemental-purge</c>, D3-040 <c>p3.purge</c>).</summary>
+    public PurgePartyRule PurgeRule => Options.PurgeRule(GuildElementalRules);
 
     /// <summary>
     /// Guild P)URGE (OV1 <c>0x23d5</c>, `member.whom_do_you_want_to_purge`): no confirm in I's DOS; s160: III's front end asks DOS
@@ -716,7 +727,7 @@ public sealed partial class GameSession
             error = refusal;
             return false;
         }
-        if (!GuildHall.TryPurge(Roster, Party, member, out error, Options.P3PurgeRule()))
+        if (!GuildHall.TryPurge(Roster, Party, member, out error, PurgeRule))
             return false;
         Note(GameText.F("core.guild.x_is_purged", member.Name));
         return true;
@@ -777,7 +788,8 @@ public sealed partial class GameSession
             error = SeveralParties.OtherPartyRefusal;
             return false;
         }
-        if (!GuildHall.TryAddToParty(Roster, Party, member, GuildTownId, Options.IsDos(RuleOptionRegistry.AddAging), out error))
+        if (!GuildHall.TryAddToParty(Roster, Party, member, GuildTownId, Options.IsDos(RuleOptionRegistry.AddAging), out error,
+                GuildElementalRules))
             return false;
         Note(GameText.F("core.guild.x_joins_the_party", member.Name));
         return true;
@@ -798,7 +810,8 @@ public sealed partial class GameSession
 
     /// <summary>
     /// Guild → Add an elemental (OV1 <c>0x2786</c>, roster rows 22–24): a fresh copy of template
-    /// <paramref name="templateIndex"/> goes to party slot 7. Needs six members and no elemental loaded.
+    /// <paramref name="templateIndex"/> goes to party slot 7. Needs six members (I; <see cref="GuildElementalRules"/>) and no
+    /// elemental loaded.
     /// </summary>
     public bool TryAddElemental(int templateIndex, out string error)
     {
@@ -808,11 +821,19 @@ public sealed partial class GameSession
             return false;
         }
 
-        if (!GuildHall.TryAddElemental(Party, _elementalTemplates[templateIndex], out error))
+        if (!GuildHall.TryAddElemental(Party, _elementalTemplates[templateIndex], out error, GuildElementalRules))
             return false;
         Note(GameText.F("core.guild.x_joins_the_party", Party.Elemental!.Name));
         return true;
     }
+
+    /// <summary>
+    /// Guild D)ROP (OV1 <c>0x225c</c>, III ovl2 <c>0x3c92</c>): <paramref name="member"/> goes back to the roster under this
+    /// save's elemental rules (<see cref="GuildElementalRules"/>); III's Drop share comes out of the party gold and the found
+    /// gold (<see cref="GuildHall.DropGoldShare"/>).
+    /// </summary>
+    public bool TryDropFromParty(Character member, out string error) =>
+        GuildHall.TryDropFromParty(Party, member, out error, Sack, GuildElementalRules);
 
     /// <summary>Test shortcut: Guild straight to the wilderness (new-game spawn if unset). The game leaves through the town Exit.</summary>
     public void DepartGuildToWilderness()
@@ -1321,6 +1342,7 @@ public sealed partial class GameSession
             throw new InvalidOperationException($"\"{EntryPrompt.Text}\" is waiting for an answer.");
         if (Campaign.MoveOverworld(this, dir) is { } own) // T4: III's planes, places and tile terrain
             return own;
+        Party.DosLiving.Rebuild(Party.Members); // step handler 0x4325 (0x432a): DOS's living list, D-033 dos
         var result = _overworld.TryMove(Overworld, dir, _rng);
         var cost = result.TimeCost;
         if (cost > 0 && Options.OriginalPathTime)
@@ -1480,6 +1502,7 @@ public sealed partial class GameSession
         HighestScore = w?.HighestScore ?? (Party.Members.Count == 0 ? 0 : Math.Max(0, Party.Members.Max(m => m.Score)));
         TownExitAverageLevel = w?.TownExitAverageLevel ?? PartyOptions.AveragePartyLevel(Party);
         SurpriseGlobals = w is null ? default : new SurpriseFlags(w.SurpriseFirstRound, w.MonsterHold);
+        Party.DosLiving.Restore(w?.DosLivingEntries, w?.DosLivingWord ?? 0);
         WildernessPrompt = w?.PromptMenu is { } menu
             ? new WildernessPrompt(menu, w.PromptMonsterId, w.PromptListenerSlot, w.PromptTitle ?? "")
             : null;
@@ -1654,6 +1677,7 @@ public sealed partial class GameSession
             _ => (-1, 0),
         };
         var (tx, ty) = (d.X + dx, d.Y + dy);
+        Party.DosLiving.Rebuild(Party.Members); // step handler 0x4325 (0x432a)
         var result = Campaign.StepDungeon(this, d, _dungeons.LevelOf(d), tx, ty)
                      ?? _dungeons.TryMoveForward(d, Party, _rng);
         HandleDungeonResult(result, tx, ty);
@@ -1673,6 +1697,7 @@ public sealed partial class GameSession
             _ => (-1, 0),
         };
         var (tx, ty) = (d.X + dx, d.Y + dy);
+        Party.DosLiving.Rebuild(Party.Members); // step handler 0x4325 (0x432a)
         var result = Campaign.StepDungeon(this, d, _dungeons.LevelOf(d), tx, ty) // T4: III's cell codes
                      ?? _dungeons.TryMove(d, dir, Party, _rng);
         HandleDungeonResult(result, tx, ty);
@@ -2119,6 +2144,7 @@ public sealed partial class GameSession
     private CombatResult CloseElementalSlot(CombatResult result)
     {
         Party.DismissElemental();
+        Party.DosLiving.Recount(Party.Members); // 0x3fa9: survivor count over party size 6 (D-033 dos reads the word)
         if (!result.PartyWiped && Party.Members.Count > 0
             && Party.Members.TrueForAll(m => m.Status == CharacterStatus.Dead))
         {
@@ -2214,6 +2240,8 @@ public sealed partial class GameSession
                 TownExitAverageLevel = TownExitAverageLevel,
                 SurpriseFirstRound = SurpriseGlobals.FirstRound,
                 MonsterHold = SurpriseGlobals.MonsterHold,
+                DosLivingEntries = [.. Party.DosLiving.Entries],
+                DosLivingWord = Party.DosLiving.Word,
                 PromptMenu = WildernessPrompt?.Menu,
                 PromptMonsterId = WildernessPrompt?.MonsterId ?? 0,
                 PromptListenerSlot = WildernessPrompt?.ListenerSlot,

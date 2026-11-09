@@ -18,9 +18,60 @@ public sealed record ElementalRules(int MinMembers, bool BlocksAdd, bool DropKee
 {
     /// <summary>Phantasie I's: six members first; nobody joins after it.</summary>
     public static ElementalRules PhantasieI { get; } = new(Party.MaxMembers, BlocksAdd: true);
+
+    /// <summary>
+    /// Phantasie III's (<c>phantasie3/rules.json</c> <c>elementals</c>, pinned equal by a test): one character first,
+    /// characters join in front of it, a Drop keeps it while a character is left. Used by the cross-game options
+    /// (<see cref="RuleOptionRegistry.ElementalLoad"/>, <see cref="RuleOptionRegistry.ElementalDrop"/>) in the other games.
+    /// </summary>
+    public static ElementalRules PhantasieIII { get; } = new(1, BlocksAdd: false, DropKeeps: true);
 }
 
-/// <summary>Guild ▸ Purge of a character who is in the party (D3-040).</summary>
+/// <summary>
+/// The Guild's elemental rules a save plays by (PLAN P3 QoL, user D3-040): the game's own (<see cref="RulesProfile.Elementals"/>,
+/// D3-040's <c>p3.purge</c>) under the every-game options' <c>game</c> value, else the original rule the option names.
+/// </summary>
+public static class ElementalGuildRules
+{
+    /// <summary>
+    /// <paramref name="own"/> (the game's rules.json block) with Add (<see cref="RuleOptionRegistry.ElementalLoad"/>) and Drop
+    /// (<see cref="RuleOptionRegistry.ElementalDrop"/>) replaced as <paramref name="options"/> say.
+    /// </summary>
+    public static ElementalRules Elementals(this GameOptions options, ElementalRules own)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(own);
+        var load = options.Is(RuleOptionRegistry.ElementalLoad, "phantasie-i") ? ElementalRules.PhantasieI
+            : options.Is(RuleOptionRegistry.ElementalLoad, "phantasie-iii") ? ElementalRules.PhantasieIII
+            : own;
+        var dropKeeps = options.Is(RuleOptionRegistry.ElementalDrop, "phantasie-i") ? ElementalRules.PhantasieI.DropKeeps
+            : options.Is(RuleOptionRegistry.ElementalDrop, "phantasie-iii") ? ElementalRules.PhantasieIII.DropKeeps
+            : own.DropKeeps;
+        return new ElementalRules(load.MinMembers, load.BlocksAdd, dropKeeps);
+    }
+
+    /// <summary>
+    /// What Guild ▸ Purge does to a party member (<see cref="RuleOptionRegistry.ElementalPurge"/>): under <c>game</c> III's
+    /// <c>p3.purge</c> (D3-040) and I's rule elsewhere; <c>as-drop</c> follows <paramref name="effective"/>'s Drop.
+    /// </summary>
+    public static PurgePartyRule PurgeRule(this GameOptions options, ElementalRules effective)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(effective);
+        if (options.Is(RuleOptionRegistry.ElementalPurge, "phantasie-i"))
+            return PurgePartyRule.ClearsElemental;
+        if (options.Is(RuleOptionRegistry.ElementalPurge, "as-drop"))
+            return effective.DropKeeps ? PurgePartyRule.KeepsElemental : PurgePartyRule.ClearsElemental;
+        if (options.Is(RuleOptionRegistry.ElementalPurge, "refused"))
+            return PurgePartyRule.Refused;
+        return options.P3PurgeRule();
+    }
+}
+
+/// <summary>
+/// Guild ▸ Purge of a character who is in the party (D3-040). No rule removes an elemental from the game: Purge refuses an
+/// elemental itself (<see cref="GuildHall.PurgeRefusal"/>), and these rules only decide whether the party copy is unloaded.
+/// </summary>
 public enum PurgePartyRule
 {
     /// <summary>Phantasie I (OV1 <c>0x2489</c>): the member is purged and a loaded elemental is unloaded.</summary>

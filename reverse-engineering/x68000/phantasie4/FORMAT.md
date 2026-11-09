@@ -1267,7 +1267,9 @@ window text writers `_wprint` / `_wputc` / `_wkprint` fill each character cell w
 `_wdouti`)); **3000
 more bare calls** (record 19 still armed); `_clanim` + `_setanim` 15–18 (record 19's last frame stays on page 0) and
 `_spc_wait` (the input loop, a key); `_wclose`, `_clanim`. None of the three counted loops reads a key. The remaster plays
-it as Core `P4MysticReading` (s115): box and key help empty while the loops run, the bubble with the two lines as below. **Seen on XEiJ (s120) `[C]`** (`parity/shots/p4-x68k-mystic-bubble.png`; New Game, one
+it as Core `P4MysticReading` (s115): box and key help empty while the loops run, the bubble with the two lines as below
+(s171 QoL: the IV tab's MYSTIC SKIP switch, off by default, lets Space / Return / a click / the pad's A run the loops'
+remaining passes at once, `P4MysticReading.SkipLoops`; the picture and the wait are the same). **Seen on XEiJ (s120) `[C]`** (`parity/shots/p4-x68k-mystic-bubble.png`; New Game, one
 Human Thief; the reading is free: `_town` jumps straight to `_mystic` (`0x3320`) and neither tests or takes gold, as
 Core; score 2 → "[original text]"): line 1 is **not centred**, it starts at window x 64 (ink x 64–228, rows 17–28): "汝のスコ
 アーは" (ink 64–173, the window font is proportional: `_scprsub` advances by each glyph's width), the score in red right

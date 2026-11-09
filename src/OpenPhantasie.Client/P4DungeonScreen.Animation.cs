@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using OpenPhantasie.Core;
 
 using OpenPhantasie.Data;
@@ -28,6 +29,21 @@ public sealed partial class P4DungeonScreen
 
     /// <summary>True while the Mystic's counted loops run (<c>_mystic</c> reads no keys until <c>_spc_wait</c>).</summary>
     public bool MysticBusy => _mystic is { AcceptsKeys: false };
+
+    /// <summary>
+    /// QoL MYSTIC SKIP (<see cref="GameSettings.MysticSkip"/>, set by the shell each frame; off = P4.X): a skip key during
+    /// the counted loops ends them at once (<see cref="P4MysticReading.SkipLoops"/>).
+    /// </summary>
+    public bool MysticSkippable { get; set; }
+
+    /// <summary>The keys that skip the Mystic's loops under <see cref="MysticSkippable"/> (the pad's A and a click come from the shell).</summary>
+    public static bool IsMysticSkipKey(Keys key) => key is Keys.Space or Keys.Enter;
+
+    /// <summary>
+    /// Ends the Mystic's counted loops when <see cref="MysticSkippable"/> is on and they run; true when it did (the shell
+    /// then hands this frame's input to nothing else, so the same key does not also close the Mystic in <c>_spc_wait</c>).
+    /// </summary>
+    public bool SkipMystic() => MysticSkippable && MysticBusy && _mystic!.SkipLoops();
 
     private sealed record PendingDoor(PictureDoor Door, string Sheet, P4Building Building)
     {

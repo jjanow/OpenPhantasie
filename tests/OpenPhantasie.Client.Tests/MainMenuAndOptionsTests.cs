@@ -95,6 +95,39 @@ public class MainMenuAndOptionsTests
     }
 
     [Fact]
+    public void QoLRows_TerrainKeyOnII_MysticSkipOnIV_OffByDefault()
+    {
+        // PLAN P3 QoL: II's terrain key (D2-014) and IV's Mystic skip (s115) are presentation switches of their own tabs.
+        var settings = new ClientSettings();
+        var o = new OptionsScreen(settings, _ => [], _ => true);
+        o.Open();
+        o.HandleKeys([Keys.Right]); // tab I: neither row
+        Assert.DoesNotContain(o.RowTexts(), t => t.TrimStart().StartsWith("TERRAIN KEY") || t.TrimStart().StartsWith("MYSTIC SKIP"));
+
+        void Toggle(string label)
+        {
+            for (var i = 0; i < 30 && !o.Lines().Any(l => l.Text.StartsWith(">" + label, StringComparison.Ordinal)); i++)
+                o.HandleKeys([Keys.Down]);
+            o.HandleKeys([Keys.Enter]);
+        }
+
+        o.HandleKeys([Keys.Right]); // tab II
+        Assert.EndsWith("OFF", Line(o, "TERRAIN KEY"));
+        Assert.DoesNotContain(o.RowTexts(), t => t.TrimStart().StartsWith("MYSTIC SKIP"));
+        Toggle("TERRAIN KEY");
+        Assert.True(settings.Game(GameId.P2).TerrainKey);
+        Assert.EndsWith("ON", Line(o, "TERRAIN KEY"));
+
+        o.HandleKeys([Keys.Home, Keys.Right, Keys.Right]); // the tab row → III → IV
+        Assert.Equal(GameId.P4, o.Tab);
+        Assert.EndsWith("OFF", Line(o, "MYSTIC SKIP"));
+        Assert.DoesNotContain(o.RowTexts(), t => t.TrimStart().StartsWith("TERRAIN KEY"));
+        Toggle("MYSTIC SKIP");
+        Assert.True(settings.Game(GameId.P4).MysticSkip);
+        Assert.False(settings.Game(GameId.P1).MysticSkip || settings.Game(GameId.P1).TerrainKey);
+    }
+
+    [Fact]
     public void GeneralTab_ChangesScaleWithinRange()
     {
         var settings = new ClientSettings { IntegerScale = 6 };
@@ -342,6 +375,7 @@ public class MainMenuAndOptionsTests
             "options.tab", "options.window_scale", "options.start_maximized", "options.graphics", "options.diagonal_moves",
             "options.status_lines", "options.continue_from_list", "options.inventory_screen", "options.time_lag_where",
             "options.time_lag", "options.sound", "options.colorblind", "options.preset", "options.title_screen",
+            "options.terrain_key", "options.mystic_skip",
         };
         foreach (var game in MainMenuScreen.Games)
             ids.AddRange(RuleOptionRegistry.For(game).Select(d => "option." + d.Id));

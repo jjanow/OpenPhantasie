@@ -95,6 +95,17 @@
     "core.p2.deity_1": "...",
     "core.p2.deity_2": "...",
     "core.p2.deity_3": "...",
-    "gamemenu.import_dos_save_f7": "Transfer from I  F7"
+    "gamemenu.import_dos_save_f7": "Transfer from I  F7",
+    "p2.terrain_key.party": "PARTY",
+    "p2.terrain_key.town_inn": "TOWN/INN",
+    "p2.terrain_key.dungeon": "DUNGEON",
+    "p2.terrain_key.path": "PATH",
+    "p2.terrain_key.desert": "DESERT",
+    "p2.terrain_key.grassland_forest": "GRASSLAND/FOREST",
+    "p2.terrain_key.mountains_hills": "MOUNTAINS/HILLS",
+    "p2.terrain_key.river_lake": "RIVER/LAKE",
+    "p2.terrain_key.molten_lava": "MOLTEN LAVA",
+    "p2.terrain_key.mist": "MIST",
+    "p2.terrain_key.dark_voids": "DARK VOIDS"
   }
 }

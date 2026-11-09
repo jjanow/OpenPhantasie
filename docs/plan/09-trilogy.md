@@ -78,9 +78,9 @@ remaster plays 22 slots / 21 max (D-002); `ForPlatform(id)` exists but nothing c
 Core `InventoryActions` (spec `logic-specs/inventory-actions.md`; slots from `rules.json` `equipment_slots`, including
 III's bow slot), rules option `p1.stash-access` (town / anywhere), Client `InventoryScreen` (paperdoll + stash;
 keyboard, mouse, drag, gamepad) behind the presentation switch `GameSettings.InventoryScreen` (off = I's original).
-Left: the inventory screen tests every game's items with I's `ItemRules.IsUsable` (id ranges), not III's item data
-(`StrCheck` / `Requirement`, as `P3TownEntryPayout.CanUse` does; bows `bows.md`; `P3Combat.CanUseBow` has no caller);
-item art (no Amiga item graphics); the follow-ups on `PLAN.md` P3 "Inventory".
+Usability per game since s171 (`ICampaign.CanUseItem`: I / II id formulas, III `P3TownEntryPayout.CanUse`, bows on
+STR + DEX). No item art: none of I / II / III's originals has item pictures (only IV's X68000, font 2, shown in IV's own
+lists). Left: the follow-ups on `PLAN.md` P3 "Inventory".
 
 ## T3 — Phantasie II (Atari ST; playable since s81)
 

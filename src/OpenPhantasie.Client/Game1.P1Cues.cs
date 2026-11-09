@@ -248,6 +248,8 @@ public partial class Game1
     /// </summary>
     private void UpdateP1ListTones()
     {
+        if (_session is null)
+            return; // s171: no I–III session (the main menu, IV): the dialogs counted here are made with the session
         var counts = (Town: _castDialog.ChooserCancels + _withdrawDialog.ChooserCancels,
             Guild: _guildDropDialog.ChooserCancels + _guildWhoDialog.ChooserCancels + _guildNewDialog.ListTones
                 + _guildAddDialog.ListTones + _guildPickDialog.ListTones + _inspectDialog.WhoTones);

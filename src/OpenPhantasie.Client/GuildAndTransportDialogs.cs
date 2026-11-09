@@ -187,7 +187,7 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
         var rows = session.Roster.Occupied.Where(c => !session.Party.Members.Contains(c) && !session.IsInOtherParty(c)) // D-069
             .Select(c => ((Character?)c, -1, UiText.F("guild.x_x_l_x", c.Name, UiText.Name(c.Class).ToUpperInvariant(), c.Level)))
             .ToList();
-        if (session.Party.Members.Count >= session.Party.Rules.ElementalRulesOrDefault.MinMembers && session.Party.Elemental is null)
+        if (session.Party.Members.Count >= session.GuildElementalRules.MinMembers && session.Party.Elemental is null)
             rows.AddRange(data.Elementals.Select((e, i) => ((Character?)null, i, e.Name)));
         return rows;
     }
@@ -299,8 +299,8 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
 
 /// <summary>
 /// Guild D)ROP MEMBER (OV1 <c>0x225c</c>, `guild.whom_do_you_want_to_drop`): a digit sends that member back to the roster through
-/// <see cref="GuildHall.TryDropFromParty"/> (<c>@218</c> := 0; I: every Drop also clears the elemental slot, OV1 <c>0x22d1</c>; III keeps it while a character is
-/// left, <see cref="ElementalRules.DropKeeps"/>).
+/// <see cref="GameSession.TryDropFromParty"/> (<c>@218</c> := 0; I: every Drop also clears the elemental slot, OV1 <c>0x22d1</c>; III keeps it while a character is
+/// left, <see cref="ElementalRules.DropKeeps"/>; the save's <c>elemental-drop</c> can pick either in any game).
 /// </summary>
 public sealed class GuildDropDialog : IModalDialog
 {
@@ -340,7 +340,7 @@ public sealed class GuildDropDialog : IModalDialog
             if (d >= 1 && d <= session.Party.Members.Count)
             {
                 var member = session.Party.Members[d - 1];
-                var ok = GuildHall.TryDropFromParty(session.Party, member, out var error, session.Sack);
+                var ok = session.TryDropFromParty(member, out var error);
                 if (session.Party.Members.Count == 0)
                     IsOpen = false;
                 return ok ? UiText.F("guild.x_leaves_the_party", member.Name) : error;

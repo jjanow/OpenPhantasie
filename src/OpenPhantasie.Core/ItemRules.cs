@@ -29,8 +29,8 @@ public static class ItemRules
 
     /// <summary>
     /// Town U)SE ITEM on anything but a potion or a scroll (D-061, user s53: manual p.12 "find the unusual properties of an
-    /// item"; DOS prints "UNUSABLE", OV1 <c>0x40a9</c>). The name, what the item does in numbers (point value from
-    /// <see cref="CombatGate"/> as protection or damage, the strength it needs, potion strength), its Armory sale value
+    /// item"; DOS prints "UNUSABLE", OV1 <c>0x40a9</c>). The name, what the item does in numbers (point value as protection
+    /// or damage and the strength it needs, from the game's table or <see cref="CombatGate"/>; potion strength), its Armory sale value
     /// (<see cref="SellPrice"/>), then the description text. Lines are unwrapped; the caller wraps them.
     /// </summary>
     public static IReadOnlyList<string> Describe(ItemCatalogEntry item)
@@ -38,16 +38,16 @@ public static class ItemRules
         ArgumentNullException.ThrowIfNull(item);
         var id = item.Id;
         var lines = new List<string> { item.FullName is { } full ? $"{item.Name} - {full}" : item.Name };
-        var (points, need, strDex) = CombatGate(id);
+        var (points, need, check) = Gate(item);
         if (id is >= 1 and <= 40)
         {
             lines.Add(GameText.F(id <= 20 ? "core.item.shield_protection_x" : "core.item.armor_protection_x", points));
-            lines.Add(need > 0 ? GameText.F("core.item.needs_strength_x", need) : GameText.S("core.item.anyone_can_wear"));
+            lines.Add(need > 0 ? NeedsLine(check, need) : GameText.S("core.item.anyone_can_wear"));
         }
         else if (id is >= 41 and <= 100)
         {
             lines.Add(GameText.F("core.item.weapon_damage_x", points));
-            lines.Add(strDex && need > 0 ? GameText.F("core.item.needs_str_dex_x", need) : GameText.S("core.item.anyone_can_use"));
+            lines.Add(need > 0 ? NeedsLine(check, need) : GameText.S("core.item.anyone_can_use"));
         }
         else if (Magic.IsHealingPotion(id))
             lines.Add(GameText.F("core.item.healing_potion_x", Magic.PotionHealingAmount(id)));
@@ -65,6 +65,26 @@ public static class ItemRules
             lines.Add(item.Description);
         return lines;
     }
+
+    /// <summary>
+    /// The points, requirement and attribute sum <see cref="Describe"/> prints: the game's own table when the catalog has one
+    /// (III's <c>min_str</c> / <c>str_check</c> / <c>points</c>, bows on STR + DEX), else I's id formulas
+    /// (<see cref="CombatGate"/>). I's and II's <c>items.json</c> hold exactly those formulas, so their lines are unchanged.
+    /// </summary>
+    private static (int Points, int Need, string Check) Gate(ItemCatalogEntry item)
+    {
+        var (points, need, strDex) = CombatGate(item.Id);
+        if (item.Requirement is { } req && item.StrCheck is { } check)
+            return (item.Points ?? points, req, check);
+        return (points, need, strDex ? "str2_plus_dex" : "str");
+    }
+
+    private static string NeedsLine(string check, int need) => check switch
+    {
+        "str2_plus_dex" => GameText.F("core.item.needs_str_dex_x", need),
+        "str_plus_dex" => GameText.F("core.item.needs_str_plus_dex_x", need),
+        _ => GameText.F("core.item.needs_strength_x", need),
+    };
 
     public static bool IsUsable(int itemId, CharacterStats stats)
     {

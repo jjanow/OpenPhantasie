@@ -39,7 +39,12 @@ Core maps a slot id onto the character record with one accessor (`WornItems`): `
 `WornShield`/`WornArmor`/`WornWeapon`. **[?] III's `bow` slot has no field in the shared character model yet**; it is
 added with III (T4) together with its save field. The action code itself never tests item-id ranges; it asks the layout.
 
-Usability is `ItemRules.IsUsable` (Phantasie I's gate). [?] III's bows use STR+DEX (III PDF 11); that gate arrives with III.
+Usability is each game's own gate (`ICampaign.CanUseItem`, asked through `GameSession.CanUseItem` / `CanWear`; s171):
+I's `ItemRules.IsUsable` (id formulas, [C]); II the same formulas, which II's `items.json` holds `[~]` (checked live only
+for the transfer starter kit); III its tables (`P3TownEntryPayout.CanUse`, ovl2 `0x39b5` [C]: `min_str` against STR for
+shields and armour, STR + DEX for bows 41–60, 2·STR + DEX for melee weapons; equals III PDF 11–12). The detail box
+(`ItemRules.Describe`) prints the game's own table numbers too. IV has its own screens (`P4Equipment.CanUse`) and never
+opens this one.
 
 ## 3. Actions
 

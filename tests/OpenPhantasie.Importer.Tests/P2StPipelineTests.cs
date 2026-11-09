@@ -29,6 +29,7 @@ public class P2StPipelineTests
         ["graphics/apple2.json"] = "the Apple II pack: p2-apple2's output (P2Apple2PipelineTests)",
         ["apple2-import.json"] = "class (a), shipped: the ST cells, compass map and manual spell names an Apple-only import takes (D2-046..050)",
         ["strings/fallback.en.json"] = "class (a), shipped: the remaster's wording for lines the Apple II lacks (D2-050)",
+        ["terrain-key.json"] = "s171, shipped: the TERRAIN KEY rows (string ids, picture names), the remaster's QoL data",
         ["graphics/fonts/emutos-st-8x8.json"] = "s160: EmuTOS's font (emutos_st_font.py), not from the disks, ships",
         ["graphics/fonts/emutos-st-8x8-italic.json"] = "s160: EmuTOS's font in VDI italic (emutos_st_font.py), ships",
         ["graphics/fonts/emutos-st-8x8.LICENSE.txt"] = "s160: the EmuTOS font's source and GPL-2.0+ licence, ships",

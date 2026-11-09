@@ -360,6 +360,21 @@ public sealed class GameSettings
     public bool ColorblindPalette { get; set; }
 
     /// <summary>
+    /// QoL (PLAN P3, idea s115; off = P4.X): IV's Mystic reading (<see cref="OpenPhantasie.Core.P4MysticReading"/>, three
+    /// counted loops, about 23 s, that read no keys) can be ended at once with Space, Return, a left click or the pad's A:
+    /// the picture jumps to where the full reading ends and the Mystic waits for a key as before. The score and verdict are
+    /// the same either way (only the wait is skipped). A presentation switch, shown on the IV tab.
+    /// </summary>
+    public bool MysticSkip { get; set; }
+
+    /// <summary>
+    /// QoL (PLAN P3, D2-014; off = the ST, which shows no key on screen): a terrain key beside II's wilderness map, as the
+    /// rulebook prints one: the ST fill patterns and map icons with the manual's terrain names
+    /// (<c>GameData/phantasie2/terrain-key.json</c>, <see cref="TerrainKey"/>). A presentation switch, shown on the II tab.
+    /// </summary>
+    public bool TerrainKey { get; set; }
+
+    /// <summary>
     /// The original's own screens where the remaster has rebuilt them (s117; III Amiga: the combat field with one line at a
     /// time, the Bank and Trade windows). On by default, as the original; off = the remaster's screens (cards and rank
     /// list, a round's lines at once; the remaster's bank and trade dialogs). A presentation switch.

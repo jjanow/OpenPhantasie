@@ -186,6 +186,20 @@ public partial class P4PanelPromptTests
     }
 
     [OriginalDataFact]
+    public void MysticSkip_OnlyEndsARunningReading_WithSpaceOrReturn()
+    {
+        // QoL MYSTIC SKIP: Space / Return (plus the shell's click and pad A); nothing to skip without a reading running
+        // (no pack here: P4MysticReading is not started), so the key is not swallowed.
+        Assert.True(P4DungeonScreen.IsMysticSkipKey(Keys.Space) && P4DungeonScreen.IsMysticSkipKey(Keys.Enter));
+        Assert.False(P4DungeonScreen.IsMysticSkipKey(Keys.Escape));
+        var s = new P4DungeonScreen(P4Preview.StartInTown(1, Code)) { MysticSkippable = true };
+        Assert.False(s.MysticBusy);
+        Assert.False(s.SkipMystic());
+        s.MysticSkippable = false;
+        Assert.False(s.SkipMystic());
+    }
+
+    [OriginalDataFact]
     public void ShareOut_LightsRowZeroOnly()
     {
         // s158, _dvitmlst: _wxbox(win, 15, 16, 32, 280, 32) over row 0 (the item being placed); the queue's rows are plain.

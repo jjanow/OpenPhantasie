@@ -404,7 +404,10 @@ public partial class AuthenticModeRestTests
     public void Summon_Dos_IndexOrCountTest_D033(bool dos, int dead, bool monsterActed, bool works)
     {
         var enc = Party6WithElemental(dos ? Dos(RuleOptionRegistry.SummonParty) : Manual, dead);
-        enc.LivingWordIsCount = monsterActed;
+        if (monsterActed)
+            enc.Party.DosLiving.Recount(enc.Party.Members); // a monster turn stores the count
+        else
+            enc.Party.DosLiving.OrdersPhase(enc.Party.Members); // the orders phase stores the last index
         Assert.Equal(works, CombatSpells.SummonElemental(enc));
     }
 

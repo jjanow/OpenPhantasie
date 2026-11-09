@@ -15,7 +15,8 @@ Core hooks) without disturbing verified game logic.
   - **F** cycles Instant / Normal / Fast; hold **Shift** (or LT) to skip delays.
 - [x] **Auto-map** — track visited dungeon tiles, render an overlay; doesn't
   touch dungeon logic at all, purely additive in Client.
-  - Fog-of-war main view + mini-map (**Tab** toggles); persisted in `qol.json`.
+  - Fog-of-war main view + mini-map (**Tab** toggles); persisted in `qol.json`. III's tile dungeons (s171): the
+    mini-map is a whole-level overview inside the map view, in the corner away from the party, covering no card.
 - [x] **Modern resolution/UI scaling** — render the extracted Amiga assets at
   integer scale factors with a resizable window, rather than being locked to
   original resolution.

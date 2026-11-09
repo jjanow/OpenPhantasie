@@ -148,6 +148,64 @@ public static partial class UiOverlays
     /// <summary>The sidebar's cards when they do not all fit (a summoned elemental's 32×48 portrait, nine-letter names).</summary>
     public static ScrollBox FieldPartyScroll { get; } = new();
 
+    /// <summary>
+    /// QoL TERRAIN KEY (PLAN P3, D2-014; II's wilderness): the party keeps the first row of cards (the rest scroll in
+    /// <see cref="FieldPartyScroll"/>) and the key takes the rows under it, down to where the cards end without it, so
+    /// neither covers the other, the map or the command list.
+    /// </summary>
+    public static (Rectangle Party, Rectangle Key) TerrainKeyLayout(AssetCatalog assets, GameSession session)
+    {
+        // The first row of cards as the scrolling strip lays it out (room for its bar; two-line names make it taller).
+        var narrower = new Rectangle(FieldPartyArea.X, FieldPartyArea.Y, FieldPartyArea.Width - ScrollBox.BarWidth - 1, 1000);
+        var cards = PlanPartyStrip(assets, session, narrower, 52, null, false, true, 1).Layout.Cards;
+        var row = cards.Count == 0 ? PartyStripLayout.CardHeight
+            : cards.Where(c => c.Y == cards[0].Y).Max(c => c.Bottom) - FieldPartyArea.Y;
+        var party = FieldPartyArea with { Height = Math.Clamp(row, 1, FieldPartyArea.Height - PixelFont.LineHeight - 2) };
+        return (party, new Rectangle(FieldPartyArea.X, party.Bottom + 1, FieldPartyArea.Width, FieldPartyArea.Bottom - party.Bottom - 1));
+    }
+
+    /// <summary>The terrain key's rows when they do not all fit (the wheel over the box, or its bar).</summary>
+    public static ScrollBox TerrainKeyScroll { get; } = new();
+
+    /// <summary>
+    /// The terrain key in <paramref name="area"/>: per row its swatches (each one map cell of the pack picture: a fill
+    /// pattern's top-left cell as the map shows it, an icon whole; framed, so the black dark voids show) and its name.
+    /// Rows past the box scroll (<see cref="TerrainKeyScroll"/>); a picture the pack lacks leaves its name standing.
+    /// </summary>
+    public static void DrawTerrainKey(SpriteBatch batch, Texture2D pixel, AssetCatalog assets,
+        IReadOnlyList<TerrainKeyEntry> entries, Rectangle area)
+    {
+        var cw = assets.Maps?.CellWidth ?? 12;
+        var ch = assets.Maps?.CellHeight ?? 9;
+        var pitch = Math.Max(ch, PixelFont.LineHeight) + 1; // frames of adjacent rows share a line
+        var visible = Math.Max(1, (area.Height - 1) / pitch);
+        var box = TerrainKeyScroll;
+        box.Set(entries.Count, visible);
+        HitScrollArea(box, area);
+        var swatchColumns = Math.Max(1, entries.Max(e => e.Pictures.Count));
+        var textX = area.X + 2 + swatchColumns * (cw + 1) + 3;
+        for (var row = 0; row < visible && box.Offset + row < entries.Count; row++)
+        {
+            var entry = entries[box.Offset + row];
+            var y = area.Y + 1 + row * pitch;
+            for (var i = 0; i < entry.Pictures.Count; i++)
+            {
+                var x = area.X + 2 + i * (cw + 1);
+                var cell = new Rectangle(x, y, cw, ch);
+                Fill(batch, pixel, new Rectangle(x - 1, y - 1, cw + 2, ch + 2), PanelEdge);
+                Fill(batch, pixel, cell, Color.Black);
+                if (assets.Get(entry.Pictures[i]) is { } tex)
+                {
+                    var src = new Rectangle(0, 0, Math.Min(tex.Width, cw), Math.Min(tex.Height, ch));
+                    batch.Draw(tex, new Rectangle(x + (cw - src.Width) / 2, y + (ch - src.Height) / 2, src.Width, src.Height),
+                        src, Color.White);
+                }
+            }
+            PixelFont.Draw(batch, pixel, textX, y + (ch - PixelFont.GlyphHeight + 1) / 2, UiText.S(entry.Label), BodyText);
+        }
+        DrawScrollBar(batch, pixel, box, area);
+    }
+
     /// <summary>Top of the command list, under <see cref="FieldPartyArea"/>.</summary>
     public static int FieldCommandsTop => FieldPartyArea.Bottom + 2;
 
@@ -156,12 +214,17 @@ public static partial class UiOverlays
     /// Used by the wilderness and the dungeon screen (the dungeon map replaces the wilderness map).
     /// </summary>
     public static void DrawFieldSidebar(
-        SpriteBatch batch, Texture2D pixel, AssetCatalog assets, GameSession session, bool timeLagCommand = true)
+        SpriteBatch batch, Texture2D pixel, AssetCatalog assets, GameSession session, bool timeLagCommand = true,
+        IReadOnlyList<TerrainKeyEntry>? terrainKey = null)
     {
+        // QoL TERRAIN KEY (II, D2-014): the key shares the room beside the map with the party; each scrolls what does not fit.
+        var (partyArea, keyArea) = terrainKey is { Count: > 0 } ? TerrainKeyLayout(assets, session) : (FieldPartyArea, Rectangle.Empty);
         // III: the wilderness / dungeon roster shows each member's body-area stick figure (manual: "In the Wilderness ...
         // shown in a stick figure diagram under the character's status"; Amiga roster 0x93e0 → 0x9694), not the portrait.
-        DrawPartyStrip(batch, pixel, assets, session, FieldPartyArea, maxCardWidth: 52, bodyFigures: true, gap: 1,
+        DrawPartyStrip(batch, pixel, assets, session, partyArea, maxCardWidth: 52, bodyFigures: true, gap: 1,
             scroll: FieldPartyScroll);
+        if (terrainKey is { Count: > 0 })
+            DrawTerrainKey(batch, pixel, assets, terrainKey, keyArea);
         var commands = FieldCommandsFor(session.Mode, timeLagCommand);
         for (var i = 0; i < commands.Length; i++)
         {
@@ -2186,6 +2249,75 @@ public static partial class UiOverlays
         batch.Draw(pixel,
             new Rectangle(mapOx + state.X * ms, mapOy + state.Y * ms, ms, ms),
             Color.Cyan);
+    }
+
+    /// <summary>Where <see cref="DrawTileDungeonOverview"/> puts the whole-level box: its frame, the cell grid inside it and one cell's size.</summary>
+    public readonly record struct TileOverviewLayout(Rectangle Box, Rectangle Grid, int CellWidth, int CellHeight);
+
+    /// <summary>
+    /// s171 (PLAN P3, QoL): the whole-level overview over a tile dungeon (III, whose 24 × 30 level the 160-px view shows 20
+    /// columns of). It sits inside <paramref name="view"/> left of the member cards (<see cref="FieldPartyArea"/>), so it
+    /// covers no card and no command line, in the view's corner farthest from <paramref name="partyCell"/> (the party's
+    /// glyph on screen), never over it. Cells are as large as fit in half the view each way (DOS / Amiga III: 3 × 2 px,
+    /// a 76 × 64 box), so a corner always clears the party.
+    /// </summary>
+    public static TileOverviewLayout TileOverviewPlacement(Rectangle view, Rectangle partyCell, int gridWidth, int gridHeight)
+    {
+        var area = new Rectangle(view.X, view.Y, Math.Min(view.Width, FieldPartyArea.X - 1 - view.X), view.Height);
+        var cw = Math.Max(1, (area.Width / 2 - 4) / Math.Max(1, gridWidth));
+        var ch = Math.Max(1, (area.Height / 2 - 4) / Math.Max(1, gridHeight));
+        var w = gridWidth * cw + 4;
+        var h = gridHeight * ch + 4;
+        var centre = partyCell.Center;
+        var right = centre.X < area.Center.X;
+        var bottom = centre.Y < area.Center.Y;
+        Rectangle At(bool r, bool b) =>
+            new(r ? area.Right - w : area.X, b ? area.Bottom - h : area.Y, w, h);
+        // Farthest corner first; then the one across the other way, should the party's glyph straddle the middle.
+        var box = new[] { At(right, bottom), At(!right, bottom), At(right, !bottom), At(!right, !bottom) }
+            .FirstOrDefault(r => !r.Intersects(partyCell), At(right, bottom));
+        return new TileOverviewLayout(box, new Rectangle(box.X + 2, box.Y + 2, gridWidth * cw, gridHeight * ch), cw, ch);
+    }
+
+    /// <summary>The colour a glyph shows most (transparent pixels left out): its cell's colour in the overview box.</summary>
+    public static Color DominantColour(ReadOnlySpan<Color> pixels, Color fallback)
+    {
+        var counts = new Dictionary<Color, int>();
+        foreach (var c in pixels)
+            if (c.A != 0)
+                counts[c] = counts.GetValueOrDefault(c) + 1;
+        return counts.Count == 0 ? fallback : counts.MaxBy(kv => kv.Value).Key;
+    }
+
+    /// <summary>The overview's party cell: cyan, which every pack's palette keeps apart from its glyph colours (CGA: index 1).</summary>
+    public static readonly Color OverviewParty = Color.Cyan;
+
+    /// <summary>The overview's fill (cells not yet seen): opaque black, CGA's colour 0.</summary>
+    public static readonly Color OverviewFill = Color.Black;
+
+    /// <summary>The overview's frame (<see cref="PanelEdge"/>).</summary>
+    public static Color OverviewEdge => PanelEdge;
+
+    /// <summary>
+    /// s171: the tile dungeon's whole-level overview (<see cref="TileOverviewPlacement"/>), the auto-map switch
+    /// (<see cref="ClientSettings.AutoMapVisible"/>, the Tab key). A seen cell takes the colour its glyph shows most
+    /// (<paramref name="glyphColour"/>, so it follows the pack's palette: DOS CGA stone white, floor magenta), a cell not
+    /// seen stays the fill, the party is <see cref="OverviewParty"/>. A click on a cell walks there, as on the view.
+    /// </summary>
+    public static void DrawTileDungeonOverview(SpriteBatch batch, Texture2D pixel, DungeonLevel level, DungeonState state,
+        QoLProgress qol, TileMapLayout tiles, Func<int, Color> glyphColour, TileOverviewLayout layout)
+    {
+        DrawPanel(batch, pixel, layout.Box, OverviewFill, OverviewEdge);
+        foreach (var (x, y) in qol.VisitedCells(state.LevelId))
+        {
+            if (!level.InBounds(x, y)) continue;
+            batch.Draw(pixel, new Rectangle(layout.Grid.X + x * layout.CellWidth, layout.Grid.Y + y * layout.CellHeight,
+                layout.CellWidth, layout.CellHeight), glyphColour(tiles.DungeonGlyphFor(level.Get(x, y))));
+        }
+        batch.Draw(pixel, new Rectangle(layout.Grid.X + state.X * layout.CellWidth, layout.Grid.Y + state.Y * layout.CellHeight,
+            layout.CellWidth, layout.CellHeight), OverviewParty);
+        Hits?.Add(layout.Box); // the frame takes a click, so none walks to the view's cell under it
+        Hits?.Add(layout.Grid, new MapViewTag(0, 0, layout.CellWidth, layout.CellHeight));
     }
 
     public static List<(int Id, string Name, int Qty, int Price)> BuildTownStock(

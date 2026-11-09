@@ -65,7 +65,7 @@ public static class OptionPresetExtensions
 /// menu order; each preset names the value it gives. <see cref="Difference"/> is the <c>DIFFERENCES.md</c> entry the option
 /// comes from, if any. Labels come from the string table (<c>option.&lt;id&gt;</c>, <c>option.&lt;id&gt;.&lt;value&gt;</c>).
 /// <see cref="EveryGame"/>: one descriptor shown in every game's tab (its id has no game prefix; <see cref="Game"/> is
-/// then only nominal).
+/// then only nominal). <see cref="Games"/> narrows an every-game option to the games it means something in (null = all).
 /// </summary>
 public sealed record RuleOptionDescriptor(
     string Id,
@@ -75,8 +75,12 @@ public sealed record RuleOptionDescriptor(
     string Dos,
     string Remaster,
     string? Difference = null,
-    bool EveryGame = false)
+    bool EveryGame = false,
+    IReadOnlyList<GameId>? Games = null)
 {
+    /// <summary>True when this option is in <paramref name="game"/>'s tab.</summary>
+    public bool AppliesTo(GameId game) =>
+        EveryGame ? Games is null || Games.Contains(game) : Game == game;
 
     /// <summary>The value <paramref name="preset"/> gives this option (<see cref="OptionPreset.Custom"/>: the manual's).</summary>
     public string ValueFor(OptionPreset preset) => preset switch
@@ -447,6 +451,44 @@ public static class RuleOptionRegistry
         "guild-limit", GameId.P1, ["game", "none"],
         Manual: "game", Dos: "game", Remaster: "none", EveryGame: true);
 
+    // ---- Elementals across the games (PLAN P3 QoL, user D3-040): one cross-game rule set for Guild Add / Drop / Purge
+    // with a loaded elemental. Every value is an original's decoded rule; `game` (every preset) = the game's own. Not in
+    // IV's tab: IV picks its elemental when the party is formed and has no Guild Add / Drop / Purge of one. Whatever the
+    // values, an elemental is never removed from the game: the records stay in the Guild (GameSession.ElementalTemplates),
+    // Purge refuses an elemental (GuildHall.PurgeRefusal), and Drop / Purge only unload the party copy.
+
+    private static readonly GameId[] GuildElementalGames = [GameId.P1, GameId.P2, GameId.P3];
+
+    /// <summary>
+    /// When the Guild lets an elemental join and whether a character can join after it: <c>game</c> (the game's own:
+    /// I and II six characters first and nobody after it, OV1 <c>0x2786</c> / <c>0x1fe8</c>; III one character, later ones
+    /// go in front of it, ovl2 <c>0x3a0a</c>), <c>phantasie-i</c> or <c>phantasie-iii</c> in every game
+    /// (<see cref="ElementalRules.PhantasieI"/>, <see cref="ElementalRules.PhantasieIII"/>). Summoning in combat keeps the
+    /// game's own rule (D-033).
+    /// </summary>
+    public static readonly RuleOptionDescriptor ElementalLoad = new(
+        "elemental-load", GameId.P1, ["game", "phantasie-i", "phantasie-iii"],
+        Manual: "game", Dos: "game", Remaster: "game", EveryGame: true, Games: GuildElementalGames);
+
+    /// <summary>
+    /// Guild ▸ Drop of a character with an elemental loaded: <c>game</c> (I and II: every Drop unloads it, OV1
+    /// <c>0x22d1</c>; III: it stays while a character is left, ovl2 <c>0x3c92</c>), <c>phantasie-i</c> or
+    /// <c>phantasie-iii</c> in every game.
+    /// </summary>
+    public static readonly RuleOptionDescriptor ElementalDrop = new(
+        "elemental-drop", GameId.P1, ["game", "phantasie-i", "phantasie-iii"],
+        Manual: "game", Dos: "game", Remaster: "game", EveryGame: true, Games: GuildElementalGames);
+
+    /// <summary>
+    /// Guild ▸ Purge of a character in the party with an elemental loaded (D3-040): <c>game</c> (I and II: purged and the
+    /// elemental unloaded, OV1 <c>0x2489</c>; III: <see cref="P3RuleOptions.Purge"/>), <c>phantasie-i</c> (unloaded),
+    /// <c>as-drop</c> (III's manual, D3-040: what this save's Drop does, <see cref="ElementalDrop"/>) or <c>refused</c> (DOS
+    /// III: a party member is not purged; Drop first). A value other than <c>game</c> replaces <c>p3.purge</c> in III.
+    /// </summary>
+    public static readonly RuleOptionDescriptor ElementalPurge = new(
+        "elemental-purge", GameId.P1, ["game", "phantasie-i", "as-drop", "refused"],
+        Manual: "game", Dos: "game", Remaster: "game", Difference: "D3-040", EveryGame: true, Games: GuildElementalGames);
+
     public static IReadOnlyList<RuleOptionDescriptor> All { get; } =
     [
         ElementalPrep, StashAccess, ArmoryRestock, GoldCap, RenamePartyMembers, StunningBlow, ArmorReduced, PayoutRemainder,
@@ -462,12 +504,13 @@ public static class RuleOptionRegistry
         P2TransportList, P2InnDead, P2TownInnTime, P2InnMagicCap, P2WildernessInnTime, P2PathTime, P2DungeonMapNo, P2CombatShares,
         .. P3RuleOptions.All, // Phantasie III (T4), its own class so its fields are set before this list reads them
         .. P4RuleOptions.All, // Phantasie IV (T6), the same way
+        ElementalLoad, ElementalDrop, ElementalPurge, // I, II and III (EveryGame, Games)
         GuildLimit, // every game (EveryGame), last in each tab
     ];
 
     /// <summary>The rules options of <paramref name="game"/>, in menu order: its own, then the every-game ones.</summary>
     public static IReadOnlyList<RuleOptionDescriptor> For(GameId game) =>
-        All.Where(d => d.Game == game && !d.EveryGame).Concat(All.Where(d => d.EveryGame)).ToArray();
+        All.Where(d => d.Game == game && !d.EveryGame).Concat(All.Where(d => d.EveryGame && d.AppliesTo(game))).ToArray();
 }
 
 /// <summary>

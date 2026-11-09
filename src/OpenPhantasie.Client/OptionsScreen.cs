@@ -332,6 +332,16 @@ public sealed class OptionsScreen
         // PLAN P3 QoL: the colorblind palette (red-green), a remap of the finished frame; off = the original colours.
         rows.Add(Described("options.colorblind", OnOff(g.ColorblindPalette),
             _ => Set(() => g.ColorblindPalette = !g.ColorblindPalette)));
+        if (game is GameId.P2)
+        {
+            // PLAN P3 QoL (D2-014): the rulebook's terrain key beside the wilderness map; off = the ST (no key).
+            rows.Add(Described("options.terrain_key", OnOff(g.TerrainKey), _ => Set(() => g.TerrainKey = !g.TerrainKey)));
+        }
+        if (game is GameId.P4)
+        {
+            // PLAN P3 QoL (s115): a key ends the Mystic's counted loops; off = P4.X (no keys until the wait).
+            rows.Add(Described("options.mystic_skip", OnOff(g.MysticSkip), _ => Set(() => g.MysticSkip = !g.MysticSkip)));
+        }
 
         var locked = _running is not null;
         var rules = _running?.Options ?? g.NewGameOptions(game);

@@ -156,6 +156,7 @@ public static class PartyOptions
                     prep.PackedAction = CombatAction.Cleared;
                 encounter.MonstersLoseRound = false;
                 encounter.MonstersFrozen = false; // [0x64a0] := 0 (0x3d9f): no pass-1 wait in a first round
+                encounter.OrdersSkipped = true;   // round (5) without the orders phase 0x6a2a: DOS's living list stays
                 return new PartyOptionResult { Outcome = PartyOptionOutcome.LoseRound, Log = log };
             }
 

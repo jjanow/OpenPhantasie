@@ -24,9 +24,14 @@ public static class GuildHall
     public static bool TryAddToParty(GuildRoster roster, Party party, Character member, int guildTownId, out string error) =>
         TryAddToParty(roster, party, member, guildTownId, agesEveryAdd: false, out error);
 
-    /// <summary><paramref name="agesEveryAdd"/> = DOS (<c>p1.add-aging</c>, D-067, Q8): every Add ages the member 2 months.</summary>
+    /// <summary>
+    /// <paramref name="agesEveryAdd"/> = DOS (<c>p1.add-aging</c>, D-067, Q8): every Add ages the member 2 months.
+    /// <paramref name="elementals"/> = the save's elemental rules (<see cref="ElementalGuildRules.Elementals"/>); null = the
+    /// party's rules.json block.
+    /// </summary>
     public static bool TryAddToParty(
-        GuildRoster roster, Party party, Character member, int guildTownId, bool agesEveryAdd, out string error)
+        GuildRoster roster, Party party, Character member, int guildTownId, bool agesEveryAdd, out string error,
+        ElementalRules? elementals = null)
     {
         ArgumentNullException.ThrowIfNull(roster);
         ArgumentNullException.ThrowIfNull(party);
@@ -34,7 +39,7 @@ public static class GuildHall
 
         // [C] OV1 0x1fe8 / 0x278d: Add is refused while an elemental is loaded ([0x62a8] ≠ 0). III (ovl2 0x3a0a): not refused,
         // the elemental stays in its own slot after the characters (ElementalRules.BlocksAdd).
-        if (party.Elemental is not null && party.Rules.ElementalRulesOrDefault.BlocksAdd)
+        if (party.Elemental is not null && (elementals ?? party.Rules.ElementalRulesOrDefault).BlocksAdd)
         {
             error = GameText.S("core.guild.elemental_joined_no_more");
             return false;
@@ -86,7 +91,7 @@ public static class GuildHall
     /// change, party size stays 6. III (<see cref="ElementalRules"/>, ovl2 <c>0x3a0a</c>): one character is enough ("The
     /// party is not assembled." with none).
     /// </summary>
-    public static bool TryAddElemental(Party party, Character template, out string error)
+    public static bool TryAddElemental(Party party, Character template, out string error, ElementalRules? elementals = null)
     {
         ArgumentNullException.ThrowIfNull(party);
         ArgumentNullException.ThrowIfNull(template);
@@ -97,7 +102,7 @@ public static class GuildHall
             return false;
         }
 
-        var min = party.Rules.ElementalRulesOrDefault.MinMembers;
+        var min = (elementals ?? party.Rules.ElementalRulesOrDefault).MinMembers;
         if (party.Members.Count < min)
         {
             error = GameText.S(min >= Party.MaxMembers ? "core.guild.elementals_only_join_six" : "core.guild.party_not_assembled");
@@ -111,9 +116,12 @@ public static class GuildHall
 
     /// <summary>
     /// Guild ▸ Drop. <paramref name="found"/> = the session's found-gold purse, which III counts as party gold for the Drop
-    /// share (<see cref="DropGoldShare"/>; DOS has one treasury).
+    /// share (<see cref="DropGoldShare"/>; DOS has one treasury). <paramref name="elementals"/> = the save's elemental rules
+    /// (<see cref="ElementalGuildRules.Elementals"/>); null = the party's rules.json block. Only the party copy of a loaded
+    /// elemental is ever unloaded; its Guild record stays.
     /// </summary>
-    public static bool TryDropFromParty(Party party, Character member, out string error, LootSack? found = null)
+    public static bool TryDropFromParty(Party party, Character member, out string error, LootSack? found = null,
+        ElementalRules? elementals = null)
     {
         ArgumentNullException.ThrowIfNull(party);
         ArgumentNullException.ThrowIfNull(member);
@@ -129,7 +137,7 @@ public static class GuildHall
         party.Members.Remove(member);
         member.InParty = false; // [C] OV1 0x225c: @218 := 0
         // [C] OV1 0x22d1: every Drop also clears party slot 7. III (ovl2 0x3c92 → 0x3e0b): only when no character is left.
-        if (!party.Rules.ElementalRulesOrDefault.DropKeeps || !party.Adventurers.Any())
+        if (!(elementals ?? party.Rules.ElementalRulesOrDefault).DropKeeps || !party.Adventurers.Any())
             party.Elemental = null;
         error = "";
         return true;
@@ -163,9 +171,10 @@ public static class GuildHall
     }
 
     /// <summary>
-    /// Why Guild ▸ Purge would refuse <paramref name="member"/>, or null when it would purge: not in the roster, or a party
-    /// member under DOS III's refusal (<see cref="PurgePartyRule.Refused"/>, string 448). s160: DOS III tests these before
-    /// its "Are you sure …?" question (guild_menu <c>0xafe3…0xb075</c>), so the front end asks only when this is null.
+    /// Why Guild ▸ Purge would refuse <paramref name="member"/>, or null when it would purge: an elemental (every game and
+    /// rule: an elemental is never removed from the game; DOS III string 406), not in the roster, or a party member under
+    /// DOS III's refusal (<see cref="PurgePartyRule.Refused"/>, string 448). s160: DOS III tests these before its "Are you
+    /// sure …?" question (guild_menu <c>0xafe3…0xb075</c>), so the front end asks only when this is null.
     /// </summary>
     public static string? PurgeRefusal(GuildRoster roster, Party party, Character member,
         PurgePartyRule partyRule = PurgePartyRule.ClearsElemental)
@@ -173,12 +182,27 @@ public static class GuildHall
         ArgumentNullException.ThrowIfNull(roster);
         ArgumentNullException.ThrowIfNull(party);
         ArgumentNullException.ThrowIfNull(member);
+        if (ReferenceEquals(member, party.Elemental) || IsElementalRecord(member))
+            return GameText.S("core.guild.cannot_purge_elemental"); // DOS III refuses too (string 406)
         if (Array.IndexOf(roster.Slots, member) < 0)
             return GameText.S("core.guild.not_in_roster");
         if (party.Members.Contains(member) && partyRule == PurgePartyRule.Refused)
             return GameText.S("core.guild.cannot_purge_party_member"); // DOS III string 448
         return null;
     }
+
+    /// <summary>
+    /// True for an elemental's record: race or birth race 16 (I / II's records: race 15 shown, birth race 16; III's: 16).
+    /// No creatable race has that number, so a roster that somehow held an elemental record still could not purge it.
+    /// </summary>
+    public static bool IsElementalRecord(Character c)
+    {
+        ArgumentNullException.ThrowIfNull(c);
+        return (int)c.Race == ElementalRace || (int)c.BirthRace == ElementalRace;
+    }
+
+    /// <summary>The elementals' race number in every game's records (I / II birth race 16, III race 16).</summary>
+    public const int ElementalRace = 16;
 
     /// <summary>
     /// Guild ▸ Purge. A party member is purged and leaves the party; what happens to a loaded elemental (or whether DOS III

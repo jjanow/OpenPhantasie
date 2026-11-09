@@ -25,6 +25,9 @@ public enum InventoryRefusal
     NothingWorn,
 }
 
+/// <summary>A game's strength gate: can <paramref name="member"/> use <paramref name="itemId"/> (<see cref="ICampaign.CanUseItem"/>)?</summary>
+public delegate bool ItemGate(Character member, int itemId);
+
 /// <summary>A member's gear numbers as combat uses them (<see cref="InventoryActions.Compare"/>).</summary>
 public readonly record struct GearStats(int ShieldSoak, int ArmorSoak, int WeaponDamage, int DefenseRating);
 
@@ -103,8 +106,12 @@ public static class InventoryActions
         return member.InventoryItemIds.IndexOf(id) == carriedSlot;
     }
 
-    /// <summary>Can <paramref name="member"/> wear <paramref name="itemId"/> at all (a slot takes it and the gate passes)?</summary>
-    public static InventoryRefusal CanWear(Character member, int itemId, EquipmentLayout layout)
+    /// <summary>
+    /// Can <paramref name="member"/> wear <paramref name="itemId"/> at all (a slot takes it and the gate passes)? The gate is
+    /// <paramref name="canUse"/>, the game's own rule (<see cref="ICampaign.CanUseItem"/>, through the
+    /// <see cref="GameSession"/> wrappers); null = I's <see cref="ItemRules.IsUsable"/>.
+    /// </summary>
+    public static InventoryRefusal CanWear(Character member, int itemId, EquipmentLayout layout, ItemGate? canUse = null)
     {
         ArgumentNullException.ThrowIfNull(member);
         ArgumentNullException.ThrowIfNull(layout);
@@ -112,23 +119,26 @@ public static class InventoryActions
             return InventoryRefusal.NoItem;
         if (layout.SlotFor(itemId) is null)
             return InventoryRefusal.NotEquipment;
-        return ItemRules.IsUsable(itemId, member.Stats) ? InventoryRefusal.None : InventoryRefusal.Unusable;
+        var usable = canUse?.Invoke(member, itemId) ?? ItemRules.IsUsable(itemId, member.Stats);
+        return usable ? InventoryRefusal.None : InventoryRefusal.Unusable;
     }
 
     // --- Equip ------------------------------------------------------------------------------------------------------
 
     /// <summary>Wear the item in the member's carried slot <paramref name="carriedSlot"/>.</summary>
-    public static InventoryRefusal CanEquip(Party party, Character member, int carriedSlot, EquipmentLayout layout)
+    public static InventoryRefusal CanEquip(
+        Party party, Character member, int carriedSlot, EquipmentLayout layout, ItemGate? canUse = null)
     {
         var r = Member(party, member);
         if (r != InventoryRefusal.None)
             return r;
-        return CanWear(member, Carried(member, carriedSlot), layout);
+        return CanWear(member, Carried(member, carriedSlot), layout, canUse);
     }
 
-    public static InventoryRefusal TryEquip(Party party, Character member, int carriedSlot, EquipmentLayout layout)
+    public static InventoryRefusal TryEquip(
+        Party party, Character member, int carriedSlot, EquipmentLayout layout, ItemGate? canUse = null)
     {
-        var r = CanEquip(party, member, carriedSlot, layout);
+        var r = CanEquip(party, member, carriedSlot, layout, canUse);
         if (r != InventoryRefusal.None)
             return r;
         var id = member.InventoryItemIds[carriedSlot];
@@ -142,14 +152,14 @@ public static class InventoryActions
     /// that slot goes to the stash in its place.
     /// </summary>
     public static InventoryRefusal CanEquipFromStash(
-        Party party, LootSack sack, int stashSlot, Character member, EquipmentLayout layout)
+        Party party, LootSack sack, int stashSlot, Character member, EquipmentLayout layout, ItemGate? canUse = null)
     {
         ArgumentNullException.ThrowIfNull(sack);
         var r = Member(party, member);
         if (r != InventoryRefusal.None)
             return r;
         var id = Stashed(sack, stashSlot);
-        r = CanWear(member, id, layout);
+        r = CanWear(member, id, layout, canUse);
         if (r != InventoryRefusal.None)
             return r;
         // 9 carried: only a swap with the item worn in that slot makes room.
@@ -160,9 +170,9 @@ public static class InventoryActions
     }
 
     public static InventoryRefusal TryEquipFromStash(
-        Party party, LootSack sack, int stashSlot, Character member, EquipmentLayout layout)
+        Party party, LootSack sack, int stashSlot, Character member, EquipmentLayout layout, ItemGate? canUse = null)
     {
-        var r = CanEquipFromStash(party, sack, stashSlot, member, layout);
+        var r = CanEquipFromStash(party, sack, stashSlot, member, layout, canUse);
         if (r != InventoryRefusal.None)
             return r;
         var id = sack.ItemIds[stashSlot];

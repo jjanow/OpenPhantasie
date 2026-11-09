@@ -394,7 +394,7 @@ Taken when the gate passes (`rand0_99 + 1 ≤ gate·(2g + 2)/(ranks + 2)`, integ
 
 | id | effect | values |
 |---|---|---|
-| 1–4 | one target: `living[rand0_99·livingCount/100]` (non-DEAD members in party order, `0x43ae` list `[0x64a2]`); `0x124a(t, d, 0)` — no resist roll, no armor, floor 1 | `d = rand0_99·k/100`, k = 12 / 35 / 70 / 120 |
+| 1–4 | one target: `list[rand0_99·[0x6490]/100]` (`0x43ae` list `[0x64a2]` of non-DEAD members in party order, as last rebuilt; `[0x6490]` is the last living **index** until a monster has acted in a round with orders, the count after — §[original text] "The living list and its word"); `0x124a(t, d, 0)` — no resist roll, no armor, floor 1; a DEAD target takes nothing. Core: the count everywhere, DOS's word and list under D-033 `dos` | `d = rand0_99·k/100`, k = 12 / 35 / 70 / 120 |
 | 5–8 | the casting **group's** attack power `+0x37 := 30·n² + 35`, n = id − 5 | 35 / 65 / 155 / 305 |
 | 9–12 | group damage `+0x16 := 15·n²/10 + 8`, n = id − 8 | 9 / 14 / 21 / 32 |
 | 13–16 | group armor `+0x14 := 4·(id − 12) + 4` | 8 / 12 / 16 / 20 |
@@ -916,14 +916,36 @@ if [0x6490] == 5 and [0x62a8] ≠ 0:
 ```
 `[0x6490]` has two meanings during a round: the orders phase (`0x6a2a`) stores the last living **index**
 (`0x43ae()`, no +1), but any monster turn (melee start `0xd93`, after a hit `0xf3a`, after a miss `0xfed`, after a
-special `0x1065`) and RESURRECTION (`0x11d7`) store the living **count**, and a party death decrements it (`0x12f4`).
+special `0x1065`) stores the living **count**. RESURRECTION (`0x11d4`) rebuilds the list but drops `0x43ae`'s result and
+only adds 1 to the word (`0x11d7`), so the word **keeps** its meaning; a party death subtracts 1 (`0x12f4`).
 So:
 - cast before any monster has acted this round (always true in pass 1): works with **6 non-DEAD members** (SLEEP counts);
+  a member raised earlier in the round counts, since the word stays an index;
 - cast in pass 3 or 5 after a monster acted: works with **5 non-DEAD members**, fails with 6. The new list entry is then
-  written one place too far (entry 5 stays stale) and monster targeting (`rand·[0x6490]/100`, `0x1734`) can pick that
-  stale entry until the next orders phase rebuilds the list `[~]`;
-- already summoned: with 7 non-DEAD the index is 6 → fails; with 7 members and one DEAD it passes again and lists slot 6
-  twice (or lists a DEAD elemental) until the next rebuild `[~]`.
+  written one place too far (entry 5 stays stale) and a monster special 1–4 (below) can pick that stale entry until the
+  next monster turn or orders phase rebuilds the list;
+- already summoned: with 7 non-DEAD the index is 6 → fails; with 7 members and one DEAD it passes again (in a count
+  phase: two DEAD). It only does `[0x648e] := 7` (already 7), `[0x6490] += 1` and the list write: no status, action or
+  prep change, so a DEAD elemental stays DEAD. Slot 6 is then listed twice (or a DEAD elemental is listed).
+
+**The living list and its word [C] (OV2/OV1/COM bytes).** `0x43ae` lists every party slot `0..[0x648e]−1` with
+`@24 ≠ 0` into `[0x64a2 + 2k]`, k = 0, 1, …, and returns the last k (−1 for none); entries past it keep what an earlier
+call wrote. Callers: the orders phase `0x6a32` (word := k), the monster-turn sites above and the end of combat `0x3fa9`
+(word := k + 1), RESURRECTION `0x11d4` (combat and field, success only; word + 1), and, list only, the step handler
+`0x432a` (states 2/3), dungeon event damage `0x26d0`, traps `0x31e1` and swimming `0x695c`. The orders phase runs only
+after FIGHT or a refused option (`0x3d1e`); a surprise opening (`0x33ab` → 5) and a failed Flee go into the round
+without it, so the word and list stay as they were. OV1 and the unpacked COM never reference `0x64a2` or `0x6490`. **Readers:** the
+summon test above and the single-target monster specials 1–4 (`0x1731..0x1742`: `list[rand0_99·[0x6490]/100]`, read
+as they stand, before the special's own rebuild at `0x1065`). Monster melee does not use the list: it walks party slots
+from `rand·[0x648e]` past DEAD ones (`0xdd4..0xe2f`). So the first special of a round that had the orders phase, before
+any monster melee or special, picks over the last **index**: the last listed member can't be its target (spells 1–4
+only, static).
+A DEAD target takes nothing and prints nothing (`0x124a` returns on status 0), after the damage roll. Only entry 5 is
+ever read stale (a summon in a count phase, word 5 → 6); it holds slot 5 (last rebuilt with all six adventurers
+non-DEAD) or slot 6 (last rebuilt in a fight with the elemental in and one adventurer DEAD). `[?]` The first values:
+`0x64a2` and `0x6490` lie in the COM's BSS (past the unpacked image), so before any rebuild they hold whatever memory
+held. Core: `DosLivingList` on `Party.DosLiving` (saved in the wilderness snapshot), read only under D-033
+`dos`; an entry never written gives no target.
 
 **Fighting [C].** It does nothing in the round it arrives (action 4 from the build; `0x1b4` skips actions ≤ 4). From
 the next round it is an ordinary member: the orders phase (`0x6ab9`) lists it if OK and the player gives it orders
@@ -963,8 +985,9 @@ Confirmed live. The `@254` write (`0x1b44`) loops all 7 slots, so it is not skip
 
 **Core (s33):** `Party.Elemental` (slot 7, kept out of `Party.Members` outside combat), `GuildHall.TryAddElemental`
 (six members, none loaded) and the Add refusal while loaded; Drop / Purge (party member) / town entry / party defeat
-clear it. `CombatSpells.SummonElemental`: no roll, MP spent, condition **six non-DEAD members** (D-033, manual; the DOS
-mid-round "five" case is not reproduced), appended with action none; `GameSession` removes it from the party on every
+clear it. `CombatSpells.SummonElemental`: no roll, MP spent, condition **six non-DEAD members** (D-033, manual; the
+`p1.summon-party` `dos` value plays DOS's test, list write and second summon on `Party.DosLiving`, above), appended with
+action none; `GameSession` removes it from the party on every
 combat exit before rewards / wake-up, a fight won with all six adventurers DEAD counts as a wipe, and `BeginCombat`
 sets a loaded elemental's status to OK (HP kept). The elemental's combat fields are a switch,
 `ElementalPrepRule`: `Prepared` (default since s34, D-032 — normal prep from its record) or `Dos` (stored values, 0 for a
@@ -989,9 +1012,13 @@ fresh template). Templates: `GameData/phantasie1/elementals.json` (`tools/script
   **s35 check:** 4 SKELETON = 4·77 = 308 XP, n = 6 → ⌊308/60⌋·10 = **50** (old Core: 308/6 = 51). 4 BANTIR = 4·147 = 588,
   n = 5 → ⌊588/50⌋·10 = **110** (old Core: 117). Both match DOSBox exactly, with no extra factor and the monster records unchanged.
   **s41 DOSBox check:** 6 KOBOLD (50) + 5 ORC (90) = 750 XP, n = 5 → ⌊750/50⌋·10 = **150** each, as seen (divisible, so no loss).
-  - BEG (gold = −`[0x63f6]`) `[~]`: if `f8d1` divides signed (truncating toward zero), the pool keeps
-    `[0x63f6] − ⌊[0x63f6]/n⌋·n` = `[0x63f6] mod n` gold, and the screen shows −⌊G/n⌋. Core's BEG empties the purse and
-    deposits 0 gold. Not checked live.
+  - BEG (gold = −`[0x63f6]`) **[D✓] s65** (DOSBox: 556 GP, 6 survivors → 4 left): `f8d1` divides signed (truncating
+    toward zero), so the purse keeps `[0x63f6] − ⌊[0x63f6]/n⌋·n` = `[0x63f6] mod n` gold, and the screen shows −⌊G/n⌋.
+    `[0x63f6]` is DOS's one purse: found gold and bank-withdrawn gold together. Core splits it into found gold
+    (`Sack.Gold`) and carried gold (`Party.GoldCarried`); BEG empties both, and under D-053 `dos` the leftover goes to
+    found gold, where every DOS-mode fight's gold goes too. That is the faithful mapping: the found-gold screen shows
+    `[0x63f6]` (overworld-movement.md), a party defeat zeroes it with the found gold (`PartyDefeat`), and town entry pays
+    found gold into the carried purse. Under the manual value BEG takes all the gold and deposits 0.
   - **Manual (PDF p.15):** "[original text] AND GOLD are displayed at the end of combat — the number of experience
     points earned from the encounter and any gold retrieved from the monsters. These will be divided among individual
     party members when they enter a town." DOS shows per-survivor shares rounded down to tens instead of the encounter

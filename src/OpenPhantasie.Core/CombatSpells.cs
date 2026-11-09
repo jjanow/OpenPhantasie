@@ -215,24 +215,31 @@ public static class CombatSpells
     /// joins as member 7 with no action this round.
     /// <para>D-033 (user, s34: manual "a party of six adventurers", PDF p.20): six non-DEAD members in every pass. DOS tests
     /// <c>[0x6490] == 5</c>, which means six living members until a monster has acted in the round and five after that
-    /// (the variable switches from last index to count) — not reproduced. III (<see cref="ElementalRules.MinMembers"/> 1,
-    /// <c>elementals.md</c> §3): no member count at all.</para>
+    /// (the variable switches from last index to count). The save's <c>dos</c> value plays DOS's test on
+    /// <see cref="Party.DosLiving"/>, its list write (one place too far after a monster turn) and the second summon of an
+    /// elemental already fighting (the test passes again with seven members and one DEAD: only the word and the list
+    /// change). III (<see cref="ElementalRules.MinMembers"/> 1, <c>elementals.md</c> §3): no member count at all.</para>
+    /// Returns whether the cast's test passed (under <c>dos</c>, also for a second summon that adds nobody).
     /// </summary>
     public static bool SummonElemental(CombatEncounter encounter)
     {
         ArgumentNullException.ThrowIfNull(encounter);
         var party = encounter.Party;
+        if (encounter.Rules.IsDos(RuleOptionRegistry.SummonParty))
+        {
+            // D-033 dos (p1.summon-party), 0x8cc: [0x6490] == 5 and slot 7 loaded ([0x62a8] ≠ 0) → party size 7,
+            // [0x6490]++, list[[0x6490]] := slot 6. Nothing else: no status, action or prep change, so a second cast on an
+            // elemental already fighting (alive or DEAD) only moves the word and the list.
+            if (!party.DosLiving.TrySummon(party.Elemental is not null))
+                return false;
+            if (!party.ElementalSummoned)
+                encounter.AddSummonedMember(party.Elemental!);
+            return true;
+        }
         if (party.Elemental is not { } elemental || party.ElementalSummoned)
             return false;
         var nonDead = party.Members.Count(m => m.Status != CharacterStatus.Dead);
-        if (encounter.Rules.IsDos(RuleOptionRegistry.SummonParty))
-        {
-            // D-033 dos (p1.summon-party): [0x6490] == 5, the last living index after orders (six non-DEAD) but the
-            // living count once a monster has acted this round (five non-DEAD).
-            if ((encounter.LivingWordIsCount ? nonDead : nonDead - 1) != Party.MaxMembers - 1)
-                return false;
-        }
-        else if (nonDead < party.Rules.ElementalRulesOrDefault.MinMembers)
+        if (nonDead < party.Rules.ElementalRulesOrDefault.MinMembers)
             return false; // I: six non-DEAD (D-033); III (root 0xc912): no member count, one living caster is enough
         encounter.AddSummonedMember(elemental);
         return true;

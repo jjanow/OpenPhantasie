@@ -339,6 +339,12 @@ public class Party
     public long GoldCarried { get; set; }
 
     /// <summary>
+    /// DOS's non-DEAD member list <c>[0x64a2]</c> and word <c>[0x6490]</c>, kept for the session (D-033 <c>dos</c> reads
+    /// them; <see cref="DosLivingList"/>).
+    /// </summary>
+    public DosLivingList DosLiving { get; } = new();
+
+    /// <summary>
     /// Most gold the purse holds (<see cref="RulesProfile.PartyGoldCap"/>). Phantasie I, manual p.10: "A party can carry
     /// up to 65,000 GPs" (D-048, user s40). DOS clamps the purse at 65,535 (COM <c>0x2e5d</c>) and the excess is lost;
     /// the manual doesn't say what happens to it, so Core loses it too. The save's <see cref="GoldCapRule"/> can replace

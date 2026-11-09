@@ -28,16 +28,16 @@ public sealed partial class GameSession
     public bool StashAccessible => InventoryAccess == InventoryRefusal.None;
 
     public InventoryRefusal CanEquip(Character member, int carriedSlot) =>
-        Gate(() => InventoryActions.CanEquip(Party, member, carriedSlot, Equipment));
+        Gate(() => InventoryActions.CanEquip(Party, member, carriedSlot, Equipment, ItemGate));
 
     public InventoryRefusal TryEquip(Character member, int carriedSlot) =>
-        Gate(() => InventoryActions.TryEquip(Party, member, carriedSlot, Equipment));
+        Gate(() => InventoryActions.TryEquip(Party, member, carriedSlot, Equipment, ItemGate));
 
     public InventoryRefusal CanEquipFromStash(int stashSlot, Character member) =>
-        Gate(() => InventoryActions.CanEquipFromStash(Party, Sack, stashSlot, member, Equipment));
+        Gate(() => InventoryActions.CanEquipFromStash(Party, Sack, stashSlot, member, Equipment, ItemGate));
 
     public InventoryRefusal TryEquipFromStash(int stashSlot, Character member) =>
-        Gate(() => InventoryActions.TryEquipFromStash(Party, Sack, stashSlot, member, Equipment));
+        Gate(() => InventoryActions.TryEquipFromStash(Party, Sack, stashSlot, member, Equipment, ItemGate));
 
     public InventoryRefusal CanUnequip(Character member, string slotId) =>
         Gate(() => InventoryActions.CanUnequip(Party, member, slotId, Equipment));
@@ -62,6 +62,25 @@ public sealed partial class GameSession
 
     public InventoryRefusal TryTakeFromStash(int stashSlot, Character member) =>
         Gate(() => InventoryActions.TryFromStash(Party, Sack, stashSlot, member));
+
+    /// <summary>
+    /// Can <paramref name="member"/> use <paramref name="itemId"/> by this game's own gate (<see cref="ICampaign.CanUseItem"/>:
+    /// I / II the id formulas, III its tables with bows on STR + DEX)? Read-only, any time; true for items no gate covers.
+    /// </summary>
+    public bool CanUseItem(Character member, int itemId)
+    {
+        ArgumentNullException.ThrowIfNull(member);
+        return Campaign.CanUseItem(this, member, itemId);
+    }
+
+    /// <summary>
+    /// <see cref="InventoryActions.CanWear"/> by this game's gate: a slot takes <paramref name="itemId"/> and
+    /// <paramref name="member"/> passes <see cref="CanUseItem"/>. Read-only, any time (no <see cref="InventoryAccess"/> check).
+    /// </summary>
+    public InventoryRefusal CanWear(Character member, int itemId) =>
+        InventoryActions.CanWear(member, itemId, Equipment, ItemGate);
+
+    private ItemGate ItemGate => CanUseItem;
 
     /// <summary>What wearing <paramref name="itemId"/> would change for <paramref name="member"/> (read-only, any time).</summary>
     public GearComparison? CompareGear(Character member, int itemId) => InventoryActions.Compare(member, itemId, Equipment);

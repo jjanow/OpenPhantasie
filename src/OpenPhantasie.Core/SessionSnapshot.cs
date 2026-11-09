@@ -115,6 +115,12 @@ public sealed class WildernessSnapshot
     public int? TownExitAverageLevel { get; set; }
     public bool SurpriseFirstRound { get; set; }
     public int MonsterHold { get; set; }
+
+    /// <summary>DOS's living list <c>[0x64a2]</c> (<see cref="Party.DosLiving"/>, D-033 <c>dos</c>); null in older saves.</summary>
+    public int?[]? DosLivingEntries { get; set; }
+
+    /// <summary>Its word <c>[0x6490]</c>.</summary>
+    public int DosLivingWord { get; set; }
     public WildernessMenu? PromptMenu { get; set; }
     public int PromptMonsterId { get; set; }
     public int? PromptListenerSlot { get; set; }

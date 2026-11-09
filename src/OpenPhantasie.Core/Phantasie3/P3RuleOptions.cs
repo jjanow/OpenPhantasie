@@ -188,7 +188,8 @@ public static class P3RuleOptions
     /// <summary>
     /// D3-040 (user s99): Purge on a party member purges it and keeps a loaded elemental while a character is left, as
     /// III's Drop (<c>manual</c>), purges it and unloads the elemental as Phantasie I (<c>phantasie-i</c>), or is refused
-    /// (<c>dos</c>: `core.guild.cannot_purge_party_member`). The elementals themselves can never be purged.
+    /// (<c>dos</c>: `core.guild.cannot_purge_party_member`). The elementals themselves can never be purged. Read only under
+    /// the every-game <see cref="RuleOptionRegistry.ElementalPurge"/> = <c>game</c>; any other value replaces it.
     /// </summary>
     public static readonly RuleOptionDescriptor Purge = new(
         "p3.purge", GameId.P3, ["manual", "phantasie-i", "dos"],
@@ -318,7 +319,10 @@ public static class P3RuleOptionsExtensions
     /// <summary>D3-041: III characters get no lifespan (true, DOS) or the manual's.</summary>
     public static bool P3NoLifespans(this GameOptions o) => o.IsDos(P3RuleOptions.Lifespans);
 
-    /// <summary>D3-040: what Guild ▸ Purge does to a party member (I's rule for a game without the option).</summary>
+    /// <summary>
+    /// D3-040: what Guild ▸ Purge does to a party member (I's rule for a game without the option). The session reads it
+    /// through <see cref="ElementalGuildRules.PurgeRule"/> (the every-game <c>elemental-purge</c> can replace it).
+    /// </summary>
     public static PurgePartyRule P3PurgeRule(this GameOptions o) =>
         o.IsDos(P3RuleOptions.Purge) ? PurgePartyRule.Refused
         : o.Is(P3RuleOptions.Purge, "manual") ? PurgePartyRule.KeepsElemental

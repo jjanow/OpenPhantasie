@@ -32,7 +32,9 @@ party records' roster slot `+0x7e` above it −1, count −1). Party slots and t
 Purge never meets a loaded elemental. The manual's Purge drops the adventurer "from the guild list from the party", and
 Apple II purges a party member too — **D3-040** (decided s99: manual; `p3.purge`). The remaster purges a party member and
 keeps a loaded elemental while a character is left, as Drop (§2); options: I's (the elemental is unloaded) or DOS's refusal.
-The elemental records are never purged.
+The elemental records are never purged. Cross-game QoL (PLAN P3): the every-game `elemental-purge` (and `elemental-load`,
+`elemental-drop` for §2's rules) can put I's, III's manual or DOS III's rule in I, II or III; `game` in every preset.
+The remaster refuses a Purge of an elemental in every game, as DOS does here (`GuildHall.PurgeRefusal`).
 
 ## 2. Adding one to the party `[C]` (Guild ▸ Add Member, root `0xad93` → ovl2 `0x3a0a`)
 
@@ -67,7 +69,7 @@ add(r):                                       # r = roster index
   `characters` zeroed and every roster in-party mark cleared. The manual is silent; no conflict.
 - **Built (s95):** the rules profile's `elementals` block (`ElementalRules`: III `min_members` 1, `blocks_add` false;
   I's six-and-block when absent); the Guild Add list offers elementals once one character is in. **s97:** `drop_keeps`
-  true (`ElementalRules.DropKeeps`): a Drop keeps the elemental while a character is left (I: every Drop clears it).
+  true (`ElementalRules.DropKeeps`): a Drop keeps the elemental while a character is left (I: every Drop clears it). The every-game options `elemental-load` / `elemental-drop` can play either game's rule in I, II and III (`ElementalGuildRules`).
 
 ## 3. Summoning in combat `[C]` (spell #48, root `0xc912`)
 

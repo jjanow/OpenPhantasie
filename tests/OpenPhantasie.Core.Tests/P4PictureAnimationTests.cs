@@ -326,6 +326,30 @@ public class P4PictureAnimationTests
         Assert.True(player.Shown.ContainsKey(19)); // disarmed, but its frame stays on the picture (no redraw)
     }
 
+    [OriginalDataFact]
+    public void MysticSkip_EndsTheLoopsAtOnce_WithThePictureTheWaitedReadingEndsOn()
+    {
+        // QoL MYSTIC SKIP: a key in any loop runs the passes left at once; the picture is the one the full ~23 s give.
+        var waited = Mystic(out var waitedPlayer);
+        waited.Advance((P4MysticReading.GazePasses + P4MysticReading.ReadPasses + P4MysticReading.SpeakPasses) * 1.435 + 1.0);
+        Assert.Equal(P4MysticPhase.Waiting, waited.Phase);
+
+        foreach (var at in new[] { 0.0, 5000.0, 15000.0, 20000.0 }) // gazing, gazing, reading, speaking
+        {
+            var skipped = Mystic(out var skippedPlayer);
+            skipped.Advance(at);
+            Assert.True(skipped.SkipLoops());
+            Assert.Equal(P4MysticPhase.Waiting, skipped.Phase);
+            Assert.True(skipped.AcceptsKeys && skipped.BubbleUp);
+            Assert.Equal(0, skipped.PassesLeft);
+            Assert.Equal(waitedPlayer.Shown.OrderBy(kv => kv.Key), skippedPlayer.Shown.OrderBy(kv => kv.Key));
+            for (var record = P4MysticReading.First; record <= P4MysticReading.ReadingRecord; record++)
+                Assert.Equal(waitedPlayer.Animator.IsArmed(record), skippedPlayer.Animator.IsArmed(record));
+            Assert.Equal(waitedPlayer.PassMilliseconds, skippedPlayer.PassMilliseconds);
+            Assert.False(skipped.SkipLoops()); // nothing left: the wait is _spc_wait's, a key there closes the Mystic
+        }
+    }
+
     [Fact]
     public void PlayerArm_AddsRecords_OrClearsFirst_AndKeepsTheScreen()
     {

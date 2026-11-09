@@ -336,6 +336,14 @@ public sealed partial class Phantasie3Campaign : ICampaign
         new(c.Class, c.Stats, c.Level, c.Experience, c.Score, c.Phantasie3?.SocialClass ?? 0, c.HpMax, StatusOf(c),
             c.Race == Race.Undead);
 
+    /// <summary>
+    /// III's own gate (ovl2 <c>0x39b5</c>, <see cref="P3TownEntryPayout.CanUse"/>): the item's <c>str_check</c> sum (STR;
+    /// bows 41–60 STR + DEX; melee weapons 2·STR + DEX) ≥ its <c>min_str</c>, both from III's tables. An id with no catalog
+    /// entry passes (nothing to gate).
+    /// </summary>
+    public bool CanUseItem(GameSession session, Character member, int itemId) =>
+        session.Items.Get(itemId) is not { } item || P3TownEntryPayout.CanUse(item, member.Stats);
+
     public (bool May, string Reason)? CanTrain(GameSession session, Character member) =>
         P3Training.MayTrain(Trainee(member)) ? (true, "") : (false, GameText.S("core.p3.cannot_train"));
 

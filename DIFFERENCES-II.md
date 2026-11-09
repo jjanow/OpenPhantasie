@@ -225,8 +225,15 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   pack; the same file as the extract's `pack.json`). Its region pictures are the ST's own polygon fills, and the ST
   fill patterns resolve as `overworld.pattern.N` (pattern = cell class: 7 dark voids, 8 lava, 11 mist). Built s81 (pack
   wired); s82 the Client draws II's overworld with the ST pictures, every dungeon / castle icon and the ST's water /
-  lava colour cycle. The ST has no on-screen legend, so the remaster shows none (the patterns stay available for a
-  later QoL legend).
+  lava colour cycle. The ST has no on-screen legend, so by default the remaster shows none. s171 QoL: the II tab's
+  presentation switch **TERRAIN KEY** (`GameSettings.TerrainKey`, off by default = the ST) draws the rulebook's key
+  beside the wilderness map: the manual's names (Party, Town/Inn, Dungeon, Path, Desert, Grassland/Forest,
+  Mountains/Hills, River/Lake, and p.27's Molten Lava, Mist, Dark Voids; `p2.terrain_key.*` in II's `en.json`), each with
+  the ST's own pattern or map icon (`GameData/phantasie2/terrain-key.json`). It shows the ST's colours, not the
+  manual's, so lava is the swirl and mist the grey dots, as on the map. The class readings behind the rows are
+  `terrain.md` section 5's (mist 11 and dark voids 7 `[~]`; grassland 0, forest 1 and desert 9 are visual readings
+  carried over from I `[~]`). The key shares the sidebar with the party: the party keeps its first row of cards, and
+  both scroll what does not fit (`parity/shots/s171-p2-terrain-key.png`).
 - **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` §5.
 
 ## D2-015 — Mortality text: "a high-level wizard using a RESURRECT spell"

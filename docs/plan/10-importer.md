@@ -552,7 +552,11 @@ run or earlier) the ST's tables win and the Apple adds only `apple2.json` + its 
   rows − 4 (`tile_maps.view_centre_margin` [5, 4]), so Scandor's view ends at columns 41–49 and DOS never reads past a
   map; the Astral scene's palette 0 (`0x240c`) comes after its last line and a cleared screen, as the remaster's scene
   ends; the remaster's auto-map box is no longer drawn over a tile dungeon (III, both packs: it covered the second
-  member card). Shots `parity/shots/p3-dos-cga-s170-*`.
+  member card). Shots `parity/shots/p3-dos-cga-s170-*`. s171: in its place a tile dungeon draws its own whole-level
+  overview (QoL, the same Tab switch `AutoMapVisible`): 24 × 30 cells of 3 × 2 px in a 76 × 64 box inside the view
+  left of the cards, in the corner farthest from the party; a seen cell takes its glyph's commonest colour (DOS CGA
+  palette 1: stone white, floor magenta), the party cyan. Neither original draws a box (the Amiga's dungeon screen is
+  the whole level). Shots `parity/shots/p3-s171-automap-*`.
 - **Partial imports and the string tables** (7.6): an id resolves only from a version that holds it. Imports without
   I's tables (ST-only or Apple-only II, DOS-only III, IV) are covered by the shipped fallbacks (s163).
 - **Review items the export lists** (8.3): 2 files (s169, from 79), both accepted: the shared `en.json`'s option texts

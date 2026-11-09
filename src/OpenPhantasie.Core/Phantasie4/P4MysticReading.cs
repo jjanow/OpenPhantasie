@@ -18,7 +18,8 @@ public enum P4MysticPhase
 /// <c>MYSAN</c> to page 1, <c>MYSTIC</c> at (160, 90), records 15–18 armed; 10 000 bare <c>_anima</c> calls; record 19 armed
 /// (<c>0x6C2A</c>) and 3000 more; <c>MYSTLK</c> unpacked over the picture's top, the score and verdict printed in it; 3000
 /// more (record 19 still armed); <c>_clanim</c>, records 15–18 armed again (record 19's last frame stays on the picture) and
-/// <c>_spc_wait</c>. The three counted loops read no keys. A bare call took 1.359 ms on average in XEiJ (s118; the pack's
+/// <c>_spc_wait</c>. The three counted loops read no keys (the remaster's MYSTIC SKIP switch, off by default, lets a key
+/// end them at once: <see cref="SkipLoops"/>). A bare call took 1.359 ms on average in XEiJ (s118; the pack's
 /// <c>p4.mystic.reading</c> <c>pass_ms</c>): 13.3 + 4.2 + 4.2 s measured; the wait runs at the input loop's 6.12 ms.
 /// Headless: the Client ticks it and draws what <see cref="Player"/> shows.
 /// </summary>
@@ -97,6 +98,31 @@ public sealed class P4MysticReading
         if (_carry > 0)
             Player.Advance(_carry);
         _carry = 0;
+    }
+
+    /// <summary>
+    /// QoL (presentation switch MYSTIC SKIP, off = P4.X: the loops read no keys): runs every pass the counted loops still
+    /// have at once, through the same <see cref="PictureAnimationPlayer.Run"/> and phase steps as <see cref="Advance"/>,
+    /// so the picture ends where the waited-out reading ends (record 19's last frame up, records 15–18 re-armed) and the
+    /// visit is in <see cref="P4MysticPhase.Waiting"/>. Only the wait is skipped: the score and verdict are the town
+    /// loop's (<c>W.Box</c>), set before the reading starts. True when there was anything left to skip.
+    /// </summary>
+    public bool SkipLoops()
+    {
+        if (Phase == P4MysticPhase.Waiting)
+            return false;
+        while (Phase != P4MysticPhase.Waiting)
+        {
+            while (_left > 0)
+            {
+                var passes = Math.Min(_left, PictureAnimationPlayer.MaxPassesPerAdvance);
+                Player.Run(passes);
+                _left -= passes;
+            }
+            Step();
+        }
+        _carry = 0;
+        return true;
     }
 
     private void Step()

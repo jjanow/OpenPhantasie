@@ -158,7 +158,11 @@ public static class SpellCaster
                 : () => Roll0To99(rng);
             var raised = TryResurrect(party, caster, roll);
             if (raised is not null)
+            {
                 P3Spells.AfterResurrection(rules, raised, rng); // III: HP 1, magic full, body whole, CON −1…2
+                if (location != CastLocation.Town)
+                    party.DosLiving.Resurrected(party.Members); // field cast is OV2 0x113b too (0x11d4); OV1 town never
+            }
             // DOS prints nothing when no one is raised; the MP is spent either way.
             return raised is null
                 ? MagicResult.Ok("", mpSpent: cost, log: Array.Empty<string>())
@@ -569,13 +573,14 @@ public static class SpellCaster
             {
                 // [C] OV2 0x113b, roll = rand/328 (0..99). Side writes [C] (s41): order [0x74fa+2i] := 4 (no action — the
                 // raised member doesn't act for the rest of the round) and its previous-order mirror [0x5b96+2i] := 4 (next
-                // round's default order is PARRY; Core has no default-order model); 0x43ae rebuilds the non-DEAD target
-                // list [0x64a2] and [0x6490]++ is the survivor count — both derived from status in Core (Survivors).
+                // round's default order is PARRY; Core has no default-order model); 0x11d4 rebuilds the non-DEAD target
+                // list [0x64a2] and 0x11d7 adds 1 to [0x6490] (the rebuild's result is dropped, so the word keeps its
+                // index-or-count meaning: Party.DosLiving, D-033 dos). The survivor count is derived from status (Survivors).
                 var raised = TryResurrect(encounter.Party, caster, () => Roll0To99(rng));
                 if (raised is not null)
                 {
                     P3Spells.AfterResurrection(encounter.Rules, raised, rng); // III: HP 1, magic full, body whole, CON −1…2
-                    encounter.LivingWordIsCount = true; // 0x11d7 stores the living count [~] (success path)
+                    encounter.Party.DosLiving.Resurrected(encounter.Party.Members); // success path only
                     var slot = encounter.Party.Members.IndexOf(raised);
                     if ((uint)slot < (uint)encounter.Prep.Length)
                         encounter.Prep[slot].PackedAction = CombatAction.Cleared;

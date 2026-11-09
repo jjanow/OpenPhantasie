@@ -100,6 +100,8 @@ public partial class StringTableTests
             // s156: III Amiga's menu bars (pack keep_windows.menu_bars: the fight's, outside the towns, the town's).
             .Concat(GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P3)).Find("amiga")?.KeepWindows?.MenuBars.Values
                 .SelectMany(b => b.Menus.SelectMany(m => m.Items.Prepend(m.Title))) ?? [])
+            // s171: II's terrain key rows (GameData/phantasie2/terrain-key.json, the TERRAIN KEY switch).
+            .Concat(TerrainKey.For(GameId.P2).Select(e => e.Label))
             // s160: what an import companion gives (profiles.json companions "gives", shown by ImportScreen's offer).
             .Concat(OpenPhantasie.Importer.Profiles.VersionProfiles.All.SelectMany(p => p.Companions).Select(c => c.Gives));
 

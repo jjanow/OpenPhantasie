@@ -130,11 +130,11 @@ public sealed class CombatEncounter
     public SpellCombatEnd SpellEnd { get; set; }
 
     /// <summary>
-    /// <c>[0x6490]</c> holds the living <i>count</i> rather than the last living <i>index</i> (combat-resolution.md
-    /// §`core.spell.summon_elemental`): false after the orders phase, true once a monster has taken a turn this round (melee or special)
-    /// or RESURRECTION worked. Only DOS's `core.spell.summon_elemental` test reads it (D-033 <c>dos</c>); not saved, reset every round top.
+    /// A failed Flee (OV2 <c>0x3d84</c>) sends the party into the round without the orders phase (<c>0x6a2a</c>), so the
+    /// round top doesn't rebuild DOS's living list or reset its word (<see cref="Party.DosLiving"/>, D-033 <c>dos</c>).
+    /// Cleared at the round top.
     /// </summary>
-    public bool LivingWordIsCount { get; set; }
+    public bool OrdersSkipped { get; set; }
 
     /// <summary><c>[0x74aa]</c> set by dissolve: the end of combat counts every monster as killed ("MONSTERS KILLED").</summary>
     public bool Dissolved { get; set; }
@@ -436,7 +436,11 @@ public sealed class CombatResolver : ICombatResolver
         foreach (var mon in encounter.AllMonsters)
             mon.DoneThisRound = encounter.MonstersLoseRound;
         encounter.MonstersLoseRound = false;
-        encounter.LivingWordIsCount = false; // the orders phase (0x6a2a) stores the last living index
+        // The orders phase (0x6a2a, after FIGHT or a refused option) rebuilds DOS's living list and stores the last living
+        // index (D-033 dos reads it). A round without orders (surprise opening, failed Flee) keeps the old word and list.
+        if (!encounter.OpensWithoutOrders && !encounter.OrdersSkipped)
+            party.DosLiving.OrdersPhase(party.Members);
+        encounter.OrdersSkipped = false;
 
         // Surprise (0xee..0x11f): a fight that skipped PARTY OPTIONS (0x33ab → 5) has no orders. With the first-round flag set
         // and no hold, the party loses the round. The flag is cleared at every round top. Its saved copy releases the hold
@@ -529,8 +533,8 @@ public sealed class CombatResolver : ICombatResolver
                         && mon.Specials.Count == 3)
                     {
                         mon.DoneThisRound = true;
-                        encounter.LivingWordIsCount = true; // 0x1065
                         var fallThrough = MonsterSpecials.Use(encounter, encounter.Ranks[g], mon, rng, log);
+                        party.DosLiving.Recount(party.Members); // 0x1065, after the special has picked its target
                         if (fallThrough is null || g == 2)
                             continue;
                         rider = fallThrough.Value;
@@ -541,9 +545,10 @@ public sealed class CombatResolver : ICombatResolver
                         continue;
 
                     mon.DoneThisRound = true;
-                    encounter.LivingWordIsCount = true; // melee start 0xd93
+                    party.DosLiving.Recount(party.Members); // melee start 0xd93
                     if (!encounter.Modules.ResolveMonsterMelee(encounter, encounter.Ranks[g], mon, rider, rng, log))
                         MonsterMelee(encounter, mon, k, group.Count, rider, rng, log);
+                    party.DosLiving.Recount(party.Members); // after each swing (0xf3a hit, 0xfed miss)
                 }
             }
 
@@ -779,6 +784,7 @@ public sealed class CombatResolver : ICombatResolver
         if (!modules.HasDamageModules)
         {
             ApplyPartyDamage(party, target, dmg, new List<string>());
+            party.DosLiving.Rebuild(party.Members); // event 0x26d0 / trap 0x31e1 / swimming 0x695c rebuild after the damage
             return dmg;
         }
         var hit = new DamageHit
@@ -788,6 +794,7 @@ public sealed class CombatResolver : ICombatResolver
         dmg = modules.BeforeDamage(hit, log);
         ApplyPartyDamage(party, target, dmg, new List<string>());
         modules.AfterDamage(hit, target.Status == CharacterStatus.Dead, log);
+        party.DosLiving.Rebuild(party.Members);
         return dmg;
     }
 
@@ -804,6 +811,7 @@ public sealed class CombatResolver : ICombatResolver
         {
             target.HpCur = 0;
             party.Death.ApplyDeath(target);
+            party.DosLiving.MemberDied(); // 0x12f4: [0x6490] − 1
             log.Add(GameText.F("core.combat.x_dies", target.Name));
         }
     }

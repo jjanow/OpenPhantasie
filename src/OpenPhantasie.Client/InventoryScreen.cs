@@ -86,6 +86,7 @@ public sealed class InventoryScreen
     private GameSession? _session;
     private readonly Dictionary<int, string> _names = new();
     private readonly Dictionary<int, int> _values = new();
+    private readonly Dictionary<int, int> _points = new();
 
     public bool IsOpen => _session is not null;
 
@@ -139,10 +140,13 @@ public sealed class InventoryScreen
         _session = session;
         _names.Clear();
         _values.Clear();
+        _points.Clear();
         foreach (var item in data.Items)
         {
             _names.TryAdd(item.Id, item.Name);
             _values.TryAdd(item.Id, item.ValueFactor);
+            if (item.Points is { } points)
+                _points.TryAdd(item.Id, points);
         }
         Member = Math.Clamp(member, 0, Math.Max(0, Members.Count - 1));
         InStash = false;
@@ -234,11 +238,14 @@ public sealed class InventoryScreen
         {
             StashSort.Name => items.OrderBy(x => ItemName(x.ItemId), StringComparer.Ordinal).ThenBy(x => x.Slot).ToList(),
             StashSort.Kind => items.OrderBy(x => KindOrder(x.ItemId))
-                .ThenByDescending(x => ItemRules.CombatGate(x.ItemId).Points).ThenBy(x => x.Slot).ToList(),
+                .ThenByDescending(x => ItemPoints(x.ItemId)).ThenBy(x => x.Slot).ToList(),
             StashSort.Value => items.OrderByDescending(x => ItemValue(x.ItemId)).ThenBy(x => x.Slot).ToList(),
             _ => items.ToList(),
         };
     }
+
+    /// <summary>The item's points from the game's own table (III's differ from I's id formulas), else <see cref="ItemRules.CombatGate"/>.</summary>
+    public int ItemPoints(int id) => _points.TryGetValue(id, out var p) ? p : ItemRules.CombatGate(id).Points;
 
     private int KindOrder(int itemId) =>
         Layout.SlotFor(itemId) is { } s ? Layout.Slots.ToList().IndexOf(s) : Layout.Slots.Count;
@@ -284,11 +291,11 @@ public sealed class InventoryScreen
     };
 
     /// <summary>
-    /// Why <paramref name="itemId"/> can't be worn by <paramref name="member"/> when it is gear they fail the gate for
-    /// (the greyed rows); null for wearable gear and for items no slot takes (potions are not "unusable").
+    /// Why <paramref name="itemId"/> can't be worn by <paramref name="member"/> when it is gear they fail the game's own gate
+    /// for (<see cref="GameSession.CanWear"/>: I / II's id formulas, III's tables, bows STR + DEX; the greyed rows); null for wearable gear and for items no slot takes (potions are not "unusable").
     /// </summary>
     public string? UnusableReason(Character member, int itemId) =>
-        InventoryActions.CanWear(member, itemId, Layout) == InventoryRefusal.Unusable
+        S.CanWear(member, itemId) == InventoryRefusal.Unusable
             ? Reason(InventoryRefusal.Unusable, member)
             : null;
 
@@ -713,7 +720,7 @@ public sealed class InventoryScreen
                 r = s.CanTransferItem(from!, move.CarriedSlot, to!);
                 if (r == InventoryRefusal.None)
                     r = s.InventoryAccess is var access and not InventoryRefusal.None ? access
-                        : InventoryActions.CanWear(to!, item, Layout);
+                        : s.CanWear(to!, item);
                 if (r != InventoryRefusal.None)
                     return Reason(r, r is InventoryRefusal.SameMember ? from! : to!);
                 s.TryTransferItem(from!, move.CarriedSlot, to!);
