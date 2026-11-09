@@ -370,7 +370,8 @@ public sealed class GameSettings
     /// <summary>
     /// QoL (PLAN P3, D2-014; off = the ST, which shows no key on screen): a terrain key beside II's wilderness map, as the
     /// rulebook prints one: the ST fill patterns and map icons with the manual's terrain names
-    /// (<c>GameData/phantasie2/terrain-key.json</c>, <see cref="TerrainKey"/>). A presentation switch, shown on the II tab.
+    /// (<c>GameData/phantasie2/terrain-key.json</c>, <see cref="OpenPhantasie.Data.TerrainKey"/>). A presentation switch,
+    /// shown on the II tab.
     /// </summary>
     public bool TerrainKey { get; set; }
 
