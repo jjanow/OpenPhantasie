@@ -706,9 +706,10 @@ Xvfb lists all four games and starts I with the imported Amiga art.
   hoc by `codesign` on a Mac; not notarised). The program file is `OpenPhantasie` (the Client's `AssemblyName`, s174). The
   script deletes nothing: `--out` must not hold its `work-<rid>` folder.
 - **CI:** `tools/public/github/workflows/build.yml`, exported as the public repo's `.github/workflows/build.yml` (the
-  private repo runs no CI). Every push / pull request: tests (Ubuntu), then the four downloads as artifacts (Windows on
-  `windows-latest` so the icon goes into the .exe, both macOS builds on `macos-latest`), version `0.0.0-ci.<run>`. A tag
-  `v1.2.3`: version 1.2.3 and a GitHub release with `docs/release-notes/v1.2.3.md` as its notes (exported with the docs).
+  private repo runs no CI). **Runs only for a release (user s174):** a tag `v1.2.3` runs the tests (Ubuntu), builds the
+  four downloads (Windows on `windows-latest` so the icon goes into the .exe, both macOS builds on `macos-latest`) as
+  version 1.2.3 and publishes a GitHub release with `docs/release-notes/v1.2.3.md` as its notes (exported with the
+  docs). Ordinary pushes and pull requests run nothing; a manual run builds artifacts as `0.0.0-ci.<run>`, no release.
 - **Version:** a local build is `0.0.0-dev` (the Client's `Version` default); CI passes `-p:Version`. Only a version
   without a `-` suffix is a release build (`AppVersion.IsRelease`), and only a release build checks or updates.
 - **Updater** (`src/OpenPhantasie.Client/Updates/`): `UpdateService` asks `GET /repos/<UpdateRepository>/releases/latest`

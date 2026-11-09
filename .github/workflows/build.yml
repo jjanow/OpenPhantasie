@@ -1,13 +1,13 @@
-# Builds OpenPhantasie for players (s174). Every push and pull request: tests, then downloads for Windows, Linux and
-# macOS as workflow artifacts (version 0.0.0-ci.N: they never update themselves). A tag v1.2.3: the same, with version
-# 1.2.3, published as a GitHub release; the game's self-updater reads the latest release (UpdateService).
+# Builds OpenPhantasie for players (s174). Runs only for a release (user s174): pushing a tag v1.2.3 runs the tests,
+# builds the Windows, Linux and macOS downloads as version 1.2.3 and publishes them as a GitHub release; the game's
+# self-updater reads the latest release (UpdateService). Ordinary pushes and pull requests run nothing. A manual run
+# (Actions > Build > Run workflow) builds artifacts as version 0.0.0-ci.N (they never update themselves) and publishes
+# nothing.
 name: Build
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-  pull_request:
   workflow_dispatch:
 
 permissions:

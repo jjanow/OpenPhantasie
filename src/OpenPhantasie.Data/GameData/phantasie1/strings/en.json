@@ -296,6 +296,7 @@
     "ui.x_armory": "{0} ...",
     "ui.gold_x_shopper_x": "... {0}  Shopper {1}",
     "ui.x_x_x_x_x_g": "{0}{1} x{2} {3}g",
+    "ui.x_x_x_x_x_x_g": "{0}{1} {2} x{3} {4}g",
     "ui.no_stock": "No stock.",
     "ui.combat_time_lag_x": "COMBAT   time lag {0}",
     "ui.shift_skip": "Shift = skip",

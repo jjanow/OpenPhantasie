@@ -273,4 +273,31 @@ public class InventoryGameGearTests
         var s = Game(game);
         Assert.Null(s.HandOutWornPoints(s.Party.Members[0])); // the Client keeps WPN ARM SHL
     }
+    [OriginalDataFact]
+    public void III_ArmoryList_ShowsPointsOrUnusable_AsTheManual_D3073()
+    {
+        var s = P3();
+        var strong = Carrying(s, 0);
+        Assert.Equal("11", s.ArmoryPointsText(strong, GodArmour)); // STR 18 >= 16
+        Assert.Equal("4", s.ArmoryPointsText(strong, Mace));
+        var weak = Carrying(s, 1);
+        weak.Stats = new CharacterStats(3, 3, 3, 3, 3, 3);
+        Assert.Equal("UNUSABLE", s.ArmoryPointsText(weak, GodArmour));
+        Assert.Equal("UNUSABLE", s.ArmoryPointsText(weak, GodBow));
+        // No requirement: DOS printed "N/A"; the manual shows the points (Cloth +1 2, Robes +1 3, Self Bow 1).
+        Assert.Equal("2", s.ArmoryPointsText(weak, 31));
+        Assert.Equal("3", s.ArmoryPointsText(weak, 32));
+        Assert.Equal("1", s.ArmoryPointsText(weak, SelfBow));
+        Assert.Equal("", s.ArmoryPointsText(weak, 101)); // a potion: no points column entry
+        Assert.Equal("", s.ArmoryPointsText(weak, 121)); // a scroll
+    }
+
+    [OriginalDataTheory]
+    [InlineData(GameId.P1)]
+    [InlineData(GameId.P2)]
+    public void IAndII_ArmoryList_HasNoPointColumn(GameId game)
+    {
+        var s = Game(game);
+        Assert.Null(s.ArmoryPointsText(s.Party.Members[0], 64));
+    }
 }

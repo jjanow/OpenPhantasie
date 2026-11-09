@@ -383,6 +383,9 @@ public sealed partial class Phantasie3Campaign : ICampaign
     public IReadOnlyList<string>? HandOutWornColumns(GameSession session) =>
         session.Equipment.Slots.Select(s => s.Id).ToArray();
 
+    /// <summary>D3-073 (user s174: the manual over DOS's "N/A"): III's Armory list shows points or UNUSABLE.</summary>
+    public bool ArmoryListsPoints => true;
+
     public (bool May, string Reason)? CanTrain(GameSession session, Character member) =>
         P3Training.MayTrain(Trainee(member)) ? (true, "") : (false, GameText.S("core.p3.cannot_train"));
 

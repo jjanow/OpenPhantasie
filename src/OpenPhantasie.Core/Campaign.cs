@@ -187,6 +187,13 @@ public interface ICampaign
     /// </summary>
     IReadOnlyList<string>? HandOutWornColumns(GameSession session) => null;
 
+    /// <summary>
+    /// s174 (D3-073, user: the manual): the Armory list's point column. Default false: I and II list name, stock and
+    /// price only. III's manual (PDF 6) lists "the Point Value of Weapons and Equipment", an item the buyer can't use
+    /// "as Unusable" (<see cref="GameSession.ArmoryPointsText"/>).
+    /// </summary>
+    bool ArmoryListsPoints => false;
+
     // --- Optional hooks a game with its own world rules uses (T4, III; I and II use none) ---------------------------
 
     /// <summary>

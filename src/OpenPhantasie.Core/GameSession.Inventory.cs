@@ -64,6 +64,24 @@ public sealed partial class GameSession
         Gate(() => InventoryActions.TryFromStash(Party, Sack, stashSlot, member));
 
     /// <summary>
+    /// s174 (D3-073, the manual, III PDF 6): the Armory list's point column for <paramref name="itemId"/> as
+    /// <paramref name="shopper"/> sees it: the item's points when they can use it, UNUSABLE when not; empty for an item
+    /// that isn't a weapon, bow, shield or armour (potions, scrolls, treasure). Null when the game's list has no such
+    /// column (<see cref="ICampaign.ArmoryListsPoints"/>). DOS prints "N/A" for both an unusable item and every item with
+    /// no requirement (Cloth +1, Robes +1, Self Bow included); the remaster follows the manual.
+    /// </summary>
+    public string? ArmoryPointsText(Character shopper, int itemId)
+    {
+        if (!Campaign.ArmoryListsPoints)
+            return null;
+        if (Items.Get(itemId) is not { Kind: "weapon" or "bow" or "shield" or "armor" })
+            return "";
+        return CanUseItem(shopper, itemId)
+            ? Campaign.ItemPoints(this, itemId).ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : GameText.S("core.armory.unusable");
+    }
+
+    /// <summary>
     /// Can <paramref name="member"/> use <paramref name="itemId"/> by this game's own gate (<see cref="ICampaign.CanUseItem"/>:
     /// I / II the id formulas, III its tables with bows on STR + DEX)? Read-only, any time; true for items no gate covers.
     /// </summary>

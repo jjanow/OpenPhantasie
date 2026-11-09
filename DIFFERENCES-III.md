@@ -57,7 +57,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-070 | Outside-town keys: the manual's Adventure Menu has E = move east (3 / N W E S, I, U, T, L); the Amiga's bar has E = Examine Member, P = Party Status, and no letter moves | DECIDED · manual: E moves east |
 | D3-071 | XP pool / found items: the manual divides the experience "when they reach a town" (the Amiga and DOS on town entry); the remaster paid out only by the town's Distribute | DECIDED (user s142): manual · paid out on town entry (DOS order, s143) |
 | D3-072 | I / II → III transfer XP: the manual's characters keep "enough remaining experience … to train up several levels"; DOS gives 100 XP per old level (one or two trainings for most) | DECIDED: DOS (user s148) · built (s147) |
-| D3-073 | Armory list: the manual lists an item the buyer cannot use "as Unusable" and shows the point value of equipment; DOS prints "N/A" in the Pt Val column, and also for the three requirement-0 items (Cloth +1, Robes +1, Self Bow) | PENDING `[U]` (s174) · not built |
+| D3-073 | Armory list: the manual lists an item the buyer cannot use "as Unusable" and shows the point value of equipment; DOS prints "N/A" in the Pt Val column, and also for the three requirement-0 items (Cloth +1, Robes +1, Self Bow) | DECIDED (user s174): manual · built s174 |
 
 ---
 
@@ -947,9 +947,13 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   The word "Unusable" is not in DOS III; the Amiga program has neither word. Apple II III (disk 1 side A, BASIC line 1220)
   prints `"  UNUSABLE"` in the points column and the points of every usable item, so the manual describes the Apple II.
   So DOS differs from the manual twice: the word (N/A for Unusable), and no point value for three usable items.
-- **Decision:** PENDING (user).
-- **Remaster:** not built: III's Armory list (shared with I, `UiOverlays.DrawArmory`) shows name, stock and price per
-  row, with no Pt Val column and no marker (the after-buy UNUSABLE line uses III's gate, s173).
-- **Side effects:** none until built. Building either side touches only the III Armory list (`UiOverlays` Armory rows,
-  `TownMenus.ListBuyPrice` callers); I's list is unaffected.
+- **Decision:** (user s174) manual ("not a significant difference"): points for every usable weapon, bow, shield and
+  armour, UNUSABLE for the rest; no DOS option.
+- **Remaster (s174):** III's Armory rows gain a column between the name and the stock, for the shopper picked:
+  the item's points (`ICampaign.ItemPoints`, III's table) when III's gate passes (`CanUseItem`), `UNUSABLE`
+  (`core.armory.unusable`) when not, empty for potions, scrolls and treasure (`GameSession.ArmoryPointsText`,
+  `ICampaign.ArmoryListsPoints`, `UiOverlays.DrawArmory`). Cloth +1, Robes +1 and Self Bow show 2, 3 and 1. Shot
+  `parity/shots/p3-s174-armory-points.png`.
+- **Side effects:** I and II's list is unchanged (no column); the column changes with the shopper (1–6). The list has no
+  column heading (the manual names none; DOS's "Pt Val" header is not drawn).
 - **Spec:** `reverse-engineering/dos/phantasie3/logic-specs/town.md` section 7 ("The list rows").

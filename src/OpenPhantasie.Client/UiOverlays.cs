@@ -772,7 +772,16 @@ public static partial class UiOverlays
             PixelFont.Draw(batch, pixel, 10, rowsTop, UiText.S("ui.no_stock"), DimText);
             return;
         }
-        string Row(int i) => UiText.F("ui.x_x_x_x_x_g", i == cursor ? ">" : " ", stock[i].Name, stock[i].Qty, stock[i].Price);
+        // s174 (D3-073, the manual): III's list adds the shopper's point column, names padded so it lines up.
+        var buyer = session.Party.Members.Count > 0
+            ? session.Party.Members[Math.Clamp(shopper, 0, session.Party.Members.Count - 1)] : null;
+        var points = stock.Select(s => buyer is null ? null : session.ArmoryPointsText(buyer, s.Id)).ToList();
+        var nameWidth = stock.Max(s => s.Name.Length);
+        var pointsWidth = points.Max(p => p?.Length ?? 0);
+        string Row(int i) => points[i] is { } pts
+            ? UiText.F("ui.x_x_x_x_x_x_g", i == cursor ? ">" : " ", stock[i].Name.PadRight(nameWidth), pts.PadLeft(pointsWidth),
+                stock[i].Qty, stock[i].Price)
+            : UiText.F("ui.x_x_x_x_x_g", i == cursor ? ">" : " ", stock[i].Name, stock[i].Qty, stock[i].Price);
         // Two columns (filled top to bottom) when every row fits half the panel, else one.
         var columnWidth = (stockPanel.Width - 12) / 2;
         var columns = Enumerable.Range(0, stock.Count).All(i => PixelFont.Measure(Row(i)) <= columnWidth - 6) ? 2 : 1;

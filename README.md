@@ -85,8 +85,9 @@ Settings, saves and the import live in your user data folder: `~/.local/share/Op
 
 ## Making the downloads
 
-`.github/workflows/build.yml` runs the tests and builds the four downloads on every push (as workflow artifacts); a
-tag `v1.2.3` also publishes them as release 1.2.3, with `docs/release-notes/v1.2.3.md` as its notes when that file exists.
+`.github/workflows/build.yml` runs only for a release: pushing a tag `v1.2.3` runs the tests, builds the four downloads
+and publishes them as release 1.2.3, with `docs/release-notes/v1.2.3.md` as its notes when that file exists. Ordinary
+pushes run nothing; a manual run (Actions → Build → Run workflow) builds the downloads as artifacts without a release.
 The same packaging runs locally:
 
 ```sh

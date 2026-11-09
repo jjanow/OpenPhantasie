@@ -166,9 +166,9 @@ See `elementals.md`.
   Equipment. If the buyer does not have the necessary minimum attributes to use an item, the Item will be listed as
   Unusable" (III PDF 6, Armory). Apple II III (disk 1 side A, line 1220) prints `"  UNUSABLE"` in the points column and
   the points of every usable item, requirement 0 included, so the manual follows the Apple II. **DOS differs in the
-  word (N/A) and shows no points for the three requirement-0 items: D3-073, PENDING `[U]`.** Remaster: the list (shared with
-  I, `UiOverlays.DrawArmory`) shows name, stock and price, no Pt Val column and no marker, until the user decides (not
-  built).
+  word (N/A) and shows no points for the three requirement-0 items: D3-073, decided s174 for the manual.** Remaster (s174):
+  each row shows, for the picked shopper, the item's points or UNUSABLE (empty for potions, scrolls, treasure)
+  between the name and the stock (`GameSession.ArmoryPointsText`).
 - **The hand-out** (`0x061f`, s173 `[C]` static): the "who can use" column is `0x39b5(STR, DEX, id)` ≥ the table
   requirement for ids < 101 (`0x0788`); each item given to a character is appended to its list and ready-best `0x37f1`
   runs for that character at once (`0x0b25`). The screen never clears a worn slot.
