@@ -89,7 +89,7 @@ public partial class Game1
         if (P1Requesters is not { Sheet: { } sheet } layout)
             return null;
         // s156: the sheet's EQUIPMENT / SKILLS / POTIONS views (requesters 10 / 9 / 11); s158: SPELLS = requester 12.
-        var scene = _inspectDialog.SheetMember is { } member ? P1MapRequesters.Sheet(sheet, member)
+        var scene = _inspectDialog.SheetMember is { } member ? P1MapRequesters.Sheet(sheet, member, treasury: s.TreasuryOn)
             : _inspectDialog.PageShown is (0, var caster) && P1SheetSpellList is { } spells
                 ? P1MapRequesters.SheetSpells(spells, sheet.Palette, layout.PenUnmap,
                     [.. SpellPicker.Known(caster).Select(id => UiOverlays.P1SpellName(id, _data))], _inspectDialog.AmigaSpellFirst)
@@ -150,7 +150,7 @@ public partial class Game1
     /// <summary>s156: Guild › New's rolled character as requester 14 with PURGE / KEEP (h23 <c>+0xc08</c>), or null.</summary>
     private RequesterScene? P1RolledSheetFor(GameSession s) =>
         P1Requesters is { Sheet: { RolledButtons.Count: 2 } sheet } && s.Mode == GameMode.Guild && _guildNewDialog.RolledMember is { } rolled
-            ? P1MapRequesters.Sheet(sheet, rolled, rolled: true)
+            ? P1MapRequesters.Sheet(sheet, rolled, rolled: true, treasury: s.TreasuryOn)
             : null;
 
     /// <summary>After a blocked wilderness step: "THE RIVER STYX" / `core.overworld.that_is_the_ocean` open their OK requester.</summary>

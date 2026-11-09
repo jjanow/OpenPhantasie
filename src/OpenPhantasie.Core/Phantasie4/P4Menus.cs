@@ -503,7 +503,7 @@ public sealed class P4Menus
         _window.Line(GameText.S("p4x.0x45389"));
         yield return P4MenuPrompt.Confirm;
         var slot = _yes ? Array.IndexOf(Party.Pack, 0) : -1;
-        if (Party.Gold < S.MagicBagCost)
+        if (!Party.CanAfford(_o, S.MagicBagCost))
             slot = -1;
         if (slot < 0)
         {
@@ -511,7 +511,7 @@ public sealed class P4Menus
             yield return P4MenuPrompt.Wait; // _cast_50 0x2D3E2
             yield break;
         }
-        Party.Gold -= S.MagicBagCost;
+        Party.TrySpend(_o, S.MagicBagCost, TreasuryEntryKind.Magic);
         var item = S.MagicBagItems[P4Dice.Rand(_rng, S.MagicBagItems.Count) - 1];
         Say("p4x.0x453bd");
         Say("p4x.0x453da", _data.Items.Name(item));

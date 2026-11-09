@@ -163,10 +163,13 @@ public static partial class UiOverlays
     /// </summary>
     internal static void DrawAmigaMenuBar(SpriteBatch batch, Texture2D pixel, CombatFieldMenuBar bar, Func<int, Color> pen,
         int? open, IReadOnlyList<string> openLabels, int lit,
-        Func<int, Rectangle, HitRegion> titleHit, Func<int, Rectangle, HitRegion> itemHit)
+        Func<int, Rectangle, HitRegion> titleHit, Func<int, Rectangle, HitRegion> itemHit, GameSession? gold = null)
     {
         using var font = PixelFont.With(FontSources.Named(bar.Font, bar.FontFile));
         Fill(batch, pixel, new Rectangle(0, 0, 320, bar.Rows), pen(bar.BarPen));
+        // P3 QoL: the Guild treasury's gold line at the bar's free right end (III Amiga's town and outside bars).
+        var usedRight = bar.Menus.Count == 0 ? 0 : bar.Menus.Max(m => Math.Max(ToRect(m.Highlight).Right, m.TitleX + PixelFont.Measure(UiText.S(m.Title))));
+        DrawBarGold(batch, pixel, gold, usedRight, bar.TextY, pen(bar.TextPen));
         for (var m = 0; m < bar.Menus.Count; m++)
         {
             var menu = bar.Menus[m];

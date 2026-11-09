@@ -123,6 +123,7 @@ public partial class Game1 : Game
     private readonly DosDepositDialog _dosDepositDialog = new();
     private readonly TradeDialog _tradeDialog = new();
     private readonly AmigaBankDialog _amigaBank = new();
+    private readonly TreasuryDialog _treasuryDialog = new(); // P3 QoL: the Bank under the Guild treasury (11-guild-treasury.md)
     private string _promptNote = "";
     private IReadOnlyList<string> _promptNoteLines = []; // the lines _promptNote joins (s140: a map box's line leaves it)
 
@@ -1536,17 +1537,18 @@ public partial class Game1 : Game
                 _help == HelpForMode(_session.Mode) ? "" : _help,
                 ViewMode(_session) == GameMode.Dungeon ? _session.LastDungeonMessageRecord : null);
             UiOverlays.DrawP1MapMenuBar(_spriteBatch, _pixel, p1Map, _p1MapBar, ViewMode(_session) != GameMode.Dungeon,
-                P1MapBarTakesInput(_session));
+                P1MapBarTakesInput(_session), _session);
         }
         else if (FullScreenOverworld(_session))
-            UiOverlays.DrawMapHud(_spriteBatch, _pixel, BandMessage);
+            UiOverlays.DrawMapHud(_spriteBatch, _pixel, BandMessage, UiOverlays.TreasuryGoldLine(_session));
         else if (TownPictureScreen(_session))
             // The town picture fills the screen (s98): no status or help line; the message on a band for a few seconds,
             // the key help on it (clickable) while the mouse rests on the band's rows or below.
             UiOverlays.DrawTownHud(_spriteBatch, _pixel, _assets.TownScreen,
                 messageShows && BandMessage.Length > 0 ? BandMessage : null,
                 IsMouseVisible && _mouse.Position is { } at && at.Y >= UiOverlays.TownBandTop(_assets.TownScreen) ? _help : null,
-                CurrentGameSettings.OriginalScreens);
+                CurrentGameSettings.OriginalScreens,
+                gold: TownBarPlaces(_session) is null ? _session : null); // III Amiga: the gold line is on its town bar
         else if (ViewMode(_session) is GameMode.Overworld or GameMode.Dungeon && !CurrentGameSettings.StatusLines)
             // D-077 (manual): no status line; the key help only when a dialog shows its own.
             UiOverlays.DrawHud(_spriteBatch, _pixel, _session, _settings, BandMessage,
@@ -1556,10 +1558,10 @@ public partial class Game1 : Game
                 messageKeys: _mouseUsed && _combatUi.AwaitingOrders);
         if (TownPictureScreen(_session) && TownBarPlaces(_session) is { } townBar) // s156: III Amiga's town bar
             UiOverlays.DrawTownMenuBar(_spriteBatch, _pixel, _assets, townBar, _townBar, TownBarPalette(_session),
-                TownBarTakesInput(_session));
+                TownBarTakesInput(_session), _session);
         if (OutsideBarShown(_session))
             UiOverlays.DrawOutsideMenuBar(_spriteBatch, _pixel, _assets, _outsideBar, _session.Mode == GameMode.Dungeon,
-                CurrentGameSettings.CombatSpeed);
+                CurrentGameSettings.CombatSpeed, _session);
         if (InventoryScreenOpen)
             UiOverlays.DrawInventoryScreen(_spriteBatch, _pixel, _assets, _inventoryScreen, _mouse.Dragging ? _mouse.Position : null);
         else if (_showInventory)
@@ -1844,7 +1846,8 @@ public partial class Game1 : Game
             // III Amiga's Bank / Trade windows (s117), with the game's AMIGA SCREENS switch on.
             else if (modal is IAmigaWindowDialog amiga && _session.Game == GameId.P3 && CurrentGameSettings.OriginalScreens
                      && _assets?.KeepWindows is { } windows && amiga.View(_session, _data, windows) is { } view
-                     && UiOverlays.DrawAmigaWindow(_spriteBatch, _pixel, _assets, windows, view, _mouse.LeftDown ? _mouse.Position : null))
+                     && UiOverlays.DrawAmigaWindow(_spriteBatch, _pixel, _assets, windows, view, _mouse.LeftDown ? _mouse.Position : null,
+                         page: (modal as IPagedDialog)?.Page))
             {
             }
             // s154: I Amiga's character sheet (requester 14) for Inspect's sheet in the town, under AMIGA SCREENS.
@@ -1870,6 +1873,8 @@ public partial class Game1 : Game
                 UiOverlays.DrawTextPanel(_spriteBatch, _pixel, lines, typing, (modal as IPagedDialog)?.Page);
             if (ReferenceEquals(modal, _continueDialog))
                 HitContinueRows(lines);
+            if (ReferenceEquals(modal, _treasuryDialog) && UiOverlays.Hits is { } treasuryHits)
+                treasuryHits.Wheel = (Keys.Up, Keys.Down); // the wheel scrolls the treasury's ledger (its own page)
         }
         // III Amiga's credits (File › Info, window 0, s140; the town's ? / / too, s141) over the screen; only its OK takes
         // a click.
@@ -1886,7 +1891,10 @@ public partial class Game1 : Game
         {
             UiOverlays.Hits?.Clear();
             UiOverlays.DrawPartyStatusWindow(_spriteBatch, _pixel, _assets, statusLayout, statusWindow,
-                P3PartyStatus.Of(statusSession, statusWindow.Kinds), statusSession.Mode == GameMode.Dungeon,
+                P3PartyStatus.Of(statusSession, statusWindow.Kinds) is var status && statusSession.TreasuryOn
+                    ? status with { Gold = statusSession.SpendableGold } // P3 QoL: the Guild treasury's spendable gold
+                    : status,
+                statusSession.Mode == GameMode.Dungeon,
                 _mouse.LeftDown ? _mouse.Position : null);
         }
         // s154: I Amiga's STYX / OCEAN OK requester over the map; only its OK takes a click.
@@ -2451,6 +2459,13 @@ public partial class Game1 : Game
         SidebarScroll.Apply(_input.NewKeys(keys), _input.NewButtons(pad), SidebarScroll.RightTriggerHeld(pad),
             UiOverlays.FieldPartyScroll, UiOverlays.TerrainKeyScroll);
 
+    /// <summary>P3 QoL: the Guild treasury's window in place of the Bank's accounts (11-guild-treasury.md section 5).</summary>
+    private void OpenTreasury()
+    {
+        _treasuryDialog.Open();
+        SetFeedback(_message, _treasuryDialog.Help);
+    }
+
     /// <summary>The door a town choice goes in by (III's <c>0xacc8</c> callers), or null.</summary>
     private static string? TownDoor(TownChoice choice) => choice switch
     {
@@ -2533,6 +2548,13 @@ public partial class Game1 : Game
             if (_townMenu.Place != before)
             {
                 StartDoorFlash(_townMenu.Place switch { TownPlace.Bank => "bank", TownPlace.Armory => "armory", _ => null }, null);
+                // P3 QoL (11-guild-treasury.md section 5): under the Guild treasury the Bank is the treasury's window.
+                if (_townMenu.Place == TownPlace.Bank && s.TreasuryOn)
+                {
+                    _townMenu.Back();
+                    OpenTreasury();
+                    return;
+                }
                 // III Amiga (s117): the door opens one window, the Bank's own, instead of the Bank list.
                 if (_townMenu.Place == TownPlace.Bank && s.Game == GameId.P3 && CurrentGameSettings.OriginalScreens
                     && _assets?.KeepWindows?.Bank is not null)
@@ -2585,6 +2607,9 @@ public partial class Game1 : Game
         string? refused = null;
         switch (choice)
         {
+            case TownChoice.Withdraw or TownChoice.Deposit when s.TreasuryOn: // no accounts under the Guild treasury
+                OpenTreasury();
+                break;
             case TownChoice.Exit:
                 LeaveTown(s);
                 break;
@@ -3033,6 +3058,7 @@ public partial class Game1 : Game
         : _dosDepositDialog.IsOpen ? _dosDepositDialog
         : _tradeDialog.IsOpen ? _tradeDialog
         : _amigaBank.IsOpen ? _amigaBank
+        : _treasuryDialog.IsOpen ? _treasuryDialog
         : _learnDialog.IsOpen ? _learnDialog
         : _transportDialog.IsOpen ? _transportDialog
         : _guildAddDialog.IsOpen ? _guildAddDialog
@@ -3067,7 +3093,10 @@ public partial class Game1 : Game
         }
         string? refused = null;
         var shopper = s.Party.Members.Count > 0 ? s.Party.Members[_members.Clamp(s.Party.Members.Count)] : null;
-        if (s.Mode == GameMode.Town && _townMenu.Place == TownPlace.Bank && shopper is not null
+        if (s.Mode == GameMode.Town && _townMenu.Place == TownPlace.Bank && s.TreasuryOn
+                 && _input.Pressed(GameAction.BankWithdraw, keys, pad))
+            OpenTreasury();
+        else if (s.Mode == GameMode.Town && _townMenu.Place == TownPlace.Bank && shopper is not null
                  && !s.BankIsDos && _input.Pressed(GameAction.BankWithdraw, keys, pad))
             _withdrawDialog.Open();
         else if (s.Mode == GameMode.Guild && _input.NewKeys(keys).Contains(Keys.S)) // manual p.4 S)PELLS

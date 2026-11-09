@@ -36,12 +36,10 @@ public static class WildernessInn
         ArgumentNullException.ThrowIfNull(sack);
         ArgumentNullException.ThrowIfNull(rng);
 
-        if (party.GoldCarried + sack.Gold <= Price - 1)
+        // The purse first, then found gold, then the Guild treasury when it is on (s175).
+        if (!GoldPurse.TrySpend(Price, party.Treasury, TreasuryEntryKind.Inn,
+                (() => party.GoldCarried, v => party.GoldCarried = v), (() => sack.Gold, v => sack.Gold = v)))
             return new TownTransactionResult { Kind = TownTransactionKind.Failed, Message = CantAffordMessage };
-
-        var fromCarried = Math.Min(party.GoldCarried, Price);
-        party.GoldCarried -= fromCarried;
-        sack.Gold -= Price - fromCarried;
 
         var lines = new List<string> { GameText.S("core.inn.in_the_inn") };
         foreach (var m in party.Members)

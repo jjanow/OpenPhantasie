@@ -162,12 +162,89 @@ public sealed partial class P4DungeonScreen
         _ => bank.Accounts,
     };
 
+    // --- The Guild treasury (11-guild-treasury.md 5) ------------------------------------------------------------------------
+
+    /// <summary>The treasury's sunken box in the bank's window: the grey under the picture, 8 in at the sides, 12 at the
+    /// top and bottom.</summary>
+    public static PanelRect TreasuryFrame(BankWindow bank)
+    {
+        ArgumentNullException.ThrowIfNull(bank);
+        var c = bank.Clear;
+        return new PanelRect(c.X + 8, c.Y + 12, c.Width - 16, c.Height - 24);
+    }
+
+    /// <summary>The rows the treasury's box shows at once (the accounts table's row step).</summary>
+    public static int TreasuryVisibleRows(BankWindow bank) =>
+        Math.Max(1, (TreasuryFrame(bank).Height - 4) / Math.Max(1, bank.Accounts.RowStep));
+
+    /// <summary>
+    /// The treasury's rows (<see cref="TreasuryReport.Lines"/>) in the bank's window: every line, wrapped short of the box's
+    /// right edge (nothing is dropped; the box scrolls when they pass it). Row n is at (x, frame y + 2 + step · n).
+    /// </summary>
+    public static List<(int X, string Text)> TreasuryRows(BankWindow bank, IReadOnlyList<string> lines,
+        Func<string, int> width)
+    {
+        ArgumentNullException.ThrowIfNull(lines);
+        ArgumentNullException.ThrowIfNull(width);
+        var frame = TreasuryFrame(bank);
+        var x = frame.X + 8;
+        var step = Math.Max(1, bank.Accounts.RowStep);
+        var pieces = new List<(int? X, int? Y, string Text, int Font, int Colour, int Style)>();
+        for (var i = 0; i < lines.Count; i++)
+            pieces.Add((x, i * step, lines[i], 0, bank.TextColour, 0));
+        // An empty line keeps its row (FlowText adds no row for it).
+        var rows = new List<(int X, string Text)>();
+        var flowed = FlowText(pieces, x, 0, frame.X + frame.Width - 8 - ScrollBox.BarWidth, step, (t, _, _) => width(t));
+        var byRow = flowed.GroupBy(r => r.Y / step).ToDictionary(g => g.Key, g => g.First());
+        var last = Math.Max(lines.Count - 1, byRow.Keys.DefaultIfEmpty(0).Max());
+        for (var n = 0; n <= last; n++)
+            rows.Add(byRow.TryGetValue(n, out var r) ? (r.X, r.Text) : (x, ""));
+        return rows;
+    }
+
+    /// <summary>The treasury box's scroll (wheel and bar) while it is up.</summary>
+    public ScrollBox TreasuryScroll { get; } = new();
+
+    private P4BankWindow? _treasuryShown;
+
+    private void DrawTreasuryWindow(SpriteBatch batch, Texture2D pixel, Vector2 origin, float k, BankWindow bank)
+    {
+        if (!ReferenceEquals(W.BankWindow, _treasuryShown))
+        {
+            _treasuryShown = W.BankWindow;
+            TreasuryScroll.Home(); // each visit opens at the newest entries
+        }
+        var frame = TreasuryFrame(bank);
+        DrawSunken(batch, pixel, origin, frame, k);
+        var rows = TreasuryRows(bank, W.TreasuryLines ?? [], t => PackWidth(t, k));
+        var visible = TreasuryVisibleRows(bank);
+        TreasuryScroll.Set(rows.Count, visible);
+        var area = new Rectangle((int)(origin.X + frame.X * k), (int)(origin.Y + frame.Y * k), (int)Math.Ceiling(frame.Width * k),
+            (int)Math.Ceiling(frame.Height * k));
+        UiOverlays.HitScrollArea(TreasuryScroll, area);
+        var ink = Pal(bank.TextColour, Color.Black);
+        var step = Math.Max(1, bank.Accounts.RowStep);
+        for (var i = 0; i < visible && TreasuryScroll.Offset + i < rows.Count; i++)
+        {
+            var (x, t) = rows[TreasuryScroll.Offset + i];
+            PackText(batch, pixel, origin + new Vector2(x * k, (frame.Y + 2 + step * i) * k), t, ink, k);
+        }
+        UiOverlays.DrawScrollBar(batch, pixel, TreasuryScroll, area);
+    }
+
     private void DrawBankWindow(SpriteBatch batch, Texture2D pixel, Vector2 origin, float k)
     {
         if (!BankWindowUp)
             return;
         var bank = Extras!.Bank!;
         var view = W.BankWindow!;
+        if (view.View == P4BankView.Treasury)
+        {
+            batch.Draw(pixel, origin + new Vector2(bank.Clear.X * k, bank.Clear.Y * k), null, Pal(bank.ClearColour, Color.LightGray),
+                0f, Vector2.Zero, new Vector2(bank.Clear.Width * k, bank.Clear.Height * k), SpriteEffects.None, 0f);
+            DrawTreasuryWindow(batch, pixel, origin, k, bank);
+            return;
+        }
         void Box(PanelRect r, int colour, Color fallback) =>
             batch.Draw(pixel, origin + new Vector2(r.X * k, r.Y * k), null, Pal(colour, fallback), 0f, Vector2.Zero,
                 new Vector2(r.Width * k, r.Height * k), SpriteEffects.None, 0f);

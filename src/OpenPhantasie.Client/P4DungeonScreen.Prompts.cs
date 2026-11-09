@@ -313,7 +313,7 @@ public sealed partial class P4DungeonScreen
             PackText(batch, pixel, origin + new Vector2((ship.AnswerX - (PackWidth(answer, k) >> 1)) * k, (ship.AnswerY + shift) * k),
                 answer, ink, k);
         var g = ship.Gold;
-        var gold = PanelText(g.Label, g.LabelText) + PaddedAmount(Game.Party.Gold, g.Digits) + PanelText(g.Unit, g.UnitText);
+        var gold = PanelText(g.Label, g.LabelText) + PaddedAmount(Game.Party.SpendableGold(Game.Options), g.Digits) + PanelText(g.Unit, g.UnitText);
         PackText(batch, pixel, origin + new Vector2(g.X * k, (g.Y + shift) * k), gold, ink, k);
     }
 }

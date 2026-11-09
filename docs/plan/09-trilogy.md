@@ -61,7 +61,8 @@ feature) and transfer rules: `09-trilogy-matrix.md`, with page citations in `09-
 - The saved stopped-event state is still I's `DungeonScriptResume` (`PendingDungeonScript`,
   `DungeonSnapshot.ScriptResume`), kept so saves stay byte-identical; it becomes campaign-owned when a campaign needs one.
 - I's world facts are campaign code constants, not data.
-- Elementals, autosave, rename and the bank fee become profile or module flags once a game needs them.
+- Elementals, autosave and rename become profile or module flags once a game needs them. (The bank fee: covered by the
+  every-game Guild treasury option, s175, `11-guild-treasury.md`.)
 
 **Guild size per platform** (`RulesProfile.GuildByPlatform`, `guild_by_platform` in rules.json; `null` = `[?]`). The
 remaster plays 22 slots / 21 max (D-002); `ForPlatform(id)` exists but nothing calls it yet. Phantasie I:

@@ -213,7 +213,7 @@ public sealed partial class P4DungeonScreen
         var lines = new List<MenuLine>();
         if (W.ScreenTitle is { } t)
             lines.Add(new(t, MenuLineStyle.Title));
-        lines.Add(new(UiText.F("p4.town.gold_x", Game.Party.Gold), MenuLineStyle.Dim));
+        lines.Add(new(TownGoldLine(), MenuLineStyle.Dim));
         if (W.Marked is int mk && mk < Game.Party.Members.Count)
             lines.Add(new("> " + Game.Party.Members[mk].Name, MenuLineStyle.Header));
         if (W.HeldItem != 0 && Game.Services is { } s)
@@ -241,6 +241,9 @@ public sealed partial class P4DungeonScreen
             foreach (var l in W.Box)
                 if (l.Length > 0)
                     lines.Add(new(l, MenuLineStyle.Normal));
+        if (W.TreasuryLines is { } treasury && !BankWindowUp) // the Guild treasury without the bank's window: every line here
+            foreach (var l in treasury)
+                lines.Add(new(l, MenuLineStyle.Normal));
         if (W.Prompt == P4TownPrompt.Shares)
         {
             lines.Add(new(UiText.F("p4.town.share_gold_x", W.ShareAmount), MenuLineStyle.Header));
@@ -339,7 +342,10 @@ public sealed partial class P4DungeonScreen
             yield return new(GameText.S("p4x.0x40ac9") + "  " + AncestorText(a), MenuLineStyle.Normal);
         yield return new(UiText.F("p4.profile.age_x", m.AgeUnits / 26), MenuLineStyle.Normal);
         yield return new($"{P4Names.At(names.Socials, m.Social)}, {P4Names.At(names.Origins, m.Origin)}", MenuLineStyle.Normal);
-        yield return new(UiText.F("p4.profile.score_exp_gold_x_y_z", m.Score, m.Experience, m.Account), MenuLineStyle.Normal);
+        // The Guild treasury holds every account (11-guild-treasury.md 5): no per-character gold.
+        yield return new(Game.Options.TreasuryOn
+            ? UiText.F("p4.profile.score_exp_x_y", m.Score, m.Experience)
+            : UiText.F("p4.profile.score_exp_gold_x_y_z", m.Score, m.Experience, m.Account), MenuLineStyle.Normal);
         yield return new(UiText.F("p4.profile.abilities_x", string.Join(" ", m.Abilities)), MenuLineStyle.Normal);
         yield return new(UiText.F("p4.profile.skills_x", string.Join(" ", m.Skills)), MenuLineStyle.Normal);
         var eq = P4Equipment.Best(Game.Options, Game.Tables.Towns, Game.Services.Items, m);

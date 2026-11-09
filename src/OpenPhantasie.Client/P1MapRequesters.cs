@@ -142,6 +142,9 @@ public static class P1MapRequesters
         return new RequesterScene(palette, ops, hits);
     }
 
+    /// <summary>The sheet's bank row (left empty under the Guild treasury).</summary>
+    public const string BankRowId = "p1field.sheet.gold_in_bank";
+
     /// <summary>z6font's advance (XSize 6) and the room kept right of a row's last cell before the two border lines.</summary>
     private const int GlyphAdvance = 6, EdgeRoom = 3;
 
@@ -150,7 +153,8 @@ public static class P1MapRequesters
     /// <paramref name="rolled"/> it is Guild › New's roll (h23 <c>+0xc08</c>): no name, PURGE (sends N: roll again) and KEEP
     /// (sends Y) in gadgets 41 / 43's places.
     /// </summary>
-    public static RequesterScene Sheet(SheetRequester s, Character member, bool rolled = false)
+    /// <param name="treasury">The save keeps the Guild treasury (P3 QoL): the GOLD IN BANK row stays empty (no per-character gold).</param>
+    public static RequesterScene Sheet(SheetRequester s, Character member, bool rolled = false, bool treasury = false)
     {
         ArgumentNullException.ThrowIfNull(s);
         ArgumentNullException.ThrowIfNull(member);
@@ -169,7 +173,7 @@ public static class P1MapRequesters
         ];
         var rows = new string[Math.Min(s.Rows.Count, values.Length)];
         for (var i = 0; i < rows.Length; i++)
-            rows[i] = UiText.F(s.Rows[i].Text, values[i]);
+            rows[i] = treasury && s.Rows[i].Text == BankRowId ? "" : UiText.F(s.Rows[i].Text, values[i]);
         // D-064 (user s53, s155: the manual's wording on the Amiga sheet too): "EXPER. POINTS" leaves the row less room than
         // the Amiga's "EX. PTS", so a row that would reach the border widens the requester instead of being cut.
         var b = s.Box;

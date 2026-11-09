@@ -45,15 +45,11 @@ public static partial class UiOverlays
         HLine(batch, pixel, 0, 166, 320, PanelEdge);
 
         if (statusLine is not null)
-        {
-            var gold = session.Party.GoldCarried;
-            var alive = session.Party.Members.Count(m => m.HpCur > 0);
-            var mode = UiText.Name(session.Mode).ToUpperInvariant();
-            PixelFont.Draw(batch, pixel, 4, 3, statusLine.Length > 0
-                    ? UiText.F("ui.x_gold_x_party_x_x", mode, gold, alive, session.Party.Members.Count, statusLine)
-                    : UiText.F("ui.x_gold_x_party_x_x_2", mode, gold, alive, session.Party.Members.Count, settings.IntegerScale),
-                TitleGold);
-        }
+            PixelFont.Draw(batch, pixel, 4, 3, StatusText(session, settings, statusLine), TitleGold);
+        else if (TreasuryGoldLine(session) is { } goldLine)
+            // P3 QoL (11-guild-treasury.md section 5): without the status line (STATUS LINES off, the town's list screens,
+            // the Guild) the Guild treasury's gold line takes the band's empty row.
+            PixelFont.Draw(batch, pixel, 4, 3, goldLine, TitleGold);
 
         // The key help, then the message, each whole (s99): a line longer than the 52 columns goes on, at a word, on the
         // next line, and the band's rows close up to 8 pixels when the two need four lines.
@@ -92,16 +88,92 @@ public static partial class UiOverlays
     /// HUD for the full-screen overworld map, which fills rows 15..194 as on the Amiga: only the message, at the top,
     /// on as many lines as it needs (location signs run to three); no help line.
     /// </summary>
-    public static void DrawMapHud(SpriteBatch batch, Texture2D pixel, string message)
+    /// <param name="gold">P3 QoL: the Guild treasury's gold line, right-aligned on the band's first row; the message then
+    /// keeps to the columns left of it.</param>
+    public static void DrawMapHud(SpriteBatch batch, Texture2D pixel, string message, string? gold = null)
     {
+        var cols = gold is null ? 52 : Math.Max(1, 52 - (PixelFont.Measure(gold) + PixelFont.Advance - 1) / PixelFont.Advance - 1);
         var lines = (message ?? "").Split('\n')
-            .SelectMany(l => l.Length == 0 ? [""] : Enumerable.Range(0, (l.Length + 51) / 52).Select(i => l.Substring(i * 52, Math.Min(52, l.Length - i * 52))))
+            .SelectMany(l => l.Length == 0 ? [""] : Enumerable.Range(0, (l.Length + cols - 1) / cols).Select(i => l.Substring(i * cols, Math.Min(cols, l.Length - i * cols))))
             .ToList();
         var height = Math.Max(1, lines.Count) * PixelFont.LineHeight + 4;
         Fill(batch, pixel, new Rectangle(0, 0, 320, Math.Max(14, height)), new Color(6, 8, 14));
         for (var i = 0; i < lines.Count; i++)
             PixelFont.Draw(batch, pixel, 4, 3 + i * PixelFont.LineHeight, lines[i], BodyText);
+        if (gold is not null)
+            PixelFont.Draw(batch, pixel, 316 - PixelFont.Measure(gold), 3, gold, TitleGold);
     }
+
+    /// <summary>Room the status line has at x 4 (the 52 columns of the band).</summary>
+    public const int StatusWidth = 312;
+
+    /// <summary>
+    /// The top status line: mode, gold, party, then <paramref name="statusLine"/> (region / position) or, when it is empty,
+    /// the scale. Under the Guild treasury (P3 QoL, <c>11-guild-treasury.md</c> section 5) the gold is
+    /// <see cref="TreasuryGoldLine"/>; when that line is wider than the band it leaves out the mode word (the position
+    /// names it), then the trip part.
+    /// </summary>
+    public static string StatusText(GameSession session, ClientSettings settings, string statusLine)
+    {
+        var alive = session.Party.Members.Count(m => m.HpCur > 0);
+        var count = session.Party.Members.Count;
+        var mode = UiText.Name(session.Mode).ToUpperInvariant();
+        if (TreasuryGoldLine(session) is not { } full)
+            return statusLine.Length > 0
+                ? UiText.F("ui.x_gold_x_party_x_x", mode, session.Party.GoldCarried, alive, count, statusLine)
+                : UiText.F("ui.x_gold_x_party_x_x_2", mode, session.Party.GoldCarried, alive, count, settings.IntegerScale);
+        string Line(string gold, bool withMode) => (statusLine.Length > 0, withMode) switch
+        {
+            (true, true) => UiText.F("ui.x_x_party_x_x", mode, gold, alive, count, statusLine),
+            (true, false) => UiText.F("ui.x_party_x_x", gold, alive, count, statusLine),
+            (false, true) => UiText.F("ui.x_x_party_x_scale_x", mode, gold, alive, count, settings.IntegerScale),
+            _ => UiText.F("ui.x_party_x_scale_x", gold, alive, count, settings.IntegerScale),
+        };
+        var plain = TreasuryReport.GoldLine(session.SpendableGold, 0);
+        string[] tries = [Line(full, true), Line(full, false), Line(plain, true), Line(plain, false)];
+        return tries.FirstOrDefault(t => PixelFont.Measure(t) <= StatusWidth) ?? tries[^1];
+    }
+
+    /// <summary>
+    /// The Guild treasury's gold line (<c>11-guild-treasury.md</c> section 5): spendable gold, plus the trip gold away from
+    /// town (Town and Guild show none); null while the option is off.
+    /// </summary>
+    public static string? TreasuryGoldLine(GameSession session) => session.TreasuryOn
+        ? TreasuryReport.GoldLine(session.SpendableGold, session.Mode is GameMode.Town or GameMode.Guild ? 0 : session.TripGold)
+        : null;
+
+    /// <summary>
+    /// The gold line for a room <paramref name="room"/> pixels wide (remaster font): the whole line, or without the trip
+    /// part when that is too wide; null when the treasury is off or even the short line does not fit.
+    /// </summary>
+    public static string? TreasuryGoldFitting(GameSession session, int room)
+    {
+        if (TreasuryGoldLine(session) is not { } full)
+            return null;
+        if (PixelFont.Measure(full) <= room)
+            return full;
+        var plain = TreasuryReport.GoldLine(session.SpendableGold, 0);
+        return PixelFont.Measure(plain) <= room ? plain : null;
+    }
+
+    /// <summary>
+    /// A menu bar's free right end (I Amiga's map screen, III Amiga's town and outside bars): the gold line right-aligned
+    /// (4 px from the edge) when it fits right of <paramref name="usedRight"/> (the last title's end).
+    /// </summary>
+    public static void DrawBarGold(SpriteBatch batch, Texture2D pixel, GameSession? session, int usedRight, int y, Color ink)
+    {
+        if (session is null)
+            return;
+        using var font = PixelFont.With(PixelFont.Remaster5x7);
+        if (TreasuryGoldFitting(session, 316 - usedRight - 6) is { } gold)
+            PixelFont.Draw(batch, pixel, 316 - PixelFont.Measure(gold), y, gold, ink);
+    }
+
+    /// <summary>
+    /// The gold the town screens show (the Armory header, Distribute's SELL row): the purse, or under the Guild treasury
+    /// everything the party can spend.
+    /// </summary>
+    public static long ShownGold(GameSession session) => session.TreasuryOn ? session.SpendableGold : session.Party.GoldCarried;
 
     /// <summary>The manual's wilderness command list (WILDERNESS TRAVEL, D-076/D-077).</summary>
     public static string[] FieldCommands =>
@@ -159,12 +231,13 @@ public static partial class UiOverlays
     public static (Rectangle Party, Rectangle Key) TerrainKeyLayout(AssetCatalog assets, GameSession session)
     {
         // The first row of cards as the scrolling strip lays it out (room for its bar; two-line names make it taller).
-        var narrower = new Rectangle(FieldPartyArea.X, FieldPartyArea.Y, FieldPartyArea.Width - ScrollBox.BarWidth - 1, 1000);
+        var all = FieldPartyArea;
+        var narrower = new Rectangle(all.X, all.Y, all.Width - ScrollBox.BarWidth - 1, 1000);
         var cards = PlanPartyStrip(assets, session, narrower, 52, null, false, true, 1).Layout.Cards;
         var row = cards.Count == 0 ? PartyStripLayout.CardHeight
-            : cards.Where(c => c.Y == cards[0].Y).Max(c => c.Bottom) - FieldPartyArea.Y;
-        var party = FieldPartyArea with { Height = Math.Clamp(row, 1, FieldPartyArea.Height - PixelFont.LineHeight - 2) };
-        return (party, new Rectangle(FieldPartyArea.X, party.Bottom + 1, FieldPartyArea.Width, FieldPartyArea.Bottom - party.Bottom - 1));
+            : cards.Where(c => c.Y == cards[0].Y).Max(c => c.Bottom) - all.Y;
+        var party = all with { Height = Math.Clamp(row, 1, all.Height - PixelFont.LineHeight - 2) };
+        return (party, new Rectangle(all.X, party.Bottom + 1, all.Width, all.Bottom - party.Bottom - 1));
     }
 
     /// <summary>The terrain key's rows when they do not all fit (the wheel over the box, its bar, or <see cref="SidebarScroll"/>'s keys).</summary>
@@ -701,32 +774,56 @@ public static partial class UiOverlays
     /// changes (Game1). With <paramref name="help"/> (the mouse rests on the band's rows or below) the band shows the key
     /// help instead, its key tokens clickable as on the help line.
     /// </summary>
+    /// <param name="gold">P3 QoL: the session whose Guild treasury gold line the band shows (null: none). On the pack's
+    /// blank rows it sits at the band row's left, the text keeping to the columns right of it; over the picture (no blank
+    /// rows: III's DOS look) it gets a small veil of its own at the band row's right, the text keeping left of it.</param>
     public static void DrawTownHud(SpriteBatch batch, Texture2D pixel, TownScreenLayout layout, string? message, string? help,
-        bool originalFont = false)
+        bool originalFont = false, GameSession? gold = null)
     {
         var text = help ?? message;
+        string? goldText;
+        int goldW;
+        using (PixelFont.With(Remaster5x7Font))
+        {
+            goldText = gold is null ? null : TreasuryGoldFitting(gold, 156);
+            goldW = goldText is null ? 0 : PixelFont.Measure(goldText);
+        }
+        var onBlankRows = layout.MessageY is not null;
+        var bandRow = TownBandTop(layout) + (onBlankRows ? 1 : 2);
+        if (goldText is not null)
+        {
+            using var remaster = PixelFont.With(Remaster5x7Font);
+            var gx = onBlankRows ? 4 : 316 - goldW;
+            if (!onBlankRows)
+                Fill(batch, pixel, new Rectangle(gx - 4, TownBandTop(layout), goldW + 8, TownBandHeight(layout)), new Color(6, 8, 14, 230));
+            PixelFont.Draw(batch, pixel, gx, bandRow, goldText, TitleGold);
+        }
         if (string.IsNullOrEmpty(text))
             return;
+        // The text's columns: the band row less the gold line's place (and a gap) when it shows.
+        var left = goldText is not null && onBlankRows ? 4 + goldW + 6 : 4;
+        var right = goldText is not null && !onBlankRows ? 316 - goldW - 10 : 316;
         // A message (not the key help) in the pack's town font behind AMIGA SCREENS: I Amiga's h80:0x818 (s135).
         using var font = PixelFont.With(originalFont && help is null ? TownTextFont(layout) : null);
         // A text longer than the band's line goes on, whole, on lines above it (s99), the band growing upward. On a
         // pack's own blank rows (MessageY) the band is the picture's black and covers no art for one line (the DOS name
         // line gives way to the message while it shows); elsewhere it is a dark veil over the picture's bottom.
-        var lines = Lines(text, 52);
-        var onBlankRows = layout.MessageY is not null;
+        var lines = Lines(text, goldText is null ? 52 : Math.Max(1, (right - left) / PixelFont.Advance));
         var top = TownBandTop(layout) - (lines.Count - 1) * PixelFont.LineHeight;
-        Fill(batch, pixel, new Rectangle(0, top, 320, TownBandHeight(layout) + (lines.Count - 1) * PixelFont.LineHeight),
+        Fill(batch, pixel, new Rectangle(left - 4, top, right + 4 - (left - 4), TownBandHeight(layout) + (lines.Count - 1) * PixelFont.LineHeight),
             onBlankRows ? DosBlack : new Color(6, 8, 14, 230));
         for (var i = 0; i < lines.Count; i++)
         {
             var y = top + (onBlankRows ? 1 : 2) + i * PixelFont.LineHeight;
             // On the pack's own line a message is centred, as the ST (0x4082) and Amiga I (h80:0x892) print it.
-            var x = onBlankRows && help is null ? Math.Max(4, (320 - PixelFont.Measure(lines[i])) / 2) : 4;
+            var x = onBlankRows && help is null ? Math.Max(left, (320 - PixelFont.Measure(lines[i])) / 2) : left;
             PixelFont.Draw(batch, pixel, x, y, lines[i], help is not null ? DimText : BodyText);
             if (help is not null)
-                HitTokens(lines[i], 4, y, commandList: true, maxChars: 52);
+                HitTokens(lines[i], x, y, commandList: true, maxChars: 52);
         }
     }
+
+    private static IFontSource Remaster5x7Font => PixelFont.Remaster5x7;
 
     /// <summary>Inside the Armory (town bar → Armory): the stock list, the shopper and the party.</summary>
     public static void DrawArmory(
@@ -763,7 +860,7 @@ public static partial class UiOverlays
         PixelFont.Draw(batch, pixel, 10, headerY, UiText.F("ui.x_armory", town?.Name ?? UiText.F("ui.town_x", session.CurrentTownId)), TitleGold);
         var shopperName = session.Party.Members.Count > 0
             ? session.Party.Members[Math.Clamp(shopper, 0, session.Party.Members.Count - 1)].Name : "-";
-        var gold = UiText.F("ui.gold_x_shopper_x", session.Party.GoldCarried, shopperName);
+        var gold = UiText.F("ui.gold_x_shopper_x", ShownGold(session), shopperName);
         PixelFont.Draw(batch, pixel, stockPanel.Right - 6 - PixelFont.Measure(gold), headerY, gold, DimText);
 
         var rowsTop = headerY + 10;
@@ -1728,7 +1825,7 @@ public static partial class UiOverlays
     /// pack lacks the buttons.
     /// </summary>
     public static bool DrawAmigaWindow(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, KeepWindowsLayout layout,
-        AmigaWindowView view, Point? held, bool inDungeon = false)
+        AmigaWindowView view, Point? held, bool inDungeon = false, ListPage? page = null)
     {
         // s163: in a dungeon the window shows in the dungeon palette (0x3904 keeps it, 8.7): the buttons and colour 8.
         var palette = inDungeon ? layout.DungeonPalette : null;
@@ -1763,6 +1860,18 @@ public static partial class UiOverlays
         {
             var row = view.Rows[index];
             Hits?.Add(new HitRegion(new Rectangle(row.X - 1, row.Y - lift - 1, x1 - 2 - row.X, 8), new AmigaPromptRowTag(cursor)));
+        }
+        // A dialog's page of a longer list (the Guild treasury's ledger): a bar beside its rows shows where the page is.
+        if (page is not null && page.FirstLine < view.Rows.Count)
+        {
+            var top = view.Rows[page.FirstLine].Y - lift - 1;
+            var rows = Math.Min(page.Shown, view.Rows.Count - page.FirstLine);
+            var pageBox = new ScrollBox();
+            pageBox.Set(page.Total, page.Shown);
+            pageBox.ScrollTo(page.Offset);
+            var track = ScrollBox.Track(new Rectangle(x0 + 4, top, x1 - 4 - (x0 + 4), rows * 8));
+            Fill(batch, pixel, track, ScrollTrack);
+            Fill(batch, pixel, pageBox.Thumb(track), ScrollThumb);
         }
         DrawWindowButtons(batch, assets, layout, ok, cancel, (w.Ok.X, w.Ok.Y + grow - lift), (w.Cancel.X, w.Cancel.Y + grow - lift),
             held, palette);

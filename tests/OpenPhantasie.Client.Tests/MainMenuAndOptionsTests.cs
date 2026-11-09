@@ -236,7 +236,7 @@ public class MainMenuAndOptionsTests
         Assert.EndsWith("65,535", Line(o, "GOLD CAP"));
 
         // Every DOS-side value back to the manual's → matches manual again.
-        o.HandleKeys([Keys.Down, Keys.Down, Keys.Left]); // armory restock → weapons, potions
+        o.HandleKeys([Keys.Down, Keys.Left]); // armory restock → weapons, potions (ITEM STASH is under QUALITY OF LIFE)
         o.HandleKeys([Keys.Down, Keys.Left]);            // gold cap 65,535 → 65,000
         Assert.EndsWith("CUSTOM", Line(o, "PRESET"));
         o.HandleKeys([Keys.Down, Keys.Left]);            // rename party members → no
@@ -244,9 +244,9 @@ public class MainMenuAndOptionsTests
         o.HandleKeys([Keys.Down, Keys.Left]);            // armor reduced → lowers armor (D-016)
         Assert.EndsWith("CUSTOM", Line(o, "PRESET"));
         o.HandleKeys([Keys.Down, Keys.Left]);            // payout remainder → first survivor (Q2)
-        var p1Rules = RuleOptionRegistry.For(GameId.P1);
-        // Up to the last option whose DOS value differs (the every-game QoL guild-limit after it is the game's cap in both).
-        var switches = p1Rules.ToList().FindLastIndex(d => d.Manual != d.Dos) - p1Rules.ToList().IndexOf(RuleOptionRegistry.PayoutRemainder);
+        // The rows above QUALITY OF LIFE (11-guild-treasury.md section 6), up to the last option whose DOS value differs.
+        var p1Rules = RuleOptionRegistry.For(GameId.P1).Where(d => !d.Qol).ToList();
+        var switches = p1Rules.FindLastIndex(d => d.Manual != d.Dos) - p1Rules.IndexOf(RuleOptionRegistry.PayoutRemainder);
         for (var k = 1; k < switches; k++)               // the P3.2 manual-or-DOS switches, D-011 …
             o.HandleKeys([Keys.Down, Keys.Left]);
         Assert.Equal(OptionPreset.Custom, settings.Game(GameId.P1).NewGameOptions(GameId.P1).Preset); // PRESET has scrolled off

@@ -238,6 +238,15 @@ public sealed partial class P4DungeonScreen
                 if (!TownCommandKey(key))
                     Pick(key, W.Buildings.Count, n => EnterFromStreet(W.Buildings[n]));
                 break;
+            case P4TownPrompt.Wait when W.TreasuryLines is not null && key is Keys.Up or Keys.Down or Keys.PageUp or Keys.PageDown:
+                TreasuryScroll.ScrollBy(key switch
+                {
+                    Keys.Up => -1,
+                    Keys.Down => 1,
+                    Keys.PageUp => -TreasuryScroll.Visible,
+                    _ => TreasuryScroll.Visible,
+                });
+                break;
             case P4TownPrompt.Wait when key == Keys.L && W.CanLeaveHistory:
                 W.LeaveHistory(); // _hhist's L: Done
                 break;
@@ -464,7 +473,7 @@ public sealed partial class P4DungeonScreen
     private List<MenuLine> TownLines()
     {
         var lines = new List<MenuLine> { new(W.Site?.Name ?? "", MenuLineStyle.Title) };
-        lines.Add(new(UiText.F("p4.town.gold_x", Game.Party.Gold), MenuLineStyle.Dim));
+        lines.Add(new(TownGoldLine(), MenuLineStyle.Dim));
         // s151: the shipwright's lines are in his window under the picture; s163: the inn's, the bank's and the ending
         // pages' in theirs.
         if (!ShipwrightWindowUp && !MessagesInWindow)
@@ -547,7 +556,10 @@ public sealed partial class P4DungeonScreen
             _ => UiText.S("p4.dungeon.help_left"),
         };
 
-    /// <summary>One line per member: name, HP, MP, and the condition when not Okay.</summary>
+    /// <summary>
+    /// One line per member: name, HP, MP, and the condition when not Okay. Under the Guild treasury the outdoor / dungeon
+    /// panel adds the gold line (spendable gold and the trip gold, <see cref="TreasuryReport.GoldLine"/>).
+    /// </summary>
     public IReadOnlyList<string> PartyLines() => Game.Battle is { } b ? BattlePartyLines(b) :
         [.. Game.Party.Members.Select(m => UiText.F("p4.dungeon.member_x_y_z_w_v", m.Name, m.Hp, m.HpMax, m.Mp, m.MpMax)
             + m.Condition switch
@@ -556,7 +568,17 @@ public sealed partial class P4DungeonScreen
                 P4Member.Dead => " " + UiText.S("p4.dungeon.dead"),
                 P4Member.Asleep => " " + UiText.S("p4.dungeon.asleep"),
                 var n => " " + UiText.F("p4.dungeon.condition_x", n), // the other conditions' names come with their loops
-            })];
+            }),
+            .. Game.Options.TreasuryOn && Game.Place != P4Place.Town
+                ? [TreasuryReport.GoldLine(Game.Party.SpendableGold(Game.Options), Game.Party.Gold)] : Array.Empty<string>()];
+
+    /// <summary>
+    /// The town lines' gold: the purse (the original's), or under the Guild treasury the spendable gold
+    /// (<see cref="TreasuryReport.GoldLine"/>; in town the purse is swept, so no trip gold shows).
+    /// </summary>
+    private string TownGoldLine() => Game.Options.TreasuryOn
+        ? TreasuryReport.GoldLine(Game.Party.SpendableGold(Game.Options), 0)
+        : UiText.F("p4.town.gold_x", Game.Party.Gold);
 
     // --- Drawing (320 × 200 layout) -----------------------------------------------------------------------------------
 

@@ -215,7 +215,7 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
         Step.Summary => SummaryLines(session),
         Step.AskMember => [.. InspectMemberPrompt.Lines, MenuBar(InspectMemberPrompt)],
         Step.Who => [WhoTitle, .. session.Party.Members.Select((m, i) => $"{i + 1} {m.Name}")],
-        Step.Sheet when _who is not null => [.. SheetLines(_who, data), MenuBar(PageMenu)],
+        Step.Sheet when _who is not null => [.. SheetLines(_who, data, session.TreasuryOn), MenuBar(PageMenu)],
         Step.Page => PageLines().Skip(_scroll).Take(MaxLines).ToList(),
         _ => [],
     };
@@ -264,7 +264,8 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
         {
             UiText.F("inspect.day_out_x", session.Campaign.DaysOut(session.TravelTime)),
             UiText.F("inspect.experience_points_x", session.Sack.Experience),
-            UiText.F("inspect.gold_pieces_x", session.Party.GoldCarried + session.Sack.Gold),
+            // Under the Guild treasury: everything the party can spend (11-guild-treasury.md section 5).
+            UiText.F("inspect.gold_pieces_x", session.SpendableGold),
         };
         for (var i = 0; i < counts.Length; i++)
             if (counts[i] != 0)
@@ -298,7 +299,8 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
     /// D-064 (user s53, manual p.11 example): "OKAY", "EXPER. POINTS" and the equipment on the sheet (DOS: "OK", "EX. PTS",
     /// equipment only on its own page) — weapon, armor, shield as "CLUB (4)".
     /// </summary>
-    public static IReadOnlyList<string> SheetLines(Character ch, GameDataRepository? data = null)
+    /// <param name="treasury">The save keeps the Guild treasury (P3 QoL): no per-character gold, so the line drops it.</param>
+    public static IReadOnlyList<string> SheetLines(Character ch, GameDataRepository? data = null, bool treasury = false)
     {
         var st = ch.Stats;
         var lines = new List<string>
@@ -308,7 +310,7 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
             UiText.F("inspect.strength_x_age_x", st.Str, ch.AgeYears),
             UiText.F("inspect.intelligence_x_hit_points_x_x", st.Int, ch.HpCur, ch.HpMax),
             UiText.F("inspect.dexterity_x_magic_x_x", st.Dex, ch.MagicCur, ch.MagicMax),
-            UiText.F("inspect.constitution_x_gold_in_bank_x", st.Con, ch.GoldInBank),
+            treasury ? UiText.F("inspect.constitution_x", st.Con) : UiText.F("inspect.constitution_x_gold_in_bank_x", st.Con, ch.GoldInBank),
             // DOS prints the points in an 11-wide field after "EX. PTS" (save-file-format.md), so a gap always stays; the
             // manual's longer "EXPER. POINTS" leaves 5, so a 5-digit or longer value keeps a space before it (s99).
             UiText.F("inspect.charisma_x_exper_points_x", st.Cha, ch.Experience >= 10000 ? $" {ch.Experience}" : ch.Experience.ToString()),

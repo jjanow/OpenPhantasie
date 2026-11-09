@@ -316,11 +316,14 @@ public sealed partial class Phantasie3Campaign
         var o = session.Overworld;
         if (World.PlaceAt(o.RegionId, o.X, o.Y) is not { Kind: P3PlaceKind.Inn } inn)
             throw new InvalidOperationException("The party is not at an inn.");
-        if (party.GoldCarried + session.Sack.Gold < price)
+        if (PartyGold(session) + (party.Treasury?.Balance ?? 0) < price)
             return Failed(GameText.S("core.p3.cannot_afford_stay"));
         var lines = P3Inn.Stay(session); // ovl2 0x347d with the in-town flag clear (s136)
         HealBodiesAtInn(session, inTown: false);
-        TakeGold(session, price);
+        // A spend: found gold first, then carried (TakeGold's order), then the Guild treasury when it is on (s175).
+        // TakeGold itself stays for the losses (events), which only ever reach trip gold.
+        GoldPurse.TrySpend(price, party.Treasury, TreasuryEntryKind.Inn,
+            (() => session.Sack.Gold, v => session.Sack.Gold = v), (() => party.GoldCarried, v => party.GoldCarried = v));
         return new TownTransactionResult
         {
             Kind = TownTransactionKind.Ok, GoldDelta = -price,

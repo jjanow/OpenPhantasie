@@ -1364,6 +1364,8 @@ public sealed partial class P4Battle
         var before = Party.Gold;
         Party.Gold = P4Town.Cap(_o, _t.Towns, Party.Gold + gold, P4Town.GoldPath.Loot);
         Party.GoldSinceTown += Math.Max(0, Party.Gold - before);
+        if (_o.TreasurySafe) // safe: the gain is banked at once
+            Party.BankPurse(TreasuryEntryKind.Loot);
         Say($"{GameText.S("p4x.0x44494")} {Experience} {GameText.S("p4x.0x444a9").Trim()}"
             + (gold > 0 ? $", {gold} {GameText.S("p4x.0x444b4").Trim()}" : "") + GameText.S("p4x.0x444bf"));
         if (won)

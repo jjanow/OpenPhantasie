@@ -118,7 +118,11 @@ public sealed partial class P4TownLoop
         Prompt = P4TownPrompt.Menu;
         IconMenu = null;
         ListWindow = null;
-        if (_screen!.MoveNext())
+        var more = _screen!.MoveNext();
+        // The Guild treasury collects after every town step that can add gold (sales, creation, Hall joins, level-up
+        // gold), before the next prompt shows; idempotent, nothing when the option is off.
+        Party.SweepTreasury(_options, inTown: true);
+        if (more)
         {
             Prompt = _screen.Current;
             if (Prompt != P4TownPrompt.Ending)
@@ -296,14 +300,13 @@ public sealed partial class P4TownLoop
                     yield return P4TownPrompt.Confirm;
                     if (_yes)
                     {
-                        if (Party.Gold < cost)
+                        if (!Party.TrySpend(_options, cost, TreasuryEntryKind.Training))
                         {
                             TrainingWindow = TrainingWindow with { ShortOfGold = true };
                             _window.Line(GameText.S("p4x.0x3fd97").Trim());
                         }
                         else
                         {
-                            Party.Gold -= cost;
                             foreach (var p in LevelUp(m))
                                 yield return p;
                         }
@@ -429,13 +432,12 @@ public sealed partial class P4TownLoop
                         continue;
                     }
                     var spell = spells[_choice];
-                    if (Party.Gold < price)
+                    if (!Party.TrySpend(_options, price, TreasuryEntryKind.Spells))
                     {
                         TrainingWindow = TrainingWindow with { ShortOfGold = true, Result = null };
                         _window.Line(GameText.S("p4x.0x3fcb4"));
                         break;
                     }
-                    Party.Gold -= price;
                     m.AgeUnits = Math.Min(P4Aging.AgeCap, m.AgeUnits + S.MagicTrainingAgeUnits);
                     if (P4Training.LessonSucceeds(_rng, m.Abilities[1]))
                     {
@@ -624,9 +626,25 @@ public sealed partial class P4TownLoop
     /// </summary>
     public P4BankWindow? BankWindow { get; private set; }
 
+    /// <summary>
+    /// The Guild treasury's window lines (<see cref="TreasuryReport.Lines"/>) while the bank shows the treasury
+    /// (<see cref="P4BankView.Treasury"/>); else null.
+    /// </summary>
+    public IReadOnlyList<string>? TreasuryLines =>
+        BankWindow?.View == P4BankView.Treasury ? TreasuryReport.Lines(Party.Treasury, 0) : null;
+
     private IEnumerable<P4TownPrompt> Bank()
     {
         ScreenTitle = GameText.S("p4x.0x3fef8");
+        if (_options.TreasuryOn)
+        {
+            // The Guild treasury replaces the accounts (11-guild-treasury.md 5): the balance and the ledger, no deposit,
+            // withdraw or share; SPACE leaves.
+            _window.Clear();
+            BankWindow = new(P4BankView.Treasury, [], null);
+            yield return P4TownPrompt.Wait;
+            yield break;
+        }
         while (true)
         {
             _window.Clear();
@@ -768,7 +786,7 @@ public sealed partial class P4TownLoop
         _window.Clear();
         var m = Party.Members[who];
         var price = ShopPrice(item);
-        if (Party.Gold < price)
+        if (!Party.CanAfford(_options, price))
         {
             _window.Line(GameText.S("p4x.0x42545"));
             return;
@@ -782,7 +800,7 @@ public sealed partial class P4TownLoop
         m.Items[slot] = item;
         if (item is P4Party.RingA or P4Party.RingB)
             m.ItemCharges[slot] = P4Party.RingCharges;
-        Party.Gold -= price;
+        Party.TrySpend(_options, price, TreasuryEntryKind.Armory);
         Party.ShopStock[item]--;
         if (Party.GoodsCount[item] > 0)
             Party.GoodsCount[item]--;
@@ -792,8 +810,11 @@ public sealed partial class P4TownLoop
     /// <summary><c>_sell</c>: trunc(value / 4) + 1 into party gold (D4-031 cap); the item's saved stock moves to this town.</summary>
     private void Sell(int item)
     {
-        Party.Gold = P4Town.Cap(_options, _tables.Towns, Party.Gold + P4Town.SellPrice(Data.Items.Value(item)),
-            P4Town.GoldPath.Sale);
+        if (_options.TreasuryOn) // the Guild treasury banks a sale at once (11-guild-treasury.md 3)
+            Party.Treasury.Add(P4Town.SellPrice(Data.Items.Value(item)), TreasuryEntryKind.Sale);
+        else
+            Party.Gold = P4Town.Cap(_options, _tables.Towns, Party.Gold + P4Town.SellPrice(Data.Items.Value(item)),
+                P4Town.GoldPath.Sale);
         Party.GoodsCount[item] = Math.Min(255, Party.GoodsCount[item] + 1);
         Party.GoodsTown[item] = Town;
     }
@@ -1308,7 +1329,7 @@ public sealed partial class P4TownLoop
 }
 
 /// <summary>s163: which of the bank's tables its window shows (<see cref="P4TownLoop.BankWindow"/>).</summary>
-public enum P4BankView { Accounts, Deposit, Withdraw }
+public enum P4BankView { Accounts, Deposit, Withdraw, Treasury }
 
 /// <summary>
 /// s163: a row of the bank's deposit / withdraw table: party member <see cref="Member"/>, the balance shown

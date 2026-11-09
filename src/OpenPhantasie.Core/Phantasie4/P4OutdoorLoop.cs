@@ -416,7 +416,7 @@ public sealed class P4OutdoorLoop
             case InnTile:
                 var inn = MapData.Inns[sub];
                 _window.Print(P4MessageWindow.Format("p4x.0x43228", GameText.S(_atlas.InnNameIds[inn])));
-                if (Party.Gold >= InnCost)
+                if (Party.CanAfford(_options, InnCost))
                 {
                     _window.Print(GameText.S("p4x.0x43237"));
                     Confirm(Ask.Inn);
@@ -457,7 +457,7 @@ public sealed class P4OutdoorLoop
                 Transfer = new P4Transfer(P4Transfer.Dungeon, d.Location, d.X, d.Y, 0);
                 break;
             case Ask.Inn when yes:
-                Party.Gold -= InnCost;
+                Party.TrySpend(_options, InnCost, TreasuryEntryKind.Inn);
                 _window.Print(GameText.S("p4x.0x4324b"));
                 _window.Print(GameText.S("p4x.0x4325e"));
                 _stage = Stage.InnStay;

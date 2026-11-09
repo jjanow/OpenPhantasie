@@ -300,6 +300,80 @@ public sealed class P4Party
     /// </summary>
     public long GoldSinceTown { get; set; }
 
+    /// <summary>
+    /// The Guild treasury (P3 QoL, <c>docs/plan/11-guild-treasury.md</c>): IV's one gold pool per save, used only when the
+    /// <c>treasury</c> option is on (<see cref="GameOptions.TreasuryOn"/>). <see cref="Gold"/> is then the trip gold.
+    /// </summary>
+    public Treasury Treasury { get; set; } = new();
+
+    /// <summary>The gold a cost may use: the purse, plus the treasury when the option is on.</summary>
+    public long SpendableGold(GameOptions o) => o.TreasuryOn ? Gold + Treasury.Balance : Gold;
+
+    /// <summary>The afford test of every IV cost: the original's <c>Gold &gt;= cost</c>, or spendable gold under the treasury.</summary>
+    public bool CanAfford(GameOptions o, long cost) => SpendableGold(o) >= cost;
+
+    /// <summary>
+    /// Pays <paramref name="cost"/> (<c>11-guild-treasury.md</c> section 4): off, the original's purse test and subtraction;
+    /// on, the purse first, then the treasury (logged as <paramref name="kind"/>). False (nothing taken) when short.
+    /// </summary>
+    public bool TrySpend(GameOptions o, long cost, TreasuryEntryKind kind)
+    {
+        ArgumentNullException.ThrowIfNull(o);
+        if (!o.TreasuryOn)
+        {
+            if (Gold < cost)
+                return false;
+            Gold -= cost;
+            return true;
+        }
+        return GoldPurse.TrySpend(cost, Treasury, kind, (() => Gold, v => Gold = v));
+    }
+
+    /// <summary>
+    /// The treasury sweep (idempotent; nothing when the option is off): every character's account once, then, in town, the
+    /// purse. Party members are copies of roster records, so a member's account is counted from the party copy (it holds
+    /// the latest level-up gold) and the roster record it links to is zeroed uncounted; roster records no member links to
+    /// are counted from the roster.
+    /// </summary>
+    public void SweepTreasury(GameOptions o, bool inTown)
+    {
+        ArgumentNullException.ThrowIfNull(o);
+        if (!o.TreasuryOn)
+            return;
+        long accounts = 0;
+        var linked = new bool[RosterSlots];
+        foreach (var m in Members)
+        {
+            accounts += Math.Max(0, m.Account);
+            m.Account = 0;
+            if (m.GuildSlot is >= 0 and < RosterSlots)
+            {
+                linked[m.GuildSlot] = true;
+                if (Roster[m.GuildSlot] is { } g)
+                    g.Account = 0;
+            }
+        }
+        for (var i = 0; i < RosterSlots; i++)
+        {
+            if (linked[i] || Roster[i] is not { } g)
+                continue;
+            accounts += Math.Max(0, g.Account);
+            g.Account = 0;
+        }
+        Treasury.Add(accounts, TreasuryEntryKind.Accounts);
+        if (inTown)
+            BankPurse(TreasuryEntryKind.Trip);
+    }
+
+    /// <summary>Moves the purse into the treasury as <paramref name="kind"/> (the town sweep's trip gold, <c>safe</c>'s loot).</summary>
+    public void BankPurse(TreasuryEntryKind kind)
+    {
+        if (Gold <= 0)
+            return;
+        Treasury.Add(Gold, kind);
+        Gold = 0;
+    }
+
     /// <summary><c>+06</c> low nibble.</summary>
     public P4ShipState Ship { get; set; }
 

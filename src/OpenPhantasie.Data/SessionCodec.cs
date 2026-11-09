@@ -162,6 +162,7 @@ public static class SessionCodec
             PartyDefeatPending = snap.PartyDefeatPending,
             OtherParties = snap.OtherParties.Length == 0 ? null : snap.OtherParties.Select(p => ToDto(p, game)).ToList(),
             Options = snap.Options is { } o ? new OptionsDto { Preset = o.Preset, Values = o.Values, Modules = o.Modules } : null,
+            Treasury = snap.Treasury,
             Towns = snap.Towns.Length == 0
                 ? null
                 : snap.Towns.Select(t => new TownDto
@@ -313,6 +314,7 @@ public static class SessionCodec
                     Modules = o.Modules ?? Array.Empty<string>(),
                 }
                 : null,
+            Treasury = dto.Treasury,
             Towns = dto.Towns?
                 .Where(t => t.Stock is { Length: TownState.StockSlotCount })
                 .Select(t => new TownState(t.Id, t.Index, t.Name ?? "", t.PriceIndex, t.Stock!)
@@ -466,6 +468,10 @@ public static class SessionCodec
         /// <summary>T5.0: the save's locked rules, top level only; absent before s73 (Original (manual)).</summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public OptionsDto? Options { get; set; }
+
+        /// <summary>The Guild treasury (s175), top level only; absent = empty.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public TreasurySnapshot? Treasury { get; set; }
     }
 
     private sealed class OptionsDto

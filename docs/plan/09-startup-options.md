@@ -57,11 +57,14 @@ own D-entry.
  RULES FOR NEW GAMES
  PRESET              ORIGINAL (MANUAL)
  SUMMONED ELEMENTAL  FULL STATS
- ITEM STASH          IN TOWN
  ARMORY RESTOCK      WEAPONS, POTIONS
  GOLD CAP            65,000
  RENAME PARTY MEMBERS NO
  …
+ QUALITY OF LIFE                       ← the rules options with Qol (11-guild-treasury.md section 6)
+ ITEM STASH          IN TOWN
+ …
+ GUILD TREASURY      OFF
  GUILD ROSTER LIMIT  THE GAME'S
  FROM OTHER GAMES
   TOSS ROCK (II)     OFF
@@ -88,6 +91,11 @@ own D-entry.
   QoL, off = the original colours), on I, II and III **auto-map box** (s172 P3 QoL, below), on II **terrain key** and on IV **Mystic skip** (both s171 P3 QoL, below), then
   **Rules for new games**: the preset row, every rules option of that game, then the feature modules of other games
   ("from other games"), which show "NOT BUILT" until they are decoded.
+- **Quality of life** (s175, `options.quality_of_life`, `11-guild-treasury.md` section 6): the rules part splits in two.
+  The preset row and the game's original rules (every option with a manual / DOS meaning, D-entry or not) come first;
+  the options whose descriptor sets `Qol` (pure convenience, no manual↔code conflict: `treasury`, `p1.stash-access`,
+  `guild-limit`, `elemental-load`, `elemental-drop`, `elemental-purge`) follow under a QUALITY OF LIFE header, before
+  FROM OTHER GAMES. The locked in-game view (THIS SAVE'S RULES) is split the same way. The preset still sets them all.
 - **Terrain key** (II only, `terrainKey`, `options.terrain_key`; off = the ST, no key, D2-014): the rulebook's terrain
   key beside the wilderness map, rows from `GameData/phantasie2/terrain-key.json` (string id of the manual's name + the
   pack pictures as swatches: the ST fill patterns `overworld.pattern.N`, the map icons, the party sprite). The party keeps

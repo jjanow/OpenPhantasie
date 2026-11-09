@@ -414,9 +414,8 @@ public sealed partial class Phantasie3Campaign : ICampaign
         if (shortfall > 0)
             return Failed(GameText.F("core.p3.need_x_more_xp", member.Name, shortfall));
         var cost = TrainingGoldCost(session, member)!.Value;
-        if (session.Party.GoldCarried < cost)
+        if (!session.Party.Spend(cost, TreasuryEntryKind.Training))
             return Failed(GameText.S("core.p3.cannot_afford"));
-        session.Party.GoldCarried -= cost;
         var up = P3Training.LevelUp(t, tables, session.CampaignAccess.Rng, session.Options);
         member.Level = up.Level;
         member.HpMax = member.HpCur = up.HpMax;

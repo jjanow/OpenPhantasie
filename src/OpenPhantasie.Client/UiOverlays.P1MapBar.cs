@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using OpenPhantasie.Core;
 using OpenPhantasie.Data;
 
 namespace OpenPhantasie.Client;
@@ -22,8 +23,9 @@ public static partial class UiOverlays
     /// complemented, a ghosted one (Look outdoors) cleared to the box pen in the pack's pattern. <paramref name="input"/>
     /// registers the titles (and the open menu's items, and a backdrop that closes it) for the mouse.
     /// </summary>
+    /// <param name="gold">P3 QoL: the session whose Guild treasury gold line the bar's free right end shows (null: none).</param>
     public static void DrawP1MapMenuBar(SpriteBatch batch, Texture2D pixel, MapMessageLayout layout, P1MapMenuBar state,
-        bool outdoors, bool input)
+        bool outdoors, bool input, GameSession? gold = null)
     {
         ArgumentNullException.ThrowIfNull(layout);
         ArgumentNullException.ThrowIfNull(state);
@@ -46,6 +48,8 @@ public static partial class UiOverlays
             if (input)
                 Hits?.Add(new HitRegion(ToRect(menu.Highlight) with { Height = bar.Rows }, new P1MapMenuTitleTag(m)));
         }
+        var usedRight = bar.Menus.Count == 0 ? 0 : bar.Menus.Max(m => Math.Max(ToRect(m.Highlight).Right, m.TitleX + PixelFont.Measure(UiText.S(m.Title))));
+        DrawBarGold(batch, pixel, gold, usedRight, bar.TextY, pens[bar.TextPen]);
         if (open is not { } shown || bar.Menus[shown] is not { Items.Count: > 0 } openMenu)
             return;
         var box = ToRect(openMenu.Box);

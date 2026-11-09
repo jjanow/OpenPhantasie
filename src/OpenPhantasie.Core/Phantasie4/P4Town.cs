@@ -18,7 +18,7 @@ public static class P4Town
     public static long Cap(GameOptions o, P4TownTables t, long gold, GoldPath path)
     {
         _ = path; // the manual caps every path alike; the path is kept for callers and logs
-        return o.P4GoldUncapped() ? gold : Math.Min(t.GoldCapManual, gold);
+        return o.P4GoldUncapped() || o.TreasuryOn ? gold : Math.Min(t.GoldCapManual, gold); // the treasury lifts every cap
     }
 
     /// <summary>

@@ -86,6 +86,7 @@ public static class SeveralParties
         next.Wilderness.RegionTiles = file.Wilderness?.RegionTiles;
         next.OtherParties = others.ToArray();
         next.Options = file.Options; // T5.0: one set of rules for the whole save
+        next.Treasury = file.Treasury; // s175: one Guild treasury for every party
         return next;
     }
 

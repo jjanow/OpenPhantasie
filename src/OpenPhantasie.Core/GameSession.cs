@@ -224,8 +224,9 @@ public sealed partial class GameSession
                     $"These options are {value.Game.Prefix()}, but this session is {Game.Prefix()}.", nameof(value));
             _options = value;
             // D-048 (p1.gold-cap): the purse, the bank accounts and the found gold follow the save's cap.
-            Party.GoldCapRule = value.GoldCap;
+            Party.GoldCapRule = value.GoldCap; // the Guild treasury lifts it (GameOptions.GoldCap)
             Sack.GoldCap = Party.GoldCap;
+            BindTreasury(); // s175: spends draw on the Guild treasury when the save keeps one
             // P3.2: the DOS creation-table cells (D-001, D-006), the original's lifespans (D-003 / D2-021) and the original
             // platform's Guild size (D-002 / D2-020).
             _rulesCreation = _creation.ForRules(
@@ -542,6 +543,7 @@ public sealed partial class GameSession
     /// </summary>
     public void StartNewGame(GameOptions? options = null)
     {
+        Treasury = new(); // s175: a new game starts with an empty Guild treasury
         Options = options ?? GameOptions.ForPreset(Game);
         foreach (var member in Roster.Occupied)
             member.InParty = false;
@@ -562,6 +564,7 @@ public sealed partial class GameSession
     public void OpenGuild()
     {
         Mode = GameMode.Guild;
+        SweepTreasury();
         Note(GameText.S("core.session.adventurers_guild"));
     }
 
@@ -571,6 +574,7 @@ public sealed partial class GameSession
         if (CurrentTownId is null)
             throw new InvalidOperationException("The Guild is not in a town.");
         Mode = GameMode.Town;
+        SweepTreasury();
         Note(GameText.S("core.session.left_the_guild"));
     }
 
@@ -688,6 +692,7 @@ public sealed partial class GameSession
             return false;
         rolled.CurrentTown = GuildTownId; // [C] OV1 0xdfb: @254 := the creating Guild's town
         Campaign.OnCharacterEnrolled(this, rolled);
+        SweepTreasury(); // s175: the new character's starting gold
         Note(GameText.F("core.guild.enrolled_x_x_x", rolled.Name, rolled.Class, rolled.Race));
         return true;
     }
@@ -865,6 +870,7 @@ public sealed partial class GameSession
         FreshStart = false;
         CurrentTown = TownStateFor(townId);
         Mode = GameMode.Town;
+        SweepTreasury(TreasuryEntryKind.Trip); // s175: trip gold is banked on arrival, before any share-out
         Note(GameText.F("core.session.entered_town_x", townId));
         foreach (var line in Aging.ApplyTownEntry(Party, townId, TravelTime, Options.OriginalLifespans,
                      Campaign.TownEntryAgeUnits(TravelTime), Campaign.AgesTheDead))
@@ -972,6 +978,7 @@ public sealed partial class GameSession
     /// <summary>OV1 town exit: <c>[0x63ea]</c> := max <c>@70</c> (<c>0x3271</c>) and <c>[0x6496]</c> := 0 (<c>0x9b</c>/<c>0xa9</c>/<c>0xbe</c>).</summary>
     private void LeaveTownGlobals()
     {
+        StartTreasuryTrip(); // s175: bank what the party holds, a new trip starts
         if (Options.IsDos(RuleOptionRegistry.OrdersReset))
             OrdersResets++; // D-078 dos: OV1 0xd0 sets every member's repeat order to PARRY
         HighestScore = Party.Members.Count == 0 ? 0 : Math.Max(0, Party.Members.Max(m => m.Score));
@@ -1184,6 +1191,7 @@ public sealed partial class GameSession
         var gold = Party.GoldCarried;
         var result = P3Town.Sell(Party, giver, slot, town, _items, Options, ReadyBestEquipment);
         NoteTrade(result, () => GameText.F("core.p3.trade_x_sold_for_x", ItemName(id), Party.GoldCarried - gold));
+        SweepTreasury();
         return result;
     }
 
@@ -1273,6 +1281,7 @@ public sealed partial class GameSession
         var ok = d.Give(target, out var message);
         if (message.Length > 0)
             Note(message);
+        SweepTreasury(); // s175: a SELL's gold
         if (d.IsDone)
             ItemDistribution = null;
         return ok;
@@ -1309,7 +1318,7 @@ public sealed partial class GameSession
 
     /// <summary>True when <paramref name="member"/> may train now and the party can pay (no refusal would follow).</summary>
     public bool TrainingWouldSucceed(Character member) =>
-        CanTrain(member, out _) && TrainingXpShortfall(member) <= 0 && Party.GoldCarried >= TrainingGoldCost(member);
+        CanTrain(member, out _) && TrainingXpShortfall(member) <= 0 && Party.CanSpend(TrainingGoldCost(member));
 
     /// <summary>III's training with the player's three skill picks (null = an Esc'd pick, used up).</summary>
     public TownTransactionResult Train(Character member, IReadOnlyList<P3Skill?> skillPicks) =>
@@ -2112,10 +2121,12 @@ public sealed partial class GameSession
         if (Options.SurvivorShares)
         {
             DepositSurvivorShares(xp, gold, begPurse);
+            BankFieldGoldIfSafe();
             return;
         }
         Sack.DepositRewards(xp, gold);
         Note(GameText.F("core.combat.x_experience_points_and_x_gold", xp, gold));
+        BankFieldGoldIfSafe();
     }
 
     /// <summary>
@@ -2324,6 +2335,7 @@ public sealed partial class GameSession
             Towns = _towns.Values.OrderBy(t => t.Id).Select(t => t.Clone()).ToArray(),
             OtherParties = _otherParties.ToArray(),
             Options = GameOptionsSnapshot.From(Options),
+            Treasury = Treasury.ToSnapshot(), // s175: top level only
         };
     }
 
@@ -2377,6 +2389,8 @@ public sealed partial class GameSession
             Roster.Slots[i] = snap.RosterSlots[i]?.Clone();
 
         Party.GoldCarried = snap.PartyGold;
+        Treasury = Treasury.From(snap.Treasury); // s175: top level only, shared by every party
+        BindTreasury();
         foreach (var idx in snap.PartySlotIndices)
         {
             if (idx < 0 || idx >= Roster.Slots.Length || Roster.Slots[idx] is null)
@@ -2530,6 +2544,7 @@ public sealed partial class GameSession
             Mode = CombatReturnMode == GameMode.Dungeon && Dungeon is not null
                 ? GameMode.Dungeon
                 : GameMode.Overworld;
+        SweepTreasury(TreasuryEntryKind.Trip); // s175: accounts (and, in town, the purse) of a save made before or without it
 
         Note(GameText.S("core.session.game_loaded"));
     }
@@ -2574,6 +2589,7 @@ public sealed partial class GameSession
     private TownTransactionResult NoteResult(TownTransactionResult result)
     {
         Note(result.Message);
+        SweepTreasury(); // s175: level gold, Distribute's gold, anything a town transaction added
         return result;
     }
 }

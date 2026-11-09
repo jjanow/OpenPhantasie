@@ -102,6 +102,7 @@ public sealed class Phantasie3DungeonScript
                     return; // the rest runs after "Keep …?" (GameSession.AnswerTreasure → ResumeDungeonScript)
                 case 7 or 8:
                     _session.Sack.Gold = Math.Max(0, _session.Sack.Gold + Gold(a1));
+                    _session.BankFieldGoldIfSafe(); // s175 treasury "safe": banked at once
                     if (type == 7)
                     {
                         _session.Note(GameText.S("core.p3.party_finds_gold"));
@@ -116,7 +117,10 @@ public sealed class Phantasie3DungeonScript
                     if (amount >= 0)
                         Phantasie3Campaign.TakeGold(_session, amount);
                     else
+                    {
                         _session.Sack.Gold -= amount; // DOS: a negative amount gives gold (the wizard's +256)
+                        _session.BankFieldGoldIfSafe();
+                    }
                     if (type == 9)
                     {
                         _session.Note(GameText.S("core.p3.some_gold_was_taken"));

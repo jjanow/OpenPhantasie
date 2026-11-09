@@ -309,7 +309,7 @@ public static class DosSaveConverter
         if (warnings.Any(w => w.Kind == DosSaveWarningKind.Blocker))
             return new DosExportResult(null, warnings);
         var roster = snap.RosterSlots;
-        if (snap.Sack.Experience != 0 || snap.Sack.Gold != 0 || snap.PartyGold != 0)
+        if (snap.Sack.Experience != 0 || snap.Sack.Gold != 0 || snap.PartyGold != 0 || TreasuryGold(snap) != 0)
             roster = AutoSplit(snap, rules ?? RulesProfile.PhantasieI,
                 dropRemainder ?? snap.Options?.ToOptions(snap.Game).PayoutRemainderDropped ?? false, warnings);
         if (warnings.Any(w => w.Kind == DosSaveWarningKind.Blocker))
@@ -416,6 +416,10 @@ public static class DosSaveConverter
     /// gold into the living members' banks in equal shares, rounded up so nothing is left over (user s80). Bank gold over the cap (65,000, or
     /// 65,535 under the DOS or lifted <c>p1.gold-cap</c>) is lost (D-048) and listed. Works on clones; returns the roster to write. No living member → a blocker.
     /// </summary>
+    /// <summary>The Guild treasury's balance when <paramref name="snap"/> keeps one (<c>11-guild-treasury.md</c> section 5), else 0.</summary>
+    private static long TreasuryGold(SessionSnapshot snap) =>
+        snap.Options?.ToOptions(snap.Game).TreasuryOn == true ? snap.Treasury?.Balance ?? 0 : 0;
+
     private static Character?[] AutoSplit(
         SessionSnapshot snap, RulesProfile rules, bool dropRemainder, List<DosSaveWarning> warnings)
     {
@@ -433,6 +437,12 @@ public static class DosSaveConverter
         }
 
         party.GoldCarried = snap.PartyGold;
+        if (TreasuryGold(snap) is > 0 and var treasury) // s175: the Guild treasury joins the purse the split banks
+        {
+            party.GoldCarried += treasury;
+            warnings.Add(new(DosSaveWarningKind.Note, DosSaveSet.GuildFile,
+                GameText.F("core.dossave.treasury_x_into_banks", treasury)));
+        }
         TownMenus.Distribute(party, new LootSack
         {
             Experience = snap.Sack.Experience, Gold = snap.Sack.Gold, GoldCap = rules.PartyGoldCap,

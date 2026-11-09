@@ -141,7 +141,7 @@ public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog
             Step.Class => [UiText.S("member.select_class"), .. ClassMenu.Select((c, i) => $"{i + 1} {c}")],
             Step.Accept => [.. AttributeLines(_rolled!), .. AncestryLines(_rolled!), "", UiText.S("member.accept_y_n")],
             Step.Name => [.. AttributeLines(_rolled!), .. AncestryLines(_rolled!), "", _name.Line, _error],
-            Step.Sheet => [.. InspectDialog.SheetLines(_rolled!), "", UiText.S("member.press_space")],
+            Step.Sheet => [.. InspectDialog.SheetLines(_rolled!, treasury: session.TreasuryOn), "", UiText.S("member.press_space")],
             _ => [],
         };
     }

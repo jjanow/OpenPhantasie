@@ -105,6 +105,7 @@ public sealed partial class GameSession
             Roster.Slots[slot] = p3.AdmitTransferred(this, from, source, rules, wand);
             added++;
         }
+        SweepTreasury(); // s175: the newcomers' account gold joins the Guild treasury at once
         return new CharacterTransferResult(added, leftBehind);
     }
 
@@ -127,6 +128,7 @@ public sealed partial class GameSession
         Party.Elemental = null;
         Party.GoldCarried = 0;
         _otherParties.Clear();
+        SweepTreasury(); // s175: the transferred accounts join the Guild treasury at once
         return new CharacterTransferResult(converted.Count(c => c is not null), leftBehind);
     }
 

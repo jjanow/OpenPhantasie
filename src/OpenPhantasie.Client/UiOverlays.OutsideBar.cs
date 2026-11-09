@@ -16,8 +16,9 @@ public static partial class UiOverlays
     /// Speed) over the screen's top rows 0–10, in colours 15 / 0 of the palette in force (the map's on the overworld, the
     /// dungeon's below); the Speed menu ticks the setting in force ('*', <c>0x870e</c>).
     /// </summary>
+    /// <param name="gold">P3 QoL: the session whose Guild treasury gold line the bar's free right end shows (null: none).</param>
     public static void DrawOutsideMenuBar(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, AmigaOutsideBar bar,
-        bool inDungeon, AmigaCombatSpeed speed)
+        bool inDungeon, AmigaCombatSpeed speed, GameSession? gold = null)
     {
         var palette = inDungeon ? DungeonPalette : MapPalette;
         var places = OutsideMenuBar(assets);
@@ -25,7 +26,7 @@ public static partial class UiOverlays
         var labels = AmigaMenuLabels(places, open, AmigaOutsideBar.SpeedMenu, speed);
         DrawAmigaMenuBar(batch, pixel, places, i => assets.PaletteColour(palette, i) ?? DosBlack, open, labels, bar.Item,
             (m, span) => new HitRegion(span, new OutsideMenuTitleTag(m)),
-            (i, row) => new HitRegion(row, new OutsideMenuItemTag(i)));
+            (i, row) => new HitRegion(row, new OutsideMenuItemTag(i)), gold);
     }
 
     /// <summary>
@@ -35,7 +36,7 @@ public static partial class UiOverlays
     /// <paramref name="input"/> registers the titles, the open menu's items and a backdrop that closes it.
     /// </summary>
     public static void DrawTownMenuBar(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, CombatFieldMenuBar places,
-        AmigaTownBar bar, string palette, bool input)
+        AmigaTownBar bar, string palette, bool input, GameSession? gold = null)
     {
         ArgumentNullException.ThrowIfNull(assets);
         ArgumentNullException.ThrowIfNull(places);
@@ -50,7 +51,7 @@ public static partial class UiOverlays
         {
             DrawAmigaMenuBar(batch, pixel, places, i => assets.PaletteColour(palette, i) ?? DosBlack, bar.Open, labels, bar.Item,
                 (m, span) => new HitRegion(span, new TownMenuTitleTag(m)),
-                (i, row) => new HitRegion(row, new TownMenuItemTag(i)));
+                (i, row) => new HitRegion(row, new TownMenuItemTag(i)), gold);
         }
         finally
         {

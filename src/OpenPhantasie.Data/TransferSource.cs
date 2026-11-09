@@ -25,6 +25,6 @@ public static class TransferSource
         ArgumentNullException.ThrowIfNull(save);
         if (save.Game != game)
             throw new InvalidDataException($"This save belongs to {save.Game.Prefix()}, not {game.Prefix()}.");
-        return save.RosterSlots;
+        return TreasuryShares.Roster(save); // s175: a Guild treasury leaves as even account shares
     }
 }

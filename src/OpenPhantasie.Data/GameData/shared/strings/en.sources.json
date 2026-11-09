@@ -6950,6 +6950,19 @@
     ]
    }
   ],
+  "p4.profile.score_exp_x_y": [
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      264992,
+      5
+     ],
+     " {0}  Exp. {1}"
+    ]
+   }
+  ],
   "p1field.scroll.ok": [
    {
     "from": "p1-amiga-1.0",

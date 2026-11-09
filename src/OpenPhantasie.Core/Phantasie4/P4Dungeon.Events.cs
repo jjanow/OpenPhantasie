@@ -170,7 +170,9 @@ public sealed partial class P4Dungeon
                     var w = W(at + 1);
                     if (w == 0)
                         w = _vm.Number;
-                    _vm.Cmp = Party.Gold <= 30000 ? (int)Party.Gold - w : 30000;
+                    // Under the Guild treasury the test reads spendable gold, as TAKEGOLD pays from it.
+                    var gold = Party.SpendableGold(_options);
+                    _vm.Cmp = gold <= 30000 ? (int)gold - w : 30000;
                     _vm.Pc = at + 3;
                     break;
                 }
@@ -303,7 +305,11 @@ public sealed partial class P4Dungeon
                 case 0x33: // TAKEGOLD (no check: scripts test with CMPGOLD first)
                 {
                     var w = W(at + 1);
-                    Party.Gold -= w == 0 ? _vm.Number : w;
+                    var take = w == 0 ? _vm.Number : w;
+                    // The Guild treasury pays an event's price from spendable gold; short (a script without CMPGOLD), the
+                    // purse goes below zero as the original's.
+                    if (!_options.TreasuryOn || !Party.TrySpend(_options, take, TreasuryEntryKind.Event))
+                        Party.Gold -= take;
                     _vm.Pc = at + 3;
                     break;
                 }
@@ -380,11 +386,15 @@ public sealed partial class P4Dungeon
     private void GiveGold(int w)
     {
         var gold = Party.Gold + w;
-        if (gold > 990000)
+        // The bug lives only under the code's cap: the manual's 65,000 clamps it away, and the Guild treasury (which lifts
+        // the cap) must not make it reachable under the manual.
+        if (gold > 990000 && (!_options.TreasuryOn || _options.P4GoldUncapped()))
             gold += 990000;
         var before = Party.Gold;
         Party.Gold = P4Town.Cap(_options, _tables.Towns, gold, P4Town.GoldPath.Loot);
         Party.GoldSinceTown += Math.Max(0, Party.Gold - before);
+        if (_options.TreasurySafe) // safe: the gain is banked at once
+            Party.BankPurse(TreasuryEntryKind.Loot);
         ClearBox();
         _box.Add(w.ToString(System.Globalization.CultureInfo.CurrentCulture) + GameText.S("p4x.0x437ab"));
         _box.Add(GameText.S("p4x.0x437af").TrimStart());

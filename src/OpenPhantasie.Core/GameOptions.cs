@@ -66,6 +66,8 @@ public static class OptionPresetExtensions
 /// comes from, if any. Labels come from the string table (<c>option.&lt;id&gt;</c>, <c>option.&lt;id&gt;.&lt;value&gt;</c>).
 /// <see cref="EveryGame"/>: one descriptor shown in every game's tab (its id has no game prefix; <see cref="Game"/> is
 /// then only nominal). <see cref="Games"/> narrows an every-game option to the games it means something in (null = all).
+/// <see cref="Qol"/>: a pure quality-of-life option (no manual↔code conflict behind it); the Options screen lists it in its
+/// QUALITY OF LIFE section (<c>09-startup-options.md</c> section 2).
 /// </summary>
 public sealed record RuleOptionDescriptor(
     string Id,
@@ -76,7 +78,8 @@ public sealed record RuleOptionDescriptor(
     string Remaster,
     string? Difference = null,
     bool EveryGame = false,
-    IReadOnlyList<GameId>? Games = null)
+    IReadOnlyList<GameId>? Games = null,
+    bool Qol = false)
 {
     /// <summary>True when this option is in <paramref name="game"/>'s tab.</summary>
     public bool AppliesTo(GameId game) =>
@@ -114,7 +117,7 @@ public static class RuleOptionRegistry
     /// </summary>
     public static readonly RuleOptionDescriptor StashAccess = new(
         "p1.stash-access", GameId.P1, ["town", "anywhere"],
-        Manual: "town", Dos: "town", Remaster: "anywhere");
+        Manual: "town", Dos: "town", Remaster: "anywhere", Qol: true);
 
     /// <summary>
     /// D-054: which Armory items the town-entry restock can wipe. <c>manual</c> (p.10: only weapons and potions come and
@@ -457,7 +460,16 @@ public static class RuleOptionRegistry
     /// </summary>
     public static readonly RuleOptionDescriptor GuildLimit = new(
         "guild-limit", GameId.P1, ["game", "none"],
-        Manual: "game", Dos: "game", Remaster: "none", EveryGame: true);
+        Manual: "game", Dos: "game", Remaster: "none", EveryGame: true, Qol: true);
+
+    /// <summary>
+    /// QoL (PLAN P3, user s175, <c>docs/plan/11-guild-treasury.md</c>), every game: the Guild treasury. <c>off</c> = the
+    /// game's own purse, found gold and bank accounts; <c>trip</c> = one gold pool per save, usable anywhere, where only
+    /// gold won since leaving town can be lost; <c>safe</c> = the same, every gain banked at once. No D-entry.
+    /// </summary>
+    public static readonly RuleOptionDescriptor Treasury = new(
+        "treasury", GameId.P1, ["off", "trip", "safe"],
+        Manual: "off", Dos: "off", Remaster: "trip", EveryGame: true, Qol: true);
 
     // ---- Elementals across the games (PLAN P3 QoL, user D3-040): one cross-game rule set for Guild Add / Drop / Purge
     // with a loaded elemental. Every value is an original's decoded rule; `game` (every preset) = the game's own. Not in
@@ -476,7 +488,7 @@ public static class RuleOptionRegistry
     /// </summary>
     public static readonly RuleOptionDescriptor ElementalLoad = new(
         "elemental-load", GameId.P1, ["game", "phantasie-i", "phantasie-iii"],
-        Manual: "game", Dos: "game", Remaster: "game", EveryGame: true, Games: GuildElementalGames);
+        Manual: "game", Dos: "game", Remaster: "game", EveryGame: true, Games: GuildElementalGames, Qol: true);
 
     /// <summary>
     /// Guild ▸ Drop of a character with an elemental loaded: <c>game</c> (I: every Drop unloads it, OV1 <c>0x22d1</c>;
@@ -485,7 +497,7 @@ public static class RuleOptionRegistry
     /// </summary>
     public static readonly RuleOptionDescriptor ElementalDrop = new(
         "elemental-drop", GameId.P1, ["game", "phantasie-i", "phantasie-iii"],
-        Manual: "game", Dos: "game", Remaster: "game", EveryGame: true, Games: GuildElementalGames);
+        Manual: "game", Dos: "game", Remaster: "game", EveryGame: true, Games: GuildElementalGames, Qol: true);
 
     /// <summary>
     /// Guild ▸ Purge of a character in the party with an elemental loaded (D3-040): <c>game</c> (the game's own,
@@ -497,7 +509,7 @@ public static class RuleOptionRegistry
     /// </summary>
     public static readonly RuleOptionDescriptor ElementalPurge = new(
         "elemental-purge", GameId.P1, ["game", "phantasie-i", "as-drop", "refused"],
-        Manual: "game", Dos: "game", Remaster: "game", Difference: "D3-040", EveryGame: true, Games: GuildElementalGames);
+        Manual: "game", Dos: "game", Remaster: "game", Difference: "D3-040", EveryGame: true, Games: GuildElementalGames, Qol: true);
 
     public static IReadOnlyList<RuleOptionDescriptor> All { get; } =
     [
@@ -515,7 +527,7 @@ public static class RuleOptionRegistry
         .. P3RuleOptions.All, // Phantasie III (T4), its own class so its fields are set before this list reads them
         .. P4RuleOptions.All, // Phantasie IV (T6), the same way
         ElementalLoad, ElementalDrop, ElementalPurge, // I, II and III (EveryGame, Games)
-        GuildLimit, // every game (EveryGame), last in each tab
+        Treasury, GuildLimit, // every game (EveryGame), last in each tab
     ];
 
     /// <summary>The rules options of <paramref name="game"/>, in menu order: its own, then the every-game ones.</summary>
@@ -677,7 +689,8 @@ public sealed class GameOptions
     /// 16-bit clamp (<see cref="GoldCapRule.Dos"/>). Also the game's own for a game without either option.
     /// </summary>
     public GoldCapRule GoldCap =>
-        _values.TryGetValue(RuleOptionRegistry.GoldCap.Id, out var v)
+        TreasuryOn ? GoldCapRule.Lifted // the Guild treasury lifts every cap (11-guild-treasury.md section 2)
+        : _values.TryGetValue(RuleOptionRegistry.GoldCap.Id, out var v)
             ? v switch { "dos" => GoldCapRule.Dos, "lifted" => GoldCapRule.Lifted, _ => GoldCapRule.Manual }
             : Is(RuleOptionRegistry.P2GoldCap, "st") ? GoldCapRule.Dos
             : Is(P3RuleOptions.GoldCap, "dos") ? GoldCapRule.Lifted // D3-026: DOS III has no cap
@@ -792,6 +805,12 @@ public sealed class GameOptions
     /// own cap otherwise, also for options built without it.
     /// </summary>
     public bool GuildUnlimited => Is(RuleOptionRegistry.GuildLimit, "none");
+
+    /// <summary><see cref="RuleOptionRegistry.Treasury"/> (QoL, every game): true when the save keeps one Guild treasury.</summary>
+    public bool TreasuryOn => Is(RuleOptionRegistry.Treasury, "trip") || TreasurySafe;
+
+    /// <summary><see cref="RuleOptionRegistry.Treasury"/> = <c>safe</c>: every gain goes straight into the treasury.</summary>
+    public bool TreasurySafe => Is(RuleOptionRegistry.Treasury, "safe");
 
     /// <summary>
     /// True when this save plays the <c>dos</c> value of a manual-or-DOS option (<see cref="RuleOptionRegistry.AttackGate"/>

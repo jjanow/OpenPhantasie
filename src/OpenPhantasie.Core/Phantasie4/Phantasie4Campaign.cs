@@ -342,6 +342,9 @@ public sealed class Phantasie4Campaign
         if (s.Started && ((s.Place == P4Place.Outdoors && s.Outdoor is null) || (s.Place == P4Place.Town && s.Town is null)))
             throw new InvalidDataException("A save must hold the loop it is in.");
         c._started = s.Started;
+        // The Guild treasury collects on loading a save in town (11-guild-treasury.md 3); nothing when it is off.
+        if (s.Started && s.Place == P4Place.Town && c.Town.Town != 0)
+            c.Party.SweepTreasury(c.Options, inTown: true);
         if (inDungeon && reload)
         {
             // The original's load (FORMAT.md §6): _game → _dungeon → _dload at the saved square, the map read fresh from
@@ -420,11 +423,14 @@ public sealed record P4PartyGuild(
     P4MemberSnapshot?[] Roster, int MaxScore, int[] GoodsCount, int[] GoodsTown, int[] ShopStock,
     int EncounterLevel = 0, int?[]? HallDescendants = null, P4HallPerson?[]? HallImports = null);
 
-/// <summary>A saved IV party record: every field <see cref="P4Party"/> holds.</summary>
+/// <summary>
+/// A saved IV party record: every field <see cref="P4Party"/> holds. <paramref name="Treasury"/>: the Guild treasury
+/// (<c>11-guild-treasury.md</c>), null while it is empty (a save without it loads an empty one).
+/// </summary>
 public sealed record P4PartySnapshot(
     P4MemberSnapshot[] Members, long Gold, int AverageLevel, bool Levitating, int? LevitationSteps, int[] Pack,
     int[] PackCharges, byte[] StoryFlags, byte[] LocationFlags, P4PartyTravel Travel, int? Elemental = null,
-    P4PartyGuild? Guild = null)
+    P4PartyGuild? Guild = null, TreasurySnapshot? Treasury = null)
 {
     public static P4PartySnapshot From(P4Party p) => new(
         [.. p.Members.Select(P4MemberSnapshot.From)], p.Gold, p.AverageLevel, p.Levitating, p.LevitationSteps, [.. p.Pack],
@@ -433,7 +439,8 @@ public sealed record P4PartySnapshot(
             p.ShipSeaSteps, p.GoldSinceTown), p.Elemental,
         new P4PartyGuild([.. p.Roster.Select(m => m is null ? null : P4MemberSnapshot.From(m))], p.MaxScore,
             [.. p.GoodsCount], [.. p.GoodsTown], [.. p.ShopStock], p.EncounterLevel, [.. p.HallDescendants],
-            [.. p.HallImports]));
+            [.. p.HallImports]),
+        p.Treasury.Balance == 0 && p.Treasury.Trip == 0 && p.Treasury.Ledger.Count == 0 ? null : p.Treasury.ToSnapshot());
 
     public P4Party ToParty()
     {
@@ -447,6 +454,7 @@ public sealed record P4PartySnapshot(
             DaysOut = Travel.DaysOut, Daytime = Travel.Daytime, ExperiencePool = Travel.ExperiencePool, Ship = Travel.Ship,
             ShipNavigator = Travel.ShipNavigator, ShipMap = Travel.ShipMap, ShipX = Travel.ShipX, ShipY = Travel.ShipY,
             ShipSeaSteps = Travel.ShipSeaSteps, GoldSinceTown = Travel.GoldSinceTown, Elemental = Elemental,
+            Treasury = OpenPhantasie.Core.Treasury.From(Treasury),
         };
         p.Members.AddRange(Members.Select(m => m.ToMember()));
         Pack.CopyTo(p.Pack, 0);

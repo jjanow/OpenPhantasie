@@ -74,6 +74,8 @@ public partial class StringTableTests
             .Concat(En.Strings.Keys.Where(k => k.StartsWith("options.", StringComparison.Ordinal) && k.EndsWith(".desc", StringComparison.Ordinal)))
             // 09 T2 inventory screen: Core's refusal reasons and the paperdoll boxes of the game's equipment layout.
             .Concat(InventoryActions.ReasonKeys)
+            // The Guild treasury's ledger kinds (TreasuryReport.Lines).
+            .Concat(Enum.GetValues<TreasuryEntryKind>().Select(TreasuryReport.KindId))
             .Concat(EquipmentLayout.PhantasieI.Slots.Select(s => "inventory.slot." + s.Id))
             // IV town doors (P4DungeonScreen.BuildingName).
             .Concat(Enum.GetValues<P4Building>().Select(P4DungeonScreen.BuildingKey))

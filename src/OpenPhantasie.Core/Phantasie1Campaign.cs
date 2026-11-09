@@ -233,7 +233,11 @@ public sealed class Phantasie1Campaign : ICampaign
         public long FoundGold
         {
             get => session.Sack.Gold;
-            set => session.Sack.Gold = value;
+            set
+            {
+                session.Sack.Gold = value;
+                session.BankFieldGoldIfSafe(); // s175 treasury "safe": event gold is banked at once
+            }
         }
 
         private void NoteMessage(int messageId)

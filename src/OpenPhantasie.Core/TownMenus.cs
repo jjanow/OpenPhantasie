@@ -139,10 +139,9 @@ public static class TownMenus
         // [C] OV1 charges the full list price. The pass-2 59-GP record delta is
         // the per-member settlement of a 177-GP shared-purse purchase by 3 members.
         var price = ListBuyPrice(item, town);
-        if (party.GoldCarried < price)
+        if (!party.Spend(price, TreasuryEntryKind.Armory)) // the purse, then the Guild treasury when it is on
             return Fail(GameText.S("core.armory.not_enough_gold"));
 
-        party.GoldCarried -= price;
         town.SetStock(itemId, town.GetStock(itemId) - 1);
         CarriedItems.Put(shopper, itemId); // [C] first empty slot (OV1 0x1c18..0x1c2e, 0x1cef)
 
@@ -533,10 +532,9 @@ public static class TownMenus
             return Fail(reason);
         }
 
-        if (party.GoldCarried < cost)
+        if (!party.Spend(cost, TreasuryEntryKind.Training))
             return Fail(GameText.S("core.guild.train_cant_afford")); // [D✓] s41 DOSBox; nothing taken
 
-        party.GoldCarried -= cost;
         LevelUp.Apply(member, member.Level, tables, rng, dosHitDice, rules, toss); // [C] OV1 0x1484 → 0x9ee
         return Ok(GameText.S("core.guild.you_are_trained"), goldDelta: -cost);
     }
@@ -614,10 +612,9 @@ public static class TownMenus
             return Fail(GameText.S("core.guild.learn_no_more"));
 
         var cost = SpellLearningGoldCost(member, town);
-        if (party.GoldCarried < cost)
+        if (!party.Spend(cost, TreasuryEntryKind.Spells))
             return Fail(GameText.S("core.guild.learn_cant_afford"));
 
-        party.GoldCarried -= cost;
         member.AgeClock += 2; // [C] OV1 0x165f: learning takes four weeks (manual silent), paid on a fail too
         if (!learned)
             return Ok(GameText.S("core.guild.learn_failed"), goldDelta: -cost);

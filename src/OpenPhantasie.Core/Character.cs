@@ -339,6 +339,25 @@ public class Party
     public long GoldCarried { get; set; }
 
     /// <summary>
+    /// The save's Guild treasury when the <c>treasury</c> option is on (<c>11-guild-treasury.md</c>), else null. Set by
+    /// <see cref="GameSession"/>. Spends (<see cref="CanSpend"/>, <see cref="Spend"/>) draw on it after the purse.
+    /// </summary>
+    public Treasury? Treasury { get; set; }
+
+    /// <summary>Gold a town spend can draw on: the purse, plus the Guild treasury when it is on.</summary>
+    public long SpendableGold => GoldCarried + (Treasury?.Balance ?? 0);
+
+    /// <summary>True when a spend of <paramref name="amount"/> fits <see cref="SpendableGold"/>.</summary>
+    public bool CanSpend(long amount) => SpendableGold >= amount;
+
+    /// <summary>
+    /// Pays <paramref name="amount"/>: the purse first, then the treasury (logged as <paramref name="kind"/>). Without a
+    /// treasury this is the original <c>GoldCarried -= amount</c>. False (nothing taken) when it doesn't fit.
+    /// </summary>
+    public bool Spend(long amount, TreasuryEntryKind kind) =>
+        GoldPurse.TrySpend(amount, Treasury, kind, (() => GoldCarried, v => GoldCarried = v));
+
+    /// <summary>
     /// DOS's non-DEAD member list <c>[0x64a2]</c> and word <c>[0x6490]</c>, kept for the session (D-033 <c>dos</c> reads
     /// them; <see cref="DosLivingList"/>).
     /// </summary>

@@ -187,18 +187,23 @@ public static class Phantasie4SaveCodec
         public GuildDto? Guild { get; set; }
         public int? Elemental { get; set; }
 
+        /// <summary>The Guild treasury (11-guild-treasury.md); absent while empty and in older saves.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public TreasurySnapshot? Treasury { get; set; }
+
         public static PartyDto From(P4PartySnapshot p) => new()
         {
             Members = [.. p.Members.Select(MemberDto.From)], Gold = p.Gold, AverageLevel = p.AverageLevel,
             Levitating = p.Levitating, LevitationSteps = p.LevitationSteps, Pack = ToIds(p.Pack), PackCharges = p.PackCharges,
             StoryFlags = p.StoryFlags, LocationFlags = p.LocationFlags, Travel = p.Travel,
-            Guild = p.Guild is { } g ? GuildDto.From(g) : null, Elemental = p.Elemental,
+            Guild = p.Guild is { } g ? GuildDto.From(g) : null, Elemental = p.Elemental, Treasury = p.Treasury,
         };
 
         public P4PartySnapshot ToSnapshot() => new(
             [.. Members.Select(m => m.ToSnapshot())], Gold, AverageLevel, Levitating, LevitationSteps, ToLocals(Pack),
             PackCharges, StoryFlags, LocationFlags,
-            Travel ?? throw new InvalidDataException("The saved party has no travel fields."), Elemental, Guild?.ToSnapshot());
+            Travel ?? throw new InvalidDataException("The saved party has no travel fields."), Elemental, Guild?.ToSnapshot(),
+            Treasury);
     }
 
     /// <summary>The guild roster (members as in the party; empty slots null) and the shop's stock by item id.</summary>

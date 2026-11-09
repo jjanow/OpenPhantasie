@@ -370,13 +370,24 @@ public sealed class OptionsScreen
         rows.Add(Described("options.preset", UiText.S(rules.Preset.LabelId(game, UiText.Table.Contains)),
             locked ? null : d => SetRules(g, rules.WithPreset(presets[Cycle(Array.IndexOf(presets, rules.Preset), d, presets.Length)])))
             with { Locked = locked });
-        foreach (var option in rules.Options)
+        // 11-guild-treasury.md section 6: the original rules first, then the pure convenience options under QUALITY OF LIFE.
+        var qol = rules.Options.Where(o => o.Qol).ToList();
+        foreach (var option in rules.Options.Where(o => !o.Qol))
+            rows.Add(RuleRow(option));
+        if (qol.Count > 0)
+        {
+            rows.Add(new(UiText.S("options.quality_of_life"), null, null, Header: true));
+            foreach (var option in qol)
+                rows.Add(RuleRow(option));
+        }
+
+        Row RuleRow(RuleOptionDescriptor option)
         {
             var value = rules.Values[option.Id];
             var values = option.Values;
-            rows.Add(new(UiText.S("option." + option.Id), UiText.S($"option.{option.Id}.{value}"),
+            return new(UiText.S("option." + option.Id), UiText.S($"option.{option.Id}.{value}"),
                 locked ? null : d => SetRules(g, rules.With(option.Id, values[Cycle(values.ToList().IndexOf(value), d, values.Count)])),
-                Desc: $"option.{option.Id}.desc", Rule: option, Locked: locked));
+                Desc: $"option.{option.Id}.desc", Rule: option, Locked: locked);
         }
 
         var others = FeatureModuleRegistry.All.Where(m => !m.IsDefaultIn(game) && m.CrossGame && m.HomeGame != game).ToList();

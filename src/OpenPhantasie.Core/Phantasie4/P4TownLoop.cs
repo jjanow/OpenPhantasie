@@ -170,6 +170,7 @@ public sealed partial class P4TownLoop
         _window.Clear();
         Prompt = P4TownPrompt.Menu;
         _stage = Stage.Deposit;
+        Party.SweepTreasury(_options, inTown: true); // the treasury collects before any share-out (11-guild-treasury.md 3)
         Run();
     }
 
@@ -182,7 +183,8 @@ public sealed partial class P4TownLoop
                 case Stage.Deposit:
                     _stage = Stage.Experience;
                     // D4-030 manual: the party gold is paid into the accounts by shares first; the code leaves it.
-                    if (P4Town.DepositsOnEntry(_options) && Party.Gold > 0 && Party.Members.Count > 0)
+                    // The Guild treasury switches the gold share off (11-guild-treasury.md 5): the sweep took the gold.
+                    if (P4Town.DepositsOnEntry(_options) && !_options.TreasuryOn && Party.Gold > 0 && Party.Members.Count > 0)
                         AskShares(P4ShareKind.Gold);
                     break;
                 case Stage.Experience:
@@ -460,7 +462,7 @@ public sealed partial class P4TownLoop
     private void Shipwright()
     {
         _window.Line(GameText.S("p4x.0x400f4"));
-        if (Party.Gold < ShipPrice || Site!.ShipX is null)
+        if (!Party.CanAfford(_options, ShipPrice) || Site!.ShipX is null)
         {
             _window.Print("\"");
             Prompt = P4TownPrompt.Wait;
@@ -499,7 +501,7 @@ public sealed partial class P4TownLoop
         if (!yes)
             return;
         var s = Site!;
-        Party.Gold -= ShipPrice;
+        Party.TrySpend(_options, ShipPrice, TreasuryEntryKind.Ship);
         Party.LoseShip();
         (Party.Ship, Party.ShipMap, Party.ShipX, Party.ShipY) = (P4ShipState.Moored, s.ExitMap, s.ShipX!.Value, s.ShipY!.Value);
     }
@@ -511,6 +513,11 @@ public sealed partial class P4TownLoop
     private void Leave()
     {
         var s = Site!;
+        if (_options.TreasuryOn)
+        {
+            Party.SweepTreasury(_options, inTown: true);
+            Party.Treasury.StartTrip();
+        }
         P4TownRules.Leave(Party);
         Party.Daytime = 0;
         Transfer = new P4Transfer(P4Transfer.Outdoors, s.ExitMap, s.ExitX, s.ExitY, 0);

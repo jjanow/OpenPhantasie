@@ -49,7 +49,7 @@ public sealed class DistributeDialog : IModalDialog
         var lines = new List<string>
         {
             HeaderFor(session),
-            $"{Mark(0)}{"SELL",-22}{party.GoldCarried,10}",
+            $"{Mark(0)}{"SELL",-22}{UiOverlays.ShownGold(session),10}",
             $"{Mark(1)}{"SACK",-31}{session.Sack.ItemCount}",
         };
         for (var i = 0; i < party.Members.Count; i++)

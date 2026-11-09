@@ -82,6 +82,12 @@ public sealed class SessionSnapshot
     /// never carries it. Null in a save written before s73 (loads as Original (manual)).
     /// </summary>
     public GameOptionsSnapshot? Options { get; set; }
+
+    /// <summary>
+    /// The Guild treasury (<c>11-guild-treasury.md</c>): top level only, shared by every party (a parked party never
+    /// carries it). Null when the save has none (an empty treasury).
+    /// </summary>
+    public TreasurySnapshot? Treasury { get; set; }
 }
 
 /// <summary>A save's rules (<see cref="GameOptions"/>) as plain ids: the preset, option id → value, enabled module ids.</summary>
