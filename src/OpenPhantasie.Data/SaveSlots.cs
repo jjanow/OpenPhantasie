@@ -28,7 +28,8 @@ public sealed record SaveSlotInfo(SaveSlot Slot, DateTime? Written, SaveSlotPrev
 /// QoL SAVE SLOTS (<c>docs/plan/12-save-slots.md</c>): the save files of each game in a folder. The single save every game
 /// had before (<c>savegame-pN.json</c>) stays where it was and is the game's first slot: I–III's autosave slot (AUTO), IV's
 /// slot 1 (IV has no autosave; its original's three slots, manual p. 33). The other slots are <c>savegame-pN-K.json</c>:
-/// I–III slots 1–9, IV slots 2–3. With the option off only the first slot is used, as before.
+/// I–III slots 1–9, IV slots 2–3. With the option off I–III use only the first slot, as before; IV keeps its three (its
+/// original's Save page runs them, <see cref="Slotted"/>).
 /// </summary>
 public static class SaveSlots
 {
@@ -37,6 +38,12 @@ public static class SaveSlots
 
     /// <summary>The numbered slots: nine in I–III (the keys 1–9), IV's original three (<c>_diskmenu</c>'s <c>*1:Save</c>–<c>*3:Save</c>).</summary>
     public static int NumberedCount(GameId game) => game == GameId.P4 ? 3 : 9;
+
+    /// <summary>
+    /// Whether the game uses its slot files: always in IV (its original's three slots; the switch picks the screen, the
+    /// original's Save page or the remaster's picker), else when the game's SAVE SLOTS switch is on.
+    /// </summary>
+    public static bool Slotted(GameId game, bool switchOn) => switchOn || game == GameId.P4;
 
     /// <summary>I–III have an autosave slot; IV saves only when asked.</summary>
     public static bool HasAuto(GameId game) => game != GameId.P4;
@@ -66,12 +73,12 @@ public static class SaveSlots
     public static IReadOnlyList<SaveSlot> Writable(string dir, GameId game) => All(dir, game).Where(s => !s.IsAuto).ToArray();
 
     /// <summary>
-    /// The save another game reads (transfers, the lineage Hall, IV's Hall): with <paramref name="slotsOn"/>, the newest
-    /// file among the game's slots, else (or when no slot holds a file) the single save.
+    /// The save another game reads (transfers, the lineage Hall, IV's Hall): with <paramref name="slotsOn"/> (IV: always),
+    /// the newest file among the game's slots, else (or when no slot holds a file) the single save.
     /// </summary>
     public static string ReadPath(string dir, GameId game, bool slotsOn)
     {
-        if (!slotsOn)
+        if (!Slotted(game, slotsOn))
             return SinglePath(dir, game);
         string? best = null;
         var bestTime = DateTime.MinValue;

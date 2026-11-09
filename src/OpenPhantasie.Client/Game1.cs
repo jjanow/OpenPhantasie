@@ -263,7 +263,11 @@ public partial class Game1 : Game
     private void StartPhantasie4(Func<Phantasie4Campaign> start)
     {
         UiText.Table = UiText.For(GameId.P4);
-        _p4 = new P4DungeonScreen(start());
+        _p4 = new P4DungeonScreen(start())
+        {
+            SlotSaved = slot => SaveSlotExists(GameId.P4, slot), // IV's three slots (12-save-slots.md section 2)
+            OriginalSlots = !_settings.Game(GameId.P4).SaveSlots,
+        };
         _packs = GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P4));
         UseGraphicsPack(ChosenPack(GameId.P4)); // T6.4: IV's own pictures (X68000), its 640 × 400 screen
         Window.Title = UiText.S("menu.game.p4");
@@ -277,7 +281,7 @@ public partial class Game1 : Game
     /// <summary>
     /// s151: the title's Saved Game pick (<c>_disk(0)</c>'s save icon): IV's save as F9 loads it, onto a fresh IV screen. A
     /// save that cannot be read starts a new game with the reason in the note (never a silent new game). QoL SAVE SLOTS:
-    /// the icon's slot <paramref name="slot"/> (1–3); off, the one save (slot 1).
+    /// the icon's slot <paramref name="slot"/> (1–3), either way the SAVE SLOTS switch is (IV keeps its original's three).
     /// </summary>
     private void LoadSavedPhantasie4(int slot)
     {
@@ -299,23 +303,21 @@ public partial class Game1 : Game
     /// <summary>F5 / F9 / Esc on IV's screen: IV's own save file beside the other games' (<see cref="Phantasie4SaveCodec"/>).</summary>
     private void RunPhantasie4Request(P4ScreenRequest request)
     {
-        var path = ClientSettings.SavePathFor(GameId.P4);
         switch (request)
         {
-            case P4ScreenRequest.Save when _settings.Game(GameId.P4).SaveSlots:
-                OpenSaveSlots(GameId.P4, SaveSlotMode.Save); // QoL SAVE SLOTS: the original's three slots
-                break;
+            // SAVE SLOTS on: the remaster's picker on the three slots. Off, the screen runs the original's own Save page
+            // (_diskmenu(1)) and F9's load page and asks only for the slot picked there.
             case P4ScreenRequest.Save:
-                WriteP4Save(path, null);
-                break;
-            case P4ScreenRequest.Load when _settings.Game(GameId.P4).SaveSlots:
-                OpenSaveSlots(GameId.P4, SaveSlotMode.Load);
-                break;
-            case P4ScreenRequest.Load when !File.Exists(path):
-                _p4!.Note = UiText.S("p4.dungeon.no_save");
+                OpenSaveSlots(GameId.P4, SaveSlotMode.Save);
                 break;
             case P4ScreenRequest.Load:
-                LoadP4From(path);
+                OpenSaveSlots(GameId.P4, SaveSlotMode.Load);
+                break;
+            case P4ScreenRequest.SaveSlot:
+                WriteP4Save(P4SlotPath(_p4!.RequestedSlot), new SaveSlot(GameId.P4, _p4.RequestedSlot, P4SlotPath(_p4.RequestedSlot)));
+                break;
+            case P4ScreenRequest.LoadSlot:
+                LoadP4From(P4SlotPath(_p4!.RequestedSlot));
                 break;
             case P4ScreenRequest.MainMenu:
                 _p4 = null;
@@ -942,10 +944,10 @@ public partial class Game1 : Game
 
     /// <summary>
     /// Whether save slot <paramref name="slot"/> of <paramref name="game"/> holds a save (the start menu's "*k:Save" icon,
-    /// <c>fames.k</c> in IV): with SAVE SLOTS off the remaster keeps one save per game, which stands for slot 1 `[~]`; on,
-    /// IV's three slots are the original's (12-save-slots.md).
+    /// <c>fames.k</c> in IV): the game's slot files when it has slots (IV always: its original's three,
+    /// <see cref="SaveSlots.Slotted"/>), else its one save, which stands for slot 1.
     /// </summary>
-    private bool SaveSlotExists(GameId game, int slot) => _settings.Game(game).SaveSlots
+    private bool SaveSlotExists(GameId game, int slot) => SaveSlots.Slotted(game, _settings.Game(game).SaveSlots)
         ? slot >= SaveSlots.FirstNumber(game) && slot <= SaveSlots.NumberedCount(game)
           && File.Exists(SaveSlots.PathOf(ClientSettings.DataDirectory, game, slot))
         : slot == 1 && File.Exists(ClientSettings.SavePathFor(game));
@@ -1153,6 +1155,7 @@ public partial class Game1 : Game
             _p4.Tick(gameTime.ElapsedGameTime.TotalMilliseconds); // s110: IV's picture animations, the open door
             _p4.Pointer = IsMouseVisible ? _mouse.Position : null; // s151: buttons under the pointer are lit (_xbtn)
             _p4.MysticSkippable = _settings.Game(GameId.P4).MysticSkip;
+            _p4.OriginalSlots = !_settings.Game(GameId.P4).SaveSlots; // SAVE SLOTS off: IV's own Save page (12-save-slots.md)
             // QoL MYSTIC SKIP: Space / Return, a left click or the pad's A ends the Mystic's counted loops; that input
             // goes nowhere else this frame, so it does not also close the Mystic in its wait.
             if (_p4.MysticBusy && _p4.MysticSkippable

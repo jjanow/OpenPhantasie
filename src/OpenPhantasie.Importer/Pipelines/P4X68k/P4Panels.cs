@@ -73,7 +73,7 @@ internal static class P4Panels
     private const int NoyesSite = 0x6066, NoyesYes = 0x4733A, NoyesNo = 0x4733E;
     private const int EwaitSetbtn = 0x1883A, EwaitLabel = 0x43796, TypedLetters = 0x437D8, TypedNumber = 0x437DF;
     private const int NuminSite = 0x5538, NuminTable = 0x472AA;
-    private const int DiskSite = 0x1C58, DiskTable = 0x3F5C8, DiskTitle = 0x3F6BA;
+    private const int DiskSite = 0x1C58, DiskTable = 0x3F5C8, DiskTitle = 0x3F6BA, DiskCaption = 0x3F6C6;
     private const int AcgamendSite = 0xEA0, AcgamendTable = 0x3F362, AcgamendTitle = 0x3F4C1;
     private const int TrgTitleText = 0x3FD0C;
     private const int EndHeadText = 0x413C8, EndScoreText = 0x413D5, EndScoreAfterText = 0x413E4, EndCodeText = 0x413EC;
@@ -247,9 +247,14 @@ internal static class P4Panels
                           "key between): window 34 as the panels' (title 'Select File'), New Game at icon place 0, then one " +
                           "'*k:Save' icon per save slot k (1-3) that exists (fames.k), at the next places 1, 2, 3; the label as " +
                           "written (its first character '*' in colour 2). One _mgetc: New Game = a new game (_load(0)), slot k " +
-                          "= load save k; no other key does anything.";
+                          "= load save k; no other key does anything. _diskmenu(1) (the System menu's Save, _disk(1)): 'space' (table " +
+                          "entry 1) at place 0, then all three slot icons at places 1-3 with the label's first byte '*' " +
+                          "(saved) or ' ', and 'caption' centred on x at y in window 34 (_wkprcen(34, 68, 308, ...)); " +
+                          "SPACE goes back, slot k = save k.";
         outObj["disk"] = Obj(("site", Site(DiskSite)), ("title", P4xId(DiskTitle)), ("title_text", Text(img, DiskTitle)),
-            ("icons", new JsonArray(new[] { 0, 2, 3, 4 }.Select(k => (JsonNode)Icon(img, DiskTable + 32 * k)).ToArray())));
+            ("icons", new JsonArray(new[] { 0, 2, 3, 4 }.Select(k => (JsonNode)Icon(img, DiskTable + 32 * k)).ToArray())),
+            ("space", Icon(img, DiskTable + 32)),
+            ("caption", Obj(("x", 68), ("y", 308), ("label", P4xId(DiskCaption)), ("text", Text(img, DiskCaption)))));
 
         outObj["_sklup"] = "s152: _sklup's level-up skill window (FORMAT.md 6.9 'Level-up skill picks'): window 32 at " +
                            "(window.x, window.y), drawn with no fill or frame over _trang's titled window ('under', its grey " +

@@ -181,4 +181,23 @@ public class SaveSlotsTests
             Directory.Delete(dir, recursive: true);
         }
     }
+
+    [Fact]
+    public void IV_AlwaysHasItsThreeSlots_TheSwitchPicksOnlyTheScreen()
+    {
+        Assert.True(SaveSlots.Slotted(GameId.P4, switchOn: false)); // its original's three slots either way
+        Assert.False(SaveSlots.Slotted(GameId.P1, switchOn: false));
+        Assert.True(SaveSlots.Slotted(GameId.P3, switchOn: true));
+        var dir = TempDir();
+        try
+        {
+            var two = SaveSlots.PathOf(dir, GameId.P4, 2);
+            File.WriteAllText(two, "{}");
+            Assert.Equal(two, SaveSlots.ReadPath(dir, GameId.P4, slotsOn: false)); // the newest slot, switch off too
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 }

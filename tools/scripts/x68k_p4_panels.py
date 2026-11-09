@@ -144,7 +144,7 @@ SHIP_DISPPCG, SHIP_OFFER, SHIP_LINE2, SHIP_LINE3, SHIP_YES, SHIP_NO = 0x4952, 0x
 # saves shown before it; = icon index j + 1 of the panel layout); mode 1 adds all three and writes '*' (saved) or ' '
 # over the label's first byte, then `_wkprcen(34, 68, 308, 0x3F6C6 "＊はセーブ済み")`. `_disk` takes one `_mgetc`: New
 # Game -> `_load(0)` (the shipped start), slot k -> `_load(k)` (mode 1: `_save(k)`), the SPACE button -> back.
-DISK_SITE, DISK_TABLE, DISK_TITLE = 0x1C58, 0x3F5C8, 0x3F6BA
+DISK_SITE, DISK_TABLE, DISK_TITLE, DISK_CAPTION = 0x1C58, 0x3F5C8, 0x3F6BA, 0x3F6C6
 ACGAMEND_SITE, ACGAMEND_TABLE, ACGAMEND_TITLE = 0xEA0, 0x3F362, 0x3F4C1
 # s152: _sklup (0xC0EE) from _calpow, the level-up's three skill picks. _sklupmenu (0xBF48): `_wopen(32, 160, 136, 312,
 # 248, 0, "")` (flag 0: no fill, no frame; it sits in _trang's titled window 32 = _wopen(32, 160, 32, 312, 352, 1, ...) at
@@ -456,9 +456,16 @@ def main() -> None:
                     "key between): window 34 as the panels' (title 'Select File'), New Game at icon place 0, then one "
                     "'*k:Save' icon per save slot k (1-3) that exists (fames.k), at the next places 1, 2, 3; the label as "
                     "written (its first character '*' in colour 2). One _mgetc: New Game = a new game (_load(0)), slot k "
-                    "= load save k; no other key does anything.")
+                    "= load save k; no other key does anything. _diskmenu(1) (the System menu's Save, _disk(1)): 'space' (table "
+                    "entry 1) at place 0, then all three slot icons at places 1-3 with the label's first byte '*' "
+                    "(saved) or ' ', and 'caption' centred on x at y in window 34 (_wkprcen(34, 68, 308, ...)); "
+                    "SPACE goes back, slot k = save k.")
+    space_icon, space_key = struct.unpack_from(">ii", img, DISK_TABLE + 32 + 20)
     out["disk"] = {"site": f"0x{DISK_SITE:X}", "title": f"p4x.0x{DISK_TITLE:x}", "title_text": text(img, DISK_TITLE),
-                   "icons": disk}
+                   "icons": disk,
+                   "space": {"icon": space_icon, "key": "Space" if space_key == 0x20 else chr(space_key),
+                             "label": f"p4x.0x{DISK_TABLE + 32:x}", "text": text(img, DISK_TABLE + 32)},
+                   "caption": {"x": 68, "y": 308, "label": f"p4x.0x{DISK_CAPTION:x}", "text": text(img, DISK_CAPTION)}}
     for site, target, values, span in (
             (SKL_WOPEN, 0x3379E, (248, 312, 136, 160, 32), 14), (SKL_BAR, 0x3302E, (20, 312, -20, 32), 12),
             (SKL_TITLE, 0x3406E, (SKL_TITLE_TEXT, -16, 156, 32), 8), (SKL_HEADER, 0x3403C, (SKL_HEADER_TEXT, 20, 16, 32), 8),

@@ -1211,7 +1211,8 @@ original puts them); it waits for N, the save's digit or a click on an icon (Esc
 nothing else ends it). New Game = the remaster's new game, the save icon = F9's load (an unreadable save starts a new
 game with the reason in the note). The canvas is grey: `_openning` starts with `_cls(1)` =
 `_fbox(1, 0, 0, 768, 512)` (pkh colour 1, (90, 90, 90) on XEiJ), so the pack's `title_sequence.background` is now
-`#616161` (black before s151). `[~]`: the remaster keeps one IV save, shown as "*1:Save" (slots 2 and 3 never show);
+`#616161` (black before s151). IV keeps the original's three slots (s177, `docs/plan/12-save-slots.md` section 2a), so every saved slot shows; with
+SAVE SLOTS off, System ▸ S draws `_diskmenu(1)` (SPACE, all three slots with '*' / ' ', "[original text]" at (68, 308)). `[~]`:
 window 32's bar and frame lines are not drawn (as before). **Scale (decided, user s152: fractional fit for the
 title canvas):** the canvas grew from 320 × 238 to 506 × 347, so an integer fit dropped it to 2× on a 1920 × 1032 client
 area (3× only from 1041 rows). **Built (s152):** the title splash's canvas (every game's `title_sequence`, one code path)

@@ -111,6 +111,18 @@ public sealed partial class CommandPanelSet
     /// </summary>
     public CommandPanel? DiskMenu { get; init; }
 
+    /// <summary>
+    /// <c>_diskmenu(1)</c>'s first icon (the System menu's Save, <c>_disk(1)</c>): " SPACE" (table entry 1) at icon place 0,
+    /// before all three slot icons of <see cref="DiskMenu"/>; null when the pack lacks it.
+    /// </summary>
+    public CommandPanelIcon? DiskSpace { get; init; }
+
+    /// <summary>
+    /// <c>_diskmenu(1)</c>'s line under the slots (<c>_wkprcen(34, 68, 308, p4x.0x3f6c6)</c>): centred on
+    /// <see cref="CommandListText.X"/> at <see cref="CommandListText.Y"/> in window 34; null when the pack lacks it.
+    /// </summary>
+    public CommandListText? DiskCaption { get; init; }
+
     /// <summary>The top-left of icon <paramref name="index"/> inside the window (pack pixels).</summary>
     public (int X, int Y) IconAt(int index) => (IconX[index & 1], IconTop + IconStep * index);
 
@@ -154,6 +166,10 @@ public sealed partial class CommandPanelSet
             Extras = PanelExtras.Load(path),
             DiskMenu = dto.Disk is { } d
                 ? new CommandPanel("_diskmenu", d.Title ?? "", d.TitleText ?? "", Icons(d.Icons))
+                : null,
+            DiskSpace = dto.Disk?.Space is { } sp ? Icons([sp])[0] : null,
+            DiskCaption = dto.Disk?.Caption is { } cap
+                ? new CommandListText(cap.X, cap.Y, cap.Key ?? "", cap.Label ?? "", cap.Text ?? "")
                 : null,
         };
     }
@@ -246,6 +262,8 @@ public sealed partial class CommandPanelSet
         [JsonPropertyName("title")] public string? Title { get; set; }
         [JsonPropertyName("title_text")] public string? TitleText { get; set; }
         [JsonPropertyName("icons")] public List<IconDto>? Icons { get; set; }
+        [JsonPropertyName("space")] public IconDto? Space { get; set; }
+        [JsonPropertyName("caption")] public TextDto? Caption { get; set; }
     }
 
     private sealed class IconDto

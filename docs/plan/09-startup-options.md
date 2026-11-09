@@ -114,8 +114,9 @@ own D-entry.
   during the Mystic's three counted loops (~23 s, no keys in P4.X) runs their remaining passes at once
   (`P4MysticReading.SkipLoops`): the same final picture, then the original wait for a key. The score and verdict are the
   town loop's either way. That input closes nothing.
-- **Save slots** (every game, `saveSlots`, `options.save_slots`; off = the one save): numbered slots beside the
-  autosave, a slot picker for Save / Load and the main menu (`12-save-slots.md`). A presentation switch, not a rule:
+- **Save slots** (every game, `saveSlots`, `options.save_slots`; off = the one save, IV: its original's three slots on
+  its own Save page): numbered slots beside the autosave, a slot picker for Save / Load and the main menu
+  (`12-save-slots.md`). A presentation switch, not a rule:
   Load must know it before any save is read.
 - **Combat speed** (presentation, per game): I and III show AMIGA SCREENS and COMBAT SPEED (the Amiga's Speed menu, s117 /
   s132); **II shows COMBAT SPEED only** (s136: the ST's Speed menu, FAST 5 / NORMAL 10 / SLOW 1000 ms a combat line; at

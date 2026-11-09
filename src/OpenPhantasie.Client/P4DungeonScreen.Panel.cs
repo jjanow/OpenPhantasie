@@ -39,6 +39,7 @@ public sealed partial class P4DungeonScreen
     /// <c>_confirm</c>), the shipwright's <c>_noyes</c> box, and in a fight only the found-item question's <c>_findit</c>.
     /// </summary>
     public string? PanelName => !Game.LoopBuilt || DoorOpen || MysticBusy || WelcomeUp ? null
+        : DiskPageUp ? (DiskPanelShown ? SystemPanel(_system!.Value) : null)
         : Game.Battle is { } fight ? (fight.Prompt == P4BattlePrompt.Treasure ? "_findit" : null)
         : MenuOpen ? M!.IconMenu is { } m ? (m.Length == 0 ? null : m)
             : DefaultPanel(M.Prompt == P4MenuPrompt.Wait, M.Prompt == P4MenuPrompt.Confirm)
@@ -95,7 +96,7 @@ public sealed partial class P4DungeonScreen
 
     /// <summary>The panel or icon row now up from the pack (null without one, or when no panel is shown).</summary>
     private CommandPanel? CurrentPanel =>
-        PanelName is { } name && Assets?.Pack?.CommandPanels?.Find(name) is { } p ? p : null;
+        PanelName is { } name && (DiskPanel(name) ?? Assets?.Pack?.CommandPanels?.Find(name)) is { } p ? p : null;
 
     /// <summary>The name of the shipwright's YES / NO box (<c>_noyes</c>) in <see cref="PanelName"/>.</summary>
     public const string NoYesName = "_noyes";
@@ -172,6 +173,7 @@ public sealed partial class P4DungeonScreen
             ("_hhist", "N") => Keys.Space,
             ("_confirm" or "_htran" or "_acend" or "_acend.2" or "_findit", "O") => Keys.Y,
             ("_confirm" or "_htran" or "_acend" or "_acend.2" or "_findit", "C") => Keys.N,
+            (SavePanelName or LoadPanelName, [var d and >= '1' and <= '3']) => Keys.D0 + (d - '0'),
             _ => PanelKey(icon),
         };
     }
@@ -379,7 +381,7 @@ public sealed partial class P4DungeonScreen
             if (Assets?.Get($"p4.icon.{icon.Icon}") is { } picture) // s151: lit under the pointer (_xicon)
                 batch.Draw(IconUnderPointer(picture, topLeft, set.IconSize * k), topLeft, null, Color.White, 0f, Vector2.Zero, k,
                     SpriteEffects.None, 0f);
-            var label = PanelText(icon.Label, icon.Text);
+            var label = DiskLabel(panel, icon, PanelText(icon.Label, icon.Text));
             if (labelFont is not null)
             {
                 var (lx, ly) = PanelLabelAt(x, y, set.IconSize, PixelFont.Measure(label, labelFont), w);
@@ -409,8 +411,26 @@ public sealed partial class P4DungeonScreen
                 UiOverlays.Hits?.Add(new HitRegion(new Rectangle((int)topLeft.X, (int)topLeft.Y, size, size),
                     new P4PanelIconTag(panel.Name, i, line)) { Click = [key] });
         }
+        if (panel.Name == SavePanelName && set.DiskCaption is { } caption)
+            DrawDiskCaption(batch, pixel, body, k, caption, black);
         if (KeypadUp && panel.Row is null)
             DrawKeypad(batch, pixel, body, k); // s151: _numin's keys in window 34, under the Bank's icons
+    }
+
+    /// <summary>
+    /// <c>_diskmenu(1)</c>'s line under the slots (<c>_wkprcen(34, 68, 308, …)</c>): centred on the caption's x at its y in
+    /// the window, font 0 [~] in colour 0, kept inside the frame.
+    /// </summary>
+    private void DrawDiskCaption(SpriteBatch batch, Texture2D pixel, Vector2 body, float k, CommandListText caption, Color colour)
+    {
+        var text = PanelText(caption.Label, caption.Text);
+        var font = FontSources.ForRole(Assets?.Pack, MysticFontRole);
+        var w = font is not null ? PixelFont.Measure(text, font) : (int)Math.Ceiling(PixelFont.Measure(text) / k);
+        var x = Math.Max(PanelMargin, caption.X - w / 2);
+        if (font is not null)
+            PixelFont.DrawScaled(batch, pixel, body + new Vector2(x * k, caption.Y * k), text, colour, k, font);
+        else
+            PixelFont.Draw(batch, pixel, (int)Math.Round(body.X + x * k), (int)Math.Round(body.Y + caption.Y * k), text, colour);
     }
 
     /// <summary>

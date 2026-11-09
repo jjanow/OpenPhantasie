@@ -3,7 +3,9 @@
 **Asked for (user, s81 in D3-028; built at the user's request):** "modern save slots beside autosave". Each game gets
 numbered save slots next to its autosave. Save and Load pick a slot from a list that shows each slot's party, place and
 date. A slot that holds a save asks before it is overwritten. The main menu can load a save. It covers all four games,
-since the end goal is one interface for the series. Off = the original single save, exactly as before.
+since the end goal is one interface for the series. Off = the original single save, exactly as before. IV is the
+exception: its original already has three slots, so off = those three on the original's own Save page (user s177:
+"two states - the original three slot system and the new qol system", section 2a).
 
 QoL, so off by default. No manual↔code conflict, so no new `DIFFERENCES*.md` entry; D3-028's Remaster bullet points
 here.
@@ -45,8 +47,28 @@ save file.
 - **The single save becomes the game's first slot.** It keeps its file name, so with the switch off, or after turning it
   off, the game reads and writes exactly that file, as before. Nothing is migrated (no old-save compatibility).
 - **IV has no autosave**, so its first slot is a numbered one. The original has three slots (manual p. 6 and p. 33:
-  "Save 1", "Save 2" or "Save 3"; `_diskmenu`'s `*1:Save`–`*3:Save`, `FORMAT.md` 6.10) `[C]`. With the switch on, IV
-  has exactly those.
+  "Save 1", "Save 2" or "Save 3"; `_diskmenu`'s `*1:Save`–`*3:Save`, `FORMAT.md` 6.10) `[C]`. **IV always has those
+  three files, whichever way the switch is** (`SaveSlots.Slotted`); the switch picks only the screen (section 2a).
+
+## 2a. IV with the switch off: the original's three slots (user s177)
+
+The user's call on section 8's `[U]`: two states, a toggle. Off = the original three-slot system, on = the QoL picker.
+
+- **Save** (F5, System ▸ S, the final screen's YES) opens `_diskmenu(1)` as P4.X draws it (`0x1AB4`, `_disk(1)`
+  `0x1C7E`) `[C]`: window 34 titled "Select File", " SPACE" (table entry 1, icon 20) at icon place 0, then all three
+  "k:Save" icons (icon 1) at places 1–3 with '*' (saved: the slot's file exists) or ' ' written over the label's
+  first character, and "[original text]" ("* = saved") centred on x 68 at y 308 (`_wkprcen(34, 68, 308, …)`). A slot's
+  key or icon saves there at once (no question over a saved slot, as `_disk` takes one `_mgetc`); SPACE goes back.
+  After either, System ▸ S goes back to the System icons (`_syscon`'s loop), F5 to the place, the final screen to
+  `_acgamend(1)`.
+- **Load in a running game (F9)** is the remaster's: the original loads only from the title (`_disk(0)`). It opens the
+  same window with SPACE and the slots that hold a save at the next places (as `_disk(0)` places them); with none, "No
+  IV save to load." It also works over a fight or a party menu, where the slots show as text lines `[~]`.
+- **The title's `_disk(0)`** shows each slot that holds a save, as the original does.
+- **Without the pack's panel** (or in a fight) the page lists the slots as text lines.
+- Data: the panels file's `"disk"` gained `"space"` and `"caption"` (`x68k_p4_panels.py`, `P4Panels.cs`).
+  Code: `P4DungeonScreen.System.cs` (`P4SystemPage.Save` / `Load`, `OriginalSlots`, `DiskPanel`, `DiskLabel`),
+  `P4ScreenRequest.SaveSlot` / `LoadSlot`. Tests: `P4OriginalSaveSlotsTests`.
 - Files sit in the remaster's data folder (`ClientSettings.DataDirectory`). `SaveSlots` takes the folder as a
   parameter, so tests use a temporary folder.
 
@@ -124,8 +146,8 @@ opens the picker in **Start** mode. NEW GAME is the first row (key N) and the sl
 
 - **I–III:** a slot builds the game (as Play does) and then loads it, as F9 would.
 - **IV with its title screen on:** the original's start menu (`_disk(0)`) already shows a `*k:Save` icon for each slot
-  that holds a save. With the switch on, that covers all three slots. With the title screen off, the picker opens
-  instead.
+  that holds a save, either way the switch is. With the title screen off, the picker opens instead (switch off: a new
+  game, and F9 loads).
 
 With the switch off, or with no save, picking a game starts a new one, as before.
 
@@ -137,7 +159,8 @@ With the switch off, or with no save, picking a game starts a new one, as before
  NEW INVENTORY SCREEN OFF
 ```
 
-The row's description (`options.save_slots.desc`) gives the slot counts and says that OFF keeps the one save.
+The row's description (`options.save_slots.desc`) gives the slot counts, says that OFF keeps the one save in I–III, and
+that IV always has three slots (ON in the list, OFF on the original's Save screen).
 
 ## 7. Saves
 
@@ -147,11 +170,9 @@ The row's description (`options.save_slots.desc`) gives the slot counts and says
 
 ## 8. Built: what is left
 
-- **IV's original has three slots `[?]`.** Manual p. 6 and p. 33 and `_diskmenu` both have them, so with the switch
-  off, IV's single save is the remaster's own `[~]`, not the original's. Should IV's SAVE SLOTS default to on, or
-  should IV always have its three slots? This is the user's call.
-- **The picker is the remaster's own screen in every look.** IV's System ▸ Save page (manual Figure 9: SPACE, 1 Save,
-  2 Save, 3 Save in window 34, "*" = saved) is not drawn `[~]`.
+- **The picker is the remaster's own screen in every look** (switch on). IV with the switch off uses the original's
+  Save page instead (section 2a).
+- **IV's "Now Saving..."** (`_save`'s window) is not drawn: the note says "Saved in slot k." `[~]`.
 - **Other games' reads** take the newest slot of the source game. There is no picker for which slot a transfer or the
   Hall reads `[~]`.
 - **Main menu load in I–III** builds a new game first and then loads, as F9 after Play does. Esc in D-069's
@@ -160,5 +181,6 @@ The row's description (`options.save_slots.desc`) gives the slot counts and says
   off) a town shows as TOWN n `[~]`.
 - **Not unit-tested:** the routing in `Game1`.
   - Checked live on Xvfb: I's F5 / overwrite question / F9 into D-069's question, the main menu's Start screen
-    (scrolled list), and IV's F5 / F9 with Pendragon named.
+    (scrolled list), and IV's F5 / F9 with Pendragon named; s177 IV with the switch off: F5's Save page, a save to
+    slot 2 (then "*2:Save"), F9's load page and the load. Not live: the title's `_disk(0)` with slots 2 / 3.
   - Not checked live: II, III (same code path as I), the pad (no pad on Xvfb) and the mouse.

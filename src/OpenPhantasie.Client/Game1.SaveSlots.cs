@@ -5,7 +5,8 @@ namespace OpenPhantasie.Client;
 
 /// <summary>
 /// QoL SAVE SLOTS (<c>docs/plan/12-save-slots.md</c>, <see cref="GameSettings.SaveSlots"/>): the shell's side of the slot
-/// picker (<see cref="SaveSlotScreen"/>). Save and Load in every game open it when the game's switch is on; picking a game
+/// picker (<see cref="SaveSlotScreen"/>). Save and Load in every game open it when the game's switch is on (IV off: its
+/// original's Save page on the same three slots, <see cref="P4DungeonScreen.OriginalSlots"/>); picking a game
 /// on the main menu opens it on NEW GAME and the game's saves when any slot holds one. The autosave on leaving town keeps
 /// writing the game's one save (the AUTO slot) and never asks.
 /// </summary>
@@ -44,9 +45,9 @@ public partial class Game1
             StartGame(game);
     }
 
-    /// <summary>IV's save of title slot <paramref name="slot"/>: with SAVE SLOTS that slot's file, else the one save.</summary>
-    private string P4SlotPath(int slot) =>
-        _settings.Game(GameId.P4).SaveSlots && slot >= 1 && slot <= SaveSlots.NumberedCount(GameId.P4)
+    /// <summary>IV's save of slot <paramref name="slot"/> (1–3; IV always has its original's three, either way the switch is).</summary>
+    private static string P4SlotPath(int slot) =>
+        slot >= 1 && slot <= SaveSlots.NumberedCount(GameId.P4)
             ? SaveSlots.PathOf(ClientSettings.DataDirectory, GameId.P4, slot)
             : ClientSettings.SavePathFor(GameId.P4);
 

@@ -14,6 +14,12 @@ public enum P4ScreenRequest
 
     /// <summary>s158: <c>_acend(1)</c>, Back to the title screen: IV's title splash with its <c>_disk(0)</c> menu.</summary>
     Title,
+
+    /// <summary>SAVE SLOTS off: a slot picked on <c>_diskmenu(1)</c> (<see cref="P4DungeonScreen.RequestedSlot"/>): save there.</summary>
+    SaveSlot,
+
+    /// <summary>SAVE SLOTS off: a slot picked on F9's load page (<see cref="P4DungeonScreen.RequestedSlot"/>): load it.</summary>
+    LoadSlot,
 }
 
 /// <summary>
@@ -126,8 +132,18 @@ public sealed partial class P4DungeonScreen
                 case Keys.F5 when !Game.CanSave:
                     Note = UiText.S("p4.town.no_save_inside");
                     continue;
+                case Keys.F5 when OriginalSlots && _system is not (P4SystemPage.Save or P4SystemPage.Load):
+                    OpenSavePage(_system); // the original's three slots (System ▸ S's page)
+                    continue;
+                case Keys.F5 when OriginalSlots:
+                    continue;
                 case Keys.F5:
                     return P4ScreenRequest.Save;
+                case Keys.F9 when OriginalSlots && _system is not (P4SystemPage.Save or P4SystemPage.Load):
+                    OpenLoadPage();
+                    continue;
+                case Keys.F9 when OriginalSlots:
+                    continue;
                 case Keys.F9:
                     return P4ScreenRequest.Load;
                 case Keys.Escape:
@@ -144,7 +160,9 @@ public sealed partial class P4DungeonScreen
                     continue;
                 W.AnswerEnding();
                 OpenSelectGameFinal();
-                if (key is Keys.Y or Keys.O)
+                if (key is (Keys.Y or Keys.O) && OriginalSlots)
+                    OpenSavePage(P4SystemPage.SelectGameFinal); // _disk(1), then _acgamend(1)
+                else if (key is Keys.Y or Keys.O)
                     return P4ScreenRequest.Save;
                 continue;
             }
@@ -154,7 +172,7 @@ public sealed partial class P4DungeonScreen
                 OpenSelectGameFinal();
                 continue;
             }
-            if (_system is not null && Game.Battle is null)
+            if (_system is not null && (Game.Battle is null || DiskPageUp))
             {
                 if (SystemKey(key) is { } request)
                     return request;
@@ -386,6 +404,8 @@ public sealed partial class P4DungeonScreen
     public IReadOnlyList<MenuLine> BoxLines()
     {
         var lines = new List<MenuLine>();
+        if (DiskPageUp)
+            return SystemLines(); // F9's load page also over a fight or a party menu
         if (Game.Battle is { } battle)
             return BattleLines(battle);
         if (!Game.LoopBuilt)
@@ -515,7 +535,8 @@ public sealed partial class P4DungeonScreen
         i == Cursor ? new(">" + text, MenuLineStyle.Selected) : new(" " + text, MenuLineStyle.Normal);
 
     /// <summary>The bottom help line for the current prompt.</summary>
-    public string Help => Game.Battle is { } b ? BattleHelp(b)
+    public string Help => DiskPageUp ? SystemHelp
+        : Game.Battle is { } b ? BattleHelp(b)
         : DoorOpen || MysticBusy || WelcomeUp ? "" // no keys are read: no help to give
         : MenuOpen ? M!.Prompt switch
         {
