@@ -300,7 +300,9 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
 /// <summary>
 /// Guild D)ROP MEMBER (OV1 <c>0x225c</c>, `guild.whom_do_you_want_to_drop`): a digit sends that member back to the roster through
 /// <see cref="GameSession.TryDropFromParty"/> (<c>@218</c> := 0; I: every Drop also clears the elemental slot, OV1 <c>0x22d1</c>; III keeps it while a character is
-/// left, <see cref="ElementalRules.DropKeeps"/>; the save's <c>elemental-drop</c> can pick either in any game).
+/// left, <see cref="ElementalRules.DropKeeps"/>; II keeps it even alone; the save's <c>elemental-drop</c> can pick I's or III's in
+/// any game). s172: in II and III (<see cref="ElementalRules.DropsElemental"/>) the loaded elemental is the row after the
+/// characters, and its digit unloads it (ST <c>0xd57c</c>'s seven-record list; DOS III ovl2 <c>0x3c92</c>).
 /// </summary>
 public sealed class GuildDropDialog : IModalDialog
 {
@@ -317,14 +319,21 @@ public sealed class GuildDropDialog : IModalDialog
     {
         if (session.Mode is not (GameMode.Guild or GameMode.Title))
             return UiText.S("guild.only_in_the_guild");
-        if (session.Party.Members.Count == 0)
+        if (session.Party.Members.Count == 0 && ListedElemental(session) is null)
             return UiText.S("guild.no_one_to_drop");
         IsOpen = true;
         return null;
     }
 
+    /// <summary>The loaded elemental when this game's Drop list holds it (<see cref="ElementalRules.DropsElemental"/>), else null.</summary>
+    public static Character? ListedElemental(GameSession session) =>
+        session.GuildElementalRules.DropsElemental ? session.Party.Elemental : null;
+
     public IReadOnlyList<string> Lines(GameSession session, GameDataRepository data) =>
-        [Title, .. session.Party.Members.Select((m, i) => $"{i + 1} {m.Name}")];
+    [
+        Title, .. session.Party.Members.Select((m, i) => $"{i + 1} {m.Name}"),
+        .. ListedElemental(session) is { } e ? [$"{session.Party.Members.Count + 1} {e.Name}"] : Array.Empty<string>(),
+    ];
 
     public string? HandleKeys(IEnumerable<Keys> newKeys, GameSession session)
     {
@@ -341,9 +350,16 @@ public sealed class GuildDropDialog : IModalDialog
             {
                 var member = session.Party.Members[d - 1];
                 var ok = session.TryDropFromParty(member, out var error);
-                if (session.Party.Members.Count == 0)
+                if (session.Party.Members.Count == 0 && ListedElemental(session) is null)
                     IsOpen = false;
                 return ok ? UiText.F("guild.x_leaves_the_party", member.Name) : error;
+            }
+            if (d == session.Party.Members.Count + 1 && ListedElemental(session) is { } elemental)
+            {
+                var ok = session.TryDropElemental(out var error);
+                if (session.Party.Members.Count == 0)
+                    IsOpen = false;
+                return ok ? UiText.F("guild.x_leaves_the_party", elemental.Name) : error;
             }
         }
         return null;

@@ -51,6 +51,7 @@ own D-entry.
  NEW INVENTORY SCREEN OFF
  TIME LAG AND SOUND  T COMMAND
  COLORBLIND PALETTE  OFF
+ AUTO-MAP BOX        ON                 ← I, II and III
  TERRAIN KEY         OFF                ← II only
  MYSTIC SKIP         OFF                ← IV only
  RULES FOR NEW GAMES
@@ -80,14 +81,23 @@ own D-entry.
 - **Game tab**, top to bottom: presentation (graphics, title screen and title tune (section 8), on I and III **Amiga
   audio filter** (section 8), diagonal moves, status lines, continue from a list, new inventory screen, **time lag and
   sound**: `T COMMAND` / `IN OPTIONS`, the D-073 QoL switch; with `IN OPTIONS` a TIME LAG 0–9 row and a SOUND row follow and T is no command), **colorblind palette** (P3
-  QoL, off = the original colours), on II **terrain key** and on IV **Mystic skip** (both s171 P3 QoL, below), then
+  QoL, off = the original colours), on I, II and III **auto-map box** (s172 P3 QoL, below), on II **terrain key** and on IV **Mystic skip** (both s171 P3 QoL, below), then
   **Rules for new games**: the preset row, every rules option of that game, then the feature modules of other games
   ("from other games"), which show "NOT BUILT" until they are decoded.
 - **Terrain key** (II only, `terrainKey`, `options.terrain_key`; off = the ST, no key, D2-014): the rulebook's terrain
   key beside the wilderness map, rows from `GameData/phantasie2/terrain-key.json` (string id of the manual's name + the
   pack pictures as swatches: the ST fill patterns `overworld.pattern.N`, the map icons, the party sprite). The party keeps
   its first row of cards and the key takes the room under it; both scroll (wheel, bar) what does not fit. Shown only when
-  the pack holds the pictures (the ST pack, not the Apple II's).
+  the pack holds the pictures (the ST pack, not the Apple II's). s172 (user): keys too (`SidebarScroll`): `[` / `]` scroll
+  the party cards (also I / III's sidebar, e.g. with an elemental), `,` / `.` the key; pad: right stick up / down the cards,
+  right trigger + right stick the key. The field help line names them (`game.3_n_e_s_w_arrows*`).
+- **Auto-map box** (I, II and III, `autoMap`, `options.auto_map`; **on** by default, user s172; off = the originals, which
+  draw no box): the dungeon's whole-level overview (`UiOverlays.TileOverviewPlacement` / `DrawDungeonOverview`), opaque,
+  inside the dungeon view left of the member cards, in the view's corner farthest from the party's glyph, never over it
+  or a card (III: 3 × 2 px cells, 76 × 64; I / II glyph view: 2 × 1 px, 70 × 42; the whole level, no cell cut). Seen
+  cells take their glyph's commonest colour, the party cyan; a click on a cell walks there. Tab in the dungeon flips this
+  same setting (saved), so the row shows what Tab last set. IV's dungeon screen (`P4DungeonScreen`) has no box, so no
+  row. Replaces the top-level `autoMapVisible` (s171 and before, one switch for all games; no longer read).
 - **Mystic skip** (IV only, `mysticSkip`, `options.mystic_skip`; off = P4.X): Space, Return, a left click or the pad's A
   during the Mystic's three counted loops (~23 s, no keys in P4.X) runs their remaining passes at once
   (`P4MysticReading.SkipLoops`): the same final picture, then the original wait for a key. The score and verdict are the
@@ -107,7 +117,7 @@ own D-entry.
 | Scope | Examples | Changed | Stored |
 |---|---|---|---|
 | **Global** | window scale, start maximized, key bindings, DOS save folder | any time | `settings.json` top level |
-| **Per-game presentation** | graphics pack, title screen and title tune (section 8), diagonal moves (D-076), status lines (D-077), continue from a list (D-069 QoL), inventory screen, combat speed (I, II, III), time lag and sound in the options (D-073 QoL; the lag and sound values themselves stay top level), colorblind palette (P3 QoL), terrain key (II) and Mystic skip (IV) (s171 P3 QoL) | any time, also in game | `settings.json` → `games.<p1>` |
+| **Per-game presentation** | graphics pack, title screen and title tune (section 8), diagonal moves (D-076), status lines (D-077), continue from a list (D-069 QoL), inventory screen, combat speed (I, II, III), time lag and sound in the options (D-073 QoL; the lag and sound values themselves stay top level), colorblind palette (P3 QoL), terrain key (II) and Mystic skip (IV) (s171 P3 QoL), auto-map box (I, II, III; s172 P3 QoL, on by default) | any time, also in game | `settings.json` → `games.<p1>` |
 | **Per-game rules** | DOS-vs-manual choices, QoL rule toggles, cross-game feature modules, transfer and lineage options | game tab = defaults for **new** games | copied into the save at new game; locked |
 
 Presets cover **rules only**. Presentation switches stay outside them, so a fresh install (diagonal moves ON at the user's
@@ -150,7 +160,7 @@ request) never reads as "Custom".
   `creation-tables.json` `dos_tables` (`CharacterCreationTables.ForRules`, `GameSession.CreationTables`); the Guild size
   comes from `rules.json` `guild_by_platform.dos`. Then `p1.town-healing` D-010, `p1.beg-mercy` D-017, `p1.sack-size`
   D-018, `p1.sleep` D-020, `p1.charm` D-022, `p1.teleport` D-023, `p1.wild-treasure` D-031, `p1.summon-party` D-033,
-  `p1.combat-shares` D-053, `p1.continue` D-069 (Continue reads the file's own rules before it asks), and the lists
+  `p1.monster-spell-target` D-033 (split from `p1.summon-party`, user s172), `p1.combat-shares` D-053, `p1.continue` D-069 (Continue reads the file's own rules before it asks), and the lists
   `p1.cast-list` D-035, `p1.transport-list` D-062, `p1.combat-spell-list` D-063, plus `p1.orders-reset` D-078 (the
   Client's combat presenter clears its kept orders when `GameSession.OrdersResets` changes).
 - **Phantasie II (T3, I → II transfer, `TransferIToII`):** `p2.transfer-spells` (D2-002): `manual` (Original (manual)) or
@@ -184,7 +194,7 @@ request) never reads as "Custom".
   `p3.dungeon-map-no` D3-038; the transfer (s147) `p3.transfer-source` D3-004, `p3.transfer-level` D3-007,
   `p3.transfer-divine` D3-002, `p3.transfer-wand` D3-001. Three-value options (the middle value in no preset):
   `p3.found-items` D3-020 (`manual` 90, `unlimited`, `dos` 60), `p3.bank` D3-025 (`manual`, `no-fee`, `dos`),
-  `p3.trade` D3-027 (`manual`, `give-only`, `dos`), `p3.purge` D3-040 (`manual`, `phantasie-i`, `dos`). Same value in
+  `p3.trade` D3-027 (`manual`, `give-only`, `dos`); D3-040's former `p3.purge` is folded into `elemental-purge` (s172). Same value in
   every preset: `p3.transfer-roster` D3-003 (`add`, or `erase`) and `p3.boss-flee` D3-024 (`blocked`, or `allowed`).
   DOS bugs fixed by default, no D-entry (manual silent): `p3.altar` and `p3.event-gold` (`fixed`, `dos` in Original
   (DOS)). Menu order: `P3RuleOptions.All`.
@@ -217,11 +227,14 @@ request) never reads as "Custom".
   (`RuleOptionDescriptor.Games`; IV picks its elemental when the party is formed and has no Guild Add / Drop / Purge of
   one, so they are not in its tab), listed before `guild-limit`. Every preset gives `game` = the game's own rule, so no
   preset changed; the other values are a player choice through Custom, each an original's decoded rule:
-  `elemental-load` (`game`: I and II six characters first and nobody after it, III one character and more in front of
-  it; `phantasie-i`, `phantasie-iii`), `elemental-drop` (`game`: I and II every Drop unloads it, III it stays while a
-  character is left; `phantasie-i`, `phantasie-iii`) and `elemental-purge` (D3-040; `game`: I and II purge and unload,
-  III `p3.purge`; `phantasie-i` unloads, `as-drop` does what this save's Drop does (III's manual), `refused` = DOS III's
-  "Drop first"; any value but `game` replaces `p3.purge`). Core: `ElementalGuildRules` (`GameSession.GuildElementalRules`,
+  `elemental-load` (`game`: I six characters first and nobody after it, II (ST, s172) no count and characters beside
+  it, III one character and more in front of it; `phantasie-i`, `phantasie-iii`), `elemental-drop` (`game`: I every Drop
+  unloads it, II it stays even alone, III it stays while a character is left; `phantasie-i`, `phantasie-iii`) and
+  `elemental-purge` (D3-040; `game`: I purges and unloads, II purges and keeps it, III follows the preset (s172: Manual /
+  Remaster / Custom `as-drop`, Original `refused`; `p3.purge` folded in); `phantasie-i` unloads, `as-drop` does what this
+  save's Drop does (III's manual), `refused` = DOS III's "Drop first"). Each game's own rule is data: rules.json
+  `elementals` (`min_members`, `blocks_add`, `drop_keeps`, `keeps_alone`, `drops_elemental`, `purge`, `purge_original`,
+  `summon_min_members`). Core: `ElementalGuildRules` (`GameSession.GuildElementalRules`,
   `GameSession.PurgeRule`); summoning in combat (D-033) and I's town-entry unload keep the game's own rules. In every game
   and value no elemental leaves the game: the records stay in the Guild (`ElementalTemplates`), Purge refuses an
   elemental (`GuildHall.PurgeRefusal`, also a record of race 16 in a roster), and Drop / Purge only unload the party copy.

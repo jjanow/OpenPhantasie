@@ -186,16 +186,6 @@ public static class P3RuleOptions
     public static readonly RuleOptionDescriptor Lifespans = ManualOrDos("p3.lifespans", "D3-041");
 
     /// <summary>
-    /// D3-040 (user s99): Purge on a party member purges it and keeps a loaded elemental while a character is left, as
-    /// III's Drop (<c>manual</c>), purges it and unloads the elemental as Phantasie I (<c>phantasie-i</c>), or is refused
-    /// (<c>dos</c>: `core.guild.cannot_purge_party_member`). The elementals themselves can never be purged. Read only under
-    /// the every-game <see cref="RuleOptionRegistry.ElementalPurge"/> = <c>game</c>; any other value replaces it.
-    /// </summary>
-    public static readonly RuleOptionDescriptor Purge = new(
-        "p3.purge", GameId.P3, ["manual", "phantasie-i", "dos"],
-        Manual: "manual", Dos: "dos", Remaster: "manual", Difference: "D3-040");
-
-    /// <summary>
     /// D-063 for III (user s129): the combat spell list holds only combat and everywhere spells (<c>manual</c>), or every
     /// known spell (<c>dos</c>), as DOS III's picker; either way a non-combat (#52, #54, Divine Aid) or unaffordable pick is
     /// refused with DOS III's message and a Thrust (R1), no magic spent (root <c>0xfc41</c>, <see cref="P3CombatModule.CastRefusal"/>).
@@ -235,7 +225,7 @@ public static class P3RuleOptions
         SlashFallback, Lunge, ThiefAttack, Aim, DownTargets, ArmourDefence, ArrowFlame, BowSpells, Parry, StatusLetter,
         CombatSpellList,
         HealingIv, HealOrder, InnHealing, HitPoints, LevelGold, SkillTables, EncounterBlock, BossFlee, Mercy,
-        FoundItems, Bank, GoldCap, Trade, ArmoryRestock, AutoSave, Roster, Purge, Lifespans, Altar, EventGold, DungeonMapNo,
+        FoundItems, Bank, GoldCap, Trade, ArmoryRestock, AutoSave, Roster, Lifespans, Altar, EventGold, DungeonMapNo,
         TransferSource, TransferRoster, TransferLevel, TransferDivine, TransferWand,
     ];
 
@@ -318,15 +308,6 @@ public static class P3RuleOptionsExtensions
 
     /// <summary>D3-041: III characters get no lifespan (true, DOS) or the manual's.</summary>
     public static bool P3NoLifespans(this GameOptions o) => o.IsDos(P3RuleOptions.Lifespans);
-
-    /// <summary>
-    /// D3-040: what Guild ▸ Purge does to a party member (I's rule for a game without the option). The session reads it
-    /// through <see cref="ElementalGuildRules.PurgeRule"/> (the every-game <c>elemental-purge</c> can replace it).
-    /// </summary>
-    public static PurgePartyRule P3PurgeRule(this GameOptions o) =>
-        o.IsDos(P3RuleOptions.Purge) ? PurgePartyRule.Refused
-        : o.Is(P3RuleOptions.Purge, "manual") ? PurgePartyRule.KeepsElemental
-        : PurgePartyRule.ClearsElemental;
 
     /// <summary>
     /// D3-029: how many characters (elementals not counted) the Guild roster holds, null = no limit: the manual's no limit,

@@ -128,6 +128,34 @@ public class MainMenuAndOptionsTests
     }
 
     [Fact]
+    public void AutoMapBoxRow_OnI_II_III_NotIV_OnByDefault_EachGameItsOwn()
+    {
+        // PLAN P3 QoL (s172): the dungeon auto-map box is a presentation switch of each game whose dungeon has it.
+        var settings = new ClientSettings();
+        var o = new OptionsScreen(settings, _ => [], _ => true);
+        o.Open();
+        foreach (var game in new[] { GameId.P1, GameId.P2, GameId.P3 })
+        {
+            o.HandleKeys([Keys.Home, Keys.Right]);
+            Assert.Equal(game, o.Tab);
+            Assert.EndsWith("ON", Line(o, "AUTO-MAP BOX"));
+        }
+        o.HandleKeys([Keys.Home, Keys.Right]);
+        Assert.Equal(GameId.P4, o.Tab); // IV's own dungeon screen draws no box
+        Assert.DoesNotContain(o.RowTexts(), t => t.TrimStart().StartsWith("AUTO-MAP BOX"));
+
+        o.HandleKeys([Keys.Home, Keys.Left, Keys.Left]); // tab II
+        Assert.Equal(GameId.P2, o.Tab);
+        for (var i = 0; i < 30 && !o.Lines().Any(l => l.Text.StartsWith(">AUTO-MAP BOX", StringComparison.Ordinal)); i++)
+            o.HandleKeys([Keys.Down]);
+        o.HandleKeys([Keys.Enter]);
+        Assert.True(o.Changed);
+        Assert.False(settings.Game(GameId.P2).AutoMap);
+        Assert.EndsWith("OFF", Line(o, "AUTO-MAP BOX"));
+        Assert.True(settings.Game(GameId.P1).AutoMap && settings.Game(GameId.P3).AutoMap);
+    }
+
+    [Fact]
     public void GeneralTab_ChangesScaleWithinRange()
     {
         var settings = new ClientSettings { IntegerScale = 6 };
@@ -192,6 +220,10 @@ public class MainMenuAndOptionsTests
 
         o.HandleKeys([Keys.Down]); // → colorblind palette (P3 QoL), off = the original colours
         Assert.EndsWith("OFF", Line(o, "COLORBLIND PALETTE"));
+        o.HandleKeys([Keys.Down]); // → auto-map box (s172 P3 QoL), on by default
+        Assert.EndsWith("ON", Line(o, "AUTO-MAP BOX"));
+        o.HandleKeys([Keys.Enter]);
+        Assert.False(settings.Game(GameId.P1).AutoMap);
         o.HandleKeys([Keys.Down]); // → preset (the header is skipped)
         Assert.EndsWith("ORIGINAL (MANUAL)", Line(o, "PRESET"));
         o.HandleKeys([Keys.Right]);
@@ -270,10 +302,10 @@ public class MainMenuAndOptionsTests
         Assert.Equal(GameId.P1, o.Tab);
         Assert.Equal("> GENERAL  [I]", o.Lines()[1].Text);
 
-        // The locked rows can be scrolled to and read but not changed: Down past the twelve presentation rows (the header is
-        // skipped) lands on PRESET, and Right / Return there change nothing.
+        // The locked rows can be scrolled to and read but not changed: Down past the thirteen presentation rows (the header
+        // is skipped) lands on PRESET, and Right / Return there change nothing.
         o.HandleKeys([Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down,
-            Keys.Down, Keys.Down, Keys.Down]);
+            Keys.Down, Keys.Down, Keys.Down, Keys.Down]);
         Assert.Equal(MenuLineStyle.Selected, o.Lines().Single(l => l.Text.Contains("PRESET")).Style);
         Assert.Contains(o.Lines(), l => l.Text.Contains("THIS SAVE'S RULES (LOCKED)")); // the header above it
         o.HandleKeys([Keys.Right, Keys.Enter]);
@@ -375,7 +407,7 @@ public class MainMenuAndOptionsTests
             "options.tab", "options.window_scale", "options.start_maximized", "options.graphics", "options.diagonal_moves",
             "options.status_lines", "options.continue_from_list", "options.inventory_screen", "options.time_lag_where",
             "options.time_lag", "options.sound", "options.colorblind", "options.preset", "options.title_screen",
-            "options.terrain_key", "options.mystic_skip",
+            "options.terrain_key", "options.mystic_skip", "options.auto_map",
         };
         foreach (var game in MainMenuScreen.Games)
             ids.AddRange(RuleOptionRegistry.For(game).Select(d => "option." + d.Id));

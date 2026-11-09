@@ -47,7 +47,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-037 | After a successful Greet / Accept Surrender / Mercy / Flee, DOS still plays one full round | DECIDED: manual, fight ends at once; DOS extra round = bug, no option (s89) · built |
 | D3-038 | Re-entering a dungeon: DOS keeps a saved map per dungeon and asks "[original text]", no time factor; manual: monsters restock unless the party returns shortly | DECIDED (s96): I's D-027 rule per dungeon (YES = back soon, NO = restocked), no time factor |
 | D3-039 | Bow spells over each other: the last one sets the Fire Bow % (Arrow Flame after Accuracy lowers 250; Accuracy over a high Arrow Flame II lowers it) | DECIDED (s96): manual, no spell lowers the % (`p3.bow-spells`) |
-| D3-040 | Purge: DOS refuses a party member ("[original text]"); the manual's Purge drops the adventurer "from the guild list from the party" | DECIDED: manual, elemental as III's Drop · built (`p3.purge`); cross-game QoL `elemental-purge` · built |
+| D3-040 | Purge: DOS refuses a party member ("[original text]"); the manual's Purge drops the adventurer "from the guild list from the party" | DECIDED: manual, elemental as III's Drop · built (s172: `elemental-purge` = `game` follows the preset, `p3.purge` folded in) |
 | D3-041 | Lifespans: the manual's old age (decline, death); DOS writes a maximum age at creation but nothing reads it | DECIDED: manual (I's lifespans) · built (`p3.lifespans`) |
 | D3-065 | Title page: the manual says "Hit any key to get to the Initial Menu"; the Amiga shows the title only while the game loads and clears it with no key | DECIDED (user s103): wait for a key (manual) · built; tune plays on after the splash (user s157) · built |
 | D3-067 | Wolf / Mud Elemental pictures: the Amiga has none (byte 27 ≥ 48), shows the earlier fight's picture or hangs on the first fight after boot | DECIDED (user s126): bug, fixed with borrowed pictures (Wolf = Wild Dog, Mud Elemental = the party elemental), no option · built. s161: the DOS CGA pack borrows too (DOS's Skeleton / Forest Elf replaced; Troll Baby = the party Troll) · built |
@@ -687,7 +687,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   be seen again. Use with caution." (III PDF 5, Guild Commands.) Read as: Purge also takes a party member out of the
   party. Silent on a loaded elemental.
 - **Code:** DOS Guild ▸ Purge (root `guild_menu` `0xafe3…0xb09c`) `[C]` s98 static: needs more than the 3 elemental
-  records in the roster; "Who shall be purged?"; an elemental (race 16) → "You cannot purge an Elemental." (string 406);
+  records in the roster; "Who shall be purged?"; an elemental (race 16) → "[original text]" (string 406);
   a character in the party (roster record `+0x24` ≠ 0) → **"[original text]"** (string 448, pointer
   `DS:0x1a08`); else "Are you sure you want to purge this character permanently?" and root `0x864a` closes the roster gap
   (records after it move down, every party record's roster slot `+0x7e` above it −1, roster count −1). Party slots and
@@ -699,14 +699,22 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 - **Decision (user s99):** manual: a party member can be purged and leaves the party; a loaded elemental is handled as
   III's Drop (it stays while a character is left). I's rule (the elemental is unloaded) is an option. In no case can an
   elemental be removed from the game. Flagged as a QoL target for later (`PLAN.md` P3).
-- **Remaster:** rules option `p3.purge` (`GuildHall.TryPurge`, `PurgePartyRule`): `manual` (Original (manual) and
-  Remaster presets) · `phantasie-i` (the elemental is unloaded, I's OV1 `0x2489`) · `dos` (Original (DOS) preset: "You
-  cannot purge a party member."). The elemental records are Guild templates outside the roster, so Purge never lists
-  them; purging only unloads the party copy, and the elemental can be loaded again.
+- **Remaster:** (s172, user: fold `p3.purge` into `elemental-purge`) the every-game option `elemental-purge`
+  (`GuildHall.TryPurge`, `ElementalGuildRules.PurgeRule`) stays `game` in every preset, and III's `game` follows the
+  preset: the Original (manual), Remaster and Custom presets purge as III's Drop (`phantasie3/rules.json`
+  `elementals.purge` = `as-drop`), the Original (DOS) preset refuses ("[original text]",
+  `purge_original` = `refused`). `phantasie-i` / `as-drop` / `refused` pick a rule outright. Side effect of reading the
+  preset: a DOS-preset save whose rules are changed in any other option becomes Custom, and Custom reads the manual's
+  side, so its III Purge turns from refused to as-Drop while the option still says GAME'S OWN RULE (pick `refused` to keep
+  DOS's). The elemental records are Guild templates outside the roster; III's Purge list shows them after the characters
+  (as DOS's roster holds them in slots 0-2), and picking one is refused with DOS's string 406, "You cannot purge an
+  Elemental." (`core.guild.cannot_purge_elemental` in III's table; Amiga `0xb524`, window 7). Purging only unloads the
+  party copy, and the elemental can be loaded again. s172 also: III's Drop list holds the loaded elemental after the
+  characters and drops it by itself (DOS ovl2 `0x3c92`, `elementals.drops_elemental`).
 - **QoL across the games (PLAN P3, built):** every-game options for I, II and III (`09-startup-options.md` section 4):
   `elemental-load`, `elemental-drop` and `elemental-purge`, `game` in every preset (so nothing above changes by
   default). `elemental-purge` = `phantasie-i` / `as-drop` / `refused` puts I's rule, III's manual (what the save's Drop
-  does) or DOS III's refusal in any of the three games and replaces `p3.purge`. Purge now also refuses an elemental
+  does) or DOS III's refusal in any of the three games. Purge now also refuses an elemental
   itself in every game (`core.guild.cannot_purge_elemental`; DOS III string 406 is the same rule), so no game and no value
   removes an elemental from the game.
 - **Side effects:** none beyond the Guild; DOS's refusal only adds a step (Drop, then Purge).

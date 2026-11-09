@@ -145,6 +145,17 @@ See `elementals.md`.
   with `gamesave.dat`.
 - **Buy** (armory ovl2 `0x2f2a`): price `⌊value · index / 100⌋` (root `0xf22`); stock −1 (ovl2 `0x313e`); at 0 the kind
   leaves the list and row byte 0 (kinds) −1 (ovl2 `0x31fc`). "He cannot carry anymore!" at 9 items.
+- **What the buy wears** (s173, `[C]` static, not seen live): the Armory shops on a copy of the shopper's record
+  (`FAR:0x9de8`, copied in at `0x2f37`; the buy adds to the copy's count `+0x26` and items `+0x96`). On Exit
+  (`0x3282…0x32ba`) it calls ready-best `0x37f1` on the record itself, then copies the shopping copy back over the
+  record. So the bought items arrive carried and the worn slots stay as they were on entering the Armory: buying wears
+  nothing (the next ready-best is the town-entry payout or a hand-out give). The buy itself never calls the gate
+  `0x39b5`; the list routine `0x32c8` does (`0x3319`), the manual's "the Item will be listed as Unusable". Remaster: no
+  auto-wear for III (`ICampaign.AfterArmoryBuy`); its after-buy UNUSABLE line uses III's gate; the list itself shows no
+  Unusable marker yet.
+- **The hand-out** (`0x061f`, s173 `[C]` static): the "who can use" column is `0x39b5(STR, DEX, id)` ≥ the table
+  requirement for ids < 101 (`0x0788`); each item given to a character is appended to its list and ready-best `0x37f1`
+  runs for that character at once (`0x0b25`). The screen never clears a worn slot.
 - **Sell** (Distribute, §3): stock of the current town +1 (ovl2 `0xab3`); a kind at 0 first raises byte 0 (ovl2 `0xa8f`).
   No cap: a potion row at 200+ would wrap past 255 `[~]`.
 - **Entering a town** (root `0xa911`): ages the party (ovl3 `0x65a`, `planes.md` §3a), then rebuilds the price list from

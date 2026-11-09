@@ -394,7 +394,7 @@ Taken when the gate passes (`rand0_99 + 1 ≤ gate·(2g + 2)/(ranks + 2)`, integ
 
 | id | effect | values |
 |---|---|---|
-| 1–4 | one target: `list[rand0_99·[0x6490]/100]` (`0x43ae` list `[0x64a2]` of non-DEAD members in party order, as last rebuilt; `[0x6490]` is the last living **index** until a monster has acted in a round with orders, the count after — §[original text] "The living list and its word"); `0x124a(t, d, 0)` — no resist roll, no armor, floor 1; a DEAD target takes nothing. Core: the count everywhere, DOS's word and list under D-033 `dos` | `d = rand0_99·k/100`, k = 12 / 35 / 70 / 120 |
+| 1–4 | one target: `list[rand0_99·[0x6490]/100]` (`0x43ae` list `[0x64a2]` of non-DEAD members in party order, as last rebuilt; `[0x6490]` is the last living **index** until a monster has acted in a round with orders, the count after — §[original text] "The living list and its word"); `0x124a(t, d, 0)` — no resist roll, no armor, floor 1; a DEAD target takes nothing. Core: the count everywhere, DOS's word and list under D-033's `p1.monster-spell-target` `dos` | `d = rand0_99·k/100`, k = 12 / 35 / 70 / 120 |
 | 5–8 | the casting **group's** attack power `+0x37 := 30·n² + 35`, n = id − 5 | 35 / 65 / 155 / 305 |
 | 9–12 | group damage `+0x16 := 15·n²/10 + 8`, n = id − 8 | 9 / 14 / 21 / 32 |
 | 13–16 | group armor `+0x14 := 4·(id − 12) + 4` | 8 / 12 / 16 / 20 |
@@ -944,8 +944,10 @@ A DEAD target takes nothing and prints nothing (`0x124a` returns on status 0), a
 ever read stale (a summon in a count phase, word 5 → 6); it holds slot 5 (last rebuilt with all six adventurers
 non-DEAD) or slot 6 (last rebuilt in a fight with the elemental in and one adventurer DEAD). `[?]` The first values:
 `0x64a2` and `0x6490` lie in the COM's BSS (past the unpacked image), so before any rebuild they hold whatever memory
-held. Core: `DosLivingList` on `Party.DosLiving` (saved in the wilderness snapshot), read only under D-033
-`dos`; an entry never written gives no target.
+held. Core: `DosLivingList` on `Party.DosLiving` (saved in the wilderness snapshot, kept up whatever the options), read
+only under D-033's `dos` values: the summon test and list write under `p1.summon-party`, the specials' pick under
+`p1.monster-spell-target` (split s172; a `manual` summon writes nothing, so with only the target option on `dos` the
+elemental is listed at the next rebuild and no entry goes stale); an entry never written gives no target.
 
 **Fighting [C].** It does nothing in the round it arrives (action 4 from the build; `0x1b4` skips actions ≤ 4). From
 the next round it is an ordinary member: the orders phase (`0x6ab9`) lists it if OK and the player gives it orders
@@ -986,7 +988,8 @@ Confirmed live. The `@254` write (`0x1b44`) loops all 7 slots, so it is not skip
 **Core (s33):** `Party.Elemental` (slot 7, kept out of `Party.Members` outside combat), `GuildHall.TryAddElemental`
 (six members, none loaded) and the Add refusal while loaded; Drop / Purge (party member) / town entry / party defeat
 clear it. `CombatSpells.SummonElemental`: no roll, MP spent, condition **six non-DEAD members** (D-033, manual; the
-`p1.summon-party` `dos` value plays DOS's test, list write and second summon on `Party.DosLiving`, above), appended with
+`p1.summon-party` `dos` value plays DOS's test, list write and second summon on `Party.DosLiving`, above; the specials'
+pick from that list is `p1.monster-spell-target`), appended with
 action none; `GameSession` removes it from the party on every
 combat exit before rewards / wake-up, a fight won with all six adventurers DEAD counts as a wipe, and `BeginCombat`
 sets a loaded elemental's status to OK (HP kept). The elemental's combat fields are a switch,

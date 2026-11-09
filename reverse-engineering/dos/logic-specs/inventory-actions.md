@@ -23,6 +23,14 @@ save); the screen itself is a presentation option.
 | DEAD members' items are pooled and DEAD members can be given items | OV1 `0x2ab3` / give `0x2e03` (no status test) [C] |
 | Carried slots keep holes (a drunk potion empties its slot in place); the sack keeps holes (a kept item fills the first empty slot) | `CarriedItems` [C] s58; `LootSack` [D✓] s65 |
 
+**Per game (s171 / s173).** The table above is I's (and II's: the ST's gate `0xc366` computes I's formulas,
+`atari-st/phantasie2/FORMAT.md` section 5). Each rule is an `ICampaign` hook whose default is I's: `CanUseItem` (the gate),
+`ItemPoints` (an item's points), `ReadyBestEquipment` (the best-gear pick), `GearStatsOf` (the gear line and Compare
+numbers) and `AfterArmoryBuy` (what the Armory wears). III overrides all five from its own code: the table gate ovl2
+`0x39b5` (bows STR + DEX), the point table `DS:0x113c`, ready-best `0x37f1` (bow slot, ties to the later item, a slot
+never emptied), the table points with III's defence (root `0xd730`) and no damage A, and an Armory that wears nothing
+(`phantasie3/logic-specs/town.md` section 7).
+
 The original has **no** "choose what to wear" and **no** member-to-member or sack access outside the D)ISTRIBUTE screen.
 The actions in §3 are therefore all remaster QoL; with the new screen off nothing changes.
 
@@ -36,8 +44,7 @@ Each game's `rules.json` lists its worn-item slots (`equipment_slots`): a slot i
 | III (later, T4) | shield, armor, weapon **61–100**, **`bow` 41–60** | `09-trilogy-matrix.md` §1e (III PDF 6 / 11–12) |
 
 Core maps a slot id onto the character record with one accessor (`WornItems`): `shield`/`armor`/`weapon` →
-`WornShield`/`WornArmor`/`WornWeapon`. **[?] III's `bow` slot has no field in the shared character model yet**; it is
-added with III (T4) together with its save field. The action code itself never tests item-id ranges; it asks the layout.
+`WornShield`/`WornArmor`/`WornWeapon`; III's `bow` → `WornBow` (T4). The action code itself never tests item-id ranges; it asks the layout.
 
 Usability is each game's own gate (`ICampaign.CanUseItem`, asked through `GameSession.CanUseItem` / `CanWear`; s171):
 I's `ItemRules.IsUsable` (id formulas, [C]); II the same formulas, which II's `items.json` holds `[~]` (checked live only

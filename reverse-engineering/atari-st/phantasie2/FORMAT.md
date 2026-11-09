@@ -132,6 +132,14 @@ slots + 3 elementals, the Amiga I arrangement (`amiga/unpacked/PHANT/guild.dat` 
   `0x03a50`); creation sets 1, or 2 when the creating town index > 6 `[~]`; transferred characters get all 36 bytes
   zeroed (§6), i.e. origin Gelnor. **@282 = SCORE** (sheet `LUCK %3u SCORE %7u`) `[C]`. @286–@300 and @302–@316 = two
   8-word arrays: @286 + 2(k−1) = minion k killed, @302 + 2(k−1) = beast rune k `[C]` (s78, `logic-specs/endgame.md` §1).
+- **Item gate and points = I's (s173, `[C]` static).** `0xc366(stats*, id, *points)` is DOS I's OV1 `0x3053` line for
+  line: ids < 21 usable when STR ≥ id, points id; < 31 STR ≥ 2·id − 40, points id − 20; < 41 STR ≥ 2·id − 62, points
+  id − 29; < 71 2·STR + DEX ≥ 2·id − 80, points (id >> 1) − 20; < 101 2·STR + DEX ≥ 2·id − 140, points (3·id >> 2) − 50
+  (STR @0, DEX @4). Ids ≥ 101 return 0 and write no points; for those a 0 only means "not worn" / no digit at the
+  callers (the worn-item selector `0xdcc6`, the sheet's worn lines `0x3eb8…0x3f5c`, the hand-out column `0xc63c`, the
+  Armory row `0xc4d0`: "PTS:%-5d" when usable, "UNUSABLE " for an unusable id < 100, nothing from 100 up, so an
+  unusable id 100 prints neither) `[~]` (callers read for this, not traced further). So II's usability and worn points are I's (`items.json` holds the same numbers);
+  Core keeps `ICampaign`'s defaults for II.
 
 ## 6. I → II character transfer (`UTILIT2.PRG`) `[C]` static
 

@@ -318,9 +318,13 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
         {
             lines.Add(UiText.S("inspect.equipment"));
             var row = "";
-            foreach (var id in new[] { ch.WornWeapon, ch.WornArmor, ch.WornShield })
+            // III's sheet lists the bow too (manual "the weapon, armor, shield, bow"); I / II have no bow slot (WornBow 0).
+            int[] worn = ch.WornBow != 0
+                ? [ch.WornWeapon, ch.WornArmor, ch.WornShield, ch.WornBow]
+                : [ch.WornWeapon, ch.WornArmor, ch.WornShield];
+            foreach (var id in worn)
             {
-                var cell = $"{data.Items.FirstOrDefault(i => i.Id == id)?.Name ?? $"#{id}"} ({ItemRules.CombatGate(id).Points})";
+                var cell = $"{data.Items.FirstOrDefault(i => i.Id == id)?.Name ?? $"#{id}"} ({Points(id, data)})";
                 if (row.Length > 0 && PixelFont.Measure(row + "  " + cell) > SheetWidth * PixelFont.Advance)
                 {
                     lines.Add(row);
@@ -347,7 +351,7 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
 
     /// <summary>
     /// Equipment (COM <c>0x2c65</c>): weapon <c>@86</c>, armor <c>@84</c>, shield <c>@82</c>, each <c>"%-13.12sPTS:%-2u"</c> with the
-    /// points of <c>0x3053</c> (= <see cref="ItemRules.CombatGate"/>).
+    /// points of <c>0x3053</c> (= <see cref="ItemRules.CombatGate"/>; a game with a point table, III, prints its table's).
     /// </summary>
     public static IReadOnlyList<string> EquipmentLines(Character ch, GameDataRepository data) =>
         [EquipLine(ch.WornWeapon, data), EquipLine(ch.WornArmor, data), EquipLine(ch.WornShield, data)];
@@ -357,8 +361,15 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
         var name = data.Items.FirstOrDefault(i => i.Id == id)?.Name ?? $"#{id}";
         if (name.Length > 12)
             name = name[..12];
-        return UiText.F("inspect.x_pts_x", name, ItemRules.CombatGate(id).Points);
+        return UiText.F("inspect.x_pts_x", name, Points(id, data));
     }
+
+    /// <summary>
+    /// The item's points: the game's table (<c>items.json</c> <c>points</c>; III's <c>DS:0x113c</c>; I's and II's files hold
+    /// I's formulas), else <see cref="ItemRules.CombatGate"/>.
+    /// </summary>
+    private static int Points(int id, GameDataRepository data) =>
+        id <= 0 ? 0 : data.Items.FirstOrDefault(i => i.Id == id)?.Points ?? ItemRules.CombatGate(id).Points;
 
     /// <summary>
     /// Skills (COM <c>0x2b7e</c>), the COM label order: attack, parry, spot trap, disarm trap, pick lock, find item, swim,

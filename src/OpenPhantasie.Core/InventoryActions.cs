@@ -28,8 +28,22 @@ public enum InventoryRefusal
 /// <summary>A game's strength gate: can <paramref name="member"/> use <paramref name="itemId"/> (<see cref="ICampaign.CanUseItem"/>)?</summary>
 public delegate bool ItemGate(Character member, int itemId);
 
-/// <summary>A member's gear numbers as combat uses them (<see cref="InventoryActions.Compare"/>).</summary>
-public readonly record struct GearStats(int ShieldSoak, int ArmorSoak, int WeaponDamage, int DefenseRating);
+/// <summary>
+/// A game's equipment rules bound to a session (<see cref="GameSession.Gear"/>, from the <see cref="ICampaign"/> hooks), for
+/// the static helpers that ready or list items: the strength gate, an item's point value, and the best-gear pick.
+/// </summary>
+public sealed record GearRules(ItemGate CanUse, Func<int, int> Points, Action<Character> ReadyBest)
+{
+    /// <summary>Phantasie I's rules (DOS OV1 <c>0x3053</c> / <c>0x2fdb</c>); also II's (ST <c>0xc366</c> = I's formulas).</summary>
+    public static GearRules PhantasieI { get; } = new(
+        (m, id) => ItemRules.IsUsable(id, m.Stats), id => ItemRules.CombatGate(id).Points, CombatGear.SelectWornItems);
+}
+
+/// <summary>
+/// A member's gear numbers as combat uses them (<see cref="InventoryActions.Compare"/>, <see cref="ICampaign.GearStatsOf"/>).
+/// <paramref name="Bow"/>: the worn bow's points in a game with a bow slot (III), else null.
+/// </summary>
+public readonly record struct GearStats(int ShieldSoak, int ArmorSoak, int WeaponDamage, int DefenseRating, int? Bow = null);
 
 /// <summary>What wearing an item would change: the slot it goes in, the item it replaces (0 = none), and the numbers.</summary>
 public sealed record GearComparison(EquipmentSlot Slot, int ReplacedItemId, GearStats Before, GearStats After);
@@ -309,21 +323,27 @@ public static class InventoryActions
 
     /// <summary>
     /// What wearing <paramref name="itemId"/> would change for <paramref name="member"/>, worked out on a clone; null when no
-    /// slot takes the item. Usability is not checked here (<see cref="CanWear"/>).
+    /// slot takes the item. Usability is not checked here (<see cref="CanWear"/>). <paramref name="stats"/> reads a member's
+    /// numbers by the game's rules (<see cref="ICampaign.GearStatsOf"/>); null = I's (<see cref="Stats"/> after
+    /// <see cref="CombatGear.ApplyWornItemPoints"/>).
     /// </summary>
-    public static GearComparison? Compare(Character member, int itemId, EquipmentLayout layout)
+    public static GearComparison? Compare(
+        Character member, int itemId, EquipmentLayout layout, Func<Character, GearStats>? stats = null)
     {
         ArgumentNullException.ThrowIfNull(member);
         ArgumentNullException.ThrowIfNull(layout);
         if (layout.SlotFor(itemId) is not { } slot)
             return null;
+        stats ??= m =>
+        {
+            CombatGear.ApplyWornItemPoints(m);
+            return Stats(m);
+        };
         var probe = member.Clone();
-        CombatGear.ApplyWornItemPoints(probe);
-        var before = Stats(probe);
+        var before = stats(probe);
         var replaced = WornItems.Get(probe, slot.Id);
         WornItems.Set(probe, slot.Id, itemId);
-        CombatGear.ApplyWornItemPoints(probe);
-        return new GearComparison(slot, replaced, before, Stats(probe));
+        return new GearComparison(slot, replaced, before, stats(probe));
     }
 
     // --- helpers ----------------------------------------------------------------------------------------------------

@@ -73,7 +73,12 @@ public static class RulesProfileLoader
                     : new ElementalRules(
                         (int)Require(dto.Elementals.MinMembers, "elementals.min_members", source),
                         dto.Elementals.BlocksAdd ?? throw new InvalidDataException($"{source}: elementals.blocks_add is missing."),
-                        dto.Elementals.DropKeeps ?? false),
+                        dto.Elementals.DropKeeps ?? false,
+                        dto.Elementals.KeepsAlone ?? false,
+                        dto.Elementals.DropsElemental ?? false,
+                        ParsePurge(dto.Elementals.Purge, "elementals.purge", source) ?? ElementalPurge.Clears,
+                        ParsePurge(dto.Elementals.PurgeOriginal, "elementals.purge_original", source),
+                        dto.Elementals.SummonMinMembers),
             }.Validate();
         }
         catch (ArgumentException ex)
@@ -184,6 +189,17 @@ public static class RulesProfileLoader
             R(dto.RockDamage, "rock_damage"), R(dto.TargetTries, "target_tries"));
     }
 
+    /// <summary><c>clears</c> / <c>as-drop</c> / <c>keeps</c> / <c>refused</c> (<see cref="ElementalPurge"/>); null when absent.</summary>
+    private static ElementalPurge? ParsePurge(string? value, string name, string source) => value switch
+    {
+        null => null,
+        "clears" => ElementalPurge.Clears,
+        "as-drop" => ElementalPurge.AsDrop,
+        "keeps" => ElementalPurge.Keeps,
+        "refused" => ElementalPurge.Refused,
+        _ => throw new InvalidDataException($"{source}: \"{name}\" must be clears, as-drop, keeps or refused, not \"{value}\"."),
+    };
+
     private static long Require(long? value, string name, string source) =>
         value ?? throw new InvalidDataException($"{source}: \"{name}\" is missing.");
 
@@ -197,6 +213,21 @@ public static class RulesProfileLoader
 
         [JsonPropertyName("drop_keeps")]
         public bool? DropKeeps { get; set; }
+
+        [JsonPropertyName("keeps_alone")]
+        public bool? KeepsAlone { get; set; }
+
+        [JsonPropertyName("drops_elemental")]
+        public bool? DropsElemental { get; set; }
+
+        [JsonPropertyName("purge")]
+        public string? Purge { get; set; }
+
+        [JsonPropertyName("purge_original")]
+        public string? PurgeOriginal { get; set; }
+
+        [JsonPropertyName("summon_min_members")]
+        public int? SummonMinMembers { get; set; }
     }
 
     private sealed class RulesFileDto

@@ -263,6 +263,9 @@ public sealed class CombatSnapshot
     /// <summary>The next round is a surprise opening with no PARTY OPTIONS or orders; false in older saves.</summary>
     public bool OpensWithoutOrders { get; set; }
 
+    /// <summary>A failed Flee: the next round skips the orders phase (<see cref="CombatEncounter.OrdersSkipped"/>, D-033 <c>dos</c>); false in older saves.</summary>
+    public bool OrdersSkipped { get; set; }
+
     /// <summary>The morale check (OV2 <c>0x3b70</c>) already ran this round (<see cref="GameSession.CombatMoraleCheckedThisRound"/>);
     /// false in older saves.</summary>
     public bool MoraleCheckedThisRound { get; set; }

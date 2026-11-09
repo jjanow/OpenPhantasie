@@ -1937,9 +1937,10 @@ public partial class Game1 : Game
         }
         if (_input.Pressed(GameAction.ToggleAutoMap, keys, pad))
         {
-            _settings.AutoMapVisible = !_settings.AutoMapVisible;
+            // s172: the game's AUTO-MAP BOX option itself (GameSettings.AutoMap), so the Options row shows what Tab set.
+            CurrentGameSettings.AutoMap = !CurrentGameSettings.AutoMap;
             _settings.Save();
-            SetFeedback(_settings.AutoMapVisible ? UiText.S("game.auto_map_on") : UiText.S("game.auto_map_off"), HelpForMode(s.Mode));
+            SetFeedback(CurrentGameSettings.AutoMap ? UiText.S("game.auto_map_on") : UiText.S("game.auto_map_off"), HelpForMode(s.Mode));
         }
 
         if (_input.Pressed(GameAction.ToggleInventory, keys, pad) && !_showInventory && CurrentGameSettings.InventoryScreen)
@@ -2351,6 +2352,7 @@ public partial class Game1 : Game
         }
         else if (s.Mode == GameMode.Overworld)
         {
+            ScrollSidebar(keys, pad);
             if ((_input.PressedFieldMove(keys, pad, CurrentGameSettings.DiagonalMoves) ?? _p1MoveNow) is var (dx, dy))
                 FieldMove(s, dx, dy);
         }
@@ -2358,6 +2360,7 @@ public partial class Game1 : Game
         {
             // Top-down map: move in absolute map directions (same keys as the wilderness, manual DUNGEON EXPLORATION).
             // Turning has no default key (D-076: E is east); it stays bindable for a future first-person view.
+            ScrollSidebar(keys, pad);
             if (_input.Pressed(GameAction.TurnLeft, keys, pad))
             {
                 s.TurnDungeonLeft();
@@ -2374,6 +2377,14 @@ public partial class Game1 : Game
             }
         }
     }
+
+    /// <summary>
+    /// s172: the sidebar's party cards and II's terrain key scroll by key / pad (<see cref="SidebarScroll"/>) as well as by
+    /// the wheel and the bar; a step pressed the same frame still goes.
+    /// </summary>
+    private void ScrollSidebar(KeyboardState keys, GamePadState pad) =>
+        SidebarScroll.Apply(_input.NewKeys(keys), _input.NewButtons(pad), SidebarScroll.RightTriggerHeld(pad),
+            UiOverlays.FieldPartyScroll, UiOverlays.TerrainKeyScroll);
 
     /// <summary>The door a town choice goes in by (III's <c>0xacc8</c> callers), or null.</summary>
     private static string? TownDoor(TownChoice choice) => choice switch
@@ -2919,8 +2930,8 @@ public partial class Game1 : Game
     /// <summary>
     /// s141: whether this frame's keys are a command for II ST's field loop <c>0x16fea</c>, which clicks (<c>0x1719a</c>)
     /// on every key it takes, a step or a wall alike, and on an Options menu pick (live: arrows, unused letters, Cast spell);
-    /// its Speed menu does not click. Overworld / dungeon only, with nothing else owning the keys. Esc, Tab, the modifiers
-    /// and the function keys are the remaster's own.
+    /// its Speed menu does not click. Overworld / dungeon only, with nothing else owning the keys. Esc, Tab, the modifiers,
+    /// the function keys and the sidebar's scroll keys (s172, <see cref="SidebarScroll"/>) are the remaster's own.
     /// </summary>
     private bool FieldCommandKeys(GameSession s, KeyboardState keys) =>
         s.Mode is GameMode.Overworld or GameMode.Dungeon
@@ -2928,7 +2939,8 @@ public partial class Game1 : Game
         && OpenModal is null && CurrentPrompt is null && !_combatUi.IsPresenting && !_showInventory && !_showBestiary
         && !_dosDialog.IsOpen
         && _input.NewKeys(keys).Any(k => k is not (Keys.Escape or Keys.Tab or (>= Keys.F1 and <= Keys.F24)
-            or Keys.LeftShift or Keys.RightShift or Keys.LeftControl or Keys.RightControl or Keys.LeftAlt or Keys.RightAlt));
+            or Keys.LeftShift or Keys.RightShift or Keys.LeftControl or Keys.RightControl or Keys.LeftAlt or Keys.RightAlt)
+            && !SidebarScroll.IsScrollKey(k));
 
     /// <summary>
     /// s141: whether closing <paramref name="modal"/> in <paramref name="mode"/> stands for II ST's click as a town list or
@@ -3211,17 +3223,16 @@ public partial class Game1 : Game
             {
                 FillBackdrop(pixel, new Color(10, 10, 14));
                 var level = session.Dungeon.Level ?? _dungeonView!.GetLevel(session.Dungeon.LevelId);
-                // s170: the I / II auto-map box at (222, 16) covered the sidebar's second member card over a tile
-                // dungeon (black on the CGA pack, whose palette has no grey), so it is not drawn there. s171: the tile
-                // dungeon gets its own whole-level overview instead, inside the view left of the cards, in the corner
-                // away from the party (DrawTileDungeonOverview). Neither original draws a box: the Amiga's dungeon
-                // screen is the whole 24 x 30 level itself (Amiga FORMAT.md section 5), the remaster's 160-px view 20
-                // columns of it.
-                (TileMapLayout Tiles, Rectangle View, Rectangle Party)? tileDungeon = null;
+                // The auto-map box (PLAN P3 QoL; neither original draws one: III Amiga's dungeon screen is the whole
+                // 24 x 30 level itself, Amiga FORMAT.md section 5). s171: III's tile dungeon got a whole-level overview
+                // inside the view left of the cards, in the corner away from the party (DrawDungeonOverview). s172: I and
+                // II's glyph view and the fallback grid place it the same way; before, their see-through box sat at
+                // (222, 16) over member cards 2, 3 and 5. Each game's AUTO-MAP BOX option (on by default; Tab flips it).
+                (Rectangle View, Rectangle Party, Func<int, Color> Colour)? overview = null;
                 if (assets.TileMaps is { } tileMaps && assets.GetDungeonCell(tileMaps.UnseenGlyph) is not null)
                 {
                     var (view, party) = DrawTileDungeon(session.Dungeon, level, tileMaps, assets, pixel, 4, oy);
-                    tileDungeon = (tileMaps, view, party);
+                    overview = (view, party, cell => DungeonGlyphColour(assets.GetDungeonCell(tileMaps.DungeonGlyphFor(cell))));
                 }
                 else if (assets.Maps is { } maps && _data?.MapTiles is { } glyphRule)
                 {
@@ -3239,8 +3250,10 @@ public partial class Game1 : Game
                         PixelFont.Draw(_spriteBatch!, pixel, 214, 146, $"({shownX},{shownY})", new Color(140, 160, 180));
                         break;
                     }
-                    DrawDungeonGlyphs(session.Dungeon, level, maps, glyphRule, assets, pixel,
+                    var (view, party) = DrawDungeonGlyphs(session.Dungeon, level, maps, glyphRule, assets, pixel,
                         4, oy, DungeonViewCols, DungeonViewRows, DungeonGlyphScale);
+                    overview = (view, party, cell => DungeonGlyphColour(assets.GetDungeonGlyph(glyphRule.DungeonGlyph(cell)),
+                        cell < 2 ? Color.Gray : new Color(40, 40, 50)));
                 }
                 else
                 {
@@ -3273,17 +3286,15 @@ public partial class Game1 : Game
                     HitMapView(ox, oy, 2 * view + 1, 2 * view + 1, scale, scale, cx - view, cy - view);
                     var pr = new Rectangle(ox + view * scale, oy + view * scale, scale - 1, scale - 1);
                     _spriteBatch!.Draw(pixel, pr, Color.Cyan);
+                    overview = (new Rectangle(ox, oy, (2 * view + 1) * scale, (2 * view + 1) * scale), pr,
+                        cell => cell == 0 ? new Color(40, 40, 50) : new Color(90, 70, 50));
                 }
 
                 UiOverlays.DrawFieldSidebar(_spriteBatch!, pixel, assets, session, !_settings.Game(session.Game).TimeLagInOptions);
 
-                if (_settings.AutoMapVisible && tileDungeon is { } td)
-                    UiOverlays.DrawTileDungeonOverview(_spriteBatch!, pixel, level, session.Dungeon, _qol, td.Tiles,
-                        glyph => DungeonGlyphColour(assets, glyph),
-                        UiOverlays.TileOverviewPlacement(td.View, td.Party, level.GridWidth, level.GridHeight));
-                else if (_settings.AutoMapVisible)
-                    UiOverlays.DrawAutoMapOverlay(
-                        _spriteBatch!, pixel, level, session.Dungeon, _qol, ox, oy, scale);
+                if (_settings.Game(session.Game).AutoMap && overview is { } o)
+                    UiOverlays.DrawDungeonOverview(_spriteBatch!, pixel, level, session.Dungeon, _qol, o.Colour,
+                        UiOverlays.TileOverviewPlacement(o.View, o.Party, level.GridWidth, level.GridHeight));
                 break;
             }
             case GameMode.Town:
@@ -3458,7 +3469,8 @@ public partial class Game1 : Game
     private const int DungeonViewCols = 15;
     private const int DungeonViewRows = 18;
 
-    private void DrawDungeonGlyphs(DungeonState state, DungeonLevel level, AmigaMapManifest maps,
+    /// <returns>The view drawn and the party's glyph on it (where the auto-map box must not go).</returns>
+    private (Rectangle View, Rectangle Party) DrawDungeonGlyphs(DungeonState state, DungeonLevel level, AmigaMapManifest maps,
         MapTileManifest glyphRule, AssetCatalog assets, Texture2D pixel, int left, int oy, int cols, int rows, int glyphScale)
     {
         var gw = maps.GlyphWidth * glyphScale;
@@ -3487,6 +3499,7 @@ public partial class Game1 : Game
         var party = new Rectangle(left + (px - x0) * gw, oy + (py - y0) * gh, gw, gh);
         var mark = assets.GetDungeonGlyph(glyphRule.PartyGlyph);
         _spriteBatch!.Draw(mark ?? pixel, party, mark is null ? Color.Red : Color.White);
+        return (new Rectangle(left, oy, cols * gw, rows * gh), party);
     }
 
     // Tile-drawn maps (Phantasie III Amiga, reverse-engineering/amiga/phantasie3/FORMAT.md §4–5). Overworld: a window of
@@ -3621,11 +3634,12 @@ public partial class Game1 : Game
             new Rectangle(left + (state.X - x0) * gw, top + (state.Y - y0) * gh, gw, gh));
     }
 
-    /// <summary>s171: a dungeon glyph's colour in the overview box (<see cref="UiOverlays.DominantColour"/>), read once per texture.</summary>
-    private Color DungeonGlyphColour(AssetCatalog assets, int glyph)
+    /// <summary>s171: a dungeon glyph's colour in the overview box (<see cref="UiOverlays.DominantColour"/>), read once per
+    /// texture; <paramref name="fallback"/> (grey) when the pack has no such glyph.</summary>
+    private Color DungeonGlyphColour(Texture2D? tex, Color? fallback = null)
     {
-        if (assets.GetDungeonCell(glyph) is not { } tex)
-            return Color.Gray;
+        if (tex is null)
+            return fallback ?? Color.Gray;
         if (_glyphColours.TryGetValue(tex, out var c))
             return c;
         var data = new Color[tex.Width * tex.Height];
@@ -3759,6 +3773,7 @@ public partial class Game1 : Game
         GameMode.Town when _townMenu.Place != TownPlace.Menu => UiText.S("game.up_down_enter_select_bksp_back"),
         GameMode.Guild => UiText.S("game.l_list_p_purge_n_new"),
         GameMode.Title => UiText.S("game.n_new_a_add_d_drop"),
+        GameMode.Overworld when _session is { } s && TerrainKeyFor(s) is { Count: > 0 } => UiText.S("game.3_n_e_s_w_arrows_key"),
         GameMode.Overworld => UiText.S("game.3_n_e_s_w_arrows"),
         GameMode.Town => UiText.S("game.arrows_enter_a_b_m_n"),
         GameMode.Dungeon => UiText.S("game.3_n_e_s_w_arrows_2"),

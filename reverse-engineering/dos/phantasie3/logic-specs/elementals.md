@@ -22,19 +22,22 @@ Other skills stay 0. The manual (PDF 5 / pr.4) puts them as "the last three name
 … guild numbers, and … reside in town 0"; DOS puts them first (slots 0–2) and their town word is 0 (never written)
 `[~]`. List order is not a rule; not raised. (The Amiga save holds them in roster slots 20–24, `../FORMAT.md` §5.)
 
-The Guild refuses to Purge ("You cannot purge an Elemental."), Rename ("You cannot rename an Elemental.") or Inspect /
+The Guild refuses to Purge ("[original text]"), Rename ("You cannot rename an Elemental.") or Inspect /
 examine an elemental (strings 406, 414, 415, 488) `[C]` strings and guild code.
 
 **Purge** (root `guild_menu` `0xafe3…0xb09c`) `[C]` s98 static: only with more than the 3 elemental records in the roster;
-an elemental → "You cannot purge an Elemental." (406); a character in the party (record `+0x24` ≠ 0) → "You cannot purge
+an elemental → "[original text]" (406); a character in the party (record `+0x24` ≠ 0) → "You cannot purge
 a party member." (448); else the confirmation (407) and root `0x864a` closes the roster gap (later records move down,
 party records' roster slot `+0x7e` above it −1, count −1). Party slots and the elemental are never touched, so in DOS
 Purge never meets a loaded elemental. The manual's Purge drops the adventurer "from the guild list from the party", and
-Apple II purges a party member too — **D3-040** (decided s99: manual; `p3.purge`). The remaster purges a party member and
-keeps a loaded elemental while a character is left, as Drop (§2); options: I's (the elemental is unloaded) or DOS's refusal.
-The elemental records are never purged. Cross-game QoL (PLAN P3): the every-game `elemental-purge` (and `elemental-load`,
-`elemental-drop` for §2's rules) can put I's, III's manual or DOS III's rule in I, II or III; `game` in every preset.
-The remaster refuses a Purge of an elemental in every game, as DOS does here (`GuildHall.PurgeRefusal`).
+Apple II purges a party member too — **D3-040** (decided s99: manual). The remaster purges a party member and
+keeps a loaded elemental while a character is left, as Drop (§2); s172 (user): the every-game `elemental-purge` = `game`
+follows the preset in III (`rules.json` `elementals.purge` = `as-drop`, `purge_original` = `refused`: the Original (DOS)
+preset refuses, string 448); the former `p3.purge` is folded in. The elemental records are never purged. Cross-game QoL
+(PLAN P3): `elemental-purge` (and `elemental-load`, `elemental-drop` for §2's rules) can put I's, III's manual or DOS III's
+rule in I, II or III; `game` in every preset. The remaster refuses a Purge of an elemental in every game, as DOS does here
+(`GuildHall.PurgeRefusal`); s172: III's Purge list shows the three elementals after the characters (only when a character
+is listed, as DOS), and a pick is refused with string 406 "[original text]" (III's table).
 
 ## 2. Adding one to the party `[C]` (Guild ▸ Add Member, root `0xad93` → ovl2 `0x3a0a`)
 
@@ -62,7 +65,8 @@ add(r):                                       # r = roster index
   character** in the party, not six (manual question Q12; I's "will only serve a party of six" is not III's rule).
 - Guild ▸ Add with all 7 slots filled: "The party is fully assembled." (elemental present) or "You can only add an
   elemental." `[C]` strings, `[~]` exact branch.
-- Drop Member on the elemental clears the flag and `filled_slots` (ovl2 `0x3c92`).
+- Drop Member on the elemental clears the flag and `filled_slots` (ovl2 `0x3c92`). Built s172 (`drops_elemental`): the
+  remaster's Drop list holds the loaded elemental after the characters (`GameSession.TryDropElemental`).
 - Drop Member on a **character** with an elemental loaded `[C]` (s97 static, ovl2 `0x3d09…0x3e5a`): the records after
   the dropped one move up a slot (`filled_slots − 1`), so the elemental stays last and stays loaded; `characters` drops
   by one. Only when no character is left (`0x3e0b`: `characters ≤ 0`) are the elemental flag, `filled_slots` and

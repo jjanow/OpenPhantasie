@@ -28,9 +28,11 @@ public sealed class ItemDistribution
     private readonly IItemCatalog _items;
     private readonly List<int> _pool;
     private readonly Func<int, long>? _salePrice;
+    private readonly GearRules _gear;
 
     private ItemDistribution(
-        Party party, LootSack sack, TownState town, IItemCatalog items, List<int> pool, Func<int, long>? salePrice)
+        Party party, LootSack sack, TownState town, IItemCatalog items, List<int> pool, Func<int, long>? salePrice,
+        GearRules gear)
     {
         _party = party;
         _sack = sack;
@@ -38,6 +40,7 @@ public sealed class ItemDistribution
         _items = items;
         _pool = pool;
         _salePrice = salePrice;
+        _gear = gear;
     }
 
     /// <summary>Items still to hand out, the current one first.</summary>
@@ -50,11 +53,13 @@ public sealed class ItemDistribution
     /// <summary>
     /// Pools every carried and found item (OV1 <c>0x2ac9..0x2bdc</c>); null with no party. <paramref name="salePrice"/> is
     /// the game's SELL price by item id (null = Phantasie I's <c>V²/8</c>; III: <see cref="ICampaign.DistributeSalePrice"/>).
+    /// <paramref name="gear"/>: the game's best-gear pick and point values (<see cref="GameSession.Gear"/>; null = I's).
     /// </summary>
     public static ItemDistribution? Begin(
         Party party, LootSack sack, TownState town, IItemCatalog items, Func<int, long>? salePrice = null,
-        bool foundOnly = false)
+        bool foundOnly = false, GearRules? gear = null)
     {
+        gear ??= GearRules.PhantasieI;
         ArgumentNullException.ThrowIfNull(party);
         ArgumentNullException.ThrowIfNull(sack);
         ArgumentNullException.ThrowIfNull(town);
@@ -67,13 +72,13 @@ public sealed class ItemDistribution
         {
             pool.AddRange(ch.InventoryItemIds.Where(id => id != 0));
             ch.InventoryItemIds.Clear();
-            ch.WornShield = ch.WornArmor = ch.WornWeapon = 0;
-            CombatGear.ApplyWornItemPoints(ch);
+            ch.WornShield = ch.WornArmor = ch.WornWeapon = ch.WornBow = ch.WornThrown = 0; // nothing stays worn, any slot
+            CombatGear.ApplyWornItemPoints(ch, gear.Points);
         }
         pool.AddRange(sack.ItemIds.Where(id => id != 0));
         sack.ItemIds.Clear();
         pool.Sort((a, b) => b.CompareTo(a)); // 0x2b79 bubble sort: larger id first
-        return new ItemDistribution(party, sack, town, items, pool, salePrice);
+        return new ItemDistribution(party, sack, town, items, pool, salePrice, gear);
     }
 
     /// <summary>
@@ -119,7 +124,7 @@ public sealed class ItemDistribution
                 return false;
             }
             CarriedItems.Put(ch, id); // 0x2f22 slot[count]: Begin emptied every slot, so this is contiguous
-            CombatGear.SelectWornItems(ch);
+            _gear.ReadyBest(ch); // I: OV1 0x2fdb; III: ovl2 0x37f1 after each give (0x0b25, s173 [C] static)
             message = GameText.F("core.distribute.x_to_x", name, ch.Name);
         }
         _pool.RemoveAt(0);
@@ -128,11 +133,14 @@ public sealed class ItemDistribution
 
     /// <summary>
     /// The item line (OV1 <c>0x1875</c>, <c>"%-10s:%3d %c%s"</c>): name, points, kind letter (S/A/W) and the party numbers of
-    /// the members who can use it (<c>" 1234567"</c>, others blanked); no digits for non-equipment.
+    /// the members who can use it (<c>" 1234567"</c>, others blanked); no digits for non-equipment. Points and the gate are
+    /// the game's (<paramref name="gear"/>, null = I's; III's column is ovl2 <c>0x39b5</c> at <c>0x0788</c>, s173 [C] static).
     /// </summary>
-    public static string ItemLine(int itemId, string name, Party party)
+    public static string ItemLine(int itemId, string name, Party party, GearRules? gear = null)
     {
-        var (points, _, _) = ItemRules.CombatGate(itemId);
+        ArgumentNullException.ThrowIfNull(party);
+        gear ??= GearRules.PhantasieI;
+        var points = itemId is >= 1 and <= 100 ? gear.Points(itemId) : 0;
         var kind = itemId switch
         {
             < 21 => GameText.S("core.item.kind_shield"),
@@ -143,7 +151,7 @@ public sealed class ItemDistribution
         if (itemId >= 101)
             points = 0;
         var users = itemId is >= 1 and <= 100
-            ? string.Concat(party.Members.Select((m, i) => ItemRules.IsUsable(itemId, m.Stats) ? (char)('1' + i) : ' '))
+            ? string.Concat(party.Members.Select((m, i) => gear.CanUse(m, itemId) ? (char)('1' + i) : ' '))
             : "";
         return $"{(name.Length > 10 ? name[..10] : name),-10}:{points,3} {kind} {users}".TrimEnd();
     }

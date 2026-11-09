@@ -457,6 +457,28 @@
     ]
    }
   ],
+  "core.guild.cannot_purge_elemental": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      96861,
+      30
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      23184,
+      30
+     ]
+    ]
+   }
+  ],
   "core.guild.elemental_already_joined": [
    {
     "from": "p3-dos-1988",

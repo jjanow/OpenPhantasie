@@ -145,7 +145,10 @@ public static partial class UiOverlays
     /// </summary>
     public static readonly Rectangle FieldPartyArea = new(162, ContentTop + 2, 156, 2 * PartyStripLayout.CardHeight + PartyStripLayout.CardGap);
 
-    /// <summary>The sidebar's cards when they do not all fit (a summoned elemental's 32×48 portrait, nine-letter names).</summary>
+    /// <summary>
+    /// The sidebar's cards when they do not all fit (a summoned elemental's 32×48 portrait, nine-letter names): the wheel, the
+    /// bar or <see cref="SidebarScroll"/>'s keys.
+    /// </summary>
     public static ScrollBox FieldPartyScroll { get; } = new();
 
     /// <summary>
@@ -164,7 +167,7 @@ public static partial class UiOverlays
         return (party, new Rectangle(FieldPartyArea.X, party.Bottom + 1, FieldPartyArea.Width, FieldPartyArea.Bottom - party.Bottom - 1));
     }
 
-    /// <summary>The terrain key's rows when they do not all fit (the wheel over the box, or its bar).</summary>
+    /// <summary>The terrain key's rows when they do not all fit (the wheel over the box, its bar, or <see cref="SidebarScroll"/>'s keys).</summary>
     public static ScrollBox TerrainKeyScroll { get; } = new();
 
     /// <summary>
@@ -225,6 +228,8 @@ public static partial class UiOverlays
             scroll: FieldPartyScroll);
         if (terrainKey is { Count: > 0 })
             DrawTerrainKey(batch, pixel, assets, terrainKey, keyArea);
+        else
+            TerrainKeyScroll.Set(0, 1); // no key shown: its scroll keys (SidebarScroll) move nothing
         var commands = FieldCommandsFor(session.Mode, timeLagCommand);
         for (var i = 0; i < commands.Length; i++)
         {
@@ -2218,48 +2223,17 @@ public static partial class UiOverlays
             PixelFont.Draw(batch, pixel, 4, top + i * (pitch + 1), lines[i], new Color(200, 220, 255));
     }
 
-    public static void DrawAutoMapOverlay(
-        SpriteBatch batch,
-        Texture2D pixel,
-        DungeonLevel level,
-        DungeonState state,
-        QoLProgress qol,
-        int ox,
-        int oy,
-        int cell)
-    {
-        _ = (ox, oy, cell);
-        const int mapOx = 222;
-        const int mapOy = 16;
-        const int ms = 2;
-        var w = level.GridWidth * ms + 4;
-        var h = Math.Min(level.GridHeight * ms + 4, ContentBottom - mapOy - 2);
-        DrawPanel(batch, pixel, new Rectangle(mapOx - 2, mapOy - 2, w, h), new Color(0, 0, 0, 200), PanelEdge);
-
-        foreach (var (x, y) in qol.VisitedCells(state.LevelId))
-        {
-            if (!level.InBounds(x, y)) continue;
-            var py = mapOy + y * ms;
-            if (py >= ContentBottom - 2) continue;
-            var walk = level.Get(x, y) != 0;
-            var c = walk ? new Color(70, 90, 70) : new Color(40, 40, 50);
-            batch.Draw(pixel, new Rectangle(mapOx + x * ms, py, ms, ms), c);
-        }
-
-        batch.Draw(pixel,
-            new Rectangle(mapOx + state.X * ms, mapOy + state.Y * ms, ms, ms),
-            Color.Cyan);
-    }
-
-    /// <summary>Where <see cref="DrawTileDungeonOverview"/> puts the whole-level box: its frame, the cell grid inside it and one cell's size.</summary>
+    /// <summary>Where <see cref="DrawDungeonOverview"/> puts the whole-level box: its frame, the cell grid inside it and one cell's size.</summary>
     public readonly record struct TileOverviewLayout(Rectangle Box, Rectangle Grid, int CellWidth, int CellHeight);
 
     /// <summary>
-    /// s171 (PLAN P3, QoL): the whole-level overview over a tile dungeon (III, whose 24 × 30 level the 160-px view shows 20
-    /// columns of). It sits inside <paramref name="view"/> left of the member cards (<see cref="FieldPartyArea"/>), so it
-    /// covers no card and no command line, in the view's corner farthest from <paramref name="partyCell"/> (the party's
-    /// glyph on screen), never over it. Cells are as large as fit in half the view each way (DOS / Amiga III: 3 × 2 px,
-    /// a 76 × 64 box), so a corner always clears the party.
+    /// s171 (PLAN P3, QoL): the whole-level overview over a dungeon view: III's tile dungeon (24 × 30 level, 20 columns of
+    /// it shown), s172 also I / II's glyph view (33 × 38 level, 15 × 18 of it shown at 10 × 8 px) and the plain fallback
+    /// grid. It sits inside <paramref name="view"/> left of the member cards (<see cref="FieldPartyArea"/>), so it covers
+    /// no card and no command line, in the view's corner farthest from <paramref name="partyCell"/> (the party's glyph on
+    /// screen), never over it. Cells are as large as fit in half the view each way (III DOS / Amiga: 3 × 2 px, a 76 × 64
+    /// box; I Amiga: 2 × 1 px, a 70 × 42 box), so the whole level shows and a corner always clears the party. (s170 and
+    /// before, I / II drew a see-through box at (222, 16), over member cards 2, 3 and 5.)
     /// </summary>
     public static TileOverviewLayout TileOverviewPlacement(Rectangle view, Rectangle partyCell, int gridWidth, int gridHeight)
     {
@@ -2299,20 +2273,21 @@ public static partial class UiOverlays
     public static Color OverviewEdge => PanelEdge;
 
     /// <summary>
-    /// s171: the tile dungeon's whole-level overview (<see cref="TileOverviewPlacement"/>), the auto-map switch
-    /// (<see cref="ClientSettings.AutoMapVisible"/>, the Tab key). A seen cell takes the colour its glyph shows most
-    /// (<paramref name="glyphColour"/>, so it follows the pack's palette: DOS CGA stone white, floor magenta), a cell not
-    /// seen stays the fill, the party is <see cref="OverviewParty"/>. A click on a cell walks there, as on the view.
+    /// s171: the dungeon's whole-level overview (<see cref="TileOverviewPlacement"/>), the auto-map switch
+    /// (<see cref="GameSettings.AutoMap"/>, the Options row and the Tab key). A seen cell takes <paramref name="cellColour"/>
+    /// of its map byte (the colour its glyph shows most, so it follows the pack's palette: III DOS CGA stone white, floor
+    /// magenta), a cell not seen stays the fill, the party is <see cref="OverviewParty"/>. The box is opaque. A click on a
+    /// cell walks there, as on the view; a click on the frame does nothing (not the view's cell under it).
     /// </summary>
-    public static void DrawTileDungeonOverview(SpriteBatch batch, Texture2D pixel, DungeonLevel level, DungeonState state,
-        QoLProgress qol, TileMapLayout tiles, Func<int, Color> glyphColour, TileOverviewLayout layout)
+    public static void DrawDungeonOverview(SpriteBatch batch, Texture2D pixel, DungeonLevel level, DungeonState state,
+        QoLProgress qol, Func<int, Color> cellColour, TileOverviewLayout layout)
     {
         DrawPanel(batch, pixel, layout.Box, OverviewFill, OverviewEdge);
         foreach (var (x, y) in qol.VisitedCells(state.LevelId))
         {
             if (!level.InBounds(x, y)) continue;
             batch.Draw(pixel, new Rectangle(layout.Grid.X + x * layout.CellWidth, layout.Grid.Y + y * layout.CellHeight,
-                layout.CellWidth, layout.CellHeight), glyphColour(tiles.DungeonGlyphFor(level.Get(x, y))));
+                layout.CellWidth, layout.CellHeight), cellColour(level.Get(x, y)));
         }
         batch.Draw(pixel, new Rectangle(layout.Grid.X + state.X * layout.CellWidth, layout.Grid.Y + state.Y * layout.CellHeight,
             layout.CellWidth, layout.CellHeight), OverviewParty);
@@ -2335,7 +2310,7 @@ public static partial class UiOverlays
             var item = data.Items.FirstOrDefault(i => i.Id == id);
             if (item is null) continue;
             var price = TownMenus.ListBuyPrice(
-                new ItemCatalogEntry { Id = id, Name = item.Name, ValueFactor = item.ValueFactor },
+                new ItemCatalogEntry { Id = id, Name = item.Name, ValueFactor = item.ValueFactor, Value = item.Value },
                 town);
             list.Add((id, item.Name, qty, price));
         }

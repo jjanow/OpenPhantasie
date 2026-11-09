@@ -5,6 +5,16 @@
  "_original_platform": "The platform whose code is II's rules source (s71): the Original (Atari ST) preset reads guild_by_platform under this key.",
  "original_platform": "atari-st",
  "_starting_gold": "256 GP in the bank [C] (logic-specs/encounters.md section 8): create_character 0x0cc2a writes 256 to @262; the manual agrees (combined rulebook general rules, 09-trilogy-manual-p2.md).",
+ "_elementals": "Atari ST PHANT.PRG [C] static s172 (logic-specs/towns.md section 10; not seen live): Guild Add 0xd442 lists the three elementals (rows 22-24) whenever none is loaded and copies the pick into party record 6, with no member count (min_members 0), and characters can still be added beside it (the Guild menu 0x352 disables Add only when the party holds every available character up to six and the elemental). Drop 0xd57c lists the seven party records (the elemental too: drops_elemental) and clears only the picked record; the compaction 0xc14a moves records 0-5 only, so the elemental stays even when no character is left (drop_keeps, keeps_alone). Purge 0xd68a lists the 22 character records (the elementals never) and clears the party copies in records 0-5 only (purge keeps). Summon Elemental 0x83e2 still needs a party of six (summon_min_members 6; D-033's six non-DEAD, D2-045). The manual's 'will only serve a party of six adventurers' (Summon Elemental #48, Magic section): DIFFERENCES-II.md D2-051 (DECIDED s173: SUMMON's six is enough, Add stays the ST's).",
+ "elementals": {
+  "min_members": 0,
+  "blocks_add": false,
+  "drop_keeps": true,
+  "keeps_alone": true,
+  "drops_elemental": true,
+  "purge": "keeps",
+  "summon_min_members": 6
+ },
  "game": "p2",
  "party_gold_cap": 65000,
  "bank_gold_cap": 65000,

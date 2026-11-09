@@ -83,4 +83,28 @@ public class InventoryGameGateScreenTests
         Assert.Contains(SelfBowPlus1, a.InventoryItemIds);
         Assert.Equal(0, s.Sack.ItemCount);
     }
+
+    [OriginalDataFact]
+    public void GearLine_Compare_AndSheet_ShowIIIsTablePoints()
+    {
+        // s171 shot: "DMG 12>17" (I's formula + damage A) beside the Sword +4's "DAMAGE 13 POINTS". III: Mace 4, Sword +4 13.
+        const int mace = 64, swordPlus4 = 90;
+        var (_, screen, a, _) = P3Town();
+        a.InventoryItemIds.Clear();
+        a.InventoryItemIds.AddRange([mace, swordPlus4, GodBow]);
+        a.WornShield = a.WornArmor = 0;
+        a.WornWeapon = mace;
+        a.WornBow = GodBow;
+        a.WeaponDamageA = 5;
+        var gear = screen.Gear(a);
+        Assert.Equal((4, 20), (gear.WeaponDamage, gear.Bow));
+        var cmp = screen.Compare(a, swordPlus4)!;
+        Assert.Equal((4, 13), (cmp.Before.WeaponDamage, cmp.After.WeaponDamage));
+        Assert.Equal(13, screen.ItemPoints(swordPlus4));
+
+        var sheet = string.Join("\n", InspectDialog.SheetLines(a, P3Data));
+        Assert.Contains("(4)", sheet);  // the Mace, III's table (I's formula: 12)
+        Assert.Contains("(20)", sheet); // the worn bow is listed with its points
+        Assert.DoesNotContain("(12)", sheet);
+    }
 }

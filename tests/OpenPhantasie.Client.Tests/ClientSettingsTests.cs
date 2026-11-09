@@ -55,4 +55,23 @@ public class ClientSettingsTests
         Assert.False(back.Game(GameId.P3).A500Filter);
         Assert.True(back.Game(GameId.P1).A500Filter);
     }
+
+    [Fact]
+    public void AutoMap_PerGame_OnWhenTheFileHasNone_RoundTrips()
+    {
+        // s172: the auto-map box is each game's option (games.<px>.autoMap), on by default; the old top-level
+        // autoMapVisible is no longer read.
+        var s = ClientSettings.FromJson("""{ "autoMapVisible": false, "games": { "p1": { "titleTune": false } } }""")!;
+        Assert.True(s.Game(GameId.P1).AutoMap);
+        Assert.True(s.Game(GameId.P3).AutoMap);
+        s.Game(GameId.P1).AutoMap = false;
+        var back = ClientSettings.FromJson(System.Text.Json.JsonSerializer.Serialize(s,
+            new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+            }))!;
+        Assert.False(back.Game(GameId.P1).AutoMap);
+        Assert.True(back.Game(GameId.P3).AutoMap);
+    }
 }

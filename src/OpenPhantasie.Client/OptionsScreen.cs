@@ -332,6 +332,11 @@ public sealed class OptionsScreen
         // PLAN P3 QoL: the colorblind palette (red-green), a remap of the finished frame; off = the original colours.
         rows.Add(Described("options.colorblind", OnOff(g.ColorblindPalette),
             _ => Set(() => g.ColorblindPalette = !g.ColorblindPalette)));
+        if (game is GameId.P1 or GameId.P2 or GameId.P3)
+        {
+            // PLAN P3 QoL (s172): the dungeon auto-map's overview box (Tab flips it in game); IV's screen has none.
+            rows.Add(Described("options.auto_map", OnOff(g.AutoMap), _ => Set(() => g.AutoMap = !g.AutoMap)));
+        }
         if (game is GameId.P2)
         {
             // PLAN P3 QoL (D2-014): the rulebook's terrain key beside the wilderness map; off = the ST (no key).

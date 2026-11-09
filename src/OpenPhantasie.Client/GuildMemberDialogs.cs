@@ -476,8 +476,19 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
         : _examine is not null ? UiText.S("member.arrows_choose_enter_examine_esc_done")
         : _rename ? UiText.S("member.arrows_choose_enter_rename_esc_done") : UiText.S("member.arrows_choose_enter_purge_esc_done");
 
-    private IReadOnlyList<Character> Rows(GameSession session) =>
-        session.Roster.Occupied.Where(c => !_rename || session.CanRename(c)).ToList(); // D-065 (p1.rename-party)
+    private IReadOnlyList<Character> Rows(GameSession session)
+    {
+        var rows = session.Roster.Occupied.Where(c => !_rename || session.CanRename(c)).ToList(); // D-065 (p1.rename-party)
+        // s172: III's Purge list holds the elemental records too, as DOS III's roster (slots 0-2) and the Amiga's: picking
+        // one is refused with S406 (guild_menu 0xafe3; Amiga 0xb524). Only once a
+        // character is listed: DOS opens Purge only with more than the three elemental records.
+        if (!_rename && _examine is null && ListsElementalsForPurge(session.Game) && rows.Count > 0)
+            rows.AddRange(session.ElementalTemplates);
+        return rows;
+    }
+
+    /// <summary>s172: III's Purge list shows the elementals (refused when picked, DOS S406); I's and II's do not (ST <c>0xd68a</c>: 22 rows).</summary>
+    public static bool ListsElementalsForPurge(GameId game) => game == GameId.P3;
 
 
     public string? OpenPurge(GameSession session) => Open(session, rename: false);
@@ -594,7 +605,7 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
                     }
                     if (AsksBeforePurge(session.Game))
                     {
-                        // DOS III refuses first (elemental, a party member under p3.purge = dos), then asks (0xb075).
+                        // DOS III refuses first (an elemental: S406; a party member under elemental-purge refused: S448), then asks (0xb075).
                         if (session.PurgeRefusal(member) is { } refusal)
                             return refusal;
                         PurgeAsked = member;

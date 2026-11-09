@@ -218,7 +218,8 @@ public static class CombatSpells
     /// (the variable switches from last index to count). The save's <c>dos</c> value plays DOS's test on
     /// <see cref="Party.DosLiving"/>, its list write (one place too far after a monster turn) and the second summon of an
     /// elemental already fighting (the test passes again with seven members and one DEAD: only the word and the list
-    /// change). III (<see cref="ElementalRules.MinMembers"/> 1, <c>elementals.md</c> §3): no member count at all.</para>
+    /// change). Those list writes matter only to <c>p1.monster-spell-target</c> <c>dos</c>; the <c>manual</c> summon leaves the
+    /// list alone (the next rebuild lists the elemental). II's Guild Add needs no one but its SUMMON six (<see cref="ElementalRules.SummonMembers"/>, ST <c>0x83e2</c>). III (<see cref="ElementalRules.SummonMembers"/> 1, <c>elementals.md</c> §3): no member count at all.</para>
     /// Returns whether the cast's test passed (under <c>dos</c>, also for a second summon that adds nobody).
     /// </summary>
     public static bool SummonElemental(CombatEncounter encounter)
@@ -239,7 +240,7 @@ public static class CombatSpells
         if (party.Elemental is not { } elemental || party.ElementalSummoned)
             return false;
         var nonDead = party.Members.Count(m => m.Status != CharacterStatus.Dead);
-        if (nonDead < party.Rules.ElementalRulesOrDefault.MinMembers)
+        if (nonDead < party.Rules.ElementalRulesOrDefault.SummonMembers)
             return false; // I: six non-DEAD (D-033); III (root 0xc912): no member count, one living caster is enough
         encounter.AddSummonedMember(elemental);
         return true;

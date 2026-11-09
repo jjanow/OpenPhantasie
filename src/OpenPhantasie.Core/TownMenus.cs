@@ -113,7 +113,9 @@ public static class TownMenus
         Character shopper,
         TownState town,
         IItemCatalog catalog,
-        int itemId)
+        int itemId,
+        ItemGate? canUse = null,
+        Action<Character, int>? afterBuy = null)
     {
         ArgumentNullException.ThrowIfNull(party);
         ArgumentNullException.ThrowIfNull(shopper);
@@ -144,9 +146,10 @@ public static class TownMenus
         town.SetStock(itemId, town.GetStock(itemId) - 1);
         CarriedItems.Put(shopper, itemId); // [C] first empty slot (OV1 0x1c18..0x1c2e, 0x1cef)
 
-        AutoEquipIfBetter(shopper, itemId);
+        (afterBuy ?? AutoEquipIfBetter)(shopper, itemId);
 
-        var unusable = ItemRules.IsEquipment(itemId) && !ItemRules.IsUsable(itemId, shopper.Stats);
+        var unusable = ItemRules.IsEquipment(itemId)
+            && !(canUse?.Invoke(shopper, itemId) ?? ItemRules.IsUsable(itemId, shopper.Stats));
         return new TownTransactionResult
         {
             Kind = TownTransactionKind.Ok,
@@ -624,8 +627,13 @@ public static class TownMenus
 
     // --- helpers -------------------------------------------------------------
 
-    private static void AutoEquipIfBetter(Character ch, int itemId)
+    /// <summary>
+    /// I's Armory auto-wear (DOS OV1): the bought item is worn when usable and its points are ≥ the worn one's of its kind,
+    /// then the worn points are rewritten.
+    /// </summary>
+    public static void AutoEquipIfBetter(Character ch, int itemId)
     {
+        ArgumentNullException.ThrowIfNull(ch);
         if (!ItemRules.IsUsable(itemId, ch.Stats)) return;
         var (points, _, _) = ItemRules.CombatGate(itemId);
         if (ItemRules.IsShield(itemId))

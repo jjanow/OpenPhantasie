@@ -73,7 +73,6 @@ public sealed class ClientSettings
     /// 0 shows the round as soon as the orders are in; 5 ≈ 375 ms; 9 ≈ 1.2 s.
     /// </summary>
     public static double RoundDelayMs(int timeLag) => 15.0 * Math.Clamp(timeLag, 0, 9) * Math.Clamp(timeLag, 0, 9);
-    public bool AutoMapVisible { get; set; } = true;
 
     /// <summary>
     /// The Amiga map-only screen (P2): the whole 26×20 region at (4,15), or the dungeon level's 5×4 glyphs at (10,16)
@@ -366,6 +365,15 @@ public sealed class GameSettings
     /// the same either way (only the wait is skipped). A presentation switch, shown on the IV tab.
     /// </summary>
     public bool MysticSkip { get; set; }
+
+    /// <summary>
+    /// QoL (PLAN P3, s172; off = the originals, which draw no box): the auto-map's whole-level overview box over the
+    /// dungeon view (<see cref="UiOverlays.TileOverviewPlacement"/>), in the view's corner away from the party, never over
+    /// the member cards. On by default (user, s172). The Tab key flips this same switch in game, so the Options row
+    /// always shows what Tab last set. A presentation switch, shown on the I, II and III tabs (IV's dungeon screen has
+    /// no box). Replaces the top-level <c>autoMapVisible</c> (one switch for every game) of s171 and before.
+    /// </summary>
+    public bool AutoMap { get; set; } = true;
 
     /// <summary>
     /// QoL (PLAN P3, D2-014; off = the ST, which shows no key on screen): a terrain key beside II's wilderness map, as the

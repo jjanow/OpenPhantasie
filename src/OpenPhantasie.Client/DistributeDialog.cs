@@ -57,7 +57,7 @@ public sealed class DistributeDialog : IModalDialog
         // Every item still to hand out (s99): the panel scrolls when the list runs past the screen.
         var pool = session.ItemDistribution?.Remaining ?? [];
         lines.AddRange(pool.Select((id, k) =>
-            ItemDistribution.ItemLine(id, data.Items.FirstOrDefault(it => it.Id == id)?.Name ?? $"#{id}", party)
+            ItemDistribution.ItemLine(id, data.Items.FirstOrDefault(it => it.Id == id)?.Name ?? $"#{id}", party, session.Gear)
             + (k == 0 ? " <====" : "")));
         return lines;
     }

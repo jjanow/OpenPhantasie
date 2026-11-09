@@ -427,7 +427,7 @@ public class P2Apple2PipelineTests
         foreach (var id in ownFile.Keys.Where(k => !ownIds.Contains(k)))
             bad.Add($"own wording {id}: not an own-wording id");
         Assert.True(bad.Count == 0, string.Join("\n", bad));
-        Assert.Equal((217, 95, 19), (verbatim, own, fallback)); // s165: p1field.scroll.ok ("O.K.", the ST has it too)
+        Assert.Equal((219, 95, 19), (verbatim, own, fallback)); // s165: p1field.scroll.ok ("O.K.", the ST has it too); s173: p2.terrain_key.party / .dungeon
         // One id is in both I's and II's table (two templates): II's template wins in the one file, as in II's chain.
         Assert.Equal(94, ownFile.Count);
     }

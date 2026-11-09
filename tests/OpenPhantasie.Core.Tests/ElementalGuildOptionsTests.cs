@@ -75,12 +75,19 @@ public class ElementalGuildOptionsTests
         }
     }
 
+    /// <summary>II's own rules from the Atari ST (s172, PHANT.PRG static: Add 0xd442, Drop 0xd57c, Purge 0xd68a, SUMMON 0x83e2).</summary>
+    private static readonly ElementalRules PhantasieIISt = new(0, BlocksAdd: false, DropKeeps: true, KeepsAlone: true,
+        DropsElemental: true, Purge: ElementalPurge.Keeps, SummonMinMembers: 6);
+
     [OriginalDataFact]
-    public void PhantasieIIIsRules_AreIIIsRulesJson_AndIIsHasNoBlock()
+    public void TheGamesOwnRules_AreTheirRulesJson()
     {
         Assert.Equal(ElementalRules.PhantasieIII, GameTables.Load(GameId.P3).Rules.Elementals);
         Assert.Null(GameTables.Load(GameId.P1).Rules.Elementals); // I's rule
-        Assert.Null(GameTables.Load(GameId.P2).Rules.Elementals); // II plays I's rule
+        Assert.Equal(PhantasieIISt, GameTables.Load(GameId.P2).Rules.Elementals);
+        Assert.Equal(6, PhantasieIISt.SummonMembers);
+        Assert.Equal(6, ElementalRules.PhantasieI.SummonMembers);
+        Assert.Equal(1, ElementalRules.PhantasieIII.SummonMembers);
     }
 
     // ---- Off (game) = today's rules, every preset --------------------------------------------------------------------
@@ -99,20 +106,23 @@ public class ElementalGuildOptionsTests
     {
         var s = Guild(game, GameOptions.ForPreset(game, preset), members: 1);
         Assert.Equal(s.Party.Rules.ElementalRulesOrDefault, s.GuildElementalRules);
-        Assert.Equal(game == GameId.P3 ? ElementalRules.PhantasieIII : ElementalRules.PhantasieI, s.GuildElementalRules);
-        Assert.Equal(s.Options.P3PurgeRule(), s.PurgeRule);
         Assert.Equal(
-            game != GameId.P3 ? PurgePartyRule.ClearsElemental
-            : preset == OptionPreset.Dos ? PurgePartyRule.Refused
-            : PurgePartyRule.KeepsElemental,
+            game switch { GameId.P1 => ElementalRules.PhantasieI, GameId.P2 => PhantasieIISt, _ => ElementalRules.PhantasieIII },
+            s.GuildElementalRules);
+        Assert.Equal(
+            game switch
+            {
+                GameId.P1 => PurgePartyRule.ClearsElemental,
+                GameId.P2 => PurgePartyRule.KeepsAlways,
+                _ => preset == OptionPreset.Dos ? PurgePartyRule.Refused : PurgePartyRule.KeepsElemental,
+            },
             s.PurgeRule);
     }
 
-    [OriginalDataTheory]
-    [InlineData(GameId.P1)]
-    [InlineData(GameId.P2)]
-    public void IAndII_Own_SixFirst_NoAddAfter_DropAndPurgeUnload(GameId game)
+    [OriginalDataFact]
+    public void I_Own_SixFirst_NoAddAfter_DropAndPurgeUnload()
     {
+        const GameId game = GameId.P1;
         var s = Guild(game, GameOptions.ForPreset(game), members: 5);
         Assert.False(s.TryAddElemental(0, out _)); // six characters first
         var sixth = s.CreateAndEnroll("ELZ", Race.Human, CharacterClass.Fighter);
@@ -126,6 +136,36 @@ public class ElementalGuildOptionsTests
         Assert.False(s.TryAddToParty(s.CreateAndEnroll("ELY", Race.Human, CharacterClass.Fighter), out _)); // full anyway
         Assert.True(s.TryPurge(s.Party.Members[0], out err), err);
         Assert.Null(s.Party.Elemental); // OV1 0x2489
+        Assert.False(s.TryDropElemental(out _)); // I's Drop list has no elemental row
+    }
+
+    /// <summary>
+    /// II's own rule (Atari ST, s172 static): Add needs no character and characters join beside it; Drop and Purge of a
+    /// character never touch it, even the last one; the Drop list unloads it by itself; SUMMON still needs six.
+    /// </summary>
+    [OriginalDataTheory]
+    [InlineData(OptionPreset.Manual)]
+    [InlineData(OptionPreset.Dos)]
+    [InlineData(OptionPreset.Remaster)]
+    public void II_Own_NoCount_CharactersJoinBeside_DropAndPurgeKeepIt(OptionPreset preset)
+    {
+        var s = Guild(GameId.P2, GameOptions.ForPreset(GameId.P2, preset), members: 0);
+        Assert.True(s.TryAddElemental(0, out var err), err); // an empty party (ST 0xd442: no count)
+        Assert.False(s.TryAddElemental(1, out _)); // one at a time
+        for (var i = 0; i < 6; i++)
+            Assert.True(s.TryAddToParty(s.CreateAndEnroll("EM" + (char)('A' + i), Race.Human, Classes[i]), out err), err);
+        Assert.NotNull(s.Party.Elemental);
+        Assert.True(s.TryDropFromParty(s.Party.Members[0], out err), err);
+        Assert.NotNull(s.Party.Elemental);
+        Assert.True(s.TryPurge(s.Party.Members[0], out err), err);
+        Assert.NotNull(s.Party.Elemental);
+        while (s.Party.Members.Count > 0)
+            Assert.True(s.TryDropFromParty(s.Party.Members[0], out err), err);
+        Assert.NotNull(s.Party.Elemental); // alone (ST 0xc14a moves records 0-5 only)
+        Assert.False(s.LeaveTown()); // the remaster's empty-party guard holds; what the ST does here is [?]
+        Assert.True(s.TryDropElemental(out err), err);
+        Assert.Null(s.Party.Elemental);
+        Assert.True(s.TryAddElemental(2, out err), err); // the record stayed in the Guild
     }
 
     // ---- elemental-load ----------------------------------------------------------------------------------------------
@@ -141,9 +181,9 @@ public class ElementalGuildOptionsTests
         Assert.True(s.TryAddToParty(c, out err), err);
         Assert.Equal(2, s.Party.Adventurers.Count());
         Assert.NotNull(s.Party.Elemental);
-        // Under the game's own Drop rule (I's) a Drop still unloads it.
+        // Under the game's own Drop rule a Drop still unloads it in I; II's own Drop keeps it.
         Assert.True(s.TryDropFromParty(c, out err), err);
-        Assert.Null(s.Party.Elemental);
+        Assert.Equal(game == GameId.P2, s.Party.Elemental is not null);
     }
 
     [OriginalDataFact]
@@ -221,7 +261,9 @@ public class ElementalGuildOptionsTests
     [InlineData(GameId.P2, "as-drop", "phantasie-iii", true)]
     [InlineData(GameId.P3, "as-drop", "game", true)]           // III's manual (D3-040)
     [InlineData(GameId.P3, "as-drop", "phantasie-i", false)]
-    [InlineData(GameId.P3, "phantasie-i", "game", false)]      // replaces p3.purge = manual
+    [InlineData(GameId.P3, "phantasie-i", "game", false)]      // replaces III's own as-Drop
+    [InlineData(GameId.P2, "game", "game", true)]              // II's own: kept (ST 0xd68a)
+    [InlineData(GameId.P2, "game", "phantasie-i", true)]       // II's own Purge does not follow Drop
     [InlineData(GameId.P2, "phantasie-i", "phantasie-iii", false)]
     public void Purge_OfAPartyMember_UnloadsOrKeepsTheElemental(GameId game, string purge, string drop, bool keeps)
     {
@@ -257,32 +299,32 @@ public class ElementalGuildOptionsTests
     {
         var dos = GameOptions.ForPreset(GameId.P3, OptionPreset.Dos);
         var s = Guild(GameId.P3, dos.With("elemental-purge", "as-drop"), members: 2);
-        Assert.Null(s.PurgeRefusal(s.Party.Members[0])); // p3.purge = dos no longer refuses
+        Assert.Null(s.PurgeRefusal(s.Party.Members[0])); // the Original preset's own refusal is replaced
         var t = Guild(GameId.P3, GameOptions.ForPreset(GameId.P3).With("elemental-purge", "refused"), members: 2);
-        Assert.NotNull(t.PurgeRefusal(t.Party.Members[0])); // p3.purge = manual no longer purges
+        Assert.NotNull(t.PurgeRefusal(t.Party.Members[0])); // the manual's own as-Drop is replaced
     }
 
     // ---- The invariant: an elemental is never removed from the game -------------------------------------------------
 
-    public static TheoryData<GameId, string, string, string, string> EveryCombination()
+    public static TheoryData<GameId, string, string, string, OptionPreset> EveryCombination()
     {
-        var data = new TheoryData<GameId, string, string, string, string>();
+        var data = new TheoryData<GameId, string, string, string, OptionPreset>();
         foreach (var game in GuildGames)
             foreach (var load in RuleOptionRegistry.ElementalLoad.Values)
                 foreach (var drop in RuleOptionRegistry.ElementalDrop.Values)
                     foreach (var purge in RuleOptionRegistry.ElementalPurge.Values)
-                        foreach (var p3 in game == GameId.P3 ? P3RuleOptions.Purge.Values : ["-"])
-                            data.Add(game, load, drop, purge, p3);
+                        foreach (var preset in new[] { OptionPreset.Manual, OptionPreset.Dos })
+                            data.Add(game, load, drop, purge, preset);
         return data;
     }
 
     [OriginalDataTheory]
     [MemberData(nameof(EveryCombination))]
-    public void NoGameOrOption_RemovesAnElementalFromTheGame(GameId game, string load, string drop, string purge, string p3)
+    public void NoGameOrOption_RemovesAnElementalFromTheGame(GameId game, string load, string drop, string purge,
+        OptionPreset preset)
     {
-        var o = Opts(game, ("elemental-load", load), ("elemental-drop", drop), ("elemental-purge", purge));
-        if (game == GameId.P3)
-            o = o.With(P3RuleOptions.Purge.Id, p3);
+        var o = GameOptions.ForPreset(game, preset)
+            .With("elemental-load", load).With("elemental-drop", drop).With("elemental-purge", purge);
         var s = Guild(game, o, members: 6);
         var templates = s.ElementalTemplates.Select(t => t.Name).ToArray();
         Assert.Equal(3, templates.Length);
@@ -309,7 +351,13 @@ public class ElementalGuildOptionsTests
                 if (!s.TryPurge(m, out _))
                     Assert.True(s.TryDropFromParty(m, out err), err);
             }
-            Assert.Null(s.Party.Elemental); // no character left: unloaded in every rule
+            // No character left: unloaded, except under II's own rules, where the Drop list unloads it.
+            if (s.Party.Elemental is not null)
+            {
+                Assert.True(s.GuildElementalRules.KeepsAlone || s.PurgeRule == PurgePartyRule.KeepsAlways);
+                Assert.True(s.TryDropElemental(out err), err);
+            }
+            Assert.Null(s.Party.Elemental);
             Assert.Equal(templates, s.ElementalTemplates.Select(t => t.Name));
         }
 
@@ -331,6 +379,8 @@ public class ElementalGuildOptionsTests
             if (s.Party.Elemental is not null) // a Drop that keeps it: drop the rest to unload it
                 while (s.Party.Adventurers.Any())
                     Assert.True(s.TryDropFromParty(s.Party.Members[0], out err), err);
+            if (s.Party.Elemental is not null) // II's own: it stays alone; its Drop list unloads it
+                Assert.True(s.TryDropElemental(out err), err);
             Assert.Null(s.Party.Elemental);
             RefillParty(s);
         }

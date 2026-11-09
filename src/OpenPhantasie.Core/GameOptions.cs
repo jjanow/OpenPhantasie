@@ -274,8 +274,16 @@ public static class RuleOptionRegistry
     /// <summary>D-031: wilderness treasure always drops (<c>manual</c>) or on <c>rand ≤ 2·L + 20</c>, with DOS's SCROLL 17 guard on the unshifted id (<c>dos</c>, OV2 <c>0x41aa</c>).</summary>
     public static readonly RuleOptionDescriptor WildernessTreasure = ManualOrDos("p1.wild-treasure", "D-031");
 
-    /// <summary>D-033: `core.spell.summon_elemental` needs six non-DEAD members (<c>manual</c>) or DOS's <c>[0x6490] == 5</c> index/count test (<c>dos</c>, OV2 <c>0x8cc</c>).</summary>
+    /// <summary>D-033: `core.spell.summon_elemental` needs six non-DEAD members (<c>manual</c>) or DOS's <c>[0x6490] == 5</c> index/count test, its list write and second summon (<c>dos</c>, OV2 <c>0x8cc</c>). Who monster spells hit is <see cref="MonsterSpellTarget"/>.</summary>
     public static readonly RuleOptionDescriptor SummonParty = ManualOrDos("p1.summon-party", "D-033");
+
+    /// <summary>
+    /// D-033 (split from <see cref="SummonParty"/>, user s172): a monster spell that hits one member (specials 1–4) picks
+    /// over every non-DEAD member (<c>manual</c>) or reads DOS's living list at its word as they stand (<c>dos</c>, OV2
+    /// <c>0x1731</c>, <see cref="Party.DosLiving"/>): early in a round with orders the last listed member can't be hit, and
+    /// a stale entry (after a <c>dos</c> summon in a count phase) can name a DEAD member, wasting the spell.
+    /// </summary>
+    public static readonly RuleOptionDescriptor MonsterSpellTarget = ManualOrDos("p1.monster-spell-target", "D-033");
 
     /// <summary>D-053: the end of combat shows and pools the totals (<c>manual</c>) or DOS's per-survivor shares, remainders lost (<c>dos</c>, OV2 <c>0x3fbe</c>).</summary>
     public static readonly RuleOptionDescriptor CombatShares = ManualOrDos("p1.combat-shares", "D-053");
@@ -461,8 +469,8 @@ public static class RuleOptionRegistry
 
     /// <summary>
     /// When the Guild lets an elemental join and whether a character can join after it: <c>game</c> (the game's own:
-    /// I and II six characters first and nobody after it, OV1 <c>0x2786</c> / <c>0x1fe8</c>; III one character, later ones
-    /// go in front of it, ovl2 <c>0x3a0a</c>), <c>phantasie-i</c> or <c>phantasie-iii</c> in every game
+    /// I six characters first and nobody after it, OV1 <c>0x2786</c> / <c>0x1fe8</c>; II no count and characters join beside
+    /// it, ST <c>0xd442</c> (s172); III one character, later ones go in front of it, ovl2 <c>0x3a0a</c>), <c>phantasie-i</c> or <c>phantasie-iii</c> in every game
     /// (<see cref="ElementalRules.PhantasieI"/>, <see cref="ElementalRules.PhantasieIII"/>). Summoning in combat keeps the
     /// game's own rule (D-033).
     /// </summary>
@@ -471,19 +479,21 @@ public static class RuleOptionRegistry
         Manual: "game", Dos: "game", Remaster: "game", EveryGame: true, Games: GuildElementalGames);
 
     /// <summary>
-    /// Guild ▸ Drop of a character with an elemental loaded: <c>game</c> (I and II: every Drop unloads it, OV1
-    /// <c>0x22d1</c>; III: it stays while a character is left, ovl2 <c>0x3c92</c>), <c>phantasie-i</c> or
-    /// <c>phantasie-iii</c> in every game.
+    /// Guild ▸ Drop of a character with an elemental loaded: <c>game</c> (I: every Drop unloads it, OV1 <c>0x22d1</c>;
+    /// II: it stays, even alone, ST <c>0xd57c</c> (s172); III: it stays while a character is left, ovl2 <c>0x3c92</c>),
+    /// <c>phantasie-i</c> or <c>phantasie-iii</c> in every game.
     /// </summary>
     public static readonly RuleOptionDescriptor ElementalDrop = new(
         "elemental-drop", GameId.P1, ["game", "phantasie-i", "phantasie-iii"],
         Manual: "game", Dos: "game", Remaster: "game", EveryGame: true, Games: GuildElementalGames);
 
     /// <summary>
-    /// Guild ▸ Purge of a character in the party with an elemental loaded (D3-040): <c>game</c> (I and II: purged and the
-    /// elemental unloaded, OV1 <c>0x2489</c>; III: <see cref="P3RuleOptions.Purge"/>), <c>phantasie-i</c> (unloaded),
-    /// <c>as-drop</c> (III's manual, D3-040: what this save's Drop does, <see cref="ElementalDrop"/>) or <c>refused</c> (DOS
-    /// III: a party member is not purged; Drop first). A value other than <c>game</c> replaces <c>p3.purge</c> in III.
+    /// Guild ▸ Purge of a character in the party with an elemental loaded (D3-040): <c>game</c> (the game's own,
+    /// <see cref="ElementalRules.Purge"/>: I purged and the elemental unloaded, OV1 <c>0x2489</c>; II purged and the elemental
+    /// stays, ST <c>0xd68a</c> (s172); III by the preset, user s172: <c>as-drop</c> under Manual / Remaster / Custom,
+    /// <c>refused</c> under the Original preset), <c>phantasie-i</c> (unloaded), <c>as-drop</c> (III's manual, D3-040: what
+    /// this save's Drop does, <see cref="ElementalDrop"/>) or <c>refused</c> (DOS III: a party member is not purged; Drop
+    /// first). III's former <c>p3.purge</c> is folded in here (s172).
     /// </summary>
     public static readonly RuleOptionDescriptor ElementalPurge = new(
         "elemental-purge", GameId.P1, ["game", "phantasie-i", "as-drop", "refused"],
@@ -496,8 +506,8 @@ public static class RuleOptionRegistry
         TownInnTime, HitDice, WildernessInnTime, InnMagicCap, WildernessInnDead, PoolCap, PathTime, MonsterEval, Vision,
         AddAging, CastFlag, DungeonMapNo,
         HalflingDex, GuildSize, Lifespans, MonkSleep,
-        TownHealing, BegMercy, SackSize, Sleep, Charm, Teleport, WildernessTreasure, SummonParty, CombatShares, ContinueParty,
-        CastList, TransportList, CombatSpellList, OrdersReset,
+        TownHealing, BegMercy, SackSize, Sleep, Charm, Teleport, WildernessTreasure, SummonParty, MonsterSpellTarget,
+        CombatShares, ContinueParty, CastList, TransportList, CombatSpellList, OrdersReset,
         TransferSpells, TransferDivine, TransferGold,
         P2TrainingCost, P2HitDice, P2WizardResurrection, P2AutoSave,
         P2GoldCap, P2GuildSize, P2Lifespans, P2DispellUndead, P2Fear, P2FearBosses,

@@ -4,8 +4,8 @@ namespace OpenPhantasie.Client.Tests;
 
 /// <summary>
 /// s171 (PLAN P3, QoL): III's tile dungeons get the auto-map back as a whole-level overview
-/// (<see cref="UiOverlays.TileOverviewPlacement"/>, <see cref="UiOverlays.DrawTileDungeonOverview"/>), inside the view left
-/// of the member cards, in the corner away from the party.
+/// (<see cref="UiOverlays.TileOverviewPlacement"/>, <see cref="UiOverlays.DrawDungeonOverview"/>), inside the view left
+/// of the member cards, in the corner away from the party. s172: I / II's glyph view places it the same way.
 /// </summary>
 public class TileDungeonOverviewTests
 {
@@ -60,6 +60,42 @@ public class TileDungeonOverviewTests
         Assert.Equal(!right, l.Box.X == View.X);
         Assert.Equal(bottom, l.Box.Bottom == View.Bottom);
         Assert.Equal(!bottom, l.Box.Y == View.Y);
+    }
+
+    // Game1.DrawDungeonGlyphs on I / II (s172): 15 x 18 of the 33 x 38 level, 5 x 4 Amiga glyphs drawn 2x (10 x 8).
+    private const int P1W = 33, P1H = 38, P1Cols = 15, P1Rows = 18, P1GlyphW = 10, P1GlyphH = 8;
+    private static readonly Rectangle P1View = new(ViewLeft, UiOverlays.ContentTop, P1Cols * P1GlyphW, P1Rows * P1GlyphH);
+
+    private static Rectangle P1PartyOnScreen(int x, int y)
+    {
+        var x0 = Math.Clamp(x - P1Cols / 2, 0, P1W - P1Cols);
+        var y0 = Math.Clamp(y - P1Rows / 2, 0, P1H - P1Rows);
+        return new Rectangle(P1View.X + (x - x0) * P1GlyphW, P1View.Y + (y - y0) * P1GlyphH, P1GlyphW, P1GlyphH);
+    }
+
+    [Fact]
+    public void PhantasieI_EveryPartyCell_TheBoxCoversNoCard_NorTheParty_AndStaysInTheView()
+    {
+        // s171's shot p1-s171-automap-box-over-cards.png: the old box at (222, 16) lay over cards 2, 3 and 5.
+        for (var y = 0; y < P1H; y++)
+        for (var x = 0; x < P1W; x++)
+        {
+            var party = P1PartyOnScreen(x, y);
+            var l = UiOverlays.TileOverviewPlacement(P1View, party, P1W, P1H);
+            Assert.True(l.Box.Right < UiOverlays.FieldPartyArea.X, $"({x},{y}): {l.Box}");
+            Assert.False(l.Box.Intersects(UiOverlays.FieldPartyArea), $"({x},{y}): {l.Box}");
+            Assert.False(l.Box.Intersects(party), $"({x},{y}): {l.Box} over the party {party}");
+            Assert.True(P1View.Contains(l.Box), $"({x},{y}): {l.Box} outside the view {P1View}");
+        }
+    }
+
+    [Fact]
+    public void PhantasieI_TheWholeLevel_TwoByOneCells_NoneCut()
+    {
+        var l = UiOverlays.TileOverviewPlacement(P1View, P1PartyOnScreen(16, 19), P1W, P1H);
+        Assert.Equal((2, 1), (l.CellWidth, l.CellHeight));
+        Assert.Equal((P1W * 2, P1H), (l.Grid.Width, l.Grid.Height)); // all 33 x 38 cells
+        Assert.Equal((70, 42), (l.Box.Width, l.Box.Height));
     }
 
     [Fact]

@@ -202,6 +202,7 @@ public static class SessionCodec
                     SurpriseFirstRound = snap.Combat.SurpriseFirstRound,
                     MonsterHold = snap.Combat.MonsterHold,
                     OpensWithoutOrders = snap.Combat.OpensWithoutOrders,
+                    OrdersSkipped = snap.Combat.OrdersSkipped,
                     MoraleCheckedThisRound = snap.Combat.MoraleCheckedThisRound,
                     OptionChosenThisRound = snap.Combat.OptionChosenThisRound,
                     Phantasie3 = snap.Combat.Phantasie3,
@@ -347,6 +348,7 @@ public static class SessionCodec
                     SurpriseFirstRound = dto.Combat.SurpriseFirstRound,
                     MonsterHold = dto.Combat.MonsterHold,
                     OpensWithoutOrders = dto.Combat.OpensWithoutOrders,
+                    OrdersSkipped = dto.Combat.OrdersSkipped,
                     MoraleCheckedThisRound = dto.Combat.MoraleCheckedThisRound,
                     OptionChosenThisRound = dto.Combat.OptionChosenThisRound,
                     Phantasie3 = dto.Combat.Phantasie3,
@@ -569,6 +571,7 @@ public static class SessionCodec
         public bool SurpriseFirstRound { get; set; }
         public int MonsterHold { get; set; }
         public bool OpensWithoutOrders { get; set; }
+        public bool OrdersSkipped { get; set; }
 
         /// <summary>Per-round PARTY OPTIONS state (P0.5 s39); false in older saves.</summary>
         public bool MoraleCheckedThisRound { get; set; }

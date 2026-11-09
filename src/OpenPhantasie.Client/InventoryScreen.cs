@@ -197,6 +197,9 @@ public sealed class InventoryScreen
     /// <summary>What wearing <paramref name="itemId"/> would change for <paramref name="member"/> (read-only).</summary>
     public GearComparison? Compare(Character member, int itemId) => S.CompareGear(member, itemId);
 
+    /// <summary>The member's gear line numbers in this game's rules (<see cref="GameSession.GearStatsOf"/>).</summary>
+    public GearStats Gear(Character member) => S.GearStatsOf(member);
+
     /// <summary>The item's description lines (<see cref="ItemRules.Describe"/>; the first is its name).</summary>
     public IReadOnlyList<string> Describe(int itemId) => S.DescribeItem(itemId);
 
@@ -245,7 +248,7 @@ public sealed class InventoryScreen
     }
 
     /// <summary>The item's points from the game's own table (III's differ from I's id formulas), else <see cref="ItemRules.CombatGate"/>.</summary>
-    public int ItemPoints(int id) => _points.TryGetValue(id, out var p) ? p : ItemRules.CombatGate(id).Points;
+    public int ItemPoints(int id) => _points.TryGetValue(id, out var p) ? p : S.ItemPoints(id);
 
     private int KindOrder(int itemId) =>
         Layout.SlotFor(itemId) is { } s ? Layout.Slots.ToList().IndexOf(s) : Layout.Slots.Count;

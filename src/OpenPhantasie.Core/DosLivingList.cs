@@ -2,9 +2,10 @@ namespace OpenPhantasie.Core;
 
 /// <summary>
 /// DOS's non-DEAD member list <c>[0x64a2]</c> and its word <c>[0x6490]</c> (<c>combat-resolution.md</c> §SUMMON
-/// ELEMENTAL, "The living list and its word"). Only the D-033 <c>dos</c> value of <c>p1.summon-party</c> reads them: the
-/// SUMMON ELEMENTAL test (<c>0x8cc</c>) and the target of monster specials 1–4 (<c>0x1731</c>). Kept for the whole
-/// session, like DOS's RAM, because an entry past the current count keeps whatever an earlier rebuild wrote.
+/// ELEMENTAL, "The living list and its word"). Read only under D-033's <c>dos</c> values: <c>p1.summon-party</c> (the
+/// Summon Elemental test <c>0x8cc</c> and its list write) and <c>p1.monster-spell-target</c> (the target of monster
+/// specials 1–4, <c>0x1731</c>). Always kept up to date, whatever the options, and kept for the whole session, like
+/// DOS's RAM, because an entry past the current count keeps whatever an earlier rebuild wrote.
 /// </summary>
 /// <remarks>
 /// <para>Writers [C] (OV2 bytes): <c>0x43ae</c> lists the party slots <c>0..[0x648e]−1</c> with status ≠ DEAD
@@ -12,7 +13,7 @@ namespace OpenPhantasie.Core;
 /// (<c>0x6a32</c>) stores that index in the word; each monster turn (melee start <c>0xd93</c>, after a hit <c>0xf3a</c>,
 /// after a miss <c>0xfed</c>, after a special <c>0x1065</c>) and the end of combat (<c>0x3fa9</c>) store index + 1 (the
 /// count). RESURRECTION (<c>0x11d4</c>, combat and field) rebuilds the list but only adds 1 to the word, so the word keeps
-/// its meaning. A death (<c>0x12f4</c>) subtracts 1. SUMMON ELEMENTAL (<c>0x8e1</c>) adds 1 and writes slot 6 at the new
+/// its meaning. A death (<c>0x12f4</c>) subtracts 1. Summon Elemental (<c>0x8e1</c>) adds 1 and writes slot 6 at the new
 /// word. Out of combat the step handler (<c>0x432a</c>), dungeon event damage (<c>0x26d0</c>), traps (<c>0x31e1</c>) and
 /// swimming (<c>0x695c</c>) rebuild the list without touching the word. OV1 and the COM never touch either.</para>
 /// <para>[?] The list and word at start-up: both are in the COM's BSS (DS <c>0x64a2</c> lies past the unpacked image),
@@ -72,7 +73,7 @@ public sealed class DosLivingList
     public void MemberDied() => Word--;
 
     /// <summary>
-    /// The SUMMON ELEMENTAL cast (<c>0x8cc</c>): with word 5 and an elemental loaded, word + 1 and the entry at the new
+    /// The Summon Elemental cast (<c>0x8cc</c>): with word 5 and an elemental loaded, word + 1 and the entry at the new
     /// word := slot 6. Returns whether the test passed (the caller sets party size 7).
     /// </summary>
     public bool TrySummon(bool elementalLoaded)

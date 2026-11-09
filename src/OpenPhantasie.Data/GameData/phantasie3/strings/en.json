@@ -25,6 +25,7 @@
     "p3.page.press_a_number": "...",
     "core.guild.party_not_assembled": "...",
     "core.guild.cannot_purge_party_member": "...",
+    "core.guild.cannot_purge_elemental": "...",
     "core.guild.elemental_already_joined": "...",
     "core.guild.party_is_full": "...",
     "core.guild.already_in_party": "...",

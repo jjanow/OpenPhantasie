@@ -70,7 +70,8 @@ public partial class AuthenticModeRestTests
         { "p1.halfling-dex", "D-001" }, { "p1.guild-size", "D-002" }, { "p1.lifespans", "D-003" },
         { "p1.monk-sleep", "D-006" }, { "p1.town-healing", "D-010" }, { "p1.beg-mercy", "D-017" },
         { "p1.sack-size", "D-018" }, { "p1.sleep", "D-020" }, { "p1.charm", "D-022" }, { "p1.teleport", "D-023" },
-        { "p1.wild-treasure", "D-031" }, { "p1.summon-party", "D-033" }, { "p1.combat-shares", "D-053" },
+        { "p1.wild-treasure", "D-031" }, { "p1.summon-party", "D-033" },
+        { "p1.monster-spell-target", "D-033" }, { "p1.combat-shares", "D-053" },
         { "p1.continue", "D-069" }, { "p1.cast-list", "D-035" }, { "p1.transport-list", "D-062" },
         { "p1.combat-spell-list", "D-063" }, { "p1.orders-reset", "D-078" },
     };

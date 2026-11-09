@@ -143,12 +143,42 @@ public interface ICampaign
 
     /// <summary>
     /// The game's own strength gate: can <paramref name="member"/> use <paramref name="itemId"/> (shields, armour, weapons;
-    /// any other item passes)? The inventory screen asks this (<see cref="GameSession.CanWear"/>). Default: I's
-    /// <see cref="ItemRules.IsUsable"/> (DOS OV1 <c>0x3053</c>, gate computed from the id). II keeps the default: its
-    /// <c>items.json</c> gates are I's id formulas `[~]` (checked live only for the transfer starter kit). III overrides it
-    /// with its table rule (<c>P3TownEntryPayout.CanUse</c>).
+    /// any other item passes)? The inventory screen, the Armory's UNUSABLE and the hand-out's "who can use" column ask this
+    /// (<see cref="GameSession.CanWear"/>, <see cref="GameSession.Gear"/>). Default: I's <see cref="ItemRules.IsUsable"/>
+    /// (DOS OV1 <c>0x3053</c>, gate computed from the id). II keeps the default: the ST's gate (<c>PHANT.PRG</c>
+    /// <c>0xc366</c>, s173 <c>[C]</c> static) computes I's thresholds, requirements and attribute sums for ids 1–100
+    /// (<c>atari-st/phantasie2/FORMAT.md</c> section 5). III overrides it with its table rule (<c>P3TownEntryPayout.CanUse</c>).
     /// </summary>
     bool CanUseItem(GameSession session, Character member, int itemId) => ItemRules.IsUsable(itemId, member.Stats);
+
+    /// <summary>
+    /// An item's point value (shield / armour protection, weapon / bow damage): what the worn fields hold, the Compare panel,
+    /// the hand-out line and the best-gear pick weigh. Default: I's id formulas (<see cref="ItemRules.CombatGate"/>; II's ST
+    /// <c>0xc366</c> writes the same). III: its table (<c>items.json</c> <c>points</c>, DOS <c>DS:0x113c</c>).
+    /// </summary>
+    int ItemPoints(GameSession session, int itemId) => ItemRules.CombatGate(itemId).Points;
+
+    /// <summary>
+    /// The best-gear pick after an item reaches a member (the hand-out, III's Trade): default I's selector (DOS OV1
+    /// <c>0x2fdb</c>, <see cref="CombatGear.SelectWornItems"/>: most points, first of equals, a kind with none usable worn
+    /// empty). III: ovl2 <c>0x37f1</c> (<c>P3TownEntryPayout.ReadyBestEquipment</c>, bow slot, ties to the later item, a
+    /// slot never emptied).
+    /// </summary>
+    void ReadyBestEquipment(GameSession session, Character member) => CombatGear.SelectWornItems(member);
+
+    /// <summary>
+    /// The member's gear numbers as this game's combat uses them (the inventory screen's gear line and Compare panel).
+    /// Default: I's (<see cref="InventoryActions.Stats"/>: damage A + B, DOS defense rating). III: the table points of the
+    /// worn weapon, armour, shield and bow, and its defence (root <c>0xd730</c>, <c>P3Combat.Defence</c>).
+    /// </summary>
+    GearStats GearStatsOf(GameSession session, Character member) => InventoryActions.Stats(member);
+
+    /// <summary>
+    /// The Armory just sold <paramref name="itemId"/> to <paramref name="shopper"/>. Default: I's DOS auto-wear (the bought
+    /// item is worn when usable and its points ≥ the worn one's, <see cref="TownMenus.AutoEquipIfBetter"/>). III wears
+    /// nothing (ovl2 <c>0x2f2a</c>: its exit ready-best runs on the record before the shopping copy is written back over it).
+    /// </summary>
+    void AfterArmoryBuy(GameSession session, Character shopper, int itemId) => TownMenus.AutoEquipIfBetter(shopper, itemId);
 
     // --- Optional hooks a game with its own world rules uses (T4, III; I and II use none) ---------------------------
 

@@ -37,7 +37,7 @@ public static class P3TownEntryPayout
             if (Points(id) >= Points(WornItems.Get(ch, slot.Id)))
                 WornItems.Set(ch, slot.Id, id);
         }
-        CombatGear.ApplyWornItemPoints(ch); // as III's creation kit does (Phantasie3Campaign.RollNewMember)
+        CombatGear.ApplyWornItemPoints(ch, Points); // the worn fields hold the table points, as III's kit (GiveKit)
     }
 
     /// <summary>

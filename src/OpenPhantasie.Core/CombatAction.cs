@@ -248,12 +248,17 @@ public static class CombatOrders
 /// </summary>
 public static class CombatGear
 {
-    public static void ApplyWornItemPoints(Character ch)
+    /// <summary>
+    /// Writes the worn items' points into @240 / @242 / @244. <paramref name="points"/> is the game's point value by item id
+    /// (<see cref="ICampaign.ItemPoints"/>; III its table); null = I's <see cref="ItemRules.CombatGate"/>.
+    /// </summary>
+    public static void ApplyWornItemPoints(Character ch, Func<int, int>? points = null)
     {
         ArgumentNullException.ThrowIfNull(ch);
-        ch.ShieldSoak = ItemRules.CombatGate(ch.WornShield).Points;
-        ch.ArmorSoak = ItemRules.CombatGate(ch.WornArmor).Points;
-        ch.WeaponDamageB = ItemRules.CombatGate(ch.WornWeapon).Points;
+        points ??= static id => ItemRules.CombatGate(id).Points;
+        ch.ShieldSoak = ch.WornShield > 0 ? points(ch.WornShield) : 0;
+        ch.ArmorSoak = ch.WornArmor > 0 ? points(ch.WornArmor) : 0;
+        ch.WeaponDamageB = ch.WornWeapon > 0 ? points(ch.WornWeapon) : 0;
     }
 
     /// <summary>

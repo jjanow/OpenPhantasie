@@ -216,3 +216,39 @@ The towns spec itself is static (s80). Seen live:
   skip); D2-032 a town Inn stay takes two weeks (`p2.town-inn-time`) and the wilderness inn stops at the table
   (`p2.inn-magic-cap`).
 - The Mystic is `endgame.md` §2 (`Phantasie2Campaign.ConsultMystic`). ORIGIN is set at Guild N)EW by the town's plane.
+
+## 10. Guild with an elemental (Add / Drop / Purge) `[C]` static (s172, not seen live)
+
+Record layout: party records `0x25162 + 0x13e·i` (i = 0..5 characters, i = 6 = the elemental, `0x258d6`); `+0x5c` (@92)
+= roster number + 1 (0 = empty), `+0xda` = in-party word, `+0x18` = status. `0x25eb6` = last character index (−1 = none),
+`0x25932` = record 6's @92 (non-zero = an elemental loaded), `0x25f5c` = the Guild roster (25 × 318: 22 characters, then
+FIRE / WATER / EARTH).
+
+- **Guild menu** `0x352` (items `0x10`–`0x18` → jump table `0x229a6`: Learn `0xd0d2`, Training `0xcdde`, Add `0xd442`,
+  New `0xc90c`, Drop `0xd57c`, Rename `0xda82`, Inspect `0xe69e`, Purge `0xd68a`, Exit). `0x2308(2, item, 1)` disables an
+  item. Drop (`0x22ec`) is disabled only when no character **and** no elemental is in the party. Add is disabled only
+  when the party holds min(characters in the roster, 6) characters and an elemental. Learn / Training need party record
+  0; Purge / Rename need a character in the roster.
+- **Add** `0xd442`: loops until the sixth record and the elemental are both filled. List `0x1a08`: 25 rows (the
+  elementals too) while `0x25932` = 0, else 22; rows with @92 = 0 or already in the party are left out. An elemental pick
+  (row > 21) copies the record into record 6, **no member count** (an empty party too) and no town / age change. A
+  character goes to the first empty record 0-5 (I's town check, alert 6 "two months", `@264 += 4`, `@218 := 1`); the
+  elemental never blocks it.
+- **Drop** `0xd57c`: list `0x5da(7)` = the seven party records, empty ones greyed. The pick's in-party word is cleared;
+  a character (index < 6) is copied back to its Guild record; @92 and the status are cleared; `0xc14a` compacts records
+  0-5 only and recounts `0x25eb6`. So a character's Drop never touches the elemental, even the last character's, and the
+  elemental itself is dropped from the same list (no copy-back).
+- **Purge** `0xd68a`: list `0x1a08` over the **22** character records (party members included), so an elemental is never
+  offered. The Guild record's in-party word, word `0x100` and @92 are cleared, then every party record 0-5 holding it is
+  cleared. Record 6 is never touched: the elemental stays.
+- **SUMMON** `0x83e2`: still needs a party of six with the elemental in record 6 (`encounters.md` section 4).
+- **Manual:** "The elemental will only serve a party of six adventurers" (Magic, PDF 9): the ST enforces it at SUMMON, not
+  at Add: `DIFFERENCES-II.md` D2-051 (DECIDED s173: the ST's Add stays; SUMMON's six is the limit).
+- `[?]` What the ST does when the party is left with only the elemental and leaves the Guild or the town (not read). The
+  remaster keeps its own guard (town Exit refuses a party with no character).
+- `[?]` Town entry: the remaster's II unloads the elemental on entering a town with I's rule (`Aging.ApplyTownEntry`, DOS
+  OV1 `0x19d3`); no ST write to record 6 outside the Guild and the continue path was found in this read, so the ST may
+  keep it. Unverified.
+- **Core (s172):** `phantasie2/rules.json` `elementals` (`ElementalRules`: `min_members` 0, `blocks_add` false,
+  `drop_keeps` + `keeps_alone`, `drops_elemental`, `purge` = `keeps`, `summon_min_members` 6) is II's `game` value of the
+  every-game options `elemental-load` / `-drop` / `-purge`; `GameSession.TryDropElemental` + the Client's Drop list row.

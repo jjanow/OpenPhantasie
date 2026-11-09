@@ -108,7 +108,7 @@ public sealed partial class Phantasie3Campaign
         c.SpellsKnown = new int[w.SpellCount];
         if (w.FirstSpell.TryGetValue(cls, out var first) && first > 0)
             c.SpellsKnown[first - 1] = 1;
-        GiveKit(c);
+        GiveKit(session, c);
         SetSkills(c, tables);
         c.BodyCondition = new P3BodyAreas().ToCondition();
 
@@ -143,7 +143,7 @@ public sealed partial class Phantasie3Campaign
     }
 
     /// <summary>The class kit (ovl2 <c>0x227d</c>): carried <c>[shield, armour, bow, weapon]</c>, all worn.</summary>
-    private void GiveKit(Character c)
+    private void GiveKit(GameSession session, Character c)
     {
         var w = World;
         var bow = w.KitBow.TryGetValue(c.Class, out var b) ? b : 0;
@@ -152,6 +152,6 @@ public sealed partial class Phantasie3Campaign
         c.WornArmor = w.Kit.Armor;
         c.WornBow = bow;
         c.WornWeapon = w.Kit.Weapon;
-        CombatGear.ApplyWornItemPoints(c);
+        CombatGear.ApplyWornItemPoints(c, id => ItemPoints(session, id));
     }
 }

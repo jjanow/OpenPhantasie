@@ -284,7 +284,7 @@ public static partial class UiOverlays
         }
         DrawScrollBar(batch, pixel, wornBox, wornView);
 
-        var gear = InventoryActions.Stats(m);
+        var gear = screen.Gear(m);
         PixelFont.Draw(batch, pixel, arranged.GearRight ? InventoryLayout.RightX + 1 : InventoryLayout.LeftX,
             arranged.GearRight ? arranged.RightLineY(rightLine++) : arranged.GearY,
             UiText.F("inventory.gear_x_x_x_x", gear.WeaponDamage, gear.ArmorSoak, gear.ShieldSoak, gear.DefenseRating), DimText);
@@ -413,6 +413,8 @@ public static partial class UiOverlays
                 cmp.Before.DefenseRating, cmp.After.DefenseRating), BodyText));
             lines.Add((UiText.F("inventory.cmp_arm_shl", cmp.Before.ArmorSoak, cmp.After.ArmorSoak,
                 cmp.Before.ShieldSoak, cmp.After.ShieldSoak), BodyText));
+            if (cmp.Before.Bow is { } bowBefore && cmp.After.Bow is { } bowAfter) // III: the bow slot's points
+                lines.Add((UiText.F("inventory.cmp_bow", bowBefore, bowAfter), BodyText));
         }
         foreach (var text in screen.Describe(id).Skip(1))
             foreach (var part in Wrap(text, width))

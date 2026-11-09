@@ -36,7 +36,7 @@ public static class Aging
                 m.AgeClock += travelAge; // @264 += (time >> 8) / 7, OV1 0x19bb
         var skipped = party.Elemental is not null ? party.Adventurers.LastOrDefault() : null; // OV1 0x19dc
         party.DismissElemental();
-        party.Elemental = null; // [C] OV1 0x19d3: slot 7 cleared on town entry
+        party.Elemental = null; // [C] OV1 0x19d3: slot 7 cleared on town entry. II plays I's here: the ST's town entry is [?] (s172)
         var lines = new List<string>();
         foreach (var m in party.Members)
         {

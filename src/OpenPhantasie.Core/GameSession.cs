@@ -713,7 +713,7 @@ public sealed partial class GameSession
     /// </summary>
     public ElementalRules GuildElementalRules => Options.Elementals(Party.Rules.ElementalRulesOrDefault);
 
-    /// <summary>What Guild P)URGE does to a party member and a loaded elemental (<c>elemental-purge</c>, D3-040 <c>p3.purge</c>).</summary>
+    /// <summary>What Guild P)URGE does to a party member and a loaded elemental (<c>elemental-purge</c>; under <c>game</c> the game's own, D3-040 for III).</summary>
     public PurgePartyRule PurgeRule => Options.PurgeRule(GuildElementalRules);
 
     /// <summary>
@@ -835,6 +835,12 @@ public sealed partial class GameSession
     public bool TryDropFromParty(Character member, out string error) =>
         GuildHall.TryDropFromParty(Party, member, out error, Sack, GuildElementalRules);
 
+    /// <summary>
+    /// Guild D)ROP on the loaded elemental (II: the ST's Drop list holds it, <c>0xd57c</c>; III: DOS ovl2 <c>0x3c92</c>), in
+    /// the games whose rules list it (<see cref="ElementalRules.DropsElemental"/>). The Guild record stays.
+    /// </summary>
+    public bool TryDropElemental(out string error) => GuildHall.TryDropElemental(Party, out error, GuildElementalRules);
+
     /// <summary>Test shortcut: Guild straight to the wilderness (new-game spawn if unset). The game leaves through the town Exit.</summary>
     public void DepartGuildToWilderness()
     {
@@ -940,6 +946,8 @@ public sealed partial class GameSession
     /// <summary>Town menu Exit. Refused with an empty party [C] (OV1 <c>0x3250</c>: <c>[0x648e] == 0</c>).</summary>
     public bool LeaveTown()
     {
+        // [?] s172: II's own rules can leave only the elemental in the party (ST Drop 0xd57c); what the ST does on the way
+        // out then is not read, so this guard (no character = no Exit) holds for it too.
         if (Party.Members.Count == 0)
         {
             Note(TownExit.EmptyPartyMessage);
@@ -1162,7 +1170,7 @@ public sealed partial class GameSession
     public P3TradeResult TradeGive(Character giver, int slot, Character receiver)
     {
         var id = slot >= 0 && slot < giver.InventoryItemIds.Count ? giver.InventoryItemIds[slot] : 0;
-        var result = IsPhantasie3 ? P3Town.Give(giver, slot, receiver, Options) : P3TradeResult.NoTrade;
+        var result = IsPhantasie3 ? P3Town.Give(giver, slot, receiver, Options, ReadyBestEquipment) : P3TradeResult.NoTrade;
         NoteTrade(result, () => GameText.F("core.p3.trade_x_to_x", ItemName(id), receiver.Name));
         return result;
     }
@@ -1174,7 +1182,7 @@ public sealed partial class GameSession
             return P3TradeResult.NoTrade;
         var id = slot >= 0 && slot < giver.InventoryItemIds.Count ? giver.InventoryItemIds[slot] : 0;
         var gold = Party.GoldCarried;
-        var result = P3Town.Sell(Party, giver, slot, town, _items, Options);
+        var result = P3Town.Sell(Party, giver, slot, town, _items, Options, ReadyBestEquipment);
         NoteTrade(result, () => GameText.F("core.p3.trade_x_sold_for_x", ItemName(id), Party.GoldCarried - gold));
         return result;
     }
@@ -1219,7 +1227,8 @@ public sealed partial class GameSession
 
     public TownTransactionResult Buy(Character shopper, int itemId)
     {
-        var result = NoteResult(TownMenus.Buy(Party, shopper, RequireTownState(), _items, itemId));
+        var result = NoteResult(TownMenus.Buy(Party, shopper, RequireTownState(), _items, itemId, CanUseItem,
+            (who, id) => Campaign.AfterArmoryBuy(this, who, id)));
         // s137: III's Armory plays 36 with "He cannot carry anymore!" (0x111e0) and "The party cannot afford it!" (0x11386)
         if (Game == GameId.P3 && result.Kind == TownTransactionKind.Failed
             && (result.Message == TownMenus.NinthItemMessage || result.Message == GameText.S("core.armory.not_enough_gold")))
@@ -1252,7 +1261,7 @@ public sealed partial class GameSession
         EnsureMode(GameMode.Town);
         var town = RequireTownState();
         ItemDistribution = OpenPhantasie.Core.ItemDistribution.Begin(Party, Sack, town, _items,
-            Campaign.DistributeSalePrice(town, _items), foundOnly);
+            Campaign.DistributeSalePrice(town, _items), foundOnly, Gear);
         return ItemDistribution;
     }
 
@@ -2200,6 +2209,7 @@ public sealed partial class GameSession
                 SurpriseFirstRound = Combat.Surprise.FirstRound,
                 MonsterHold = Combat.Surprise.MonsterHold,
                 OpensWithoutOrders = Combat.OpensWithoutOrders,
+                OrdersSkipped = Combat.OrdersSkipped,
                 MoraleCheckedThisRound = _roundMoraleDone,
                 OptionChosenThisRound = _roundOptionTaken,
                 Monsters = Combat.Ranks.SelectMany(r => r.Members.Select(m => new CombatMonsterSnapshot
@@ -2467,6 +2477,7 @@ public sealed partial class GameSession
                 DispellUndeadTried = c.DispellUndeadTried,
                 Surprise = new SurpriseFlags(c.SurpriseFirstRound, c.MonsterHold),
                 OpensWithoutOrders = c.OpensWithoutOrders,
+                OrdersSkipped = c.OrdersSkipped,
             };
             // Saves without group ids (before the builder) held one monster per rank.
             var legacy = c.Monsters.Any(m => m.Group is null);

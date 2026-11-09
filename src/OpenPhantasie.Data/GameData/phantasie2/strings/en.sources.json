@@ -2542,6 +2542,90 @@
      ]
     ]
    }
+  ],
+  "p2.terrain_key.party": [
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     [
+      "PHANT.PRG",
+      136042,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV1.OVR",
+      23403,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      51189,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2498,
+      5
+     ]
+    ]
+   }
+  ],
+  "p2.terrain_key.dungeon": [
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     [
+      "PHANT.PRG",
+      143157,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      54656,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      73799,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2",
+    "parts": [
+     [
+      "OUTDOORS2",
+      163,
+      7
+     ]
+    ]
+   }
   ]
  }
 }

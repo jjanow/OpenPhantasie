@@ -5,10 +5,14 @@
  "_starting_gold": "0 here: III's starting gold is social class * 256 (rule-tables.json social_classes), added by III's creation rule (FORMAT.md section 5.1).",
  "_equipment_slots": "Manual (III PDF 6 / pr.6, 11-12) and DOS (ovl2 0x37f1) [C]: shield 1-20, armour 21-40, bow 41-60, melee weapon 61-100.",
  "_elementals": "Manual (III PDF 11 / pr.16, Q12: 'does not count as a member') and DOS (ovl2 0x3a0a) [C] agree: an elemental joins once the party has one character, and a character can still be added afterwards (the elemental stays last). drop_keeps: DOS ovl2 0x3c92 [C] (s97): dropping a character keeps the loaded elemental (it moves up and stays last) until no character is left; the manual is silent. logic-specs/elementals.md section 2.",
+ "_elementals_drop_purge": "drops_elemental: DOS ovl2 0x3c92 [C]: Drop Member on the elemental clears the flag and filled_slots (logic-specs/elementals.md section 2). purge: D3-040 (user s99: the manual, as III's Drop) for the Manual / Remaster / Custom presets; purge_original: DOS refuses a party member (string 448, guild_menu 0xafe3) under the Original preset (user s172: III's elemental-purge = game follows the preset; the former p3.purge option is folded in).",
  "elementals": {
   "min_members": 1,
   "blocks_add": false,
-  "drop_keeps": true
+  "drop_keeps": true,
+  "drops_elemental": true,
+  "purge": "as-drop",
+  "purge_original": "refused"
  },
  "_dungeon_save_per_dungeon": "DOS writes one saved map per dungeon, DNP<letter> / DNG<letter> (ovl4 0x62d; live s82: the archives wrote DNPA / DNGA) [C]; logic-specs/dungeon-events.md section 1. The manual is silent on the files.",
  "dungeon_save_per_dungeon": true,

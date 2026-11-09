@@ -18,7 +18,7 @@ public partial class AmigaMessageBoxTests
     {
         Assert.Equal(
             ["core.guild.party_not_assembled", "core.guild.elemental_already_joined", "core.guild.already_in_party",
-             "core.guild.party_is_full", "core.guild.cannot_purge_party_member", "core.guild.roster_full",
+             "core.guild.party_is_full", "core.guild.cannot_purge_party_member", "core.guild.cannot_purge_elemental", "core.guild.roster_full",
              "core.p3.cannot_afford_stay", "core.p3.cant_carry_anymore", "core.guild.learn_no_more", // s156: Learn 0x1058a
              "guild.roster_empty", "core.p3.cannot_train", "core.guild.learn_cant_afford", // s158: 0xb274, 0xb976, 0x1068a
              "cast.x_knows_no_spells", "useitem.x_carries_nothing", // s158: 0x84e0 / 0xb8aa, 0xba7c

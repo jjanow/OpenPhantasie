@@ -117,11 +117,12 @@ public static class MonsterSpecials
     private static void SingleTarget(CombatEncounter encounter, int id, IRandomSource rng, List<string> log)
     {
         var k = id switch { 1 => 12, 2 => 35, 3 => 70, _ => 120 };
-        if (encounter.Rules.IsDos(RuleOptionRegistry.SummonParty))
+        if (encounter.Rules.IsDos(RuleOptionRegistry.MonsterSpellTarget))
         {
-            // D-033 dos (p1.summon-party): DOS reads list[rand·[0x6490]/100] as they stand (0x1731..0x1742). Before any
-            // monster turn this round the word is the last living index, so the last listed member can't be picked; after
-            // a pass-3/5 summon (or a second summon) entry 5 can be a stale slot (DEAD or listed twice). A DEAD target
+            // D-033 dos (p1.monster-spell-target): DOS reads list[rand·[0x6490]/100] as they stand (0x1731..0x1742).
+            // Before any monster turn this round the word is the last living index, so the last listed member can't be picked; after
+            // a pass-3/5 summon (or a second summon) under p1.summon-party dos, entry 5 can be a stale slot (DEAD or listed
+            // twice). A manual summon leaves the list alone: the elemental is listed at the next rebuild. A DEAD target
             // takes nothing and gets no line (0x124a returns), but the damage is still rolled.
             var party = encounter.Party;
             var slot = party.DosLiving.Entry(Roll(rng) * party.DosLiving.Word / 100);

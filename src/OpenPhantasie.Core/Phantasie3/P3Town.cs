@@ -149,10 +149,13 @@ public static class P3Town
     /// <summary>
     /// Trade Items, give (manual, as the Amiga program): the item at <paramref name="slot"/> of <paramref name="giver"/>'s
     /// carried list moves to <paramref name="receiver"/>'s (the end of the list, or an empty slot the remaster's inventory
-    /// left), unless the receiver has 9 items; the giver's list closes up. Both re-ready their worn equipment. Refused with
+    /// left), unless the receiver has 9 items; the giver's list closes up. Both re-ready their worn equipment with
+    /// <paramref name="ready"/> (the session passes III's ovl2 <c>0x37f1</c>; null = I's selector); the giver first stops
+    /// wearing the item when no copy of it is left (the Amiga Trade's re-ready is not read `[~]`). Refused with
     /// <see cref="P3TradeResult.NoTrade"/> under <c>p3.trade</c> = <c>dos</c>.
     /// </summary>
-    public static P3TradeResult Give(Character giver, int slot, Character receiver, GameOptions rules)
+    public static P3TradeResult Give(
+        Character giver, int slot, Character receiver, GameOptions rules, Action<Character>? ready = null)
     {
         ArgumentNullException.ThrowIfNull(giver);
         ArgumentNullException.ThrowIfNull(receiver);
@@ -162,11 +165,26 @@ public static class P3Town
         var carried = giver.InventoryItemIds;
         if (slot < 0 || slot >= carried.Count || carried[slot] == 0) return P3TradeResult.NoSuchItem;
         if (CarriedItems.IsFull(receiver)) return P3TradeResult.ReceiverFull;
-        CarriedItems.Put(receiver, carried[slot]);
+        var id = carried[slot];
+        CarriedItems.Put(receiver, id);
         carried.RemoveAt(slot);
-        CombatGear.SelectWornItems(giver);
-        CombatGear.SelectWornItems(receiver);
+        ready ??= CombatGear.SelectWornItems;
+        StopWearingGone(giver, id);
+        ready(giver);
+        ready(receiver);
         return P3TradeResult.Done;
+    }
+
+    /// <summary>A worn field still naming <paramref name="itemId"/> after its last carried copy left is emptied.</summary>
+    private static void StopWearingGone(Character ch, int itemId)
+    {
+        if (itemId <= 0 || ch.InventoryItemIds.Contains(itemId))
+            return;
+        if (ch.WornShield == itemId) ch.WornShield = 0;
+        if (ch.WornArmor == itemId) ch.WornArmor = 0;
+        if (ch.WornWeapon == itemId) ch.WornWeapon = 0;
+        if (ch.WornBow == itemId) ch.WornBow = 0;
+        if (ch.WornThrown == itemId) ch.WornThrown = 0;
     }
 
     /// <summary>
@@ -179,9 +197,12 @@ public static class P3Town
     /// Trade Items, sell ("trading it to adventurer 7"): the item leaves the list, the town's stock of it goes up by 1 (as a
     /// Distribute sale, <c>town.md</c> §7, capped at <see cref="ItemDistribution.MaxStock"/> as the shared Distribute) and
     /// <see cref="SalePrice"/> goes to the party's gold. Refused under <c>p3.trade</c> = <c>dos</c> (no Trade) and
-    /// <c>give-only</c> (the Amiga's Trade). The seller re-readies worn equipment.
+    /// <c>give-only</c> (the Amiga's Trade). The seller re-readies worn equipment (<paramref name="ready"/>, as
+    /// <see cref="Give"/>).
     /// </summary>
-    public static P3TradeResult Sell(Party party, Character giver, int slot, TownState town, IItemCatalog items, GameOptions rules)
+    public static P3TradeResult Sell(
+        Party party, Character giver, int slot, TownState town, IItemCatalog items, GameOptions rules,
+        Action<Character>? ready = null)
     {
         ArgumentNullException.ThrowIfNull(party);
         ArgumentNullException.ThrowIfNull(giver);
@@ -193,7 +214,8 @@ public static class P3Town
         if (slot < 0 || slot >= carried.Count || carried[slot] == 0) return P3TradeResult.NoSuchItem;
         var id = carried[slot];
         carried.RemoveAt(slot);
-        CombatGear.SelectWornItems(giver);
+        StopWearingGone(giver, id);
+        (ready ?? CombatGear.SelectWornItems)(giver);
         if (id > 0 && id < TownState.StockSlotCount)
             town.SetStock(id, Math.Min(ItemDistribution.MaxStock, town.GetStock(id) + 1));
         party.AddGold(SalePrice(items.Get(id)?.Value ?? 0, town.PriceIndex));

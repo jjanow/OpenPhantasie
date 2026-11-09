@@ -209,7 +209,7 @@ public sealed partial class Phantasie3Campaign : ICampaign
         if (w.FirstSpell.TryGetValue(cls, out var first) && first > 0)
             c.SpellsKnown[first - 1] = 1;
 
-        GiveKit(c);
+        GiveKit(session, c);
 
         SetSkills(c, tables);
         c.BodyCondition = new P3BodyAreas().ToCondition();
@@ -343,6 +343,37 @@ public sealed partial class Phantasie3Campaign : ICampaign
     /// </summary>
     public bool CanUseItem(GameSession session, Character member, int itemId) =>
         session.Items.Get(itemId) is not { } item || P3TownEntryPayout.CanUse(item, member.Stats);
+
+    /// <summary>III's point table (<c>DS:0x113c + id</c>, <c>items.json</c> <c>points</c>; equals the manual's tables).</summary>
+    public int ItemPoints(GameSession session, int itemId) =>
+        itemId > 0 ? session.Items.Get(itemId)?.Points ?? 0 : 0;
+
+    /// <summary>ovl2 <c>0x37f1</c> (<see cref="P3TownEntryPayout.ReadyBestEquipment"/>): bow slot, ties to the later item.</summary>
+    public void ReadyBestEquipment(GameSession session, Character member) =>
+        P3TownEntryPayout.ReadyBestEquipment(member, session.Items, session.Equipment);
+
+    /// <summary>
+    /// The numbers III's combat reads (root <c>0xd730</c>): the worn weapon's, armour's, shield's and bow's table points (no
+    /// damage A, which is I's town-exit formula) and the defence against monster melee (<see cref="P3Combat.Defence"/>,
+    /// the save's armour sign, <c>p3.armour-defence</c>).
+    /// </summary>
+    public GearStats GearStatsOf(GameSession session, Character member)
+    {
+        int P(int id) => ItemPoints(session, id);
+        var shield = P(member.WornShield);
+        var armour = P(member.WornArmor);
+        return new GearStats(shield, armour, P(member.WornWeapon),
+            P3Combat.Defence(shield, armour, member.Skills.Parry, member.Stats.Dex, session.Options), P(member.WornBow));
+    }
+
+    /// <summary>
+    /// The Armory wears nothing (ovl2 <c>0x2f2a</c>, s173 <c>[C]</c> static, not seen live): it shops on a copy of the record
+    /// (<c>FAR:0x9de8</c>); on Exit it calls ready-best (<c>0x37f1</c>, at <c>0x3296</c>) on the record and then copies the
+    /// shopping copy back over it, so the bought items arrive carried and the worn slots stay as they were.
+    /// </summary>
+    public void AfterArmoryBuy(GameSession session, Character shopper, int itemId)
+    {
+    }
 
     public (bool May, string Reason)? CanTrain(GameSession session, Character member) =>
         P3Training.MayTrain(Trainee(member)) ? (true, "") : (false, GameText.S("core.p3.cannot_train"));

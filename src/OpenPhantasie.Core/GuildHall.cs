@@ -115,6 +115,26 @@ public static class GuildHall
     }
 
     /// <summary>
+    /// Guild ▸ Drop on the loaded elemental itself (<see cref="ElementalRules.DropsElemental"/>): II's Drop list holds the
+    /// seven party records (ST <c>0xd57c</c>: record 6's in-party word, roster number and status cleared, nothing copied
+    /// back); III's Drop on it clears the elemental flag (DOS ovl2 <c>0x3c92</c>). Only the party copy goes; the Guild
+    /// record stays, so it can be added again.
+    /// </summary>
+    public static bool TryDropElemental(Party party, out string error, ElementalRules? elementals = null)
+    {
+        ArgumentNullException.ThrowIfNull(party);
+        if (party.Elemental is null || !(elementals ?? party.Rules.ElementalRulesOrDefault).DropsElemental)
+        {
+            error = GameText.S("core.guild.not_in_party");
+            return false;
+        }
+        party.DismissElemental();
+        party.Elemental = null;
+        error = "";
+        return true;
+    }
+
+    /// <summary>
     /// Guild ▸ Drop. <paramref name="found"/> = the session's found-gold purse, which III counts as party gold for the Drop
     /// share (<see cref="DropGoldShare"/>; DOS has one treasury). <paramref name="elementals"/> = the save's elemental rules
     /// (<see cref="ElementalGuildRules.Elementals"/>); null = the party's rules.json block. Only the party copy of a loaded
@@ -137,7 +157,9 @@ public static class GuildHall
         party.Members.Remove(member);
         member.InParty = false; // [C] OV1 0x225c: @218 := 0
         // [C] OV1 0x22d1: every Drop also clears party slot 7. III (ovl2 0x3c92 → 0x3e0b): only when no character is left.
-        if (!(elementals ?? party.Rules.ElementalRulesOrDefault).DropKeeps || !party.Adventurers.Any())
+        // II (ST 0xd57c / 0xc14a, s172): never; the elemental stays even alone (KeepsAlone).
+        var rules = elementals ?? party.Rules.ElementalRulesOrDefault;
+        if (!rules.DropKeeps || (!rules.KeepsAlone && !party.Adventurers.Any()))
             party.Elemental = null;
         error = "";
         return true;
@@ -222,8 +244,9 @@ public static class GuildHall
         {
             party.Members.Remove(member);
             // I [C] OV1 0x2489: purging a party member also clears party slot 7. III (D3-040, manual): as III's Drop, the
-            // elemental stays while a character is left.
-            if (partyRule == PurgePartyRule.ClearsElemental || !party.Adventurers.Any())
+            // elemental stays while a character is left. II (ST 0xd68a, s172): party records 0-5 only, so it always stays.
+            if (partyRule == PurgePartyRule.ClearsElemental
+                || (partyRule == PurgePartyRule.KeepsElemental && !party.Adventurers.Any()))
                 party.Elemental = null;
         }
 

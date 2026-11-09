@@ -54,6 +54,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 | D2-048 | Apple II vs ST: DEMONIAC price factor 255 vs 150; SCROLL D / E in IPSWICH and FERRON | DECIDED |
 | D2-049 | Apple II vs ST: creation cells (2 agree with the manual / D2-009, 2 ST-only skill cells) and 9 map / 2 dungeon cells | DECIDED |
 | D2-050 | Apple II vs ST: text (names, scroll and message wording, menus); the Apple has no spell names | DECIDED |
+| D2-051 | Guild elementals: the manual's "will only serve a party of six adventurers" vs the ST's Add with any party size (SUMMON still needs six) | DECIDED (user s173: SUMMON's six-member gate is enough; the ST's Add stays as II's `game`) |
 
 ---
 
@@ -233,7 +234,9 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   manual's, so lava is the swirl and mist the grey dots, as on the map. The class readings behind the rows are
   `terrain.md` section 5's (mist 11 and dark voids 7 `[~]`; grassland 0, forest 1 and desert 9 are visual readings
   carried over from I `[~]`). The key shares the sidebar with the party: the party keeps its first row of cards, and
-  both scroll what does not fit (`parity/shots/s171-p2-terrain-key.png`).
+  both scroll what does not fit (`parity/shots/s171-p2-terrain-key.png`). s172 (user: layout accepted): by the wheel,
+  the bar, `[` / `]` (cards) and `,` / `.` (key), or the pad's right stick (cards; with the right trigger held, the key)
+  (`parity/shots/s172-p2-sidebar-scrolled-by-key.png`).
 - **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` §5.
 
 ## D2-015 — Mortality text: "a high-level wizard using a RESURRECT spell"
@@ -659,3 +662,30 @@ and `strings/fallback.en.json`).
   wilderness / dungeon spell (`N/WD`), the remaster's II fight list holds the combat-castable spells (D-063's
   `p1.combat-spell-list` is I's option only), and the Apple's fight takes `CAST SPELL #` 1-51 only (OUTDOORS2 and DUNGON2
   line 1310), so #52 can't be cast in an Apple fight either.
+
+## D2-051 — Guild Add / Drop / Purge with an elemental (Atari ST)
+
+- **Manual:** "[original text] (#48) calls up Earth, Fire, or Water (one spell summons one elemental) to fight for the
+  party. The elemental will only serve a party of six adventurers. What's more, elementals must be added to your party
+  while you are at the adventurer's Guild in one of the towns." (combined rulebook, Magic, PDF 9); Guild: "The last three
+  characters - FIRE, WATER, and EARTH - are the elementals that spellcasters may call into combat, using the SUMMON
+  ELEMENTAL spell." (PDF 5). Silent on Drop / Purge with an elemental.
+- **Code (ST `PHANT.PRG`, static `[C]` s172, not seen live; `logic-specs/towns.md` section 10):** Guild Add `0xd442`
+  lists the three elementals whenever none is loaded and loads the pick with **no member count** (an empty party too);
+  characters can still be added beside it. Drop `0xd57c` lists the seven party records (the elemental too) and clears only
+  the picked one, so dropping characters never unloads it, not even the last. Purge `0xd68a` lists the 22 character
+  records (never the elementals) and clears party records 0-5 only, so the elemental stays. [original text] `0x83e2`
+  still needs a party of six (D2-045 / D-033: the remaster's six non-DEAD).
+- **Reading:** the manual's sentence can mean an Add rule (I's DOS refuses the Add below six, OV1 `0x2786`, and the
+  remaster's I follows it) or only a SUMMON rule. The ST enforces it at SUMMON, not at Add, so an ST party can carry an
+  elemental it cannot summon. Not decided as a conflict: reported to the user (s172).
+- **Remaster (built s172, user: "make II's `game` follow" the ST):** `phantasie2/rules.json` `elementals`
+  (`min_members` 0, `blocks_add` false, `drop_keeps` + `keeps_alone` true, `drops_elemental` true, `purge` = `keeps`,
+  `summon_min_members` 6). The every-game options `elemental-load` / `-drop` / `-purge` can still put I's or III's rule in
+  II. An elemental left alone in the party stays until the Drop list drops it; the remaster's town Exit still refuses a
+  party with no character (`GameSession.LeaveTown`); what the ST does there is `[?]`.
+- **Side effects:** an II party may hold an elemental with fewer than six characters; the night watch reads it only with
+  six (`NightEncounter.Watcher`, `encounters.md` section 4) and SUMMON needs six, so it only rides along.
+- **Decision (user s173):** "not an issue if SUMMON gates it behind 6 party members. it's fine as is." The manual's
+  sentence is read as a SUMMON rule; Add stays the ST's (any party size).
+- **Status:** DECIDED.
