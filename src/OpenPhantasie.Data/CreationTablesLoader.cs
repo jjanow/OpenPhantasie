@@ -50,6 +50,7 @@ public static class CreationTablesLoader
             ClassAttributeModifiers = MapClassAttrMods(dto.ClassAttributeModifiers?.ByClass),
             RaceAttributeModifiers = MapRaceAttrMods(dto.RaceAttributeModifiers?.ByRace),
             Dos = MapDosTables(dto.DosTables),
+            SharedAging = SharedAgingLoader.Shipped, // QoL shared-aging (13-aging-normalised.md)
         };
     }
 

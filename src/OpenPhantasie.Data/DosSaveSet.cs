@@ -104,7 +104,7 @@ public static class DosSaveConverter
     {
         ArgumentNullException.ThrowIfNull(options);
         return Import(set, data, options.GoldCap, options.IsDos(RuleOptionRegistry.GuildSize),
-            options.IsDos(RuleOptionRegistry.Lifespans), options.GuildUnlimited);
+            options.IsDos(RuleOptionRegistry.Lifespans) && !options.SharedAging, options.GuildUnlimited);
     }
 
     private static DosImportResult Import(DosSaveSet set, GameDataRepository data, GoldCapRule goldCap, bool dosGuildSize,
@@ -277,7 +277,7 @@ public static class DosSaveConverter
         var result = Import(set, data, session.Options); // the notes follow the session's rules (D-048, D-002, D-003)
         // T5.0 §5: a DOS save holds no remaster options, so the running session's rules stay (gold cap, restock, …).
         result.Snapshot.Options ??= GameOptionsSnapshot.From(session.Options);
-        if (session.Options.IsDos(RuleOptionRegistry.Lifespans))
+        if (session.Options.IsDos(RuleOptionRegistry.Lifespans) && !session.Options.SharedAging) // QoL shared-aging: the bands
             KeepDosLifespans(result.Snapshot);
         session.ApplySnapshot(result.Snapshot);
         return result.Warnings;

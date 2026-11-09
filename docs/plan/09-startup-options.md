@@ -94,7 +94,7 @@ own D-entry.
 - **Quality of life** (s175, `options.quality_of_life`, `11-guild-treasury.md` section 6): the rules part splits in two.
   The preset row and the game's original rules (every option with a manual / DOS meaning, D-entry or not) come first;
   the options whose descriptor sets `Qol` (pure convenience, no manual↔code conflict: `treasury`, `p1.stash-access`,
-  `guild-limit`, `elemental-load`, `elemental-drop`, `elemental-purge`) follow under a QUALITY OF LIFE header, before
+  `guild-limit`, `elemental-load`, `elemental-drop`, `elemental-purge`, `shared-aging` (`13-aging-normalised.md`)) follow under a QUALITY OF LIFE header, before
   FROM OTHER GAMES. The locked in-game view (THIS SAVE'S RULES) is split the same way. The preset still sets them all.
 - **Terrain key** (II only, `terrainKey`, `options.terrain_key`; off = the ST, no key, D2-014): the rulebook's terrain
   key beside the wilderness map, rows from `GameData/phantasie2/terrain-key.json` (string id of the manual's name + the
@@ -114,6 +114,9 @@ own D-entry.
   during the Mystic's three counted loops (~23 s, no keys in P4.X) runs their remaining passes at once
   (`P4MysticReading.SkipLoops`): the same final picture, then the original wait for a key. The score and verdict are the
   town loop's either way. That input closes nothing.
+- **Save slots** (every game, `saveSlots`, `options.save_slots`; off = the one save): numbered slots beside the
+  autosave, a slot picker for Save / Load and the main menu (`12-save-slots.md`). A presentation switch, not a rule:
+  Load must know it before any save is read.
 - **Combat speed** (presentation, per game): I and III show AMIGA SCREENS and COMBAT SPEED (the Amiga's Speed menu, s117 /
   s132); **II shows COMBAT SPEED only** (s136: the ST's Speed menu, FAST 5 / NORMAL 10 / SLOW 1000 ms a combat line; at
   NORMAL and SLOW each combat sound waits for the one before, `reverse-engineering/atari-st/phantasie2/FORMAT.md` 7.3).
@@ -209,7 +212,8 @@ request) never reads as "Custom".
   `p3.trade` D3-027 (`manual`, `give-only`, `dos`); D3-040's former `p3.purge` is folded into `elemental-purge` (s172). Same value in
   every preset: `p3.transfer-roster` D3-003 (`add`, or `erase`) and `p3.boss-flee` D3-024 (`blocked`, or `allowed`).
   DOS bugs fixed by default, no D-entry (manual silent): `p3.altar` and `p3.event-gold` (`fixed`, `dos` in Original
-  (DOS)). Menu order: `P3RuleOptions.All`.
+  (DOS)). QoL (QUALITY OF LIFE section): `p3.transport-planes` D3-035 (`off` in every preset, or `visited`: Transportation
+  also to the plane towns the party has entered). Menu order: `P3RuleOptions.All`.
 - **Phantasie IV (T6.3 Core rules and T5 transfer; `P4RuleOptions`, accessors `P4RuleOptionsExtensions`):** 48 options
   (list and menu order: `P4RuleOptions.All`). Most are `manual` in Original (manual) and Remaster and `x68000` in the
   Original preset (labelled "ORIGINAL (X68000)", `options.preset.dos.p4`), one per D4-entry. Exceptions:

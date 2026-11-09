@@ -64,6 +64,26 @@ public sealed partial class Phantasie3Campaign : ICampaign
     /// </summary>
     public IReadOnlyList<int> TransportTowns => ScandorTowns;
 
+    private static readonly int[] PlaneTowns = [LightTown, DarkTown, DeathTown];
+
+    /// <summary>
+    /// D3-035 QoL <c>p3.transport-planes</c> = <c>visited</c>: the plane towns 15–17 a member of the party (the elemental
+    /// not counted) has entered (<see cref="Phantasie3CharacterData.PlaneTownsVisited"/>). Off (every preset): none, DOS's 1–14.
+    /// </summary>
+    public IReadOnlyList<int> ExtraTransportTowns(GameSession session) =>
+        session.Options.P3TransportToVisitedPlanes()
+            ? PlaneTowns.Where(t => session.Party.Adventurers.Any(m => m.Phantasie3?.HasVisitedPlaneTown(t) == true)).ToArray()
+            : [];
+
+    /// <summary>D3-035 QoL: every member in the party now (the elemental not counted) has entered town <paramref name="townId"/>.</summary>
+    public static void MarkPlaneTownVisited(Party party, int townId)
+    {
+        if (PlaneOfTown(townId) == Scandor)
+            return;
+        foreach (var member in party.Adventurers)
+            member.P3.MarkPlaneTownVisited(townId);
+    }
+
     public bool IsUnnamedTransportTown(int townId) => false;
 
     private static readonly IReadOnlyDictionary<int, int> NoAliases = new Dictionary<int, int>().AsReadOnly();
@@ -606,7 +626,11 @@ public sealed partial class Phantasie3Campaign : ICampaign
         m.Stats = m.Stats with { Con = Math.Max(0, m.Stats.Con - 1) };
     }
 
-    public void OnTownEntered(GameSession session, int townId) => MoveToTownSquare(session, townId);
+    public void OnTownEntered(GameSession session, int townId)
+    {
+        MoveToTownSquare(session, townId);
+        MarkPlaneTownVisited(session.Party, townId); // D3-035 QoL, recorded whatever p3.transport-planes says
+    }
 
     /// <summary>D3-071 (manual, user s142): the pool and found items are shared out on town entry.</summary>
     public bool PaysOutOnTownEntry => true;

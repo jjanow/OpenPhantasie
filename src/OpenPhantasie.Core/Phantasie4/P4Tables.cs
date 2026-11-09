@@ -13,7 +13,8 @@ public sealed record P4Tables(
     P4CombatTables Combat,
     P4OutdoorTables Outdoor,
     P4ManualAmounts Amounts,
-    P4ServiceTables? Services = null)
+    P4ServiceTables? Services = null,
+    SharedAgingModel? SharedAging = null) // QoL shared-aging (13-aging-normalised.md): GameData/shared/aging.json
 {
     /// <summary>The service tables (towns, guild, menus); a table set built without them cannot run those screens.</summary>
     public P4ServiceTables Service => Services ?? throw new InvalidOperationException("IV's service tables are not loaded.");

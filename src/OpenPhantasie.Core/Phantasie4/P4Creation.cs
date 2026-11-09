@@ -287,7 +287,8 @@ public sealed record P4NewCharacter(
     int Origin,
     int AgingFactor,
     int AgeUnits,
-    IReadOnlyList<int> HallAncestorSlots);
+    IReadOnlyList<int> HallAncestorSlots,
+    int Lifespan = 0);
 
 /// <summary>The last step of IV creation: the record built from the chosen race, class and abilities (<c>_mkdetail</c>).</summary>
 public static class P4CreationRecord
@@ -344,11 +345,13 @@ public static class P4CreationRecord
 
         var luck = P4Creation.RollLuck(rng);
         var factor = P4Aging.AgingFactor(t.Aging, agingRace ?? race, luck);
-        var age = P4Aging.StartingAge(rng, factor);
+        // QoL shared-aging (13-aging-normalised.md): the shared lifespan, and I's start-age shape on the same one draw.
+        var lifespan = P4Aging.SharedLifespan(o, t, race, luck);
+        var age = lifespan > 0 ? P4Aging.SharedStartingAge(rng, lifespan) : P4Aging.StartingAge(rng, factor);
         return new P4NewCharacter(
             name, race, cls, social, [.. abilities, luck], P4Creation.StartingGold(c, social), 1, hp, magicLevel,
             (int)Math.Truncate(0.75 * magicLevel), skills, known, learnable, item, P4Creation.Stride(o, c, race, cls),
             P4Creation.IsFlier(c, race), P4Creation.Origin(map), factor, age,
-            ancestors.Where(a => a.IsHallPerson).Select(a => a.HallSlot!.Value).ToList());
+            ancestors.Where(a => a.IsHallPerson).Select(a => a.HallSlot!.Value).ToList(), lifespan);
     }
 }

@@ -471,6 +471,17 @@ public static class RuleOptionRegistry
         "treasury", GameId.P1, ["off", "trip", "safe"],
         Manual: "off", Dos: "off", Remaster: "trip", EveryGame: true, Qol: true);
 
+    /// <summary>
+    /// QoL (PLAN P3 from D4-033, <c>docs/plan/13-aging-normalised.md</c>), every game: <c>on</c> = one aging model for I–IV
+    /// (<see cref="SharedAgingModel"/>: the same lifespan per race, 1/26-year age units, grown older past 70 % with
+    /// abilities × 4/5 once, dead past the lifespan, age and lifespan carried unchanged by every transfer); it overrides
+    /// the game's own <c>p1.lifespans</c> / <c>p2.lifespans</c> / <c>p3.lifespans</c> / <c>p4.lifespans</c> / <c>p4.aging</c>.
+    /// <c>off</c> = each game's own rule. No D-entry: a remaster rule.
+    /// </summary>
+    public static readonly RuleOptionDescriptor SharedAging = new(
+        "shared-aging", GameId.P1, ["off", "on"],
+        Manual: "off", Dos: "off", Remaster: "on", EveryGame: true, Qol: true);
+
     // ---- Elementals across the games (PLAN P3 QoL, user D3-040): one cross-game rule set for Guild Add / Drop / Purge
     // with a loaded elemental. Every value is an original's decoded rule; `game` (every preset) = the game's own. Not in
     // IV's tab: IV picks its elemental when the party is formed and has no Guild Add / Drop / Purge of one. Whatever the
@@ -527,6 +538,7 @@ public static class RuleOptionRegistry
         .. P3RuleOptions.All, // Phantasie III (T4), its own class so its fields are set before this list reads them
         .. P4RuleOptions.All, // Phantasie IV (T6), the same way
         ElementalLoad, ElementalDrop, ElementalPurge, // I, II and III (EveryGame, Games)
+        SharedAging, // every game (EveryGame), QoL (13-aging-normalised.md)
         Treasury, GuildLimit, // every game (EveryGame), last in each tab
     ];
 
@@ -708,7 +720,14 @@ public sealed class GameOptions
     /// <c>@264 &gt;&gt; 8</c>): <see cref="RuleOptionRegistry.Lifespans"/> = <c>dos</c> (I, D-003) or
     /// <see cref="RuleOptionRegistry.P2Lifespans"/> = <c>st</c> (II, D2-021). False: the manual's bands.
     /// </summary>
-    public bool OriginalLifespans => IsDos(RuleOptionRegistry.Lifespans) || Is(RuleOptionRegistry.P2Lifespans, "st");
+    public bool OriginalLifespans =>
+        !SharedAging && (IsDos(RuleOptionRegistry.Lifespans) || Is(RuleOptionRegistry.P2Lifespans, "st"));
+
+    /// <summary>
+    /// <see cref="RuleOptionRegistry.SharedAging"/> (QoL, every game): one aging model for I–IV, overriding the game's own
+    /// lifespans and aging options (<c>docs/plan/13-aging-normalised.md</c>).
+    /// </summary>
+    public bool SharedAging => Is(RuleOptionRegistry.SharedAging, "on");
 
     /// <summary>
     /// True when DISPELL UNDEAD takes any monster whose XP is divisible by 7: <see cref="RuleOptionRegistry.DispellUndead"/>

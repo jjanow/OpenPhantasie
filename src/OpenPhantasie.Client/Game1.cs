@@ -65,7 +65,7 @@ public partial class Game1 : Game
     private readonly TransportDialog _transportDialog = new();
     private GuildAddDialog _guildAddDialog = null!;
     private readonly GuildDropDialog _guildDropDialog = new();
-    private readonly GuildNewDialog _guildNewDialog = new(s => LineageHall.Load(s.Game, ClientSettings.SavePathFor)); // T5 lineage
+    private readonly GuildNewDialog _guildNewDialog = new(s => LineageHall.Load(s.Game, ClientSettings.ReadSavePathFor)); // T5 lineage
     private readonly GuildPickDialog _guildPickDialog = new();
     private readonly GuildListDialog _guildListDialog = new();
     private readonly GuildPartyPickDialog _guildWhoDialog = new();
@@ -103,7 +103,7 @@ public partial class Game1 : Game
     private double? _carryCutAtMs; // s158: when a started run's first sound cuts the carried tune (TitleTuneCarry.CutAtMs)
     private Action? _afterSplash;
     /// <summary>s151: what a pick of a saved game on the splash's start menu runs (IV's <c>_disk(0)</c>), or null.</summary>
-    private Action? _afterSplashLoad;
+    private Action<int>? _afterSplashLoad;
 
     /// <summary>Phantasie IV's location-map screen while a IV game runs (T6.3; IV has no <see cref="GameSession"/>).</summary>
     private P4DungeonScreen? _p4;
@@ -172,6 +172,7 @@ public partial class Game1 : Game
         GameDataLocator.UseImport(importRoot);
         _settings = ClientSettings.LoadOrDefault();
         _townMenu.AutoSave = _settings.AutoSave;
+        ClientSettings.SaveSlotsOn = g => _settings.Game(g).SaveSlots; // QoL SAVE SLOTS: what other games' reads use
         _transportDialog.BeforePick = FreezeForTransport; // s158: II ST fades the frame with the picker
         _townMenu.Sound = _settings.Sound;
         _input = new InputMap(_settings);
@@ -275,11 +276,12 @@ public partial class Game1 : Game
 
     /// <summary>
     /// s151: the title's Saved Game pick (<c>_disk(0)</c>'s save icon): IV's save as F9 loads it, onto a fresh IV screen. A
-    /// save that cannot be read starts a new game with the reason in the note (never a silent new game).
+    /// save that cannot be read starts a new game with the reason in the note (never a silent new game). QoL SAVE SLOTS:
+    /// the icon's slot <paramref name="slot"/> (1–3); off, the one save (slot 1).
     /// </summary>
-    private void LoadSavedPhantasie4()
+    private void LoadSavedPhantasie4(int slot)
     {
-        var path = ClientSettings.SavePathFor(GameId.P4);
+        var path = P4SlotPath(slot);
         try
         {
             var save = Phantasie4SaveCodec.ReadJsonFile(path);
@@ -300,24 +302,20 @@ public partial class Game1 : Game
         var path = ClientSettings.SavePathFor(GameId.P4);
         switch (request)
         {
+            case P4ScreenRequest.Save when _settings.Game(GameId.P4).SaveSlots:
+                OpenSaveSlots(GameId.P4, SaveSlotMode.Save); // QoL SAVE SLOTS: the original's three slots
+                break;
             case P4ScreenRequest.Save:
-                Phantasie4SaveCodec.WriteJsonFile(path, _p4!.Game.Capture());
-                _p4.Note = UiText.S("p4.dungeon.saved");
+                WriteP4Save(path, null);
+                break;
+            case P4ScreenRequest.Load when _settings.Game(GameId.P4).SaveSlots:
+                OpenSaveSlots(GameId.P4, SaveSlotMode.Load);
                 break;
             case P4ScreenRequest.Load when !File.Exists(path):
                 _p4!.Note = UiText.S("p4.dungeon.no_save");
                 break;
             case P4ScreenRequest.Load:
-                try
-                {
-                    _p4!.Replace(Phantasie4World.RestoreCampaign(Phantasie4SaveCodec.ReadJsonFile(path),
-                        new SeededRandomSource(Environment.TickCount)));
-                }
-                catch (Exception ex) when (ex is IOException or InvalidDataException or ArgumentException
-                                               or KeyNotFoundException or InvalidOperationException)
-                {
-                    _p4!.Note = UiText.F("p4.dungeon.load_failed_x", ex.Message);
-                }
+                LoadP4From(path);
                 break;
             case P4ScreenRequest.MainMenu:
                 _p4 = null;
@@ -331,7 +329,7 @@ public partial class Game1 : Game
                 _p4 = null;
                 UseGraphicsPack(null);
                 if (!BeginSplash(GameId.P4, force: true, StartNewPhantasie4, LoadSavedPhantasie4))
-                    StartNewPhantasie4();
+                    StartOrOfferSaves(GameId.P4);
                 break;
         }
     }
@@ -520,9 +518,10 @@ public partial class Game1 : Game
         switch (choice)
         {
             case MainMenuChoice.Play:
-                Action start = game == GameId.P4 ? StartNewPhantasie4 : () => StartGame(game);
+                // QoL SAVE SLOTS: with saves there, the game opens on its slots (NEW GAME first); IV's title menu shows its own.
+                Action start = game == GameId.P4 ? StartNewPhantasie4 : () => StartOrOfferSaves(game);
                 if (!BeginSplash(game, force: false, start, game == GameId.P4 ? LoadSavedPhantasie4 : null))
-                    start();
+                    StartOrOfferSaves(game);
                 break;
             case MainMenuChoice.Options:
                 _options.Open();
@@ -539,7 +538,7 @@ public partial class Game1 : Game
     /// <c>title_sequence</c> (the DOS CGA pack, a game without a pack). s151: <paramref name="load"/> runs instead when the
     /// splash's start menu (IV's <c>_disk(0)</c>) ends on a save slot.
     /// </summary>
-    private bool BeginSplash(GameId game, bool force, Action? after, Action? load = null)
+    private bool BeginSplash(GameId game, bool force, Action? after, Action<int>? load = null)
     {
         if (!force && !_settings.Game(game).TitleScreen)
             return false;
@@ -943,9 +942,13 @@ public partial class Game1 : Game
 
     /// <summary>
     /// Whether save slot <paramref name="slot"/> of <paramref name="game"/> holds a save (the start menu's "*k:Save" icon,
-    /// <c>fames.k</c> in IV): the remaster keeps one save per game, which stands for slot 1 `[~]`.
+    /// <c>fames.k</c> in IV): with SAVE SLOTS off the remaster keeps one save per game, which stands for slot 1 `[~]`; on,
+    /// IV's three slots are the original's (12-save-slots.md).
     /// </summary>
-    private static bool SaveSlotExists(GameId game, int slot) => slot == 1 && File.Exists(ClientSettings.SavePathFor(game));
+    private bool SaveSlotExists(GameId game, int slot) => _settings.Game(game).SaveSlots
+        ? slot >= SaveSlots.FirstNumber(game) && slot <= SaveSlots.NumberedCount(game)
+          && File.Exists(SaveSlots.PathOf(ClientSettings.DataDirectory, game, slot))
+        : slot == 1 && File.Exists(ClientSettings.SavePathFor(game));
 
     /// <summary>The pointer on the splash canvas (canvas pixels), or null outside it or with the window inactive.</summary>
     private Point? SplashCanvasPoint()
@@ -986,7 +989,7 @@ public partial class Game1 : Game
         var load = _afterSplashLoad;
         _afterSplashLoad = null;
         if (pick is [var c] && char.IsAsciiDigit(c) && load is not null)
-            load();
+            load(c - '0');
         else
             after?.Invoke();
     }
@@ -1130,6 +1133,16 @@ public partial class Game1 : Game
                 StopSplashTune(); // I: the tune belongs to cover1, a key ends both
             else
                 _splashTune?.Update();
+            _input.EndFrame(keys, pad);
+            base.Update(gameTime);
+            return;
+        }
+
+        // QoL SAVE SLOTS: the slot picker owns every key while shown (over any game or the main menu).
+        if (_slotScreen.IsOpen)
+        {
+            if (_slotScreen.HandleKeys(_input.NewKeys(keys).Concat(SaveSlotScreen.PadKeys(_input.NewButtons(pad)))))
+                RunSaveSlotPick();
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
             return;
@@ -1480,6 +1493,17 @@ public partial class Game1 : Game
         _frameScene = null; // s169: each screen below names its own (III DOS's CGA palette 1 screens)
         UiOverlays.Screen = _screen; // a scrolling box's content is clipped to it (UiOverlays.Clipped)
         _screen.PaletteOverride = null; // s157: a screen that needs its own palette sets it while it draws
+        if (_slotScreen.IsOpen)
+        {
+            _screen.Begin();
+            _screen.BeginLayout(_spriteBatch);
+            UiOverlays.DrawMenuScreen(_spriteBatch, _pixel, _slotScreen.Lines(), _slotScreen.Help);
+            _spriteBatch.End();
+            _screen.EndAndPresent(_spriteBatch, _pixel);
+            EndHits();
+            base.Draw(gameTime);
+            return;
+        }
         if (_p4 is not null)
         {
             _screen.Begin();
@@ -2105,7 +2129,7 @@ public partial class Game1 : Game
                 ReturnToMainMenu();
                 break;
             case GameMenuChoice.DosImport when s.Game == GameId.P2: // T5: the row is II's "Transfer from Phantasie I"
-                _dosDialog.OpenTransfer(ClientSettings.SavePathFor(GameId.P1), GameId.P1);
+                _dosDialog.OpenTransfer(ClientSettings.ReadSavePathFor(GameId.P1), GameId.P1);
                 SetFeedback(_message, _dosDialog.Help);
                 break;
             case GameMenuChoice.TransferFromI or GameMenuChoice.TransferFromII when s.Game == GameId.P3: // T5, D3-030
@@ -2116,11 +2140,11 @@ public partial class Game1 : Game
                     break;
                 }
                 var from = choice == GameMenuChoice.TransferFromI ? GameId.P1 : GameId.P2;
-                _dosDialog.OpenTransferIntoIII(ClientSettings.SavePathFor(from), from, eraseFirst);
+                _dosDialog.OpenTransferIntoIII(ClientSettings.ReadSavePathFor(from), from, eraseFirst);
                 SetFeedback(_message, _dosDialog.Help);
                 break;
             case GameMenuChoice.TransferFromII: // T5: I's row, the ST utility's II → I
-                _dosDialog.OpenTransfer(ClientSettings.SavePathFor(GameId.P2), GameId.P2);
+                _dosDialog.OpenTransfer(ClientSettings.ReadSavePathFor(GameId.P2), GameId.P2);
                 SetFeedback(_message, _dosDialog.Help);
                 break;
             case GameMenuChoice.DosImport or GameMenuChoice.DosExport when s.Game != GameId.P1:
@@ -2707,7 +2731,7 @@ public partial class Game1 : Game
     private void LeaveTown(GameSession s)
     {
         if (_settings.AutoSave || s.Options.AutoSaveAlways)
-            SaveGame();
+            AutoSaveGame(); // QoL SAVE SLOTS: the AUTO slot, never the picker
         var town = s.CurrentTown?.Name;
         if (s.LeaveTown() && town is not null && P1DosLeavingLine(s, town) is { } leaving)
             s.Note(leaving); // s154: I DOS's row 24 after the town loop (OV1 0x483e), the line the overworld opens on
@@ -2976,16 +3000,35 @@ public partial class Game1 : Game
         _qol.Save();
     }
 
+    /// <summary>
+    /// A save the player asked for (F5, the game menu, a town's Save game). QoL SAVE SLOTS: the slot picker; off, the one
+    /// save.
+    /// </summary>
     private void SaveGame()
+    {
+        if (CurrentGameSettings.SaveSlots)
+        {
+            OpenSaveSlots(_session!.Game, SaveSlotMode.Save);
+            return;
+        }
+        WriteSave(ClientSettings.SavePathFor(_session!.Game), null);
+    }
+
+    /// <summary>The autosave on leaving town: always the game's one save (with SAVE SLOTS, its AUTO slot).</summary>
+    private void AutoSaveGame() => WriteSave(ClientSettings.SavePathFor(_session!.Game), null);
+
+    /// <summary>Writes the session to <paramref name="path"/> (<paramref name="slot"/>: the slot it is, for the message).</summary>
+    private void WriteSave(string path, SaveSlot? slot)
     {
         try
         {
             var snap = _session!.CaptureSnapshot();
             Directory.CreateDirectory(ClientSettings.DataDirectory);
-            SessionCodec.WriteJsonFile(ClientSettings.SavePathFor(_session.Game), snap);
+            SessionCodec.WriteJsonFile(path, snap);
             _qol.Save();
             _settings.Save();
-            SetFeedback(UiText.S("game.saved"), HelpForMode(_session.Mode));
+            SetFeedback(slot is null ? UiText.S("game.saved") : UiText.F("saveslots.saved_x", SaveSlotScreen.Label(slot)),
+                HelpForMode(_session.Mode));
         }
         catch (Exception ex)
         {
@@ -3001,7 +3044,7 @@ public partial class Game1 : Game
             return false;
         if (_session!.Game == GameId.P2 && _input.Pressed(GameAction.DosImport, keys, pad))
         {
-            _dosDialog.OpenTransfer(ClientSettings.SavePathFor(GameId.P1), GameId.P1); // T5: II's utility, I → II
+            _dosDialog.OpenTransfer(ClientSettings.ReadSavePathFor(GameId.P1), GameId.P1); // T5: II's utility, I → II
             return true;
         }
         if (_session!.Game != GameId.P1) // DOS saves are Phantasie I's format
@@ -3198,11 +3241,22 @@ public partial class Game1 : Game
         }
     }
 
+    /// <summary>Load (F9, the game menu, a town's Load). QoL SAVE SLOTS: the slot picker; off, the one save.</summary>
     private void LoadGame()
+    {
+        if (CurrentGameSettings.SaveSlots)
+        {
+            OpenSaveSlots(_session!.Game, SaveSlotMode.Load);
+            return;
+        }
+        LoadFrom(ClientSettings.SavePathFor(_session!.Game));
+    }
+
+    /// <summary>Continue from the save at <paramref name="path"/> (D-069: the Guild-number question, or the party list).</summary>
+    private void LoadFrom(string path)
     {
         try
         {
-            var path = ClientSettings.SavePathFor(_session!.Game);
             if (!File.Exists(path))
             {
                 SetFeedback(UiText.S("game.no_save_file"), HelpForMode(_session!.Mode));
@@ -3212,7 +3266,7 @@ public partial class Game1 : Game
             // D-069 (manual): Continue asks for the Guild number of the character to call up (ContinueDialog); QoL
             // ContinueFromList shows the save's parties instead.
             var file = SessionCodec.ReadJsonFile(path);
-            if (GameSession.ContinuesWithoutAsking(file, _session.Game))
+            if (GameSession.ContinuesWithoutAsking(file, _session!.Game))
             {
                 // D-069 dos (p1.continue, the file's locked rules): DOS asks nothing and loads the saved party.
                 _session.ContinueSavedParty(file);

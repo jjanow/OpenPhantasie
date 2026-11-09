@@ -53,7 +53,7 @@ public sealed partial class P4DungeonScreen
     /// </summary>
     public static IReadOnlyList<Character?>? ReadGameRoster(GameId game)
     {
-        var path = ClientSettings.SavePathFor(game);
+        var path = ClientSettings.ReadSavePathFor(game); // QoL SAVE SLOTS: the newest of that game's slots
         if (!File.Exists(path))
             return null;
         try

@@ -516,6 +516,7 @@ public static class GuildCodec
                 SavedAction = p3.SavedAction,
                 SavedCast = p3.SavedCast,
                 ExperienceShares = p3.ExperienceShares,
+                PlaneTownsVisited = p3.PlaneTownsVisited == 0 ? null : p3.PlaneTownsVisited,
             },
         Lineage = ch.Lineage is null
             ? null
@@ -638,6 +639,7 @@ public static class GuildCodec
                 SavedAction = p3d.SavedAction ?? P3CombatModule.NewCharacterAction,
                 SavedCast = p3d.SavedCast,
                 ExperienceShares = p3d.ExperienceShares ?? 1,
+                PlaneTownsVisited = p3d.PlaneTownsVisited ?? 0,
             };
         }
         if (d.Lineage is { } lineage)
@@ -779,6 +781,10 @@ public static class GuildCodec
         public int? SavedAction { get; set; }
         public int? SavedCast { get; set; }
         public int? ExperienceShares { get; set; }
+
+        /// <summary>D3-035 QoL: plane towns 15–17 entered (bit 0 = 15); null = none.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? PlaneTownsVisited { get; set; }
     }
 
     private sealed class LineageDto

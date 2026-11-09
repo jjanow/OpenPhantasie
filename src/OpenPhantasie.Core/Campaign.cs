@@ -35,6 +35,13 @@ public interface ICampaign
     /// </summary>
     IReadOnlyList<int> TransportTowns { get; }
 
+    /// <summary>
+    /// Towns the TRANSPORTATION picker lists after <see cref="TransportTowns"/> for this session (ascending, the current
+    /// town still left out by the loop). III: the plane towns the party has entered under <c>p3.transport-planes</c>
+    /// (D3-035 QoL); none elsewhere.
+    /// </summary>
+    IReadOnlyList<int> ExtraTransportTowns(GameSession session) => [];
+
     /// <summary>True when the TRANSPORTATION picker prints town <paramref name="townId"/> with a blank name (I: OLYMPIA).</summary>
     bool IsUnnamedTransportTown(int townId);
 

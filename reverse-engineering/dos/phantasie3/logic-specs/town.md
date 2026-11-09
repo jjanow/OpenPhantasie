@@ -218,3 +218,7 @@ else: FAR:0xcc4 = 0, FAR:0x9e6 = −1, current town = t, redraw, "The party is t
 So the destinations are the **14 Scandor towns** (1 Pendragon … 14 Sciattica). It can be cast in any town, the plane
 towns 15–17 included, but cannot take the party to them. The manual: "transport the party interdimensionally from one
 town to another" (PDF 11 / pr.17) — **D3-035** (NOT A CONFLICT, user s89; the remaster offers 1–14 as DOS, s91).
+
+**Remaster option** (QoL, not DOS): `p3.transport-planes` = `visited` (off in every preset) also lists each plane town
+15–17 a member of the party has entered (a remaster-only per-character flag), after the 14; the pick runs the normal
+town entry. D3-035 has the details.

@@ -60,27 +60,46 @@ public sealed class CharacterCreationTables
     /// at level 7), <paramref name="dosLifespans"/> = D-003 (DOS lifespan factors). This instance when none applies or the
     /// data has no DOS block.
     /// </summary>
-    public CharacterCreationTables ForRules(bool dosRaceModifiers, bool dosSpellLevels, bool dosLifespans)
+    public CharacterCreationTables ForRules(bool dosRaceModifiers, bool dosSpellLevels, bool dosLifespans,
+        GameId? sharedAging = null)
     {
-        if (Dos is not { } dos || !(dosRaceModifiers || dosSpellLevels || dosLifespans))
+        var shared = sharedAging is not null && SharedAging is not null;
+        if (!shared && (Dos is not { } || !(dosRaceModifiers || dosSpellLevels || dosLifespans)))
             return this;
+        var dos = Dos;
         return new CharacterCreationTables
         {
             HpFactorsByClass = HpFactorsByClass,
             MpCeilingByClass = MpCeilingByClass,
             SkillCoefficientsByClassLevel = SkillCoefficientsByClassLevel,
-            SpellLevelsByClass = dosSpellLevels ? Patch(SpellLevelsByClass, dos.SpellLevels) : SpellLevelsByClass,
-            LifespanBandsByRace = LifespanBandsByRace,
+            SpellLevelsByClass = dos is not null && dosSpellLevels ? Patch(SpellLevelsByClass, dos.SpellLevels) : SpellLevelsByClass,
+            // QoL shared-aging: the shared model's bands, whatever the game's own lifespans option says.
+            LifespanBandsByRace = shared ? SharedAging!.BandsByRace : LifespanBandsByRace,
             ClassAttributeModifiers = ClassAttributeModifiers,
-            RaceAttributeModifiers = dosRaceModifiers
+            RaceAttributeModifiers = dos is not null && dosRaceModifiers
                 ? Patch(RaceAttributeModifiers, dos.RaceAttributeModifiers)
                 : RaceAttributeModifiers,
             Dos = dos,
-            LifespanFactorsByRace = dosLifespans && dos.LifespanFactorsByRace.Count > 0
-                ? dos.LifespanFactorsByRace
-                : LifespanFactorsByRace,
+            LifespanFactorsByRace = shared ? null
+                : dos is not null && dosLifespans && dos.LifespanFactorsByRace.Count > 0
+                    ? dos.LifespanFactorsByRace
+                    : LifespanFactorsByRace,
+            SharedAging = SharedAging,
+            SharedAgingGame = shared ? sharedAging : null,
         };
     }
+
+    /// <summary>
+    /// The shared aging model (<c>GameData/shared/aging.json</c>, QoL <c>shared-aging</c>); null when the data has none.
+    /// Used only by tables built with <see cref="ForRules"/>'s <c>sharedAging</c> (<see cref="SharedAgingGame"/> set).
+    /// </summary>
+    public SharedAgingModel? SharedAging { get; init; }
+
+    /// <summary>
+    /// The game whose characters these tables make under QoL <c>shared-aging</c>: <see cref="CharacterCreation.LifespanFor"/>
+    /// then asks <see cref="SharedAging"/>. Null: the game's own lifespans.
+    /// </summary>
+    public GameId? SharedAgingGame { get; init; }
 
     private static IReadOnlyList<IReadOnlyList<int>> Patch(
         IReadOnlyList<IReadOnlyList<int>> table, IReadOnlyList<(int Row, int Column, int Value)> cells)
@@ -303,6 +322,10 @@ public static class CharacterCreation
     public static int LifespanFor(Race race, int seed10, CharacterCreationTables tables)
     {
         ArgumentNullException.ThrowIfNull(tables);
+        // QoL shared-aging: one model for I–IV (docs/plan/13-aging-normalised.md); the same numbers as the manual bands
+        // below for luck 8–13, clamped to the band. UNDEAD has no band, as below (callers pass the living race).
+        if (tables.SharedAgingGame is { } game && tables.SharedAging is { } shared)
+            return race == Race.Undead ? 0 : shared.Lifespan(game, (int)race, seed10);
         // D-003 dos (p1.lifespans): @252 = @10 · factor, integer math, multiply first; kept in age-clock units.
         if (tables.LifespanFactorsByRace is { } factors)
         {

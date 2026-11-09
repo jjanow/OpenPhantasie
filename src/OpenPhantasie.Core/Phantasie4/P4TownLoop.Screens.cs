@@ -438,7 +438,7 @@ public sealed partial class P4TownLoop
                         _window.Line(GameText.S("p4x.0x3fcb4"));
                         break;
                     }
-                    m.AgeUnits = Math.Min(P4Aging.AgeCap, m.AgeUnits + S.MagicTrainingAgeUnits);
+                    m.AgeUnits = Math.Min(P4Aging.AgeCapFor(_options), m.AgeUnits + S.MagicTrainingAgeUnits);
                     if (P4Training.LessonSucceeds(_rng, m.Abilities[1]))
                     {
                         m.Spells[spell - 1] = 1;
@@ -608,7 +608,7 @@ public sealed partial class P4TownLoop
         {
             var g = Party.Roster[slot]!;
             if (g.Town != Town)
-                g.AgeUnits = Math.Min(P4Aging.AgeCap, g.AgeUnits + S.JoinAgeUnits);
+                g.AgeUnits = Math.Min(P4Aging.AgeCapFor(_options), g.AgeUnits + S.JoinAgeUnits);
             g.Town = Town;
             g.GuildSlot = slot;
             Party.Members.Add(g.Clone());
@@ -1159,7 +1159,8 @@ public sealed partial class P4TownLoop
                     if (g < 0)
                         break;
                     // As creation (NameAndRecord): the code's lifespans take the aging factor from guild slot 0's race.
-                    int? agingRace = _options.P4Code(P4RuleOptions.Lifespans) && g != 0 && Party.Roster[0] is { } first0
+                    int? agingRace = _options.P4Code(P4RuleOptions.Lifespans) && !_options.SharedAging && g != 0
+                        && Party.Roster[0] is { } first0
                         ? first0.Race : null;
                     Party.Roster[g] = P4Hall.JoinFromPhantasieIII(_options, _tables, _rng, c, g, Town, agingRace);
                     continue;

@@ -339,7 +339,8 @@ public sealed partial class P4TownLoop
         var name = _text;
         // ancestry.md §7 item 10: the code takes the aging factor from guild slot 0's race (the new character itself when
         // it fills slot 0). Kept with the code's lifespans (D4-033 x68000); the manual's lifespans use the own race.
-        var agingRace = _options.P4Code(P4RuleOptions.Lifespans) && slot != 0 && Party.Roster[0] is { } first0
+        var agingRace = _options.P4Code(P4RuleOptions.Lifespans) && !_options.SharedAging && slot != 0
+            && Party.Roster[0] is { } first0
             ? first0.Race
             : sheet.Race;
         var c = P4CreationRecord.Create(_options, _tables, _rng, name, sheet.Race, sheet.Class, sheet.Abilities, ancestors,

@@ -121,7 +121,13 @@ public sealed partial class GameSession
         for (var i = 0; i < converted.Length; i++)
         {
             if (converted[i] is { } c)
+            {
                 c.InParty = false;
+                // QoL shared-aging (13-aging-normalised.md): age, lifespan and "has aged" come over unchanged (the
+                // converters copy them); only a character with no lifespan gets the shared band of its living race.
+                if (Options.SharedAging && c.Lifespan <= 0)
+                    c.Lifespan = CharacterCreation.LifespanForImported(c, CreationTables);
+            }
             Roster.Slots[i] = converted[i];
         }
         Party.Members.Clear();

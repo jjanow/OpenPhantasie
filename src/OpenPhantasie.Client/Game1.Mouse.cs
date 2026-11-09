@@ -280,7 +280,15 @@ public partial class Game1
     /// <summary>Main menu: the arrows to the row (+ Return); Options: its own pointing (rows skip headers).</summary>
     private void MenuLine(int line, int column, bool clicked)
     {
-        if (_update.IsOpen)
+        if (_slotScreen.IsOpen)
+        {
+            // QoL SAVE SLOTS: hovering selects a slot's row, a click chooses it.
+            if (!clicked)
+                _slotScreen.Point(line);
+            else if (_slotScreen.Click(line))
+                RunSaveSlotPick();
+        }
+        else if (_update.IsOpen)
         {
             if (clicked)
                 _update.Click(line);

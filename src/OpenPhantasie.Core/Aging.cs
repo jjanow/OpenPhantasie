@@ -11,6 +11,15 @@ public static class Aging
     public const int DosLifespanStep = 256;
 
     /// <summary>
+    /// [C] OV1 <c>0x1954</c>: past 70 % of the lifespan a character grows older (once). Also the shared aging model's point
+    /// (QoL <c>shared-aging</c>, <see cref="SharedAgingModel"/>), so IV compares the same way under it.
+    /// </summary>
+    public static bool IsPastDecline(int age, int span) => age > span * 7 / 10;
+
+    /// <summary>[C] OV1 <c>0x1954</c>: past the lifespan a character dies (the shared model's rule too).</summary>
+    public static bool IsPastLifespan(int age, int span) => age > span;
+
+    /// <summary>
     /// Town-entry pass over the active party. Returns the "has aged" / "has died" lines.
     /// [C] (s36) First every party member's age clock — DEAD members too, DOS adds to all 7 slots — gains
     /// <see cref="TravelClock.AgeUnits"/> of <paramref name="travelTime"/> (<c>(time &gt;&gt; 8) / 7</c>, OV1 <c>0x1995</c>);
@@ -47,13 +56,13 @@ public static class Aging
             var (age, span) = dosLifespans
                 ? (m.AgeClock >> 8, m.Lifespan / DosLifespanStep) // years = @264 >> 8 vs @252 (town-menus.md §Aging)
                 : (m.AgeClock, m.Lifespan);
-            if (age <= span * 7 / 10)
+            if (!IsPastDecline(age, span))
                 continue;
             if (m.Status == CharacterStatus.Dead)
                 continue;
 
             int k;
-            if (age > span)
+            if (IsPastLifespan(age, span))
             {
                 lines.Add(GameText.F("core.aging.x_has_died", m.Name));
                 m.Status = CharacterStatus.Dead;

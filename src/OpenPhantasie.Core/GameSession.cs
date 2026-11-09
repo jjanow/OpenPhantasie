@@ -230,7 +230,8 @@ public sealed partial class GameSession
             // P3.2: the DOS creation-table cells (D-001, D-006), the original's lifespans (D-003 / D2-021) and the original
             // platform's Guild size (D-002 / D2-020).
             _rulesCreation = _creation.ForRules(
-                value.IsDos(RuleOptionRegistry.HalflingDex), value.OriginalSpellLevels, value.OriginalLifespans);
+                value.IsDos(RuleOptionRegistry.HalflingDex), value.OriginalSpellLevels, value.OriginalLifespans,
+                value.SharedAging ? Game : null); // QoL shared-aging: one lifespan model for I–IV
             Sack.Capacity = value.IsDos(RuleOptionRegistry.SackSize) ? LootSack.DosSlotCount : LootSack.MaxItems; // D-018
             Roster.MaxCharacters = value.OriginalGuildSize
                 ? Rules.ForPlatform(Rules.OriginalPlatform).GuildMaxCharacters
@@ -796,6 +797,8 @@ public sealed partial class GameSession
         if (!GuildHall.TryAddToParty(Roster, Party, member, GuildTownId, Options.IsDos(RuleOptionRegistry.AddAging), out error,
                 GuildElementalRules))
             return false;
+        if (IsPhantasie3 && CurrentTownId is int here) // D3-035 QoL: joining in a plane town counts as having entered it
+            Phantasie3Campaign.MarkPlaneTownVisited(Party, here);
         Note(GameText.F("core.guild.x_joins_the_party", member.Name));
         return true;
     }
@@ -1101,10 +1104,12 @@ public sealed partial class GameSession
     /// <remarks>D-062 <c>dos</c> (<c>p1.transport-list</c>): every town, the current one included; picking it runs the full
     /// town entry, as DOS's <c>0x1954(pick)</c>.</remarks>
     /// <remarks>D2-030 <c>st</c> (<c>p2.transport-list</c>): the current town's same-plane list (<see cref="TownState.TransportDestinations"/>).</remarks>
+    /// <remarks>D3-035 QoL (<c>p3.transport-planes</c>): III adds the plane towns the party has entered (<see cref="ICampaign.ExtraTransportTowns"/>).</remarks>
     public IReadOnlyList<int> TransportDestinations =>
         Options.SamePlaneTransport && CurrentTown?.TransportDestinations is { } samePlane
             ? samePlane.ToList()
-            : Campaign.TransportTowns.Where(id => id != CurrentTownId || Options.IsDos(RuleOptionRegistry.TransportList)).ToList();
+            : Campaign.TransportTowns.Concat(Campaign.ExtraTransportTowns(this))
+                .Where(id => id != CurrentTownId || Options.IsDos(RuleOptionRegistry.TransportList)).ToList();
 
     /// <summary>
     /// TRANSPORTATION destination (<c>endgame.md</c> §2.4, s49 [C]). The DOS picker (COM <c>0x16a2</c>, unpacked image) lists

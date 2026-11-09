@@ -10,7 +10,8 @@ namespace OpenPhantasie.Client;
 /// <c>_diskmenu</c> <c>0x1AB4</c>; FORMAT.md 6.10): window 34 titled "Select File" with New Game at icon place 0 and one
 /// "*k:Save" icon per save slot k that holds a save, at the next places (the panels' zigzag). <c>_disk</c> reads one
 /// <c>_mgetc</c>, which returns only a button: N (or a click on its icon) starts a new game, a slot's digit loads it;
-/// no other key does anything. The remaster keeps one IV save, so at most the "*1:Save" icon shows `[~]`.
+/// no other key does anything. With SAVE SLOTS off the remaster keeps one IV save, so at most the "*1:Save" icon shows
+/// `[~]`; on, the three slots are the original's (`docs/plan/12-save-slots.md`).
 /// </summary>
 public sealed partial class TitleSplash
 {

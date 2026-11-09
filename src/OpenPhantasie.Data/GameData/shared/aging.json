@@ -1,0 +1,29 @@
+{
+  "_note": "QoL shared-aging (docs/plan/13-aging-normalised.md, PLAN P3 from D4-033): the one aging model of all four games when the option is on. A remaster rule: I's D-003 model (the I, II and III manuals' lifespans +-10 %, user s15) used for IV too. Lifespan in age units (1/26 year) = round(26 * (lo + step * (hi - lo) / luck_steps)), step = luck - the game's luck_min, clamped 0..luck_steps. Grown older past 70 % (abilities x 4/5, once), dead past 100 %, on town entry (I's OV1 0x1954 rule, Aging.cs). Elf 3000 as the I / II / III manuals (IV's manual says about 2000).",
+  "bands_years": {
+    "HUMAN": [72, 88],
+    "DWARF": [180, 220],
+    "ELF": [2700, 3300],
+    "HALFLING": [40, 50],
+    "GNOME": [180, 220],
+    "PIXIE": [40, 50],
+    "SPRITE": [40, 50],
+    "OGRE": [40, 50],
+    "GNOLL": [40, 50],
+    "TROLL": [40, 50],
+    "KOBOLD": [40, 50],
+    "ORC": [40, 50],
+    "GOBLIN": [40, 50],
+    "LIZ.MAN": [40, 50],
+    "MINOTAUR": [40, 50],
+    "other": [40, 50]
+  },
+  "luck_min": {
+    "_note": "Each game's lowest luck roll: I / II seed @10 = 8..13 (II's rare 14 clamps), III LCK = rnd(6) + 7, IV Luck = rand(6) + 8 = 9..14.",
+    "p1": 8,
+    "p2": 8,
+    "p3": 8,
+    "p4": 9
+  },
+  "luck_steps": 5
+}

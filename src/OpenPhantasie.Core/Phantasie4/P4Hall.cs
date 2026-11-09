@@ -186,6 +186,16 @@ public static class P4Hall
         }
         m.Town = town;
         m.GuildSlot = slot;
+        if (o.SharedAging)
+        {
+            // QoL shared-aging (13-aging-normalised.md): III's age, lifespan and "has aged" come over unchanged (the same
+            // 1/26-year unit) in place of the age the record build rolled; a III character with no lifespan gets the shared
+            // band of its race by III's LCK.
+            m.AgeUnits = Math.Max(0, c.AgeClock);
+            m.HasAged = c.HasAged;
+            m.Lifespan = c.Lifespan > 0 ? c.Lifespan
+                : t.SharedAging is { } s ? s.Lifespan(GameId.P3, race, c.Stats.Luck) : m.Lifespan;
+        }
         return m;
     }
 

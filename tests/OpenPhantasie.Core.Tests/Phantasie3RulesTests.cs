@@ -80,7 +80,10 @@ public class Phantasie3RulesTests
         Assert.DoesNotContain(RuleOptionRegistry.For(GameId.P1), d => d.Id.StartsWith("p3.", StringComparison.Ordinal));
         // D3-003 (user s79: DOS's add) is "add" in every preset; the manual's erase is a player choice.
         Assert.All(new[] { Manual, Dos }, o => Assert.Equal("add", o.Get("p3.transfer-roster")));
-        foreach (var d in P3RuleOptions.All.Where(d => d != P3RuleOptions.BossFlee && d != P3RuleOptions.TransferRoster))
+        // D3-035's QoL option (user s89) is off in every preset, the Original (DOS) one too.
+        Assert.All(new[] { Manual, Dos }, o => Assert.Equal("off", o.Get("p3.transport-planes")));
+        foreach (var d in P3RuleOptions.All.Where(d => d != P3RuleOptions.BossFlee && d != P3RuleOptions.TransferRoster
+                     && d != P3RuleOptions.TransportPlanes))
         {
             var own = bugFixes.Contains(d) ? "fixed" : "manual";
             Assert.Equal(own, Manual.Get(d.Id));

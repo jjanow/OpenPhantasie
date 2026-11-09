@@ -210,6 +210,11 @@ public class MainMenuAndOptionsTests
         Assert.True(settings.Game(GameId.P1).ContinueFromList);
         Assert.EndsWith("ON", Line(o, "CONTINUE FROM A LIST"));
 
+        o.HandleKeys([Keys.Down]); // → save slots (12-save-slots.md), off = the one save
+        Assert.EndsWith("OFF", Line(o, "SAVE SLOTS"));
+        o.HandleKeys([Keys.Enter]);
+        Assert.True(settings.Game(GameId.P1).SaveSlots);
+
         o.HandleKeys([Keys.Down]); // → inventory screen (09 T2), off = the original screens
         Assert.EndsWith("OFF", Line(o, "NEW INVENTORY SCREEN"));
         o.HandleKeys([Keys.Enter]);
@@ -302,10 +307,10 @@ public class MainMenuAndOptionsTests
         Assert.Equal(GameId.P1, o.Tab);
         Assert.Equal("> GENERAL  [I]", o.Lines()[1].Text);
 
-        // The locked rows can be scrolled to and read but not changed: Down past the thirteen presentation rows (the header
+        // The locked rows can be scrolled to and read but not changed: Down past the fourteen presentation rows (the header
         // is skipped) lands on PRESET, and Right / Return there change nothing.
         o.HandleKeys([Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down,
-            Keys.Down, Keys.Down, Keys.Down, Keys.Down]);
+            Keys.Down, Keys.Down, Keys.Down, Keys.Down, Keys.Down]);
         Assert.Equal(MenuLineStyle.Selected, o.Lines().Single(l => l.Text.Contains("PRESET")).Style);
         Assert.Contains(o.Lines(), l => l.Text.Contains("THIS SAVE'S RULES (LOCKED)")); // the header above it
         o.HandleKeys([Keys.Right, Keys.Enter]);

@@ -278,11 +278,13 @@ public sealed partial class P4TownLoop
         var rows = new List<P4GateRow>();
         foreach (var (m, index) in Party.Members.Select((m, i) => (m, i)))
         {
-            m.AgeUnits = Math.Min(P4Aging.AgeCap, m.AgeUnits + add);
+            m.AgeUnits = Math.Min(P4Aging.AgeCapFor(_options), m.AgeUnits + add);
             if (!m.Alive)
                 continue;
+            if (m.Lifespan <= 0) // QoL shared-aging: a member made before the option had none (no old-save migration)
+                m.Lifespan = P4Aging.SharedLifespan(_options, _tables, m.Race, m.Abilities[P4Member.Luck]);
             switch (P4Aging.Check(_options, _tables.Aging, m.Race, m.Abilities[P4Member.Luck], m.AgingFactor, m.AgeUnits,
-                        m.HasAged))
+                        m.HasAged, m.Lifespan))
             {
                 case P4AgeEvent.GrownOlder:
                     m.HasAged = true;

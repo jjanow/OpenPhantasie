@@ -331,6 +331,8 @@ public sealed class OptionsScreen
         rows.Add(Described("options.status_lines", OnOff(g.StatusLines), _ => Set(() => g.StatusLines = !g.StatusLines)));
         rows.Add(Described("options.continue_from_list", OnOff(g.ContinueFromList),
             _ => Set(() => g.ContinueFromList = !g.ContinueFromList)));
+        // PLAN P3 QoL (D3-028, 12-save-slots.md): numbered save slots beside the autosave; off = the one save.
+        rows.Add(Described("options.save_slots", OnOff(g.SaveSlots), _ => Set(() => g.SaveSlots = !g.SaveSlots)));
         rows.Add(Described("options.inventory_screen", OnOff(g.InventoryScreen),
             _ => Set(() => g.InventoryScreen = !g.InventoryScreen)));
         // D-073 QoL: the manual's T)IME LAG + sound question as rows here instead of the T command.

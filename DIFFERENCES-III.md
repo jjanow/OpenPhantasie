@@ -42,7 +42,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-032 | Skill-training tables: five DOS cells differ from I (Thief Pick Lock L3 35 vs 55, Ranger Attack L15 25 vs 250, Ranger Parry L15 60 vs 85, Parry table one byte short so Monk/Wizard read a level ahead) | DECIDED: I's values (data errors; DOS as read as option) · built |
 | D3-033 | Armory stock never changes by itself in DOS; manual: weapons and potions can change each visit | DECIDED: Apple II restock minus Light Key / Burnt Gem; DOS no-restock option (s89) · built (s91) |
 | D3-034 | Kobold maximum CHA: 3 in DOS's race table, 13 in the manual | DECIDED: manual 13, DOS 3 = data bug, no option (s89) · built |
-| D3-035 | Transportation (#54): DOS offers only the 14 Scandor towns; the remaster reads "interdimensionally" as every town 1–17 | NOT A CONFLICT: DOS 1–14 (s89) · built (s91); QoL option visited plane towns → PLAN P3 |
+| D3-035 | Transportation (#54): DOS offers only the 14 Scandor towns; the remaster reads "interdimensionally" as every town 1–17 | NOT A CONFLICT: DOS 1–14 (s89) · built (s91); QoL option visited plane towns built (`p3.transport-planes`, off) |
 | D3-036 | Parry: DOS reads the option saved at fight start, so Parry picked mid-fight does nothing that fight; no damage reduction | DECIDED: Apple II roll + one-hit reduction, plus shield off hit chance; DOS option (s89) · built (s91) |
 | D3-037 | After a successful Greet / Accept Surrender / Mercy / Flee, DOS still plays one full round | DECIDED: manual, fight ends at once; DOS extra round = bug, no option (s89) · built |
 | D3-038 | Re-entering a dungeon: DOS keeps a saved map per dungeon and asks "[original text]", no time factor; manual: monsters restock unless the party returns shortly | DECIDED (s96): I's D-027 rule per dungeon (YES = back soon, NO = restocked), no time factor |
@@ -471,8 +471,8 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   the ST and Amiga cards: saving from the menu "is the only time a game will be saved" (III-AU PDF 17–18).
 - **Code:** `save_game` (root `0x8176`) is called only by Options ▸ Save Game and at the end of the I → III transfer;
   leaving town (ovl3 `0x88`) saves nothing `[C]` static (`logic-specs/town.md` §4).
-- **Decision (user s81):** manual: the game saves automatically every time the party leaves a town. DOS's menu-only saving as a `p3.*` rules option. User: modern save slots as a further QoL option (PLAN P3).
-- **Remaster:** built (T4 Core rules): rules option `p3.autosave`, manual default, `dos` in Original (DOS); `P3AutoSaveOnLeavingTown()` (the campaign calls it on leaving town). Wired into `Phantasie3Campaign`.
+- **Decision (user s81):** manual: the game saves automatically every time the party leaves a town. DOS's menu-only saving as a `p3.*` rules option. User: modern save slots as a further QoL option.
+- **Remaster:** built (T4 Core rules): rules option `p3.autosave`, manual default, `dos` in Original (DOS); `P3AutoSaveOnLeavingTown()` (the campaign calls it on leaving town). Wired into `Phantasie3Campaign`. Modern save slots (the user's QoL): built as the SAVE SLOTS switch for all four games, the autosave keeping its own AUTO slot (`docs/plan/12-save-slots.md`).
 - **Side effects:** in DOS, quitting outside town loses everything since the last manual save (dungeon map saves
   aside).
 
@@ -587,9 +587,17 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   plane dungeons have no exit to Scandor, so the spell is the designed way home; reaching towns 15–17 by spell would skip
   the Chronos lever, both keys and the Castle of Dark. QoL option (after 1:1, off by default): a plane town the party
   has visited once becomes a Transportation destination.
-- **Remaster:** built (s91): `Phantasie3Campaign.TransportTowns` = 1–14, cast from any town. The visited-plane-town QoL option (needs a saved visited flag per town 15–17) is in `PLAN.md` P3.
-- **Side effects:** with 1–17 the party can reach the Light / Dark / Netherworld towns without the dungeon exits or the
-  Astral Plane, which may skip part of the quest route `[~]` (`planes.md`).
+- **Remaster:** built (s91): `Phantasie3Campaign.TransportTowns` = 1–14, cast from any town. QoL option built (s176):
+  `p3.transport-planes` (QUALITY OF LIFE section of III's tab), `off` in every preset (DOS's 1–14) or `visited` (a player
+  choice in Custom): Transportation also lists each plane town 15 Light, 16 Dark, 17 Death that a member of the party
+  has entered, after the Scandor towns; arriving runs the normal town entry. The visited flag is per character
+  (`Phantasie3CharacterData.PlaneTownsVisited`, remaster only, saved with the character), set on every III town entry
+  whatever the option and on a Guild Add in a plane town; "the party has visited" = any member (the elemental not
+  counted) has it. Per character, not per save: with several parties (D-069) a party that never reached the planes gets
+  no shortcut past the quest route, and the flag follows characters through Guild Drop / Add.
+- **Side effects:** none with the option off. Under `visited` only a plane town some member has already reached by the
+  quest route is offered; a newcomer who joins such a party can be taken there without walking the route `[~]`
+  (`planes.md`).
 - **Spec:** `reverse-engineering/dos/phantasie3/logic-specs/town.md` §8.
 
 ## D3-036 — Parry
@@ -744,7 +752,8 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   (Halfling ×2.5), which would start a 40–50-year Halfling at 29–49 years, so it is kept only under the DOS option.
   `Aging.ApplyTownEntry` does the rest (III ages only members not Dead, ovl3 `0x65a`). Rules option `p3.lifespans`:
   `manual` · `dos` (Original (DOS) preset: DOS's start age, no lifespan). Related QoL: D4-033's "aging normalised across
-  I–IV" (PLAN P3).
+  I–IV", built as `shared-aging` (`docs/plan/13-aging-normalised.md`): while on, III ages by the shared model even under
+  `dos`.
 - **Side effects:** start ages as I (others 14–16, Human 17–21, Dwarf / Gnome 28–37, Elf 280–422). Characters made
   before s99 have no lifespan (no old-save migration).
 - **Spec:** `FORMAT.md` §5 (`+0x2a`) and §5.1; `logic-specs/planes.md` §3a (aging).

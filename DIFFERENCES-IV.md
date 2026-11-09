@@ -31,7 +31,7 @@ who decides. Keep each entry to **Source · Code · Decision · Remaster · Side
 | D4-030 | Town entry: manual auto-deposits party gold into accounts; code shares out party experience, gold untouched | DECIDED: manual auto-deposit + XP share-out (code XP-only as option) · built (`p4.town-entry`) |
 | D4-031 | Gold caps: manual 65,000 for party gold and accounts; code caps 65,000 only in the bank (sell 65,535, loot 999,999,999, level-up 65,535) | DECIDED: manual 65,000 on every path, withdraw bug fixed (option: uncapped) · built (`p4.gold-cap`) |
 | D4-032 | Town inn: manual "stay at least two weeks"; code passes no time | DECIDED: manual, town inn stay takes two weeks (code no-time as option) · built (`p4.inn-time`) |
-| D4-033 | Lifespans: manual Elf ~2000, Dwarf/Gnome 200, Human 80, others 40–50; code Elf never dies, Halfling 215–345, Pixie/Sprite/Human 89–138, races 7+ and hybrids 30–49 | DECIDED: manual lifespans (X68000 code as option; QoL: aging normalised across I–IV) · built (`p4.lifespans`) |
+| D4-033 | Lifespans: manual Elf ~2000, Dwarf/Gnome 200, Human 80, others 40–50; code Elf never dies, Halfling 215–345, Pixie/Sprite/Human 89–138, races 7+ and hybrids 30–49 | DECIDED: manual lifespans (X68000 code as option; QoL: aging normalised across I–IV, `shared-aging`, `docs/plan/13-aging-normalised.md`) · built (`p4.lifespans`) |
 | D4-034 | Aging effect: manual "abilities decline"; X68000 sets all abilities and Luck to 0 (MSX2 × 0.8) | DECIDED: abilities × 0.8 once, as MSX2 (X68000 zeroing as option) · built (`p4.aging`) |
 | D4-035 | Healing potions: wounds healed (manual Tables 2–3: 1–3 / 4–6 / 7–9 / 10 = Healing 1–4) vs code one step lower (potion n heals trunc((n + 1) / 3) wound points); Healing 6 HP 35 vs 36 | DECIDED: manual (X68000 code as option) · built (`p4.potion-wounds`) |
 | D4-036 | Spot Item: manual finds items after combat (high value also identifies them); treasure automatic outdoors when the enemy is wiped out vs code never reads Spot Item, flat 45 % (dungeon) / level + 18 % (outdoors) | DECIDED: manual (X68000 code as option) · built (`p4.spot-item`) |
@@ -384,10 +384,21 @@ more code detail (level-up gold capped at 65,535 is one of D4-031's cases). Use 
   Also an original bug: the race tested for F is the race of **guild slot 0**, not of the new character
   (`ancestry.md` §7), so in play every character's lifespan follows slot 0's race.
   - PC-98 (the manual's platform): code not read; its program holds the same strings (Disk 1, e.g. [original text] at offset 352,122, 預金入金 352,069), so no sign of a different build.
-- **Decision (user s81):** manual: lifespans by race as the manual gives them (Elf about 2,000, Dwarf and Gnome 200, Human 80, the others 40–50 years; per-race exact values and spread are a manual-silent detail set when built, keeping the code's 70 % "grown older" point). The X68000 lifespan rule as a rules option. QoL option (user): normalise aging against all four games, PLAN P3.
+- **Decision (user s81):** manual: lifespans by race as the manual gives them (Elf about 2,000, Dwarf and Gnome 200, Human 80, the others 40–50 years; per-race exact values and spread are a manual-silent detail set when built, keeping the code's 70 % "grown older" point). The X68000 lifespan rule as a rules option. QoL option (user): normalise aging against all four games, PLAN P3: built as
+  `shared-aging` (`docs/plan/13-aging-normalised.md`).
 - **Remaster:** built s83: `p4.lifespans` (`P4Aging.ManualLifespanYears`, `Check`). Values set at build (manual-silent detail, user s81): death age = base × (0.9 + 0.04 × (Luck − 9)), Luck clamped 9–14 (±10 %), bases Elf 2,000, Dwarf and Gnome 200, Human 80, every other race 45 (Halflings, the monster races and the mixed races: the manual's "others 40–50"); grown older at 70 %. `x68000`: the aging-factor rule (the caller may pass guild slot 0's race for the code's creation bug). s97: runs at every
   town entry (`P4TownLoop`); dead members age but are not checked `[~]`; the messages wait for a key `[~]`.
 - **Confirmed (user s84):** these build values stand.
+- **QoL `shared-aging`** (every game, `docs/plan/13-aging-normalised.md`; off in both Original presets, **on in Remaster**):
+  one remaster aging model for I–IV, I's D-003 model. It overrides `p4.lifespans` and `p4.aging` while on:
+  - Elf 2,700–3,300 years: the I / II / III manuals' "about 3000", over IV's 2,000;
+  - Dwarf / Gnome 180–220, Human 72–88, every other race 40–50;
+  - picked by Luck 9–14 and stored at creation (`P4Member.Lifespan`), so a decline does not shorten it;
+  - grown older past 70 % (× 0.8 once), dead past 100 %;
+  - the age cap of 65,000 lifted;
+  - a III → IV Guild join keeps III's age, lifespan and "has aged".
+  
+  With it off, the values above apply unchanged.
 - **Side effects:** the starting age (`ancestry.md` §7 item 11) comes from F. With `p4.lifespans` = `x68000` the
   creation screens (s106) keep the code's guild-slot-0 race for F; with the manual's lifespans F uses the character's own
   race (the slot-0 test is an original bug, and F only sets the starting age there).

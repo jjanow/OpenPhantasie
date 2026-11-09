@@ -80,6 +80,13 @@ public sealed class P4Member
     /// <summary><c>+1E</c>: age in 1/26 years.</summary>
     public int AgeUnits { get; set; }
 
+    /// <summary>
+    /// QoL <c>shared-aging</c> (<c>13-aging-normalised.md</c>): the lifespan in age units, fixed at creation or brought by a
+    /// III → IV join; 0 = none yet (set on the next town entry). The original record has no such field (IV's rules derive
+    /// the lifespan from <see cref="AgingFactor"/> or the race and Luck).
+    /// </summary>
+    public int Lifespan { get; set; }
+
     /// <summary><c>+21</c>: "has grown older" already happened.</summary>
     public bool HasAged { get; set; }
 
@@ -152,7 +159,7 @@ public sealed class P4Member
         {
             Name = c.Name, Race = c.Race, Class = c.Class, Level = c.Level, HpMax = c.HpMax, Hp = c.HpMax,
             MpMax = c.MpMax, Mp = c.MpMax, Skills = [.. c.Skills], Abilities = [.. c.Abilities], Account = c.Account,
-            AgingFactor = c.AgingFactor, AgeUnits = c.AgeUnits, Social = c.Social, Origin = c.Origin,
+            AgingFactor = c.AgingFactor, AgeUnits = c.AgeUnits, Lifespan = c.Lifespan, Social = c.Social, Origin = c.Origin,
             MagicLevel = c.MagicLevel, MoveBase = c.Stride,
         };
         foreach (var s in c.KnownSpells)
@@ -174,7 +181,7 @@ public sealed class P4Member
         Name = Name, Race = Race, Class = Class, Level = Level, Condition = Condition, HpMax = HpMax, Hp = Hp,
         MpMax = MpMax, Mp = Mp, Defence = Defence, Skills = [.. Skills], Items = [.. Items], ItemCharges = [.. ItemCharges],
         Abilities = [.. Abilities], Wounds = [.. Wounds], Experience = Experience, Account = Account,
-        AgingFactor = AgingFactor, AgeUnits = AgeUnits, HasAged = HasAged, Town = Town, Spells = [.. Spells],
+        AgingFactor = AgingFactor, AgeUnits = AgeUnits, Lifespan = Lifespan, HasAged = HasAged, Town = Town, Spells = [.. Spells],
         Social = Social, Score = Score, Origin = Origin, MagicLevel = MagicLevel, MpGrowth = MpGrowth,
         MeleeBonus = MeleeBonus, Strategy = [.. Strategy], GuildSlot = GuildSlot, SavedRace = SavedRace, MoveBase = MoveBase,
         Ancestors = [.. Ancestors],

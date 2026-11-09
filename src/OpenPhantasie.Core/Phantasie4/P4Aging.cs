@@ -26,6 +26,27 @@ public static class P4Aging
         return Math.Min(t.FactorCap, (int)Math.Truncate(luck * f));
     }
 
+    /// <summary>
+    /// The age cap: the record's 65,000 (<see cref="AgeCap"/>, about 2,500 years), lifted under QoL <c>shared-aging</c>,
+    /// whose Elves live 2,700–3,300 years (the remaster keeps the age in an int; nothing writes the u16 record).
+    /// </summary>
+    public static int AgeCapFor(GameOptions o) => o.SharedAging ? int.MaxValue : AgeCap;
+
+    /// <summary>
+    /// QoL <c>shared-aging</c> (<c>13-aging-normalised.md</c>): the lifespan in age units from the shared model
+    /// (<see cref="SharedAgingModel.Lifespan"/>, IV's Luck 9–14); 0 with the option off or no shared data.
+    /// </summary>
+    public static int SharedLifespan(GameOptions o, P4Tables t, int race, int luck) =>
+        o.SharedAging && t.SharedAging is { } s ? s.Lifespan(GameId.P4, race, luck) : 0;
+
+    /// <summary>
+    /// QoL <c>shared-aging</c>: the start age has I's shape (10 years + 10–12.5 % of the lifespan,
+    /// <see cref="CharacterCreation.StartingAgeClock"/>) on IV's own draw: trunc(260 + L (0.1 + (rand(100) − 1) / 4000)),
+    /// so 10 years + 10–12.475 % of the lifespan L, and the draws after it stay where they were.
+    /// </summary>
+    public static int SharedStartingAge(IRandomSource rng, int lifespan) =>
+        (int)Math.Truncate(260 + lifespan * (0.1 + (P4Dice.Rand(rng, 100) - 1) / 4000.0));
+
     /// <summary>Starting age in 1/26 years: trunc(260 + 256 F (0.1 + (rand(100) − 1) / 4000)) (§7 item 11).</summary>
     public static int StartingAge(IRandomSource rng, int agingFactor) =>
         (int)Math.Truncate(260 + 256.0 * agingFactor * (0.1 + (P4Dice.Rand(rng, 100) - 1) / 4000.0));
@@ -47,11 +68,23 @@ public static class P4Aging
     /// dead at A ≥ F. "Grown older" happens once (<paramref name="hasAged"/>); the code's re-scaling of an already-aged
     /// member with a left-over factor is a quirk not reproduced <c>[~]</c>.
     /// </summary>
+    /// <param name="lifespan">
+    /// QoL <c>shared-aging</c>: the member's stored lifespan in age units (<see cref="P4Member.Lifespan"/>); under the option
+    /// it decides (I's comparisons, <see cref="Aging.IsPastDecline"/> / <see cref="Aging.IsPastLifespan"/>) and Luck plays no
+    /// part, so a decline never shortens it; 0 = none, never ages out.
+    /// </param>
     public static P4AgeEvent Check(GameOptions o, P4AgingTables t, int race, int luck, int agingFactor, int ageUnits,
-        bool hasAged)
+        bool hasAged, int lifespan = 0)
     {
         bool older, dead;
-        if (o.P4Code(P4RuleOptions.Lifespans))
+        if (o.SharedAging)
+        {
+            if (lifespan <= 0)
+                return P4AgeEvent.None;
+            dead = Aging.IsPastLifespan(ageUnits, lifespan);
+            older = Aging.IsPastDecline(ageUnits, lifespan);
+        }
+        else if (o.P4Code(P4RuleOptions.Lifespans))
         {
             var a = (short)(ushort)ageUnits >> 8;
             if (a < 0)
@@ -76,7 +109,7 @@ public static class P4Aging
     /// (<c>msx2</c>, the default) or 0 (<c>x68000</c>: 0.8 converted to the integer 0). Death of old age sets them to 0.
     /// </summary>
     public static int ScaleOnAging(GameOptions o, int value) =>
-        o.P4X68000Aging() ? 0 : value * 80 / 100;
+        o.P4X68000Aging() && !o.SharedAging ? 0 : value * 80 / 100; // shared-aging: × 4/5, as I and MSX2
 
     /// <summary>Age units a town entry adds: trunc(days / 0x700) from the party's day counter (<c>_par</c>+16).</summary>
     public static int AgeUnitsFromDays(P4AgingTables t, int days) => days / t.DaysPerAgeUnit;

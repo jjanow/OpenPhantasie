@@ -117,6 +117,8 @@ public sealed partial class Phantasie3Campaign
         c.HasAged = from.HasAged;
         c.Lifespan = options.P3NoLifespans() ? 0
             : from.Lifespan > 0 ? from.Lifespan
+            // QoL shared-aging: a source with no lifespan gets the shared band of its living race, luck clamped 8–13
+            : options.SharedAging ? CharacterCreation.LifespanForImported(from, creation)
             : creation.LifespanBandsByRace.Count > 0 ? CharacterCreation.LifespanFor(race, from.Stats.Luck, creation) : 0;
         c.Experience = (long)t.XpPerLevel * Math.Max(0, from.Level);
         c.Level = !rules.DosLevels ? 0 : race == Race.Undead ? t.DosUndeadLevel : 1;

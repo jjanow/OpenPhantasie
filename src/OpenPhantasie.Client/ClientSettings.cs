@@ -210,7 +210,16 @@ public sealed class ClientSettings
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OpenPhantasie");
 
     /// <summary>The remaster save of <paramref name="game"/> (T5.0: one per game, <c>savegame-p1.json</c> …).</summary>
-    public static string SavePathFor(GameId game) => Path.Combine(DataDirectory, $"savegame-{game.Prefix()}.json");
+    public static string SavePathFor(GameId game) => OpenPhantasie.Data.SaveSlots.SinglePath(DataDirectory, game);
+
+    /// <summary>Whether a game's SAVE SLOTS switch is on (set by the shell from the loaded settings; off until then).</summary>
+    public static Func<GameId, bool> SaveSlotsOn { get; set; } = _ => false;
+
+    /// <summary>
+    /// The save another game reads (transfers, the lineage Hall, IV's Hall): <see cref="SavePathFor"/>, or with SAVE SLOTS
+    /// on the newest of that game's slots (<see cref="OpenPhantasie.Data.SaveSlots.ReadPath"/>).
+    /// </summary>
+    public static string ReadSavePathFor(GameId game) => OpenPhantasie.Data.SaveSlots.ReadPath(DataDirectory, game, SaveSlotsOn(game));
 
     /// <summary>
     /// Before T5.0 the only save was I's <c>savegame.json</c>; rename it to I's per-game name once (the file is unchanged).
@@ -336,6 +345,15 @@ public sealed class GameSettings
     /// presentation switch, not a rule: no save is loaded when Continue asks.
     /// </summary>
     public bool ContinueFromList { get; set; }
+
+    /// <summary>
+    /// QoL SAVE SLOTS (PLAN P3 from D3-028, <c>docs/plan/12-save-slots.md</c>; off = the one save each game keeps): Save
+    /// and Load pick one of numbered slots (I–III nine beside the autosave slot, IV its original's three), each shown with
+    /// its party, place and date; an occupied slot asks before it is overwritten; picking the game on the main menu
+    /// offers its saves. A presentation switch, not a rule: Load must know it before any save is read (as
+    /// <see cref="ContinueFromList"/>), and turning it on or off changes no save.
+    /// </summary>
+    public bool SaveSlots { get; set; }
 
     /// <summary>
     /// QoL (PLAN P3 / 09 T2, off = the original screens): the inventory key (V) opens the paperdoll + stash screen

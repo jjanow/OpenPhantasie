@@ -369,7 +369,7 @@ public sealed record P4CampaignSnapshot(
 /// <summary>A saved IV member's record fields beyond the basic sheet (<see cref="P4MemberSnapshot.More"/>).</summary>
 public sealed record P4MemberMore(
     int[] ItemCharges, int[] Abilities, int[] Wounds, long Experience, long Account, int AgingFactor, int AgeUnits,
-    bool HasAged, int Town, int[]? Spells = null, int[]? Strategy = null, P4MemberRecord? Record = null);
+    bool HasAged, int Town, int[]? Spells = null, int[]? Strategy = null, P4MemberRecord? Record = null, int Lifespan = 0);
 
 /// <summary>A saved IV member's record bytes the guild, training and leaving a town read (+1A, +09, +1C, +36, +72, +3B, +01, +B9, +29).</summary>
 public sealed record P4MemberRecord(
@@ -386,7 +386,7 @@ public sealed record P4MemberSnapshot(
         new P4MemberMore([.. m.ItemCharges], [.. m.Abilities], [.. m.Wounds], m.Experience, m.Account, m.AgingFactor,
             m.AgeUnits, m.HasAged, m.Town, [.. m.Spells], [.. m.Strategy],
             new P4MemberRecord(m.Social, m.Score, m.Origin, m.MagicLevel, m.MpGrowth, m.MeleeBonus, m.GuildSlot,
-                m.SavedRace, m.MoveBase, [.. m.Ancestors])));
+                m.SavedRace, m.MoveBase, [.. m.Ancestors]), m.Lifespan));
 
     public P4Member ToMember()
     {
@@ -400,6 +400,7 @@ public sealed record P4MemberSnapshot(
             MpMax = MpMax, Mp = Mp, Defence = Defence, Skills = [.. Skills], Items = [.. Items],
             ItemCharges = [.. More.ItemCharges], Abilities = [.. More.Abilities], Wounds = [.. More.Wounds],
             Experience = More.Experience, Account = More.Account, AgingFactor = More.AgingFactor, AgeUnits = More.AgeUnits,
+            Lifespan = More.Lifespan,
             HasAged = More.HasAged, Town = More.Town,
             Spells = More.Spells is { Length: P4Member.SpellCount } sp ? [.. sp] : new int[P4Member.SpellCount],
             Strategy = More.Strategy is { Length: 5 } st ? [.. st] : [.. P4Member.DefaultStrategy],

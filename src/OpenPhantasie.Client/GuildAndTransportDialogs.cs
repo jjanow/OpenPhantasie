@@ -11,11 +11,20 @@ namespace OpenPhantasie.Client;
 /// <c>0x1887</c> → " "). Arrows + Return pick, Esc cancels (MP already spent). The DOS cursor <c>[0x1676]</c> is the absolute
 /// town record 0..11, kept between casts (starts at 0 = PELNOR, reset when &gt; 11) [C]; so this remembers the highlighted
 /// town id, not the row. The first-ever highlight is the first entry [C]. When the remembered town is the current one (not
-/// listed, D-062) the highlight goes to the entry that took its place <c>[~]</c>.
+/// listed, D-062) the highlight goes to the entry that took its place <c>[~]</c>. A list longer than
+/// <see cref="PageRows"/> (III's 13 Scandor towns plus the plane towns of D3-035's <c>p3.transport-planes</c>) pages so the
+/// highlight stays in view, with the panel's bar beside it.
 /// </summary>
-public sealed class TransportDialog : IModalDialog
+public sealed class TransportDialog : IModalDialog, IPagedDialog
 {
     public static string Title => UiText.S("guild.transport_to_which_town");
+
+    /// <summary>Town rows shown at once: the title and these fill the panel's 13 lines.</summary>
+    public const int PageRows = 12;
+
+    private int _scroll;
+
+    public ListPage? Page { get; private set; }
 
     private bool _open;
 
@@ -43,11 +52,13 @@ public sealed class TransportDialog : IModalDialog
         {
             _open = true;
             var towns = session.TransportDestinations;
-            if (!session.Campaign.TransportTowns.Contains(TownId))
+            // D3-035 QoL: a remembered plane town the party may pick (p3.transport-planes) stays remembered.
+            if (!session.Campaign.TransportTowns.Contains(TownId) && !session.Campaign.ExtraTransportTowns(session).Contains(TownId))
                 TownId = session.Campaign.TransportTowns[0]; // DOS: cursor > 11 → 0
             // The remembered town's row; if it is the current town (not listed), the entry that took its place.
             var row = towns.Count(id => id < TownId);
             Cursor = row < towns.Count ? row : 0;
+            _scroll = 0; // Lines() scrolls the highlight into view
         }
         return _open;
     }
@@ -57,8 +68,15 @@ public sealed class TransportDialog : IModalDialog
         campaign.IsUnnamedTransportTown(townId) ? " "
         : data.Towns.FirstOrDefault(t => t.Id == townId)?.Name ?? UiText.F("guild.town_x", townId);
 
-    public IReadOnlyList<string> Lines(GameSession session, GameDataRepository data) =>
-        [Title, .. session.TransportDestinations.Select((id, i) => (i == Cursor ? "> " : "  ") + EntryName(data, session.Campaign, id))];
+    public IReadOnlyList<string> Lines(GameSession session, GameDataRepository data)
+    {
+        var towns = session.TransportDestinations;
+        _scroll = Math.Clamp(_scroll, Math.Max(0, Cursor - (PageRows - 1)), Cursor);
+        _scroll = Math.Clamp(_scroll, 0, Math.Max(0, towns.Count - PageRows));
+        Page = ListPage.Of(1, PageRows, _scroll, towns.Count);
+        return [Title, .. towns.Skip(_scroll).Take(PageRows)
+            .Select((id, i) => (i + _scroll == Cursor ? "> " : "  ") + EntryName(data, session.Campaign, id))];
+    }
 
     /// <summary>
     /// s158: runs as a town is picked, before <see cref="GameSession.ChooseTransportDestination"/>: II ST's fade keeps the

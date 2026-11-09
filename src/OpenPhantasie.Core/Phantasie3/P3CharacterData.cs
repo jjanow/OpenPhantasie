@@ -90,6 +90,29 @@ public sealed class Phantasie3CharacterData
     /// </summary>
     public int ExperienceShares { get; set; } = 1;
 
+    /// <summary>
+    /// Remaster only (no DOS byte; D3-035 QoL <c>p3.transport-planes</c>): the plane towns this character has entered, one bit
+    /// per town 15 Light, 16 Dark, 17 Death (bit 0 = town 15). Set on every III town entry whatever the option; read only
+    /// when the option is <c>visited</c> (<see cref="Phantasie3Campaign.ExtraTransportTowns"/>).
+    /// </summary>
+    public int PlaneTownsVisited { get; set; }
+
+    /// <summary>True when this character has entered plane town <paramref name="townId"/> (15–17).</summary>
+    public bool HasVisitedPlaneTown(int townId) =>
+        PlaneTownBit(townId) is int bit && (PlaneTownsVisited & bit) != 0;
+
+    /// <summary>Records an entry into <paramref name="townId"/>; a Scandor town (1–14) changes nothing.</summary>
+    public void MarkPlaneTownVisited(int townId)
+    {
+        if (PlaneTownBit(townId) is int bit)
+            PlaneTownsVisited |= bit;
+    }
+
+    private static int? PlaneTownBit(int townId) =>
+        townId is >= Phantasie3Campaign.LightTown and <= Phantasie3Campaign.DeathTown
+            ? 1 << (townId - Phantasie3Campaign.LightTown)
+            : null;
+
     public Phantasie3CharacterData Clone() => new()
     {
         SocialClass = SocialClass,
@@ -104,5 +127,6 @@ public sealed class Phantasie3CharacterData
         SavedAction = SavedAction,
         SavedCast = SavedCast,
         ExperienceShares = ExperienceShares,
+        PlaneTownsVisited = PlaneTownsVisited,
     };
 }

@@ -219,6 +219,15 @@ public static class P3RuleOptions
     /// </summary>
     public static readonly RuleOptionDescriptor TransferLevel = ManualOrDos("p3.transfer-level", "D3-007");
 
+    /// <summary>
+    /// QoL (D3-035, user s89: after 1:1, off by default): TRANSPORTATION lists DOS's 14 Scandor towns only (<c>off</c>, every
+    /// preset) or also each plane town 15–17 (Light, Dark, Death) a member of the party has entered (<c>visited</c>,
+    /// <see cref="Phantasie3CharacterData.PlaneTownsVisited"/>). Listed under QUALITY OF LIFE.
+    /// </summary>
+    public static readonly RuleOptionDescriptor TransportPlanes = new(
+        "p3.transport-planes", GameId.P3, ["off", "visited"],
+        Manual: "off", Dos: "off", Remaster: "off", Difference: "D3-035", Qol: true);
+
     /// <summary>Every III option in menu order.</summary>
     public static IReadOnlyList<RuleOptionDescriptor> All { get; } =
     [
@@ -227,6 +236,7 @@ public static class P3RuleOptions
         HealingIv, HealOrder, InnHealing, HitPoints, LevelGold, SkillTables, EncounterBlock, BossFlee, Mercy,
         FoundItems, Bank, GoldCap, Trade, ArmoryRestock, AutoSave, Roster, Lifespans, Altar, EventGold, DungeonMapNo,
         TransferSource, TransferRoster, TransferLevel, TransferDivine, TransferWand,
+        TransportPlanes,
     ];
 
     private static RuleOptionDescriptor ManualOrDos(string id, string difference) =>
@@ -307,7 +317,7 @@ public static class P3RuleOptionsExtensions
         : P3Town.ManualFoundItemLimit;
 
     /// <summary>D3-041: III characters get no lifespan (true, DOS) or the manual's.</summary>
-    public static bool P3NoLifespans(this GameOptions o) => o.IsDos(P3RuleOptions.Lifespans);
+    public static bool P3NoLifespans(this GameOptions o) => !o.SharedAging && o.IsDos(P3RuleOptions.Lifespans);
 
     /// <summary>
     /// D3-029: how many characters (elementals not counted) the Guild roster holds, null = no limit: the manual's no limit,
@@ -315,6 +325,9 @@ public static class P3RuleOptionsExtensions
     /// </summary>
     public static int? P3RosterCharacterLimit(this GameOptions o) =>
         o.IsDos(P3RuleOptions.Roster) && !o.GuildUnlimited ? P3Town.DosRosterCharacters : null;
+
+    /// <summary>D3-035 QoL: TRANSPORTATION also lists the plane towns the party has entered.</summary>
+    public static bool P3TransportToVisitedPlanes(this GameOptions o) => o.Is(P3RuleOptions.TransportPlanes, "visited");
 
     /// <summary>The I / II → III transfer rules a save plays by (D3-001…D3-007).</summary>
     public static P3TransferRules P3Transfer(this GameOptions o) => new(

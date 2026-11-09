@@ -39,7 +39,7 @@ public class Phantasie4RulesTests
     public void Options_OneDescriptorPerDecidedEntry()
     {
         var p4 = RuleOptionRegistry.For(GameId.P4);
-        Assert.Equal(P4RuleOptions.All.Count + 2, p4.Count); // + treasury, guild-limit
+        Assert.Equal(P4RuleOptions.All.Count + 3, p4.Count); // + shared-aging, treasury, guild-limit
         Assert.Equal("guild-limit", p4[^1].Id);
         var entries = P4RuleOptions.All.Select(d => d.Difference).ToHashSet();
         foreach (var n in new[] { 1, 10, 12, 13, 15, 16, 18, 19, 20 }.Concat(Enumerable.Range(30, 27)))

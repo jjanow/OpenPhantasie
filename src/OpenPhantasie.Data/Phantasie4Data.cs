@@ -289,7 +289,8 @@ public sealed class Phantasie4RuleTables
         var hall = r.GetProperty("hall").GetProperty("persons").EnumerateArray().ToList();
         return new Phantasie4RuleTables
         {
-            Tables = new P4Tables(creation, aging, training, towns, combat, outdoor, amounts, services),
+            Tables = new P4Tables(creation, aging, training, towns, combat, outdoor, amounts, services,
+                SharedAgingLoader.Shipped),
             Classes = r.GetProperty("classes").EnumerateArray().Select(x => x.GetString()!).ToList(),
             Races = r.GetProperty("races").EnumerateArray().Select(x => x.GetString()!).ToList(),
             Hall = hall.Select(h => new P4Ancestor(
