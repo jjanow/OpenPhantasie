@@ -97,6 +97,27 @@ public class P3TransportPlanesTests
         Assert.Equal((Phantasie3Campaign.DarkPlane, 4, 1), (s.Overworld.RegionId, s.Overworld.X, s.Overworld.Y));
     }
 
+    /// <summary>DOS III (town.md section 8, root <c>0x8e50</c>): Esc costs nothing; a pick spends the MP and says so.</summary>
+    [OriginalDataFact]
+    public void Cancel_CostsNothing_APickSaysThePartyIsTransported()
+    {
+        var s = WithParty();
+        s.EnterTown(1);
+        var caster = s.Party.Members.First(m => m.Class == CharacterClass.Wizard);
+        caster.SpellsKnown[SpellId.Transportation] = 1;
+        caster.MagicCur = caster.MagicMax = 50;
+        caster.CastSinceRest = false;
+        Assert.True(s.CastSpell(caster, SpellId.Transportation).Success);
+        Assert.True(s.ChooseTransportDestination(null));
+        Assert.Equal((50, false, 1), (caster.MagicCur, caster.CastSinceRest, s.CurrentTownId));
+
+        Assert.True(s.CastSpell(caster, SpellId.Transportation).Success);
+        Assert.True(s.ChooseTransportDestination(3));
+        Assert.True(caster.MagicCur < 50);
+        Assert.Equal(3, s.CurrentTownId);
+        Assert.Equal(GameText.S("core.p3.party_transported"), s.LastMessage);
+    }
+
     [OriginalDataFact]
     public void Visited_AnUnvisitedPlaneTownIsRefused()
     {

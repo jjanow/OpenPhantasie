@@ -8,7 +8,7 @@ namespace OpenPhantasie.Client;
 /// Town TRANSPORTATION destination picker (COM <c>0x16a2</c>, <c>endgame.md</c> §2.4) → <see cref="GameSession.ChooseTransportDestination"/>.
 /// Opens by itself while <see cref="GameSession.TransportationPending"/>. Lists <see cref="GameSession.TransportDestinations"/>:
 /// TWNS records 0..11 = Core town ids 1..12 without the current town (D-062); OLYMPIA (12) is printed blank (COM
-/// <c>0x1887</c> → " "). Arrows + Return pick, Esc cancels (MP already spent). The DOS cursor <c>[0x1676]</c> is the absolute
+/// <c>0x1887</c> → " "). Arrows + Return pick, Esc cancels (I / II: MP already spent; III: no cost). The DOS cursor <c>[0x1676]</c> is the absolute
 /// town record 0..11, kept between casts (starts at 0 = PELNOR, reset when &gt; 11) [C]; so this remembers the highlighted
 /// town id, not the row. The first-ever highlight is the first entry [C]. When the remembered town is the current one (not
 /// listed, D-062) the highlight goes to the entry that took its place <c>[~]</c>. A list longer than

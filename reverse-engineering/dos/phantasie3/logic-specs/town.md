@@ -212,7 +212,7 @@ if not in_town (FAR:0xe596 == 0): "[original text]" (pointer DS:0x19d0); no cost
 t = menu("Transport to which town?", DS:0x560: 14 rows) + 1     # string 435
 if t == current town: "The party is already in this town." (string 436); no cost
 if t < 1 or t > 14: nothing, no cost (Esc)
-else: FAR:0xcc4 = 0, FAR:0x9e6 = −1, current town = t, redraw, "The party is transported."; MP −= cost
+else: FAR:0xcc4 = 0, FAR:0x9e6 = −1, current town = t, redraw, "[original text]"; MP −= cost
 ```
 
 So the destinations are the **14 Scandor towns** (1 Pendragon … 14 Sciattica). It can be cast in any town, the plane

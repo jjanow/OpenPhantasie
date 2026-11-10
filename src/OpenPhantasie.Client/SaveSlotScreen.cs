@@ -70,7 +70,9 @@ public sealed class SaveSlotScreen
 
     public string Help => Confirming
         ? UiText.S("saveslots.help_confirm")
-        : UiText.F("saveslots.help_x", SaveSlots.NumberedCount(Game)); // 1-9, IV 1-3
+        : UiText.F("saveslots.help_x", SaveSlots.NumberedCount(Game), // 1-9, IV 1-3
+            (_slots.Any(s => s.Slot.Number == SaveSlots.AutoNumber) ? UiText.S("saveslots.help_auto") : "")
+            + (Mode == SaveSlotMode.Start ? UiText.S("saveslots.help_new") : ""));
 
     /// <summary>
     /// Opens on <paramref name="slots"/> (<see cref="SaveSlots.Describe(IEnumerable{SaveSlot})"/>). <paramref name="placeName"/>

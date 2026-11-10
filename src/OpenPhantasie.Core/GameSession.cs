@@ -1031,6 +1031,7 @@ public sealed partial class GameSession
                 Note(line);
             return own;
         }
+        var (mpBefore, castBefore) = (caster.MagicCur, caster.CastSinceRest);
         var result = SpellCaster.CastOutOfCombat(Party, caster, spellIndex, healTarget, _rng, location, field, Options);
         Note(result.Message);
         foreach (var line in result.Log)
@@ -1039,7 +1040,11 @@ public sealed partial class GameSession
             Cue(cue);
         // [C] (s49) OV1 0x275b: the MP is spent, then the `guild.transport_to_which_town` picker opens.
         if (result.Success && location == CastLocation.Town && spellIndex == SpellId.Transportation)
+        {
             TransportationPending = true;
+            // III (town.md section 8, root 0x8e50): the MP is spent only once a town is picked; Esc costs nothing.
+            _transportUndo = IsPhantasie3 ? (caster, mpBefore, castBefore) : null;
+        }
         return result;
     }
 
@@ -1096,6 +1101,9 @@ public sealed partial class GameSession
     /// <summary>A town TRANSPORTATION cast is waiting for <see cref="ChooseTransportDestination"/>.</summary>
     public bool TransportationPending { get; private set; }
 
+    /// <summary>III: the caster's MP and cast flag before a pending TRANSPORTATION, put back if the picker is cancelled.</summary>
+    private (Character Caster, int Mp, bool CastSinceRest)? _transportUndo;
+
     /// <summary>
     /// The towns TRANSPORTATION offers, in picker order: the campaign's <see cref="ICampaign.TransportTowns"/> without the
     /// current town (D-062, user s53, manual "from one town to another"). I: DOS lists all 12 TWNS records, the current
@@ -1115,7 +1123,7 @@ public sealed partial class GameSession
     /// TRANSPORTATION destination (<c>endgame.md</c> §2.4, s49 [C]). The DOS picker (COM <c>0x16a2</c>, unpacked image) lists
     /// all 12 TWNS records; entry 12 (OLYMPIA, Core id 12) is printed as a blank name (<c>0x1887</c>: index 11 → DS
     /// <c>0xd07</c> = " "). Only <see cref="TransportDestinations"/> are accepted (D-062). ESC (<paramref name="townId"/>
-    /// null) returns with the MP already spent. A pick sets <c>[0x63e2]</c> and runs the full town entry
+    /// null) returns with the MP already spent (I, II); III gives it back (DOS III spends it only on a pick). A pick sets <c>[0x63e2]</c> and runs the full town entry
     /// <c>0x1954(pick)</c> (Core <see cref="EnterTown"/>).
     /// </summary>
     public bool ChooseTransportDestination(int? townId)
@@ -1125,10 +1133,19 @@ public sealed partial class GameSession
         if (townId is int id && !TransportDestinations.Contains(id))
             return false;
         TransportationPending = false;
+        var undo = _transportUndo;
+        _transportUndo = null;
         if (townId is int t)
         {
             Cue(FieldCues.Transport); // II ST 0x262c: sound 22, then the palette fade (the pack's transport_fade, s140)
             EnterTown(t);
+            if (IsPhantasie3)
+                Note(GameText.S("core.p3.party_transported")); // root 0x8e50, after the redraw
+        }
+        else if (undo is var (caster, mp, cast))
+        {
+            caster.MagicCur = mp; // III: Esc costs nothing (town.md section 8)
+            caster.CastSinceRest = cast;
         }
         return true;
     }

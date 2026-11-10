@@ -162,6 +162,17 @@ public static partial class UiOverlays
         public static Rectangle StashRow(int i) => Arrange(0).StashRow(i);
     }
 
+    /// <summary>
+    /// The gear line, as wide as a column at most (never cut): "DMG 13 ARM 8 SHL 13 DEF 93" runs 4 pixels past it, so a
+    /// line too wide drops the space after each label.
+    /// </summary>
+    public static string GearLine(int damage, int armor, int shield, int defense)
+    {
+        var line = UiText.F("inventory.gear_x_x_x_x", damage, armor, shield, defense);
+        return PixelFont.Measure(line) <= InventoryLayout.RightWidth - 1 ? line
+            : UiText.F("inventory.gear_compact_x_x_x_x", damage, armor, shield, defense);
+    }
+
     public static void DrawInventoryScreen(
         SpriteBatch batch,
         Texture2D pixel,
@@ -287,7 +298,7 @@ public static partial class UiOverlays
         var gear = screen.Gear(m);
         PixelFont.Draw(batch, pixel, arranged.GearRight ? InventoryLayout.RightX + 1 : InventoryLayout.LeftX,
             arranged.GearRight ? arranged.RightLineY(rightLine++) : arranged.GearY,
-            UiText.F("inventory.gear_x_x_x_x", gear.WeaponDamage, gear.ArmorSoak, gear.ShieldSoak, gear.DefenseRating), DimText);
+            GearLine(gear.WeaponDamage, gear.ArmorSoak, gear.ShieldSoak, gear.DefenseRating), DimText);
 
         // Carried: the 9 slots with their holes, so a row is its raw slot.
         PixelFont.Draw(batch, pixel, arranged.HeaderRight ? InventoryLayout.RightX + 1 : InventoryLayout.LeftX,

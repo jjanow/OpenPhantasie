@@ -51,6 +51,7 @@
     "core.magic.only_in_combat": "...",
     "core.p3.cannot_afford_stay": "...",
     "core.p3.inn_stay": "The party stays at {0}.",
+    "core.p3.party_transported": "...",
     "core.p3.lava_burns": "The lava burns the party!",
     "core.p3.damage_report_x_x": "{0} ... {1} ...",
     "core.p3.x_dies": "{0} ...",

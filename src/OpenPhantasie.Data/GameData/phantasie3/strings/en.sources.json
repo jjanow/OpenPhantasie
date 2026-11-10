@@ -985,6 +985,18 @@
     ]
    }
   ],
+  "core.p3.party_transported": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      102804,
+      25
+     ]
+    ]
+   }
+  ],
   "core.p3.damage_report_x_x": [
    {
     "from": "p3-dos-1988",

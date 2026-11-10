@@ -580,7 +580,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   another." (III PDF 11 / pr.17; type N/T, town only, PDF 10 / pr.14.)
 - **Code:** `cast_spell_noncombat` (root `0x8e50`, spell 54 = `0x36`): only while in a town (`FAR:0xe596`); "Transport to
   which town?" (string 435) opens a 14-row menu (`DS:0x560`, count byte 14); the choice + 1 is accepted only when it is
-  1–14 and not the current town, then the party is put in that town ("The party is transported."). So the
+  1–14 and not the current town, then the party is put in that town ("[original text]"). So the
   destinations are the 14 Scandor towns (Pendragon … Sciattica); the plane towns 15–17 (Light, Darkness, Death) can be
   left by the spell but never reached `[C]` static (s88).
 - **Decision (user s89):** NOT A CONFLICT — DOS 1–14: "interdimensionally" = from any plane's town back to Scandor. The

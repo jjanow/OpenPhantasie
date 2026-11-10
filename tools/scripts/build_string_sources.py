@@ -91,7 +91,8 @@ P4 = ["p4-x68000-1.02"]
 ALL = P1 + P2 + P3 + P4
 
 # Areas that are ours by definition (the remaster's shell: options, menus, window title).
-OURS = ("option.", "options.", "menu.", "game.", "core.treasury.", "saveslots.")  # s175: the Guild treasury is our own text; QoL save slots too
+OURS = ("option.", "options.", "menu.", "game.", "core.treasury.", "saveslots.",
+        "inventory.sell_x_for_x")  # s175: the Guild treasury is our own text; QoL save slots and modern-inventory selling too
 
 # folder -> (primary versions, secondary versions) for ids not covered by AREA_RULES.
 FOLDERS = {
