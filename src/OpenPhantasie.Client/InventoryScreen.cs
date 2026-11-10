@@ -24,6 +24,9 @@ public sealed record StashFilterSpot : InventorySpot;
 
 public sealed record StashSortSpot : InventorySpot;
 
+/// <summary>The detail box's "SELL FOR N GP" line (QoL <c>modern-inventory</c>, in town): a click or a drop asks to sell.</summary>
+public sealed record SellSpot : InventorySpot;
+
 /// <summary>What a drop does (<see cref="InventoryScreen.Plan"/>).</summary>
 public enum InventoryMoveKind
 {
@@ -124,6 +127,15 @@ public sealed class InventoryScreen
     /// <summary>G was pressed: the next 1–6 (or a tab) is who receives <see cref="Held"/>.</summary>
     public bool Giving { get; private set; }
 
+    /// <summary>
+    /// QoL <c>modern-inventory</c>: L asked "SELL X FOR N GP?" for this place; Y / Enter (pad A) sells, N / Esc (pad B)
+    /// doesn't. Null when no sale waits.
+    /// </summary>
+    public InventorySpot? Selling { get; private set; }
+
+    /// <summary>Selling is possible here (the save's modern inventory, in a town): the help line shows L.</summary>
+    public bool CanSellHere => S.Options.ModernInventory && S.Mode == GameMode.Town && S.CurrentTown is not null;
+
     /// <summary>The stash order O cycles: as found, by name, by kind (slot, best first), by value (Armory price, highest first).</summary>
     public enum StashSort { Found, Name, Kind, Value }
 
@@ -161,6 +173,7 @@ public sealed class InventoryScreen
         _session = null;
         Held = null;
         Giving = false;
+        Selling = null;
     }
 
     private GameSession S => _session ?? throw new InvalidOperationException("The inventory screen is not open.");
@@ -181,11 +194,15 @@ public sealed class InventoryScreen
     public bool UsingPad { get; set; }
 
     public string Help => UsingPad
-        ? Giving ? UiText.S("inventory.help_give_pad")
+        ? Selling is not null ? UiText.S("inventory.help_sell_pad")
+        : Giving ? UiText.S("inventory.help_give_pad")
         : Held is not null ? UiText.S("inventory.help_held_pad")
+        : CanSellHere ? UiText.S("inventory.help_pad_town")
         : UiText.S("inventory.help_pad")
+        : Selling is not null ? UiText.S("inventory.help_sell")
         : Giving ? UiText.S("inventory.help_give")
         : Held is not null ? UiText.S("inventory.help_held")
+        : CanSellHere ? UiText.S("inventory.help_town")
         : UiText.S("inventory.help");
 
     /// <summary>Items in the stash (holes not counted).</summary>
@@ -352,11 +369,17 @@ public sealed class InventoryScreen
         Buttons.RightStick => Keys.O,
         Buttons.RightThumbstickUp => Keys.PageUp,
         Buttons.RightThumbstickDown => Keys.PageDown,
+        Buttons.LeftTrigger => Keys.L,
         _ => null,
     };
 
     private string? Key(Keys key)
     {
+        if (Selling is { } sale)
+        {
+            Selling = null;
+            return key is Keys.Y or Keys.Enter or Keys.Space ? After(Sell(sale)) : UiText.S("inventory.sell_cancelled");
+        }
         if (Giving && Digit(key) is int g)
             return GiveTo(g - 1);
         switch (key)
@@ -385,6 +408,7 @@ public sealed class InventoryScreen
             case Keys.U: return TakeOff(CursorSpot);
             case Keys.S: return Stash(CursorSpot);
             case Keys.G: return StartGive(CursorSpot);
+            case Keys.L: return S.Options.ModernInventory ? AskSell(CursorSpot) : null; // off: L does nothing, as before
             case Keys.F:
                 Filter = (Filter + 1) % FilterCount;
                 StashRow = StashScroll = 0;
@@ -488,12 +512,19 @@ public sealed class InventoryScreen
     {
         if (!IsOpen)
             return null;
+        if (Selling is not null)
+        {
+            Selling = null; // a click answers "SELL?" with no
+            return UiText.S("inventory.sell_cancelled");
+        }
         switch (spot)
         {
             case StashFilterSpot:
                 return Key(Keys.F);
             case StashSortSpot:
                 return Key(Keys.O);
+            case SellSpot:
+                return AskSell(Held ?? CursorSpot);
         }
         if (Held is { } held)
         {
@@ -531,6 +562,8 @@ public sealed class InventoryScreen
     {
         Held = null;
         Giving = false;
+        if (target is SellSpot)
+            return AskSell(source);
         var line = Do(Plan(source, target));
         ClampCursor();
         if (target is MemberTabSpot { Member: var m } && Valid(m))
@@ -541,10 +574,66 @@ public sealed class InventoryScreen
     /// <summary>Drop nothing: what is held goes back where it was (Esc, a drop outside the screen's places).</summary>
     public string PutBack()
     {
-        var had = Held is not null || Giving;
+        var had = Held is not null || Giving || Selling is not null;
         Held = null;
         Giving = false;
+        Selling = null;
         return had ? UiText.S("inventory.put_back") : "";
+    }
+
+    /// <summary>L: ask "SELL X FOR N GP?" for the item at the cursor (QoL <c>modern-inventory</c>, in town).</summary>
+    public string AskSell(InventorySpot spot)
+    {
+        if (Held is not null || Giving)
+            PutBack();
+        var r = SellCheck(spot);
+        if (r != InventoryRefusal.None)
+            return Reason(r, OwnerOf(spot) is var o && Valid(o) ? Members[o] : Current);
+        Selling = spot;
+        var id = ItemAt(spot);
+        return UiText.F("inventory.sell_x_for_x", ItemName(id), S.SellPriceOf(id));
+    }
+
+    /// <summary>What the item at <paramref name="spot"/> sells for here, or null when it can't be sold now (the detail line).</summary>
+    public long? SellPriceAt(InventorySpot spot) =>
+        CanSellHere && SellCheck(spot) == InventoryRefusal.None ? S.SellPriceOf(ItemAt(spot)) : null;
+
+    private InventoryRefusal SellCheck(InventorySpot spot) => spot switch
+    {
+        StashSpot k => S.CanSellStashItem(k.Slot),
+        CarriedSpot c when Valid(c.Member) => S.CanSellItem(Members[c.Member], c.Slot),
+        SlotSpot w when Valid(w.Member) && WornItems.Get(Members[w.Member], w.SlotId) is var id and > 0
+            => S.CanSellItem(Members[w.Member], Members[w.Member].InventoryItemIds.IndexOf(id)),
+        _ => S.CanSellStashItem(-1), // a tab or empty place: "sold in town" outside one, else "no item"
+    };
+
+    /// <summary>Sell the item at <paramref name="spot"/> now (the confirmed L); the line says what happened or why not.</summary>
+    public string Sell(InventorySpot spot)
+    {
+        var id = ItemAt(spot);
+        var price = S.SellPriceOf(id); // before the sale: the Guild treasury may sweep the purse at once
+        InventoryRefusal r;
+        Character who = Current;
+        switch (spot)
+        {
+            case StashSpot k:
+                r = S.TrySellStashItem(k.Slot);
+                break;
+            case CarriedSpot c when Valid(c.Member):
+                who = Members[c.Member];
+                r = S.TrySellItem(who, c.Slot);
+                break;
+            case SlotSpot w when Valid(w.Member):
+                who = Members[w.Member];
+                r = S.TrySellItem(who, who.InventoryItemIds.IndexOf(WornItems.Get(who, w.SlotId)));
+                break;
+            default:
+                r = InventoryRefusal.NoItem;
+                break;
+        }
+        return r == InventoryRefusal.None
+            ? UiText.F("inventory.done.sell", ItemName(id), price)
+            : Reason(r, who);
     }
 
     private string? StartGive(InventorySpot spot)

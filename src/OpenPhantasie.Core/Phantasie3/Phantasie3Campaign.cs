@@ -642,8 +642,9 @@ public sealed partial class Phantasie3Campaign : ICampaign
     public void BeforeTownEntryPayout(GameSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-        foreach (var member in session.Party.Adventurers)
-            P3TownEntryPayout.ReadyBestEquipment(member, session.Items, session.Equipment);
+        if (session.ItemHandOut) // QoL modern-inventory: gear stays as the player left it; the wand rule below still runs
+            foreach (var member in session.Party.Adventurers)
+                P3TownEntryPayout.ReadyBestEquipment(member, session.Items, session.Equipment);
         if (World.TownEntryDroppedItem is { } wand)
             P3TownEntryPayout.DropFoundItem(session.Sack, wand);
     }

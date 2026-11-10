@@ -902,7 +902,7 @@ public sealed partial class GameSession
             }
             if (Sack.Experience > 0 || Sack.ItemCount > 0) // root 0xa975…0xa9a5
                 Campaign.BeforeTownEntryPayout(this);
-            TownItemHandOutPending = Sack.ItemCount > 0;
+            TownItemHandOutPending = Sack.ItemCount > 0 && ItemHandOut; // modern-inventory: found items wait in the stash
             TownXpSharesPending = Sack.Experience > 0;
         }
     }
@@ -1182,7 +1182,11 @@ public sealed partial class GameSession
     public P3TradeResult TradeGive(Character giver, int slot, Character receiver)
     {
         var id = slot >= 0 && slot < giver.InventoryItemIds.Count ? giver.InventoryItemIds[slot] : 0;
-        var result = IsPhantasie3 ? P3Town.Give(giver, slot, receiver, Options, ReadyBestEquipment) : P3TradeResult.NoTrade;
+        // QoL modern-inventory: nobody re-readies; the receiver wears the item only into an empty slot.
+        Action<Character> ready = Options.ModernInventory
+            ? m => { if (ReferenceEquals(m, receiver)) WearArrival(m, id); else CombatGear.ApplyWornItemPoints(m, ItemPoints); }
+            : ReadyBestEquipment;
+        var result = IsPhantasie3 ? P3Town.Give(giver, slot, receiver, Options, ready) : P3TradeResult.NoTrade;
         NoteTrade(result, () => GameText.F("core.p3.trade_x_to_x", ItemName(id), receiver.Name));
         return result;
     }
@@ -1194,7 +1198,8 @@ public sealed partial class GameSession
             return P3TradeResult.NoTrade;
         var id = slot >= 0 && slot < giver.InventoryItemIds.Count ? giver.InventoryItemIds[slot] : 0;
         var gold = Party.GoldCarried;
-        var result = P3Town.Sell(Party, giver, slot, town, _items, Options, ReadyBestEquipment);
+        var result = P3Town.Sell(Party, giver, slot, town, _items, Options,
+            Options.ModernInventory ? m => CombatGear.ApplyWornItemPoints(m, ItemPoints) : ReadyBestEquipment);
         NoteTrade(result, () => GameText.F("core.p3.trade_x_sold_for_x", ItemName(id), Party.GoldCarried - gold));
         SweepTreasury();
         return result;
@@ -1241,7 +1246,13 @@ public sealed partial class GameSession
     public TownTransactionResult Buy(Character shopper, int itemId)
     {
         var result = NoteResult(TownMenus.Buy(Party, shopper, RequireTownState(), _items, itemId, CanUseItem,
-            (who, id) => Campaign.AfterArmoryBuy(this, who, id)));
+            (who, id) =>
+            {
+                if (Options.ModernInventory)
+                    WearArrival(who, id); // QoL modern-inventory: worn only into an empty slot
+                else
+                    Campaign.AfterArmoryBuy(this, who, id);
+            }));
         // s137: III's Armory plays 36 with "He cannot carry anymore!" (0x111e0) and "The party cannot afford it!" (0x11386)
         if (Game == GameId.P3 && result.Kind == TownTransactionKind.Failed
             && (result.Message == TownMenus.NinthItemMessage || result.Message == GameText.S("core.armory.not_enough_gold")))
@@ -1264,6 +1275,12 @@ public sealed partial class GameSession
     public TownTransactionResult DistributeLoot(bool items = true) =>
         NoteResult(TownMenus.Distribute(Party, Sack, items, dropRemainder: Options.PayoutRemainderDropped));
 
+    /// <summary>
+    /// The original item hand-out exists in this save: D)ISTRIBUTE pools the items, III's town entry hands found items out.
+    /// False under QoL <c>modern-inventory</c> (items stay where the player puts them; the inventory screen moves and sells).
+    /// </summary>
+    public bool ItemHandOut => !Options.ModernInventory;
+
     /// <summary>The DOS item hand-out screen in progress (<see cref="OpenPhantasie.Core.ItemDistribution"/>), or null.</summary>
     public ItemDistribution? ItemDistribution { get; private set; }
 
@@ -1272,6 +1289,8 @@ public sealed partial class GameSession
     public ItemDistribution? BeginItemDistribution(bool foundOnly = false)
     {
         EnsureMode(GameMode.Town);
+        if (!ItemHandOut)
+            return null; // QoL modern-inventory: no pooling (it would strip every worn item)
         var town = RequireTownState();
         ItemDistribution = OpenPhantasie.Core.ItemDistribution.Begin(Party, Sack, town, _items,
             Campaign.DistributeSalePrice(town, _items), foundOnly, Gear);

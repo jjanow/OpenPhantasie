@@ -23,6 +23,9 @@ public enum InventoryRefusal
     StashFull,
     SameMember,
     NothingWorn,
+
+    /// <summary>QoL <c>modern-inventory</c>: selling needs a town (the Armory buys it).</summary>
+    NoShop,
 }
 
 /// <summary>A game's strength gate: can <paramref name="member"/> use <paramref name="itemId"/> (<see cref="ICampaign.CanUseItem"/>)?</summary>
@@ -74,6 +77,7 @@ public static class InventoryActions
         InventoryRefusal.StashFull => "inventory.refuse.stash_full",
         InventoryRefusal.SameMember => "inventory.refuse.same_member",
         InventoryRefusal.NothingWorn => "inventory.refuse.nothing_worn",
+        InventoryRefusal.NoShop => "inventory.refuse.no_shop",
         _ => throw new ArgumentOutOfRangeException(nameof(refusal)),
     };
 
@@ -355,6 +359,35 @@ public static class InventoryActions
         return party.Members.Contains(member) && !ReferenceEquals(member, party.Elemental)
             ? InventoryRefusal.None
             : InventoryRefusal.NotInParty;
+    }
+
+    /// <summary>The item id in <paramref name="member"/>'s carried slot <paramref name="slot"/> (0 = empty or no such slot).</summary>
+    public static int CarriedAt(Character member, int slot)
+    {
+        ArgumentNullException.ThrowIfNull(member);
+        return Carried(member, slot);
+    }
+
+    /// <summary>Empty a carried slot (a sale); the item stops being worn when no copy is left. Returns the item id.</summary>
+    internal static int TakeCarriedItem(Character member, int slot, EquipmentLayout layout) => TakeCarried(member, slot, layout);
+
+    /// <summary>Empty a stash slot in place (a sale). Returns the item id.</summary>
+    internal static int TakeStashItem(LootSack sack, int slot) => TakeFromStash(sack, slot);
+
+    /// <summary>
+    /// QoL <c>modern-inventory</c> (section 7): wear <paramref name="itemId"/>, which <paramref name="member"/> carries, when its
+    /// slot holds nothing and <paramref name="canUse"/> passes. True when it was worn; nothing else is changed.
+    /// </summary>
+    public static bool WearIfSlotEmpty(Character member, int itemId, EquipmentLayout layout, ItemGate canUse)
+    {
+        ArgumentNullException.ThrowIfNull(member);
+        ArgumentNullException.ThrowIfNull(layout);
+        ArgumentNullException.ThrowIfNull(canUse);
+        if (itemId <= 0 || layout.SlotFor(itemId) is not { } slot || WornItems.Get(member, slot.Id) != 0
+            || !member.InventoryItemIds.Contains(itemId) || !canUse(member, itemId))
+            return false;
+        WornItems.Set(member, slot.Id, itemId);
+        return true;
     }
 
     private static int Carried(Character member, int slot) =>

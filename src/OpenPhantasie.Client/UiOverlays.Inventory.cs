@@ -360,7 +360,7 @@ public static partial class UiOverlays
         if (screen.ReadOnlyReason is { } readOnly)
             foreach (var part in Wrap(readOnly, 25))
                 lines.Add((part, RefuseText));
-        DetailLines(screen, m, cursor, lines);
+        var sellLine = DetailLines(screen, m, cursor, lines);
         var detail = screen.DetailBox;
         detail.Set(lines.Count, InventoryLayout.DetailLines);
         detail.TopFor(HashCode.Combine(cursor, screen.ItemAt(cursor)));
@@ -372,6 +372,9 @@ public static partial class UiOverlays
             var (text, color) = lines[detail.Offset + i];
             PixelFont.Draw(batch, pixel, InventoryLayout.RightX + 1, InventoryLayout.DetailTop + i * InventoryLayout.DetailStep,
                 text, color);
+            if (detail.Offset + i == sellLine) // QoL modern-inventory: click (or drop an item) to sell
+                Hits?.Add(new Rectangle(InventoryLayout.RightX, InventoryLayout.DetailTop + i * InventoryLayout.DetailStep - 1,
+                    InventoryLayout.RightWidth, InventoryLayout.DetailStep), new SellSpot());
         }
         DrawScrollBar(batch, pixel, detail, detailArea);
 
@@ -386,16 +389,25 @@ public static partial class UiOverlays
         }
     }
 
-    /// <summary>The detail box's lines for the item under the cursor, wrapped to the column (25 characters).</summary>
-    private static void DetailLines(InventoryScreen screen, Character m, InventorySpot cursor, List<(string, Color)> lines)
+    /// <summary>
+    /// The detail box's lines for the item under the cursor, wrapped to the column (25 characters). Returns the index of the
+    /// "SELL FOR N GP" line (QoL <c>modern-inventory</c>, in town), or −1.
+    /// </summary>
+    private static int DetailLines(InventoryScreen screen, Character m, InventorySpot cursor, List<(string, Color)> lines)
     {
         const int width = 25;
         var id = screen.ItemAt(cursor);
         if (id == 0)
-            return;
+            return -1;
         var owner = screen.Members[screen.OwnerOf(cursor)];
         foreach (var part in Lines(screen.ItemName(id), width))
             lines.Add((part, TitleGold));
+        var sellLine = -1;
+        if (screen.SellPriceAt(cursor) is { } price)
+        {
+            sellLine = lines.Count;
+            lines.Add((UiText.F("inventory.sell_line", price), Accent)); // at most "SELL FOR 65000 GP (L)": fits 25
+        }
         if (screen.UnusableReason(owner, id) is { } why)
             foreach (var part in Lines(why, width))
                 lines.Add((part, RefuseText));
@@ -419,6 +431,7 @@ public static partial class UiOverlays
         foreach (var text in screen.Describe(id).Skip(1))
             foreach (var part in Wrap(text, width))
                 lines.Add((part, DimText));
+        return sellLine;
     }
 
     /// <summary>

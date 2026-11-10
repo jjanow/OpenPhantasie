@@ -359,7 +359,8 @@ public sealed class GameSettings
     /// QoL (PLAN P3 / 09 T2, off = the original screens): the inventory key (V) opens the paperdoll + stash screen
     /// (<see cref="InventoryScreen"/>) instead of the item overlay. Where items may be moved is the save's rules option
     /// <c>p1.stash-access</c> (Core <see cref="OpenPhantasie.Core.GameSession.InventoryAccess"/>); elsewhere the screen is
-    /// read-only. A presentation switch: D)ISTRIBUTE and the rest are unchanged either way.
+    /// read-only. A presentation switch: D)ISTRIBUTE and the rest are unchanged either way. A save with the rules option
+    /// <c>modern-inventory</c> (s178) always opens the new screen, whatever this says.
     /// </summary>
     public bool InventoryScreen { get; set; }
 

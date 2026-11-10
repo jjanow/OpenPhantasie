@@ -79,10 +79,11 @@ armor soak, weapon damage (A + B, `Combat.PrepFor`'s `WeaponDamageEff`) and defe
 ### Remaster choices (no manual or DOS rule exists)
 
 - **Dead members** may receive, hand on and wear items (DOS Distribute does it, §1). Not refused. Decided: keep (user, s75).
-- **[?] A hand-picked worse item can be overridden later**: D)ISTRIBUTE runs the DOS selector on every hand-out and the Armory
-  wears a bought item that is at least as good. Kept as DOS does it; not changed.
+- **A hand-picked worse item can be overridden later**: D)ISTRIBUTE runs the DOS selector on every hand-out and the Armory
+  wears a bought item that is at least as good. Kept as DOS does it with `modern-inventory` off; with it on nothing
+  overrides the player's pick (section 7, user s178).
 - **Receiving an item (Transfer, FromStash) does not wear it**, unlike D)ISTRIBUTE's selector. The player wears it with
-  Equip. Decided: keep (user, s75).
+  Equip. Decided: keep (user, s75). With `modern-inventory` on it is worn when its slot is empty (user s178, section 7).
 
 ## 4. Where the stash can be used — rules option `p1.stash-access`
 
@@ -143,3 +144,35 @@ Remaster choices, no manual or DOS rule (decided by the user, s75):
   press the help line shows the button hints (`inventory.help*_pad`); a key press switches back.
 - `not_here` reads "not now" (`inventory.not_now`) whenever the place is allowed but something else blocks (an open
   D)ISTRIBUTE, a waiting treasure), not only under `anywhere`.
+
+## 7. Modern inventory — rules option `modern-inventory` (QoL, user s178)
+
+**User decisions (2026-11-09, final):** "full modernized and not the insane original system where you have to re-equip
+every time you went into town". One switch per save for I, II and III (`EveryGame`, `Games` I / II / III; IV has its own
+equipment screens), QUALITY OF LIFE section: `off` in both Original presets, `on` in Remaster. Locked per save like every
+rules option. Answers given: the town redistribution goes; a new item is worn by itself **only into an empty slot**;
+selling only in town; one option, not separate toggles.
+
+With `on`:
+
+| What | Original (`off`) | Modern (`on`) |
+|---|---|---|
+| Where the moves of section 3 work | `p1.stash-access` | anywhere outside combat (section 4's `anywhere`; overrides `p1.stash-access`) |
+| D)ISTRIBUTE (Town D, Inn, III Option / bar) | gold / XP split, then the hand-out screen pools **every** carried and found item and strips all worn gear | gold / XP split only (I / II); `GameSession.BeginItemDistribution` refuses (`ItemHandOut` false), the Client says "Items stay where they are. Press V …" and III skips its "redistribute?" question |
+| III town entry (D3-071) | ready-best for every character, then the found-item hand-out screen, then "Shares for" | no ready-best, no hand-out (found items wait in the stash); the last wand still leaves the found list (ovl2 `0x5a9`, a game rule) and the "Shares for" prompts stay |
+| Armory buy | I / II wear the bought item when it is at least as good (`AutoEquipIfBetter`); III wears nothing | worn only when nothing is worn in its slot and the member can use it |
+| Give (Transfer, III Trade give), take from the stash | not worn (s75); III Trade re-readies giver and receiver | worn only into the receiver's empty slot; the giver is not re-readied (an emptied slot stays empty) |
+| Selling | Distribute's SELL row; III Trade sell | inventory screen **Sell** in a town (`GameMode.Town`): carried, worn or stash item, the game's Distribute price (`ICampaign.DistributeSalePrice`, I / II `ItemRules.SellPrice`, III 75 % of the town's price), the town's stock +1 (max 99), the treasury sweep after it |
+| V | the old item overlay unless the Inventory screen switch is on | always the inventory screen (I, II, III) |
+
+"Arrival-only" wear (`InventoryActions.WearIfSlotEmpty`, `GameSession.WearArrival`): the arriving item is worn when its
+layout slot holds 0, the member carries it and the game's gate passes; nothing else moves. The game's own best-gear pick
+(`ICampaign.ReadyBestEquipment`) is untouched and still runs wherever the original runs it with the option off.
+
+**Client (Sell):** L (pad LT) on the item under the cursor, a click on the detail box's "SELL FOR N GP (L)" line or a drop
+on it asks "SELL X FOR N GP? (Y/N)"; Y / Enter (pad A) sells, any other key, button or click keeps it. The help line shows
+L only where selling is possible. Refusal `no_shop` ("ITEMS ARE SOLD IN TOWN.") outside a town or with the option off.
+
+**Left as it is:** III's own Trade dialog (`p3.trade`) stays in the town Option list as its value says; the inventory screen
+gives (anywhere) and sells (in town) whatever `p3.trade` is, so Trade is available at all times (D3-027). A full stash refuses a found item at "KEEP IT?" as before (it no longer empties on every town
+visit; the stash is usable anywhere). Seen live on Xvfb (I, s178): the sell line, L / Y, the D note.

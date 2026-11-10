@@ -94,7 +94,7 @@ own D-entry.
 - **Quality of life** (s175, `options.quality_of_life`, `11-guild-treasury.md` section 6): the rules part splits in two.
   The preset row and the game's original rules (every option with a manual / DOS meaning, D-entry or not) come first;
   the options whose descriptor sets `Qol` (pure convenience, no manual↔code conflict: `treasury`, `p1.stash-access`,
-  `guild-limit`, `elemental-load`, `elemental-drop`, `elemental-purge`, `shared-aging` (`13-aging-normalised.md`)) follow under a QUALITY OF LIFE header, before
+  `guild-limit`, `elemental-load`, `elemental-drop`, `elemental-purge`, `shared-aging` (`13-aging-normalised.md`), `modern-inventory` (`inventory-actions.md` section 7)) follow under a QUALITY OF LIFE header, before
   FROM OTHER GAMES. The locked in-game view (THIS SAVE'S RULES) is split the same way. The preset still sets them all.
 - **Terrain key** (II only, `terrainKey`, `options.terrain_key`; off = the ST, no key, D2-014): the rulebook's terrain
   key beside the wilderness map, rows from `GameData/phantasie2/terrain-key.json` (string id of the manual's name + the

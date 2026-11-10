@@ -2043,7 +2043,8 @@ public partial class Game1 : Game
             SetFeedback(CurrentGameSettings.AutoMap ? UiText.S("game.auto_map_on") : UiText.S("game.auto_map_off"), HelpForMode(s.Mode));
         }
 
-        if (_input.Pressed(GameAction.ToggleInventory, keys, pad) && !_showInventory && CurrentGameSettings.InventoryScreen)
+        if (_input.Pressed(GameAction.ToggleInventory, keys, pad) && !_showInventory
+            && (CurrentGameSettings.InventoryScreen || s.Options.ModernInventory && s.Game != GameId.P4))
             OpenInventoryScreen(s, pad); // QoL: the paperdoll + stash screen (Game1.Inventory.cs)
         else if (_input.Pressed(GameAction.ToggleInventory, keys, pad))
         {
@@ -2687,7 +2688,7 @@ public partial class Game1 : Game
                 break;
             // s160: III asks `p3bar.confirm_distribute` after the empty-party refusal (root 0x83a0…0x83c1),
             // before any share moves, on every route (D, the Option / Inn list, the bar); the town-entry hand-out never asks.
-            case TownChoice.Distribute when !confirmed && s.Party.Members.Count > 0 && AskConfirm(s, "distribute"):
+            case TownChoice.Distribute when !confirmed && s.Party.Members.Count > 0 && s.ItemHandOut && AskConfirm(s, "distribute"):
                 return;
             case TownChoice.Distribute:
                 refused = Distribute(s);
@@ -2797,9 +2798,12 @@ public partial class Game1 : Game
         // An imported save can arrive with sack items but nobody in the party (OV1 0x7e7); DOS refuses (0xad5d).
         if (s.Party.Members.Count == 0)
             return UiText.S("game.no_party");
-        if (s.Sack.Experience > 0 || s.Sack.Gold > 0)
+        var split = s.Sack.Experience > 0 || s.Sack.Gold > 0;
+        if (split)
             s.DistributeLoot(items: false);
-        return _distributeDialog.Open(s);
+        // QoL modern-inventory: no item pooling; gear stays put and the inventory screen (V) moves and sells items. After a
+        // split its own line shows (null); else the note says where the items went.
+        return s.ItemHandOut ? _distributeDialog.Open(s) : split ? null : UiText.S("game.distribute_modern");
     }
 
     private enum StepOutcome { Plain, Blocked, Stopped }

@@ -48,8 +48,14 @@ public sealed partial class GameSession
     public InventoryRefusal CanTransferItem(Character from, int carriedSlot, Character to) =>
         Gate(() => InventoryActions.CanTransfer(Party, from, carriedSlot, to));
 
-    public InventoryRefusal TryTransferItem(Character from, int carriedSlot, Character to) =>
-        Rewear(Gate(() => InventoryActions.TryTransfer(Party, from, carriedSlot, to, Equipment)), from);
+    public InventoryRefusal TryTransferItem(Character from, int carriedSlot, Character to)
+    {
+        var id = InventoryActions.CarriedAt(from, carriedSlot);
+        var r = Rewear(Gate(() => InventoryActions.TryTransfer(Party, from, carriedSlot, to, Equipment)), from);
+        if (r == InventoryRefusal.None)
+            WearArrival(to, id);
+        return r;
+    }
 
     public InventoryRefusal CanPutInStash(Character member, int carriedSlot) =>
         Gate(() => InventoryActions.CanToStash(Party, Sack, member, carriedSlot));
@@ -60,8 +66,104 @@ public sealed partial class GameSession
     public InventoryRefusal CanTakeFromStash(int stashSlot, Character member) =>
         Gate(() => InventoryActions.CanFromStash(Party, Sack, stashSlot, member));
 
-    public InventoryRefusal TryTakeFromStash(int stashSlot, Character member) =>
-        Gate(() => InventoryActions.TryFromStash(Party, Sack, stashSlot, member));
+    public InventoryRefusal TryTakeFromStash(int stashSlot, Character member)
+    {
+        var id = (uint)stashSlot < (uint)Sack.ItemIds.Count ? Sack.ItemIds[stashSlot] : 0;
+        var r = Gate(() => InventoryActions.TryFromStash(Party, Sack, stashSlot, member));
+        if (r == InventoryRefusal.None)
+            WearArrival(member, id);
+        return r;
+    }
+
+    /// <summary>
+    /// QoL <c>modern-inventory</c> (<c>inventory-actions.md</c> section 7): a new item <paramref name="itemId"/> that has just
+    /// reached <paramref name="member"/> (a give, the stash, the Armory) is worn only when its slot holds nothing and the
+    /// member can use it. Nothing else changes: worn items are never swapped, a slot the player emptied stays empty until
+    /// a new item arrives for it. Off: nothing (the caller runs the game's own rule).
+    /// </summary>
+    internal void WearArrival(Character member, int itemId)
+    {
+        if (!Options.ModernInventory)
+            return;
+        if (InventoryActions.WearIfSlotEmpty(member, itemId, Equipment, ItemGate))
+            CombatGear.ApplyWornItemPoints(member, ItemPoints);
+    }
+
+    /// <summary>
+    /// QoL <c>modern-inventory</c>: can the item in <paramref name="member"/>'s carried slot be sold here? Only in a town
+    /// (<see cref="GameMode.Town"/>), only with the option on, and not while the moves are blocked (<see cref="InventoryAccess"/>).
+    /// </summary>
+    public InventoryRefusal CanSellItem(Character member, int carriedSlot) =>
+        SellGate(() => InventoryActions.CarriedAt(member, carriedSlot) == 0 ? InventoryRefusal.NoItem : InventoryRefusal.None, member);
+
+    /// <summary>The same for the stash item in <paramref name="stashSlot"/>.</summary>
+    public InventoryRefusal CanSellStashItem(int stashSlot) =>
+        SellGate(() => (uint)stashSlot < (uint)Sack.ItemIds.Count && Sack.ItemIds[stashSlot] != 0
+            ? InventoryRefusal.None : InventoryRefusal.NoItem, null);
+
+    /// <summary>
+    /// What selling <paramref name="itemId"/> pays here: the game's Distribute SELL price (<see cref="ICampaign.DistributeSalePrice"/>;
+    /// I / II <see cref="ItemRules.SellPrice"/>, III 75 % of the town's price). 0 outside a town.
+    /// </summary>
+    public long SellPriceOf(int itemId)
+    {
+        if (Mode != GameMode.Town || CurrentTown is not { } town || itemId <= 0)
+            return 0;
+        return Campaign.DistributeSalePrice(town, _items)?.Invoke(itemId)
+            ?? ItemRules.SellPrice(_items.Get(itemId)?.ValueFactor ?? 0);
+    }
+
+    /// <summary>
+    /// Sell the item in <paramref name="member"/>'s carried slot (the Distribute SELL row as an inventory move): it leaves
+    /// the member (stops being worn), the town's stock of it rises by 1 (at most <see cref="ItemDistribution.MaxStock"/>)
+    /// and <see cref="SellPriceOf"/> goes to the party's gold.
+    /// </summary>
+    public InventoryRefusal TrySellItem(Character member, int carriedSlot)
+    {
+        var r = CanSellItem(member, carriedSlot);
+        if (r != InventoryRefusal.None)
+            return r;
+        var id = InventoryActions.CarriedAt(member, carriedSlot);
+        InventoryActions.TakeCarriedItem(member, carriedSlot, Equipment);
+        CombatGear.ApplyWornItemPoints(member, ItemPoints);
+        PaySale(id);
+        return r;
+    }
+
+    /// <summary>Sell the stash item in <paramref name="stashSlot"/> (as <see cref="TrySellItem"/>).</summary>
+    public InventoryRefusal TrySellStashItem(int stashSlot)
+    {
+        var r = CanSellStashItem(stashSlot);
+        if (r != InventoryRefusal.None)
+            return r;
+        var id = Sack.ItemIds[stashSlot];
+        InventoryActions.TakeStashItem(Sack, stashSlot); // the stash keeps its holes (LootSack)
+        PaySale(id);
+        return r;
+    }
+
+    private void PaySale(int id)
+    {
+        var gold = SellPriceOf(id);
+        var town = RequireTownState();
+        if (id < TownState.StockSlotCount)
+            town.SetStock(id, Math.Min(ItemDistribution.MaxStock, town.GetStock(id) + 1));
+        Party.AddGold(gold); // D-048: over the cap is lost (the Distribute SELL row says the price too)
+        Note(GameText.F("core.distribute.x_sold_for_x_gp", _items.Get(id)?.Name ?? $"#{id}", gold));
+        SweepTreasury(); // s175: a sale's gold
+    }
+
+    private InventoryRefusal SellGate(Func<InventoryRefusal> item, Character? member)
+    {
+        if (!Options.ModernInventory || Mode != GameMode.Town || CurrentTown is null)
+            return InventoryRefusal.NoShop;
+        var access = InventoryAccess;
+        if (access != InventoryRefusal.None)
+            return access;
+        if (member is not null && !Party.Adventurers.Contains(member))
+            return InventoryRefusal.NotInParty;
+        return item();
+    }
 
     /// <summary>
     /// s174 (D3-073, the manual, III PDF 6): the Armory list's point column for <paramref name="itemId"/> as
