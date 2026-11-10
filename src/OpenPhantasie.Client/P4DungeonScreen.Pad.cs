@@ -38,6 +38,67 @@ public sealed partial class P4DungeonScreen
     private object? _wheelOwner; // one per typed prompt: the wheel starts again on the next one
     private readonly StickQuantizer _stick = new();
     private int _padShare = 1;
+    private bool _padAutoMove; // s191 (pad fix D26): the pad's pick in a fight's orders is Q auto move
+    private IReadOnlyList<(string Label, Keys Key)>? _padCommands; // s191 (pad fix D24): the open command list
+    private int _padCommandCursor;
+
+    /// <summary>
+    /// s191 (pad fix D24): the commands a command prompt takes by letter, for the pad's command list (Back) where the screen
+    /// has no buttons for Y / X (no art pack's command panel): the street's T / D / F / C / U / S (S is F10 under COMMON
+    /// TOWN KEYS, where S saves), outdoors' M / F / P / C / U / S, a location map's E / F / P / C / U / S. Null elsewhere.
+    /// </summary>
+    public IReadOnlyList<(string Label, Keys Key)>? PadCommandEntries
+    {
+        get
+        {
+            if (MainMenuAsked || !Game.LoopBuilt || _system is not null || Game.Battle is not null || MenuOpen
+                || DoorOpen || MysticBusy || WelcomeUp || _padSeen.Length > 0)
+                return null;
+            static (string, Keys) Cmd(string label, Keys key) => (label, key);
+            (string, Keys)[] party = [Cmd(UiText.S("p4.pad.cmd.profile"), Keys.F), Cmd(UiText.S("p4.pad.cmd.party"), Keys.P), Cmd(UiText.S("p4.pad.cmd.cast"), Keys.C), Cmd(UiText.S("p4.pad.cmd.use"), Keys.U),
+                Cmd(UiText.S("p4.pad.cmd.system"), Keys.S)];
+            return Game.Place switch
+            {
+                P4Place.Town when OnTownStreet => [Cmd(UiText.S("p4.pad.cmd.trade"), Keys.T), Cmd(UiText.S("p4.pad.cmd.share"), Keys.D), Cmd(UiText.S("p4.pad.cmd.profile"), Keys.F),
+                    Cmd(UiText.S("p4.pad.cmd.cast"), Keys.C), Cmd(UiText.S("p4.pad.cmd.use"), Keys.U), CommonTownKeys ? Cmd(UiText.S("p4.pad.cmd.system_common"), SystemKeyCommon) : Cmd(UiText.S("p4.pad.cmd.system"), Keys.S)],
+                P4Place.Outdoors when O.Prompt == P4OutdoorPrompt.Action => [Cmd(UiText.S("p4.pad.cmd.map"), Keys.M), .. party],
+                P4Place.Dungeon when D.Prompt == P4DungeonPrompt.Action => [Cmd(UiText.S("p4.pad.cmd.examine"), Keys.E), .. party],
+                _ => null,
+            };
+        }
+    }
+
+    /// <summary>The pad's command list while open (its labels; <see cref="PadCommandCursor"/> on one), else null.</summary>
+    public IReadOnlyList<(string Label, Keys Key)>? PadCommands => _padCommands;
+
+    /// <summary>The command list's cursor line.</summary>
+    public int PadCommandCursor => _padCommandCursor;
+
+    /// <summary>
+    /// The pad's buttons while its command list is open: D-pad / stick Up / Down move, A sends the line's key (and closes
+    /// the list), B or Back close it. Every other button does nothing there.
+    /// </summary>
+    private void PadCommandButtons(IReadOnlyCollection<Buttons> pressed, List<Keys> keys)
+    {
+        var list = _padCommands!;
+        foreach (var b in pressed)
+            switch (b)
+            {
+                case Buttons.DPadUp or Buttons.LeftThumbstickUp:
+                    _padCommandCursor = (_padCommandCursor + list.Count - 1) % list.Count;
+                    break;
+                case Buttons.DPadDown or Buttons.LeftThumbstickDown:
+                    _padCommandCursor = (_padCommandCursor + 1) % list.Count;
+                    break;
+                case Buttons.A:
+                    keys.Add(list[_padCommandCursor].Key);
+                    _padCommands = null;
+                    return;
+                case Buttons.B or Buttons.Back:
+                    _padCommands = null;
+                    return;
+            }
+    }
 
     /// <summary>
     /// s185 (Pad leftovers): the share the pad's A gives the member whose turn it is in a share-out (the bank's
@@ -138,12 +199,16 @@ public sealed partial class P4DungeonScreen
         {
             if (DoorOpen || MysticBusy || WelcomeUp || MainMenuAsked)
                 return null;
+            if (_padCommands is not null)
+                return UiText.S("p4.pad.help_commands");
             if (_padFocus is not null)
                 return UiText.S("p4.pad.help_focus");
             if (PadTypingAlphabet is not null)
                 return UiText.F("p4.pad.help_type_x", PadWheelChar == ' ' ? UiText.S("typing.space") : PadWheelChar.ToString());
             if (!Game.LoopBuilt)
                 return UiText.S("p4.pad.help_left");
+            if (SystemUp && SystemChoices is not null)
+                return _system == P4SystemPage.SelectGameFinal ? UiText.S("p4.pad.help_choices_final") : UiText.S("p4.pad.help_choices");
             if (SystemUp)
                 return _system switch
                 {
@@ -161,6 +226,7 @@ public sealed partial class P4DungeonScreen
                         BattleMode.Target => UiText.S("p4.pad.help_target"),
                         BattleMode.Spells or BattleMode.Member => UiText.S("p4.pad.help_battle_pick"),
                         _ when b.AutoCombat => UiText.S("p4.pad.help_wait"),
+                        _ when _padAutoMove => UiText.F("p4.pad.help_orders_x", UiText.S("p4.battle.action.auto_move")),
                         _ => PadOrderNow(PadOrders(b)) is { } order
                             ? UiText.F("p4.pad.help_orders_x", ActionName(order)) : UiText.S("p4.pad.help_wait"),
                     },
@@ -221,8 +287,12 @@ public sealed partial class P4DungeonScreen
     /// <summary>The middle of the button the pad has picked (Y / X), or null; the shell lights it as under the pointer.</summary>
     public Point? PadPointer { get; private set; }
 
-    /// <summary>The fight order the pad's A gives (X / Y pick it), or null before the pad picked one.</summary>
-    public P4ActionKind? PadAction => _padAction;
+    /// <summary>The fight order the pad's A gives (X / Y pick it), or null before the pad picked one or while it picked auto
+    /// move (<see cref="PadAutoMove"/>).</summary>
+    public P4ActionKind? PadAction => _padAutoMove ? null : _padAction;
+
+    /// <summary>s191 (pad fix D26): the pad's pick in a fight's orders is Q auto move (the last step of Y / X's cycle).</summary>
+    public bool PadAutoMove => _padAutoMove;
 
     /// <summary>Lets go of the pad's picked button (the mouse moved).</summary>
     public void ClearPadFocus()
@@ -289,6 +359,23 @@ public sealed partial class P4DungeonScreen
         if (alphabet is not null)
             _padFocus = null; // Y / X are the wheel's here, and A ends the entry
         var keys = new List<Keys>();
+        if (_padCommands is not null && PadCommandEntries is null)
+            _padCommands = null; // the prompt it was opened on has gone
+        if (_padCommands is not null)
+        {
+            PadCommandButtons(pressed, keys);
+            PadPointer = null;
+            return keys;
+        }
+        if (pressed.Contains(Buttons.Back) && alphabet is null && PadCommandEntries is { } commands)
+        {
+            // s191 (pad fix D24): Back opens the command list (the screen has no buttons for Y / X here).
+            _padCommands = commands;
+            _padCommandCursor = 0;
+            _padFocus = null;
+            PadPointer = null;
+            return keys;
+        }
         if (!(DoorOpen || MysticBusy || WelcomeUp)) // the busy waits read nothing (HandleKeys)
         {
             var wheel = new List<Buttons>();
@@ -553,21 +640,28 @@ public sealed partial class P4DungeonScreen
         : _padAction is { } k && offered.Contains(k) ? k
         : PadOrderDefaults.Where(offered.Contains).Cast<P4ActionKind?>().FirstOrDefault() ?? offered[0];
 
-    /// <summary>The order key A gives in <paramref name="b"/>'s orders (<see cref="PadOrderNow"/>; it stays the pad's pick).</summary>
+    /// <summary>The order key A gives in <paramref name="b"/>'s orders (<see cref="PadOrderNow"/>, or Q when the pad picked
+    /// auto move; it stays the pad's pick).</summary>
     private Keys? PadOrderKey(P4Battle b)
     {
+        if (_padAutoMove)
+            return Keys.Q;
         if (PadOrderNow(PadOrders(b)) is not { } kind)
             return null;
         _padAction = kind;
         return ActionKeys.First(p => p.Value == kind).Key;
     }
 
-    /// <summary>X / Y in the orders: the previous / next offered order becomes the pad's pick.</summary>
+    /// <summary>X / Y in the orders: the previous / next offered order becomes the pad's pick; s191 (pad fix D26): after the
+    /// last comes Q auto move (keyboard Q), then the first again.</summary>
     private void CyclePadAction(P4Battle b, int step)
     {
         var offered = PadOrders(b);
-        var at = PadOrderNow(offered) is { } now ? offered.IndexOf(now) : -1;
-        if (StepFocus(at >= 0 ? at : null, offered.Count, step) is int n)
+        var at = _padAutoMove ? offered.Count : PadOrderNow(offered) is { } now ? offered.IndexOf(now) : -1;
+        if (StepFocus(at >= 0 ? at : null, offered.Count + 1, step) is not int n)
+            return;
+        _padAutoMove = n == offered.Count;
+        if (!_padAutoMove)
             _padAction = offered[n];
     }
 }

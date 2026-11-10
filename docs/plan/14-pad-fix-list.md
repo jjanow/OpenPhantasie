@@ -83,23 +83,21 @@ not unit-tested; none seen live.
 
 ## D. No pad route (IV)
 
-24. **IV without the art pack: a command pick list** (one shared fix): the street's T / D / F / C / U / S
-    (`Services.cs:128-141`), outdoors' M / F / P / C / U / S (`P4DungeonScreen.cs:269-280`), the location map's E /
-    F / P / C / U / S (`:396-408`). Y / X have no icons to step there. E.g. Back opens a pick list.
-25. **IV System / Select Game / Save / Load pages without icons** (no art pack, or the Load page over a fight / party
-    menu even with it): give the text lines a cursor (Up / Down + A sends the line's key) on System (S / E / A),
-    Select Game (E / T; T has no route at all on the final page), and the 1-3 slot lines (`System.cs:80, 165-265`).
-    With SAVE SLOTS off (IV's default) LB / RB and the ending's save question open these dead ends today.
-26. **IV fight: Q auto move** has no pad route (`Battle.cs:151-157`, `Pad.cs:537`): add it to Y / X's order cycle.
+24-26 done s191 (`P4DungeonScreen.Pad.cs`, `.System.cs`): with no icons for Y / X (no art pack), Back opens a
+command list on the street (T / D / F / C / U / S, S = F10 under COMMON TOWN KEYS), outdoors (M / F / P / C / U / S)
+and a location map (E / F / P / C / U / S): D-pad pick, A sends the key, B / Back close (`PadCommandEntries`). The
+System, Select Game and save / load pages without a panel (no pack, or the load page over a fight / party menu) list
+their choices under a cursor (`SystemChoices`; keyboard Up / Down / Return too), so T, the slots and SPACE are reachable.
+Q auto move is the last step of Y / X's order cycle (`PadAutoMove`, bracketed in the orders line). Tests in
+`P4PadTests`; none seen live.
+
 27. IV small: Guild treasury PgUp / PgDn (`P4DungeonScreen.cs:332-340`); typed names lack punctuation in the wheel
     (accept unless needed).
 
 ## E. Help lines that are wrong or keyboard-only for the pad
 
-28. IV: `help_system` / `help_buttons` say "Y/X pick a button" with no buttons (System, Select Game, slot pages
-    without icons); `help_move.plain` / `help_street.plain` / `help_left` name LB / RB, which open those dead-end pages
-    (until 25); auto-combat rounds and the wiped party need "A next round" / "A continue"; the treasury wait omits
-    "Up/Down scroll"; MYSTIC SKIP has no "A skip" (keyboard none either); `help_orders_x` lacks auto move (after 26);
+28. IV: auto-combat rounds and the wiped party need "A next round" / "A continue"; the treasury wait omits
+    "Up/Down scroll"; MYSTIC SKIP has no "A skip" (keyboard none either);
     waits omit "LB save"; box texts `p4.town.game_over`, `combat_not_built`, System's key list have no pad twins.
     Keyboard: `p4.dungeon.help_move` omits P.
 29. I–III hidden pad help: I Amiga map-only screens blank the help, so the pad never learns A fight / RT+A / Start
@@ -133,5 +131,5 @@ not unit-tested; none seen live.
 
 ## Suggested order
 
-A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 → the rest → one
+A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 (done s191) → the rest (C 14-23, D 27, E, F) → one
 live virtual-pad pass on Xvfb.

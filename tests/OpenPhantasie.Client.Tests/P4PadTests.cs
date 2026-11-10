@@ -206,6 +206,121 @@ public sealed class P4PadTests : IDisposable
         Assert.Equal(P4DungeonScreen.DirectionOf(Keys.PageUp), P4DungeonScreen.DirectionOf(Keys.NumPad9));
     }
 
+    // --- s191 pad fix list D24-26: the command list, the System pages' text choices, Q auto move ---------------------------
+
+    [OriginalDataFact]
+    public void Street_BackOpensTheCommandList_APicksTheCommand_BClosesIt()
+    {
+        var s = new P4DungeonScreen(P4Preview.StartInTown(2, Code)); // no art pack: no icons for Y / X
+        Assert.Empty(Pad(s, Buttons.Back));
+        var list = Assert.IsAssignableFrom<IReadOnlyList<(string Label, Keys Key)>>(s.PadCommands);
+        Assert.Equal([Keys.T, Keys.D, Keys.F, Keys.C, Keys.U, Keys.S], list.Select(c => c.Key));
+        Assert.Equal(UiText.S("pad.cmd.title"), s.BoxLines()[0].Text);
+        Assert.Equal(UiText.S("p4.pad.help_commands"), s.Help);
+        Assert.Empty(Pad(s, Buttons.DPadUp)); // wraps to System
+        Assert.Equal(5, s.PadCommandCursor);
+        Assert.Equal([Keys.S], Pad(s, Buttons.A));
+        Assert.Null(s.PadCommands);
+        Press(s, Buttons.Back);
+        Press(s, Buttons.DPadDown);
+        Press(s, Buttons.DPadDown);
+        Assert.Equal(2, s.PadCommandCursor);
+        Assert.Empty(Pad(s, Buttons.B)); // B closes it, never the main-menu question
+        Assert.Null(s.PadCommands);
+        Assert.False(s.MainMenuAsked);
+        Press(s, Buttons.Back);
+        Assert.Null(Press(s, Buttons.DPadUp)); // System
+        Press(s, Buttons.A);
+        Assert.Equal(P4SystemPage.Menu, s.SystemPage);
+
+        // COMMON TOWN KEYS: S saves on the street, so the list's System sends F10.
+        var common = new P4DungeonScreen(P4Preview.StartInTown(2, Code)) { CommonTownKeys = true };
+        Press(common, Buttons.Back);
+        Assert.Equal(P4DungeonScreen.SystemKeyCommon, common.PadCommands![^1].Key);
+    }
+
+    [OriginalDataFact]
+    public void OutdoorsAndLocationMap_BackListsTheirCommands_NotWithIcons()
+    {
+        var s = new P4DungeonScreen(P4Preview.StartInTown(2, Code));
+        s.HandleKeys([Keys.D7]); // Leave
+        Press(s, Buttons.Back);
+        Assert.Equal([Keys.M, Keys.F, Keys.P, Keys.C, Keys.U, Keys.S], s.PadCommands!.Select(c => c.Key));
+        Assert.Equal([Keys.M], Pad(s, Buttons.A));
+
+        var d = new P4DungeonScreen(Synthetic(false, 0x22, 0x00));
+        Assert.Equal(P4DungeonPrompt.Action, d.Game.Dungeon.Prompt);
+        Press(d, Buttons.Back);
+        Assert.Equal([Keys.E, Keys.F, Keys.P, Keys.C, Keys.U, Keys.S], d.PadCommands!.Select(c => c.Key));
+        Press(d, Buttons.B);
+
+        // With the pack's icons on screen, Y / X pick them: Back opens nothing.
+        HitRegion icon = new(new Rectangle(10, 10, 16, 16), new P4PanelIconTag("_dsetup", 0)) { Click = [Keys.E] };
+        d.PadKeys([Buttons.Back], [], [icon], out _);
+        Assert.Null(d.PadCommands);
+    }
+
+    [OriginalDataFact]
+    public void SystemPages_WithNoPanel_ListTheirChoices_DPadAndAPickOne()
+    {
+        var s = new P4DungeonScreen(P4Preview.StartInTown(2, Code));
+        s.HandleKeys([Keys.S]);
+        var menu = Assert.IsAssignableFrom<IReadOnlyList<(string Label, Keys Key)>>(s.SystemChoices);
+        Assert.Equal([Keys.S, Keys.E, Keys.A, Keys.Space], menu.Select(c => c.Key));
+        Assert.Contains(s.BoxLines(), l => l.Text == ">" + menu[0].Label);
+        Press(s, Buttons.DPadDown); // End game
+        Press(s, Buttons.A);
+        Assert.Equal(P4SystemPage.SelectGame, s.SystemPage);
+        Assert.Equal([Keys.E, Keys.T, Keys.Space], s.SystemChoices!.Select(c => c.Key));
+        Press(s, Buttons.DPadDown); // Back to title: T has a pad route now
+        Press(s, Buttons.A);
+        Assert.Equal(P4SystemPage.BackToTitle, s.SystemPage);
+        Assert.Null(s.SystemChoices); // the question: A yes, B no
+        Press(s, Buttons.B);
+        Assert.Equal(P4SystemPage.SelectGame, s.SystemPage);
+        Press(s, Buttons.B);
+        Assert.Equal(P4SystemPage.Menu, s.SystemPage);
+    }
+
+    [OriginalDataFact]
+    public void OriginalSlots_SaveAndLoadPages_DPadAndAPickASlot()
+    {
+        var saved = new HashSet<int> { 2 };
+        var s = new P4DungeonScreen(P4Preview.StartInTown(2, Code)) { OriginalSlots = true, SlotSaved = saved.Contains };
+        Press(s, Buttons.LeftShoulder);
+        Assert.Equal([Keys.D1, Keys.D2, Keys.D3, Keys.Space], s.SystemChoices!.Select(c => c.Key));
+        Press(s, Buttons.DPadDown);
+        Press(s, Buttons.DPadDown);
+        Assert.Equal(P4ScreenRequest.SaveSlot, Press(s, Buttons.A));
+        Assert.Equal(3, s.RequestedSlot);
+        Press(s, Buttons.RightShoulder);
+        Assert.Equal([Keys.D2, Keys.Space], s.SystemChoices!.Select(c => c.Key));
+        Assert.Equal(P4ScreenRequest.LoadSlot, Press(s, Buttons.A));
+        Assert.Equal(2, s.RequestedSlot);
+    }
+
+    [OriginalDataFact]
+    public void AFight_YXCycleEndsOnAutoMove_AGivesQ()
+    {
+        var s = new P4DungeonScreen(Synthetic(true, 0x22, 0x23, 0x01, 0x00));
+        Press(s, Buttons.A); // Fight
+        var b = Assert.IsType<P4Battle>(s.Game.Battle);
+        Assert.Equal(P4BattlePrompt.Order, b.Prompt);
+        var member = b.Current;
+        while (!s.PadAutoMove)
+            Pad(s, Buttons.Y);
+        Assert.Null(s.PadAction);
+        Assert.Equal(UiText.F("p4.pad.help_orders_x", UiText.S("p4.battle.action.auto_move")), s.Help);
+        Assert.Contains(s.BoxLines(), l => l.Text.EndsWith($"[{UiText.S("p4.battle.action.auto_move")}]", StringComparison.Ordinal));
+        Assert.Equal([Keys.Q], Pad(s, Buttons.A));
+        Pad(s, Buttons.Y); // wraps to the first offered order
+        Assert.False(s.PadAutoMove);
+        Assert.NotNull(s.PadAction);
+        Press(s, Buttons.X); // back to auto move
+        Press(s, Buttons.A); // Q: the member's auto move, as the keyboard's Q
+        Assert.True(b.Current != member || b.Prompt != P4BattlePrompt.Order || s.Game.Battle is null);
+    }
+
     [Fact]
     public void PadMoves_WithoutDiagonals_AreTheArrows() =>
         Assert.Equal([Keys.Up, Keys.Right],
@@ -303,7 +418,8 @@ public sealed class P4PadTests : IDisposable
         Assert.Contains(s.BoxLines(), l => l.Text.Contains($"[{UiText.S("p4.battle.action." + first.ToString().ToLowerInvariant())}]",
             StringComparison.Ordinal));
         Pad(s, Buttons.Y);
-        Assert.Equal(offered[(offered.ToList().IndexOf(first) + 1) % offered.Count], s.PadAction);
+        var next = offered.ToList().IndexOf(first) + 1; // s191: after the last order comes Q auto move
+        Assert.Equal(next < offered.Count ? offered[next] : null, s.PadAction);
         Pad(s, Buttons.X);
         Assert.Equal(first, s.PadAction);
 

@@ -157,9 +157,66 @@ public sealed partial class P4DungeonScreen
         Cursor = 0;
     }
 
+    /// <summary>
+    /// s191 (pad fix D25): the page's panel is drawn (the pack's icons): the save / load page outside fights and party menus
+    /// (<see cref="DiskPanelShown"/>), the other pages whenever the pack has their panel.
+    /// </summary>
+    private bool SystemPanelShown => DiskPageUp ? DiskPanelShown
+        : Assets?.Pack?.CommandPanels?.Panels.GetValueOrDefault(SystemPanel(_system!.Value)) is not null;
+
+    /// <summary>
+    /// s191 (pad fix D25): the page's choices as text lines when no panel shows them (no art pack, or the load page over a
+    /// fight or a party menu): each line's label and the key it sends. Up / Down move the cursor over them and Return sends
+    /// the cursor line's key, so the pad (D-pad, A) reaches every choice; the keys themselves work as before. Null on the
+    /// pages with a panel, and on the questions and About (A / B answer those).
+    /// </summary>
+    public IReadOnlyList<(string Label, Keys Key)>? SystemChoices
+    {
+        get
+        {
+            if (_system is not { } page || SystemPanelShown)
+                return null;
+            var back = (UiText.S("p4.system.choice.back"), Keys.Space);
+            return page switch
+            {
+                P4SystemPage.Menu => [(UiText.S("p4.system.choice.save"), Keys.S), (UiText.S("p4.system.choice.end"), Keys.E),
+                    (UiText.S("p4.system.choice.about"), Keys.A), back],
+                P4SystemPage.SelectGame => [(UiText.S("p4.system.choice.end"), Keys.E),
+                    (UiText.S("p4.system.choice.title"), Keys.T), back],
+                P4SystemPage.SelectGameFinal => [(UiText.S("p4.system.choice.end"), Keys.E),
+                    (UiText.S("p4.system.choice.title"), Keys.T)],
+                P4SystemPage.Save or P4SystemPage.Load => [.. Enumerable.Range(1, DiskSlots)
+                    .Where(k => page == P4SystemPage.Save || SlotSaved(k))
+                    .Select(k => (UiText.F("p4.system.slot_xy", SlotSaved(k) ? "*" : " ", k), Keys.D0 + k)), back],
+                _ => null,
+            };
+        }
+    }
+
     /// <summary>A key on the System screen; the shell request it makes (save, main menu, title), or null.</summary>
     private P4ScreenRequest? SystemKey(Keys key)
     {
+        if (SystemChoices is { Count: > 0 } choices)
+        {
+            // s191 (pad fix D25): the text lines' cursor.
+            Cursor = Math.Clamp(Cursor, 0, choices.Count - 1);
+            if (key == Keys.Up)
+            {
+                Cursor = (Cursor + choices.Count - 1) % choices.Count;
+                return null;
+            }
+            if (key == Keys.Down)
+            {
+                Cursor = (Cursor + 1) % choices.Count;
+                return null;
+            }
+            if (key == Keys.Enter)
+            {
+                var chosen = choices[Cursor].Key;
+                Cursor = 0;
+                return SystemKey(chosen);
+            }
+        }
         switch (_system)
         {
             case P4SystemPage.Menu:
@@ -246,25 +303,16 @@ public sealed partial class P4DungeonScreen
                 lines.Add(new(UiText.S("p4.outdoor.yes_no"), MenuLineStyle.Selected));
                 break;
             case P4SystemPage.SelectGame or P4SystemPage.SelectGameFinal:
-                // The panel holds the choices; without a pack they are listed here.
-                if (panel is null)
-                    lines.Add(new(SystemHelp, MenuLineStyle.Normal));
                 // The final screen's window stays up under _acgamend(1) (_endstory draws nothing over it).
                 if (_system == P4SystemPage.SelectGameFinal && Game.Place == P4Place.Town && W.Prompt == P4TownPrompt.Ending)
                     lines.AddRange(W.Box.Select(l => new MenuLine(l, MenuLineStyle.Normal)));
                 break;
-            case P4SystemPage.Save or P4SystemPage.Load:
-                // The pack's panel holds the slots; without it they are listed here.
-                if (!DiskPanelShown)
-                    for (var k = 1; k <= DiskSlots; k++)
-                        if (_system == P4SystemPage.Save || SlotSaved(k))
-                            lines.Add(new(UiText.F("p4.system.slot_xy", SlotSaved(k) ? "*" : " ", k), MenuLineStyle.Normal));
-                break;
-            default:
-                if (panel is null)
-                    lines.Add(new(UiText.S("p4.system.help"), MenuLineStyle.Normal));
-                break;
         }
+        // The panel holds the choices; without it (no pack, or the load page over a fight / party menu) they are listed
+        // here, under a cursor (s191, pad fix D25).
+        if (SystemChoices is { } choices)
+            for (var i = 0; i < choices.Count; i++)
+                lines.Add(Option(i, choices[i].Label));
         return lines;
     }
 

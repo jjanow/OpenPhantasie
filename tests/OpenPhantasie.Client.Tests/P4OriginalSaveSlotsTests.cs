@@ -54,7 +54,7 @@ public class P4OriginalSaveSlotsTests
         var s = Screen();
         s.HandleKeys([Keys.S, Keys.S]); // the street's System icon, then _syscon's S: _disk(1)
         Assert.Equal(P4SystemPage.Save, s.SystemPage);
-        Assert.Contains(s.BoxLines(), l => l.Text == UiText.F("p4.system.slot_xy", " ", 3)); // no pack here: the lines
+        Assert.Contains(s.BoxLines(), l => l.Text[1..] == UiText.F("p4.system.slot_xy", " ", 3)); // no pack here: the lines (s191: under a cursor)
         Assert.Null(s.HandleKeys([Keys.D4])); // only the three slots and SPACE
         Assert.Equal(P4ScreenRequest.SaveSlot, s.HandleKeys([Keys.D2]));
         Assert.Equal((2, P4SystemPage.Menu), (s.RequestedSlot, s.SystemPage)); // _syscon's loop: its icons again
@@ -93,7 +93,7 @@ public class P4OriginalSaveSlotsTests
         var s = Screen(k => k == 3);
         s.HandleKeys([Keys.F9]);
         Assert.Equal(P4SystemPage.Load, s.SystemPage);
-        var lines = s.BoxLines().Select(l => l.Text).ToList();
+        var lines = s.BoxLines().Select(l => l.Text[1..]).ToList(); // s191: the cursor's column
         Assert.Contains(UiText.F("p4.system.slot_xy", "*", 3), lines);
         Assert.DoesNotContain(UiText.F("p4.system.slot_xy", " ", 1), lines);
         Assert.Null(s.HandleKeys([Keys.D1])); // an empty slot does nothing

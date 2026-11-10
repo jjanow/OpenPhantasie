@@ -276,8 +276,10 @@ public sealed partial class P4DungeonScreen
                         break;
                     default:
                         // s182: the pad's order (X / Y pick it, A gives it) in brackets once the pad has picked one.
-                        lines.Add(new(string.Join(" ", b.Offered().Select(k => k == _padAction ? $"[{ActionName(k)}]" : ActionName(k))),
-                            MenuLineStyle.Normal));
+                        // s191 (pad fix D26): and Q auto move, bracketed, while the pad has picked it.
+                        lines.Add(new(string.Join(" ", b.Offered().Select(k => !_padAutoMove && k == _padAction
+                                ? $"[{ActionName(k)}]" : ActionName(k)))
+                            + (_padAutoMove ? $" [{UiText.S("p4.battle.action.auto_move")}]" : ""), MenuLineStyle.Normal));
                         break;
                 }
                 break;

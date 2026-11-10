@@ -507,6 +507,15 @@ public sealed partial class P4DungeonScreen
             return MenuLines();
         if (_system is not null)
             return SystemLines();
+        if (_padCommands is { } commands)
+        {
+            // s191 (pad fix D24): the pad's command list (Back) in place of the prompt's lines.
+            lines.Add(new(UiText.S("pad.cmd.title"), MenuLineStyle.Title));
+            for (var i = 0; i < commands.Count; i++)
+                lines.Add(i == _padCommandCursor ? new(">" + commands[i].Label, MenuLineStyle.Selected)
+                    : new(" " + commands[i].Label, MenuLineStyle.Normal));
+            return lines;
+        }
         if (Game.Place == P4Place.Outdoors)
             return OutdoorLines();
         if (Game.Place == P4Place.Town && MysticBusy)
