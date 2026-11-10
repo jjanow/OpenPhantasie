@@ -53,13 +53,16 @@ public static partial class UiOverlays
 
         // The key help, then the message, each whole (s99): a line longer than the 52 columns goes on, at a word, on the
         // next line, and the band's rows close up to 8 pixels when the two need four lines.
-        var helpLines = Lines(help ?? "", 52);
+        var shownHelp = PadWording.Help(help ?? ""); // s183: the pad's wording while the pad is the input
+        var helpTokens = ReferenceEquals(shownHelp, help ?? ""); // a pad word ("A") is no key to click
+        var helpLines = Lines(shownHelp, 52);
         var messageLines = Lines(message ?? "", 52);
         var (helpY, messageY, pitch) = HudRows(helpLines.Count, messageLines.Count);
         for (var i = 0; i < helpLines.Count; i++)
         {
             PixelFont.Draw(batch, pixel, 4, helpY + i * pitch, helpLines[i], DimText);
-            HitTokens(helpLines[i], 4, helpY + i * pitch, commandList: true, maxChars: 52);
+            if (helpTokens)
+                HitTokens(helpLines[i], 4, helpY + i * pitch, commandList: true, maxChars: 52);
         }
         for (var i = 0; i < messageLines.Count; i++)
         {
@@ -818,7 +821,7 @@ public static partial class UiOverlays
             // On the pack's own line a message is centred, as the ST (0x4082) and Amiga I (h80:0x892) print it.
             var x = onBlankRows && help is null ? Math.Max(left, (320 - PixelFont.Measure(lines[i])) / 2) : left;
             PixelFont.Draw(batch, pixel, x, y, lines[i], help is not null ? DimText : BodyText);
-            if (help is not null)
+            if (help is not null && !PadWording.Active) // s183: the pad's words are no keys to click
                 HitTokens(lines[i], x, y, commandList: true, maxChars: 52);
         }
     }
@@ -1982,32 +1985,45 @@ public static partial class UiOverlays
     public static int TextPanelTop(int lineCount) =>
         Math.Max(ContentTop + 2, (ContentTop + ContentBottom - (16 + lineCount * 10)) / 2);
 
+    /// <summary>
+    /// A text panel's box and text: <see cref="Normal"/> (8 .. 312, text from x 14, 48 columns) or, s183, <see cref="Wide"/>
+    /// (the screen's whole width, 51 columns) for a list whose rows run long (Continue's WHICH PARTY?, <see cref="IWidePanel"/>).
+    /// </summary>
+    public readonly record struct TextPanelFrame(int Left, int Width, int TextX, int MaxChars)
+    {
+        public static readonly TextPanelFrame Normal = new(8, 304, 14, 48);
+        public static readonly TextPanelFrame Wide = new(1, 318, 5, 51);
+
+        public static TextPanelFrame Of(bool wide) => wide ? Wide : Normal;
+    }
+
     /// <summary>A centred modal text panel (DOS save dialog): first line in gold, the rest in body text.</summary>
     public static void DrawTextPanel(SpriteBatch batch, Texture2D pixel, IReadOnlyList<string> lines) =>
         DrawTextPanel(batch, pixel, lines, typing: null);
 
     /// <summary>
     /// <see cref="DrawTextPanel(SpriteBatch, Texture2D, IReadOnlyList{string})"/> with a <paramref name="typing"/> grid
-    /// under the text (one panel line per grid row); null draws exactly the plain panel.
+    /// under the text (one panel line per grid row); null draws exactly the plain panel. <paramref name="wide"/>: the
+    /// <see cref="TextPanelFrame.Wide"/> box.
     /// </summary>
     public static void DrawTextPanel(SpriteBatch batch, Texture2D pixel, IReadOnlyList<string> lines, TypingGrid? typing,
-        ListPage? page = null)
+        ListPage? page = null, bool wide = false)
     {
-        const int maxChars = 48;
+        var frame = TextPanelFrame.Of(wide);
         // Each line whole (s99): a line longer than the panel goes on, at a word, on the next row; a panel with more rows
         // than the screen holds scrolls (PgUp / PgDn where the dialog leaves them free, the wheel, the bar).
         var gridRows = typing?.Rows.Count ?? 0;
-        var (rows, shown, top, height) = TextPanelLayout(lines, gridRows);
-        DrawPanel(batch, pixel, new Rectangle(8, top, 304, height), PanelBg, PanelEdge);
-        int? LineTop(int line) => TextPanelLineTop(lines, line, gridRows);
-        HitPanel(lines, 14, top + 8, 10, maxChars, LineTop);
-        var area = new Rectangle(12, top + 7, 296, shown * 10);
+        var (rows, shown, top, height) = TextPanelLayout(lines, gridRows, wide);
+        DrawPanel(batch, pixel, new Rectangle(frame.Left, top, frame.Width, height), PanelBg, PanelEdge);
+        int? LineTop(int line) => TextPanelLineTop(lines, line, gridRows, wide);
+        HitPanel(lines, frame.TextX, top + 8, 10, frame.MaxChars, LineTop);
+        var area = new Rectangle(frame.Left + 4, top + 7, frame.Width - 8, shown * 10);
         HitScrollArea(TextPanelScroll, area);
         var y = top + 8;
         for (var i = 0; i < shown && TextPanelScroll.Offset + i < rows.Count; i++)
         {
             var (text, line) = rows[TextPanelScroll.Offset + i];
-            PixelFont.Draw(batch, pixel, 14, y, text, line == 0 ? TitleGold : BodyText);
+            PixelFont.Draw(batch, pixel, frame.TextX, y, text, line == 0 ? TitleGold : BodyText);
             y += 10;
         }
         DrawScrollBar(batch, pixel, TextPanelScroll, area);
@@ -2018,12 +2034,13 @@ public static partial class UiOverlays
             var pageBox = new ScrollBox();
             pageBox.Set(page.Total, page.Shown);
             pageBox.ScrollTo(page.Offset);
-            var track = ScrollBox.Track(new Rectangle(12, pageTop - 1, 296, Math.Min(page.Shown, lines.Count - page.FirstLine) * 10));
+            var track = ScrollBox.Track(new Rectangle(frame.Left + 4, pageTop - 1, frame.Width - 8,
+                Math.Min(page.Shown, lines.Count - page.FirstLine) * 10));
             Fill(batch, pixel, track, ScrollTrack);
             Fill(batch, pixel, pageBox.Thumb(track), ScrollThumb);
         }
         if (typing is not null)
-            DrawTypingGrid(batch, pixel, typing, 14, y);
+            DrawTypingGrid(batch, pixel, typing, frame.TextX, y);
     }
 
     /// <summary>
@@ -2031,9 +2048,9 @@ public static partial class UiOverlays
     /// sets <see cref="TextPanelScroll"/> for them (a new panel starts at its top).
     /// </summary>
     public static (List<(string Text, int Line)> Rows, int Shown, int Top, int Height) TextPanelLayout(
-        IReadOnlyList<string> lines, int gridRows = 0)
+        IReadOnlyList<string> lines, int gridRows = 0, bool wide = false)
     {
-        const int maxChars = 48;
+        var maxChars = TextPanelFrame.Of(wide).MaxChars;
         var rows = lines.SelectMany((l, i) => Lines(l, maxChars).Select(r => (Text: r, Line: i))).ToList();
         var shown = Math.Min(rows.Count, Math.Max(1, PromptPanelRows + 1 - gridRows));
         TextPanelScroll.Set(rows.Count, shown);
@@ -2044,9 +2061,9 @@ public static partial class UiOverlays
     }
 
     /// <summary>Where a text panel draws line <paramref name="line"/>'s first row, or null when it is scrolled out of view.</summary>
-    public static int? TextPanelLineTop(IReadOnlyList<string> lines, int line, int gridRows = 0)
+    public static int? TextPanelLineTop(IReadOnlyList<string> lines, int line, int gridRows = 0, bool wide = false)
     {
-        var (rows, shown, top, _) = TextPanelLayout(lines, gridRows);
+        var (rows, shown, top, _) = TextPanelLayout(lines, gridRows, wide);
         var row = rows.FindIndex(r => r.Line == line) - TextPanelScroll.Offset;
         return row >= 0 && row < shown ? top + 8 + row * 10 : null;
     }
@@ -2187,7 +2204,7 @@ public static partial class UiOverlays
             Hits?.Add(TextSpan(14, y, line.Text, 0, 49), new MenuLineTag(i, line.Text));
             y += 10;
         }
-        PixelFont.Draw(batch, pixel, 14, helpY, help, DimText);
+        PixelFont.Draw(batch, pixel, 14, helpY, PadWording.Help(help), DimText); // s183: the pad's wording, pad in use
     }
 
     public static void DrawInventory(

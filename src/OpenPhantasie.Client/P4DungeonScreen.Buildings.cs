@@ -286,10 +286,15 @@ public sealed partial class P4DungeonScreen
             var digit = n.ToString(System.Globalization.CultureInfo.InvariantCulture);
             var y = b.Y + b.Step * n;
             var cell = new PanelRect(b.X, y, 2 * PackWidth(b.Pad, k) + PackWidth(digit, k), b.Height);
-            batch.Draw(pixel, origin + new Vector2(cell.X * k, cell.Y * k), null, Pal(b.Colour, Color.SteelBlue), 0f, Vector2.Zero,
-                new Vector2(cell.Width * k, cell.Height * k), SpriteEffects.None, 0f);
-            PackText(batch, pixel, origin + new Vector2((b.X + PackWidth(b.Pad, k)) * k, y * k), digit, Pal(ink, Color.Black), k);
-            if (asking && (n > 0 || zeroOn))
+            var on = asking && (n > 0 || zeroOn);
+            // s183 live pass: the pad's Y / X pick is lit as a keypad key under the pointer is (_xbtn's XOR); before, the pad's
+            // pick showed nothing here. The mouse keeps the original's look (these _setbtn(-1, …) buttons are not lit).
+            var xor = on && PadPointer is { } p && p.X >= origin.X + b.X * k && p.X < origin.X + (b.X + b.Width) * k
+                && p.Y >= origin.Y + y * k && p.Y < origin.Y + (y + b.Height) * k ? Extras?.Hover?.BoxXor ?? 0 : 0;
+            batch.Draw(pixel, origin + new Vector2(cell.X * k, cell.Y * k), null, Pal(b.Colour ^ xor, Color.SteelBlue), 0f,
+                Vector2.Zero, new Vector2(cell.Width * k, cell.Height * k), SpriteEffects.None, 0f);
+            PackText(batch, pixel, origin + new Vector2((b.X + PackWidth(b.Pad, k)) * k, y * k), digit, Pal(ink ^ xor, Color.Black), k);
+            if (on)
                 UiOverlays.Hits?.Add(new HitRegion(new Rectangle((int)(origin.X + b.X * k), (int)(origin.Y + y * k),
                     (int)Math.Ceiling(b.Width * k), (int)Math.Ceiling(b.Height * k)), new P4PanelIconTag(tag, n))
                 { Click = [Microsoft.Xna.Framework.Input.Keys.D0 + n] });

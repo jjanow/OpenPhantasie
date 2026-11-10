@@ -6,6 +6,17 @@ namespace OpenPhantasie.Client.Tests;
 /// <summary>Esc's game menu (remaster): Resume / Save / Load / DOS import / export / Quit with a Y/N check.</summary>
 public class GameMenuDialogTests
 {
+    [Fact]
+    public void LineAfterClose_GivesBackTheLineTheTitleReplaced()
+    {
+        // s183: "GAME MENU" stayed on the message line after Esc / Resume.
+        Assert.Equal("LEFT TOWN FOR THE WILDERNESS.",
+            GameMenuDialog.LineAfterClose(GameMenuDialog.Title, "LEFT TOWN FOR THE WILDERNESS.", timedBand: false));
+        Assert.Equal("", GameMenuDialog.LineAfterClose(GameMenuDialog.Title, "PELNOR", timedBand: true)); // no replay on the town band
+        Assert.Equal("", GameMenuDialog.LineAfterClose(GameMenuDialog.Title, null, timedBand: false));
+        Assert.Equal("SAVED.", GameMenuDialog.LineAfterClose("SAVED.", "PELNOR", timedBand: false)); // a pick's own line stays
+    }
+
     [OriginalDataFact]
     public void Esc_Resumes_WithNoChoice()
     {

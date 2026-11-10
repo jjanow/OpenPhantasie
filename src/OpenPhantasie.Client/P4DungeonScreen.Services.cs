@@ -184,7 +184,7 @@ public sealed partial class P4DungeonScreen
             case P4TownPrompt.Pick:
                 for (var i = 0; i < choices.Count; i++)
                     lines.Add((choices[i].Enabled ? Option(i, $"{i + 1} {choices[i].Text}")
-                        : new($" {i + 1} {choices[i].Text}", MenuLineStyle.Dim)) with { Icon = ItemIconName(choices[i].Item) });
+                        : DimOption(i, $"{i + 1} {choices[i].Text}")) with { Icon = ItemIconName(choices[i].Item) });
                 break;
             case P4TownPrompt.Who:
                 lines.Add(new(UiText.S("p4.dungeon.who"), MenuLineStyle.Header));
@@ -192,7 +192,7 @@ public sealed partial class P4DungeonScreen
                 {
                     var on = i < who.Count && who[i];
                     lines.Add(on ? Option(i, $"{i + 1} {Game.Party.Members[i].Name}")
-                        : new($" {i + 1} {Game.Party.Members[i].Name}", MenuLineStyle.Dim));
+                        : DimOption(i, $"{i + 1} {Game.Party.Members[i].Name}"));
                 }
                 break;
             case P4TownPrompt.Confirm:

@@ -72,6 +72,8 @@ public partial class StringTableTests
             .Concat(RuleOptionRegistry.All.Select(o => $"option.{o.Id}.desc"))
             .Concat(FeatureModuleRegistry.All.Select(m => $"module.{m.Id}.desc"))
             .Concat(En.Strings.Keys.Where(k => k.StartsWith("options.", StringComparison.Ordinal) && k.EndsWith(".desc", StringComparison.Ordinal)))
+            // s183: a help text's pad wording, shown by its keyboard text's id (PadWording.Help).
+            .Concat(En.Strings.Keys.Where(k => k.EndsWith(PadWording.Suffix, StringComparison.Ordinal)))
             // 09 T2 inventory screen: Core's refusal reasons and the paperdoll boxes of the game's equipment layout.
             .Concat(InventoryActions.ReasonKeys)
             // The Guild treasury's ledger kinds (TreasuryReport.Lines).

@@ -97,7 +97,9 @@ public static partial class UiOverlays
     /// each line centred on the line's width by its length in <paramref name="font"/>, at TopEdge 192. Text longer than the
     /// clear's cells, or with several lines (the remaster's alone: the Amiga's line holds one MESS record of 40), wraps at a
     /// word and stacks upward one font height a line, the last line at 192, so every line stays whole. The key help of a
-    /// dialog (<paramref name="help"/>, the remaster's own) goes above the message, or on the line itself when there is none.
+    /// dialog (<paramref name="help"/>, the remaster's own) goes above the message, <see cref="P1MapHelpGap"/> rows clear of
+    /// it (s183: before, the help's last row touched the message's first), or on the line itself when there is none. On the
+    /// overworld, whose map reaches the line, the help goes on the bar instead (<see cref="P1MapHelpOnBar"/>).
     /// </summary>
     /// <remarks>
     /// s156: <paramref name="record"/> is the MESS record the line shows (a dungeon message cell's, as stored): a message row
@@ -115,11 +117,51 @@ public static partial class UiOverlays
         var rows = Split(help, line.ClearCells, font).Select(t => (t, true))
             .Concat(Split(message, line.ClearCells, font).Select(t => (t, false))).ToList();
         var pitch = font.Height;
+        var messageRows = rows.Count(r => !r.Item2);
+        var gap = messageRows > 0 && messageRows < rows.Count ? P1MapHelpGap : 0;
         var stored = record is { Length: > 0 } rec && line.RecordCells > 0 && rec.Trim().Length > 0 ? rec.PadRight(line.RecordCells) : null;
         int X(string t, bool isHelp) => !isHelp && stored is not null && t == stored.Trim()
             ? (line.CentreWidth - PixelFont.Measure(stored, font)) / 2 + PixelFont.Measure(stored[..stored.IndexOf(t, StringComparison.Ordinal)], font)
             : (line.CentreWidth - PixelFont.Measure(t, font)) / 2;
-        return [.. rows.Select((r, i) => (X(r.t, r.Item2), line.TopEdge - (rows.Count - 1 - i) * pitch, r.t, r.Item2))];
+        return [.. rows.Select((r, i) => (X(r.t, r.Item2), line.TopEdge - (rows.Count - 1 - i) * pitch - (r.Item2 ? gap : 0), r.t, r.Item2))];
+    }
+
+    /// <summary>s183: blank rows between a dialog's help and the message under it on I Amiga's map line.</summary>
+    public const int P1MapHelpGap = 2;
+
+    /// <summary>
+    /// s183: on I Amiga's overworld map screen the map runs down to the line (TopEdge 192), so a dialog's help stacked above
+    /// the message hid the map's last rows and the frame. While the bar takes no input (a dialog, a question or a box owns
+    /// the keys, no menu pulled down) and both a message and a help show, the help goes on the bar's row instead (the
+    /// titles and the gold line give way until the dialog closes) when it fits there on one row; else null (the line
+    /// takes both, as before). Returns the help's place: x (centred), y (the bar's middle).
+    /// </summary>
+    public static (int X, int Y, string Text)? P1MapHelpOnBar(MapMessageLayout layout, IFontSource font, string? message,
+        string? help, bool barIdle)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        ArgumentNullException.ThrowIfNull(font);
+        var text = (help ?? "").Trim();
+        if (!barIdle || layout.MenuBar is not { } bar || layout.Line is not { } line || string.IsNullOrWhiteSpace(message)
+            || text.Length == 0 || text.Contains('\n') || PixelFont.Measure(text, font) > line.ClearCells * PixelFont.Advance
+            || font.Height > bar.Rows)
+            return null;
+        return ((320 - PixelFont.Measure(text, font)) / 2, (bar.Rows - font.Height) / 2, text);
+    }
+
+    /// <summary>
+    /// s183: the bar's row with a dialog's help on it (<see cref="P1MapHelpOnBar"/>): the bar's ground, the help in the line's
+    /// font and the bar's at-rest pen (13), where the titles stand at rest.
+    /// </summary>
+    public static void DrawP1MapBarHelp(SpriteBatch batch, Texture2D pixel, MapMessageLayout layout, (int X, int Y, string Text) help)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        if (layout.MenuBar is not { } bar)
+            return;
+        Color[] pens = [.. layout.Palette.Select(VirtualScreen.ParseColor)];
+        using var scope = PixelFont.With(FontSources.Named(layout.Font, layout.FontFile));
+        Fill(batch, pixel, new Rectangle(0, 0, 320, bar.Rows), pens[bar.BarPen]);
+        PixelFont.Draw(batch, pixel, help.X, help.Y, help.Text, pens[bar.TextPen]);
     }
 
     /// <summary>

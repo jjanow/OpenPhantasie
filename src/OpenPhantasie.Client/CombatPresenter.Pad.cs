@@ -12,10 +12,11 @@ public sealed record CombatPadPick(string Label, IReadOnlyList<Keys> Keys, int S
 /// <see cref="Picks"/> the D-pad steps a pick through them and A sends the pick's keys; with none the D-pad is the arrows.
 /// <see cref="PickOnLeftRight"/>: only Left / Right step the pick (Up / Down stay the step's own arrows).
 /// <see cref="AKey"/>: what A sends before anything is picked. <see cref="LeftRightKey"/>: the key Left / Right send on a
-/// step with no pick that has no use for them (III Amiga's spell window: M, the MORE button).
+/// step with no pick that has no use for them (III Amiga's spell window: M, the MORE button). <see cref="RightTriggerKey"/>:
+/// the key RT sends (s183: III Amiga's spell / heal windows: C, the CANCEL button), or none.
 /// </summary>
 public sealed record CombatPadStep(string Id, IReadOnlyList<CombatPadPick> Picks, bool PickOnLeftRight = false,
-    Keys AKey = Keys.Enter, Keys LeftRightKey = Keys.None);
+    Keys AKey = Keys.Enter, Keys LeftRightKey = Keys.None, Keys RightTriggerKey = Keys.None);
 
 public sealed partial class CombatPresenter
 {
@@ -106,8 +107,23 @@ public sealed partial class CombatPresenter
                 .. new[] { Keys.D1, Keys.D2, Keys.D3 }.Select(k => new CombatPadPick(UiText.S("p3combat.list." + (k - Keys.D0)), [k])),
                 fight,
             ]),
-            OrderStep.SpellNumber => new CombatPadStep(id, [], LeftRightKey: Keys.M), // its cursor: Up / Down, Return; MORE
-            _ => new CombatPadStep(id, []), // the rank window (A = OK, B = CANCEL) and the heal window (its cursor)
+            // its cursor: Up / Down, Return; MORE; s183: RT = CANCEL (C: the order becomes Thrust)
+            OrderStep.SpellNumber => new CombatPadStep(id, [], LeftRightKey: Keys.M, RightTriggerKey: Keys.C),
+            OrderStep.HealTarget => new CombatPadStep(id, [], RightTriggerKey: Keys.C), // its cursor; RT = CANCEL (Thrust)
+            _ => new CombatPadStep(id, []), // the rank window (A = OK, B = CANCEL)
         };
+    }
+
+    /// <summary>
+    /// s183 (Pad leftovers): the pad's B on a DOS-style order list (not the Amiga order screens) goes back as Backspace
+    /// does (<see cref="RestartOrderList"/>: the list again from its first member, orders given so far kept) once there is
+    /// somewhere to go back to: past the first member's order menu. On that menu B opens the game menu as before.
+    /// </summary>
+    public bool PadBackRestartsOrders(GameSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (session.Combat is null || !AwaitingOrders || _amiga || _p1Orders || _orderMember < 0 || _p1ToneThen is not null)
+            return false;
+        return _step != OrderStep.Menu || _orderMember != NextOrderable(session, -1);
     }
 }

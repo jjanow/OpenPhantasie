@@ -417,7 +417,8 @@ public static partial class UiOverlays
         if (screen.SellPriceAt(cursor) is { } price)
         {
             sellLine = lines.Count;
-            lines.Add((UiText.F("inventory.sell_line", price), Accent)); // at most "SELL FOR 65000 GP (L)": fits 25
+            // at most "SELL FOR 65000 GP (LT)": fits 25. s183: the pad's LT, the pad in use
+            lines.Add((screen.UsingPad ? UiText.F("inventory.sell_line_pad", price) : UiText.F("inventory.sell_line", price), Accent));
         }
         if (screen.UnusableReason(owner, id) is { } why)
             foreach (var part in Lines(why, width))

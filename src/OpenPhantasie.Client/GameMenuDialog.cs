@@ -80,6 +80,15 @@ public sealed class GameMenuDialog : IModalDialog, IPadYesNo
 
     public string Help => _confirm is not null ? UiText.S("gamemenu.y_yes_n_esc_back") : UiText.S("gamemenu.up_down_enter_select_esc_resume");
 
+    /// <summary>
+    /// s183: the message line once the menu has closed: <paramref name="current"/> unless it is still the menu's
+    /// <see cref="Title"/>, which gives way to <paramref name="before"/> (the line the title replaced), or to an empty line
+    /// on a screen whose message shows on a timed band (<paramref name="timedBand"/>: the town picture), so an old line
+    /// does not show again there.
+    /// </summary>
+    public static string LineAfterClose(string current, string? before, bool timedBand) =>
+        current != Title ? current : timedBand ? "" : before ?? "";
+
     /// <summary>Opens on Resume.</summary>
     public void Open()
     {

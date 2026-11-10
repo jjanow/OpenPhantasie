@@ -16,6 +16,17 @@ public class P1CombatFieldTests
         GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")!.CombatField!;
 
     [OriginalDataFact]
+    public void HitLine_TakesTheFieldsTopRows_NotThePartyRow()
+    {
+        // s183 (seen in the s182 pad pass): the remaster's "X VS Y: HIT n% DMG?n" covered the party row (y 150..181).
+        var l = Layout();
+        Assert.Equal(15, UiOverlays.P1HitLineTop(l, [32, 40, 38])); // three groups leave the top rows bare
+        Assert.Equal(15, UiOverlays.P1HitLineTop(l, []));
+        Assert.True(15 + UiOverlays.P1HitLinePitch < l.PartyY);
+        Assert.Null(UiOverlays.P1HitLineTop(l, [80, 40, 20])); // a stack up to the frame: left off rather than over a monster
+    }
+
+    [OriginalDataFact]
     public void Pack_HasTheCombatScreen_FromTheCode()
     {
         var pack = GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")!;

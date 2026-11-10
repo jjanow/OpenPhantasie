@@ -69,7 +69,8 @@ public sealed class SaveSlotScreen
         Mode == SaveSlotMode.Start ? (row == 0 ? null : _slots[row - 1]) : _slots[row];
 
     public string Help => Confirming
-        ? UiText.S("saveslots.help_confirm")
+        ? UiText.S("saveslots.help_confirm") // s183: its pad wording (.pad) where it is drawn (PadWording)
+        : PadWording.Active ? UiText.S("saveslots.help_pad") // s183: the pad's buttons, the pad in use
         : UiText.F("saveslots.help_x", SaveSlots.NumberedCount(Game), // 1-9, IV 1-3
             (_slots.Any(s => s.Slot.Number == SaveSlots.AutoNumber) ? UiText.S("saveslots.help_auto") : "")
             + (Mode == SaveSlotMode.Start ? UiText.S("saveslots.help_new") : ""));

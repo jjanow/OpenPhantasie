@@ -171,12 +171,16 @@ public partial class Game1
     private static int StepsFor(SessionPrompt prompt, IReadOnlyList<string> lines) =>
         prompt.Kind == SessionPromptKind.PartyDefeat ? 1 : Math.Max(1, lines.Count);
 
-    /// <summary>A key, click or pad button ends the current defeat line when DOS lets it (<c>0x3bf8</c>); true when taken.</summary>
-    private bool HandleP1DosDefeatKeys(KeyboardState keys, SessionPrompt prompt)
+    /// <summary>
+    /// A key, click or pad button (the prompt's: A, the D-pad) ends the current defeat line when DOS lets it
+    /// (<c>0x3bf8</c>); true when taken. s183: wired into <see cref="HandlePrompt"/> (it was never called, so Return or the
+    /// pad's A answered the prompt's one choice at once and skipped every line still to come).
+    /// </summary>
+    private bool HandleP1DosDefeatKeys(KeyboardState keys, GamePadState pad, SessionPrompt prompt)
     {
         if (_p1DosDefeat is not { } clock || clock.Kind != prompt.Kind)
             return false;
-        if (_input.NewKeys(keys).Any() || _mouse.AnyPressed)
+        if (_input.NewKeys(keys).Any() || _mouse.AnyPressed || PromptPadKeys(_input.NewButtons(pad)).Any())
             clock.Key(_updateSeconds);
         return true;
     }

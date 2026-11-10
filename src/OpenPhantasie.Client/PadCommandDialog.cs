@@ -6,7 +6,7 @@ namespace OpenPhantasie.Client;
 
 /// <summary>
 /// "Pad coverage" (s182): the remaster's pad-only command list for screens whose commands are letter keys only: the Guild
-/// (A)DD, D)ROP, N)EW, P)URGE, R)ENAME, L)IST, Examine, S)PELLS, T)RAINING; the Title screen's Add / Drop) and the
+/// (A)DD, D)ROP, N)EW, P)URGE, R)ENAME, L)IST, Examine, S)PELLS, T)RAINING, E)XIT GUILD (s183); the Title screen's Add / Drop) and the
 /// wilderness / dungeon (F)IGHT, C)AST, I)NSPECT, U)SE POTION, H)EALTH, T)IME LAG, L)OOK). Opened by the pad only (A in
 /// the Guild, RT + A in the field; Game1.DialogPad.cs); a pick sends that command's key on the next frame (after the
 /// bars' and II ST's field-click checks, which it skips), so it opens what the keyboard's letter opens. Up / Down move, Return picks, Esc closes. No original has it: it adds nothing a keyboard
@@ -95,6 +95,7 @@ public sealed class PadCommandDialog : IModalDialog
                     list.Add((UiText.S("pad.cmd.examine"), keyFor(GameAction.GuildExamine)));
                 list.Add((UiText.S("pad.cmd.spells"), Keys.S)); // manual p.4 S)PELLS, T)RAINING: fixed letters
                 list.Add((UiText.S("pad.cmd.training"), Keys.T));
+                list.Add((UiText.S("pad.cmd.exit"), Keys.E)); // s183: manual p.4 E)XIT GUILD (B leaves too)
                 break;
             case GameMode.Title:
                 list.Add((UiText.S("pad.cmd.add"), keyFor(GameAction.GuildAdd)));

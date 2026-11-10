@@ -34,3 +34,12 @@ public interface IPagedDialog
     /// <summary>The page the last <see cref="IModalDialog.Lines"/> call showed, or null.</summary>
     ListPage? Page { get; }
 }
+
+/// <summary>
+/// s183: a dialog whose text panel takes the screen's whole width now (<see cref="UiOverlays.TextPanelFrame.Wide"/>), so its
+/// long rows stay on one line where they can.
+/// </summary>
+public interface IWidePanel
+{
+    bool WidePanel { get; }
+}

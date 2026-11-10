@@ -80,19 +80,39 @@ public class ContinueDialogTests
         var lines = d.Lines(s, ClientSessions.Data);
         Assert.Equal(ContinueDialog.Title, lines[0]);
         Assert.Equal("WHICH PARTY?", lines[1]);
-        Assert.Equal(">" + $"{"XRAY",-16}" + "PELNOR", lines[ContinueDialog.FirstRowLine].ToUpperInvariant());
-        Assert.Equal(" " + $"{"Fighto Priesto",-16}" + "PELNOR", lines[ContinueDialog.FirstRowLine + 1]); // s99: every name
+        Assert.Equal(">XRAY", lines[ContinueDialog.FirstRowLine].ToUpperInvariant());
+        Assert.Equal(" Fighto Priesto", lines[ContinueDialog.FirstRowLine + 1]); // s99: every name; s183: no place on the row
         Assert.Equal(" BY GUILD NUMBER", lines[ContinueDialog.FirstRowLine + 2]);
-        Assert.Equal("Xray", lines[^1]); // the selected party's names
-        Assert.All(lines, l => Assert.True(l.Length <= 48, l)); // these fit; a longer one wraps in the panel (s99)
+        Assert.Equal("PELNOR", lines[^1].ToUpperInvariant()); // s183 (user): the selected party's place under the list
+        Assert.All(lines, l => Assert.True(l.Length <= 48, l));
 
         d.HandleKeys([Keys.Down], s);
-        Assert.Equal("Fighto Priesto", d.Lines(s, ClientSessions.Data)[^1]);
+        Assert.Equal("PELNOR", d.Lines(s, ClientSessions.Data)[^1].ToUpperInvariant());
+        d.HandleKeys([Keys.Down], s); // BY GUILD NUMBER: no place line
+        Assert.Equal(">BY GUILD NUMBER", d.Lines(s, ClientSessions.Data)[^1]);
+        d.HandleKeys([Keys.Up], s);
         Assert.NotNull(d.HandleKeys([Keys.Enter], s));
         Assert.False(d.IsOpen);
         Assert.True(d.TakeLoaded());
         Assert.Equal(GameMode.Guild, s.Mode); // saved in the Guild, where Xray was called up
         Assert.Equal(["Fighto", "Priesto"], s.Party.Members.Select(m => m.Name));
+    }
+
+    [Fact]
+    public void WidePanel_KeepsASixMemberRowOnOneLine()
+    {
+        // s183 (seen in the s182 pad pass): the test party's row ran onto a second line in the 48-column panel (its place
+        // has since moved under the list; a long six-name row still needs the wide panel).
+        var row = ">" + "SWAT ARENTINO LEFTY FRANCISCO FOLNARIUS ZANDORIUS";
+        string[] lines = [ContinueDialog.Title, ContinueDialog.ListQuestion, row, " BY GUILD NUMBER"];
+        Assert.True(row.Length > UiOverlays.TextPanelFrame.Normal.MaxChars);
+        Assert.Equal(5, UiOverlays.TextPanelLayout(lines).Rows.Count);
+        var wide = UiOverlays.TextPanelLayout(lines, wide: true).Rows;
+        Assert.Equal(4, wide.Count);
+        Assert.Equal(row, wide[2].Text);
+        var frame = UiOverlays.TextPanelFrame.Wide;
+        Assert.True(frame.Left >= 0 && frame.Left + frame.Width <= 320);
+        Assert.True(frame.TextX + frame.MaxChars * PixelFont.Advance <= frame.Left + frame.Width - 1 - ScrollBox.BarWidth);
     }
 
     [OriginalDataFact]
@@ -139,7 +159,7 @@ public class ContinueDialogTests
         d.HandleKeys([Keys.Up], s); // wraps to BY GUILD NUMBER, the 12th row
         lines = d.Lines(s, ClientSessions.Data);
         Assert.Equal(">BY GUILD NUMBER", lines[ContinueDialog.FirstRowLine + ContinueDialog.VisibleRows - 1]);
-        Assert.Equal(" " + $"{"M4",-16}" + "WILDERNESS", lines[ContinueDialog.FirstRowLine]);
+        Assert.Equal(" M4", lines[ContinueDialog.FirstRowLine]);
         Assert.True(lines.Count <= 13); // fits the panel
     }
 

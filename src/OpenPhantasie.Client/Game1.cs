@@ -115,6 +115,7 @@ public partial class Game1 : Game
     /// <summary>s174: the start-up update check (CHECK UPDATES AT START, release builds only); its result opens the update screen.</summary>
     private Task<Updates.UpdateCheckResult>? _launchCheck;
     private bool _optionsFromGameMenu; // Esc from in-game Options goes back to the game menu
+    private string _lineBeforeGameMenu = ""; // s183: the message line the game menu's title replaced
     private readonly Dictionary<GameId, IReadOnlyList<(string Id, string Name)>> _packLists = new();
 
     /// <summary>The town's current shopper (manual p.11: "who is shopping? Give the character's number"; 1–6 changes it).</summary>
@@ -291,6 +292,7 @@ public partial class Game1 : Game
         {
             SlotSaved = slot => SaveSlotExists(GameId.P4, slot), // IV's three slots (12-save-slots.md section 2)
             OriginalSlots = !_settings.Game(GameId.P4).SaveSlots,
+            PadInput = PadWording.Active, // s183 live pass: a game picked by pad shows its first help line in the pad's words
         };
         _packs = GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P4));
         UseGraphicsPack(ChosenPack(GameId.P4)); // T6.4: IV's own pictures (X68000), its 640 × 400 screen
@@ -1031,10 +1033,7 @@ public partial class Game1 : Game
     private void AfterOptionsClosed()
     {
         if (_optionsFromGameMenu && _session is not null)
-        {
-            _gameMenu.Open();
-            SetFeedback(GameMenuDialog.Title, _gameMenu.Help);
-        }
+            OpenGameMenu();
         _optionsFromGameMenu = false;
         if (!_options.Changed)
             return;
@@ -1112,6 +1111,9 @@ public partial class Game1 : Game
         var keys = Keyboard.GetState();
         var pad = GamePad.GetState(PlayerIndex.One);
         UpdateMouse(gameTime, keys); // Game1.Mouse.cs: mouse → keys / cursor moves, and a map walk's next step
+        // s183: help lines name the pad's buttons while the pad is the last input (PadWording).
+        PadWording.Note(_input.NewButtons(pad).Any(),
+            _input.AnyRealKeyPressed(keys) || _mouse.AnyPressed || _mouse.Moved && _pointerMoved || _mouse.WheelSteps != 0);
         _updateSeconds = gameTime.TotalGameTime.TotalSeconds;
         UpdateRewardScene(_updateSeconds);
         UpdateVictoryScreen(_updateSeconds);
@@ -1179,6 +1181,8 @@ public partial class Game1 : Game
             _p4.Tick(gameTime.ElapsedGameTime.TotalMilliseconds); // s110: IV's picture animations, the open door
             if (IsMouseVisible && _mouse.Moved)
                 _p4.ClearPadFocus(); // s182: the mouse takes over from the pad's picked button
+            if (_input.AnyRealKeyPressed(keys) || IsMouseVisible && (_mouse.Moved && _pointerMoved || _mouse.LeftClick is not null))
+                _p4.PadInput = false; // s183: the help line names keys again (a pad press sets it, in PadKeys)
             // s151: buttons under the pointer are lit (_xbtn); s182: so is the button the pad picked (Y / X)
             _p4.Pointer = _p4.PadPointer ?? (IsMouseVisible ? _mouse.Position : null);
             _p4.MysticSkippable = _settings.Game(GameId.P4).MysticSkip;
@@ -1195,8 +1199,9 @@ public partial class Game1 : Game
             {
                 // s182 "Pad coverage": the pad's buttons as the keys this prompt takes (P4DungeonScreen.Pad.cs); a button
                 // the pad picked with Y / X is clicked by A as the mouse would (Game1.Mouse.cs Act).
+                // s183: the left stick by its position (StickQuantizer: one direction per push, never N then NE).
                 var padKeys = _p4.PadKeys([.. _input.NewButtons(pad)], P4DungeonScreen.HeldButtons(pad), _hits.Regions,
-                    out var padPress);
+                    pad.ThumbSticks.Left, gameTime.ElapsedGameTime.TotalMilliseconds, out var padPress);
                 if (padPress is not null)
                     Act(padPress, padPress.Bounds.Center, clicked: true);
                 if (_p4.HandleKeys(_input.NewKeys(keys).Concat(padKeys)) is { } request)
@@ -1223,7 +1228,9 @@ public partial class Game1 : Game
             else if (_import.IsOpen)
             {
                 _import.Update();
-                _import.HandleKeys(_input.NewKeys(keys).Concat(ImportScreen.PadKeys(_input.NewButtons(pad))));
+                if (_input.AnyRealKeyPressed(keys) || IsMouseVisible && _mouse.Moved)
+                    _import.PadInUse = false; // s183: the help line names keys again (a pad press sets it)
+                _import.HandleKeys(_input.NewKeys(keys).Concat(_import.PadKeys(_input.NewButtons(pad))));
             }
             else if (_options.IsOpen)
             {
@@ -1392,6 +1399,8 @@ public partial class Game1 : Game
                 }
                 if (_session.Mode == GameMode.Town)
                     RefreshTownStock();
+                if (ReferenceEquals(modal, _gameMenu) && !modal.IsOpen) // s183: before a pick sets its own line
+                    _message = GameMenuDialog.LineAfterClose(_message, _lineBeforeGameMenu, TownPictureScreen(_session));
                 if (_gameMenu.TakeChoice() is { } picked)
                     RunGameMenuChoice(picked);
                 if (_padCommands.TakeChoice() is { } padCommand)
@@ -1614,11 +1623,19 @@ public partial class Game1 : Game
             // s158: the dungeon's pen-10 frame (h56 +0xe7c).
             if (ViewMode(_session) is GameMode.Overworld or GameMode.Dungeon)
                 UiOverlays.DrawP1MapFrame(_spriteBatch, _pixel, p1Map, ViewMode(_session) == GameMode.Dungeon);
-            UiOverlays.DrawP1MapLine(_spriteBatch, _pixel, p1Map, BandMessage,
-                _help == HelpForMode(_session.Mode) ? "" : _help,
+            var mapHelp = PadWording.Help(_help == HelpForMode(_session.Mode) ? "" : _help); // s183: the pad's wording
+            // s183: the overworld's map reaches the line: a dialog's help goes on the idle bar, not over the map's foot.
+            var barHelp = ViewMode(_session) == GameMode.Overworld && _p1MapBar.Open is null
+                ? UiOverlays.P1MapHelpOnBar(p1Map, FontSources.Named(p1Map.Font, p1Map.FontFile) ?? PixelFont.Font, BandMessage, mapHelp,
+                    barIdle: !P1MapBarTakesInput(_session))
+                : null;
+            UiOverlays.DrawP1MapLine(_spriteBatch, _pixel, p1Map, BandMessage, barHelp is null ? mapHelp : "",
                 ViewMode(_session) == GameMode.Dungeon ? _session.LastDungeonMessageRecord : null);
-            UiOverlays.DrawP1MapMenuBar(_spriteBatch, _pixel, p1Map, _p1MapBar, ViewMode(_session) != GameMode.Dungeon,
-                P1MapBarTakesInput(_session), _session);
+            if (barHelp is { } onBar)
+                UiOverlays.DrawP1MapBarHelp(_spriteBatch, _pixel, p1Map, onBar);
+            else
+                UiOverlays.DrawP1MapMenuBar(_spriteBatch, _pixel, p1Map, _p1MapBar, ViewMode(_session) != GameMode.Dungeon,
+                    P1MapBarTakesInput(_session), _session);
         }
         else if (FullScreenOverworld(_session))
             UiOverlays.DrawMapHud(_spriteBatch, _pixel, BandMessage, UiOverlays.TreasuryGoldLine(_session));
@@ -1627,13 +1644,16 @@ public partial class Game1 : Game
             // the key help on it (clickable) while the mouse rests on the band's rows or below.
             UiOverlays.DrawTownHud(_spriteBatch, _pixel, _assets.TownScreen,
                 messageShows && BandMessage.Length > 0 ? BandMessage : null,
-                IsMouseVisible && _mouse.Position is { } at && at.Y >= UiOverlays.TownBandTop(_assets.TownScreen) ? _help : null,
+                IsMouseVisible && _mouse.Position is { } at && at.Y >= UiOverlays.TownBandTop(_assets.TownScreen) ? _help
+                // s183: the pad in use, its words (LT / RT shopper) once no message holds the band
+                : PadHelpShown(_help) && !(messageShows && BandMessage.Length > 0) ? PadWording.Help(_help) : null,
                 CurrentGameSettings.OriginalScreens,
                 gold: TownBarPlaces(_session) is null ? _session : null); // III Amiga: the gold line is on its town bar
         else if (ViewMode(_session) is GameMode.Overworld or GameMode.Dungeon && !CurrentGameSettings.StatusLines)
-            // D-077 (manual): no status line; the key help only when a dialog shows its own.
+            // D-077 (manual): no status line; the key help only when a dialog shows its own. s183: and, the pad in use, the
+            // map's own help in the pad's words (RT + A, the right stick: no keyboard player's help to learn them from).
             UiOverlays.DrawHud(_spriteBatch, _pixel, _session, _settings, BandMessage,
-                _help == HelpForMode(_session.Mode) ? "" : _help, statusLine: null);
+                _help == HelpForMode(_session.Mode) && !PadHelpShown(_help) ? "" : _help, statusLine: null);
         else
             UiOverlays.DrawHud(_spriteBatch, _pixel, _session, _settings, BandMessage, _help, FieldStatus(_session),
                 messageKeys: _mouseUsed && _combatUi.AwaitingOrders);
@@ -1685,7 +1705,12 @@ public partial class Game1 : Game
         else if (_combatUi.AmigaFieldMenuShown && !_showInventory && !_showBestiary)
             UiOverlays.DrawFieldMenuScreen(_spriteBatch, _pixel, _assets, _session, _combatUi); // its menu bar (s119)
         else if (_session.Mode == GameMode.Combat && !_showInventory && !_showBestiary && !_combatUi.AwaitingInput)
-            UiOverlays.DrawTooltip(_spriteBatch, _pixel, CombatPresenter.FormatHitTooltip(_session));
+        {
+            if (_combatUi.P1FieldShown) // s183: I Amiga's field: the top rows, not the strip over its party row
+                UiOverlays.DrawP1HitLine(_spriteBatch, _pixel, _assets, _session, _combatUi, CombatPresenter.FormatHitTooltip(_session));
+            else
+                UiOverlays.DrawTooltip(_spriteBatch, _pixel, CombatPresenter.FormatHitTooltip(_session));
+        }
         if (_session.Mode == GameMode.Combat && _combatUi.InfoBox.Count > 0 && !InventoryScreenOpen)
         {
             // s154: on I Amiga's field Show names is requester 23 (timed) and Party health requester 21 with OK (s158 live:
@@ -1953,7 +1978,8 @@ public partial class Game1 : Game
             else if (ReferenceEquals(modal, _guildNewDialog) && P1RolledSheetFor(_session) is { } rolledSheet)
                 UiOverlays.DrawP1Requester(_spriteBatch, _pixel, _assets!.Pack!.MapRequesters!, rolledSheet);
             else
-                UiOverlays.DrawTextPanel(_spriteBatch, _pixel, lines, typing, (modal as IPagedDialog)?.Page);
+                UiOverlays.DrawTextPanel(_spriteBatch, _pixel, lines, typing, (modal as IPagedDialog)?.Page,
+                    modal is IWidePanel { WidePanel: true });
             if (ReferenceEquals(modal, _continueDialog))
                 HitContinueRows(lines);
             if (ReferenceEquals(modal, _treasuryDialog) && UiOverlays.Hits is { } treasuryHits)
@@ -2061,12 +2087,23 @@ public partial class Game1 : Game
 
         // III Amiga's orders screen (s118): with a member picked (its option, the rank window, the spell list) Esc goes
         // back to the member boxes / answers CANCEL instead of opening the game menu; it closes window 7 (any key does, s134).
+        // s183: I Amiga's the same (with a member picked, back to the member boxes: HandleP1OrderKey's Esc).
         if ((_combatUi.AmigaOrdersShown && (_combatUi.OrderMember >= 0 || _combatUi.AmigaMessageShown)
+             || _combatUi.P1OrdersShown && _combatUi.OrderMember >= 0
              || _combatUi.AmigaFieldMenuShown && _combatUi.FieldMenuOpen is not null
              || _combatUi.AsksDosRank(s)) // s156: DOS III's rank menu: Esc answers Two
             && _input.Pressed(GameAction.GameMenu, keys, pad))
         {
             _combatUi.HandleKey(s, Keys.Escape);
+            SetFeedback(_combatUi.LastLine, HelpForCombat());
+            return true;
+        }
+
+        // s183 (Pad leftovers): the pad's B on a DOS order list goes back as Backspace does, past the first member's menu.
+        if (_input.NewButtons(pad).Contains(Buttons.B) && !_input.Pressed(GameAction.GameMenu, keys, default)
+            && _combatUi.PadBackRestartsOrders(s))
+        {
+            _combatUi.HandleKey(s, Keys.Back);
             SetFeedback(_combatUi.LastLine, HelpForCombat());
             return true;
         }
@@ -2168,10 +2205,19 @@ public partial class Game1 : Game
             SetFeedback(s.LastMessage, HelpForMode(s.Mode));
         }
         else
-        {
-            _gameMenu.Open();
-            SetFeedback(GameMenuDialog.Title, _gameMenu.Help);
-        }
+            OpenGameMenu();
+    }
+
+    /// <summary>
+    /// Opens the game menu with its title on the message line; s183: the line it replaced comes back when the menu closes
+    /// (<see cref="GameMenuDialog.LineAfterClose"/>), so "GAME MENU" never stays on the line.
+    /// </summary>
+    private void OpenGameMenu()
+    {
+        if (_message != GameMenuDialog.Title)
+            _lineBeforeGameMenu = _message;
+        _gameMenu.Open();
+        SetFeedback(GameMenuDialog.Title, _gameMenu.Help);
     }
 
     private void RunGameMenuChoice(GameMenuChoice choice)
@@ -2248,6 +2294,8 @@ public partial class Game1 : Game
     private void HandlePrompt(KeyboardState keys, GamePadState pad, SessionPrompt prompt)
     {
         if (HandleP1DefeatKeys(keys, pad, prompt))
+            return;
+        if (HandleP1DosDefeatKeys(keys, pad, prompt)) // s183: a key ends the DOS defeat's current line only
             return;
         if (HandleP2DefeatHoldKeys(keys, pad, prompt))
             return;
@@ -4000,6 +4048,9 @@ public partial class Game1 : Game
 
     /// <summary>s163: <paramref name="text"/> with each window row break ("\r" and the blanks after it) as one space.</summary>
     public static string OneLine(string text) => System.Text.RegularExpressions.Regex.Replace(text ?? "", "\r *", " ");
+
+    /// <summary>s183: the pad is the input and <paramref name="help"/> has a pad wording (<see cref="PadWording"/>).</summary>
+    private static bool PadHelpShown(string help) => PadWording.Active && !ReferenceEquals(PadWording.Help(help), help);
 
     private void SetFeedback(string message, string help)
     {

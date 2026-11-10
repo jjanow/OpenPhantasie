@@ -183,6 +183,46 @@ public static partial class UiOverlays
             Outline(batch, pixel, new Rectangle(f.X + k, f.Y + k, f.W - 2 * k, f.H - 2 * k), pens[layout.FramePen]);
     }
 
+    /// <summary>Rows of the remaster's hit line on I Amiga's field (<see cref="DrawP1HitLine"/>).</summary>
+    public const int P1HitLinePitch = 8;
+
+    /// <summary>
+    /// s183: where the remaster's hit line (<see cref="CombatPresenter.FormatHitTooltip"/>, not the Amiga's) goes on I
+    /// Amiga's field: the field's top rows, under the frame, where nothing is drawn while the round plays (the party row at
+    /// <see cref="CombatFieldLayout.PartyY"/>, the line under it and the menu bar above the frame are all the Amiga's).
+    /// Null when the monster groups stacked above the party (<paramref name="groupHeights"/>, front rank first) reach up
+    /// into those rows: then the line would hide a monster, and it is left off.
+    /// </summary>
+    public static int? P1HitLineTop(CombatFieldLayout layout, IReadOnlyList<int> groupHeights, int rows = 1)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        ArgumentNullException.ThrowIfNull(groupHeights);
+        var top = layout.Field.Y + 1;
+        var bottom = top + rows * P1HitLinePitch; // the band's first row under it
+        return groupHeights.Count == 0 || layout.GroupTops(groupHeights).Min() > bottom ? top : null;
+    }
+
+    /// <summary>
+    /// s183: the remaster's hit line on I Amiga's field at <see cref="P1HitLineTop"/> (before, it took the remaster's help
+    /// strip at y 168, over the party row): centred, on the field's pen 0.
+    /// </summary>
+    public static void DrawP1HitLine(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, GameSession session,
+        CombatPresenter presenter, string text)
+    {
+        if (string.IsNullOrEmpty(text) || presenter.P1Layout is not { } layout)
+            return;
+        var snapshot = presenter.P1Snapshot ?? (session.Combat is { } combat ? P1CombatFieldSnapshot.Of(session.Party, combat) : null);
+        var heights = snapshot?.Groups.Select(g => assets.GetMonsterIdle(g[0].Id)?.Height ?? layout.Slot).ToList() ?? [];
+        var lines = Lines(text, (layout.Field.W - 4) / PixelFont.Advance);
+        if (P1HitLineTop(layout, heights, lines.Count) is not int top)
+            return;
+        var pens = Pens(layout);
+        Fill(batch, pixel, new Rectangle(layout.Field.X, top - 1, layout.Field.W, lines.Count * P1HitLinePitch + 1), pens[0]);
+        for (var i = 0; i < lines.Count; i++)
+            PixelFont.Draw(batch, pixel, (320 - PixelFont.Measure(lines[i])) / 2, top + i * P1HitLinePitch, lines[i],
+                new Color(200, 220, 255));
+    }
+
     /// <summary>
     /// The menu strip (h81): the titles on the bar; with a menu pulled down (Party Options waiting) its title's highlight
     /// box, the item box with its border and the items, the highlighted one complemented.

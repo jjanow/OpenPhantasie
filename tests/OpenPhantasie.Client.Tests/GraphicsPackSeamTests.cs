@@ -45,7 +45,8 @@ public class GraphicsPackSeamTests
     public void DefaultFont_DrawsLowerCaseAsCapitals_AndUnknownAsQuestionMark()
     {
         Assert.Same(Default.Glyph('A'), Default.Glyph('a'));
-        Assert.Same(Default.Glyph('?'), Default.Glyph('~'));
+        Assert.Same(Default.Glyph('?'), Default.Glyph('{'));
+        Assert.NotSame(Default.Glyph('?'), Default.Glyph('~')); // s183: I's hit line "dmg~n" has its own tilde
         Assert.Same(Default.Glyph('?'), Default.Glyph(0x3042));
         Assert.Empty(Default.Glyph(' ').Rows); // a space draws nothing and advances one cell
         Assert.Equal(6, Default.Glyph(' ').Advance);

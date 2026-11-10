@@ -6,9 +6,9 @@ namespace OpenPhantasie.Client;
 
 /// <summary>
 /// "Pad coverage" (s182): the pad in a fight (I–III, every layout), as keys for <see cref="CombatPresenter.HandleKey"/>.
-/// Only the D-pad, the left stick and A are read here: B (the game menu, or Esc where a step backs out), X / Y (inventory /
-/// bestiary), LB / RB (save / load), LT (fast-forward) and Back stay the game's own (<c>HandleGlobalInput</c>), so no
-/// button acts twice. On a step with picks (<see cref="CombatPadStep.Picks"/>) the D-pad steps a pick (wrapping; a first
+/// Only the D-pad, the left stick, A and (s183) RT on a step that names a key for it (<see cref="CombatPadStep.RightTriggerKey"/>)
+/// are read here: B (the game menu, or Esc / Backspace where a step backs out), X / Y (inventory / bestiary), LB / RB
+/// (save / load), LT (fast-forward) and Back stay the game's own (<c>HandleGlobalInput</c>), so no button acts twice. On a step with picks (<see cref="CombatPadStep.Picks"/>) the D-pad steps a pick (wrapping; a first
 /// Down / Right shows the first entry, a first Up / Left the last) that the help line names, and A sends its keys;
 /// before a pick A sends the step's <see cref="CombatPadStep.AKey"/> (Return: keep the order, take the lit entry).
 /// Elsewhere the D-pad is the arrows. It never sends Esc or PgUp / PgDn.
@@ -54,6 +54,11 @@ public sealed class CombatPad
                     keys.Add(step.LeftRightKey);
                 else
                     keys.Add(arrow);
+            }
+            else if (b == Buttons.RightTrigger)
+            {
+                if (step.RightTriggerKey != Keys.None)
+                    keys.Add(step.RightTriggerKey);
             }
             else if (b == Buttons.A)
             {

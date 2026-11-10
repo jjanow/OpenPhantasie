@@ -602,8 +602,17 @@ public sealed partial class P4DungeonScreen
     private MenuLine Option(int i, string text) =>
         i == Cursor ? new(">" + text, MenuLineStyle.Selected) : new(" " + text, MenuLineStyle.Normal);
 
-    /// <summary>The bottom help line for the current prompt.</summary>
-    public string Help => DiskPageUp ? SystemHelp
+    /// <summary>
+    /// A line that can't be picked now: dim, with the cursor's "&gt;" when the cursor is on it (s183 live pass: Up / Down
+    /// and a fresh list's cursor stop on such lines too, and the pad's cursor was lost there, A doing nothing).
+    /// </summary>
+    private MenuLine DimOption(int i, string text) => new((i == Cursor ? ">" : " ") + text, MenuLineStyle.Dim);
+
+    /// <summary>The bottom help line for the current prompt: the pad's buttons while the pad is in use (s183).</summary>
+    public string Help => PadInput && PadHelp is { } pad ? pad : KeyHelp;
+
+    /// <summary>The bottom help line for the current prompt, by keys.</summary>
+    private string KeyHelp => DiskPageUp ? SystemHelp
         : Game.Battle is { } b ? BattleHelp(b)
         : DoorOpen || MysticBusy || WelcomeUp ? "" // no keys are read: no help to give
         : MenuOpen ? M!.Prompt switch

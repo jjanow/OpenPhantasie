@@ -38,12 +38,15 @@ public sealed class ImportScreen
 
     /// <param name="run">Scan and import the paths (default: <see cref="ImportRunner"/> into <paramref name="importRoot"/>).</param>
     /// <param name="refresh">Re-run the versions built by an older recipe (default: <see cref="ImportRunner.Refresh"/>).</param>
+    /// <param name="browseHome">Where the folder browser starts (default: the user's home folder).</param>
     public ImportScreen(string importRoot,
         Func<IReadOnlyList<string>, IProgress<string>, ImportReport>? run = null,
         Func<IReadOnlyList<StoreLibraries.Library>>? libraries = null,
-        Func<IProgress<string>, ImportReport>? refresh = null)
+        Func<IProgress<string>, ImportReport>? refresh = null,
+        string? browseHome = null)
     {
         ImportRoot = importRoot;
+        _browseHome = browseHome ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         _run = run ?? ((paths, progress) =>
             new ImportRunner(importRoot, GameDataLocator.ShippedRoot).Run(ImportRunner.Scan(paths), progress));
         _refresh = refresh ?? (progress => new ImportRunner(importRoot, GameDataLocator.ShippedRoot).Refresh(progress));
@@ -56,8 +59,14 @@ public sealed class ImportScreen
     public bool FirstRun { get; private set; }
     public bool Running => _task is { IsCompleted: false };
     public bool ShowingReport { get; private set; }
-    /// <summary>Selected row (see <see cref="RowCount"/>).</summary>
-    public int Cursor { get; private set; }
+    /// <summary>Selected row (see <see cref="RowCount"/>); while browsing, the browser's row.</summary>
+    public int Cursor
+    {
+        get => Browsing ? _browseCursor : _cursor;
+        private set => _cursor = value;
+    }
+
+    private int _cursor;
     /// <summary>Set when an import committed something; the shell reloads data and art.</summary>
     public bool Imported { get; private set; }
     public IReadOnlyList<string> Paths => _paths;
@@ -72,12 +81,186 @@ public sealed class ImportScreen
     /// <summary>Run when an import committed (the shell re-reads the import: <see cref="GameDataLocator.UseImport"/>).</summary>
     public Action? OnImported { get; set; }
 
+    /// <summary>
+    /// s183 "Pad leftovers": the pad is the input in use (a button was pressed since the last key or mouse move; the shell
+    /// clears it): the help line names the pad's buttons.
+    /// </summary>
+    public bool PadInUse { get; set; }
+
+    // --- The folder browser (s183) ------------------------------------------------------------------------------------
+    // A pad can't type a path, so Tab (pad Y) on the path row, or on the missing file's row, opens a browser of the
+    // folders and files on this machine: Up / Down move, Return opens a folder (or picks a file), Backspace / Left goes up,
+    // Space picks the row (a folder or a file), Esc closes it. The keyboard can use it too.
+
+    private readonly string _browseHome;
+    private string? _browseDir; // null: the drive list (Windows, above a drive's root)
+    private string? _lastBrowseDir;
+    private List<BrowseEntry> _entries = [];
+    private int _browseCursor;
+    private bool _browseUnreadable;
+
+    /// <summary>One row of the browser: up one folder, use this folder, or a folder / file in it.</summary>
+    public sealed record BrowseEntry(BrowseKind Kind, string Name, string Path);
+
+    public enum BrowseKind { Up, UseFolder, Folder, File }
+
+    /// <summary>The folder browser is open (it takes the keys and the rows).</summary>
+    public bool Browsing { get; private set; }
+
+    /// <summary>The folder the browser shows (null: the drive list).</summary>
+    public string? BrowseFolder => _browseDir;
+
+    /// <summary>The browser's rows (<see cref="Cursor"/> picks one while browsing).</summary>
+    public IReadOnlyList<BrowseEntry> BrowseEntries => _entries;
+
+    /// <summary>Open the browser where the typed path points (its folder), else where it was last, else at home.</summary>
+    private void OpenBrowser()
+    {
+        var typed = Checked(Typed);
+        var start = typed is not null && Directory.Exists(typed) ? typed
+            : typed is not null ? Path.GetDirectoryName(typed)
+            : _lastBrowseDir is not null && Directory.Exists(_lastBrowseDir) ? _lastBrowseDir
+            : _browseHome;
+        Browsing = true;
+        _scroll = 0;
+        BrowseTo(start);
+    }
+
+    /// <summary>Show <paramref name="dir"/> (null: the drive list) with the cursor on <paramref name="select"/>, if listed.</summary>
+    private void BrowseTo(string? dir, string? select = null)
+    {
+        _browseDir = dir;
+        _browseUnreadable = false;
+        var entries = new List<BrowseEntry>();
+        if (dir is null)
+        {
+            foreach (var d in DriveInfo.GetDrives().Where(d => d.IsReady))
+                entries.Add(new BrowseEntry(BrowseKind.Folder, d.Name, d.RootDirectory.FullName));
+        }
+        else
+        {
+            _lastBrowseDir = dir;
+            if (Path.GetDirectoryName(dir) is not null || OperatingSystem.IsWindows())
+                entries.Add(new BrowseEntry(BrowseKind.Up, UiText.S("import.browse.up"), ""));
+            entries.Add(new BrowseEntry(BrowseKind.UseFolder, UiText.S("import.browse.use"), dir));
+            try
+            {
+                var info = new DirectoryInfo(dir);
+                // Visible names first, then hidden ones (a Steam library sits under ~/.local), each A-Z.
+                static IEnumerable<T> Sorted<T>(IEnumerable<T> items) where T : FileSystemInfo =>
+                    items.OrderBy(i => i.Name.StartsWith('.')).ThenBy(i => i.Name, StringComparer.OrdinalIgnoreCase);
+                entries.AddRange(Sorted(info.EnumerateDirectories()).Select(d =>
+                    new BrowseEntry(BrowseKind.Folder, d.Name + Path.DirectorySeparatorChar, d.FullName)));
+                entries.AddRange(Sorted(info.EnumerateFiles()).Select(f => new BrowseEntry(BrowseKind.File, f.Name, f.FullName)));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+            {
+                _browseUnreadable = true;
+            }
+        }
+        _entries = entries;
+        var at = select is null ? -1 : entries.FindIndex(e => e.Path == select);
+        _browseCursor = at >= 0 ? at : entries.FindIndex(e => e.Kind is BrowseKind.Folder or BrowseKind.File) is var first and >= 0
+            ? first : 0;
+        _scroll = 0;
+    }
+
+    /// <summary>Up one folder (the drive list above a Windows drive's root); the cursor lands on the folder left.</summary>
+    private void BrowseUp()
+    {
+        if (_browseDir is null)
+            return;
+        var parent = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(_browseDir));
+        if (parent is null && !OperatingSystem.IsWindows())
+            return; // the root
+        BrowseTo(parent, _browseDir);
+    }
+
+    /// <summary>The browser's keys.</summary>
+    private void BrowseKey(Keys key)
+    {
+        var count = _entries.Count;
+        var entry = _browseCursor < count ? _entries[_browseCursor] : null;
+        switch (key)
+        {
+            case Keys.Up when count > 0:
+                _browseCursor = (_browseCursor + count - 1) % count;
+                break;
+            case Keys.Down when count > 0:
+                _browseCursor = (_browseCursor + 1) % count;
+                break;
+            case Keys.PageUp:
+                _browseCursor = Math.Max(0, _browseCursor - VisibleLines);
+                break;
+            case Keys.PageDown:
+                _browseCursor = Math.Max(0, Math.Min(count - 1, _browseCursor + VisibleLines));
+                break;
+            case Keys.Back or Keys.Left:
+                BrowseUp();
+                break;
+            case Keys.Escape:
+                Browsing = false;
+                _scroll = 0;
+                break;
+            case Keys.Enter or Keys.Right when entry is not null:
+                switch (entry.Kind)
+                {
+                    case BrowseKind.Up:
+                        BrowseUp();
+                        break;
+                    case BrowseKind.Folder:
+                        BrowseTo(entry.Path);
+                        break;
+                    case BrowseKind.UseFolder or BrowseKind.File when key == Keys.Enter:
+                        BrowsePick(entry.Path);
+                        break;
+                }
+                break;
+            case Keys.Space when entry is { Kind: not BrowseKind.Up }:
+                BrowsePick(entry.Path);
+                break;
+        }
+    }
+
+    /// <summary>The browser's pick: the missing file is imported at once; else the path is added and the cursor goes to IMPORT.</summary>
+    private void BrowsePick(string path)
+    {
+        Browsing = false;
+        _scroll = 0;
+        if (AskingForOffer)
+        {
+            if (Checked(path) is { } file)
+                Start([file]);
+            return;
+        }
+        if (AddPath(path))
+            Cursor = ImportRow;
+    }
+
+    /// <summary>The browser's lines: the folder it shows (wrapped, nothing cut), then a note when it can't be read.</summary>
+    private List<MenuLine> BrowseHeader()
+    {
+        var lines = new List<MenuLine>
+        {
+            new(AskingForOffer ? UiText.S("import.browse.title.offer") : UiText.S("import.browse.title"), MenuLineStyle.Title),
+        };
+        lines.AddRange(Wrap(_browseDir ?? UiText.S("import.browse.drives"), MenuLineStyle.Header));
+        if (_browseUnreadable)
+            lines.AddRange(Wrap(UiText.S("import.browse.unreadable"), MenuLineStyle.Dim));
+        return lines;
+    }
+
+    private List<MenuLine> BrowseRows() =>
+        [.. _entries.Select((e, i) => new MenuLine((i == _browseCursor ? ">" : " ") + Tail(e.Name, Columns - 1),
+            i == _browseCursor ? MenuLineStyle.Selected : e.Kind == BrowseKind.UseFolder ? MenuLineStyle.Header : MenuLineStyle.Normal))];
+
     public void Open(bool firstRun)
     {
         FirstRun = firstRun;
         IsOpen = true;
         ShowingReport = false;
         AskingForOffer = false;
+        Browsing = false;
         _offer = null;
         Imported = false;
         Cursor = 0;
@@ -97,7 +280,7 @@ public sealed class ImportScreen
     /// <summary>Text typed (Window.TextInput): goes into the path row; backspace deletes.</summary>
     public void OnTextInput(char c)
     {
-        if (!IsOpen || Running || ShowingReport || Cursor != 0)
+        if (!IsOpen || Running || ShowingReport || Browsing || Cursor != 0)
             return;
         if (c == '\b')
         {
@@ -113,6 +296,7 @@ public sealed class ImportScreen
     {
         if (!IsOpen || Running)
             return;
+        Browsing = false; // a drop answers as the browser's pick would
         if (AskingForOffer)
         {
             var given = paths.Select(Checked).OfType<string>().ToList();
@@ -246,6 +430,11 @@ public sealed class ImportScreen
                 }
                 continue;
             }
+            if (Browsing)
+            {
+                BrowseKey(key);
+                continue;
+            }
             if (AskingForOffer)
             {
                 if (key == Keys.Escape)
@@ -256,6 +445,8 @@ public sealed class ImportScreen
                 }
                 else if (key == Keys.Enter && Checked(Typed) is { } file)
                     Start([file]);
+                else if (key == Keys.Tab)
+                    OpenBrowser();
                 continue;
             }
             switch (key)
@@ -263,6 +454,10 @@ public sealed class ImportScreen
                 case Keys.Escape:
                     IsOpen = false;
                     return true;
+                case Keys.Tab:
+                    Cursor = 0;
+                    OpenBrowser();
+                    break;
                 case Keys.Up:
                     Cursor = (Cursor + RowCount - 1) % RowCount;
                     break;
@@ -288,14 +483,37 @@ public sealed class ImportScreen
     /// <summary>
     /// "Pad coverage" (s182): a pad on this screen. The shared map (<see cref="InputMap.MenuPadKey"/>: D-pad / stick =
     /// arrows, A = Return, B = Esc, LB / RB = PgUp / PgDn) plus X for Delete (removes the added path under the cursor).
-    /// A pad can't type a path (the typed row and the report's A offer need a keyboard or a dropped file); it adds the
-    /// Steam / GOG library rows, runs IMPORT and DONE.
+    /// s183: Y opens the folder browser (Tab) on the rows and on the missing file's row, and takes the report's offer (A);
+    /// in the browser A opens (Return), B closes it (Esc), X picks (Space) and Y goes up a folder (Backspace). Any button
+    /// makes the pad the input in use (<see cref="PadInUse"/>).
     /// </summary>
-    public static IEnumerable<Keys> PadKeys(IEnumerable<Buttons> buttons) => buttons.Select(b => b switch
+    public IEnumerable<Keys> PadKeys(IEnumerable<Buttons> buttons)
     {
-        Buttons.X => Keys.Delete,
-        _ => InputMap.MenuPadKey(b),
-    }).Where(k => k != Keys.None);
+        ArgumentNullException.ThrowIfNull(buttons);
+        var keys = new List<Keys>();
+        foreach (var b in buttons)
+        {
+            PadInUse = true;
+            var k = Browsing
+                ? b switch
+                {
+                    Buttons.X => Keys.Space,
+                    Buttons.Y => Keys.Back,
+                    _ => InputMap.MenuPadKey(b),
+                }
+                : ShowingReport
+                    ? b == Buttons.Y && _offer is not null ? Keys.A : InputMap.MenuPadKey(b)
+                    : b switch
+                    {
+                        Buttons.X => Keys.Delete,
+                        Buttons.Y => Keys.Tab,
+                        _ => InputMap.MenuPadKey(b),
+                    };
+            if (k != Keys.None)
+                keys.Add(k);
+        }
+        return keys;
+    }
 
     /// <summary>Mouse: the row drawn on line <paramref name="line"/> of <see cref="Lines"/>, or null.</summary>
     public int? RowOfLine(int line)
@@ -303,7 +521,8 @@ public sealed class ImportScreen
         if (Running || ShowingReport)
             return null;
         var row = line - HeaderCount + _scroll;
-        return line >= HeaderCount && line < HeaderCount + VisibleLines && row < RowCount ? row : null;
+        var rows = Browsing ? _entries.Count : RowCount;
+        return line >= HeaderCount && line < HeaderCount + VisibleLines && row < rows ? row : null;
     }
 
     /// <summary>Return on the cursor's row; true when it closes the screen.</summary>
@@ -337,17 +556,22 @@ public sealed class ImportScreen
         public void Report(string value) => report(value);
     }
 
-    private int HeaderCount => 2 + MainMenuScreen.Games.Count + 1;
+    private int HeaderCount => Browsing && !Running && !ShowingReport ? BrowseHeader().Count : 2 + MainMenuScreen.Games.Count + 1;
 
+    /// <summary>The help line: by keys, or by the pad's buttons while the pad is in use (<see cref="PadInUse"/>).</summary>
     public string Help => Running ? UiText.S("import.help.running")
-        : ShowingReport ? (_offer is null ? UiText.S("import.help.report") : UiText.S("import.help.report.offer"))
-        : AskingForOffer ? UiText.S("import.help.offer")
-        : Cursor == 0 ? UiText.S("import.help.typing")
-        : Cursor <= _paths.Count ? UiText.S("import.help.path")
-        : UiText.S("import.help");
+        : ShowingReport ? (_offer is null ? (PadInUse ? UiText.S("import.help.report.pad") : UiText.S("import.help.report"))
+            : PadInUse ? UiText.S("import.help.report.offer.pad") : UiText.S("import.help.report.offer"))
+        : Browsing ? (PadInUse ? UiText.S("import.help.browse.pad") : UiText.S("import.help.browse"))
+        : AskingForOffer ? (PadInUse ? UiText.S("import.help.offer.pad") : UiText.S("import.help.offer"))
+        : Cursor == 0 ? (PadInUse ? UiText.S("import.help.typing.pad") : UiText.S("import.help.typing"))
+        : Cursor <= _paths.Count ? (PadInUse ? UiText.S("import.help.path.pad") : UiText.S("import.help.path"))
+        : PadInUse ? UiText.S("import.help.pad") : UiText.S("import.help");
 
     public IReadOnlyList<MenuLine> Lines()
     {
+        if (Browsing && !Running && !ShowingReport)
+            return Scrolled(BrowseHeader(), BrowseRows());
         var lines = new List<MenuLine>
         {
             new(FirstRun ? UiText.S("import.title.first") : UiText.S("import.title"), MenuLineStyle.Title),
@@ -363,7 +587,13 @@ public sealed class ImportScreen
             lines.AddRange(Wrap(_progress, MenuLineStyle.Normal));
             return lines;
         }
-        var body = ShowingReport ? _report : RowLines();
+        return Scrolled(lines, ShowingReport ? _report : RowLines());
+    }
+
+    /// <summary><paramref name="lines"/>, then <see cref="VisibleLines"/> of <paramref name="body"/> from the scroll (kept
+    /// on the cursor's row, but for the report), with "..." when more follow.</summary>
+    private List<MenuLine> Scrolled(List<MenuLine> lines, List<MenuLine> body)
+    {
         if (!ShowingReport)
         {
             if (Cursor < _scroll) _scroll = Cursor;

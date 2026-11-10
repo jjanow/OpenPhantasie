@@ -32,6 +32,12 @@ public partial class Game1
     private ScrollBarTag? _scrollDrag; // a drag that began on a scroll bar moves that box's thumb
     private double _walkWait;
 
+    /// <summary>
+    /// s183 live pass: the pointer itself moved on the desktop this frame. The picture's own point can change under a still
+    /// pointer (IV's 640 × 400 canvas, a new scale), which read as a mouse move and turned the pad's help wording off.
+    /// </summary>
+    private bool _pointerMoved;
+
     private void BeginHits()
     {
         _hits.Clear();
@@ -74,6 +80,7 @@ public partial class Game1
         var desktop = new Point(Window.ClientBounds.X + state.X, Window.ClientBounds.Y + state.Y);
         var userMoved = _lastDesktopPointer is { } last && last != desktop;
         _lastDesktopPointer = desktop;
+        _pointerMoved = userMoved;
         if (_mouse.Moved && userMoved)
         {
             _mouseUsed = true;
@@ -415,9 +422,10 @@ public partial class Game1
     {
         if (UiOverlays.Hits is not { } hits || !_continueDialog.ShowsList)
             return;
+        var frame = UiOverlays.TextPanelFrame.Of(_continueDialog.WidePanel); // s183: the list's wide panel
         for (var line = 0; line < lines.Count; line++)
-            if (_continueDialog.RowAtLine(line) is int row && UiOverlays.TextPanelLineTop(lines, line) is int y)
-                hits.Add(UiOverlays.TextSpan(14, y, 0, PanelMouse.RowWidth), new ContinueRowTag(row));
+            if (_continueDialog.RowAtLine(line) is int row && UiOverlays.TextPanelLineTop(lines, line, wide: _continueDialog.WidePanel) is int y)
+                hits.Add(UiOverlays.TextSpan(frame.TextX, y, 0, frame.MaxChars), new ContinueRowTag(row));
         hits.Wheel = (Keys.PageUp, Keys.PageDown);
     }
 

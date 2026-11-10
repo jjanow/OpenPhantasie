@@ -320,4 +320,185 @@ public class P4PadTests
             Press(s, Buttons.A);
         Assert.Null(s.Game.Battle);
     }
+
+    // --- s183 "Pad leftovers": the typed prompts' wheel, the pad help line, the stick quantiser -------------------------
+
+    [OriginalDataFact]
+    public void NewGame_ThePadNamesTheNewCharacter_WithTheWheel()
+    {
+        // A pad-only player's new game: the Guild's roster, Make a character, a plain Human Fighter, then the name by wheel.
+        var game = Phantasie4World.NewGame(Manual, new SeededRandomSource(7));
+        var s = new P4DungeonScreen(game);
+        var w = game.Town;
+        w.Enter(P4Building.Guild);
+        w.Choose(0); // G: Guild roster
+        w.Choose(1); // N: Make a character
+        w.Choose(2); // No: a plain character
+        w.Choose(P4Ids.Human);
+        w.Choose(3); // Fighter
+        Press(s, Buttons.A); // Okay (A = Y at the question)
+        Assert.Equal(P4TownPrompt.Text, w.Prompt);
+        Assert.Equal(NameEntry.Alphabet, s.PadTypingAlphabet);
+
+        Press(s, Buttons.X); // A
+        Press(s, Buttons.DPadDown); // jump ten: K
+        Press(s, Buttons.X);
+        Press(s, Buttons.DPadLeft); // J
+        Press(s, Buttons.X);
+        Assert.Equal("AKJ", s.Typed);
+        Press(s, Buttons.Y); // delete
+        Assert.Equal("AK", s.Typed);
+        Press(s, Buttons.B); // delete too (IV's B in a typed prompt)
+        Assert.Equal("A", s.Typed);
+        Press(s, Buttons.DPadUp); // jump back ten from J: wraps to the space's side (37 characters)
+        Assert.Equal(NameEntry.Alphabet[(9 - 10 + NameEntry.Alphabet.Length) % NameEntry.Alphabet.Length], s.PadWheelChar);
+        Press(s, Buttons.A); // done
+        Assert.Equal(P4TownPrompt.Wait, w.Prompt); // the sheet with the skills
+        Assert.Contains(game.Party.Roster, m => m?.Name == "A");
+    }
+
+    [OriginalDataFact]
+    public void Dungeon_LetterAndNumber_ByThePad_TheWheelStartsAgainPerPrompt()
+    {
+        // NOENC; INPUTS; INPUTN; FIGHT 3; END (as P4DungeonScreenTests.Typing_FillsLetterAndNumber…).
+        var s = new P4DungeonScreen(Synthetic(false, 0x22, 0x0C, 0x0E, 0x23, 0x03, 0x00));
+        Assert.Equal(P4DungeonPrompt.Letters, s.Game.Dungeon.Prompt);
+        Assert.Empty(Pad(s, Buttons.DPadRight)); // B: the wheel steps; no arrow goes to the prompt
+        Pad(s, Buttons.X);
+        Pad(s, Buttons.LeftThumbstickRight); // the stick steps too
+        Pad(s, Buttons.X);
+        Assert.Equal("BC", s.Typed);
+        Assert.Equal([Keys.Back], Pad(s, Buttons.Y));
+        Assert.Equal([Keys.Enter], Pad(s, Buttons.A));
+        Press(s, Buttons.A);
+
+        Assert.Equal(P4DungeonPrompt.Number, s.Game.Dungeon.Prompt);
+        Assert.Equal(DialogPad.Digits, s.PadTypingAlphabet);
+        Assert.Equal('1', s.PadWheelChar); // a new prompt: the wheel starts again, on 1
+        Pad(s, Buttons.X);
+        Pad(s, Buttons.DPadDown); // among the digits Up / Down step one
+        Pad(s, Buttons.DPadRight);
+        Pad(s, Buttons.X);
+        Assert.Equal("13", s.Typed);
+        Press(s, Buttons.A);
+        Assert.Equal(P4DungeonPrompt.Fight, s.Game.Dungeon.Prompt);
+        Assert.Null(s.PadTypingAlphabet);
+    }
+
+    [OriginalDataFact]
+    public void TypedPrompt_YAndXAreTheWheel_NotTheButtonPick()
+    {
+        var game = P4Preview.StartInTown(2, Code);
+        var s = new P4DungeonScreen(game);
+        game.Town.Enter(P4Building.Bank);
+        game.Town.Choose(1); // W: withdraw, an amount per member
+        Assert.Equal(P4TownPrompt.Number, game.Town.Prompt);
+        var key = new HitRegion(new Rectangle(0, 0, 10, 10), new P4KeypadTag('7'));
+        s.PadKeys([Buttons.Y], [], [key], out var press);
+        Assert.Null(press);
+        Assert.Null(s.PadPointer); // Y deleted (nothing typed yet); no keypad key was picked
+        s.PadKeys([Buttons.X], [], [key], out _);
+        Assert.Equal("1", s.Typed);
+    }
+
+    [OriginalDataFact]
+    public void Help_NamesThePadsButtons_WhileThePadIsInUse()
+    {
+        var s = new P4DungeonScreen(Synthetic(false, 0x22, 0x0C, 0x00));
+        Assert.Equal(UiText.S("p4.dungeon.help_type"), s.Help);
+        Pad(s, Buttons.DPadRight);
+        Assert.True(s.PadInput);
+        Assert.Equal(UiText.F("p4.pad.help_type_x", "B"), s.Help);
+        s.PadInput = false; // a key or the mouse (the shell)
+        Assert.Equal(UiText.S("p4.dungeon.help_type"), s.Help);
+
+        var town = new P4DungeonScreen(P4Preview.StartInTown(2, Code));
+        Pad(town, Buttons.DPadDown);
+        Assert.Equal(UiText.S("p4.pad.help_street"), town.Help);
+        HitRegion f = new(new Rectangle(10, 10, 16, 16), new P4PanelIconTag("_townmenu", 0)) { Click = [Keys.F] };
+        town.PadKeys([Buttons.Y], [], [f], out _); // a button picked: A presses it
+        Assert.Equal(UiText.S("p4.pad.help_focus"), town.Help);
+        town.ClearPadFocus();
+        town.HandleKeys([Keys.D7]); // Leave
+        Pad(town, Buttons.DPadUp);
+        Assert.Equal(UiText.S("p4.pad.help_move"), town.Help);
+    }
+
+    [OriginalDataFact]
+    public void AFight_PadHelp_NamesTheOrderAGives()
+    {
+        var s = new P4DungeonScreen(Synthetic(true, 0x22, 0x23, 0x01, 0x00));
+        Press(s, Buttons.A); // Fight
+        var b = Assert.IsType<P4Battle>(s.Game.Battle);
+        Assert.Equal(P4BattlePrompt.Order, b.Prompt);
+        var first = P4DungeonScreen.PadOrderDefaults.First(b.Offered().Contains);
+        Assert.Equal(UiText.F("p4.pad.help_orders_x", UiText.S("p4.battle.action." + first.ToString().ToLowerInvariant())), s.Help);
+    }
+
+    [OriginalDataFact]
+    public void Map_AStickDiagonal_IsOneMove_NotNorthThenNorthEast()
+    {
+        var s = new P4DungeonScreen(Synthetic(false, 0x22, 0x00));
+        Assert.Equal(P4DungeonPrompt.Action, s.Game.Dungeon.Prompt);
+        // The stick's buttons would give Up first, then PgUp; by position the push settles on NE and sends it once.
+        var keys = new List<Keys>();
+        foreach (var at in new[] { new Vector2(0, 0.55f), new Vector2(0.3f, 0.6f), new Vector2(0.6f, 0.65f), new Vector2(0.7f, 0.7f),
+            new Vector2(0.7f, 0.7f), new Vector2(0.7f, 0.7f) })
+            keys.AddRange(s.PadKeys([], [], [], at, 16.7, out _));
+        Assert.Equal([Keys.PageUp], keys);
+        // Back to rest, then a push north: Up once.
+        keys.Clear();
+        foreach (var at in new[] { Vector2.Zero, new Vector2(0, 0.9f), new Vector2(0, 0.95f), new Vector2(0, 0.95f),
+            new Vector2(0, 0.95f), new Vector2(0, 0.95f) })
+            keys.AddRange(s.PadKeys([], [], [], at, 16.7, out _));
+        Assert.Equal([Keys.Up], keys);
+        // The stick's own buttons are ignored on that path (the quantiser speaks for the stick).
+        Assert.Empty(s.PadKeys([Buttons.LeftThumbstickUp], [Buttons.LeftThumbstickUp], [], new Vector2(0, 0.95f), 16.7, out _));
+    }
+
+    [Fact]
+    public void StickQuantizer_OnePushOneDirection()
+    {
+        var q = new StickQuantizer();
+        Assert.Null(q.Update(new Vector2(0.2f, 0), 16, true)); // under the threshold
+        Assert.Null(q.Update(new Vector2(0.6f, 0), 16, true)); // the push starts: east so far
+        Assert.Null(q.Update(new Vector2(0.6f, 0.3f), 16, true));
+        Assert.Null(q.Update(new Vector2(0.6f, 0.6f), 16, true));
+        Assert.Equal((1, -1), q.Update(new Vector2(0.6f, 0.6f), 30, true)); // settled: NE (Y up = Dy −1)
+        Assert.Null(q.Update(new Vector2(0.7f, 0.7f), 16, true)); // held: nothing more
+        Assert.Null(q.Update(new Vector2(0.4f, 0.1f), 16, true)); // not back at rest yet
+        Assert.Null(q.Update(new Vector2(0.1f, 0), 16, true)); // rest
+        Assert.Null(q.Update(new Vector2(0, -0.8f), 16, true)); // a second push, south
+        Assert.Equal((0, 1), q.Update(new Vector2(0, -0.8f), StickQuantizer.SettleMs, true));
+    }
+
+    [Fact]
+    public void StickQuantizer_AQuickFlick_CountsAtItsStrongestSample()
+    {
+        var q = new StickQuantizer();
+        Assert.Null(q.Update(new Vector2(-0.6f, 0), 16, true));
+        Assert.Null(q.Update(new Vector2(-0.9f, 0.05f), 16, true));
+        Assert.Equal((-1, 0), q.Update(new Vector2(-0.1f, 0), 16, true)); // let go inside the window: west
+        Assert.Null(q.Update(Vector2.Zero, 16, true));
+    }
+
+    [Theory]
+    [InlineData(1f, 0f, true, 1, 0)]
+    [InlineData(0.9f, 0.4f, true, 1, -1)] // 24°: past the E / NE edge (22.5°)
+    [InlineData(0.93f, 0.36f, true, 1, 0)] // 21.2°: still east
+    [InlineData(-0.7f, -0.7f, true, -1, 1)] // SW
+    [InlineData(-0.7f, 0.7f, true, -1, -1)] // NW
+    [InlineData(0.7f, 0.72f, false, 0, -1)] // four ways: the nearer axis (north)
+    [InlineData(0.72f, -0.7f, false, 1, 0)] // four ways: east
+    [InlineData(-1f, 0.01f, true, -1, 0)] // west, either side of the ±180° seam
+    [InlineData(-1f, -0.01f, true, -1, 0)]
+    public void StickQuantizer_Quantise_NearestCompassPoint(float x, float y, bool eightWay, int dx, int dy) =>
+        Assert.Equal((dx, dy), StickQuantizer.Quantise(new Vector2(x, y), eightWay));
+
+    [Fact]
+    public void StickQuantizer_ButtonsOf_ADiagonalIsBothButtons()
+    {
+        Assert.Equal([Buttons.LeftThumbstickUp, Buttons.LeftThumbstickRight], StickQuantizer.ButtonsOf((1, -1)));
+        Assert.Equal([Buttons.LeftThumbstickDown], StickQuantizer.ButtonsOf((0, 1)));
+    }
 }

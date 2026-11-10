@@ -231,7 +231,7 @@ public sealed class DialogPadTests
         var guild = PadCommandDialog.EntriesFor(GameMode.Guild, settings.GetKey, examine: false, timeLag: false);
         Assert.Equal([settings.GetKey(GameAction.GuildAdd), settings.GetKey(GameAction.GuildDrop), settings.GetKey(GameAction.GuildNew),
             settings.GetKey(GameAction.GuildList), settings.GetKey(GameAction.GuildRename), settings.GetKey(GameAction.GuildPurge),
-            Keys.S, Keys.T], guild.Select(e => e.Key));
+            Keys.S, Keys.T, Keys.E], guild.Select(e => e.Key)); // s183: E)XIT GUILD last
         Assert.Contains(PadCommandDialog.EntriesFor(GameMode.Guild, settings.GetKey, examine: true, timeLag: false),
             e => e.Key == settings.GetKey(GameAction.GuildExamine));
         Assert.Equal([settings.GetKey(GameAction.GuildAdd), settings.GetKey(GameAction.GuildDrop)],

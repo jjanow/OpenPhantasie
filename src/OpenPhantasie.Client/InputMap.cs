@@ -171,6 +171,13 @@ public sealed class InputMap
         return steps;
     }
 
+    /// <summary>
+    /// s183 (Pad leftovers): the right stick pushed left or right, well clear of up / down (those scroll the sidebar and a
+    /// long prompt): the pad's F2, the map layout switch (<see cref="GameAction.ToggleMapLayout"/>).
+    /// </summary>
+    public static bool RightStickSideways(GamePadState pad) =>
+        Math.Abs(pad.ThumbSticks.Right.X) > 0.6f && Math.Abs(pad.ThumbSticks.Right.Y) < 0.4f;
+
     private static bool PadHeld(GameAction action, GamePadState pad) =>
         action switch
         {
@@ -183,6 +190,7 @@ public sealed class InputMap
             GameAction.TurnLeft => pad.Buttons.LeftStick == ButtonState.Pressed,
             GameAction.TurnRight => pad.Buttons.RightStick == ButtonState.Pressed,
             GameAction.ToggleAutoMap => pad.Buttons.Back == ButtonState.Pressed,
+            GameAction.ToggleMapLayout => RightStickSideways(pad),
             GameAction.FastForwardHold => pad.Triggers.Left > 0.5f,
             GameAction.OpenGuildDepart => pad.Buttons.LeftShoulder == ButtonState.Pressed
                                          && pad.Buttons.RightShoulder == ButtonState.Pressed,

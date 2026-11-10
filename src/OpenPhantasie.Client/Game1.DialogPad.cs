@@ -64,19 +64,37 @@ public partial class Game1
     /// <summary>
     /// The pad on a prompt (<see cref="HandlePrompt"/>): the D-pad / stick are the arrows and A is Return. B never gets here
     /// (Esc answers through <see cref="AnswerPromptWithEscape"/> or opens the game menu first), and LB / RB stay the game's
-    /// Save / Load (<see cref="HandleGlobalInput"/>), so they do not also scroll the prompt. III's "Press a number" event
-    /// page has no highlight: the D-pad steps a pick shown on the help line and A sends its number (<see cref="EventPadKeys"/>).
+    /// Save / Load (<see cref="HandleGlobalInput"/>), so they do not also scroll the prompt: s183, the right stick up / down
+    /// do (PgUp / PgDn, <see cref="PromptScrollPadKeys"/>) when the prompt has more text than its panel holds. III's "Press
+    /// a number" event page has no highlight: the D-pad steps a pick shown on the help line and A sends its number
+    /// (<see cref="EventPadKeys"/>).
     /// </summary>
     private IEnumerable<Keys> PromptPadKeys(SessionPrompt prompt, GamePadState pad)
     {
         var buttons = _input.NewButtons(pad).ToList();
+        var scroll = PromptScrollPadKeys(buttons, UiOverlays.PromptScroll.CanScroll
+            || EventPageFor(prompt) is not null && UiOverlays.ScrollFrameScroll.CanScroll).ToList();
         if (EventPageFor(prompt) is { AnyKey: false })
-            return EventPadKeys(prompt, buttons);
+            return scroll.Concat(EventPadKeys(prompt, buttons));
         var keys = PromptPadKeys(buttons).ToList();
         if (keys.Any(k => k is Keys.Up or Keys.Down or Keys.Left or Keys.Right))
             _padPromptMoved = EventPadId(prompt);
-        return keys;
+        return scroll.Concat(keys);
     }
+
+    /// <summary>
+    /// s183 (Pad leftovers): a long prompt's scroll by pad: the right stick up / down as PgUp / PgDn, only when
+    /// <paramref name="canScroll"/> (so they never reach the prompt's menu, and the stick never counts as an answer).
+    /// </summary>
+    public static IEnumerable<Keys> PromptScrollPadKeys(IEnumerable<Buttons> buttons, bool canScroll) =>
+        canScroll
+            ? buttons.Select(b => b switch
+            {
+                Buttons.RightThumbstickUp => Keys.PageUp,
+                Buttons.RightThumbstickDown => Keys.PageDown,
+                _ => Keys.None,
+            }).Where(k => k != Keys.None)
+            : [];
 
     private string? _padPromptMoved; // the prompt whose answer the pad's D-pad has moved (PadRequesterMark)
 

@@ -99,13 +99,13 @@ public sealed class PadMenuTests
             () => [new StoreLibraries.Library("Steam", "/steam/common")]);
         s.Open(firstRun: false);
 
-        s.HandleKeys(ImportScreen.PadKeys([Buttons.DPadDown, Buttons.A])); // the Steam row: added
+        s.HandleKeys(s.PadKeys([Buttons.DPadDown, Buttons.A])); // the Steam row: added
         Assert.Equal(["/steam/common"], s.Paths);
         Assert.Equal(1, s.Cursor); // now on the added path's row
-        s.HandleKeys(ImportScreen.PadKeys([Buttons.X])); // removed
+        s.HandleKeys(s.PadKeys([Buttons.X])); // removed
         Assert.Empty(s.Paths);
 
-        s.HandleKeys(ImportScreen.PadKeys([Buttons.A, Buttons.DPadDown, Buttons.A])); // add it, then IMPORT (an added library leaves its row)
+        s.HandleKeys(s.PadKeys([Buttons.A, Buttons.DPadDown, Buttons.A])); // add it, then IMPORT (an added library leaves its row)
         for (var i = 0; i < 500 && !s.ShowingReport; i++)
         {
             Thread.Sleep(10);
@@ -113,19 +113,24 @@ public sealed class PadMenuTests
         }
         Assert.True(s.ShowingReport);
         Assert.Equal([["/steam/common"]], calls);
-        s.HandleKeys(ImportScreen.PadKeys([Buttons.A])); // the report goes
+        s.HandleKeys(s.PadKeys([Buttons.A])); // the report goes
         Assert.False(s.ShowingReport);
-        Assert.True(s.HandleKeys(ImportScreen.PadKeys([Buttons.B])));
+        Assert.True(s.HandleKeys(s.PadKeys([Buttons.B])));
         Assert.False(s.IsOpen);
     }
 
     [Fact]
-    public void Import_PadKeys_XIsDelete_TheRestIsTheSharedMap()
+    public void Import_PadKeys_XIsDelete_YBrowses_TheRestIsTheSharedMap()
     {
-        Assert.Equal([Keys.Delete], ImportScreen.PadKeys([Buttons.X]));
+        var s = new ImportScreen(Path.Combine(Path.GetTempPath(), "phantasie-import-screen-test"), (_, _) => new ImportReport(), () => []);
+        s.Open(firstRun: false);
+        Assert.False(s.PadInUse);
+        Assert.Equal([Keys.Delete], s.PadKeys([Buttons.X]));
+        Assert.True(s.PadInUse);
+        Assert.Equal([Keys.Tab], s.PadKeys([Buttons.Y])); // s183: the folder browser
         Buttons[] shared = [Buttons.DPadUp, Buttons.DPadDown, Buttons.A, Buttons.B, Buttons.LeftShoulder,
-            Buttons.RightShoulder, Buttons.Y, Buttons.Start];
-        Assert.Equal(InputMap.MenuPadKeys(shared), ImportScreen.PadKeys(shared));
+            Buttons.RightShoulder, Buttons.Start];
+        Assert.Equal(InputMap.MenuPadKeys(shared), s.PadKeys(shared));
     }
 
     private static readonly UpdateRelease Found =

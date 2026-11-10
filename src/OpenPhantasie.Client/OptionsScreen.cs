@@ -543,10 +543,13 @@ public static class OptionsLayout
     public const int DetailX = 10;
     public const int DetailTop = ListTop + (OptionsScreen.VisibleRows + 2) * 10;
     public const int DetailWidth = 300;
-    public const int DetailHeight = 186 - DetailTop;
+    public const int DetailHeight = 185 - DetailTop;
 
-    /// <summary>The help line under the box.</summary>
-    public const int HelpY = 188;
+    /// <summary>
+    /// The help line under the box. s183 live pass: one pixel higher (and the box one shorter), so the line's glyphs no
+    /// longer sit on the screen frame's bottom edge (they ran to y 194, the edge is 195).
+    /// </summary>
+    public const int HelpY = 187;
 
     /// <summary>Text lines the box shows at once.</summary>
     public const int DetailLines = (DetailHeight - 3) / PixelFont.LineHeight;

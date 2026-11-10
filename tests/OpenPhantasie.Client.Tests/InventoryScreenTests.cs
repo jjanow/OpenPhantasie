@@ -500,7 +500,8 @@ public class InventoryScreenTests
         Assert.Equal(UiText.S("inventory.help"), screen.Help);
         screen.HandleButton(Buttons.DPadDown);
         Assert.Equal(UiText.S("inventory.help_pad"), screen.Help);
-        Assert.True(screen.Help.Length <= 52, screen.Help);
+        Assert.True(screen.Help.Length <= 2 * 52, screen.Help); // s183: + LB RB: wraps to a second line, never cut
+        Assert.Contains("LB RB", screen.Help);
         screen.PickUp(new CarriedSpot(0, SlotOf(f, Club)));
         Assert.Equal(UiText.S("inventory.help_held_pad"), screen.Help);
         Assert.True(screen.Help.Length <= 52, screen.Help);

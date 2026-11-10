@@ -201,4 +201,130 @@ public class ImportScreenTests
         Assert.All(lines, l => Assert.True(l.Text.Length <= ImportScreen.Columns));
         Assert.Equal(("ashortstart" + long1 + "end").Length, string.Concat(lines.Select(l => l.Text.Replace(" ", ""))).Length);
     }
+
+    // --- s183 "Pad leftovers": the folder browser (a pad can't type a path) ----------------------------------------------
+
+    /// <summary>A scratch folder: games/ (with disk.adf), notes.txt, .hidden/.</summary>
+    private static string BrowseTree()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "phantasie-import-browse-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(root, "games"));
+        Directory.CreateDirectory(Path.Combine(root, ".hidden"));
+        File.WriteAllBytes(Path.Combine(root, "games", "disk.adf"), [0]);
+        File.WriteAllBytes(Path.Combine(root, "notes.txt"), [0]);
+        return root;
+    }
+
+    private static void Pad(ImportScreen s, params Buttons[] buttons) => s.HandleKeys(s.PadKeys(buttons));
+
+    [Fact]
+    public void Browser_ByPad_OpensAFolder_PicksAFile_AddsIt()
+    {
+        var root = BrowseTree();
+        try
+        {
+            var s = new ImportScreen(Path.Combine(Path.GetTempPath(), "phantasie-import-screen-test"), (_, _) => new ImportReport(),
+                () => [], browseHome: root);
+            s.Open(firstRun: false);
+            Pad(s, Buttons.Y); // browse
+            Assert.True(s.Browsing);
+            Assert.Equal(root, s.BrowseFolder);
+            Assert.Equal(UiText.S("import.help.browse.pad"), s.Help);
+            // Up, use this folder, then folders (visible first), then files.
+            Assert.Equal([ImportScreen.BrowseKind.Up, ImportScreen.BrowseKind.UseFolder, ImportScreen.BrowseKind.Folder,
+                ImportScreen.BrowseKind.Folder, ImportScreen.BrowseKind.File], s.BrowseEntries.Select(e => e.Kind));
+            Assert.Equal("games" + Path.DirectorySeparatorChar, s.BrowseEntries[2].Name);
+            Assert.Equal(".hidden" + Path.DirectorySeparatorChar, s.BrowseEntries[3].Name);
+            Assert.Equal(2, s.Cursor); // the first folder
+            Assert.Contains(s.Lines(), l => l.Text == ">games" + Path.DirectorySeparatorChar);
+
+            Pad(s, Buttons.A); // into games/
+            Assert.Equal(Path.Combine(root, "games"), s.BrowseFolder);
+            Assert.Equal("disk.adf", s.BrowseEntries[s.Cursor].Name);
+            Pad(s, Buttons.Y); // up: back on games/
+            Assert.Equal(root, s.BrowseFolder);
+            Assert.Equal(Path.Combine(root, "games"), s.BrowseEntries[s.Cursor].Path);
+            Pad(s, Buttons.X); // pick the folder itself
+            Assert.False(s.Browsing);
+            Assert.Equal([Path.Combine(root, "games")], s.Paths);
+            Assert.Equal(UiText.S("import.row.import"), s.Lines().Single(l => l.Style == MenuLineStyle.Selected).Text[1..]);
+
+            Pad(s, Buttons.Y); // again, from the IMPORT row: B closes it unpicked
+            Assert.True(s.Browsing);
+            Pad(s, Buttons.B);
+            Assert.False(s.Browsing);
+            Assert.True(s.IsOpen);
+            s.PadInUse = false; // a key (the shell)
+            Assert.Equal(UiText.S("import.help.typing"), s.Help);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Browser_Keyboard_TabOpens_UseThisFolder_EscCloses()
+    {
+        var root = BrowseTree();
+        try
+        {
+            var s = new ImportScreen(Path.Combine(Path.GetTempPath(), "phantasie-import-screen-test"), (_, _) => new ImportReport(),
+                () => [], browseHome: root);
+            s.Open(firstRun: false);
+            Type(s, Path.Combine(root, "games")); // the typed folder is where it opens
+            s.HandleKeys([Keys.Tab]);
+            Assert.Equal(Path.Combine(root, "games"), s.BrowseFolder);
+            s.OnTextInput('x'); // no typing while browsing
+            s.HandleKeys([Keys.Back]); // up
+            Assert.Equal(root, s.BrowseFolder);
+            s.HandleKeys([Keys.Up, Keys.Enter]); // [USE THIS FOLDER]
+            Assert.False(s.Browsing);
+            Assert.Equal([root], s.Paths);
+            s.HandleKeys([Keys.Tab, Keys.Escape]);
+            Assert.False(s.Browsing);
+            Assert.True(s.IsOpen);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Offer_ByPad_YTakesTheOffer_TheBrowsersFileIsImportedAlone()
+    {
+        var root = BrowseTree();
+        try
+        {
+            var calls = new List<IReadOnlyList<string>>();
+            var first = new ImportReport { Committed = true };
+            first.Offers.Add(new ImportOffer("kickstart-1.3", "Amiga Kickstart 1.3 ROM (34.5)", ["Phantasie I (Amiga v1.0, 1987)"],
+                "import.gives.topaz8"));
+            var s = new ImportScreen(Path.Combine(Path.GetTempPath(), "phantasie-import-screen-test"),
+                (paths, _) => { calls.Add(paths); return calls.Count == 1 ? first : new ImportReport(); }, () => [], browseHome: root);
+            s.Open(firstRun: false);
+            s.AddPaths([Path.GetTempPath()]);
+            s.HandleKeys([Keys.Down, Keys.Down, Keys.Enter]);
+            WaitForReport(s);
+            Pad(s, Buttons.DPadDown);
+            Assert.Equal(UiText.S("import.help.report.offer.pad"), s.Help);
+            Pad(s, Buttons.Y); // the offer (A on the keyboard)
+            Assert.True(s.AskingForOffer);
+            Assert.Equal(UiText.S("import.help.offer.pad"), s.Help);
+            Pad(s, Buttons.Y); // browse for the file
+            Assert.True(s.Browsing);
+            Assert.Contains(s.Lines(), l => l.Text == UiText.S("import.browse.title.offer"));
+            Pad(s, Buttons.DPadDown, Buttons.DPadDown); // from games/: .hidden/, notes.txt
+            Assert.Equal("notes.txt", s.BrowseEntries[s.Cursor].Name);
+            Pad(s, Buttons.A); // a file: picked
+            WaitForReport(s);
+            Assert.Equal(2, calls.Count);
+            Assert.Equal([Path.Combine(root, "notes.txt")], calls[1]); // alone
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
 }

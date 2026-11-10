@@ -11,12 +11,14 @@ namespace OpenPhantasie.Client;
 /// A number that names nobody is refused and asked again.
 /// <para>
 /// QoL <see cref="GameSettings.ContinueFromList"/> (off = the manual's question): the save's parties instead, one row
-/// each (<see cref="SeveralParties.Parties"/>), picked with Up/Down + Return; the last row, BY GUILD NUMBER, asks the
-/// manual's question (Esc there goes back to the list). Rows sit one per line right under the two header lines.
+/// each (<see cref="SeveralParties.Parties"/>, every member's name), picked with Up/Down + Return; the selected party's
+/// place shows on the line under the list (s183, user: a row with its place ran onto two lines). The last row, BY GUILD
+/// NUMBER, asks the manual's question (Esc there goes back to the list). Rows sit one per line right under the two header
+/// lines.
 /// </para>
 /// <para>Also shows a notice panel (an old save that can't be loaded); any key closes it.</para>
 /// </summary>
-public sealed class ContinueDialog : IModalDialog, ITypedEntry, IPagedDialog
+public sealed class ContinueDialog : IModalDialog, ITypedEntry, IPagedDialog, IWidePanel
 {
     public static string Title => UiText.S("continue.continue_saved_game");
     public static string Question => UiText.S("continue.guild_number_of_the_character");
@@ -26,14 +28,11 @@ public sealed class ContinueDialog : IModalDialog, ITypedEntry, IPagedDialog
     /// <summary>Digits a Guild number may have: 2, or more for a roster grown past 99 (QoL <c>guild-limit</c> = <c>none</c>).</summary>
     private static int DigitsFor(SessionSnapshot file) => Math.Max(MaxDigits, file.RosterSlots.Length.ToString().Length);
 
-    /// <summary>List rows shown at once (the panel holds 13 lines: two header lines, the rows, "...", the names line).</summary>
+    /// <summary>List rows shown at once (the panel holds 13 lines: two header lines, the rows, "...", the place line).</summary>
     public const int VisibleRows = 8;
 
     /// <summary>The list's first row line (after the title and the question).</summary>
     public const int FirstRowLine = 2;
-
-    /// <summary>Party column width: the names, padded to line the places up when short.</summary>
-    private const int PartyWidth = 16;
 
     private SessionSnapshot? _file;
     private IReadOnlyList<SavedParty> _parties = [];
@@ -48,6 +47,12 @@ public sealed class ContinueDialog : IModalDialog, ITypedEntry, IPagedDialog
 
     /// <summary>True while the party list (not the Guild-number question) is shown.</summary>
     public bool ShowsList => _file is not null && _list;
+
+    /// <summary>
+    /// s183: the party list takes the screen's whole width (<see cref="UiOverlays.TextPanelFrame.Wide"/>), so a party's names
+    /// stay on one row (51 columns; only six very long names still go on, whole, on the panel's next line).
+    /// </summary>
+    public bool WidePanel => ShowsList;
 
     /// <summary>The Guild-number question takes digits (the mouse grid, <see cref="TypingGrid"/>).</summary>
     public string? TypingAlphabet => _file is not null && !_list && _notice is null ? "0123456789" : null;
@@ -111,7 +116,7 @@ public sealed class ContinueDialog : IModalDialog, ITypedEntry, IPagedDialog
         if (rows > _scroll + VisibleRows)
             lines.Add(" ...");
         if (Cursor < _parties.Count)
-            lines.Add(string.Join(" ", _parties[Cursor].Names));
+            lines.Add(Where(_parties[Cursor], data)); // s183 (user): the place under the list, not on the row
         if (_error.Length > 0)
             lines.Add(_error);
         return lines;
@@ -122,16 +127,15 @@ public sealed class ContinueDialog : IModalDialog, ITypedEntry, IPagedDialog
         ? ListPage.Of(FirstRowLine, VisibleRows, _scroll, _parties.Count + 1) : null;
 
     /// <summary>
-    /// List row <paramref name="index"/> without its cursor column: every member's name (s99: not "leader +5"), then
-    /// where; a row longer than the panel goes on, whole, on the panel's next line.
+    /// List row <paramref name="index"/> without its cursor column: every member's name (s99: not "leader +5"). s183
+    /// (user): the place is not on the row but on the line under the list for the selected party (<see cref="Lines"/>);
+    /// the panel is the wide one (<see cref="WidePanel"/>, 51 columns).
     /// </summary>
     public string RowText(int index, GameDataRepository data)
     {
         if (index >= _parties.Count)
             return UiText.S("continue.by_guild_number");
-        var p = _parties[index];
-        var who = string.Join(" ", p.Names);
-        return $"{who.PadRight(PartyWidth - 1)} {Where(p, data)}";
+        return string.Join(" ", _parties[index].Names);
     }
 
     private static string Where(SavedParty p, GameDataRepository data) => p.Mode switch

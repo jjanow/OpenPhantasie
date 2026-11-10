@@ -21,6 +21,10 @@ namespace OpenPhantasie.Client;
 /// building's or an item window's buttons), lit as under the pointer; A then clicks it, B lets it go. In a fight's orders
 /// (no buttons there) they pick the order A gives.</item>
 /// </list>
+/// s183 "Pad leftovers": a typed prompt (a name, the town's amounts, the dungeon's Letter / Number) gets I–III's pad wheel
+/// (<see cref="DialogPad"/>): D-pad / stick Left / Right step a character, Up / Down jump ten (one among the digits), X
+/// types it, Y deletes (as B), A ends the entry. The left stick goes through <see cref="StickQuantizer"/> (one direction per
+/// push). While the pad is the input in use (<see cref="PadInput"/>) the help line names the pad's buttons.
 /// Keyboard keys are untouched; the pad only adds keys.
 /// </summary>
 public sealed partial class P4DungeonScreen
@@ -28,6 +32,148 @@ public sealed partial class P4DungeonScreen
     private int? _padFocus;
     private (object? Tag, Rectangle Bounds)[] _padSeen = [];
     private P4ActionKind? _padAction;
+    private readonly DialogPad _wheel = new();
+    private object? _wheelOwner; // one per typed prompt: the wheel starts again on the next one
+    private readonly StickQuantizer _stick = new();
+
+    /// <summary>
+    /// The pad is the input in use (a button was pressed since the last key or mouse move): the help line names the pad's
+    /// buttons. The shell clears it on a key or a mouse move.
+    /// </summary>
+    public bool PadInput { get; set; }
+
+    /// <summary>The typed prompt's characters for the pad wheel (names and Letter: <see cref="NameEntry.Alphabet"/>; amounts
+    /// and Number: digits); null when no typed prompt takes keys now.</summary>
+    public string? PadTypingAlphabet => MainMenuAsked || !Game.LoopBuilt || SystemUp || Game.Battle is not null || MenuOpen
+        || DoorOpen || MysticBusy || WelcomeUp ? null
+        : Game.Place switch
+        {
+            P4Place.Town => W.Prompt switch
+            {
+                P4TownPrompt.Text => NameEntry.Alphabet,
+                P4TownPrompt.Number => DialogPad.Digits,
+                _ => null,
+            },
+            P4Place.Dungeon => D.Prompt switch
+            {
+                P4DungeonPrompt.Letters => NameEntry.Alphabet,
+                P4DungeonPrompt.Number => DialogPad.Digits,
+                _ => null,
+            },
+            _ => null,
+        };
+
+    /// <summary>The pad wheel's character in the open typed prompt (shown on the help line).</summary>
+    public char PadWheelChar
+    {
+        get
+        {
+            SyncWheel(PadTypingAlphabet);
+            return _wheel.Current;
+        }
+    }
+
+    private object? _wheelPrompt; // the typed prompt the wheel's owner belongs to
+
+    /// <summary>
+    /// A new typed prompt (another place / prompt / alphabet, or the last one ended by the pad's A) gets a new wheel owner,
+    /// so the wheel starts again on its first character (1 among the digits).
+    /// </summary>
+    private void SyncWheel(string? alphabet)
+    {
+        if (alphabet is null)
+        {
+            _wheelOwner = null;
+            _wheelPrompt = null;
+            return;
+        }
+        object prompt = (Game.Place, Game.Place == P4Place.Town ? (int)W.Prompt : (int)D.Prompt, alphabet);
+        if (_wheelOwner is not null && Equals(prompt, _wheelPrompt))
+            return;
+        _wheelOwner = new object();
+        _wheelPrompt = prompt;
+        _wheel.KeysFor(_wheelOwner, [], alphabet); // reset onto the alphabet, nothing pressed
+    }
+
+    /// <summary>
+    /// s183: the help line by pad buttons (<see cref="PadInput"/>), as <see cref="PadConfirmKey"/> / <see cref="PadBackKey"/>
+    /// and the Y / X pick map them on the prompt up now; null where the busy waits read nothing.
+    /// </summary>
+    private string? PadHelp
+    {
+        get
+        {
+            if (DoorOpen || MysticBusy || WelcomeUp || MainMenuAsked)
+                return null;
+            if (_padFocus is not null)
+                return UiText.S("p4.pad.help_focus");
+            if (PadTypingAlphabet is not null)
+                return UiText.F("p4.pad.help_type_x", PadWheelChar == ' ' ? UiText.S("typing.space") : PadWheelChar.ToString());
+            if (!Game.LoopBuilt)
+                return UiText.S("p4.pad.help_left");
+            if (SystemUp)
+                return _system switch
+                {
+                    P4SystemPage.EndGame or P4SystemPage.BackToTitle => UiText.S("p4.pad.help_confirm"),
+                    P4SystemPage.About => UiText.S("p4.pad.help_about"),
+                    P4SystemPage.SelectGameFinal => UiText.S("p4.pad.help_buttons"),
+                    _ => UiText.S("p4.pad.help_system"),
+                };
+            if (Game.Battle is { } b)
+                return b.Prompt switch
+                {
+                    P4BattlePrompt.Options => UiText.S("p4.pad.help_battle_options"),
+                    P4BattlePrompt.Order => _mode switch
+                    {
+                        BattleMode.Target => UiText.S("p4.pad.help_target"),
+                        BattleMode.Spells or BattleMode.Member => UiText.S("p4.pad.help_battle_pick"),
+                        _ when b.AutoCombat => UiText.S("p4.pad.help_wait"),
+                        _ => PadOrderNow(PadOrders(b)) is { } order
+                            ? UiText.F("p4.pad.help_orders_x", ActionName(order)) : UiText.S("p4.pad.help_wait"),
+                    },
+                    P4BattlePrompt.Treasure => UiText.S("p4.pad.help_confirm"),
+                    _ => UiText.S("p4.pad.help_wait"),
+                };
+            if (MenuOpen)
+                return M!.Prompt switch
+                {
+                    P4MenuPrompt.Wait => UiText.S("p4.pad.help_wait"),
+                    P4MenuPrompt.Confirm => UiText.S("p4.pad.help_confirm"),
+                    _ => M.CanBack ? UiText.S("p4.pad.help_pick") : UiText.S("p4.pad.help_pick_menu"),
+                };
+            return Game.Place switch
+            {
+                P4Place.Outdoors => O.Prompt switch
+                {
+                    P4OutdoorPrompt.Action => UiText.S("p4.pad.help_move"),
+                    P4OutdoorPrompt.Wait => UiText.S("p4.pad.help_wait"),
+                    P4OutdoorPrompt.Confirm => UiText.S("p4.pad.help_confirm"),
+                    P4OutdoorPrompt.Fight => UiText.S("p4.pad.help_fight"),
+                    _ => UiText.S("p4.pad.help_left"),
+                },
+                P4Place.Town => W.Prompt switch
+                {
+                    P4TownPrompt.Menu => UiText.S("p4.pad.help_street"),
+                    P4TownPrompt.Pick or P4TownPrompt.Who => W.CanBack ? UiText.S("p4.pad.help_pick")
+                        : UiText.S("p4.pad.help_pick_menu"),
+                    P4TownPrompt.Wait when W.CanLeaveHistory => UiText.S("p4.pad.help_history"),
+                    P4TownPrompt.Wait => UiText.S("p4.pad.help_wait"),
+                    P4TownPrompt.Confirm => UiText.S("p4.pad.help_confirm"),
+                    P4TownPrompt.Shares => UiText.S("p4.pad.help_shares"),
+                    P4TownPrompt.Ending when W.EndingStep == P4EndingStep.Question => UiText.S("p4.pad.help_confirm"),
+                    _ => UiText.S("p4.pad.help_left"),
+                },
+                _ => D.Prompt switch
+                {
+                    P4DungeonPrompt.Action => UiText.S("p4.pad.help_move"),
+                    P4DungeonPrompt.Wait => UiText.S("p4.pad.help_wait"),
+                    P4DungeonPrompt.Menu or P4DungeonPrompt.Who => UiText.S("p4.pad.help_pick_menu"),
+                    P4DungeonPrompt.Fight => UiText.S("p4.pad.help_fight"),
+                    _ => UiText.S("p4.pad.help_left"),
+                },
+            };
+        }
+    }
 
     /// <summary>The middle of the button the pad has picked (Y / X), or null; the shell lights it as under the pointer.</summary>
     public Point? PadPointer { get; private set; }
@@ -88,16 +234,28 @@ public sealed partial class P4DungeonScreen
         ArgumentNullException.ThrowIfNull(held);
         ArgumentNullException.ThrowIfNull(regions);
         press = null;
+        if (pressed.Count > 0)
+            PadInput = true;
         var targets = PadTargets(regions);
         var seen = targets.Select(t => (t.Tag, t.Bounds)).ToArray();
         if (!seen.SequenceEqual(_padSeen))
             _padFocus = null; // another set of buttons: the old pick would press something else
         _padSeen = seen;
+        var alphabet = PadTypingAlphabet;
+        SyncWheel(alphabet);
+        if (alphabet is not null)
+            _padFocus = null; // Y / X are the wheel's here, and A ends the entry
         var keys = new List<Keys>();
         if (!(DoorOpen || MysticBusy || WelcomeUp)) // the busy waits read nothing (HandleKeys)
         {
+            var wheel = new List<Buttons>();
             foreach (var b in pressed)
             {
+                if (alphabet is not null && WheelStep(b, alphabet) is { } steps)
+                {
+                    wheel.AddRange(steps);
+                    continue;
+                }
                 switch (b)
                 {
                     case Buttons.Y or Buttons.X:
@@ -130,10 +288,54 @@ public sealed partial class P4DungeonScreen
                         break;
                 }
             }
-            keys.AddRange(PadMoves(pressed, held, PadDiagonals));
+            if (alphabet is null)
+                keys.AddRange(PadMoves(pressed, held, PadDiagonals));
+            else if (wheel.Count > 0)
+                foreach (var k in _wheel.KeysFor(_wheelOwner!, wheel, alphabet))
+                {
+                    if (k == Keys.Back)
+                        keys.Add(Keys.Back);
+                    else
+                        OnTextInput(_wheel.Current); // IV types characters (OnTextInput), not keys
+                }
+            if (alphabet is not null && pressed.Contains(Buttons.A))
+                _wheelOwner = null; // A ends the entry: a next typed prompt of the same kind starts its wheel again
+
         }
         PadPointer = _padFocus is int i ? targets[i].Bounds.Center : null;
         return keys;
+    }
+
+    /// <summary>
+    /// As <see cref="PadKeys(IReadOnlyCollection{Buttons}, IReadOnlyCollection{Buttons}, IReadOnlyList{HitRegion}, out HitRegion?)"/>,
+    /// with the left stick read from its position (<paramref name="stick"/>, after <paramref name="elapsedMs"/>) through
+    /// <see cref="StickQuantizer"/> instead of its buttons: one direction per push, a diagonal at once (never N then NE).
+    /// </summary>
+    public IReadOnlyList<Keys> PadKeys(IReadOnlyCollection<Buttons> pressed, IReadOnlyCollection<Buttons> held,
+        IReadOnlyList<HitRegion> regions, Vector2 stick, double elapsedMs, out HitRegion? press)
+    {
+        ArgumentNullException.ThrowIfNull(pressed);
+        ArgumentNullException.ThrowIfNull(held);
+        IReadOnlyList<Buttons> pushed = _stick.Update(stick, elapsedMs, PadDiagonals) is { } dir ? StickQuantizer.ButtonsOf(dir) : [];
+        return PadKeys([.. pressed.Where(b => !StickQuantizer.IsStickButton(b)), .. pushed],
+            [.. held.Where(b => !StickQuantizer.IsStickButton(b))], regions, out press);
+    }
+
+    /// <summary>
+    /// <paramref name="b"/> on the typed prompt's wheel: Left / Right one step, Up / Down ten (one among the digits) as that
+    /// many Left / Right presses, X / Y themselves (type, delete); null for a button the wheel does not take.
+    /// </summary>
+    private static IEnumerable<Buttons>? WheelStep(Buttons b, string alphabet)
+    {
+        var jump = DialogPad.WheelAlphabet(alphabet).Length > 10 ? 10 : 1;
+        return b switch
+        {
+            Buttons.DPadLeft or Buttons.LeftThumbstickLeft or Buttons.DPadRight or Buttons.LeftThumbstickRight
+                or Buttons.X or Buttons.Y => [b],
+            Buttons.DPadUp or Buttons.LeftThumbstickUp => Enumerable.Repeat(Buttons.DPadLeft, jump),
+            Buttons.DPadDown or Buttons.LeftThumbstickDown => Enumerable.Repeat(Buttons.DPadRight, jump),
+            _ => null,
+        };
     }
 
     private static readonly Buttons[] DPad = [Buttons.DPadUp, Buttons.DPadDown, Buttons.DPadLeft, Buttons.DPadRight];
@@ -269,6 +471,7 @@ public sealed partial class P4DungeonScreen
                 P4TownPrompt.Pick or P4TownPrompt.Who when W.CanBack => Keys.Space,
                 P4TownPrompt.Confirm => Keys.N,
                 P4TownPrompt.Number or P4TownPrompt.Text => Keys.Back,
+                P4TownPrompt.Wait when W.CanLeaveHistory => Keys.L, // s183: the Hall's history ends early (L)
                 _ => Keys.Escape,
             },
             P4Place.Outdoors when O.Prompt == P4OutdoorPrompt.Confirm => Keys.N,

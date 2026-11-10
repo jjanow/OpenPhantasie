@@ -6,6 +6,7 @@ Send commands with `echo "press A" > <fifo>`. Reads commands from the FIFO, one 
   dpad up|down|left|right [hold_s]
   trig LT|RT value(0-255) [hold_s]   (value then back to 0)
   trighold LT|RT value   (stays)
+  axes AX1 v1 AX2 v2 [hold_s]   two axes in one report (a stick diagonal at once), then both back to 0
   axis LX|LY|RX|RY value [hold_s]  (then back to 0)
   quit
 """
@@ -48,6 +49,11 @@ while True:
         elif cmd in ('trig', 'axis'):
           if len(p) > 3: hold = float(p[3])
           w(e.EV_ABS, AX[p[1]], int(p[2])); time.sleep(hold); w(e.EV_ABS, AX[p[1]], 0)
+        elif cmd == 'axes':
+          if len(p) > 5: hold = float(p[5])
+          a1, a2 = AX[p[1]], AX[p[3]]
+          ui.write(e.EV_ABS, a1, int(p[2])); ui.write(e.EV_ABS, a2, int(p[4])); ui.syn(); time.sleep(hold)
+          ui.write(e.EV_ABS, a1, 0); ui.write(e.EV_ABS, a2, 0); ui.syn()
         elif cmd in ('trighold', 'axishold'):
           w(e.EV_ABS, AX[p[1]], int(p[2]))
         elif cmd == 'down': w(e.EV_KEY, B[p[1]], 1)
