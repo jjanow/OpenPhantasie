@@ -232,6 +232,7 @@ public sealed class TownMenu
             case Keys.I: return TownChoice.ShowParty;
             case Keys.D: return TownChoice.Distribute;
             case Keys.S: return TownChoice.SaveGame;
+            case Keys.T when Trade: return TownChoice.Trade; // III's Trade Items: the manual's T (III PDF 13 / pr.21)
             default: return null;
         }
     }

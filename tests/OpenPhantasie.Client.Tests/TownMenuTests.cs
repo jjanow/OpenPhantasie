@@ -140,6 +140,13 @@ public class TownMenuTests
     public void ManualLetters_PickFromTheBar(Keys key, TownChoice expected) =>
         Assert.Equal(expected, new TownMenu().HandleKey(key));
 
+    [Fact] // III's manual: T Trade Items (III PDF 13 / pr.21); only where the rules have Trade
+    public void ManualLetterT_IsTrade_OnlyWithTrade()
+    {
+        Assert.Equal(TownChoice.Trade, new TownMenu { Trade = true }.HandleKey(Keys.T));
+        Assert.Null(new TownMenu().HandleKey(Keys.T));
+    }
+
     [Fact]
     public void ManualLetters_AandB_OpenArmoryAndBank()
     {

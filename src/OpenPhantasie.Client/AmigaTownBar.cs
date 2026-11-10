@@ -68,6 +68,38 @@ public sealed class AmigaTownBar
     }
 
     /// <summary>
+    /// The bar's own keys (key table <c>0x2189c</c>, town rows 0–2: <c>?OS</c> / <c>+-ENPR·LT</c> / <c>ABIMX·CDGUV</c>,
+    /// FORMAT.md 8.5), as the pack's actions: what each item's label shows ("G) Trade Item"). D3-074 (user s180): under
+    /// AMIGA SCREENS a letter does what the bar says, so G is Trade, I the Inn, N New Member, L Learn Spells, T Training and
+    /// X Exit, not the manual's town letters (D-066). <c>/</c> is the numeric pad's ?, as outside the towns. "" = no item.
+    /// </summary>
+    public static string ActionForKey(Keys key) => key switch
+    {
+        Keys.OemQuestion or Keys.Divide => "info",
+        Keys.O => "load",
+        Keys.S => "save",
+        Keys.OemPlus or Keys.Add => "add",
+        Keys.OemMinus or Keys.Subtract => "drop",
+        Keys.E => "examine",
+        Keys.N => "new",
+        Keys.P => "purge",
+        Keys.R => "rename",
+        Keys.L => "learn",
+        Keys.T => "training",
+        Keys.A => "armoury",
+        Keys.B => "bank",
+        Keys.I => "inn",
+        Keys.M => "mystic",
+        Keys.X => "exit",
+        Keys.C => "cast",
+        Keys.D => "distribute",
+        Keys.G => "trade",
+        Keys.U => "use",
+        Keys.V => "view",
+        _ => "",
+    };
+
+    /// <summary>
     /// The remaster's keys on the bar: Up / Down pull Options down (on its first row) or move the highlight (wrapping),
     /// Left / Right step to the next menu, Return / Space take the lit row (or pull Options down), Esc closes an open menu.
     /// Returns (used, action): used = the key belongs to the bar; action = what a taken row does ("" none).

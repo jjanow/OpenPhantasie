@@ -25,7 +25,22 @@ if (error is not null)
     Console.Error.WriteLine(error);
     return 2;
 }
+// s180: a signal that ends the Client says so on stderr (the exit line, Game1.OnExiting, covers the game's own closes).
+// Never a reason not to start: a platform without these signals just goes without the line.
+System.Runtime.InteropServices.PosixSignalRegistration? onTerm = null, onHup = null;
+try
+{
+    onTerm = System.Runtime.InteropServices.PosixSignalRegistration.Create(System.Runtime.InteropServices.PosixSignal.SIGTERM,
+        _ => Console.Error.WriteLine("OpenPhantasie: SIGTERM"));
+    onHup = System.Runtime.InteropServices.PosixSignalRegistration.Create(System.Runtime.InteropServices.PosixSignal.SIGHUP,
+        _ => Console.Error.WriteLine("OpenPhantasie: SIGHUP"));
+}
+catch (Exception e) when (e is PlatformNotSupportedException or System.ComponentModel.Win32Exception or IOException)
+{
+}
 _ = UiText.Table; // T1.5: the default game's text for the Client and Core until a game is started
 using var game = new Game1(testLevel, testGame, p4Map, p4Town, titlePreview, p4Ending);
 game.Run();
+onTerm?.Dispose();
+onHup?.Dispose();
 return 0;

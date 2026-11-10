@@ -1866,10 +1866,11 @@ public static partial class UiOverlays
         {
             var top = view.Rows[page.FirstLine].Y - lift - 1;
             var rows = Math.Min(page.Shown, view.Rows.Count - page.FirstLine);
+            var step = rows > 1 ? view.Rows[page.FirstLine + 1].Y - view.Rows[page.FirstLine].Y : 8; // the rows' own spacing
             var pageBox = new ScrollBox();
             pageBox.Set(page.Total, page.Shown);
             pageBox.ScrollTo(page.Offset);
-            var track = ScrollBox.Track(new Rectangle(x0 + 4, top, x1 - 4 - (x0 + 4), rows * 8));
+            var track = ScrollBox.Track(new Rectangle(x0 + 4, top, x1 - 4 - (x0 + 4), rows * step));
             Fill(batch, pixel, track, ScrollTrack);
             Fill(batch, pixel, pageBox.Thumb(track), ScrollThumb);
         }

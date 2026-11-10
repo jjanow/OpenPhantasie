@@ -156,6 +156,35 @@ public class P4TownScreenTests
         Assert.Null(menu.SceneName);
     }
 
+    [OriginalDataFact] // QoL COMMON TOWN KEYS (user s180, D3-074): the manual's town letters on IV's street
+    public void CommonTownKeys_LettersOpenDoors_IProfile_SSaves_OffIsIVsOwn()
+    {
+        var off = InTown(2);
+        off.HandleKeys([Keys.G]);
+        Assert.Equal("p4.street.1", off.SceneName); // IV's own keys: G is nothing
+        Assert.Null(off.HandleKeys([Keys.S]));
+        Assert.Equal(P4SystemPage.Menu, off.SystemPage); // S is System
+
+        var s = InTown(2);
+        s.CommonTownKeys = true;
+        Assert.Contains(P4Building.Guild, s.Game.Town.Buildings);
+        s.HandleKeys([Keys.G]);
+        Assert.Equal("p4.guild", s.SceneName);
+        var other = InTown(2);
+        other.CommonTownKeys = true;
+        other.HandleKeys([Keys.I]);
+        Assert.True(other.MenuOpen); // F's Profile
+        var save = InTown(2);
+        save.CommonTownKeys = true;
+        Assert.Equal(P4ScreenRequest.Save, save.HandleKeys([Keys.S])); // as F5
+        Assert.Null(save.SystemPage);
+        Assert.Equal(UiText.S("p4.town.help_menu_common"), save.Help);
+        var digits = InTown(2);
+        digits.CommonTownKeys = true;
+        digits.HandleKeys([Keys.D1]); // the digits still open doors
+        Assert.Equal("p4.guild", digits.SceneName);
+    }
+
     [OriginalDataFact]
     public void AncestorText_HallPerson_NewPerson_Unknown()
     {

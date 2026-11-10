@@ -128,6 +128,29 @@ public class MainMenuAndOptionsTests
     }
 
     [Fact]
+    public void CommonTownKeysRow_OnIII_IV_NotI_II_OffByDefault()
+    {
+        // QoL (user s180, D3-074): I and II use the common set already, so the switch is on III's and IV's tabs only.
+        var settings = new ClientSettings();
+        var o = new OptionsScreen(settings, _ => [], _ => true);
+        o.Open();
+        o.HandleKeys([Keys.Right]); // I
+        Assert.DoesNotContain(o.RowTexts(), t => t.TrimStart().StartsWith("COMMON TOWN KEYS"));
+        o.HandleKeys([Keys.Right]); // II
+        Assert.DoesNotContain(o.RowTexts(), t => t.TrimStart().StartsWith("COMMON TOWN KEYS"));
+        o.HandleKeys([Keys.Right]); // III
+        Assert.EndsWith("OFF", Line(o, "COMMON TOWN KEYS"));
+        for (var i = 0; i < 30 && !o.Lines().Any(l => l.Text.StartsWith(">COMMON TOWN KEYS", StringComparison.Ordinal)); i++)
+            o.HandleKeys([Keys.Down]);
+        o.HandleKeys([Keys.Enter]);
+        Assert.True(settings.Game(GameId.P3).CommonTownKeys);
+        Assert.False(settings.Game(GameId.P4).CommonTownKeys);
+        o.HandleKeys([Keys.Home, Keys.Right]); // the tab row → IV
+        Assert.Equal(GameId.P4, o.Tab);
+        Assert.EndsWith("OFF", Line(o, "COMMON TOWN KEYS"));
+    }
+
+    [Fact]
     public void AutoMapBoxRow_OnI_II_III_NotIV_OnByDefault_EachGameItsOwn()
     {
         // PLAN P3 QoL (s172): the dungeon auto-map box is a presentation switch of each game whose dungeon has it.

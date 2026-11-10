@@ -58,6 +58,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-071 | XP pool / found items: the manual divides the experience "when they reach a town" (the Amiga and DOS on town entry); the remaster paid out only by the town's Distribute | DECIDED (user s142): manual · paid out on town entry (DOS order, s143) |
 | D3-072 | I / II → III transfer XP: the manual's characters keep "enough remaining experience … to train up several levels"; DOS gives 100 XP per old level (one or two trainings for most) | DECIDED: DOS (user s148) · built (s147) |
 | D3-073 | Armory list: the manual lists an item the buyer cannot use "as Unusable" and shows the point value of equipment; DOS prints "N/A" in the Pt Val column, and also for the three requirement-0 items (Cloth +1, Robes +1, Self Bow) | DECIDED (user s174): manual · built s174 |
+| D3-074 | Town keys: the manual's town letters (I's A G M N B L / C U D I S, plus T Trade) or the Amiga bar's own (`?OS` / `+-ENPR·LT` / `ABIMX·CDGUV`: G Trade, I Inn, N New Member, L Learn, T Training) | DECIDED (user s180): Amiga under AMIGA SCREENS, manual in the DOS look; QoL COMMON TOWN KEYS for one set · built s180 |
 
 ---
 
@@ -966,3 +967,30 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 - **Side effects:** I and II's list is unchanged (no column); the column changes with the shopper (1–6). The list has no
   column heading (the manual names none; DOS's "Pt Val" header is not drawn).
 - **Spec:** `reverse-engineering/dos/phantasie3/logic-specs/town.md` section 7 ("The list rows").
+
+## D3-074 — Town keys: the manual's letters or the Amiga bar's
+
+- **Manual:** the town keys are Phantasie I's (A Armory, G Guild, M Mystic, N Inn, B Bank, L Leave; C Cast, U Use,
+  D Distribute, I Inspect, S Save; I PDF 8, 11) plus **T Trade** (III PDF 13 / pr.21, the Apple key list). The remaster
+  bound I's letters in every game's town (D-066) but had no T.
+- **Code:** Amiga `[C]` static (key table `0x2189c`, `reverse-engineering/amiga/phantasie3/FORMAT.md` section 8.5): the
+  town bar's items carry their keys in the labels ("G) Trade Item"): File `?` Info, `O` Load, `S` Save; Guild `+` Add,
+  `-` Drop, `E` Examine, `N` New Member, `P` Purge, `R` Rename, `L` Learn Spells, `T` Training; Options `A` Armoury,
+  `B` Bank, `I` Inn, `M` Mystic, `X` Exit, `C` Cast Spell, `D` Distribute, **`G` Trade Item**, `U` Use Item, `V` View
+  Party. Clashes with the manual: **G** (Trade / Guild), **I** (Inn / Inspect), **N** (New Member / Inn), **L** (Learn
+  Spells / Leave), **T** (Training / Trade). DOS III has highlight-bar menus and no Trade (D3-027).
+- **Found:** user s180 ("In III's town menu, g opens the Guild instead of Trade Item"): under the bar every letter went
+  to I's town keys, so G opened the Guild although the bar reads "G) Trade Item".
+- **Decision:** DECIDED (user, s180): **the Amiga bar's letters under AMIGA SCREENS** (what the bar shows is what the key
+  does); the DOS look keeps the manual's letters, now with T = Trade. Plus a QoL option, **COMMON TOWN KEYS**, for one set
+  of town keys that is the same in all four games.
+- **Remaster:** built s180. Under the bar `AmigaTownBar.ActionForKey` maps each letter to its item (all 21 items, checked
+  against the labels by `P3MenuBarsTests`); `TownMenu`'s letters take T = Trade where the rules have Trade. COMMON TOWN
+  KEYS (off by default; on the III and IV tabs, since I and II use the set already): the manual's set (A B G M N L / C U
+  D I S / T, `CommonTownKeySet`) wins in III over the bar's letters (the bar's other keys, `?` O E P R X V + -, still
+  work) and in IV gives letters to the doors the town has (A B G M N L), I to F's Profile and S to Save (as F5); IV's
+  digits, F, T, D, C, U still work, and its System stays on its icon.
+- **Side effects:** under AMIGA SCREENS without the option, I no longer inspects and L no longer leaves in III's town
+  (V View Party and X Exit do). D3-070 (outside the towns, manual E) is unchanged: it is a different screen's keys.
+- **Spec:** `reverse-engineering/amiga/phantasie3/FORMAT.md` section 8.5; `OpenPhantasie.Client.AmigaTownBar.ActionForKey`,
+  `OpenPhantasie.Client.CommonTownKeySet`.

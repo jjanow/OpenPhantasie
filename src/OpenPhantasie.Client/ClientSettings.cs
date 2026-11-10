@@ -389,6 +389,14 @@ public sealed class GameSettings
     public bool MysticSkip { get; set; }
 
     /// <summary>
+    /// QoL COMMON TOWN KEYS (user s180, D3-074; off = each game's own): one set of town letters in every game, the
+    /// manual's (<see cref="CommonTownKeys"/>: A B G M N L / C U D I S, plus III's T). I and II already use them, so the
+    /// row is on the III and IV tabs: III's Amiga bar letters give way to them (its other keys stay), IV gains letters
+    /// for its doors, I for Profile and S for Save. A presentation switch (keys only), not a rule.
+    /// </summary>
+    public bool CommonTownKeys { get; set; }
+
+    /// <summary>
     /// QoL (PLAN P3, s172; off = the originals, which draw no box): the auto-map's whole-level overview box over the
     /// dungeon view (<see cref="UiOverlays.TileOverviewPlacement"/>), in the view's corner away from the party, never over
     /// the member cards. On by default (user, s172). The Tab key flips this same switch in game, so the Options row

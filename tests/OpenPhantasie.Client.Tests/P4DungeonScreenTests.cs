@@ -320,7 +320,8 @@ public class P4DungeonScreenTests
         var lines = s.BoxLines().Select(l => l.Text).ToList();
         Assert.StartsWith(UiText.F("p4.outdoor.title_x_y_z_w", 9, 10, 10, s.Game.Party.DaysOut), lines[0]);
         Assert.Equal(P4ScreenRequest.Save, s.HandleKeys([Keys.F5]));
-        Assert.Equal(P4ScreenRequest.MainMenu, s.HandleKeys([Keys.Escape]));
+        Assert.Null(s.HandleKeys([Keys.Escape])); // s180: asked first
+        Assert.Equal(P4ScreenRequest.MainMenu, s.HandleKeys([Keys.Y]));
     }
 
     [Theory]

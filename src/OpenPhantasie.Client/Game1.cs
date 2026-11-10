@@ -199,7 +199,11 @@ public partial class Game1 : Game
         ClientSettings.AdoptSingleSave();
 
         // T5.0: the main menu first; --test-party goes straight to I (or the --test-game game).
-        if (_testLevel is not null)
+        if (_testLevel is not null && _testGame == GameId.P4)
+            // IV has no GameSession: its test party is the preview party (P4Preview) arriving in Pendragon. --test-level
+            // does not train it (IV's creation record sets the level).
+            StartPhantasie4(() => P4Preview.StartInTown(P4TownLoop.Pendragon, _settings.Game(GameId.P4).NewGameOptions(GameId.P4)));
+        else if (_testLevel is not null)
             StartGame(_testGame);
         else if (_p4Map is int map)
             StartPhantasie4(() => P4Preview.Start(map, _settings.Game(GameId.P4).NewGameOptions(GameId.P4),
@@ -244,6 +248,25 @@ public partial class Game1 : Game
         Updates.UpdateInstaller.Install(archive, root, Path.GetRelativePath(root, program));
     }
 
+    /// <summary>Why the Client is closing, for the exit line (null: the window was closed from outside the game).</summary>
+    private string? _exitReason;
+
+    /// <summary>
+    /// s180: closes the Client with <paramref name="reason"/> on its exit line (stderr, <see cref="OnExiting"/>), so a
+    /// close is never silent: an empty log afterwards means the process was killed (SIGKILL) or crashed natively.
+    /// </summary>
+    private void ExitFor(string reason)
+    {
+        _exitReason = reason;
+        Exit();
+    }
+
+    protected override void OnExiting(object sender, Microsoft.Xna.Framework.ExitingEventArgs args)
+    {
+        Console.Error.WriteLine($"OpenPhantasie: closing ({_exitReason ?? "window closed"})");
+        base.OnExiting(sender, args);
+    }
+
     /// <summary>s174: the new build is in place: start it and close this one (settings are saved as they change).</summary>
     private void RestartAfterUpdate()
     {
@@ -255,7 +278,7 @@ public partial class Game1 : Game
         {
             // the files are in place; the player starts it by hand
         }
-        Exit();
+        ExitFor("restart after update");
     }
 
     /// <summary>Show IV's screen for the game <paramref name="start"/> builds (T6.3). IV's text is set first: entering a map
@@ -529,7 +552,7 @@ public partial class Game1 : Game
                 _options.Open();
                 break;
             case MainMenuChoice.Quit:
-                Exit();
+                ExitFor("main menu Quit");
                 break;
         }
     }
@@ -1155,6 +1178,7 @@ public partial class Game1 : Game
             _p4.Tick(gameTime.ElapsedGameTime.TotalMilliseconds); // s110: IV's picture animations, the open door
             _p4.Pointer = IsMouseVisible ? _mouse.Position : null; // s151: buttons under the pointer are lit (_xbtn)
             _p4.MysticSkippable = _settings.Game(GameId.P4).MysticSkip;
+            _p4.CommonTownKeys = _settings.Game(GameId.P4).CommonTownKeys; // QoL COMMON TOWN KEYS (D3-074)
             _p4.OriginalSlots = !_settings.Game(GameId.P4).SaveSlots; // SAVE SLOTS off: IV's own Save page (12-save-slots.md)
             // QoL MYSTIC SKIP: Space / Return, a left click or the pad's A ends the Mystic's counted loops; that input
             // goes nowhere else this frame, so it does not also close the Mystic in its wait.
@@ -2165,7 +2189,7 @@ public partial class Game1 : Game
                     SetFeedback(_message, _dosDialog.Help);
                 break;
             case GameMenuChoice.Quit:
-                Exit();
+                ExitFor("game menu Quit");
                 break;
         }
     }
@@ -2553,7 +2577,9 @@ public partial class Game1 : Game
             return;
         }
 
-        if (_townMenu.Place == TownPlace.Menu && _input.Pressed(GameAction.ToggleTown, keys, pad))
+        // D3-074: where the rules have Trade (III), T is the manual's Trade Items, not the remaster's leave-town key.
+        if (_townMenu.Place == TownPlace.Menu && _input.Pressed(GameAction.ToggleTown, keys, pad)
+            && !(s.CanTrade && _input.NewKeys(keys).Contains(Keys.T)))
         {
             LeaveTown(s);
             SetFeedback(s.LastMessage, HelpForMode(s.Mode));

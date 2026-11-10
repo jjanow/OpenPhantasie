@@ -29,7 +29,8 @@ public partial class Game1
 
     /// <summary>
     /// The town bar's keys (the remaster's: arrows, Return / Space, Esc on an open menu, <see cref="AmigaTownBar.HandleKey"/>);
-    /// the letters go on to the town's own keys (the manual's, D-066). True when the frame's keys were used here.
+    /// its letters take its items (D3-074, <see cref="AmigaTownBar.ActionForKey"/>; with COMMON TOWN KEYS the set's letters
+    /// go on to the town's own, the manual's); other keys go on to the town. True when the frame's keys were used here.
     /// </summary>
     private bool HandleTownBarKeys(GameSession s, IEnumerable<Keys> newKeys)
     {
@@ -48,6 +49,16 @@ public partial class Game1
         var used = false;
         foreach (var key in newKeys)
         {
+            // D3-074: the bar's letters (0x2189c) are its items' keys, whether a menu is pulled down or not; with COMMON TOWN
+            // KEYS on, the set's letters go on to the town's own (the manual's) instead.
+            if (AmigaTownBar.ActionForKey(key) is { Length: > 0 } keyed && bar.Menus.Any(m => m.Actions.Contains(keyed))
+                && !(CurrentGameSettings.CommonTownKeys && CommonTownKeySet.Contains(key)))
+            {
+                _townBar.Close();
+                RunTownBarAction(s, keyed);
+                used = true;
+                continue;
+            }
             var (taken, action) = _townBar.HandleKey(bar, key);
             used |= taken;
             if (action.Length > 0)

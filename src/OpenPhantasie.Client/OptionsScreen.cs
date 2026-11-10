@@ -364,6 +364,13 @@ public sealed class OptionsScreen
             rows.Add(Described("options.mystic_skip", OnOff(g.MysticSkip), _ => Set(() => g.MysticSkip = !g.MysticSkip)));
         }
 
+        if (game is GameId.P3 or GameId.P4)
+        {
+            // QoL (user s180, D3-074): the manual's town letters in every game; I and II have them already.
+            rows.Add(Described("options.common_town_keys", OnOff(g.CommonTownKeys),
+                _ => Set(() => g.CommonTownKeys = !g.CommonTownKeys)));
+        }
+
         var locked = _running is not null;
         var rules = _running?.Options ?? g.NewGameOptions(game);
         rows.Add(new(locked ? UiText.S("options.rules_locked") : UiText.S("options.rules_new_games"), null, null, Header: true));

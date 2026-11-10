@@ -82,6 +82,29 @@ public class P4CommandPanelTests
         Assert.Empty(P4DungeonScreen.PanelLabelRuns(""));
     }
 
+    [OriginalDataFact] // s180: Esc asks "BACK TO THE MAIN MENU? (Y/N)" first, as I–III's game menu
+    public void Escape_AsksBeforeTheMainMenu()
+    {
+        var s = new P4DungeonScreen(P4Preview.StartInTown(2, Code));
+        Assert.Null(s.HandleKeys([Keys.Escape]));
+        Assert.True(s.MainMenuAsked);
+        Assert.Contains(UiText.S("gamemenu.back_to_the_main_menu_y_n"), s.Note);
+        var iv = UiText.For(GameId.P4); // the question's lines are in IV's own table (the shared one), not only I's
+        Assert.NotEmpty(iv.Get("gamemenu.back_to_the_main_menu_y_n") + iv.Get("gamemenu.unsaved_progress_is_lost"));
+        Assert.Null(s.HandleKeys([Keys.D1, Keys.F, Keys.Enter])); // nothing else gets through
+        Assert.False(s.MenuOpen);
+        s.OnTextInput('x');
+        Assert.Equal("", s.Typed);
+        Assert.Null(s.HandleKeys([Keys.N]));
+        Assert.False(s.MainMenuAsked);
+        Assert.Null(s.Note);
+        s.HandleKeys([Keys.Escape]);
+        Assert.Null(s.HandleKeys([Keys.Escape])); // a second Esc stays in the game
+        Assert.False(s.MainMenuAsked);
+        s.HandleKeys([Keys.Escape]);
+        Assert.Equal(P4ScreenRequest.MainMenu, s.HandleKeys([Keys.Y]));
+    }
+
     [OriginalDataFact]
     public void PanelName_FollowsThePrompt()
     {

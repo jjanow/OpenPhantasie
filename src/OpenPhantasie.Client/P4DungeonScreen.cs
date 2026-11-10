@@ -78,10 +78,29 @@ public sealed partial class P4DungeonScreen
     public int Cursor { get; private set; }
 
     /// <summary>Puts the cursor on list line <paramref name="line"/> (a Command panel icon whose line has no digit key; Return then picks it).</summary>
-    public void AimAt(int line) => Cursor = Math.Max(0, line);
+    public void AimAt(int line)
+    {
+        if (!MainMenuAsked)
+            Cursor = Math.Max(0, line);
+    }
 
-    /// <summary>A shell message (saved, load failed) shown instead of the help line until the next key.</summary>
-    public string? Note { get; set; }
+    /// <summary>
+    /// A shell message (saved, load failed) shown instead of the help line until the next key; while Esc's main-menu
+    /// question is up, that question.
+    /// </summary>
+    public string? Note
+    {
+        get => MainMenuAsked ? UiText.S("gamemenu.back_to_the_main_menu_y_n") + " " + UiText.S("gamemenu.unsaved_progress_is_lost") : _note;
+        set => _note = value;
+    }
+
+    private string? _note;
+
+    /// <summary>
+    /// Esc asked "BACK TO THE MAIN MENU? (Y/N)" (as I–III's game menu, <see cref="GameMenuDialog"/>): Y leaves, N / Esc /
+    /// Backspace stay; no other key, click or typed character reaches the game while it is up.
+    /// </summary>
+    public bool MainMenuAsked { get; private set; }
 
     /// <summary>The text or number typed so far.</summary>
     public string Typed => _typed;
@@ -120,7 +139,25 @@ public sealed partial class P4DungeonScreen
             return null; // _animdoor's busy wait, the Mystic's counted loops and the street's load read no keys
         foreach (var key in newKeys)
         {
+            if (MainMenuAsked)
+            {
+                if (key == Keys.Y)
+                {
+                    MainMenuAsked = false;
+                    return P4ScreenRequest.MainMenu;
+                }
+                if (key is Keys.N or Keys.Escape or Keys.Back)
+                    MainMenuAsked = false;
+                continue;
+            }
             Note = null;
+            if (CommonTownKeys && key == Keys.S && OnTownStreet)
+            {
+                // QoL COMMON TOWN KEYS: S saves, as F5 (IV's own S, System, stays on its icon).
+                if (HandleKeys([Keys.F5]) is { } save)
+                    return save;
+                continue;
+            }
             switch (key)
             {
                 case Keys.F5 when Game.Battle is not null:
@@ -147,7 +184,8 @@ public sealed partial class P4DungeonScreen
                 case Keys.F9:
                     return P4ScreenRequest.Load;
                 case Keys.Escape:
-                    return P4ScreenRequest.MainMenu;
+                    MainMenuAsked = true; // the remaster's Esc: asked first, as in I–III
+                    continue;
             }
             if (!Game.LoopBuilt)
                 continue;
@@ -246,12 +284,40 @@ public sealed partial class P4DungeonScreen
         }
     }
 
+    /// <summary>
+    /// QoL COMMON TOWN KEYS (<see cref="GameSettings.CommonTownKeys"/>, set by the shell each frame; off = P4.X's keys): the
+    /// manual's town letters (<see cref="CommonTownKeySet"/>) on the street too. T, D, C and U are IV's own already.
+    /// </summary>
+    public bool CommonTownKeys { get; set; }
+
+    /// <summary>The town's street menu is up with nothing over it (where the town's letters are read).</summary>
+    private bool OnTownStreet => Game.LoopBuilt && _system is null && Game.Battle is null && !MenuOpen
+        && Game.Place == P4Place.Town && W.Prompt == P4TownPrompt.Menu;
+
+    /// <summary>
+    /// A letter of the common set on the street: A B G M N L open that door when the town has it (a town without it takes
+    /// the key and does nothing), I opens F's Profile. False for every other key.
+    /// </summary>
+    private bool CommonTownKey(Keys key)
+    {
+        if (CommonTownKeySet.P4Door(key) is { } door)
+        {
+            var n = W.Buildings.ToList().IndexOf(door);
+            if (n >= 0)
+                EnterFromStreet(W.Buildings[n]);
+            return true;
+        }
+        return key == Keys.I && CommandKey(Keys.F);
+    }
+
     private void TownKey(Keys key)
     {
         if (TownScreenKey(key))
             return;
         switch (W.Prompt)
         {
+            case P4TownPrompt.Menu when CommonTownKeys && CommonTownKey(key):
+                break;
             case P4TownPrompt.Menu:
                 if (!TownCommandKey(key))
                     Pick(key, W.Buildings.Count, n => EnterFromStreet(W.Buildings[n]));
@@ -390,7 +456,7 @@ public sealed partial class P4DungeonScreen
     /// <summary>A typed character (the window's text input): letters for "Letter&gt;", digits for "Number&gt;".</summary>
     public void OnTextInput(char c)
     {
-        if (!Game.LoopBuilt || TownTextInput(c) || Game.Place != P4Place.Dungeon)
+        if (MainMenuAsked || !Game.LoopBuilt || TownTextInput(c) || Game.Place != P4Place.Dungeon)
             return;
         if (D.Prompt == P4DungeonPrompt.Letters && _typed.Length < 10 && c >= ' ' && c < 0x7f)
             _typed += c;
@@ -557,7 +623,7 @@ public sealed partial class P4DungeonScreen
         }
         : Game.Place == P4Place.Town ? W.Prompt switch
         {
-            P4TownPrompt.Menu => UiText.S("p4.town.help_menu"),
+            P4TownPrompt.Menu => CommonTownKeys ? UiText.S("p4.town.help_menu_common") : UiText.S("p4.town.help_menu"),
             P4TownPrompt.Pick or P4TownPrompt.Who => UiText.S("p4.town.help_screen"),
             P4TownPrompt.Number or P4TownPrompt.Text => UiText.S("p4.dungeon.help_type"),
             P4TownPrompt.Wait when W.CanLeaveHistory => UiText.S("p4.hall.help_history"),

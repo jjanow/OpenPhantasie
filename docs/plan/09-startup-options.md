@@ -54,6 +54,7 @@ own D-entry.
  AUTO-MAP BOX        ON                 ← I, II and III
  TERRAIN KEY         OFF                ← II only
  MYSTIC SKIP         OFF                ← IV only
+ COMMON TOWN KEYS    OFF                ← III and IV
  RULES FOR NEW GAMES
  PRESET              ORIGINAL (MANUAL)
  SUMMONED ELEMENTAL  FULL STATS
@@ -114,6 +115,11 @@ own D-entry.
   during the Mystic's three counted loops (~23 s, no keys in P4.X) runs their remaining passes at once
   (`P4MysticReading.SkipLoops`): the same final picture, then the original wait for a key. The score and verdict are the
   town loop's either way. That input closes nothing.
+- **Common town keys** (III and IV, `commonTownKeys`, `options.common_town_keys`; off = each game's own; user s180,
+  D3-074): one set of town letters in every game, the Phantasie I manual's (A Armory, B Bank, G Guild, M Mystic, N Inn,
+  L Leave; C Cast, U Use, D Distribute, I Inspect, S Save) plus III's T Trade (`CommonTownKeySet`). I and II use it
+  already (no row). III: the set wins over the Amiga bar's letters (its other keys stay). IV: the letters open the doors
+  the town has, I is F's Profile, S saves as F5; the digits and IV's own keys stay, System on its icon.
 - **Save slots** (every game, `saveSlots`, `options.save_slots`; off = the one save, IV: its original's three slots on
   its own Save page): numbered slots beside the autosave, a slot picker for Save / Load and the main menu
   (`12-save-slots.md`). A presentation switch, not a rule:
@@ -133,7 +139,7 @@ own D-entry.
 | Scope | Examples | Changed | Stored |
 |---|---|---|---|
 | **Global** | window scale, start maximized, key bindings, DOS save folder | any time | `settings.json` top level |
-| **Per-game presentation** | graphics pack, title screen and title tune (section 8), diagonal moves (D-076), status lines (D-077), continue from a list (D-069 QoL), inventory screen, combat speed (I, II, III), time lag and sound in the options (D-073 QoL; the lag and sound values themselves stay top level), colorblind palette (P3 QoL), terrain key (II) and Mystic skip (IV) (s171 P3 QoL), auto-map box (I, II, III; s172 P3 QoL, on by default) | any time, also in game | `settings.json` → `games.<p1>` |
+| **Per-game presentation** | graphics pack, title screen and title tune (section 8), diagonal moves (D-076), status lines (D-077), continue from a list (D-069 QoL), inventory screen, combat speed (I, II, III), time lag and sound in the options (D-073 QoL; the lag and sound values themselves stay top level), colorblind palette (P3 QoL), terrain key (II) and Mystic skip (IV) (s171 P3 QoL), common town keys (III, IV; s180 QoL), auto-map box (I, II, III; s172 P3 QoL, on by default) | any time, also in game | `settings.json` → `games.<p1>` |
 | **Per-game rules** | DOS-vs-manual choices, QoL rule toggles, cross-game feature modules, transfer and lineage options | game tab = defaults for **new** games | copied into the save at new game; locked |
 
 Presets cover **rules only**. Presentation switches stay outside them, so a fresh install (diagonal moves ON at the user's

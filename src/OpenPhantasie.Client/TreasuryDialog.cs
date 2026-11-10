@@ -71,7 +71,11 @@ public sealed class TreasuryDialog : IModalDialog, IPagedDialog, IAmigaWindowDia
         return null;
     }
 
-    /// <summary>III Amiga: the Bank's window 9 with the title in its title cell and a page of the report from its first row.</summary>
+    /// <summary>
+    /// III Amiga: the Bank's window 9 with the title in its title cell and a page of the report from its first row. The
+    /// report is the remaster's, not a list of the original's, so its rows step the font's line height (the Amiga's 8-px
+    /// grid left the 7-px glyphs touching, s179); the window grows down to hold them, as any long list.
+    /// </summary>
     public AmigaWindowView? View(GameSession session, GameDataRepository data, KeepWindowsLayout layout)
     {
         if (!IsOpen || layout.Bank is not { Text.Count: >= 2 } w)
@@ -80,7 +84,7 @@ public sealed class TreasuryDialog : IModalDialog, IPagedDialog, IAmigaWindowDia
         var rows = new List<AmigaWindowRow> { new(t[0].X, t[0].Y, GameText.S("core.treasury.title"), false) };
         var page = Body(session).Skip(_offset).Take(PageRows).ToList();
         for (var i = 0; i < page.Count; i++)
-            rows.Add(new(t[1].X, t[1].Y + 8 * i, page[i], false));
+            rows.Add(new(t[1].X, t[1].Y + PixelFont.LineHeight * i, page[i], false)); // the remaster's report: its own line height (s180)
         return new AmigaWindowView(w, rows, []);
     }
 }
