@@ -75,6 +75,8 @@ public partial class StringTableTests
             .Concat(En.Strings.Keys.Where(k => k.StartsWith("options.", StringComparison.Ordinal) && k.EndsWith(".desc", StringComparison.Ordinal)))
             // s183: a help text's pad wording, shown by its keyboard text's id (PadWording.Help).
             .Concat(En.Strings.Keys.Where(k => k.EndsWith(PadWording.Suffix, StringComparison.Ordinal)))
+            // B8 (s189): a wheel step's own line, shown by its keyboard text's id (DialogPad.WheelTextFor).
+            .Concat(En.Strings.Keys.Where(k => k.EndsWith(DialogPad.WheelSuffix, StringComparison.Ordinal)))
             // 09 T2 inventory screen: Core's refusal reasons and the paperdoll boxes of the game's equipment layout.
             .Concat(InventoryActions.ReasonKeys)
             // The Guild treasury's ledger kinds (TreasuryReport.Lines).

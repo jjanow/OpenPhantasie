@@ -20,6 +20,17 @@ public sealed class CastDialog : IModalDialog, IPagedDialog, IPadWheel
         _ => null,
     };
 
+    /// <summary>Pad fix B8 (s189): who / spell / heal whom share one help text (<see cref="IPadWheel.PadStep"/>).</summary>
+    public string? PadStep => _step.ToString();
+
+    /// <summary>Pad fix B8 (s189): the member or spell the wheel's number picks (<see cref="IPadWheel.PadPickName"/>).</summary>
+    public string? PadPickName(GameSession session, GameDataRepository data, int pick) => _step switch
+    {
+        Step.Caster or Step.Target when pick <= session.Party.Members.Count => session.Party.Members[pick - 1].Name,
+        Step.Spell when _scroll + pick - 1 < _spells.Count => data.GetSpell(_spells[_scroll + pick - 1]).Name,
+        _ => null,
+    };
+
     private enum Step { Closed, Caster, Spell, Target }
 
     private const int PageSize = 9;

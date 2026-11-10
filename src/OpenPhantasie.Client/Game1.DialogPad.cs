@@ -47,7 +47,8 @@ public partial class Game1
     /// <summary>The keys the pad's new buttons stand for in the open <paramref name="modal"/>.</summary>
     private IEnumerable<Keys> ModalPadKeys(IModalDialog modal, GamePadState pad) =>
         _dialogPad.KeysFor(modal, _input.NewButtons(pad), ModalWheel(modal, _session!),
-            modal is IPadYesNo { AsksYesNo: true }, ModalTakesLeftRight(modal), modal.Help, ModalWheel(modal, _session!) is not null);
+            modal is IPadYesNo { AsksYesNo: true }, ModalTakesLeftRight(modal), modal.Help, ModalWheel(modal, _session!) is not null,
+            (modal as IPadWheel)?.PadStep);
 
     /// <summary>
     /// Pad fix B7 (s188): the open step's wheel characters (<see cref="IPadWheel"/>, else what it types,
@@ -67,7 +68,12 @@ public partial class Game1
         !PadWording.Active ? modal.Help
         : modal is IPadYesNo { AsksYesNo: true } && PadWording.PadTextFor(UiText.Table, modal.Help) is not null ? modal.Help
         : _dialogPad.Help(modal, ModalWheel(modal, _session!), modal is IPadYesNo { AsksYesNo: true },
-            ModalTakesLeftRight(modal), modal.Help, ModalWheel(modal, _session!) is not null) ?? modal.Help;
+            ModalTakesLeftRight(modal), modal.Help, ModalWheel(modal, _session!) is not null, (modal as IPadWheel)?.PadStep,
+            PickNames(modal)) ?? modal.Help;
+
+    /// <summary>B8 (s189): what the wheel's number picks in <paramref name="modal"/> (<see cref="IPadWheel.PadPickName"/>).</summary>
+    private Func<int, string?>? PickNames(IModalDialog modal) =>
+        modal is IPadWheel w && _session is { } s && _data is { } d ? pick => w.PadPickName(s, d, pick) : null;
 
     /// <summary>A dialog step whose menu moves with Left / Right (<see cref="IPadArrows"/>): the pad's wheel stays off there.</summary>
     private static bool ModalTakesLeftRight(IModalDialog modal) => modal is IPadArrows { TakesLeftRight: true };

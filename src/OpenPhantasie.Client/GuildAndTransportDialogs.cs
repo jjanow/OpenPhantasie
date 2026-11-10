@@ -333,6 +333,11 @@ public sealed class GuildDropDialog : IModalDialog, IPadWheel
     /// <summary>Pad fix B7 (s188): the pad wheel on the members' numbers (<see cref="IPadWheel"/>).</summary>
     public string? PadWheel(GameSession session) => IsOpen ? DialogPad.Picks(session.Party.Members.Count + (ListedElemental(session) is null ? 0 : 1)) : null;
 
+    /// <summary>Pad fix B8 (s189): the member (or the elemental after them) the wheel's number drops.</summary>
+    public string? PadPickName(GameSession session, GameDataRepository data, int pick) =>
+        pick <= session.Party.Members.Count ? session.Party.Members[pick - 1].Name
+        : pick == session.Party.Members.Count + 1 ? ListedElemental(session)?.Name : null;
+
     public static string Title => UiText.S("guild.whom_do_you_want_to_drop");
 
     public bool IsOpen { get; private set; }
@@ -407,6 +412,11 @@ public sealed class GuildPartyPickDialog : IModalDialog, IPadWheel
         !IsOpen || _confirming is not null ? null
         : _skillMember is not null ? DialogPad.Picks(P3Training.ScreenOrder.Count)
         : DialogPad.Picks(session.Party.Members.Count);
+
+    /// <summary>Pad fix B8 (s189): the member, or on III's skill step the skill, the wheel's number picks.</summary>
+    public string? PadPickName(GameSession session, GameDataRepository data, int pick) =>
+        _skillMember is not null ? pick <= P3Training.ScreenOrder.Count ? UiText.Name(P3Training.ScreenOrder[pick - 1]) : null
+        : pick <= session.Party.Members.Count ? session.Party.Members[pick - 1].Name : null;
 
     public static string TrainTitle => UiText.S("guild.who_is_going_to_be_trained");
     public static string LearnTitle => UiText.S("guild.who_will_learn");

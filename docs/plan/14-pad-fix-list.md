@@ -29,7 +29,7 @@ Paths are relative to `src/OpenPhantasie.Client/` unless stated.
 
 ## B. The digit wheel (one root cause behind ~30 dialog findings)
 
-B7 and B9 done s188 (not seen live):
+B7 and B9 done s188, B8 s189 (none seen live):
 - **B7.** The wheel is opt-in. Only a step that picks by digit with no D-pad cursor, or that types, turns it on
   (`IPadWheel.PadWheel(session)`, else `ITypedEntry`; `Game1.ModalWheel`). Its range follows the step
   (`DialogPad.Picks`: 1-2, 1-5, 1-6…). Wheel steps: Cast (who / spell page / heal whom), Use potion (3), Time lag's
@@ -40,13 +40,13 @@ B7 and B9 done s188 (not seen live):
 - **B9.** The town picture's band shows the help whenever the pad is the input (`Game1` town HUD), so the wheel line,
   its character, `pad.dialog_yes_no` and `game.x_x_shares` show there. Side effect for group E: a help with no `.pad`
   twin now shows there in keyboard words (before: nothing).
-
-8. **Per-step wheel help templates** in place of the generic line (each `.pad` / `.wheel` id, `{0}` = current pick),
-   naming what X / A / Y / B really do there: Cast (3 steps; also lost "Up/Down more"), Use potion, Time lag, Drop,
-   Spells / Training "who", III training's skill step (show the skill name), Learn spell, New's race / class and kind
-   question, Name / Rename ("B cancel" in New), Inspect "whom", Withdraw amount (no "B back" outside III Amiga), III DOS
-   Deposit and Amiga "How much" (add "B cancel"), Use item's steps. Also `DialogPad.StepChanged` resets only on a
-   help-text change: Cast / Potion / Use item reuse one text.
+- **B8.** Each wheel step's help has a `.wheel` twin (`<help id>.wheel`, `DialogPad.WheelSuffix` / `WheelTextFor`):
+  a template whose `{0}` is the wheel's pick with what it picks (`IPadWheel.PadPickName`: the member, spell, potion,
+  item, option, race, class, kind or III skill), naming what X / Y / A / B do on that step. It shows as soon as the pad
+  is the input (no wait for the wheel's first use) and replaces the generic `pad.dialog_wheel_x` there (which stays for
+  Continue's Guild number). Rename got its own help (`member.type_name_enter_accept_esc_back`, B back); Withdraw's
+  amount names no B (DOS ignores Esc there). A new step (its help, or `IPadWheel.PadStep` where Cast / Use potion / Use
+  item reuse one text) starts the wheel again at 1.
 
 ## C. No pad route (I–III, front end)
 
@@ -137,5 +137,5 @@ B7 and B9 done s188 (not seen live):
 
 ## Suggested order
 
-A (done s187) → B 7 + 9 (done s188) → B 8 → C 10-13, D 24-26 → the rest → one live
+A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13, D 24-26 → the rest → one live
 virtual-pad pass on Xvfb.

@@ -65,6 +65,15 @@ public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog, IP
         _ => null,
     };
 
+    /// <summary>Pad fix B8 (s189): the kind, race or class the wheel's number picks (<see cref="IPadWheel.PadPickName"/>).</summary>
+    public string? PadPickName(GameSession session, GameDataRepository data, int pick) => _step switch
+    {
+        Step.Kind when pick <= 2 => UiText.S(pick == 1 ? "lineage.plain" : "lineage.descendant"),
+        Step.Race when pick <= RaceMenu.Length => RaceMenu[pick - 1],
+        Step.Class when pick <= ClassMenu.Length => ClassMenu[pick - 1],
+        _ => null,
+    };
+
     private enum Step { Closed, Kind, Ancestor1, Ancestor2, Race, Class, Accept, Name, Sheet }
 
     /// <summary>Hall-list rows shown at once; the rest scroll (with the title and the three lines under it, the box needs no scroll of its own).</summary>
@@ -489,7 +498,7 @@ public sealed class GuildPickDialog : IModalDialog, ITypedEntry, IPagedDialog
     public int Cursor { get; private set; }
 
     public string Help => _renaming is not null
-        ? UiText.S("member.type_name_enter_accept_esc_cancel")
+        ? UiText.S("member.type_name_enter_accept_esc_back") // B8 (s189): Esc goes back to the list
         : _examine is not null ? UiText.S("member.arrows_choose_enter_examine_esc_done")
         : _rename ? UiText.S("member.arrows_choose_enter_rename_esc_done") : UiText.S("member.arrows_choose_enter_purge_esc_done");
 

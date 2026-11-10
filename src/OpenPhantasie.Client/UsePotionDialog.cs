@@ -23,6 +23,19 @@ public sealed class UsePotionDialog : IModalDialog, IPadWheel
         _ => null,
     };
 
+    /// <summary>Pad fix B8 (s189): who / which potion / on whom share one help text (<see cref="IPadWheel.PadStep"/>).</summary>
+    public string? PadStep => _step.ToString();
+
+    /// <summary>Pad fix B8 (s189): the member or potion the wheel's number picks (<see cref="IPadWheel.PadPickName"/>).</summary>
+    public string? PadPickName(GameSession session, GameDataRepository data, int pick) => _step switch
+    {
+        Step.User when Users(session) is var users && pick <= users.Count => session.Party.Members[users[pick - 1]].Name,
+        Step.Potion when pick <= _slots.Count && _user is { } u =>
+            data.Items.FirstOrDefault(it => it.Id == u.InventoryItemIds[_slots[pick - 1]])?.Name,
+        Step.Target when pick <= session.Party.Members.Count => session.Party.Members[pick - 1].Name,
+        _ => null,
+    };
+
     private enum Step { Closed, User, Potion, Target }
 
     private Step _step = Step.Closed;

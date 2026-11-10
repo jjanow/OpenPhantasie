@@ -227,6 +227,11 @@ public sealed class LearnSpellDialog : IModalDialog, IPagedDialog, IPadWheel
     /// <summary>Pad fix B7 (s188): the pad wheel on the page's spell numbers (<see cref="IPadWheel"/>).</summary>
     public string? PadWheel(GameSession session) => _member is null ? null : DialogPad.Picks(Learnable(_member).Count - _scroll);
 
+    /// <summary>Pad fix B8 (s189): the spell the wheel's number learns (<see cref="IPadWheel.PadPickName"/>).</summary>
+    public string? PadPickName(GameSession session, GameDataRepository data, int pick) =>
+        _member is not null && Learnable(_member) is var list && _scroll + pick - 1 < list.Count
+            ? data.GetSpell(list[_scroll + pick - 1]).Name : null;
+
     public ListPage? Page { get; private set; }
 
     private const int PageSize = 9;

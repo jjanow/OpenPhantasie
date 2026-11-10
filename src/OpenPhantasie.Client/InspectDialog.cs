@@ -19,6 +19,10 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog, IPadArrows, IPad
     /// <summary>Pad fix B7 (s188): the pad wheel on "whom" (the other steps take the D-pad / A) (<see cref="IPadWheel"/>).</summary>
     public string? PadWheel(GameSession session) => _step == Step.Who ? DialogPad.Picks(session.Party.Members.Count) : null;
 
+    /// <summary>Pad fix B8 (s189): the member the wheel's number inspects (<see cref="IPadWheel.PadPickName"/>).</summary>
+    public string? PadPickName(GameSession session, GameDataRepository data, int pick) =>
+        _step == Step.Who && pick <= session.Party.Members.Count ? session.Party.Members[pick - 1].Name : null;
+
     private enum Step { Closed, Summary, AskMember, Who, Sheet, Page }
 
     /// <summary>Menu <c>0x15</c> (labels "INSPECT MEMBER?" / NO / YES — NO is the first option).</summary>

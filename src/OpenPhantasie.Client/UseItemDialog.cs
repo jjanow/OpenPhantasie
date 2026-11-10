@@ -23,6 +23,18 @@ public sealed class UseItemDialog : IModalDialog, IPagedDialog, IPadWheel
         _ => null,
     };
 
+    /// <summary>Pad fix B8 (s189): item / on whom / option share one help text (<see cref="IPadWheel.PadStep"/>).</summary>
+    public string? PadStep => _step.ToString();
+
+    /// <summary>Pad fix B8 (s189): the item, member or option the wheel's number picks (<see cref="IPadWheel.PadPickName"/>).</summary>
+    public string? PadPickName(GameSession session, GameDataRepository data, int pick) => _step switch
+    {
+        Step.Item when _user is not null && Rows(_user) is var rows && pick <= rows.Count => ItemName(rows[pick - 1].ItemId),
+        Step.Target when pick <= session.Party.Members.Count => session.Party.Members[pick - 1].Name,
+        Step.Option when pick <= _campaignOptions.Count => _campaignOptions[pick - 1],
+        _ => null,
+    };
+
     private enum Step { Closed, User, Item, Target, Text, Option, PrintAsk, PrinterAsk }
 
     public static string UserTitle => UiText.S("useitem.who_will_use");
