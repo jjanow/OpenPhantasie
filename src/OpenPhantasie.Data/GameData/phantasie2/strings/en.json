@@ -6,6 +6,7 @@
   "extends": "phantasie1",
   "strings": {
     "game.welcome_to_pelnor_g_enters_the": "Welcome to Pippacott. G enters the Guild.",
+    "game.welcome_to_pelnor_g_enters_the.pad": "Welcome to Pippacott. Pick Guild and press A to enter it.",
     "core.dungeon.x_avoids_the_trap": "{0} ...",
     "core.dungeon.trap_x_takes_x_damage": "{0} ... {1} ...",
     "core.dungeon.trap_x_dies": "{0} ...",
@@ -96,6 +97,7 @@
     "core.p2.deity_2": "...",
     "core.p2.deity_3": "...",
     "gamemenu.import_dos_save_f7": "Transfer from I  F7",
+    "gamemenu.import_dos_save_f7.pad": "Transfer from I",
     "p2.terrain_key.party": "...",
     "p2.terrain_key.town_inn": "TOWN/INN",
     "p2.terrain_key.dungeon": "...",

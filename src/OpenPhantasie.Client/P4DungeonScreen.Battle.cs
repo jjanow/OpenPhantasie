@@ -237,7 +237,7 @@ public sealed partial class P4DungeonScreen
         switch (b.Prompt)
         {
             case P4BattlePrompt.Options when b.AutoCombat:
-                lines.Add(new(UiText.S("p4.battle.auto_continue"), MenuLineStyle.Header));
+                lines.Add(new(PadS("p4.battle.auto_continue"), MenuLineStyle.Header));
                 break;
             case P4BattlePrompt.Options:
                 for (var i = 0; i < OptionOrder.Length; i++)
@@ -318,11 +318,13 @@ public sealed partial class P4DungeonScreen
 
     private string BattleHelp(P4Battle b) => b.Prompt switch
     {
+        P4BattlePrompt.Options when b.AutoCombat => UiText.S("p4.battle.help_next_round"), // s193 (E28)
         P4BattlePrompt.Options => UiText.S("p4.battle.help_options"),
         P4BattlePrompt.Order => _mode switch
         {
             BattleMode.Target => UiText.S("p4.battle.help_target"),
             BattleMode.Spells or BattleMode.Member => UiText.S("p4.battle.help_pick"),
+            _ when b.AutoCombat => UiText.S("p4.battle.help_next_round"),
             _ => UiText.S("p4.battle.help_orders"),
         },
         P4BattlePrompt.Treasure => UiText.S("p4.outdoor.help_confirm"),

@@ -240,6 +240,24 @@ public static partial class UiOverlays
         return true;
     }
 
+    /// <summary>
+    /// s193 (pad fix E29): the pad's one-row hint on III Amiga's field between rounds (<see cref="DrawFieldMenuScreen"/>),
+    /// on the round line's own row (text row 24, empty while the field waits), in the party's line colour. Not while the
+    /// Party Health window (window 22, down to y 199) covers that row; nothing for a hint longer than the row.
+    /// </summary>
+    public static bool FieldPadHintFits(AmigaFieldWindow window, string text) =>
+        window != AmigaFieldWindow.PartyHealth && !string.IsNullOrEmpty(text) && PixelFont.Measure(text) <= 316;
+
+    /// <summary>Draws <see cref="FieldPadHintFits"/>'s hint centred on text row 24.</summary>
+    public static void DrawFieldPadHint(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, CombatPresenter presenter,
+        string text)
+    {
+        if (!FieldPadHintFits(presenter.FieldWindow, text))
+            return;
+        var colour = assets.PaletteColour(CombatPalette, CombatFieldRun.PartyColour) ?? DosWhite;
+        PixelFont.Draw(batch, pixel, (320 - PixelFont.Measure(text)) / 2, AstralScene.TextTop, text, colour);
+    }
+
     /// <summary>An info window's frame (fill index 0, outer / inner frame) in its palette (<c>0x3904</c>).</summary>
     private static Func<int, Color> DrawInfoFrame(SpriteBatch batch, Texture2D pixel, AssetCatalog assets,
         KeepWindowsLayout.InfoWindow w)

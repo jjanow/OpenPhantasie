@@ -90,11 +90,13 @@ public sealed class PadLeftoversTests
         // DrawMenuScreen draws its help unwrapped from x 14 inside the 308-px panel (main menu, Options, the slot picker).
         foreach (var id in new[] { "menu.help.pad", "options.help.pad", "saveslots.help_pad", "saveslots.help_confirm.pad" })
             Assert.True(14 + PixelFont.Measure(UiText.S(id)) <= 312, id);
-        // The HUD's help line wraps at 52 columns; every pad wording keeps to two rows.
+        // The HUD's help line wraps at 52 columns; every pad wording keeps to two rows. s193 (E31): an Options
+        // description's twin (.desc.pad) is no help line: the description box wraps and scrolls it.
         foreach (var game in new[] { GameId.P1, GameId.P3 })
         {
             var table = UiText.For(game);
-            foreach (var id in table.Strings.Keys.Where(k => k.EndsWith(PadWording.Suffix, StringComparison.Ordinal)))
+            foreach (var id in table.Strings.Keys.Where(k => k.EndsWith(PadWording.Suffix, StringComparison.Ordinal)
+                         && !k.EndsWith(".desc" + PadWording.Suffix, StringComparison.Ordinal)))
                 Assert.True(table.Get(id).Length <= 2 * 52, id);
         }
         Assert.True(UiText.F("inventory.sell_line_pad", 65000).Length <= 25); // the detail column

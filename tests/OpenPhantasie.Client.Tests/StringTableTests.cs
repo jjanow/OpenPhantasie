@@ -30,8 +30,8 @@ public partial class StringTableTests
     }
 
     // OptionsScreen.Described("options.x", …) shows "options.x" and describes the row with "options.x.desc".
-    // s185: PadWording.S / F / Format("id", …) show "id", or its ".pad" twin while the pad is the input.
-    [GeneratedRegex("""(?:UiText\.[SF]|PadWording\.(?:[SF]|Format)|Described)\("([^"]+)"[,)]""")]
+    // s185: PadWording.S / F / Format("id", …) show "id", or its ".pad" twin while the pad is the input. s193: IV's PadS("id") likewise.
+    [GeneratedRegex("""(?:UiText\.[SF]|PadWording\.(?:[SF]|Format)|Described|PadS)\("([^"]+)"[,)]""")]
     private static partial Regex IdUse();
 
     [GeneratedRegex("\"(core\\.[a-z0-9_.]+)\"")]

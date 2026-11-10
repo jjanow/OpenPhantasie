@@ -44,10 +44,10 @@ public sealed class GameMenuDialog : IModalDialog, IPadYesNo
     public static (string Label, GameMenuChoice Choice)[] EntriesFor(GameId game, GameOptions? options = null) =>
     [
         (UiText.S("gamemenu.resume"), GameMenuChoice.Resume),
-        (UiText.S("gamemenu.save_game_f5"), GameMenuChoice.Save),
-        (UiText.S("gamemenu.load_game_f9"), GameMenuChoice.Load),
-        (UiText.S("gamemenu.import_dos_save_f7"), GameMenuChoice.DosImport),
-        (UiText.S("gamemenu.export_dos_save_f6"), GameMenuChoice.DosExport),
+        (PadWording.S("gamemenu.save_game_f5"), GameMenuChoice.Save), // s193 (pad fix E30): LB / RB, no F-keys, while the pad is the input
+        (PadWording.S("gamemenu.load_game_f9"), GameMenuChoice.Load),
+        (PadWording.S("gamemenu.import_dos_save_f7"), GameMenuChoice.DosImport),
+        (PadWording.S("gamemenu.export_dos_save_f6"), GameMenuChoice.DosExport),
         .. TransferRows(game, options),
         (UiText.S("gamemenu.options"), GameMenuChoice.Options),
         (UiText.S("gamemenu.main_menu"), GameMenuChoice.MainMenu),

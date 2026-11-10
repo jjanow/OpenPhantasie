@@ -116,7 +116,7 @@ public sealed class PadWordingP1Tests
             Assert.StartsWith("ARAGORN (THRUST): 1 THRUST 2 ATTACK",
                 PadWording.F("combat.x_x_orders_x_enter_keep", "ARAGORN", "THRUST", "1 THRUST 2 ATTACK"));
             // an id with no twin is its own text, pad or not
-            Assert.Equal(UiText.F("combat.x_which_rank_1_x", "ARAGORN", 3), PadWording.F("combat.x_which_rank_1_x", "ARAGORN", 3));
+            Assert.Equal(UiText.F("gamemenu.quit_game"), PadWording.F("gamemenu.quit_game"));
         }
         finally
         {

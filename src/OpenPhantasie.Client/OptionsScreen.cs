@@ -445,7 +445,7 @@ public sealed class OptionsScreen
         var row = rows[Cursor - 1];
         var lines = new List<MenuLine> { new(row.Label.Trim(), MenuLineStyle.Header) };
         if (row.Desc is { } desc && UiText.Table.Contains(desc))
-            lines.Add(new(UiText.S(desc), MenuLineStyle.Normal));
+            lines.Add(new(PadWording.S(desc), MenuLineStyle.Normal)); // s193 (pad fix E31): a .desc.pad twin while the pad is the input
         if (row.Rule is { } rule && Tab is { } game)
         {
             foreach (var preset in new[] { OptionPreset.Manual, OptionPreset.Dos, OptionPreset.Remaster })

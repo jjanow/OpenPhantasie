@@ -693,6 +693,105 @@ public sealed class P4PadTests : IDisposable
         Assert.Equal(UiText.F("p4.pad.help_shares_buttons_x", 2), t.Help);
     }
 
+    // --- s193: pad fix list D27 + E28 ------------------------------------------------------------------------------------
+
+    [OriginalDataFact]
+    public void Treasury_LtRtPageTheLedger_LbStaysSave_HelpNamesTheScroll()
+    {
+        var game = P4Preview.StartInTown(1, Code.With(RuleOptionRegistry.Treasury.Id, "trip"));
+        while (game.Town.Prompt == P4TownPrompt.Wait)
+            game.Town.Continue();
+        var s = new P4DungeonScreen(game);
+        Assert.Empty(Pad(s, Buttons.LeftTrigger)); // the street: the triggers page nothing
+        for (var i = 0; i < 30; i++)
+            game.Party.Treasury.Add(100 + i, TreasuryEntryKind.Trip);
+        game.Town.Enter(P4Building.Bank);
+        Assert.NotNull(game.Town.TreasuryLines);
+        Assert.Equal([Keys.PageUp], Pad(s, Buttons.LeftTrigger));
+        Assert.Equal([Keys.PageDown], Pad(s, Buttons.RightTrigger));
+        Assert.Equal([Keys.F5], Pad(s, Buttons.LeftShoulder)); // LB / RB stay save / load
+        Assert.Equal(UiText.S("p4.pad.help_treasury"), s.Help);
+        Assert.DoesNotContain("LB save", s.Help, StringComparison.Ordinal); // no save in a building
+        s.PadInput = false;
+        Assert.Equal(UiText.S("p4.town.help_treasury"), s.Help);
+        Press(s, Buttons.A); // the wait ends as before
+        Assert.NotEqual(P4TownPrompt.Wait, game.Town.Prompt);
+    }
+
+    [OriginalDataFact]
+    public void Waits_NameLbSave_OnlyWhereASaveIsTaken()
+    {
+        Assert.Contains("LB save", UiText.S("p4.pad.help_wait"), StringComparison.Ordinal);
+        Assert.DoesNotContain("LB save", UiText.S("p4.pad.help_wait_nosave"), StringComparison.Ordinal);
+        var game = P4Preview.StartInTown(2, Code);
+        var s = new P4DungeonScreen(game) { PadInput = true };
+        game.Party.Gold = 1000;
+        game.Town.Enter(P4Building.Bank);
+        game.Town.Choose(0); // D: deposit, the shares
+        game.Town.EnterShares([.. game.Party.Members.Select(_ => 1)]);
+        Assert.Equal(P4TownPrompt.Wait, game.Town.Prompt);
+        Assert.False(game.CanSave);
+        Assert.Equal(UiText.S("p4.pad.help_wait_nosave"), s.Help);
+    }
+
+    [OriginalDataFact]
+    public void AutoCombat_PadHelpAndBox_NameANextRound()
+    {
+        var s = new P4DungeonScreen(Synthetic(true, 0x22, 0x23, 0x01, 0x00));
+        var b = Assert.IsType<P4Battle>(s.Game.Battle);
+        s.HandleKeys([Keys.F]);
+        s.HandleKeys([Keys.Q]); // auto move
+        for (var i = 0; i < 50 && s.Game.Battle is not null && b.Prompt != P4BattlePrompt.Options; i++)
+            s.HandleKeys([b.Prompt == P4BattlePrompt.Treasure ? Keys.N : Keys.Enter]);
+        Assert.Equal(P4BattlePrompt.Options, b.Prompt);
+        s.HandleKeys([Keys.Q]); // auto combat
+        for (var i = 0; i < 50 && s.Game.Battle is not null && !(b.Prompt == P4BattlePrompt.Options && b.AutoCombat); i++)
+            s.HandleKeys([b.Prompt == P4BattlePrompt.Treasure ? Keys.N : Keys.Enter]);
+        Assert.True(b.AutoCombat && b.Prompt == P4BattlePrompt.Options);
+        Assert.Equal(UiText.S("p4.battle.help_next_round"), s.Help);
+        Assert.Contains(s.BoxLines(), l => l.Text == UiText.S("p4.battle.auto_continue"));
+        s.PadInput = true;
+        Assert.Equal(UiText.S("p4.pad.help_next_round"), s.Help);
+        Assert.Contains(s.BoxLines(), l => l.Text == UiText.S("p4.battle.auto_continue.pad"));
+        var round = b.Round;
+        Press(s, Buttons.A);
+        Assert.True(b.Round > round || b.Done || s.Game.Battle is null);
+    }
+
+    [OriginalDataFact]
+    public void AWipedOutParty_HelpNamesA_AndAOpensSelectGame()
+    {
+        var s = new P4DungeonScreen(Synthetic(false, 0x22, 0x1A, 255, 0x00)); // DAMAGE 255 on arrival
+        Assert.True(s.Game.PartyLost);
+        Assert.Equal(UiText.S("p4.dungeon.help_wiped"), s.Help);
+        s.PadInput = true;
+        Assert.Equal(UiText.S("p4.pad.help_wiped"), s.Help);
+        Press(s, Buttons.A);
+        Assert.Equal(P4SystemPage.SelectGameFinal, s.SystemPage);
+    }
+
+    [OriginalDataFact]
+    public void SystemChoices_DropTheirKeyLetters_ForThePad()
+    {
+        var s = new P4DungeonScreen(P4Preview.StartInTown(2, Code));
+        s.HandleKeys([Keys.S]);
+        Assert.Equal(UiText.S("p4.system.choice.save"), s.SystemChoices![0].Label);
+        s.PadInput = true;
+        Assert.Equal([UiText.S("p4.system.choice.save.pad"), UiText.S("p4.system.choice.end.pad"),
+            UiText.S("p4.system.choice.about.pad"), UiText.S("p4.system.choice.back.pad")], s.SystemChoices!.Select(c => c.Label));
+        Assert.Contains(s.BoxLines(), l => l.Text == ">" + UiText.S("p4.system.choice.save.pad"));
+    }
+
+    [Fact]
+    public void BoxTexts_HavePadTwins_AndTheMapHelpNamesP()
+    {
+        foreach (var id in new[] { "p4.town.game_over", "p4.dungeon.combat_not_built", "p4.outdoor.combat_not_built",
+            "p4.battle.auto_continue", "p4.system.choice.save", "p4.system.choice.end", "p4.system.choice.about",
+            "p4.system.choice.title", "p4.system.choice.back" })
+            Assert.True(UiText.Table.Contains(id + PadWording.Suffix), id);
+        Assert.Contains(" P party ", UiText.S("p4.dungeon.help_move"), StringComparison.Ordinal);
+    }
+
     [OriginalDataFact]
     public void PadInput_IsPadWordingActive_OneFlag()
     {

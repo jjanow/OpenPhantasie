@@ -1697,11 +1697,11 @@ public sealed partial class CombatPresenter
     private string Prompt(GameSession session)
     {
         if (Phase == CombatPhase.PartyOptions && FieldWindow != AmigaFieldWindow.None)
-            return UiText.S("combat.press_any_key");
+            return PressAnyKey;
         if (Phase == CombatPhase.PartyOptions && _amigaParty && InfoBox.Count == 0)
             return _p1Party ? UiText.S("p1field.help") : UiText.S("p3field.help");
         if (Phase == CombatPhase.PartyOptions)
-            return InfoBox.Count > 0 ? UiText.S("combat.press_any_key")
+            return InfoBox.Count > 0 ? PressAnyKey
                 : PadWording.F("combat.party_options_x_arrows_enter", CombatText.PartyOptionMenu[OptionCursor].Label);
         if (!AwaitingOrders)
             return Phase == CombatPhase.Resolving ? UiText.S("combat.fighting") : LastLine;
@@ -1723,10 +1723,10 @@ public sealed partial class CombatPresenter
         {
             OrderStep.Rank when AsksDosRankMenu(session) => UiText.F("p3combat.x_target_which_rank", name,
                 _rankLit == 0 ? ">" : " ", _rankLit == 1 ? ">" : " "),
-            OrderStep.Rank => UiText.F("combat.x_which_rank_1_x", name, LivingRanks(session)),
+            OrderStep.Rank => PadWording.F("combat.x_which_rank_1_x", name, LivingRanks(session)), // s193 (E30): "(D-pad, A)"
             OrderStep.SpellNumber => PadWording.F("combat.x_spell_x_enter", name, _spellDigits),
-            OrderStep.HealTarget => UiText.F("combat.x_heal_whom_1_x", name, session.Party.Members.Count),
-            OrderStep.PartyRank => UiText.F("combat.x_rank_front_middle_back", name),
+            OrderStep.HealTarget => PadWording.F("combat.x_heal_whom_1_x", name, session.Party.Members.Count),
+            OrderStep.PartyRank => PadWording.F("combat.x_rank_front_middle_back", name),
             _ => PadWording.F("combat.x_x_orders_x_enter_keep", name, OrderLabelFor(session, _orderMember),
                 CombatText.OrderMenu(MenuChoices(session))),
         };

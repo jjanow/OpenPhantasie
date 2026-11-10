@@ -278,7 +278,7 @@ public sealed class UpdateScreen
                     : UiText.S("options.update.installing"), MenuLineStyle.Normal));
                 break;
             case State.Installed:
-                lines.AddRange(ImportScreen.Wrap(UiText.F("options.update.installed", Release?.Version.ToString(3) ?? "?"), MenuLineStyle.Header));
+                lines.AddRange(ImportScreen.Wrap(PadWording.F("options.update.installed", Release?.Version.ToString(3) ?? "?"), MenuLineStyle.Header));
                 break;
             case State.Failed:
                 lines.AddRange(ImportScreen.Wrap(UiText.F("options.update.failed", _error, AppVersion.ReleasesPage), MenuLineStyle.Normal));

@@ -28,6 +28,16 @@ public partial class Game1
         && !_showInventory && !_showBestiary && !DosPagesUp && !_p1Holds.Busy(_updateSeconds);
 
     /// <summary>
+    /// s193 (pad fix E29): the pad's one-row hint for I Amiga's map line (A fight, Start the menu strip, RT + A the command
+    /// list, the right stick back to the party view), or null. Only while the pad is the input, the map waits with its own
+    /// help (no dialog's), no menu is pulled down and no fresh message holds the line (<paramref name="messageHolds"/>):
+    /// the line is the message's own row, so the hint takes it in turn and covers nothing of the map.
+    /// </summary>
+    private string? P1MapPadHint(GameSession s, bool messageHolds) =>
+        PadWording.Active && !messageHolds && _help == HelpForMode(s.Mode) && _p1MapBar.Open is null && P1MapBarTakesInput(s)
+            ? UiText.S("game.p1map_pad_hint") : null;
+
+    /// <summary>
     /// A key closes an open map menu (Esc is used up, any other key goes on); the menu closes by itself when the bar stops
     /// taking input.
     /// </summary>

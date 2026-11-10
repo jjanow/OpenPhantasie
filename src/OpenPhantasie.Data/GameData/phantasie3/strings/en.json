@@ -6,6 +6,7 @@
   "extends": "phantasie1",
   "strings": {
     "game.welcome_to_pelnor_g_enters_the": "Welcome to Pendragon. G enters the Guild.",
+    "game.welcome_to_pelnor_g_enters_the.pad": "Welcome to Pendragon. Pick Guild and press A to enter it.",
     "core.dungeon.x_avoids_the_trap": "{0} ...",
     "core.dungeon.trap_x_takes_x_damage": "{0} ... {1} ...",
     "core.dungeon.trap_x_dies": "{0} ...",
@@ -24,7 +25,7 @@
     "game.keep_window_ok_cancel": "O/Enter/Y ok  C/N/Esc cancel",
     "game.keep_window_ok_cancel.pad": "A ok  B cancel",
     "p3town.bank_window_help": "Up/Down or 1-2 pick  O/Enter ok  C/Esc cancel",
-    "p3town.bank_window_help.pad": "Up/Down pick  A ok  B cancel",
+    "p3town.bank_window_help.pad": "D-pad pick  A ok  B cancel",
     "p3.reward.press_a_key": "...",
     "p3.page.press_a_number": "...",
     "core.guild.party_not_assembled": "...",

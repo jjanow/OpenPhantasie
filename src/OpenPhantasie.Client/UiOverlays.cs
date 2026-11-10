@@ -336,9 +336,12 @@ public static partial class UiOverlays
         var commands = FieldCommandsFor(session.Mode, timeLagCommand);
         for (var i = 0; i < commands.Length; i++)
         {
-            PixelFont.Draw(batch, pixel, FieldPartyArea.X + 6, FieldCommandsTop + i * PixelFont.LineHeight, commands[i],
-                BodyText);
-            HitTokens(commands[i], FieldPartyArea.X + 6, FieldCommandsTop + i * PixelFont.LineHeight, commandList: false);
+            // s193 (pad fix E30): the move row names the D-pad and RT + A (the letters' command list) while the pad is the
+            // input; a pad word is no key to click
+            var shown = PadWording.Help(commands[i]);
+            PixelFont.Draw(batch, pixel, FieldPartyArea.X + 6, FieldCommandsTop + i * PixelFont.LineHeight, shown, BodyText);
+            if (ReferenceEquals(shown, commands[i]))
+                HitTokens(commands[i], FieldPartyArea.X + 6, FieldCommandsTop + i * PixelFont.LineHeight, commandList: false);
         }
     }
 
@@ -1503,7 +1506,7 @@ public static partial class UiOverlays
             return;
         }
         var (pairRows, pairSpots) = SideBySide(prompt.Options, cursor, maxChars);
-        var answers = single ? [UiText.S("ui.press_enter")]
+        var answers = single ? [PadWording.S("ui.press_enter")] // s193 (pad fix E30): "PRESS A" while the pad is the input
             : sideBySide ? pairRows
             : prompt.Options.Select((o, i) => $"{(i == cursor ? ">" : " ")}{i + 1} {o}").SelectMany(a => Lines(a, maxChars)).ToList();
         var shown = ScrollPromptText(lines, answers.Count, atEnd: prompt.Kind == SessionPromptKind.PartyDefeat);
@@ -2256,7 +2259,7 @@ public static partial class UiOverlays
             hits.Add(ModalArea, new BackdropTag());
             hits.Wheel = (Keys.Up, Keys.Down);
         }
-        PixelFont.Draw(batch, pixel, 14, 24, UiText.S("ui.inventory_v"), TitleGold);
+        PixelFont.Draw(batch, pixel, 14, 24, PadWording.S("ui.inventory_v"), TitleGold); // s193 (E30): "(X)" for the pad
         PixelFont.Draw(batch, pixel, 14, 34, PadWording.Help(UiText.S("ui.arrows_select_enter_compare")), DimText); // s185
 
         // Every member's lines and items in one list that scrolls with the cursor (s99: it used to stop at the panel's
@@ -2333,7 +2336,7 @@ public static partial class UiOverlays
             hits.Add(ModalArea, new BackdropTag());
             hits.Wheel = (Keys.Up, Keys.Down);
         }
-        PixelFont.Draw(batch, pixel, 14, 24, UiText.S("ui.bestiary_b"), new Color(220, 140, 140));
+        PixelFont.Draw(batch, pixel, 14, 24, PadWording.S("ui.bestiary_b"), new Color(220, 140, 140)); // s193 (E30): "(Y)"
         PixelFont.Draw(batch, pixel, 14, 34, UiText.F("ui.x_recorded", qol.SeenMonsterIds.Count), DimText);
 
         var seen = data.Monsters.Where(m => qol.SeenMonsterIds.Contains(m.Id)).OrderBy(m => m.Name).ToList();

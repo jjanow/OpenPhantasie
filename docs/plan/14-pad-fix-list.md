@@ -98,30 +98,37 @@ their choices under a cursor (`SystemChoices`; keyboard Up / Down / Return too),
 Q auto move is the last step of Y / X's order cycle (`PadAutoMove`, bracketed in the orders line). Tests in
 `P4PadTests`; none seen live.
 
-27. IV small: Guild treasury PgUp / PgDn (`P4DungeonScreen.cs:332-340`); typed names lack punctuation in the wheel
-    (accept unless needed).
+27. Done s193: the Guild treasury's LT / RT page the ledger (PgUp / PgDn; LB / RB stay save / load), D-pad Up / Down
+    scroll as before. Typed names lacking punctuation in the wheel: accepted, as the audit suggested.
 
 ## E. Help lines that are wrong or keyboard-only for the pad
 
-28. IV: auto-combat rounds and the wiped party need "A next round" / "A continue"; the treasury wait omits
-    "Up/Down scroll"; MYSTIC SKIP has no "A skip" (keyboard none either);
-    waits omit "LB save"; box texts `p4.town.game_over`, `combat_not_built`, System's key list have no pad twins.
-    Keyboard: `p4.dungeon.help_move` omits P.
-29. I–III hidden pad help: I Amiga map-only screens blank the help, so the pad never learns A fight / RT+A / Start
-    menu / Back / right stick (`Game1.cs:1624-1634`); III Amiga field help never mentions Start; I / III Amiga field,
-    orders and spell windows fill the screen over the help (`Game1.cs:1671, 1699-1704`), so RT = CANCEL, Left/Right =
-    MORE, A = FIGHT are never shown. Fix: a one-row pad hint on those screens while `PadWording.Active`.
-30. Labels / lines in keyboard words with no `.pad` twin: game menu rows "Save game F5 / Load F9 / Import F7 /
-    Export F6" (`GameMenuDialog.cs:47-50`); DOS orders' "WHICH RANK? 1-n", "HEAL WHOM?", "1 FRONT 2 MIDDLE 3 BACK",
-    "[original text]" (`CombatPresenter.cs:1724-1729`); DOS orders' "B redo" (B is the game menu on the first member,
-    "Two" on III's rank menu); "PRESS ENTER" (`UiOverlays.cs:1504`); "INVENTORY (V)" / "BESTIARY (B)"; the band's "G
-    enters the Guild" / "Press V for the inventory" (`Game1.cs:452, 2934`); "Press any key" boxes (other buttons do their
-    global action there; RB loads); the field sidebar's command list (add "RT+A commands"); Update screen body "Press
-    Enter to restart" (and B restarts there too); III Amiga Bank pick step's twin lacks "D-pad pick".
-31. Options descriptions can't take pad wording at all: `Detail()` draws `UiText.S(desc)` raw
-    (`OptionsScreen.cs:447`); route it through `PadWording.S`, then twins for WINDOW SCALE (F11), TITLE SCREEN (Esc),
-    AUTO-MAP (Tab → Back), COMBAT SPEED (Shift → LT). (DIAGONAL MOVES names the stick in its own text since s190.)
-32. Wording: `import.help.path.pad`, `dossave.up_down_scroll_enter_close.pad` say "Up/Down" where others say "D-pad".
+28. Done s193 (`P4DungeonScreen.Pad.cs` `PadHelp` / `PadS`): auto combat "A next round" (keys: "Space next round", the
+    options help no longer shows there), the wiped party "A continue", MYSTIC SKIP "A skip the reading" (keys: "Space/Return
+    skip the reading"), the treasury "Up/Down scroll  LT/RT page"; waits name "LB save" only where a save is taken
+    (`CanSave`: not in a building, a menu or a fight; `p4.pad.help_wait_nosave` there). `.pad` twins for `p4.town.game_over`,
+    both `combat_not_built`, the auto combat box line and System's choice list (no key letters). `p4.dungeon.help_move`
+    names P. Tests in `P4PadTests`; none seen live.
+29. Mostly done s193 (`PadFixListETests`): I Amiga map line shows a pad hint ("A fight  Start menu  RT+A commands
+    R-stick <> party") in turn with the message (message 4 s, then the hint; back when the text changes); I Amiga
+    combat field hint on the free top row (on the bar during orders if monsters reach it; not over pulled-down menus
+    or Party Options); III Amiga field hint on the empty round-line row (not under Party Health); III Amiga outdoors
+    names Start (`game.outside_bar_help`, `game.outside_bar_dungeon_help`); pad twins for `p1field.*`, `p3field.help`,
+    `p3combat.rank_help`. **Left:** III Amiga's orders screen and its rank / spell / heal windows have no free row, so
+    RT cancel, Left/Right more and A Fight! are still unshown (a ~20-column gap on rows 21-22: check on Xvfb in the
+    live pass).
+30. Done s193: game menu "Save game LB / Load game RB" (import / export rows drop the F-keys); DOS orders' WHICH RANK /
+    HEAL WHOM / 1 FRONT 2 MIDDLE 3 BACK end in "(D-pad, A)"; DOS III "[original text]" is original text, so its help
+    says "D-pad pick  A take  B Two"; "B redo" reads "B game menu" on the first member, "B Two" on III's rank menu
+    (keyboard help fixed there too: "Esc menu", "Arrows Enter pick  1 One  2 Two  Bksp redo"); "PRESS A",
+    "INVENTORY (X)", "BESTIARY (Y)", town welcome lines, "Press X for the inventory", Update screen; sidebar move row
+    "D-pad move  RT+A commands"; III Amiga Bank "D-pad pick"; fight boxes' "Press any key" → "Press A" (pad-only
+    string: the original's line is file text). Skipped: other buttons still act on "Press any key" boxes (RB loads):
+    behaviour, not wording. Lines built once (welcome, distribute, order prompts, "Press A") switch wording only when
+    rebuilt.
+31. Done s193: Options descriptions go through pad wording; WINDOW SCALE (Start+Back), TITLE SCREEN (any other
+    button, B or Back skips all), AUTO-MAP (Back), COMBAT SPEED (holding LT).
+32. Done s193: both say "D-pad".
 
 ## F. Cleanup
 
@@ -139,4 +146,4 @@ Q auto move is the last step of Y / X's order cycle (`PadAutoMove`, bracketed in
 ## Suggested order
 
 A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 (done s191) → C 14-23 (done s192)
-→ the rest (D 27, E, F) → one live virtual-pad pass on Xvfb.
+→ D 27 + E (done s193; E29's III Amiga orders windows left) → F → one live virtual-pad pass on Xvfb.

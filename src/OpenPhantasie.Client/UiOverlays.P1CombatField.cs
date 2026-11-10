@@ -235,6 +235,41 @@ public static partial class UiOverlays
     }
 
     /// <summary>
+    /// s193 (pad fix E29): where the pad's one-row hint goes on I Amiga's field while it waits for a key: the hit line's
+    /// place (<see cref="P1HitLinePlace"/>; the hit line shows only while the round plays, so it is free now), the field's
+    /// top row above every requester (they start at y 23). Null where that would cover something: under a pulled-down
+    /// menu (<paramref name="menuOpen"/>: its box hangs over the top rows), or on the bar while Party Options waits
+    /// (<paramref name="partyOptions"/>: its titles are the menus).
+    /// </summary>
+    public static (int Top, bool OnBar)? P1PadHintPlace(CombatFieldLayout layout, IReadOnlyList<int> groupHeights,
+        bool partyOptions, bool menuOpen)
+    {
+        if (menuOpen)
+            return null;
+        var (top, onBar) = P1HitLinePlace(layout, groupHeights);
+        return onBar && partyOptions ? null : (top, onBar);
+    }
+
+    /// <summary>The longest pad hint that <see cref="DrawP1PadHint"/> shows on one row (the field's width, as the hit line).</summary>
+    public static int P1PadHintColumns(CombatFieldLayout layout) => (layout.Field.W - 4) / PixelFont.Advance;
+
+    /// <summary>
+    /// s193 (pad fix E29): the pad's hint (<see cref="CombatPresenter.AmigaPadHint"/>) at <see cref="P1PadHintPlace"/>, drawn
+    /// as the hit line is; nothing where there is no free row.
+    /// </summary>
+    public static void DrawP1PadHint(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, GameSession session,
+        CombatPresenter presenter, string text)
+    {
+        if (string.IsNullOrEmpty(text) || presenter.P1Layout is not { } layout)
+            return;
+        var snapshot = presenter.P1Snapshot ?? (session.Combat is { } combat ? P1CombatFieldSnapshot.Of(session.Party, combat) : null);
+        var heights = snapshot?.Groups.Select(g => assets.GetMonsterIdle(g[0].Id)?.Height ?? layout.Slot).ToList() ?? [];
+        if (P1PadHintPlace(layout, heights, presenter.P1FieldMenuShown, presenter.P1FieldMenuShown && presenter.FieldMenuOpen is not null) is null)
+            return;
+        DrawP1HitLine(batch, pixel, assets, session, presenter, text);
+    }
+
+    /// <summary>
     /// The menu strip (h81): the titles on the bar; with a menu pulled down (Party Options waiting) its title's highlight
     /// box, the item box with its border and the items, the highlighted one complemented.
     /// </summary>

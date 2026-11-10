@@ -134,4 +134,35 @@ public sealed partial class CombatPresenter
             return false;
         return _step != OrderStep.Menu || _orderMember != NextOrderable(session, -1);
     }
+
+    /// <summary>
+    /// s193 (pad fix E29): the pad's words for the step waiting on I / III Amiga's own combat screens, which cover the help
+    /// line: the <c>.pad</c> twin of the step's help (the field's Options, I's orders / spell / target requesters, III's
+    /// rank window), or "Press A" over a box that any key closes; null when the pad is not the input or the step has none.
+    /// </summary>
+    public string? AmigaPadHint(GameSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (!PadWording.Active || session.Combat is null || !AwaitingInput)
+            return null;
+        var help = Prompt(session);
+        return help == PressAnyKey ? help : PadWording.PadTextFor(UiText.Table, help);
+    }
+
+    /// <summary>
+    /// s193 (pad fix E30): "Press any key" over a box any key closes; "Press A" while the pad is the input. A pad-only text,
+    /// not a <c>.pad</c> twin: the keyboard line is the original's (sourced), shown as "..." in the public table.
+    /// </summary>
+    private static string PressAnyKey => PadWording.Active ? UiText.S("pad.combat.press_a") : UiText.S("combat.press_any_key");
+
+    /// <summary>
+    /// s193 (pad fix E30): a DOS-style order list waits on its first member's order menu, where B (Esc) opens the game
+    /// menu rather than redoing the list (<see cref="PadBackRestartsOrders"/> is false there), so the help says so.
+    /// </summary>
+    public bool OnFirstDosOrderMenu(GameSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        return session.Combat is not null && AwaitingOrders && !_amiga && !_p1Orders && _orderMember >= 0
+            && _p1ToneThen is null && _step == OrderStep.Menu && _orderMember == NextOrderable(session, -1);
+    }
 }

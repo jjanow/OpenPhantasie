@@ -449,7 +449,7 @@ public partial class Game1 : Game
                   && StartMapMessages(mapLayout, boxLines, _fightMark)))
                 _combatUi.Start(_session);
         }
-        SetFeedback(_testLevel is int l && options is null ? UiText.F("game.level_x_test_party_ready_in", l) : UiText.S("game.welcome_to_pelnor_g_enters_the"),
+        SetFeedback(_testLevel is int l && options is null ? UiText.F("game.level_x_test_party_ready_in", l) : PadWording.S("game.welcome_to_pelnor_g_enters_the"), // s193 (E30): no G on the pad
             HelpForMode(_session.Mode));
     }
 
@@ -1642,8 +1642,13 @@ public partial class Game1 : Game
                 ? UiOverlays.P1MapHelpOnBar(p1Map, FontSources.Named(p1Map.Font, p1Map.FontFile) ?? PixelFont.Font, BandMessage, mapHelp,
                     barIdle: !P1MapBarTakesInput(_session))
                 : null;
-            UiOverlays.DrawP1MapLine(_spriteBatch, _pixel, p1Map, BandMessage, barHelp is null ? mapHelp : "",
-                ViewMode(_session) == GameMode.Dungeon ? _session.LastDungeonMessageRecord : null);
+            // s193 (pad fix E29): the map's own help is blank here, so the pad never learned A / Start / RT+A / the right
+            // stick: while the pad is the input, one row of them on the line, once no message holds it (as the town band)
+            if (P1MapPadHint(_session, messageShows && BandMessage.Length > 0) is { } padHint)
+                UiOverlays.DrawP1MapLine(_spriteBatch, _pixel, p1Map, "", padHint);
+            else
+                UiOverlays.DrawP1MapLine(_spriteBatch, _pixel, p1Map, BandMessage, barHelp is null ? mapHelp : "",
+                    ViewMode(_session) == GameMode.Dungeon ? _session.LastDungeonMessageRecord : null);
             if (barHelp is { } onBar)
                 UiOverlays.DrawP1MapBarHelp(_spriteBatch, _pixel, p1Map, onBar);
             else
@@ -1685,7 +1690,12 @@ public partial class Game1 : Game
         if (_showBestiary)
             UiOverlays.DrawBestiary(_spriteBatch, _pixel, _assets, _data, _qol);
         if (_combatUi.P1FieldShown && !_showInventory && !_showBestiary)
+        {
             UiOverlays.DrawP1CombatField(_spriteBatch, _pixel, _assets, _session, _combatUi, _data); // I Amiga's screen (s132)
+            // s193 (pad fix E29): the field and its requesters cover the help line: the pad's words on one free row
+            if (!InventoryScreenOpen && _combatUi.AmigaPadHint(_session) is { } p1Hint)
+                UiOverlays.DrawP1PadHint(_spriteBatch, _pixel, _assets, _session, _combatUi, p1Hint);
+        }
         if (MapBox() is { } mapBox && _assets.Pack?.MapMessage is { } mapMessage)
         {
             if (mapBox.Window && mapMessage.Window is { } window)
@@ -1718,7 +1728,11 @@ public partial class Game1 : Game
             UiOverlays.DrawCombatOrders(_spriteBatch, _pixel, _assets, _session, _data, _combatUi,
                 _mouse.LeftDown ? _mouse.Position : null); // III Amiga's orders screen (s118)
         else if (_combatUi.AmigaFieldMenuShown && !_showInventory && !_showBestiary)
+        {
             UiOverlays.DrawFieldMenuScreen(_spriteBatch, _pixel, _assets, _session, _combatUi); // its menu bar (s119)
+            if (_combatUi.AmigaPadHint(_session) is { } p3Hint) // s193 (pad fix E29): on the round line's empty row
+                UiOverlays.DrawFieldPadHint(_spriteBatch, _pixel, _assets, _combatUi, p3Hint);
+        }
         else if (_session.Mode == GameMode.Combat && !_showInventory && !_showBestiary && !_combatUi.AwaitingInput)
         {
             if (_combatUi.P1FieldShown) // s183: I Amiga's field: the top rows, not the strip over its party row
@@ -2960,7 +2974,7 @@ public partial class Game1 : Game
             s.DistributeLoot(items: false);
         // QoL modern-inventory: no item pooling; gear stays put and the inventory screen (V) moves and sells items. After a
         // split its own line shows (null); else the note says where the items went.
-        return s.ItemHandOut ? _distributeDialog.Open(s) : split ? null : UiText.S("game.distribute_modern");
+        return s.ItemHandOut ? _distributeDialog.Open(s) : split ? null : PadWording.S("game.distribute_modern"); // s193 (E30): X
     }
 
     private enum StepOutcome { Plain, Blocked, Stopped }
@@ -4114,7 +4128,11 @@ public partial class Game1 : Game
 
     /// <summary>The help the field's band draws: the map-only one in place of the dungeon's own (<see cref="MapOnlyDungeon"/>).</summary>
     private string FieldBandHelp(GameSession s) =>
-        MapOnlyDungeon(s) && _help == HelpForMode(s.Mode) ? UiText.S("game.map_only_help") : _help;
+        MapOnlyDungeon(s) && _help == HelpForMode(s.Mode) ? UiText.S("game.map_only_help")
+        // s193 (pad fix E29): III Amiga's menu bar outdoors pulls Options down on Start; its pad help names it
+        : OutsideBarShown(s) && _help == HelpForMode(s.Mode)
+            ? ViewMode(s) == GameMode.Dungeon ? UiText.S("game.outside_bar_dungeon_help") : UiText.S("game.outside_bar_help")
+        : _help;
 
     private string HelpForMode(GameMode mode) => mode switch
     {
@@ -4137,6 +4155,10 @@ public partial class Game1 : Game
         CombatPhase.Orders when _combatUi.AsksAmigaSpell || _combatUi.AsksAmigaHeal => _combatUi.LastLine,
         CombatPhase.Orders when _combatUi.AmigaMessageShown => UiText.S("p3combat.message_help"),
         CombatPhase.Orders when _combatUi.AmigaOrdersShown => UiText.S("p3combat.orders_help"),
+        // s193 (pad fix E30): where B is not "redo": DOS III's rank menu (B answers Two) and the first member's order
+        // menu (B / Esc is the game menu there)
+        CombatPhase.Orders when _combatUi.AsksDosRank(_session!) => UiText.S("p3combat.dos_rank_menu_help"),
+        CombatPhase.Orders when _combatUi.OnFirstDosOrderMenu(_session!) => UiText.S("game.1_6_orders_enter_keep_esc"),
         _ => HelpForMode(_session!.Mode),
     };
 

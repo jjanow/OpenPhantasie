@@ -548,7 +548,7 @@ public sealed partial class P4DungeonScreen
                 break;
             case P4DungeonPrompt.Fight:
                 lines.Add(new(UiText.F("p4.dungeon.fight_x", D.PendingFight?.Encounter ?? 0), MenuLineStyle.Header));
-                lines.Add(new(UiText.S("p4.dungeon.combat_not_built"), MenuLineStyle.Dim));
+                lines.Add(new(PadS("p4.dungeon.combat_not_built"), MenuLineStyle.Dim));
                 break;
         }
         return lines;
@@ -572,7 +572,7 @@ public sealed partial class P4DungeonScreen
                 break;
             case P4OutdoorPrompt.Fight:
                 lines.Add(new(UiText.S("p4.outdoor.fight"), MenuLineStyle.Header));
-                lines.Add(new(UiText.S("p4.outdoor.combat_not_built"), MenuLineStyle.Dim));
+                lines.Add(new(PadS("p4.outdoor.combat_not_built"), MenuLineStyle.Dim));
                 break;
         }
         return lines;
@@ -618,7 +618,7 @@ public sealed partial class P4DungeonScreen
                 lines.Add(new(UiText.S("p4.outdoor.yes_no"), MenuLineStyle.Selected)); // s158: _endstory's _confirm
                 break;
             case P4TownPrompt.Ending when W.EndingStep == P4EndingStep.None:
-                lines.Add(new(Game.Services is null ? UiText.S("p4.town.ending_not_built") : UiText.S("p4.town.game_over"),
+                lines.Add(new(Game.Services is null ? UiText.S("p4.town.ending_not_built") : PadS("p4.town.game_over"),
                     MenuLineStyle.Dim));
                 break;
         }
@@ -640,6 +640,7 @@ public sealed partial class P4DungeonScreen
     /// <summary>The bottom help line for the current prompt, by keys.</summary>
     private string KeyHelp => DiskPageUp ? SystemHelp
         : Game.Battle is { } b ? BattleHelp(b)
+        : MysticBusy && MysticSkippable ? UiText.S("p4.town.help_mystic_skip") // s193 (E28): QoL MYSTIC SKIP
         : DoorOpen || MysticBusy || WelcomeUp ? "" // no keys are read: no help to give
         : MenuOpen ? M!.Prompt switch
         {
@@ -650,6 +651,7 @@ public sealed partial class P4DungeonScreen
         : !Game.LoopBuilt
         ? UiText.S("p4.dungeon.help_left")
         : _system is not null ? SystemHelp
+        : PartyLostUp ? UiText.S("p4.dungeon.help_wiped")
         : Game.Place == P4Place.Outdoors ? O.Prompt switch
         {
             P4OutdoorPrompt.Action => UiText.S("p4.outdoor.help_move"),
@@ -664,6 +666,7 @@ public sealed partial class P4DungeonScreen
             P4TownPrompt.Pick or P4TownPrompt.Who => UiText.S("p4.town.help_screen"),
             P4TownPrompt.Number or P4TownPrompt.Text => UiText.S("p4.dungeon.help_type"),
             P4TownPrompt.Wait when W.CanLeaveHistory => UiText.S("p4.hall.help_history"),
+            P4TownPrompt.Wait when W.TreasuryLines is not null => UiText.S("p4.town.help_treasury"),
             P4TownPrompt.Wait => UiText.S("p4.dungeon.help_wait"),
             P4TownPrompt.Confirm => UiText.S("p4.outdoor.help_confirm"),
             P4TownPrompt.Shares => UiText.S("p4.town.help_shares_each"),

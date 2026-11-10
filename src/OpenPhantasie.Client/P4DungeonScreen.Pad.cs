@@ -197,6 +197,8 @@ public sealed partial class P4DungeonScreen
     {
         get
         {
+            if (MysticBusy && MysticSkippable && !MainMenuAsked)
+                return UiText.S("p4.pad.help_mystic_skip"); // s193 (pad fix E28): QoL MYSTIC SKIP's A
             if (DoorOpen || MysticBusy || WelcomeUp || MainMenuAsked)
                 return null;
             if (_padCommands is not null)
@@ -217,26 +219,29 @@ public sealed partial class P4DungeonScreen
                     P4SystemPage.SelectGameFinal => UiText.S("p4.pad.help_buttons"),
                     _ => UiText.S("p4.pad.help_system"),
                 };
+            if (PartyLostUp)
+                return UiText.S("p4.pad.help_wiped"); // s193 (E28): _deadmsg's any key
             if (Game.Battle is { } b)
                 return b.Prompt switch
                 {
+                    P4BattlePrompt.Options when b.AutoCombat => UiText.S("p4.pad.help_next_round"), // s193 (E28)
                     P4BattlePrompt.Options => UiText.S("p4.pad.help_battle_options"),
                     P4BattlePrompt.Order => _mode switch
                     {
                         BattleMode.Target => UiText.S("p4.pad.help_target"),
                         BattleMode.Spells or BattleMode.Member => UiText.S("p4.pad.help_battle_pick"),
-                        _ when b.AutoCombat => UiText.S("p4.pad.help_wait"),
+                        _ when b.AutoCombat => UiText.S("p4.pad.help_next_round"),
                         _ when _padAutoMove => UiText.F("p4.pad.help_orders_x", UiText.S("p4.battle.action.auto_move")),
                         _ => PadOrderNow(PadOrders(b)) is { } order
-                            ? UiText.F("p4.pad.help_orders_x", ActionName(order)) : UiText.S("p4.pad.help_wait"),
+                            ? UiText.F("p4.pad.help_orders_x", ActionName(order)) : UiText.S("p4.pad.help_wait_nosave"),
                     },
                     P4BattlePrompt.Treasure => UiText.S("p4.pad.help_confirm"),
-                    _ => UiText.S("p4.pad.help_wait"),
+                    _ => UiText.S("p4.pad.help_wait_nosave"), // no save in a fight
                 };
             if (MenuOpen)
                 return M!.Prompt switch
                 {
-                    P4MenuPrompt.Wait => UiText.S("p4.pad.help_wait"),
+                    P4MenuPrompt.Wait => PadWaitHelp,
                     P4MenuPrompt.Confirm => UiText.S("p4.pad.help_confirm"),
                     _ => M.CanBack ? IconHelp(UiText.S("p4.pad.help_pick"), UiText.S("p4.pad.help_pick.plain"))
                         : IconHelp(UiText.S("p4.pad.help_pick_menu"), UiText.S("p4.pad.help_pick_menu.plain")),
@@ -246,7 +251,7 @@ public sealed partial class P4DungeonScreen
                 P4Place.Outdoors => O.Prompt switch
                 {
                     P4OutdoorPrompt.Action => IconHelp(UiText.S("p4.pad.help_move"), UiText.S("p4.pad.help_move.plain")),
-                    P4OutdoorPrompt.Wait => UiText.S("p4.pad.help_wait"),
+                    P4OutdoorPrompt.Wait => PadWaitHelp,
                     P4OutdoorPrompt.Confirm => UiText.S("p4.pad.help_confirm"),
                     P4OutdoorPrompt.Fight => UiText.S("p4.pad.help_fight"),
                     _ => UiText.S("p4.pad.help_left"),
@@ -257,7 +262,8 @@ public sealed partial class P4DungeonScreen
                     P4TownPrompt.Pick or P4TownPrompt.Who => W.CanBack ? IconHelp(UiText.S("p4.pad.help_pick"), UiText.S("p4.pad.help_pick.plain"))
                         : IconHelp(UiText.S("p4.pad.help_pick_menu"), UiText.S("p4.pad.help_pick_menu.plain")),
                     P4TownPrompt.Wait when W.CanLeaveHistory => UiText.S("p4.pad.help_history"),
-                    P4TownPrompt.Wait => UiText.S("p4.pad.help_wait"),
+                    P4TownPrompt.Wait when W.TreasuryLines is not null => UiText.S("p4.pad.help_treasury"), // s193 (D27, E28)
+                    P4TownPrompt.Wait => PadWaitHelp,
                     P4TownPrompt.Confirm => UiText.S("p4.pad.help_confirm"),
                     P4TownPrompt.Shares => _padSeen.Length > 0 ? UiText.F("p4.pad.help_shares_buttons_x", PadShare ?? 1)
                         : UiText.F("p4.pad.help_shares_x", PadShare ?? 1),
@@ -267,7 +273,7 @@ public sealed partial class P4DungeonScreen
                 _ => D.Prompt switch
                 {
                     P4DungeonPrompt.Action => IconHelp(UiText.S("p4.pad.help_move"), UiText.S("p4.pad.help_move.plain")),
-                    P4DungeonPrompt.Wait => UiText.S("p4.pad.help_wait"),
+                    P4DungeonPrompt.Wait => PadWaitHelp,
                     P4DungeonPrompt.Menu or P4DungeonPrompt.Who => IconHelp(UiText.S("p4.pad.help_pick_menu"),
                         UiText.S("p4.pad.help_pick_menu.plain")),
                     P4DungeonPrompt.Fight => UiText.S("p4.pad.help_fight"),
@@ -416,6 +422,10 @@ public sealed partial class P4DungeonScreen
                     case Buttons.Start:
                         keys.Add(Keys.Escape);
                         break;
+                    case Buttons.LeftTrigger or Buttons.RightTrigger when TreasuryWaitUp:
+                        // s193 (pad fix D27): the Guild treasury's ledger a page up / down (PgUp / PgDn); LB / RB save / load
+                        keys.Add(b == Buttons.LeftTrigger ? Keys.PageUp : Keys.PageDown);
+                        break;
                 }
             }
             if (alphabet is null && PadShare is not null)
@@ -519,6 +529,24 @@ public sealed partial class P4DungeonScreen
     /// <summary>The final screen's save question is up (as <see cref="HandleKeys"/> tests it).</summary>
     private bool EndingQuestionUp => _system is null && Game.Battle is null && Game.Place == P4Place.Town
         && W.Prompt == P4TownPrompt.Ending && W.EndingStep == P4EndingStep.Question;
+
+    /// <summary>s193 (pad fix E28): a wait's pad help; it names LB save where a save is taken (<c>CanSave</c>: not in a
+    /// building, a menu or a fight).</summary>
+    private string PadWaitHelp => Game.CanSave ? UiText.S("p4.pad.help_wait") : UiText.S("p4.pad.help_wait_nosave");
+
+    /// <summary>The Guild treasury's ledger waits on the town's screen (Up / Down / PgUp / PgDn scroll it, <see cref="TownKey"/>).</summary>
+    private bool TreasuryWaitUp => !MainMenuAsked && Game.LoopBuilt && _system is null && Game.Battle is null && !MenuOpen
+        && Game.Place == P4Place.Town && W.Prompt == P4TownPrompt.Wait && W.TreasuryLines is not null;
+
+    /// <summary>s158 "The party has been wiped out.": <c>_deadmsg</c> waits for any key (as <see cref="HandleKeys"/> tests it).</summary>
+    private bool PartyLostUp => Game.LoopBuilt && _system is null && Game.Battle is null && Game.PartyLost;
+
+    /// <summary>
+    /// s193 (pad fix E28): the text <paramref name="id"/> as shown in a box or list: its <c>.pad</c> twin while the pad is
+    /// the input (<see cref="PadInput"/>) and the table has one (as <see cref="PadWording"/> does for I–III's help).
+    /// </summary>
+    private string PadS(string id) =>
+        PadInput && UiText.Table.Contains(id + PadWording.Suffix) ? UiText.S(id + PadWording.Suffix) : UiText.S(id);
 
     /// <summary>The System screen takes the keys (as <see cref="HandleKeys"/> tests it).</summary>
     private bool SystemUp => _system is not null && (Game.Battle is null || DiskPageUp);

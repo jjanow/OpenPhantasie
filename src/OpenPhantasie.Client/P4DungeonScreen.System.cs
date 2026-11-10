@@ -176,15 +176,15 @@ public sealed partial class P4DungeonScreen
         {
             if (_system is not { } page || SystemPanelShown)
                 return null;
-            var back = (UiText.S("p4.system.choice.back"), Keys.Space);
+            var back = (PadS("p4.system.choice.back"), Keys.Space);
             return page switch
             {
-                P4SystemPage.Menu => [(UiText.S("p4.system.choice.save"), Keys.S), (UiText.S("p4.system.choice.end"), Keys.E),
-                    (UiText.S("p4.system.choice.about"), Keys.A), back],
-                P4SystemPage.SelectGame => [(UiText.S("p4.system.choice.end"), Keys.E),
-                    (UiText.S("p4.system.choice.title"), Keys.T), back],
-                P4SystemPage.SelectGameFinal => [(UiText.S("p4.system.choice.end"), Keys.E),
-                    (UiText.S("p4.system.choice.title"), Keys.T)],
+                P4SystemPage.Menu => [(PadS("p4.system.choice.save"), Keys.S), (PadS("p4.system.choice.end"), Keys.E),
+                    (PadS("p4.system.choice.about"), Keys.A), back],
+                P4SystemPage.SelectGame => [(PadS("p4.system.choice.end"), Keys.E),
+                    (PadS("p4.system.choice.title"), Keys.T), back],
+                P4SystemPage.SelectGameFinal => [(PadS("p4.system.choice.end"), Keys.E),
+                    (PadS("p4.system.choice.title"), Keys.T)],
                 P4SystemPage.Save or P4SystemPage.Load => [.. Enumerable.Range(1, DiskSlots)
                     .Where(k => page == P4SystemPage.Save || SlotSaved(k))
                     .Select(k => (UiText.F("p4.system.slot_xy", SlotSaved(k) ? "*" : " ", k), Keys.D0 + k)), back],
