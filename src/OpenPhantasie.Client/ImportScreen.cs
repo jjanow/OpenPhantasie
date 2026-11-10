@@ -22,8 +22,24 @@ public sealed class ImportScreen
     /// <summary>Characters per line on the 320-wide screen (x 14 to 306).</summary>
     public const int Columns = (320 - 28) / PixelFont.Advance;
 
-    /// <summary>Lines of rows (or report) shown at once; more scroll.</summary>
-    public const int VisibleLines = 8;
+    /// <summary>
+    /// s185: the lines under the title a menu screen holds (<c>UiOverlays.DrawMenuScreen</c>: from y <see cref="FirstLineY"/>
+    /// at a <see cref="LinePitch"/>-pixel pitch, the last at y 170, clear of the help line at 186). The rows (or the report,
+    /// or the browser's rows) take what the header leaves; more scroll.
+    /// </summary>
+    public const int ScreenLines = 15;
+
+    /// <summary>Top of the first line under the title on the menu screen, and the pitch of its lines.</summary>
+    public const int FirstLineY = 30, LinePitch = 10;
+
+    /// <summary>Lines of rows (or report, or browser rows) shown at once under the current header; more scroll.</summary>
+    public int VisibleLines => Math.Max(1, ScreenLines - (HeaderCount - 1));
+
+    /// <summary>
+    /// s185: the rows' (report's, browser's) scroll: its bar shows on the screen's right when they don't fit
+    /// (<see cref="UiOverlays.DrawImportScreen"/>), the wheel over them and the bar move it, and it follows the cursor.
+    /// </summary>
+    public ScrollBox Scroll { get; } = new();
 
     private readonly Func<IReadOnlyList<string>, IProgress<string>, ImportReport> _run;
     private readonly Func<IProgress<string>, ImportReport> _refresh;
@@ -33,7 +49,6 @@ public sealed class ImportScreen
     private Task<ImportReport>? _task;
     private volatile string _progress = "";
     private List<MenuLine> _report = [];
-    private int _scroll;
     private ImportOffer? _offer;
 
     /// <param name="run">Scan and import the paths (default: <see cref="ImportRunner"/> into <paramref name="importRoot"/>).</param>
@@ -81,12 +96,6 @@ public sealed class ImportScreen
     /// <summary>Run when an import committed (the shell re-reads the import: <see cref="GameDataLocator.UseImport"/>).</summary>
     public Action? OnImported { get; set; }
 
-    /// <summary>
-    /// s183 "Pad leftovers": the pad is the input in use (a button was pressed since the last key or mouse move; the shell
-    /// clears it): the help line names the pad's buttons.
-    /// </summary>
-    public bool PadInUse { get; set; }
-
     // --- The folder browser (s183) ------------------------------------------------------------------------------------
     // A pad can't type a path, so Tab (pad Y) on the path row, or on the missing file's row, opens a browser of the
     // folders and files on this machine: Up / Down move, Return opens a folder (or picks a file), Backspace / Left goes up,
@@ -122,7 +131,7 @@ public sealed class ImportScreen
             : _lastBrowseDir is not null && Directory.Exists(_lastBrowseDir) ? _lastBrowseDir
             : _browseHome;
         Browsing = true;
-        _scroll = 0;
+        Scroll.Reset();
         BrowseTo(start);
     }
 
@@ -162,7 +171,7 @@ public sealed class ImportScreen
         var at = select is null ? -1 : entries.FindIndex(e => e.Path == select);
         _browseCursor = at >= 0 ? at : entries.FindIndex(e => e.Kind is BrowseKind.Folder or BrowseKind.File) is var first and >= 0
             ? first : 0;
-        _scroll = 0;
+        Scroll.Reset();
     }
 
     /// <summary>Up one folder (the drive list above a Windows drive's root); the cursor lands on the folder left.</summary>
@@ -200,7 +209,7 @@ public sealed class ImportScreen
                 break;
             case Keys.Escape:
                 Browsing = false;
-                _scroll = 0;
+                Scroll.Reset();
                 break;
             case Keys.Enter or Keys.Right when entry is not null:
                 switch (entry.Kind)
@@ -226,7 +235,7 @@ public sealed class ImportScreen
     private void BrowsePick(string path)
     {
         Browsing = false;
-        _scroll = 0;
+        Scroll.Reset();
         if (AskingForOffer)
         {
             if (Checked(path) is { } file)
@@ -264,7 +273,7 @@ public sealed class ImportScreen
         _offer = null;
         Imported = false;
         Cursor = 0;
-        _scroll = 0;
+        Scroll.Reset();
         try { _found = _libraries(); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { _found = []; }
     }
@@ -357,7 +366,7 @@ public sealed class ImportScreen
             return;
         _task = null;
         ShowingReport = true;
-        _scroll = 0;
+        Scroll.Reset();
         _offer = null;
         if (task.IsFaulted)
         {
@@ -411,21 +420,21 @@ public sealed class ImportScreen
             {
                 switch (key)
                 {
-                    case Keys.Up: _scroll = Math.Max(0, _scroll - 1); break;
-                    case Keys.Down: _scroll = Math.Clamp(_scroll + 1, 0, Math.Max(0, _report.Count - VisibleLines)); break;
-                    case Keys.PageUp: _scroll = Math.Max(0, _scroll - VisibleLines); break;
-                    case Keys.PageDown: _scroll = Math.Clamp(_scroll + VisibleLines, 0, Math.Max(0, _report.Count - VisibleLines)); break;
+                    case Keys.Up or Keys.Down or Keys.PageUp or Keys.PageDown:
+                        Scroll.Set(_report.Count, VisibleLines);
+                        Scroll.HandleKey(key);
+                        break;
                     case Keys.A when _offer is not null:
                         ShowingReport = false;
                         AskingForOffer = true;
                         Typed = "";
                         Cursor = 0;
-                        _scroll = 0;
+                        Scroll.Reset();
                         break;
                     case Keys.Enter or Keys.Space or Keys.Escape:
                         ShowingReport = false;
                         Cursor = MainMenuScreen.Games.Any(MainMenuScreen.IsPlayable) ? DoneRow : 0;
-                        _scroll = 0;
+                        Scroll.Reset();
                         break;
                 }
                 continue;
@@ -484,8 +493,8 @@ public sealed class ImportScreen
     /// "Pad coverage" (s182): a pad on this screen. The shared map (<see cref="InputMap.MenuPadKey"/>: D-pad / stick =
     /// arrows, A = Return, B = Esc, LB / RB = PgUp / PgDn) plus X for Delete (removes the added path under the cursor).
     /// s183: Y opens the folder browser (Tab) on the rows and on the missing file's row, and takes the report's offer (A);
-    /// in the browser A opens (Return), B closes it (Esc), X picks (Space) and Y goes up a folder (Backspace). Any button
-    /// makes the pad the input in use (<see cref="PadInUse"/>).
+    /// in the browser A opens (Return), B closes it (Esc), X picks (Space) and Y goes up a folder (Backspace). s185: the
+    /// help names the pad's buttons by <see cref="PadWording"/> (the shell notes the last input), as every other screen.
     /// </summary>
     public IEnumerable<Keys> PadKeys(IEnumerable<Buttons> buttons)
     {
@@ -493,7 +502,6 @@ public sealed class ImportScreen
         var keys = new List<Keys>();
         foreach (var b in buttons)
         {
-            PadInUse = true;
             var k = Browsing
                 ? b switch
                 {
@@ -520,7 +528,7 @@ public sealed class ImportScreen
     {
         if (Running || ShowingReport)
             return null;
-        var row = line - HeaderCount + _scroll;
+        var row = line - HeaderCount + Scroll.Offset;
         var rows = Browsing ? _entries.Count : RowCount;
         return line >= HeaderCount && line < HeaderCount + VisibleLines && row < rows ? row : null;
     }
@@ -558,15 +566,17 @@ public sealed class ImportScreen
 
     private int HeaderCount => Browsing && !Running && !ShowingReport ? BrowseHeader().Count : 2 + MainMenuScreen.Games.Count + 1;
 
-    /// <summary>The help line: by keys, or by the pad's buttons while the pad is in use (<see cref="PadInUse"/>).</summary>
+    /// <summary>
+    /// The help line, by keys. s185: the menu screen shows its <c>.pad</c> twin while the pad is the input
+    /// (<see cref="PadWording.Help"/>, applied where it is drawn), as every other screen; no flag of its own.
+    /// </summary>
     public string Help => Running ? UiText.S("import.help.running")
-        : ShowingReport ? (_offer is null ? (PadInUse ? UiText.S("import.help.report.pad") : UiText.S("import.help.report"))
-            : PadInUse ? UiText.S("import.help.report.offer.pad") : UiText.S("import.help.report.offer"))
-        : Browsing ? (PadInUse ? UiText.S("import.help.browse.pad") : UiText.S("import.help.browse"))
-        : AskingForOffer ? (PadInUse ? UiText.S("import.help.offer.pad") : UiText.S("import.help.offer"))
-        : Cursor == 0 ? (PadInUse ? UiText.S("import.help.typing.pad") : UiText.S("import.help.typing"))
-        : Cursor <= _paths.Count ? (PadInUse ? UiText.S("import.help.path.pad") : UiText.S("import.help.path"))
-        : PadInUse ? UiText.S("import.help.pad") : UiText.S("import.help");
+        : ShowingReport ? (_offer is null ? UiText.S("import.help.report") : UiText.S("import.help.report.offer"))
+        : Browsing ? UiText.S("import.help.browse")
+        : AskingForOffer ? UiText.S("import.help.offer")
+        : Cursor == 0 ? UiText.S("import.help.typing")
+        : Cursor <= _paths.Count ? UiText.S("import.help.path")
+        : UiText.S("import.help");
 
     public IReadOnlyList<MenuLine> Lines()
     {
@@ -583,6 +593,7 @@ public sealed class ImportScreen
 
         if (Running)
         {
+            Scroll.Set(0, 1); // nothing scrolls: no bar
             lines.AddRange(Wrap(UiText.S("import.running"), MenuLineStyle.Header));
             lines.AddRange(Wrap(_progress, MenuLineStyle.Normal));
             return lines;
@@ -590,21 +601,24 @@ public sealed class ImportScreen
         return Scrolled(lines, ShowingReport ? _report : RowLines());
     }
 
-    /// <summary><paramref name="lines"/>, then <see cref="VisibleLines"/> of <paramref name="body"/> from the scroll (kept
-    /// on the cursor's row, but for the report), with "..." when more follow.</summary>
+    /// <summary>
+    /// <paramref name="lines"/> (the header), then as much of <paramref name="body"/> as fits under it from the scroll (kept
+    /// on the cursor's row, but for the report). s185: the rows fill the screen down to the help line, and the scroll's bar
+    /// (<see cref="Scroll"/>) marks a longer list; no line is dropped.
+    /// </summary>
     private List<MenuLine> Scrolled(List<MenuLine> lines, List<MenuLine> body)
     {
+        var room = Math.Max(1, ScreenLines - (lines.Count - 1));
+        Scroll.Set(body.Count, room);
         if (!ShowingReport)
-        {
-            if (Cursor < _scroll) _scroll = Cursor;
-            if (Cursor >= _scroll + VisibleLines) _scroll = Cursor - VisibleLines + 1;
-        }
-        for (var i = _scroll; i < Math.Min(body.Count, _scroll + VisibleLines); i++)
+            Scroll.Follow(Cursor);
+        for (var i = Scroll.Offset; i < Math.Min(body.Count, Scroll.Offset + room); i++)
             lines.Add(body[i]);
-        if (body.Count > _scroll + VisibleLines)
-            lines.Add(new(" ...", MenuLineStyle.Dim));
         return lines;
     }
+
+    /// <summary>The screen line the rows (report, browser rows) start on (the title is line 0).</summary>
+    public int BodyLine => HeaderCount;
 
     private static MenuLine GameLine(GameId game)
     {

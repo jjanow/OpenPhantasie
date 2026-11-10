@@ -25,6 +25,8 @@ namespace OpenPhantasie.Client;
 /// (<see cref="DialogPad"/>): D-pad / stick Left / Right step a character, Up / Down jump ten (one among the digits), X
 /// types it, Y deletes (as B), A ends the entry. The left stick goes through <see cref="StickQuantizer"/> (one direction per
 /// push). While the pad is the input in use (<see cref="PadInput"/>) the help line names the pad's buttons.
+/// s185: every pad help line where B is Esc names it ("B/Start main menu"), and the main-menu question names A / B; a
+/// share-out takes Left / Right for the share A gives (<see cref="PadShare"/>), so it needs no panel buttons.
 /// Keyboard keys are untouched; the pad only adds keys.
 /// </summary>
 public sealed partial class P4DungeonScreen
@@ -35,12 +37,43 @@ public sealed partial class P4DungeonScreen
     private readonly DialogPad _wheel = new();
     private object? _wheelOwner; // one per typed prompt: the wheel starts again on the next one
     private readonly StickQuantizer _stick = new();
+    private int _padShare = 1;
+
+    /// <summary>
+    /// s185 (Pad leftovers): the share the pad's A gives the member whose turn it is in a share-out (the bank's
+    /// <c>_deposit</c>, the Town Gate's <c>_gatebank</c>), or null outside one. Without the art pack's panel there are no
+    /// share buttons for Y / X to pick, so D-pad / stick Left / Right set it (0–3; never 0 for a member in good health, whom
+    /// the original's "0" button is off for: <see cref="GiveShare"/>). It starts at 1 in each share-out and stays between
+    /// its members, so one share for all is A, A, A. The help line shows it.
+    /// </summary>
+    public int? PadShare
+    {
+        get
+        {
+            if (MainMenuAsked || !Game.LoopBuilt || SystemUp || Game.Battle is not null || MenuOpen
+                || Game.Place != P4Place.Town || W.Prompt != P4TownPrompt.Shares)
+                return null;
+            return Math.Max(_padShare, PadShareMin);
+        }
+    }
+
+    /// <summary>The least share the member whose turn it is may take: 0 only when he is not Okay.</summary>
+    private int PadShareMin => _shares.Length < Game.Party.Members.Count
+        && Game.Party.Members[_shares.Length].Condition != P4Member.Okay ? 0 : 1;
+
+    /// <summary>Left (−1) / Right (+1) in a share-out: the pad's share one down / up, kept within the member's 0–3.</summary>
+    private void StepPadShare(int step) => _padShare = Math.Clamp((PadShare ?? 1) + step, PadShareMin, 3);
 
     /// <summary>
     /// The pad is the input in use (a button was pressed since the last key or mouse move): the help line names the pad's
-    /// buttons. The shell clears it on a key or a mouse move.
+    /// buttons. s185: this is <see cref="PadWording.Active"/>, the one flag every game's help follows (the shell's
+    /// <see cref="PadWording.Note"/> sets and clears it each frame; IV kept its own copy beside it until s185).
     /// </summary>
-    public bool PadInput { get; set; }
+    public bool PadInput
+    {
+        get => PadWording.Active;
+        set => PadWording.Active = value;
+    }
 
     /// <summary>The typed prompt's characters for the pad wheel (names and Letter: <see cref="NameEntry.Alphabet"/>; amounts
     /// and Number: digits); null when no typed prompt takes keys now.</summary>
@@ -139,13 +172,14 @@ public sealed partial class P4DungeonScreen
                 {
                     P4MenuPrompt.Wait => UiText.S("p4.pad.help_wait"),
                     P4MenuPrompt.Confirm => UiText.S("p4.pad.help_confirm"),
-                    _ => M.CanBack ? UiText.S("p4.pad.help_pick") : UiText.S("p4.pad.help_pick_menu"),
+                    _ => M.CanBack ? IconHelp(UiText.S("p4.pad.help_pick"), UiText.S("p4.pad.help_pick.plain"))
+                        : IconHelp(UiText.S("p4.pad.help_pick_menu"), UiText.S("p4.pad.help_pick_menu.plain")),
                 };
             return Game.Place switch
             {
                 P4Place.Outdoors => O.Prompt switch
                 {
-                    P4OutdoorPrompt.Action => UiText.S("p4.pad.help_move"),
+                    P4OutdoorPrompt.Action => IconHelp(UiText.S("p4.pad.help_move"), UiText.S("p4.pad.help_move.plain")),
                     P4OutdoorPrompt.Wait => UiText.S("p4.pad.help_wait"),
                     P4OutdoorPrompt.Confirm => UiText.S("p4.pad.help_confirm"),
                     P4OutdoorPrompt.Fight => UiText.S("p4.pad.help_fight"),
@@ -153,27 +187,36 @@ public sealed partial class P4DungeonScreen
                 },
                 P4Place.Town => W.Prompt switch
                 {
-                    P4TownPrompt.Menu => UiText.S("p4.pad.help_street"),
-                    P4TownPrompt.Pick or P4TownPrompt.Who => W.CanBack ? UiText.S("p4.pad.help_pick")
-                        : UiText.S("p4.pad.help_pick_menu"),
+                    P4TownPrompt.Menu => IconHelp(UiText.S("p4.pad.help_street"), UiText.S("p4.pad.help_street.plain")),
+                    P4TownPrompt.Pick or P4TownPrompt.Who => W.CanBack ? IconHelp(UiText.S("p4.pad.help_pick"), UiText.S("p4.pad.help_pick.plain"))
+                        : IconHelp(UiText.S("p4.pad.help_pick_menu"), UiText.S("p4.pad.help_pick_menu.plain")),
                     P4TownPrompt.Wait when W.CanLeaveHistory => UiText.S("p4.pad.help_history"),
                     P4TownPrompt.Wait => UiText.S("p4.pad.help_wait"),
                     P4TownPrompt.Confirm => UiText.S("p4.pad.help_confirm"),
-                    P4TownPrompt.Shares => UiText.S("p4.pad.help_shares"),
+                    P4TownPrompt.Shares => _padSeen.Length > 0 ? UiText.F("p4.pad.help_shares_buttons_x", PadShare ?? 1)
+                        : UiText.F("p4.pad.help_shares_x", PadShare ?? 1),
                     P4TownPrompt.Ending when W.EndingStep == P4EndingStep.Question => UiText.S("p4.pad.help_confirm"),
                     _ => UiText.S("p4.pad.help_left"),
                 },
                 _ => D.Prompt switch
                 {
-                    P4DungeonPrompt.Action => UiText.S("p4.pad.help_move"),
+                    P4DungeonPrompt.Action => IconHelp(UiText.S("p4.pad.help_move"), UiText.S("p4.pad.help_move.plain")),
                     P4DungeonPrompt.Wait => UiText.S("p4.pad.help_wait"),
-                    P4DungeonPrompt.Menu or P4DungeonPrompt.Who => UiText.S("p4.pad.help_pick_menu"),
+                    P4DungeonPrompt.Menu or P4DungeonPrompt.Who => IconHelp(UiText.S("p4.pad.help_pick_menu"),
+                        UiText.S("p4.pad.help_pick_menu.plain")),
                     P4DungeonPrompt.Fight => UiText.S("p4.pad.help_fight"),
                     _ => UiText.S("p4.pad.help_left"),
                 },
             };
         }
     }
+
+    /// <summary>
+    /// s185 live pass: a pad help that names Y / X's icon or button pick (<paramref name="withIcons"/>), or its wording with
+    /// no Y / X (<paramref name="plain"/>) while the screen has no buttons for them (no art pack's command panel), as the
+    /// share-out's help does.
+    /// </summary>
+    private string IconHelp(string withIcons, string plain) => _padSeen.Length == 0 ? plain : withIcons;
 
     /// <summary>The middle of the button the pad has picked (Y / X), or null; the shell lights it as under the pointer.</summary>
     public Point? PadPointer { get; private set; }
@@ -288,7 +331,16 @@ public sealed partial class P4DungeonScreen
                         break;
                 }
             }
-            if (alphabet is null)
+            if (alphabet is null && PadShare is not null)
+            {
+                // s185: the share-out's Left / Right set the share A gives (no other key reads them there).
+                foreach (var b in pressed)
+                    if (b is Buttons.DPadLeft or Buttons.LeftThumbstickLeft or Buttons.DPadRight or Buttons.LeftThumbstickRight)
+                        StepPadShare(b is Buttons.DPadLeft or Buttons.LeftThumbstickLeft ? -1 : 1);
+                keys.AddRange(PadMoves([.. pressed.Where(b => b is not (Buttons.DPadLeft or Buttons.LeftThumbstickLeft
+                    or Buttons.DPadRight or Buttons.LeftThumbstickRight))], held, PadDiagonals));
+            }
+            else if (alphabet is null)
                 keys.AddRange(PadMoves(pressed, held, PadDiagonals));
             else if (wheel.Count > 0)
                 foreach (var k in _wheel.KeysFor(_wheelOwner!, wheel, alphabet))
@@ -429,6 +481,7 @@ public sealed partial class P4DungeonScreen
         return Game.Place switch
         {
             P4Place.Town when W.Prompt == P4TownPrompt.Confirm => Keys.Y,
+            P4Place.Town when PadShare is int share => Keys.D0 + share, // s185: the share the pad set (Left / Right)
             P4Place.Outdoors when O.Prompt == P4OutdoorPrompt.Confirm => Keys.Y,
             _ => Keys.Enter,
         };

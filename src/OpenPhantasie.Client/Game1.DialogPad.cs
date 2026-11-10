@@ -47,12 +47,20 @@ public partial class Game1
     /// <summary>The keys the pad's new buttons stand for in the open <paramref name="modal"/>.</summary>
     private IEnumerable<Keys> ModalPadKeys(IModalDialog modal, GamePadState pad) =>
         _dialogPad.KeysFor(modal, _input.NewButtons(pad), (modal as ITypedEntry)?.TypingAlphabet,
-            modal is IPadYesNo { AsksYesNo: true }, ModalTakesLeftRight(modal));
+            modal is IPadYesNo { AsksYesNo: true }, ModalTakesLeftRight(modal), modal.Help);
 
-    /// <summary><paramref name="modal"/>'s help line, or the pad's while the pad is in use there.</summary>
+    /// <summary>
+    /// <paramref name="modal"/>'s help line, or the pad's while the pad is in use there. s185: a Y / N step whose help has a
+    /// pad wording of its own (Guild New's "A keep  X roll again", Time lag's sound) keeps its help, shown in the pad's words
+    /// by <see cref="PadWording.Help"/>, instead of the generic Y / N line.
+    /// </summary>
+    /// <remarks>s185 live pass: only while the pad is the last input (<see cref="PadWording.Active"/>); a key pressed after
+    /// the pad brings the dialog's own keyboard help back (the wheel's line stayed up for the rest of the dialog before).</remarks>
     private string ModalHelp(IModalDialog modal) =>
-        _dialogPad.Help(modal, (modal as ITypedEntry)?.TypingAlphabet, modal is IPadYesNo { AsksYesNo: true },
-            ModalTakesLeftRight(modal)) ?? modal.Help;
+        !PadWording.Active ? modal.Help
+        : modal is IPadYesNo { AsksYesNo: true } && PadWording.PadTextFor(UiText.Table, modal.Help) is not null ? modal.Help
+        : _dialogPad.Help(modal, (modal as ITypedEntry)?.TypingAlphabet, modal is IPadYesNo { AsksYesNo: true },
+            ModalTakesLeftRight(modal), modal.Help) ?? modal.Help;
 
     /// <summary>A dialog step whose menu moves with Left / Right (<see cref="IPadArrows"/>): the pad's wheel stays off there.</summary>
     private static bool ModalTakesLeftRight(IModalDialog modal) => modal is IPadArrows { TakesLeftRight: true };

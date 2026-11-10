@@ -63,6 +63,7 @@ who decides. Keep each entry to **Source · Code · Decision · Remaster · Side
 | D4-070 | Teleportation in a location map: manual "to another place"; D4-052 was decided as "previous square (the code)", but the code's step-back (`_enc_end` → `_cox`) is outdoor-only: in a dungeon the party stays on the fight's square | DECIDED (user s103): previous square stays default; add the code's stay as a `p4.teleport` value · built s104 (`stay`) |
 | D4-071 | Spell 64 ("????????", the game's Annihilate Enemy): the manual lists it among the combat spells as "a spell concerning the works of the gods" (effect not described); the code lists it in combat, says its name and only empties the caster's MP | DECIDED: code (s105) — castable, no effect, MP 0; QoL option `p4.annihilate` = `divine` (user s117, off in every preset) adds a remaster effect |
 | D4-072 | Outdoor "M Map" overview: manual "the 3 × 3 overall map around the current area"; code shows one of three fixed 3 × 3 blocks (the party's map is often not in the middle, e.g. map 1 in a corner), and in the Netherworld only the party's own map (the rest show filler) | DECIDED (user s109: C) · the code's blocks in every preset; option `p4.overview` = `centred` for the manual's reading |
+| D4-073 | Rename takes a name of spaces only (manual silent): `_re_name` refuses only an empty entry (first byte 0); creation's `_mkname` takes even an empty name | NOT A CONFLICT (manual silent; remaster as the code) |
 
 D4-030 … D4-034 come from the towns spec (`reverse-engineering/x68000/phantasie4/logic-specs/towns.md`), which also
 read the manual's town pages. Manual checks that found **no conflict** are listed at the end (§ Checked, no conflict). Contradictions inside the
@@ -973,6 +974,27 @@ more code detail (level-up gold capped at 65,535 is one of D4-031's cases). Use 
   the world's edge black; in the Netherworld the other cells still show the hidden map (the code's rule; the manual is
   silent there).
 - **Side effects:** display only (no rule changes either way).
+
+---
+
+## D4-073 — Rename (and naming) accepts a name of spaces only
+
+- **Source:** the manual's Guild pages ("R Rename", "give it a name") say nothing about which names are allowed. Raised
+  by the s183 pad pass ("Rename takes a blank name"): the pad's name wheel has a space (one Left from A).
+- **Code (X68000) `[C]` static** (s185): `_re_name` (`0x7520`) clears a 10-byte buffer, reads up to 8 characters with
+  `_wscan(0x20, buf, 8)` (`0x755A`), and goes back to the roster pick with no question only when the **first byte is 0**
+  (`0x7564`–`0x756E`: an empty entry, Return at once). `_wscan` (`0x34550`) takes every byte 0x20–0x7E and 0xA0–0xDF as a
+  character (the space included) and trims nothing, so " " or "   " passes the test, is asked Okay / Cansel and becomes the
+  name. Creation: `_mkname` (`0x13624`) calls the same `_wscan` with no test, its callers `_make2` (`0x136DA`) and
+  `_make5` (`0x13E4C`) go straight on to `_mkdetail`, which copies the 10 bytes into the record (`0x12B42`): even an
+  empty name is kept.
+- **Decision:** NOT A CONFLICT (s185): the manual is silent, so the remaster follows the code. Refusing a name of only
+  spaces would be a QoL option (not built).
+- **Remaster:** as the code. Rename refuses only the empty name and takes a name of spaces
+  (`P4TownLoop.Rename`, test `Rename_AnEmptyNameChangesNothing_ANameOfSpacesIsTaken`); creation takes whatever is typed,
+  empty included (`NameAndRecord`).
+- **Side effects:** a member named only with spaces shows as an empty name in the roster and party lists.
+- **Spec:** `logic-specs/towns.md` (Roster, R Rename).
 
 ---
 

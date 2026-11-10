@@ -10,8 +10,13 @@ namespace OpenPhantasie.Client.Tests;
 /// follow the prompt (Return, Y, Space; Esc, N, Space, Backspace), LB / RB are F5 / F9, Y / X pick the clickable buttons
 /// and A clicks the picked one, and in a fight's orders Y / X pick the order A gives.
 /// </summary>
-public class P4PadTests
+public sealed class P4PadTests : IDisposable
 {
+    // s185: the screen's PadInput is PadWording.Active (per thread): every test starts and ends with the keyboard's help.
+    public P4PadTests() => PadWording.Active = false;
+
+    public void Dispose() => PadWording.Active = false;
+
     private static readonly GameOptions Code = GameOptions.ForPreset(GameId.P4, OptionPreset.Dos);
     private static readonly GameOptions Manual = GameOptions.ForPreset(GameId.P4);
     private static readonly P4Tables T = GameTables.Load(GameId.P4).Phantasie4!.Tables;
@@ -414,14 +419,15 @@ public class P4PadTests
 
         var town = new P4DungeonScreen(P4Preview.StartInTown(2, Code));
         Pad(town, Buttons.DPadDown);
-        Assert.Equal(UiText.S("p4.pad.help_street"), town.Help);
+        Assert.Equal(UiText.S("p4.pad.help_street.plain"), town.Help); // no icons drawn: no Y / X pick named (s185)
         HitRegion f = new(new Rectangle(10, 10, 16, 16), new P4PanelIconTag("_townmenu", 0)) { Click = [Keys.F] };
         town.PadKeys([Buttons.Y], [], [f], out _); // a button picked: A presses it
         Assert.Equal(UiText.S("p4.pad.help_focus"), town.Help);
         town.ClearPadFocus();
+        Assert.Equal(UiText.S("p4.pad.help_street"), town.Help); // icons drawn: Y / X pick them
         town.HandleKeys([Keys.D7]); // Leave
         Pad(town, Buttons.DPadUp);
-        Assert.Equal(UiText.S("p4.pad.help_move"), town.Help);
+        Assert.Equal(UiText.S("p4.pad.help_move.plain"), town.Help);
     }
 
     [OriginalDataFact]
@@ -454,6 +460,133 @@ public class P4PadTests
         Assert.Equal([Keys.Up], keys);
         // The stick's own buttons are ignored on that path (the quantiser speaks for the stick).
         Assert.Empty(s.PadKeys([Buttons.LeftThumbstickUp], [Buttons.LeftThumbstickUp], [], new Vector2(0, 0.95f), 16.7, out _));
+    }
+
+    // --- s185: IV's pad details -----------------------------------------------------------------------------------------
+
+    /// <summary>Where the pad's B is Esc (the main-menu question), its help line names B.</summary>
+    private static void AssertBNamedWhereItAsksForTheMainMenu(P4DungeonScreen s, string where)
+    {
+        Assert.Equal([Keys.Escape], Pad(s, Buttons.B)); // also makes the pad the input in use
+        Assert.True(s.PadInput);
+        Assert.True(s.Help.Contains("B/Start", StringComparison.Ordinal), $"{where}: B asks for the main menu, help \"{s.Help}\"");
+    }
+
+    [OriginalDataFact]
+    public void PadHelp_NamesB_WhereverBAsksForTheMainMenu_AndTheQuestionNamesAAndB()
+    {
+        var s = new P4DungeonScreen(P4Preview.StartInTown(2, Code));
+        s.Game.Party.Gold = 1000;
+        AssertBNamedWhereItAsksForTheMainMenu(s, "street");
+        s.Game.Town.Enter(P4Building.Bank);
+        Assert.False(s.Game.Town.CanBack); // the bank's pick has no SPACE: B is Esc there (the live pass's case)
+        Assert.Equal([Keys.Escape], Pad(s, Buttons.B));
+        AssertBNamedWhereItAsksForTheMainMenu(s, "bank pick");
+        s.Game.Town.Choose(0); // D: deposit, the shares
+        AssertBNamedWhereItAsksForTheMainMenu(s, "shares");
+        s.Game.Town.EnterShares([.. s.Game.Party.Members.Select(_ => 1)]);
+        AssertBNamedWhereItAsksForTheMainMenu(s, "wait");
+        s.Game.Town.Continue();
+        s.Game.Town.Choose(2); // L: leave
+        s.HandleKeys([Keys.D7]); // Leave the town
+        Assert.Equal(P4Place.Outdoors, s.Game.Place);
+        AssertBNamedWhereItAsksForTheMainMenu(s, "outdoors");
+
+        var dungeon = new P4DungeonScreen(Synthetic(false, 0x22, 0x00));
+        AssertBNamedWhereItAsksForTheMainMenu(dungeon, "dungeon");
+        var fight = new P4DungeonScreen(Synthetic(true, 0x22, 0x23, 0x01, 0x00));
+        AssertBNamedWhereItAsksForTheMainMenu(fight, "fight question");
+        Press(fight, Buttons.A); // Fight
+        AssertBNamedWhereItAsksForTheMainMenu(fight, "orders");
+
+        // B asked: the question by the pad's A / B, which are Y / N there.
+        Press(s, Buttons.B);
+        Assert.True(s.MainMenuAsked);
+        Assert.StartsWith(UiText.S("p4.pad.main_menu_question"), s.Note, StringComparison.Ordinal);
+        s.PadInput = false;
+        Assert.StartsWith(UiText.S("gamemenu.back_to_the_main_menu_y_n"), s.Note, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EveryPadHelpLine_FitsTwoRowsUnderThePicture()
+    {
+        var cols = (316 - 4 - 2) / PixelFont.Advance; // the full-width band (LayOutColumn)
+        foreach (var (id, text) in UiText.Table.Strings.Where(p => p.Key.StartsWith("p4.pad.", StringComparison.Ordinal)))
+        {
+            var shown = text.Replace("{0}", UiText.S("p4.battle.action.firebow"), StringComparison.Ordinal);
+            Assert.True(P4DungeonScreen.HelpLines(shown, cols).Count <= 2, $"{id}: \"{shown}\"");
+        }
+    }
+
+    [OriginalDataFact]
+    public void Shares_WithNoPanel_LeftRightSetTheShare_AGivesIt()
+    {
+        var s = new P4DungeonScreen(P4Preview.StartInTown(2, Code)); // no Assets: no share buttons
+        var party = s.Game.Party;
+        Assert.True(party.Members.Count >= 3);
+        party.Members[1].Condition = P4Member.Dead; // 0 only for a member not in good health
+        party.Gold = 1000;
+        s.Game.Town.Enter(P4Building.Bank);
+        s.Game.Town.Choose(0); // D: deposit
+        Assert.Equal(P4TownPrompt.Shares, s.Game.Town.Prompt);
+        Assert.Equal(1, s.PadShare);
+        Assert.Empty(Pad(s, Buttons.DPadLeft)); // Left / Right are the share's, no keys
+        Assert.Equal(1, s.PadShare); // never 0 for a member in good health
+        Assert.Equal(UiText.F("p4.pad.help_shares_x", 1), s.Help);
+        Pad(s, Buttons.DPadRight);
+        Pad(s, Buttons.LeftThumbstickRight);
+        Pad(s, Buttons.DPadRight);
+        Assert.Equal(3, s.PadShare); // up to 3
+        Assert.Equal(UiText.F("p4.pad.help_shares_x", 3), s.Help);
+        Assert.Equal([Keys.D3], Pad(s, Buttons.A));
+        Press(s, Buttons.A);
+        Assert.Equal([3], s.Shares);
+        Assert.Equal(3, s.PadShare); // the share stays for the next member
+        Pad(s, Buttons.DPadLeft);
+        Pad(s, Buttons.DPadLeft);
+        Pad(s, Buttons.DPadLeft);
+        Pad(s, Buttons.DPadLeft);
+        Assert.Equal(0, s.PadShare); // the dead member may take 0
+        Press(s, Buttons.A);
+        Assert.Equal([3, 0], s.Shares);
+        Assert.Equal(1, s.PadShare); // the next one is Okay: 1 at least
+        while (s.Game.Town.Prompt == P4TownPrompt.Shares)
+            Press(s, Buttons.A);
+        var rows = Assert.IsType<P4BankWindow>(s.Game.Town.BankWindow).Rows;
+        Assert.Equal([3, 0, .. Enumerable.Repeat(1, party.Members.Count - 2)], rows.Select(r => r.Share ?? -1));
+        Assert.Null(s.PadShare);
+
+        // The Town Gate's experience share-out (_gatebank) takes the same pad share.
+        var g = new P4DungeonScreen(P4Preview.StartInTown(2, Code));
+        g.Game.Party.ExperiencePool = 50;
+        g.Game.Town.Arrive(2);
+        Assert.Equal((P4TownPrompt.Shares, P4ShareKind.Experience), (g.Game.Town.Prompt, g.Game.Town.SharesFor));
+        Assert.False(g.WelcomeUp || g.DoorOpen);
+        Pad(g, Buttons.DPadRight);
+        Assert.Equal(2, g.PadShare);
+        Press(g, Buttons.A);
+        Assert.Equal([2], g.Shares);
+
+        // With the panel's share buttons the help names them too.
+        var t = new P4DungeonScreen(P4Preview.StartInTown(2, Code));
+        t.Game.Party.Gold = 1000;
+        t.Game.Town.Enter(P4Building.Bank);
+        t.Game.Town.Choose(0);
+        HitRegion two = new(new Rectangle(10, 10, 16, 16), new P4PanelIconTag("_deposit", 2)) { Click = [Keys.D2] };
+        t.PadKeys([Buttons.DPadRight], [], [two], out _);
+        Assert.Equal(UiText.F("p4.pad.help_shares_buttons_x", 2), t.Help);
+    }
+
+    [OriginalDataFact]
+    public void PadInput_IsPadWordingActive_OneFlag()
+    {
+        var s = new P4DungeonScreen(Synthetic(false, 0x22, 0x00));
+        PadWording.Active = true;
+        Assert.True(s.PadInput);
+        s.PadInput = false;
+        Assert.False(PadWording.Active);
+        Pad(s, Buttons.DPadUp);
+        Assert.True(PadWording.Active);
     }
 
     [Fact]

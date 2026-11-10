@@ -58,12 +58,11 @@ public sealed partial class P4DungeonScreen
         var icon = line.Icon is { } name && Assets is not null ? Assets.Get(name) : null;
         var cell = icon is null ? Point.Zero : IconCell(icon);
         var indent = cell.X + IconGap;
-        IReadOnlyList<string> parts = line.Text.Length == 0 ? [""]
-            : [.. UiOverlays.Wrap(line.Text, Math.Max(1, (width - indent) / PixelFont.Advance))];
+        var parts = BoxLineRows(line.Text, Math.Max(1, (width - indent) / PixelFont.Advance));
         var block = Math.Max(parts.Count, IconRows(cell.Y));
         if (icon is null || block > visible)
         {
-            foreach (var part in line.Text.Length == 0 ? [""] : UiOverlays.Wrap(line.Text, width / PixelFont.Advance))
+            foreach (var part in BoxLineRows(line.Text, width / PixelFont.Advance))
                 rows.Add(new(part, color, selected));
             return;
         }
@@ -73,6 +72,92 @@ public sealed partial class P4DungeonScreen
         for (var i = 0; i < block; i++)
             rows.Add(new(i < parts.Count ? parts[i] : "", color, selected && i < parts.Count, i == 0 ? icon : null, indent,
                 dy, owner, i == 0 ? block : 0, line.Lit));
+    }
+
+    /// <summary>Spaces before a wrapped menu entry's continuation rows (s185).</summary>
+    public const string EntryIndent = " ";
+
+    /// <summary>
+    /// <paramref name="text"/>'s rows in a box <paramref name="cols"/> columns wide. Prose wraps by words
+    /// (<see cref="UiOverlays.Wrap(string, int)"/>). s185 (Pad leftovers: "W:WITHDRA / W" in the narrow column beside the
+    /// picture and the Command strip): a menu entry (<see cref="Option"/> / <see cref="DimOption"/>: the cursor mark '&gt;' or
+    /// a space first) wraps at word boundaries only, a word too wide for a row breaking after its key's ':' (or a '/' or
+    /// '-'), and its continuation rows are indented by <see cref="EntryIndent"/> (none where the piece fills the row): "2
+    /// W:" / " WITHDRAW". Only a piece wider than the whole row (a long run with no break, as Japanese text) is cut between
+    /// characters; nothing is dropped. A row that fits is as before (words joined by one space, the leading mark space
+    /// dropped).
+    /// </summary>
+    public static IReadOnlyList<string> BoxLineRows(string text, int cols)
+    {
+        text ??= "";
+        if (text.Length == 0)
+            return [""];
+        var max = Math.Max(1, cols) * PixelFont.Advance;
+        var plain = string.Join(' ', text.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        if (text.Length < 2 || text[0] is not ('>' or ' ') || PixelFont.Measure(plain) <= max)
+            return [.. UiOverlays.Wrap(text, Math.Max(1, cols))];
+        var rows = new List<string>();
+        var line = ""; // the row being filled; "" = a row not yet started
+        bool Fits(string s) => PixelFont.Measure(s) <= max;
+        foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var w = word;
+            while (w.Length > 0)
+            {
+                if (line.Length > 0)
+                {
+                    if (Fits(line + " " + w))
+                    {
+                        line += " " + w;
+                        break;
+                    }
+                    if (Fits(EntryIndent + w))
+                    {
+                        rows.Add(line);
+                        line = EntryIndent + w;
+                        break;
+                    }
+                    // Wider than a continuation row: its head up to a break mark ends this row when it fits there.
+                    var head = BreakAt(w, line + " ", Fits);
+                    rows.Add(head > 0 ? line + " " + w[..head] : line);
+                    line = "";
+                    w = w[head..];
+                    continue;
+                }
+                var lead = rows.Count > 0 && Fits(EntryIndent + w) ? EntryIndent : "";
+                if (Fits(w))
+                {
+                    line = lead + w;
+                    break;
+                }
+                lead = rows.Count > 0 ? EntryIndent : "";
+                var cut = BreakAt(w, lead, Fits);
+                if (cut == 0)
+                {
+                    lead = "";
+                    cut = BreakAt(w, lead, Fits);
+                }
+                if (cut == 0) // no break mark fits: cut between characters (nothing is lost)
+                    cut = Math.Max(1, PixelFont.CutLength(w, max));
+                rows.Add(lead + w[..cut]);
+                w = w[cut..];
+            }
+        }
+        if (line.Length > 0)
+            rows.Add(line);
+        return rows;
+    }
+
+    /// <summary>
+    /// The length of <paramref name="word"/>'s longest head ending in ':' , '/' or '-' (not its last character) that fits
+    /// after <paramref name="before"/>; 0 when none does.
+    /// </summary>
+    private static int BreakAt(string word, string before, Func<string, bool> fits)
+    {
+        for (var i = word.Length - 2; i >= 0; i--)
+            if (word[i] is ':' or '/' or '-' && fits(before + word[..(i + 1)]))
+                return i + 1;
+        return 0;
     }
 
     /// <summary>

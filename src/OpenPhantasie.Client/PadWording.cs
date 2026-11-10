@@ -45,6 +45,40 @@ public static class PadWording
     public static string Help(string help) => Active ? PadTextFor(UiText.Table, help) ?? help : help;
 
     /// <summary>
+    /// s185: a help built from a template (the text shown never equals its template, so <see cref="Help"/> cannot find its
+    /// twin): the template <paramref name="id"/>'s <c>.pad</c> twin while the pad is active and the table has one, else
+    /// <paramref name="id"/>, formatted with <paramref name="args"/>.
+    /// </summary>
+    public static string Format(string id, params object?[] args)
+    {
+        if (!Active || !UiText.Table.Contains(id + Suffix))
+            return UiText.F(id, args);
+        return _formatted = UiText.F(id + Suffix, args);
+    }
+
+    [ThreadStatic] private static string? _formatted; // the last pad wording Format built (Shows)
+
+    /// <summary>
+    /// <paramref name="help"/> shows in the pad's words now: the pad is active and the text has a twin, or is the pad wording
+    /// <see cref="Format"/> built last (a screen that draws its help only in the pad's words, III Amiga's town picture).
+    /// </summary>
+    public static bool Shows(string help) =>
+        Active && (!ReferenceEquals(Help(help), help) || help.Length > 0 && help == _formatted);
+
+    /// <summary>
+    /// s185: the template <paramref name="id"/> filled with <paramref name="args"/>, from its <c>.pad</c> twin while the pad
+    /// is active and the table has one. For a line built from a template (the text shown is no table text, so
+    /// <see cref="Help"/> cannot find it) or one shown as the message rather than the help (I DOS's Party Options and order
+    /// lines): the caller rebuilds it each frame, so it follows the input as <see cref="Help"/> does.
+    /// </summary>
+    public static string F(string id, params object?[] args) => UiText.F(TwinId(id), args);
+
+    /// <summary>s185: the text <paramref name="id"/>, from its <c>.pad</c> twin while the pad is active and the table has one.</summary>
+    public static string S(string id) => UiText.S(TwinId(id));
+
+    private static string TwinId(string id) => Active && UiText.Table.Contains(id + Suffix) ? id + Suffix : id;
+
+    /// <summary>
     /// The pad wording of the help text <paramref name="text"/> in <paramref name="table"/> (the <c>.pad</c> twin of the id
     /// whose text it is), or null when it has none.
     /// </summary>

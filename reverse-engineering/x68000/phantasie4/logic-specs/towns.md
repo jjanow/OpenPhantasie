@@ -154,6 +154,8 @@ character (`_make`, `ancestry.md`; both N buttons), F Profile (`_inspect(0)`: pi
 
 - **D Delete:** pick a slot, confirm → the slot's +01 = 0 (the record is forgotten). Repeats until SPACE.
 - **R Rename:** pick a slot, type up to 8 characters; an empty name changes nothing; confirm → the name is replaced.
+  s185: only the first byte is tested (0 = empty, `0x7564`); `_wscan` (`0x34550`) takes the space like any character
+  and trims nothing, so a name of spaces is asked and kept (D4-073, PENDING). Creation's `_mkname` tests nothing.
 - **P Form party** (`_party` `0x7A14`): toggle up to 6 slots in the roster (each toggle appends / removes it from the
   pick order; the order picked is the party order); SPACE ends picking; with at least one picked, confirm; then
   **choose the elemental** to take (E: Earth spirit, Mist spirit, Air spirit, Do not summon — starts on "Do not summon";

@@ -382,6 +382,31 @@ public class Phantasie4TownServicesTests
         Assert.Null(party.Roster[1]);
     }
 
+    /// <summary>
+    /// s185 (Pad leftovers "Rename takes a blank name"): as <c>_re_name</c> (0x7520) reads it, an empty name (its first byte
+    /// 0, tested at 0x7564) goes back to the pick with no question, while a name of spaces (<c>_wscan</c> 0x34550 takes
+    /// 0x20) is asked and kept. D4-073 (PENDING) puts the spaces case to the user; until then the original's rule stays.
+    /// </summary>
+    [OriginalDataFact]
+    public void Rename_AnEmptyNameChangesNothing_ANameOfSpacesIsTaken()
+    {
+        var party = Party(3);
+        var w = Town(party, o: Code);
+        var was = party.Roster[0]!.Name;
+        w.Enter(P4Building.Guild);
+        w.Choose(0);
+        w.Choose(4); // R: rename
+        w.Choose(0);
+        w.EnterText("");
+        Assert.Equal(P4TownPrompt.Pick, w.Prompt); // back to the roster pick, no Okay / Cansel
+        Assert.Equal(was, party.Roster[0]!.Name);
+        w.Choose(0);
+        w.EnterText("  ");
+        Assert.Equal(P4TownPrompt.Confirm, w.Prompt);
+        w.Answer(true);
+        Assert.Equal("  ", party.Roster[0]!.Name);
+    }
+
     // --- Bank ---------------------------------------------------------------------------------------------------------------
 
     [OriginalDataFact]

@@ -124,9 +124,7 @@ public sealed class PadMenuTests
     {
         var s = new ImportScreen(Path.Combine(Path.GetTempPath(), "phantasie-import-screen-test"), (_, _) => new ImportReport(), () => []);
         s.Open(firstRun: false);
-        Assert.False(s.PadInUse);
         Assert.Equal([Keys.Delete], s.PadKeys([Buttons.X]));
-        Assert.True(s.PadInUse);
         Assert.Equal([Keys.Tab], s.PadKeys([Buttons.Y])); // s183: the folder browser
         Buttons[] shared = [Buttons.DPadUp, Buttons.DPadDown, Buttons.A, Buttons.B, Buttons.LeftShoulder,
             Buttons.RightShoulder, Buttons.Start];

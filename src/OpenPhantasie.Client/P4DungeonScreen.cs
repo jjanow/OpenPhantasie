@@ -90,7 +90,11 @@ public sealed partial class P4DungeonScreen
     /// </summary>
     public string? Note
     {
-        get => MainMenuAsked ? UiText.S("gamemenu.back_to_the_main_menu_y_n") + " " + UiText.S("gamemenu.unsaved_progress_is_lost") : _note;
+        // s185: by the pad's buttons while the pad is in use (its A / B are Y / N here, PadConfirmKey / PadBackKey).
+        get => MainMenuAsked
+            ? (PadInput ? UiText.S("p4.pad.main_menu_question") : UiText.S("gamemenu.back_to_the_main_menu_y_n")) + " "
+                + UiText.S("gamemenu.unsaved_progress_is_lost")
+            : _note;
         set => _note = value;
     }
 
@@ -116,6 +120,7 @@ public sealed partial class P4DungeonScreen
         _typed = "";
         ResetBattleUi();
         _padAction = null; // s182: the pad's fight order and picked button start again
+        _padShare = 1;
         ClearPadFocus();
         Game.Follow();
     }
@@ -384,6 +389,7 @@ public sealed partial class P4DungeonScreen
             return;
         W.EnterShares(_shares);
         _shares = [];
+        _padShare = 1; // s185: the next share-out's pad share starts at 1 again
         Cursor = 0;
     }
 

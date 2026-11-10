@@ -105,4 +105,40 @@ public class P4ColumnLayoutTests
         var narrow = P4DungeonScreen.HelpLines("Numpad/arrows move  E examine", 10);
         Assert.Equal("Numpad/arrows move E examine".Replace(" ", ""), string.Concat(narrow).Replace(" ", ""));
     }
+
+    /// <summary>
+    /// s185 (Pad leftovers): the bank's entries in the 9-column text column beside the picture and the Command strip read
+    /// "W:WITHDRA / W"; they now break after the key's ':' with the rest indented, and a row that fits is unchanged.
+    /// </summary>
+    [Fact]
+    public void BoxLineRows_AMenuEntry_BreaksAfterItsKey_NeverInsideAWord()
+    {
+        Assert.Equal(["2 W:", " Withdraw"], P4DungeonScreen.BoxLineRows(" 2 W:Withdraw", 9));
+        Assert.Equal([">1 D:", " Deposit"], P4DungeonScreen.BoxLineRows(">1 D:Deposit", 9));
+        Assert.Equal(["3 L:Leave"], P4DungeonScreen.BoxLineRows(" 3 L:Leave", 9));
+        Assert.Equal([">1 D:Deposit"], P4DungeonScreen.BoxLineRows(">1 D:Deposit", 20));
+        Assert.Equal([">1", " D:Deposit"], P4DungeonScreen.BoxLineRows(">1 D:Deposit", 11)); // whole, indented
+        Assert.Equal([""], P4DungeonScreen.BoxLineRows("", 9));
+        // Prose (no cursor-mark column) wraps as before.
+        Assert.Equal(UiOverlays.Wrap("PIP has grown older.", 9), P4DungeonScreen.BoxLineRows("PIP has grown older.", 9));
+    }
+
+    [Theory]
+    [InlineData(" 2 W:Withdraw")]
+    [InlineData(">4 Leave the Guild of Pendragon")]
+    [InlineData(" 1 ABCDEFGHIJKLMNOPQRSTU")] // a run with no break: cut between characters, still nothing lost
+    [InlineData(">7 Long Sword/Short Sword-Spear")]
+    public void BoxLineRows_EveryRowFits_NothingIsLost(string entry)
+    {
+        for (var cols = 4; cols <= 16; cols++)
+        {
+            var rows = P4DungeonScreen.BoxLineRows(entry, cols);
+            Assert.All(rows, r => Assert.True(PixelFont.Measure(r) <= cols * PixelFont.Advance, $"{cols}: \"{r}\""));
+            Assert.Equal(entry.Replace(" ", ""), string.Concat(rows).Replace(" ", ""));
+            // A word that fits a row is never split: each one is found whole in a row.
+            foreach (var word in entry.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Where(w => PixelFont.Measure(P4DungeonScreen.EntryIndent + w) <= cols * PixelFont.Advance))
+                Assert.Contains(rows, r => r.Split(' ').Contains(word));
+        }
+    }
 }

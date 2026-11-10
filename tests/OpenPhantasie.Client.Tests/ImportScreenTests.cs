@@ -5,7 +5,7 @@ using OpenPhantasie.Importer;
 namespace OpenPhantasie.Client.Tests;
 
 /// <summary>s158: the first-run import screen (10-importer.md 4.1), with the import itself faked.</summary>
-public class ImportScreenTests
+public class ImportScreenTests : IDisposable
 {
     private static ImportScreen Screen(Func<IReadOnlyList<string>, IProgress<string>, ImportReport> run,
         params StoreLibraries.Library[] libraries) =>
@@ -215,7 +215,21 @@ public class ImportScreenTests
         return root;
     }
 
-    private static void Pad(ImportScreen s, params Buttons[] buttons) => s.HandleKeys(s.PadKeys(buttons));
+    /// <summary>Pad buttons, as the shell feeds them (the pad becomes the input: PadWording).</summary>
+    private static void Pad(ImportScreen s, params Buttons[] buttons)
+    {
+        PadWording.Active = true;
+        s.HandleKeys(s.PadKeys(buttons));
+    }
+
+    /// <summary>The help as drawn (its pad twin while the pad is the input).</summary>
+    private static string Shown(ImportScreen s) => PadWording.Help(s.Help);
+
+    public void Dispose()
+    {
+        PadWording.Active = false;
+        GC.SuppressFinalize(this);
+    }
 
     [Fact]
     public void Browser_ByPad_OpensAFolder_PicksAFile_AddsIt()
@@ -229,7 +243,7 @@ public class ImportScreenTests
             Pad(s, Buttons.Y); // browse
             Assert.True(s.Browsing);
             Assert.Equal(root, s.BrowseFolder);
-            Assert.Equal(UiText.S("import.help.browse.pad"), s.Help);
+            Assert.Equal(UiText.S("import.help.browse.pad"), Shown(s));
             // Up, use this folder, then folders (visible first), then files.
             Assert.Equal([ImportScreen.BrowseKind.Up, ImportScreen.BrowseKind.UseFolder, ImportScreen.BrowseKind.Folder,
                 ImportScreen.BrowseKind.Folder, ImportScreen.BrowseKind.File], s.BrowseEntries.Select(e => e.Kind));
@@ -254,7 +268,7 @@ public class ImportScreenTests
             Pad(s, Buttons.B);
             Assert.False(s.Browsing);
             Assert.True(s.IsOpen);
-            s.PadInUse = false; // a key (the shell)
+            PadWording.Active = false; // a key (the shell)
             Assert.Equal(UiText.S("import.help.typing"), s.Help);
         }
         finally
@@ -308,10 +322,10 @@ public class ImportScreenTests
             s.HandleKeys([Keys.Down, Keys.Down, Keys.Enter]);
             WaitForReport(s);
             Pad(s, Buttons.DPadDown);
-            Assert.Equal(UiText.S("import.help.report.offer.pad"), s.Help);
+            Assert.Equal(UiText.S("import.help.report.offer.pad"), Shown(s));
             Pad(s, Buttons.Y); // the offer (A on the keyboard)
             Assert.True(s.AskingForOffer);
-            Assert.Equal(UiText.S("import.help.offer.pad"), s.Help);
+            Assert.Equal(UiText.S("import.help.offer.pad"), Shown(s));
             Pad(s, Buttons.Y); // browse for the file
             Assert.True(s.Browsing);
             Assert.Contains(s.Lines(), l => l.Text == UiText.S("import.browse.title.offer"));

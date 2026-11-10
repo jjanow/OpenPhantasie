@@ -94,6 +94,21 @@ public sealed class DialogPadTests
     }
 
     [Fact]
+    public void Wheel_StepsBack_WhenTheDialogMovesToAStepWithAPadWordingOfItsOwn()
+    {
+        // s185 live pass: the training WHO list picked by X went on to "A agree  N not" with the wheel's line still up.
+        var pad = new DialogPad();
+        var d = new object();
+        var who = UiText.For(GameId.P1).Get("guild.1_6_choose_esc_done");
+        var cost = UiText.For(GameId.P1).Get("guild.a_agree_n_not");
+        Assert.Equal([Keys.D1], pad.KeysFor(d, [Buttons.X], stepHelp: who));
+        Assert.Null(pad.Help(d, null, false, false, cost)); // the step's own help (its pad wording) shows
+        pad.KeysFor(d, [Buttons.DPadRight], stepHelp: cost);
+        Assert.NotNull(pad.Help(d, null, false, false, cost)); // the wheel used again: its line is back
+        Assert.NotNull(pad.Help(d, null, false, false, "A STEP WITH NO PAD WORDING")); // kept where there is no twin
+    }
+
+    [Fact]
     public void Wheel_ANewDialog_StartsAgain_AndTheHelpWaitsForThePad()
     {
         var pad = new DialogPad();

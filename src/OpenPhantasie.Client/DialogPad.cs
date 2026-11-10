@@ -42,6 +42,7 @@ public sealed class DialogPad
     private object? _owner;
     private string _alphabet = Digits;
     private int _at;
+    private string? _stepHelp; // the open step's own help (StepChanged)
 
     /// <summary>The pad has been used in the open dialog (a Y / N step's help line then names the pad's keys).</summary>
     public bool Active { get; private set; }
@@ -58,8 +59,24 @@ public sealed class DialogPad
         _owner = null;
         _alphabet = Digits;
         _at = 0;
+        _stepHelp = null;
         Active = false;
         WheelUsed = false;
+    }
+
+    /// <summary>
+    /// s185 live pass: the dialog moved to a step whose own help has a pad wording (III / I training's "A agree  B not"
+    /// after the WHO pick by X): the wheel's line steps back so that wording shows, until the wheel is used again.
+    /// <paramref name="stepHelp"/>: the step's help now (null: not tracked).
+    /// </summary>
+    private void StepChanged(string? stepHelp)
+    {
+        if (stepHelp is null || stepHelp == _stepHelp)
+            return;
+        var first = _stepHelp is null;
+        _stepHelp = stepHelp;
+        if (!first && PadWording.PadTextFor(UiText.Table, stepHelp) is not null)
+            WheelUsed = false;
     }
 
     /// <summary>
@@ -67,7 +84,7 @@ public sealed class DialogPad
     /// dialog; a new one resets the wheel). <paramref name="typingAlphabet"/>: what the step types (null: digits).
     /// </summary>
     public IReadOnlyList<Keys> KeysFor(object dialog, IEnumerable<Buttons> buttons, string? typingAlphabet = null,
-        bool yesNo = false, bool leftRightNative = false)
+        bool yesNo = false, bool leftRightNative = false, string? stepHelp = null)
     {
         ArgumentNullException.ThrowIfNull(dialog);
         ArgumentNullException.ThrowIfNull(buttons);
@@ -77,6 +94,7 @@ public sealed class DialogPad
             _owner = dialog;
         }
         Sync(typingAlphabet);
+        StepChanged(stepHelp);
         var keys = new List<Keys>();
         foreach (var b in buttons)
         {
@@ -127,11 +145,12 @@ public sealed class DialogPad
     /// The help line while the pad is in use: the wheel's character and its keys, or the Y / N keys; null when the pad has
     /// not been used in the open dialog (its own help then).
     /// </summary>
-    public string? Help(object dialog, string? typingAlphabet, bool yesNo, bool leftRightNative)
+    public string? Help(object dialog, string? typingAlphabet, bool yesNo, bool leftRightNative, string? stepHelp = null)
     {
         if (!Active || leftRightNative || !ReferenceEquals(dialog, _owner))
             return null;
         Sync(typingAlphabet);
+        StepChanged(stepHelp);
         if (yesNo)
             return UiText.S("pad.dialog_yes_no");
         if (!WheelUsed)

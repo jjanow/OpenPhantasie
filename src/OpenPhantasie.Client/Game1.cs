@@ -292,7 +292,6 @@ public partial class Game1 : Game
         {
             SlotSaved = slot => SaveSlotExists(GameId.P4, slot), // IV's three slots (12-save-slots.md section 2)
             OriginalSlots = !_settings.Game(GameId.P4).SaveSlots,
-            PadInput = PadWording.Active, // s183 live pass: a game picked by pad shows its first help line in the pad's words
         };
         _packs = GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P4));
         UseGraphicsPack(ChosenPack(GameId.P4)); // T6.4: IV's own pictures (X68000), its 640 × 400 screen
@@ -1110,6 +1109,7 @@ public partial class Game1 : Game
     {
         var keys = Keyboard.GetState();
         var pad = GamePad.GetState(PlayerIndex.One);
+        _input.TickStick(pad, gameTime.ElapsedGameTime.TotalMilliseconds); // s185: one left-stick direction per push (I–III)
         UpdateMouse(gameTime, keys); // Game1.Mouse.cs: mouse → keys / cursor moves, and a map walk's next step
         // s183: help lines name the pad's buttons while the pad is the last input (PadWording).
         PadWording.Note(_input.NewButtons(pad).Any(),
@@ -1228,8 +1228,6 @@ public partial class Game1 : Game
             else if (_import.IsOpen)
             {
                 _import.Update();
-                if (_input.AnyRealKeyPressed(keys) || IsMouseVisible && _mouse.Moved)
-                    _import.PadInUse = false; // s183: the help line names keys again (a pad press sets it)
                 _import.HandleKeys(_input.NewKeys(keys).Concat(_import.PadKeys(_input.NewButtons(pad))));
             }
             else if (_options.IsOpen)
@@ -1497,7 +1495,7 @@ public partial class Game1 : Game
                     dosDefeat ? "" : KeepWindowFor(open) is not null ? UiText.S("game.keep_window_ok_cancel")
                     : AmigaDisarmWindowFor(open) is not null ? UiText.S("p3combat.member_window_help")
                     : AmigaShareWindowFor(open) is not null
-                        ? UiText.F("p3town.bank_window_shares_help", open.Options[0], open.Options[^1])
+                        ? PadWording.Format("p3town.bank_window_shares_help", open.Options[0], open.Options[^1]) // s185: the pad's words
                     : EventPageFor(open) is { } page ? (page.AnyKey ? UiText.S("game.event_page_any_key")
                         : EventPadHelp(open) ?? UiText.S("game.event_page_number")) // s182: the pad's pick
                     : HelpForPrompt(open));
@@ -1588,7 +1586,7 @@ public partial class Game1 : Game
             if (_update.IsOpen)
                 UiOverlays.DrawMenuScreen(_spriteBatch, _pixel, _update.Lines(), _update.Help);
             else if (_import.IsOpen)
-                UiOverlays.DrawMenuScreen(_spriteBatch, _pixel, _import.Lines(), _import.Help);
+                UiOverlays.DrawImportScreen(_spriteBatch, _pixel, _import); // s185: rows to the help line, a scroll bar
             else if (_options.IsOpen)
                 UiOverlays.DrawOptionsScreen(_spriteBatch, _pixel, _options);
             else
@@ -1638,7 +1636,7 @@ public partial class Game1 : Game
                     P1MapBarTakesInput(_session), _session);
         }
         else if (FullScreenOverworld(_session))
-            UiOverlays.DrawMapHud(_spriteBatch, _pixel, BandMessage, UiOverlays.TreasuryGoldLine(_session));
+            DrawMapOnlyHud(_session, messageShows); // s185: and its help line (Game1.MapOnlyHelp.cs)
         else if (TownPictureScreen(_session))
             // The town picture fills the screen (s98): no status or help line; the message on a band for a few seconds,
             // the key help on it (clickable) while the mouse rests on the band's rows or below.
@@ -2521,10 +2519,10 @@ public partial class Game1 : Game
         prompt.IsYesNo && prompt.EscapeChoice == 2 ? UiText.S("game.arrows_enter_y_yes_n_esc_no")
         : prompt.IsYesNo ? UiText.S("game.arrows_enter_or_y_yes_n")
         : prompt.Options.Count == 1 ? UiText.S("game.enter_continue")
-        : prompt.Hotkeys is { } letters
+        : prompt.Hotkeys is { } letters && !PadWording.Active // s185: the pad answers by D-pad and A (game.arrows_enter_or_1_x)
             ? string.Join("   ", letters.Select((c, i) => $"{c} {prompt.Options[i].Replace(")", "").ToLowerInvariant()}"))
         : prompt.IsShares ? UiText.F("game.x_x_shares", prompt.Options[0], prompt.Options[^1])
-        : UiText.F("game.arrows_enter_or_1_x", prompt.Options.Count);
+        : PadWording.F("game.arrows_enter_or_1_x", prompt.Options.Count); // s185: a template: the pad's wording picked here
 
     private void HandleGameplayInput(KeyboardState keys, GamePadState pad)
     {
@@ -4050,7 +4048,7 @@ public partial class Game1 : Game
     public static string OneLine(string text) => System.Text.RegularExpressions.Regex.Replace(text ?? "", "\r *", " ");
 
     /// <summary>s183: the pad is the input and <paramref name="help"/> has a pad wording (<see cref="PadWording"/>).</summary>
-    private static bool PadHelpShown(string help) => PadWording.Active && !ReferenceEquals(PadWording.Help(help), help);
+    private static bool PadHelpShown(string help) => PadWording.Shows(help); // s185: a templated pad wording too (Format)
 
     private void SetFeedback(string message, string help)
     {
@@ -4063,7 +4061,7 @@ public partial class Game1 : Game
         GameMode.Town when _townMenu.Place == TownPlace.Armory => UiText.S("game.up_down_enter_buy_1_6"),
         GameMode.Town when _townMenu.Place != TownPlace.Menu => UiText.S("game.up_down_enter_select_bksp_back"),
         GameMode.Guild => UiText.S("game.l_list_p_purge_n_new"),
-        GameMode.Title => UiText.S("game.n_new_a_add_d_drop"),
+        GameMode.Title => UiText.S("game.title_guild_help"), // s185: only A / D work here; Esc (pad B) = game menu
         GameMode.Overworld when _session is { } s && TerrainKeyFor(s) is { Count: > 0 } => UiText.S("game.3_n_e_s_w_arrows_key"),
         GameMode.Overworld => UiText.S("game.3_n_e_s_w_arrows"),
         GameMode.Town => UiText.S("game.arrows_enter_a_b_m_n"),

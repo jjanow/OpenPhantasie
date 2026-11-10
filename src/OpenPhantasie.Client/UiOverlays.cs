@@ -89,22 +89,49 @@ public static partial class UiOverlays
 
     /// <summary>
     /// HUD for the full-screen overworld map, which fills rows 15..194 as on the Amiga: only the message, at the top,
-    /// on as many lines as it needs (location signs run to three); no help line.
+    /// on as many lines as it needs (location signs run to three). s185: then the key help (<paramref name="help"/>, in the
+    /// pad's words while the pad is the input), whole, on the band's next rows; with no message it takes the first row
+    /// (<see cref="MapHudLines"/>). The shell gives both only for a dialog's help (<c>Game1.MapOnlyBand</c>), so the
+    /// map's own help never grows the band over the map.
     /// </summary>
     /// <param name="gold">P3 QoL: the Guild treasury's gold line, right-aligned on the band's first row; the message then
     /// keeps to the columns left of it.</param>
-    public static void DrawMapHud(SpriteBatch batch, Texture2D pixel, string message, string? gold = null)
+    public static void DrawMapHud(SpriteBatch batch, Texture2D pixel, string message, string? gold = null, string? help = null)
+    {
+        var shownHelp = PadWording.Help(help ?? ""); // the pad's wording while the pad is the input
+        var helpTokens = ReferenceEquals(shownHelp, help ?? ""); // a pad word ("A") is no key to click
+        var lines = MapHudLines(message, gold, shownHelp);
+        var height = Math.Max(1, lines.Count) * PixelFont.LineHeight + 4;
+        Fill(batch, pixel, new Rectangle(0, 0, 320, Math.Max(14, height)), new Color(6, 8, 14));
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var y = 3 + i * PixelFont.LineHeight;
+            PixelFont.Draw(batch, pixel, 4, y, lines[i].Text, lines[i].Help ? DimText : BodyText);
+            if (lines[i].Help && helpTokens)
+                HitTokens(lines[i].Text, 4, y, commandList: true, maxChars: 52);
+        }
+        if (gold is not null)
+            PixelFont.Draw(batch, pixel, 316 - PixelFont.Measure(gold), 3, gold, TitleGold);
+    }
+
+    /// <summary>
+    /// The full-screen map's band rows (<see cref="DrawMapHud"/>): the message cut to the columns the gold line leaves (as
+    /// before), then the help word-wrapped to the band's 52 columns (the first row's room when it is the first row). An empty
+    /// message keeps its blank row only when there is no help. Nothing is dropped.
+    /// </summary>
+    public static IReadOnlyList<(string Text, bool Help)> MapHudLines(string? message, string? gold, string? help)
     {
         var cols = gold is null ? 52 : Math.Max(1, 52 - (PixelFont.Measure(gold) + PixelFont.Advance - 1) / PixelFont.Advance - 1);
         var lines = (message ?? "").Split('\n')
             .SelectMany(l => l.Length == 0 ? [""] : Enumerable.Range(0, (l.Length + cols - 1) / cols).Select(i => l.Substring(i * cols, Math.Min(cols, l.Length - i * cols))))
+            .Select(l => (Text: l, Help: false))
             .ToList();
-        var height = Math.Max(1, lines.Count) * PixelFont.LineHeight + 4;
-        Fill(batch, pixel, new Rectangle(0, 0, 320, Math.Max(14, height)), new Color(6, 8, 14));
-        for (var i = 0; i < lines.Count; i++)
-            PixelFont.Draw(batch, pixel, 4, 3 + i * PixelFont.LineHeight, lines[i], BodyText);
-        if (gold is not null)
-            PixelFont.Draw(batch, pixel, 316 - PixelFont.Measure(gold), 3, gold, TitleGold);
+        if (string.IsNullOrWhiteSpace(help))
+            return lines;
+        if (lines.All(l => l.Text.Length == 0))
+            lines.Clear();
+        lines.AddRange(Lines(help, lines.Count == 0 ? cols : 52).Select(l => (l, true)));
+        return lines;
     }
 
     /// <summary>Room the status line has at x 4 (the 52 columns of the band).</summary>
@@ -1081,7 +1108,7 @@ public static partial class UiOverlays
             })
             : UiText.F("ui.combat_time_lag_x", settings.TimeLag);
         PixelFont.Draw(batch, pixel, 10, titleY, heading, TitleGold);
-        PixelFont.Draw(batch, pixel, 190, titleY, UiText.S("ui.shift_skip"), DimText);
+        PixelFont.Draw(batch, pixel, 190, titleY, PadWording.Help(UiText.S("ui.shift_skip")), DimText); // s185: LT, pad in use
 
         // s110 (III Amiga): a spell flash on a member is drawn over its portrait after the whole strip, so no later card
         // covers the part that runs past the portrait (the Amiga blits it over the screen).
@@ -2174,8 +2201,11 @@ public static partial class UiOverlays
         DrawScrollBar(batch, pixel, box, new Rectangle(area.X, area.Y + 1, area.Width - 1, area.Height - 2));
     }
 
+    /// <param name="scroll">s185: a scrolling box among the lines (the import screen's rows): the wheel over its area
+    /// scrolls it, under the lines' own hover and clicks (added before them).</param>
     private static void DrawMenuScreen(
-        SpriteBatch batch, Texture2D pixel, IReadOnlyList<MenuLine> lines, string help, int top, int helpY)
+        SpriteBatch batch, Texture2D pixel, IReadOnlyList<MenuLine> lines, string help, int top, int helpY,
+        (ScrollBox Box, Rectangle Area)? scroll = null)
     {
         Fill(batch, pixel, new Rectangle(0, 0, 320, 200), new Color(10, 14, 24));
         DrawPanel(batch, pixel, new Rectangle(6, 4, 308, 192), PanelBg, PanelEdge);
@@ -2184,6 +2214,8 @@ public static partial class UiOverlays
             hits.Add(new Rectangle(0, 0, 320, 200), new BackdropTag());
             hits.Wheel = (Keys.Up, Keys.Down);
         }
+        if (scroll is var (scrollBox, scrollArea))
+            HitScrollArea(scrollBox, scrollArea);
         var y = top;
         for (var i = 0; i < lines.Count; i++)
         {
@@ -2222,7 +2254,7 @@ public static partial class UiOverlays
             hits.Wheel = (Keys.Up, Keys.Down);
         }
         PixelFont.Draw(batch, pixel, 14, 24, UiText.S("ui.inventory_v"), TitleGold);
-        PixelFont.Draw(batch, pixel, 14, 34, UiText.S("ui.arrows_select_enter_compare"), DimText);
+        PixelFont.Draw(batch, pixel, 14, 34, PadWording.Help(UiText.S("ui.arrows_select_enter_compare")), DimText); // s185
 
         // Every member's lines and items in one list that scrolls with the cursor (s99: it used to stop at the panel's
         // foot, leaving later members out). Rows keep their pitches: 10 for a member's two lines, 9 for an item.

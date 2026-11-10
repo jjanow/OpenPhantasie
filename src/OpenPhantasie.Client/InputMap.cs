@@ -66,9 +66,26 @@ public sealed class InputMap
         _prevKeys.GetPressedKeys().Where(keys.IsKeyUp);
 
     /// <summary>Gamepad buttons newly pressed this frame (stick directions and triggers count as buttons), for screens
-    /// that map every button themselves (<see cref="InventoryScreen.HandleButton"/>).</summary>
+    /// that map every button themselves (<see cref="InventoryScreen.HandleButton"/>). s185: the left stick's directions are
+    /// this frame's push from <see cref="TickStick"/> (one direction per push), not the stick's raw buttons.</summary>
     public IEnumerable<Buttons> NewButtons(GamePadState pad) =>
-        AllButtons.Where(b => pad.IsButtonDown(b) && !_prevPad.IsButtonDown(b));
+        AllButtons.Where(b => !StickQuantizer.IsStickButton(b) && pad.IsButtonDown(b) && !_prevPad.IsButtonDown(b))
+            .Concat(_stickPush);
+
+    private readonly StickQuantizer _menuStick = new();
+    private IReadOnlyList<Buttons> _stickPush = [];
+
+    /// <summary>
+    /// s185 (Pad leftovers): read the left stick once a frame, before any <see cref="NewButtons"/>. The stick's raw buttons
+    /// cross their thresholds on different frames (a diagonal push came as Up, then Right); here a push counts once,
+    /// as one of four directions (<see cref="StickQuantizer"/>), and <see cref="NewButtons"/> carries it as that stick button
+    /// this frame. I–III's menus, lists and prompts read it so; IV filters the stick's buttons out and runs its own
+    /// (eight-way) quantiser.
+    /// </summary>
+    public void TickStick(GamePadState pad, double elapsedMs) =>
+        _stickPush = _menuStick.Update(pad.ThumbSticks.Left, elapsedMs, eightWay: false) is { } push
+            ? StickQuantizer.ButtonsOf(push)
+            : [];
 
     private static readonly Buttons[] AllButtons = Enum.GetValues<Buttons>();
 
