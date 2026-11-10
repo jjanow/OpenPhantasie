@@ -2138,8 +2138,9 @@ public static partial class UiOverlays
         for (var i = 0; i < shown && ScrollFrameScroll.Offset + i < rows.Count; i++)
             PixelFont.Draw(batch, pixel, inside.X + 2, inside.Y + 2 + i * 10, rows[ScrollFrameScroll.Offset + i].Text, ink);
         DrawScrollBar(batch, pixel, ScrollFrameScroll, area);
-        if (footer is not null)
-            PixelFont.Draw(batch, pixel, FooterColumn * frame.Cell, FooterRow * frame.Cell, footer, ink);
+        if (footer is not null) // s192 (pad fix C18): a longer footer (the pad's pick) moves left to stay on the parchment
+            PixelFont.Draw(batch, pixel, Math.Max(inside.X + 2, Math.Min(FooterColumn * frame.Cell,
+                inside.Right - 2 - PixelFont.Measure(footer))), FooterRow * frame.Cell, footer, ink);
     }
 
     /// <summary>III's event-page footer at text cell (14, 23) (Amiga <c>0x1d9dc</c>), and the room kept free for it.</summary>

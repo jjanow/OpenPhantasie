@@ -251,7 +251,12 @@ public sealed class DialogPadTests
             e => e.Key == settings.GetKey(GameAction.GuildExamine));
         Assert.Equal([settings.GetKey(GameAction.GuildAdd), settings.GetKey(GameAction.GuildDrop)],
             PadCommandDialog.EntriesFor(GameMode.Title, settings.GetKey, false, false).Select(e => e.Key));
-        Assert.Empty(PadCommandDialog.EntriesFor(GameMode.Town, settings.GetKey, false, true));
+        // s192 (C15): the town row's letters, Distribute first; T only where the rules have Trade.
+        Assert.Equal([Keys.D, Keys.U, Keys.I, Keys.S],
+            PadCommandDialog.EntriesFor(GameMode.Town, settings.GetKey, false, true).Select(e => e.Key));
+        Assert.Equal([Keys.D, Keys.U, Keys.I, Keys.T, Keys.S],
+            PadCommandDialog.EntriesFor(GameMode.Town, settings.GetKey, false, true, trade: true).Select(e => e.Key));
+        Assert.Empty(PadCommandDialog.EntriesFor(GameMode.Combat, settings.GetKey, false, true));
     }
 
     [Fact]

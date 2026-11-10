@@ -369,6 +369,8 @@ public sealed class InventoryScreen
         Buttons.RightStick => Keys.O,
         Buttons.RightThumbstickUp => Keys.PageUp,
         Buttons.RightThumbstickDown => Keys.PageDown,
+        Buttons.RightThumbstickLeft => Keys.OemOpenBrackets, // s192 (pad fix C14): the item detail box, as [ / ]
+        Buttons.RightThumbstickRight => Keys.OemCloseBrackets,
         Buttons.LeftTrigger => Keys.L,
         _ => null,
     };

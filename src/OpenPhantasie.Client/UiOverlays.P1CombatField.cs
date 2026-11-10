@@ -366,7 +366,7 @@ public static partial class UiOverlays
     /// a key would; clicks elsewhere go nowhere (the Amiga drops them).
     /// </summary>
     public static void DrawP1MapMenu(SpriteBatch batch, Texture2D pixel, MapMessageLayout layout, MapMessageWindow window,
-        IReadOnlyList<string> rows, IReadOnlyList<string> cells)
+        IReadOnlyList<string> rows, IReadOnlyList<string> cells, int padCursor = -1)
     {
         ArgumentNullException.ThrowIfNull(window);
         ArgumentNullException.ThrowIfNull(cells);
@@ -387,6 +387,9 @@ public static partial class UiOverlays
                 menu.Label.Y, pens[menu.LabelPen]);
             Hits?.Add(new HitRegion(ToRect(button), new MapMenuButtonTag(i)) { Click = i < 9 ? [HitTest.Digit(i + 1)] : [] });
         }
+        // s192 (pad fix C18): the answer the pad's D-pad has moved to, outlined (the Amiga draws no highlight here)
+        if (padCursor >= 0 && padCursor < cells.Count && menu.Button(top, padCursor) is { } marked)
+            DrawPadMark(batch, pixel, ToRect(marked));
     }
 
     /// <summary>

@@ -58,6 +58,35 @@ public sealed partial class TitleSplash
         _ => null,
     };
 
+    /// <summary>s192 (pad fix C20): the icon the pad's D-pad has moved to (index into <see cref="MenuIcons"/>), or -1.</summary>
+    public int PadCursor { get; private set; } = -1;
+
+    /// <summary>Seconds a menu step ignores the pad's A after it shows, so A mashed through the pictures picks nothing.</summary>
+    public const double PadSettleSeconds = 0.5;
+
+    /// <summary>The menu step has been up <see cref="PadSettleSeconds"/> (the pad's A picks).</summary>
+    public bool MenuSettled => CurrentMenu is not null && _elapsed >= PadSettleSeconds;
+
+    /// <summary>The D-pad on the menu: <paramref name="delta"/> icons on (wrapping; the first press lights New Game).</summary>
+    public void PadStep(int delta)
+    {
+        if (CurrentMenu is null || MenuIcons.Count == 0 || delta == 0)
+            return;
+        PadCursor = PadCursor < 0 ? 0 : ((PadCursor + delta) % MenuIcons.Count + MenuIcons.Count) % MenuIcons.Count;
+    }
+
+    /// <summary>
+    /// The pad's A on the menu: the lit icon (New Game while none is lit), once <see cref="MenuSettled"/>. True on a pick.
+    /// </summary>
+    public bool PadChoose()
+    {
+        if (!MenuSettled || MenuIcons.Count == 0)
+            return false;
+        var icon = PadCursor >= 0 && PadCursor < MenuIcons.Count ? MenuIcons[PadCursor]
+            : MenuIcons.FirstOrDefault(i => SlotOf(i) is null);
+        return Choose(icon?.Key);
+    }
+
     /// <summary>
     /// A pick on the current step's menu: the icon with key <paramref name="key"/> among <see cref="MenuIcons"/> ends the
     /// splash (<see cref="MenuPick"/>); anything else does nothing (as <c>_mgetc</c> returns only buttons). True on a pick.
@@ -110,7 +139,8 @@ public sealed partial class TitleSplash
     /// its label (font 1; first character colour 2, the rest colour 0). <paramref name="text"/> turns a string id into the
     /// current language (the original's text when the table lacks it).
     /// </summary>
-    public void DrawMenu(SpriteBatch batch, Texture2D pixel, AssetCatalog? assets, Func<string, string, string> text)
+    public void DrawMenu(SpriteBatch batch, Texture2D pixel, AssetCatalog? assets, Func<string, string, string> text,
+        string? help = null)
     {
         if (Current is not { } step || CurrentMenu is not { } menu || Panels is not { } set)
             return;
@@ -160,6 +190,15 @@ public sealed partial class TitleSplash
                     PixelFont.Draw(batch, pixel, (int)pen, y, run, c);
                 pen += Measure(run, labelFont);
             }
+            if (i == PadCursor) // s192 (C20): the pad's pick, outlined as the fights' pad picks are
+                UiOverlays.DrawPadMark(batch, pixel, box);
+        }
+        // s192 (C20): the remaster's help line under the window while the pad is in use (the original's _disk shows none)
+        if (help is { Length: > 0 })
+        {
+            var hy = Math.Min(at.Y + bar + h + 6, Sequence.Height - PixelFont.Font.Height - 2);
+            var hx = Math.Max(2, Math.Min(at.X + (w - PixelFont.Measure(help)) / 2, Sequence.Width - PixelFont.Measure(help) - 2));
+            PixelFont.Draw(batch, pixel, hx, hy, help, Color.White);
         }
     }
 }

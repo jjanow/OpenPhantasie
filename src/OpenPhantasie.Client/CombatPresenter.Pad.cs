@@ -13,10 +13,12 @@ public sealed record CombatPadPick(string Label, IReadOnlyList<Keys> Keys, int S
 /// <see cref="PickOnLeftRight"/>: only Left / Right step the pick (Up / Down stay the step's own arrows).
 /// <see cref="AKey"/>: what A sends before anything is picked. <see cref="LeftRightKey"/>: the key Left / Right send on a
 /// step with no pick that has no use for them (III Amiga's spell window: M, the MORE button). <see cref="RightTriggerKey"/>:
-/// the key RT sends (s183: III Amiga's spell / heal windows: C, the CANCEL button), or none.
+/// the key RT sends (s183: III Amiga's spell / heal windows: C, the CANCEL button), or none. <see cref="AFirstPick"/>: A
+/// with nothing picked sends the first pick (s192, pad fix C19: the DOS order steps that read only a digit, where Return
+/// does nothing).
 /// </summary>
 public sealed record CombatPadStep(string Id, IReadOnlyList<CombatPadPick> Picks, bool PickOnLeftRight = false,
-    Keys AKey = Keys.Enter, Keys LeftRightKey = Keys.None, Keys RightTriggerKey = Keys.None);
+    Keys AKey = Keys.Enter, Keys LeftRightKey = Keys.None, Keys RightTriggerKey = Keys.None, bool AFirstPick = false);
 
 public sealed partial class CombatPresenter
 {
@@ -46,7 +48,11 @@ public sealed partial class CombatPresenter
         if (_p1Orders)
         {
             if (_orderMember < 0)
-                return new CombatPadStep(id, [.. P1OrderRows(session).Select((m, k) => new CombatPadPick(members[m].Name, [Keys.D1 + k]))]);
+                return new CombatPadStep(id, // s192 (pad fix C17): FIGHT (gadget 1) last, as III Amiga's Fight!
+                [
+                    .. P1OrderRows(session).Select((m, k) => new CombatPadPick(members[m].Name, [Keys.D1 + k])),
+                    new CombatPadPick(UiText.S("p1field.item.fight"), [Keys.F]),
+                ]);
             if (_step == OrderStep.Menu)
                 return new CombatPadStep(id, MenuPicks(session));
             if (_step == OrderStep.SpellNumber && P1SpellLists)
@@ -64,19 +70,21 @@ public sealed partial class CombatPresenter
         {
             OrderStep.Menu => new CombatPadStep(id, MenuPicks(session)),
             OrderStep.Rank when AsksDosRankMenu(session) => new CombatPadStep(id, []), // its own lit word: arrows, Return
+            // s192 (pad fix C19): these steps read a digit only, so A with nothing picked takes the first pick
             OrderStep.Rank => new CombatPadStep(id,
-                [.. Enumerable.Range(1, LivingRanks(session)).Select(r => new CombatPadPick(UiText.F("pad.combat.rank_x", r), [Keys.D0 + r]))]),
+                [.. Enumerable.Range(1, LivingRanks(session)).Select(r => new CombatPadPick(UiText.F("pad.combat.rank_x", r), [Keys.D0 + r]))],
+                AFirstPick: true),
             OrderStep.PartyRank => new CombatPadStep(id,
             [
                 new(UiText.S("pad.combat.front"), [Keys.D1]), new(UiText.S("pad.combat.middle"), [Keys.D2]),
                 new(UiText.S("pad.combat.back"), [Keys.D3]),
-            ]),
+            ], AFirstPick: true),
             OrderStep.SpellNumber when _spellDigits.Length == 0 => new CombatPadStep(id,
                 [.. SpellChoices(session).Select(spell =>
                     new CombatPadPick("", [.. (spell + 1).ToString().Select(c => Keys.D0 + (c - '0')), Keys.Enter], spell))],
-                PickOnLeftRight: true), // Up / Down scroll the list (no cursor)
+                PickOnLeftRight: true, AFirstPick: true), // Up / Down scroll the list (no cursor)
             OrderStep.HealTarget => new CombatPadStep(id,
-                [.. members.Take(9).Select((m, k) => new CombatPadPick(m.Name, [Keys.D1 + k]))]),
+                [.. members.Take(9).Select((m, k) => new CombatPadPick(m.Name, [Keys.D1 + k]))], AFirstPick: true),
             _ => new CombatPadStep(id, []), // digits typed by the keyboard: A is Return
         };
     }

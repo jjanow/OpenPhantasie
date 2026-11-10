@@ -43,6 +43,16 @@ public sealed class TreasuryDialog : IModalDialog, IPagedDialog, IAmigaWindowDia
     public IReadOnlyList<string> Lines(GameSession session, GameDataRepository data) =>
         IsOpen ? [GameText.S("core.treasury.title"), .. Body(session).Skip(_offset).Take(PageRows)] : [];
 
+    /// <summary>s192 (pad fix C23): the pad's LT / RT as Home / End, the ledger's top and foot (the other buttons come
+    /// from <see cref="DialogPad"/>: D-pad Up / Down, LB / RB PgUp / PgDn, A closes).</summary>
+    public static IEnumerable<Keys> PadEndKeys(IEnumerable<Buttons> buttons) =>
+        buttons.Select(b => b switch
+        {
+            Buttons.LeftTrigger => Keys.Home,
+            Buttons.RightTrigger => Keys.End,
+            _ => Keys.None,
+        }).Where(k => k != Keys.None);
+
     public string? HandleKeys(IEnumerable<Keys> newKeys, GameSession session)
     {
         foreach (var key in newKeys)

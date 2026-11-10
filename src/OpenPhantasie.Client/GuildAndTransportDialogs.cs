@@ -130,7 +130,7 @@ public sealed class TransportDialog : IModalDialog, IPagedDialog, IPadArrows
 /// YES/NO, with that menu's own cursor memory in <see cref="PromptMenu"/>); only YES calls
 /// <see cref="GameSession.TryAddToParty"/>.
 /// </summary>
-public sealed class GuildAddDialog : IModalDialog, IPagedDialog, IPadArrows
+public sealed class GuildAddDialog : IModalDialog, IPagedDialog, IPadArrows, IPadYesNo
 {
     public ListPage? Page { get; private set; }
 
@@ -154,7 +154,15 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog, IPadArrows
     public bool Confirming => _confirming is not null;
 
     /// <summary>The move question's YES / NO box moves with Left / Right (the pad keeps them).</summary>
-    public bool TakesLeftRight => Confirming;
+    public bool TakesLeftRight => Confirming && !P1Requester;
+
+    /// <summary>
+    /// s192 (pad fix C18): I Amiga's move question is requester 0 (<c>Game1.P1TownRequesterFor</c>), which draws no
+    /// highlight, so A could take a remembered NO unseen. Set by the Client; the pad then answers A = Y, X = N.
+    /// </summary>
+    public bool P1Requester { get; set; }
+
+    public bool AsksYesNo => Confirming && P1Requester;
 
     /// <summary>s140: times the move question (COM menu 9; II ST alert 6, which beeps first) has been asked.</summary>
     public int MoveQuestions { get; private set; }
@@ -173,7 +181,8 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog, IPadArrows
     public bool AmigaWindow { get; set; }
 
     public string Help => _confirming is not null
-        ? (AmigaWindow ? GameText.S("game.keep_window_ok_cancel") : UiText.S("guild.arrows_enter_or_y_yes_n"))
+        ? (AmigaWindow ? GameText.S("game.keep_window_ok_cancel")
+            : P1Requester ? UiText.S("guild.add_move_y_n") : UiText.S("guild.arrows_enter_or_y_yes_n"))
         : UiText.S("guild.arrows_choose_enter_add_esc_done");
 
     /// <summary>The YES/NO gate (COM menu 9) as a prompt, so it keeps that menu's own cursor memory.</summary>

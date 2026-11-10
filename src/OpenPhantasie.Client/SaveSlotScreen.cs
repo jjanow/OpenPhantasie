@@ -170,11 +170,14 @@ public sealed class SaveSlotScreen
         return false;
     }
 
-    /// <summary>A pad on the picker: the D-pad moves, A chooses (and answers Y to the question), B / Back go back.</summary>
+    /// <summary>A pad on the picker: the D-pad moves, LB / RB the first / last row (s192, pad fix C23: Home / End), A
+    /// chooses (and answers Y to the question), B / Back go back.</summary>
     public static IEnumerable<Keys> PadKeys(IEnumerable<Buttons> buttons) => buttons.Select(b => b switch
     {
         Buttons.DPadUp or Buttons.LeftThumbstickUp => Keys.Up,
         Buttons.DPadDown or Buttons.LeftThumbstickDown => Keys.Down,
+        Buttons.LeftShoulder => Keys.Home,
+        Buttons.RightShoulder => Keys.End,
         Buttons.A => Keys.Y, // Y is the question's yes; elsewhere it picks nothing, so A also sends Return below
         Buttons.B or Buttons.Back => Keys.Escape,
         _ => Keys.None,

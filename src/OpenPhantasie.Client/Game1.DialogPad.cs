@@ -21,19 +21,29 @@ public partial class Game1
     /// </summary>
     private bool OpenPadCommands(GameSession s, GamePadState pad)
     {
-        if (!_input.NewButtons(pad).Contains(Buttons.A))
+        var buttons = _input.NewButtons(pad);
+        // s192 (pad fix C15): Back on the DOS town row (I–III; III Amiga's bar has its own Options menu) lists the
+        // manual's town letters the row's lists lack, Distribute first, so the pad reaches it without an Inn rest.
+        var townAsked = buttons.Contains(Buttons.Back) && TownPadCommandsAsked(s);
+        if (!townAsked && !buttons.Contains(Buttons.A))
             return false;
-        var asked = s.Mode is GameMode.Guild or GameMode.Title
+        var asked = townAsked || s.Mode is GameMode.Guild or GameMode.Title
             || s.Mode is GameMode.Overworld or GameMode.Dungeon && SidebarScroll.RightTriggerHeld(pad);
         if (!asked)
             return false;
         _padCommands.Open(PadCommandDialog.EntriesFor(s.Mode, _settings.GetKey,
-            GuildPickDialog.ExaminesRoster(s.Game), TimeLagDialog.IsCommand(s.Mode, _settings.Game(s.Game))));
+            GuildPickDialog.ExaminesRoster(s.Game), TimeLagDialog.IsCommand(s.Mode, _settings.Game(s.Game)), s.CanTrade,
+            info: s.Mode == GameMode.Guild && TownInfoTakesInput(s)));
         if (!_padCommands.IsOpen)
             return false;
         SetFeedback(_message, _padCommands.Help);
         return true;
     }
+
+    /// <summary>The town's pad command list can open: I–III's town row on its bar, nothing else up (C15).</summary>
+    private bool TownPadCommandsAsked(GameSession s) =>
+        s.Mode == GameMode.Town && s.Game != GameId.P4 && _townMenu.Place == TownPlace.Menu && TownBarPlaces(s) is null
+        && _doorFlash is null;
 
     /// <summary>Sends the pad list's pick as its key (it then runs as the keyboard's command, this frame).</summary>
     private void InjectPadCommand()
@@ -41,6 +51,12 @@ public partial class Game1
         if (_padCommandKey is not { } key)
             return;
         _padCommandKey = null;
+        // s192 (C16): the bars read their keys before this, so the Guild's Info opens the credits itself.
+        if (_session is { } s && AmigaOutsideBar.ForKey(key) == OutsideBarAct.Info && TownInfoTakesInput(s))
+        {
+            _outsideBar.ShowCredits();
+            return;
+        }
         _input.Inject([key]);
     }
 
@@ -48,7 +64,8 @@ public partial class Game1
     private IEnumerable<Keys> ModalPadKeys(IModalDialog modal, GamePadState pad) =>
         _dialogPad.KeysFor(modal, _input.NewButtons(pad), ModalWheel(modal, _session!),
             modal is IPadYesNo { AsksYesNo: true }, ModalTakesLeftRight(modal), modal.Help, ModalWheel(modal, _session!) is not null,
-            (modal as IPadWheel)?.PadStep);
+            (modal as IPadWheel)?.PadStep)
+        .Concat(modal is TreasuryDialog ? TreasuryDialog.PadEndKeys(_input.NewButtons(pad)) : []);
 
     /// <summary>
     /// Pad fix B7 (s188): the open step's wheel characters (<see cref="IPadWheel"/>, else what it types,
@@ -135,6 +152,10 @@ public partial class Game1
         return null;
     }
 
+    /// <summary>s192 (pad fix C18): the answer A takes on <paramref name="prompt"/> once the pad has moved there, else -1.</summary>
+    private int PadPromptCursor(SessionPrompt prompt) =>
+        _padPromptMoved == EventPadId(prompt) ? _promptMenu.CursorFor(prompt) : -1;
+
     /// <summary>A prompt's pad keys: arrows and Return only (<see cref="PromptPadKeys(SessionPrompt, GamePadState)"/>).</summary>
     public static IEnumerable<Keys> PromptPadKeys(IEnumerable<Buttons> buttons) =>
         InputMap.MenuPadKeys(buttons).Where(k => k is Keys.Up or Keys.Down or Keys.Left or Keys.Right or Keys.Enter);
@@ -182,6 +203,15 @@ public partial class Game1
     private string? EventPadHelp(SessionPrompt prompt) =>
         _padEventPick > 0 && EventPadId(prompt) == _padEventPrompt && _padEventPick <= prompt.Options.Count
             ? UiText.F("pad.event_pick_x_x", _padEventPick, prompt.Options[_padEventPick - 1])
+            : null;
+
+    /// <summary>
+    /// s192 (pad fix C18): the event page's footer while the pad has picked on it ("&gt; 2) GO NORTH"), so the pick shows
+    /// on the parchment (it covers the help line); null otherwise.
+    /// </summary>
+    private string? EventPadFooter(SessionPrompt prompt) =>
+        _padEventPick > 0 && EventPadId(prompt) == _padEventPrompt && _padEventPick <= prompt.Options.Count
+            ? UiText.F("pad.event_page_pick_x_x", _padEventPick, prompt.Options[_padEventPick - 1])
             : null;
 
     private static string EventPadId(SessionPrompt prompt) =>

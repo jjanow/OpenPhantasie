@@ -226,7 +226,9 @@ public sealed class InputMap
             GameAction.Load => pad.Buttons.RightShoulder == ButtonState.Pressed,
             GameAction.TurnLeft => pad.Buttons.LeftStick == ButtonState.Pressed,
             GameAction.TurnRight => pad.Buttons.RightStick == ButtonState.Pressed,
-            GameAction.ToggleAutoMap => pad.Buttons.Back == ButtonState.Pressed,
+            // s192 (pad fix C22): Start held + Back is the F11 scale chord; Back alone the auto-map
+            GameAction.ToggleAutoMap => pad.Buttons.Back == ButtonState.Pressed && pad.Buttons.Start != ButtonState.Pressed,
+            GameAction.CycleScale => pad.Buttons.Start == ButtonState.Pressed && pad.Buttons.Back == ButtonState.Pressed,
             GameAction.ToggleMapLayout => RightStickSideways(pad),
             GameAction.FastForwardHold => pad.Triggers.Left > 0.5f,
             // s187 (pad fix A2): no LB + RB chord for OpenGuildDepart; it also fired Save and Load the same frame. The

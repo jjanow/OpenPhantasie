@@ -68,6 +68,8 @@ public sealed class CombatPad
             {
                 if (Pick > 0 && Pick <= count)
                     keys.AddRange(step.Picks[Pick - 1].Keys);
+                else if (step.AFirstPick && count > 0)
+                    keys.AddRange(step.Picks[0].Keys); // s192 (C19): Return does nothing on a digit-only step
                 else
                     keys.Add(step.AKey);
                 Pick = 0; // the step moves on (or takes the next pick fresh)

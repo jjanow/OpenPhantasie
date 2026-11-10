@@ -67,6 +67,9 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog, IPadArrows, IPad
     /// <summary>s154: the member whose sheet is up (the stat sheet with its page menu), or null on any other step.</summary>
     public Character? SheetMember => _step == Step.Sheet ? _who : null;
 
+    /// <summary>s192 (pad fix C18): the page menu's highlight on the sheet (0 spells … 3 potions; requester 14's button index).</summary>
+    public int SheetCursor => _menus.CursorFor(PageMenu);
+
     /// <summary>s156: the open page (0 spells, 1 equipment, 2 skills, 3 potions) and its member, or null on any other step.</summary>
     public (int Page, Character Member)? PageShown => _step == Step.Page && _who is { } who ? (_page, who) : null;
 

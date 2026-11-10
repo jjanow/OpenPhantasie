@@ -6,7 +6,8 @@ are merged below by root cause into ~45 fixes. The audit
 is the complete list as of s186: a fix found later in play means the audit missed it; add it here, with the cause.
 
 Pad today (for reference): D-pad / left stick = arrows, A = Return, B = Esc, LB / RB = Save / Load (PgUp / PgDn in
-menus), X inventory, Y bestiary, Back auto-map, L3 / R3 turn, right stick sideways = F2, up / down = sidebar / prompt
+menus), X inventory, Y bestiary, Back auto-map (on I–III's town row: the town command list, s192), Start + Back scale,
+L3 / R3 turn, right stick sideways = F2, up / down = sidebar / prompt
 scroll (in a fight the log, RT + stick the rank box), LT fast-forward, RT + A = field command list, A in the Guild = Guild command list. IV maps its own
 (`P4DungeonScreen.Pad.cs`: Y / X step clickable icons, Start = Esc, B = N / Space / Backspace by context).
 
@@ -57,29 +58,35 @@ the left stick steps the map, the old inventory overlay, the bestiary and the Ar
 with DIAGONAL MOVES on (an eight-way quantiser beside the menus' four-way one). Routing in `Game1` (share window, fight)
 not unit-tested; none seen live.
 
-14. **Modern inventory's detail box scroll** (`[` / `]`, `InventoryScreen.cs:400`): no button. Right stick left / right;
-    name both right-stick scrolls in `inventory.help_pad`.
-15. **Distribute without resting** (`TownMenu.cs:233`): the DOS-row town bar's D has no pad row; the pad reaches
-    Distribute only via an Inn rest (ages the party). Add it to a town pad command list or a pad-only Option row.
-16. **III Amiga Guild: Info (`?` / `/`)** has no pad route in the Guild (the street's bar has File › Info). Add Info to
-    the Guild's pad command list when `TownInfoTakesInput`.
-17. **I Amiga orders list: no FIGHT pick** on the D-pad (`CombatPresenter.Pad.cs:173-226`); after touching the D-pad, A
-    must pick a member. Append a FIGHT entry as III's `AmigaPadStep` does.
-18. **Blind pad picks** (cursor moves but nothing is drawn): I Amiga requester 14's page bar (`Game1.cs:1958`), I Amiga
-    Guild Add's "not in the town" requester 0 (A can take a remembered NO; make it `IPadYesNo`), I Amiga dungeon MESS
-    menu (`PadRequesterMark` not applied to `P1MapMenuFor`, `Game1.cs:1851-1867`), III's "Press a number" event page
-    (the pick shows only on the help line, which `DrawScrollFrame` covers; draw it on the parchment).
-19. **DOS-style orders: A with no pick does nothing** on Rank / PartyRank / HealTarget / SpellNumber
-    (`CombatPad.cs:63-69`); default the pick to 1 or say "D-pad pick, A choose".
-20. **IV title `_disk(0)`**: RB loads only the first saved slot, slots 2-3 unreachable; no help line at all; mashing A
-    through the pictures picks New Game at once (`Game1.cs:1143-1159`). Y / X or D-pad over the icons + A; a help line;
-    ignore A for ~0.5 s on arrival.
-21. **Title splash: B advances one picture**, only Back skips all, unsaid (`TitleSplash.cs:60-76`). Make B skip all too.
-22. **F11 scale** has no button (the Options row WINDOW SCALE is the pad's route). Low; if wanted, a chord such as
-    Start + Back. Then fix `game.f11_scale_esc_menu.pad`.
-23. Small: save-slot picker LB / RB = first / last row (`SaveSlotScreen.cs:150-181`); Treasury Home / End
-    (`TreasuryDialog.cs:59`); II ST: pad steps and A make no ST click and don't cut delayed cues
-    (`Game1.cs:1129, 3205-3211`).
+14-23 done s192 (none seen live; `PadFixListC2Tests`):
+- 14: the right stick left / right scrolls the modern inventory's detail box (`[` / `]`); `inventory.help_pad(_town)`
+  say "RS scroll".
+- 15: Back on I–III's DOS town row (on the bar, no door flash; not III Amiga's street bar, whose Options menu has it)
+  opens the pad command list with the manual's town letters: Distribute, Use item, Inspect, Trade (where the rules have
+  it), Save game (`PadCommandDialog.EntriesFor(Town)`, `Game1.TownPadCommandsAsked`). Back there no longer toggles the
+  auto-map (it still does everywhere else). Help `game.arrows_enter_a_b_m_n.pad` says "Back more".
+- 16: III Amiga's Guild command list (A) has Info when the town takes ? (`TownInfoTakesInput`); the pick opens the
+  credits itself (`InjectPadCommand`), as the bars read their keys before an injected key.
+- 17: I Amiga's orders list ends on FIGHT (sends F, gadget 1), as III Amiga's Fight!.
+- 18: the MESS menu outlines the pad's answer (`DrawP1MapMenu` `padCursor`, `Game1.PadPromptCursor`); I Amiga's sheet
+  (requester 14) outlines the page button A takes while the pad is the input (`InspectDialog.SheetCursor`); Guild Add's
+  move question as requester 0 is a Y / N step for the pad (`GuildAddDialog.P1Requester` / `AsksYesNo`: A yes, X no,
+  B cancel, help `guild.add_move_y_n`); III's "Press a number" page shows the pad's pick in its footer
+  (`pad.event_page_pick_x_x`, moved left to stay on the parchment).
+- 19: on the DOS order steps that read only a digit (Rank, PartyRank, HealTarget, SpellNumber) A with no pick takes the
+  first pick (`CombatPadStep.AFirstPick`); the order menu keeps "A unpicked keeps the order". The help shows no pick
+  until the D-pad moves (A's default is unsaid).
+- 20: IV title `_disk(0)`: the D-pad / left stick light an icon (outlined, wrapping), A takes it (New Game while none is
+  lit), not in the menu's first 0.5 s (`TitleSplash.PadStep` / `PadChoose` / `MenuSettled`); RB still loads the first
+  save; a remaster help line under the window while the pad is the input (`title.disk_help.pad`; keys see the original's
+  bare window).
+- 21: B skips the whole title splash, as Back and Esc.
+- 22: Start held + Back = F11's scale (`InputMap.PadHeld`; Back alone is the auto-map only without Start);
+  `game.f11_scale_esc_menu.pad` names it. Order matters: Back first toggles the auto-map, then Start scales; where Start
+  has its own action (I Amiga field menus, III bar Options) that press goes there first `[~]`.
+- 23: the save-slot picker's LB / RB = first / last row; the Treasury's LT / RT = top / foot of the ledger
+  (`TreasuryDialog.PadEndKeys`, help in D-pad words); II ST: a pad step or A in the field clicks as its key does
+  (`Game1.FieldPadClicks`; not RT + A), and any pad button cuts the delayed cues.
 
 ## D. No pad route (IV)
 
@@ -131,5 +138,5 @@ Q auto move is the last step of Y / X's order cycle (`PadAutoMove`, bracketed in
 
 ## Suggested order
 
-A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 (done s191) → the rest (C 14-23, D 27, E, F) → one
-live virtual-pad pass on Xvfb.
+A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 (done s191) → C 14-23 (done s192)
+→ the rest (D 27, E, F) → one live virtual-pad pass on Xvfb.

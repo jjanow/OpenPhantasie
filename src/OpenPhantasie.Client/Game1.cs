@@ -1126,8 +1126,8 @@ public partial class Game1 : Game
         UpdateP1ListTones(); // s165: the town's and the Guild's list tones (choosers' cancel, lists, Show party's close)
         UpdateP1AfterFight(); // s165: the fight's field under its finds' KEEP IT? until they are answered
         UpdateCombatEffects();
-        if (_delayedCues.Count > 0 && (_input.NewKeys(keys).Any() || _mouse.AnyPressed))
-            CutDelayedCues(); // s141: a key or a click ends a timed box's hold
+        if (_delayedCues.Count > 0 && (_input.NewKeys(keys).Any() || _input.NewButtons(pad).Any() || _mouse.AnyPressed))
+            CutDelayedCues(); // s141: a key or a click ends a timed box's hold; s192 (pad fix C23): a pad button too
         UpdateGameSounds();
         UpdateP4Sounds();
         UpdateCarriedTune();
@@ -1145,9 +1145,17 @@ public partial class Game1 : Game
                 foreach (var k in pressed)
                     if (_splash.Choose(TitleSplash.MenuKey(k)))
                         break;
-                // A pad: Confirm (A) = New Game, Load (right shoulder) = the save, so a pad never sticks here.
+                // A pad: the D-pad / left stick step a lit icon, A picks it (New Game while none is lit; not in the menu's
+                // first 0.5 s, so A mashed through the pictures picks nothing: s192, pad fix C20); RB the first save.
+                foreach (var b in buttons)
+                    _splash.PadStep(InputMap.MenuPadKey(b) switch
+                    {
+                        Keys.Left or Keys.Up => -1,
+                        Keys.Right or Keys.Down => 1,
+                        _ => 0,
+                    });
                 if (!_splash.Done && buttons.Contains(Buttons.A))
-                    _splash.Choose(_splash.MenuIcons.FirstOrDefault(i => TitleSplash.SlotOf(i) is null)?.Key);
+                    _splash.PadChoose();
                 if (!_splash.Done && buttons.Contains(Buttons.RightShoulder))
                     _splash.Choose(_splash.MenuIcons.FirstOrDefault(i => TitleSplash.SlotOf(i) is not null)?.Key);
                 if (!_splash.Done && _mouse.AnyPressed && SplashCanvasPoint() is { } p)
@@ -1155,7 +1163,7 @@ public partial class Game1 : Game
             }
             if (_splash.Update(gameTime.ElapsedGameTime.TotalSeconds,
                     pressed.Count > 0 || buttons.Count > 0 || _mouse.AnyPressed,
-                    pressed.Contains(Keys.Escape) || buttons.Contains(Buttons.Back)))
+                    pressed.Contains(Keys.Escape) || buttons.Contains(Buttons.Back) || buttons.Contains(Buttons.B))) // s192 (C21): B too
                 EndSplash();
             else if (_splash.Sequence.Tune?.UntilStep is int last && _splash.Step >= last)
                 StopSplashTune(); // I: the tune belongs to cover1, a key ends both
@@ -1284,7 +1292,7 @@ public partial class Game1 : Game
             return;
         }
 
-        if (_session is { } clickSession && FieldCommandKeys(clickSession, keys))
+        if (_session is { } clickSession && FieldCommandKeys(clickSession, keys, pad))
             PlayClick(); // s141: II ST's field loop 0x16fea clicks (0x1719a) on every key it takes
 
         // III Amiga's message box (window 7, s135) owns the frame's keys while up: any key or OK closes it, unseen below.
@@ -1365,6 +1373,7 @@ public partial class Game1 : Game
 
         _withdrawDialog.AmigaKeys = AmigaBankWindows; // s157: III's withdraw in the Bank's window style takes O / C
         _guildAddDialog.AmigaWindow = ConfirmInWindow; // s162: III's Add move question in window 1 takes O / C
+        _guildAddDialog.P1Requester = _session?.Mode == GameMode.Guild && P1Requesters is not null; // s192 (C18): A yes, X no
         _inspectDialog.AmigaSpellRows = P1SheetSpellList?.Rows; // s158: I Amiga's SPELLS view is requester 12
         InjectPadCommand(); // s182: a pick in the pad's command list sends its key now, as typed
         var modalWasOpen = OpenModal is not null; // s182: a dialog opened this frame takes no pad button yet
@@ -1551,7 +1560,8 @@ public partial class Game1 : Game
             _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             _splash.Draw(_spriteBatch, _pixel, name => _splashAssets?.Get(name), id => _splashText?.Get(id) ?? id);
             _splash.DrawMenu(_spriteBatch, _pixel, _splashAssets,
-                (id, original) => _splashText is { } t && t.Contains(id) ? t.Get(id) : original);
+                (id, original) => _splashText is { } t && t.Contains(id) ? t.Get(id) : original,
+                PadWording.Active ? PadWording.S("title.disk_help") : null); // s192 (C20): pad only, as the original's has none
             _spriteBatch.End();
             _splashScreen.EndAndPresent(_spriteBatch, _pixel);
             EndHits();
@@ -1851,7 +1861,7 @@ public partial class Game1 : Game
                 _defeatPager.Reset();
                 _pageEdges ??= pageFrame.Pick(n => Random.Shared.Next(n));
                 UiOverlays.DrawScrollFrame(_spriteBatch, _pixel, _assets, pageFrame, _pageEdges, eventPage.Lines,
-                    eventPage.Footer, eventPage.AnyKey);
+                    EventPadFooter(prompt) ?? eventPage.Footer, eventPage.AnyKey); // s192 (C18): the pad's pick on the page
                 scene = true;
             }
             // s153: I Amiga's event menu, the MESS window with requester 25's buttons (h41 +0x1440).
@@ -1861,7 +1871,7 @@ public partial class Game1 : Game
                 _defeatPager.Reset();
                 UiOverlays.DrawP1MapMenu(_spriteBatch, _pixel, _assets!.Pack!.MapMessage!, menuWindow, menuEvent.Message.Lines,
                     menuEvent.Message.OptionCells is { } cells && cells.Count == menuEvent.Message.Options.Count
-                        ? cells : menuEvent.Message.Options);
+                        ? cells : menuEvent.Message.Options, PadPromptCursor(prompt));
                 scene = true;
             }
             // s154: I Amiga's requesters 0 / 22 for the map's questions (h86 +0x32a, the Black Knights' h65 +0x168).
@@ -1965,7 +1975,13 @@ public partial class Game1 : Game
             }
             // s154: I Amiga's character sheet (requester 14) for Inspect's sheet in the town, under AMIGA SCREENS.
             else if (ReferenceEquals(modal, _inspectDialog) && P1SheetFor(_session) is { } sheet)
+            {
                 UiOverlays.DrawP1Requester(_spriteBatch, _pixel, _assets!.Pack!.MapRequesters!, sheet);
+                // s192 (pad fix C18): the sheet's buttons draw no highlight; with the pad in use, the one A takes is outlined
+                if (PadWording.Active && _inspectDialog.SheetMember is not null
+                    && sheet.Buttons.FirstOrDefault(b => b.Index == _inspectDialog.SheetCursor) is { } lit)
+                    UiOverlays.DrawPadMark(_spriteBatch, _pixel, new Rectangle(lit.Rect.X, lit.Rect.Y, lit.Rect.W, lit.Rect.H));
+            }
             // s162: III's Add move question (S445) in the Amiga's window 1 (0xd24c → 0xaae2), the list stepped aside.
             else if (ReferenceEquals(modal, _guildAddDialog) && _guildAddDialog is { Confirming: true, AmigaWindow: true }
                      && ConfirmWindowLayout() is { } addWindow
@@ -3214,14 +3230,23 @@ public partial class Game1 : Game
     /// its Speed menu does not click. Overworld / dungeon only, with nothing else owning the keys. Esc, Tab, the modifiers,
     /// the function keys and the sidebar's scroll keys (s172, <see cref="SidebarScroll"/>) are the remaster's own.
     /// </summary>
-    private bool FieldCommandKeys(GameSession s, KeyboardState keys) =>
+    private bool FieldCommandKeys(GameSession s, KeyboardState keys, GamePadState pad) =>
         s.Mode is GameMode.Overworld or GameMode.Dungeon
         && _assets?.Pack?.FieldSounds?.Click is not null
         && OpenModal is null && CurrentPrompt is null && !_combatUi.IsPresenting && !_showInventory && !_showBestiary
         && !_dosDialog.IsOpen
-        && _input.NewKeys(keys).Any(k => k is not (Keys.Escape or Keys.Tab or (>= Keys.F1 and <= Keys.F24)
-            or Keys.LeftShift or Keys.RightShift or Keys.LeftControl or Keys.RightControl or Keys.LeftAlt or Keys.RightAlt)
-            && !SidebarScroll.IsScrollKey(k));
+        && (_input.NewKeys(keys).Any(k => k is not (Keys.Escape or Keys.Tab or (>= Keys.F1 and <= Keys.F24)
+                or Keys.LeftShift or Keys.RightShift or Keys.LeftControl or Keys.RightControl or Keys.LeftAlt or Keys.RightAlt)
+                && !SidebarScroll.IsScrollKey(k))
+            || FieldPadClicks(_input.NewButtons(pad), SidebarScroll.RightTriggerHeld(pad)));
+
+    /// <summary>
+    /// s192 (pad fix C23): the pad's buttons that stand for keys II ST's field loop takes, so they click as the keys do: a
+    /// step (D-pad / left stick) and A (Fight; with RT held A opens the remaster's command list instead, which does not).
+    /// </summary>
+    public static bool FieldPadClicks(IEnumerable<Buttons> buttons, bool rightTriggerHeld) =>
+        buttons.Any(b => InputMap.MenuPadKey(b) is Keys.Up or Keys.Down or Keys.Left or Keys.Right
+            || b == Buttons.A && !rightTriggerHeld);
 
     /// <summary>
     /// s141: whether closing <paramref name="modal"/> in <paramref name="mode"/> stands for II ST's click as a town list or
