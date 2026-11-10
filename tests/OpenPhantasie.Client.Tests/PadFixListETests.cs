@@ -36,7 +36,7 @@ public class PadFixListETests
 
     // --- E29 ------------------------------------------------------------------------------------------------------------
 
-    [Fact]
+    [OriginalDataFact]
     public void E29_IAmigaMapHint_NamesTheButtons_OnOneRowOfTheLine()
     {
         var hint = UiText.For(GameId.P1).Get("game.p1map_pad_hint");
@@ -58,7 +58,7 @@ public class PadFixListETests
         Assert.Contains("Back auto-map", table.Get("game.outside_bar_dungeon_help.pad"));
     }
 
-    [Fact]
+    [OriginalDataFact]
     public void E29_AmigaCombatHelps_HaveTwins_ThatFitTheHintRow()
     {
         var table = UiText.For(GameId.P1);
@@ -75,7 +75,7 @@ public class PadFixListETests
         Assert.False(UiOverlays.FieldPadHintFits(AmigaFieldWindow.PartyHealth, "Press A")); // window 22 reaches y 199
     }
 
-    [Fact]
+    [OriginalDataFact]
     public void E29_IAmigaFieldHint_TakesTheTopRow_NeverUnderAMenuOrOverTheTitles()
     {
         var layout = GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")!.CombatField!;
