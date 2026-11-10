@@ -53,8 +53,18 @@ public sealed class NameEntry
 /// are new; then the class, the inherited roll and the usual Y/N, name and sheet. N goes back to the first question.
 /// </para>
 /// </summary>
-public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog, IPadYesNo, IPadArrows
+public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog, IPadYesNo, IPadArrows, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on the kind, race and class numbers and the name (the ancestor lists have their cursor) (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => _step switch
+    {
+        Step.Kind => DialogPad.Picks(2),
+        Step.Race => DialogPad.Picks(_descendant ? BaseRaceRows : RaceMenu.Length),
+        Step.Class => DialogPad.Picks(ClassMenu.Length),
+        Step.Name => NameEntry.Alphabet,
+        _ => null,
+    };
+
     private enum Step { Closed, Kind, Ancestor1, Ancestor2, Race, Class, Accept, Name, Sheet }
 
     /// <summary>Hall-list rows shown at once; the rest scroll (with the title and the three lines under it, the box needs no scroll of its own).</summary>

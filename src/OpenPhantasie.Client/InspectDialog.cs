@@ -14,8 +14,11 @@ namespace OpenPhantasie.Client;
 /// leaves. Both menus are
 /// DOS cursor menus with memory (<see cref="PromptMenu"/>). Text comes from the COM/OV2 format strings.
 /// </summary>
-public sealed class InspectDialog : IModalDialog, IPagedDialog, IPadArrows
+public sealed class InspectDialog : IModalDialog, IPagedDialog, IPadArrows, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on "whom" (the other steps take the D-pad / A) (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => _step == Step.Who ? DialogPad.Picks(session.Party.Members.Count) : null;
+
     private enum Step { Closed, Summary, AskMember, Who, Sheet, Page }
 
     /// <summary>Menu <c>0x15</c> (labels "INSPECT MEMBER?" / NO / YES — NO is the first option).</summary>

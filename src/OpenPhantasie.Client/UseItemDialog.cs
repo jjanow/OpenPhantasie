@@ -12,8 +12,17 @@ namespace OpenPhantasie.Client;
 /// D-061 (user s53, manual "find the unusual properties of an item") shows <see cref="GameSession.DescribeItem"/>. The
 /// worn weapon / armor / shield are listed after the carried items so their stats can be read too (remaster).
 /// </summary>
-public sealed class UseItemDialog : IModalDialog, IPagedDialog
+public sealed class UseItemDialog : IModalDialog, IPagedDialog, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on the item, target and option numbers (the user picker has its cursor) (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => _step switch
+    {
+        Step.Item when _user is not null => DialogPad.Picks(Rows(_user).Count),
+        Step.Target => DialogPad.Picks(session.Party.Members.Count),
+        Step.Option => DialogPad.Picks(_campaignOptions.Count),
+        _ => null,
+    };
+
     private enum Step { Closed, User, Item, Target, Text, Option, PrintAsk, PrinterAsk }
 
     public static string UserTitle => UiText.S("useitem.who_will_use");

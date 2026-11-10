@@ -10,8 +10,11 @@ namespace OpenPhantasie.Client;
 /// time to random members). Digits shift in from the right, Backspace drops the last one, Esc leaves. The field's look
 /// is the remaster's (DOS III's screen was not captured).
 /// </summary>
-public sealed class DosDepositDialog : IModalDialog
+public sealed class DosDepositDialog : IModalDialog, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on the amount (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => IsOpen ? DialogPad.Digits : null;
+
     private long _amount;
 
     public bool IsOpen { get; private set; }
@@ -274,8 +277,11 @@ public interface IAmigaWindowDialog
 /// Return deposits it, both with no message. Under the other rules the picks are the remaster's Withdraw / Deposit,
 /// whose own dialogs follow (<see cref="Follow"/>).
 /// </summary>
-public sealed class AmigaBankDialog : IModalDialog, IAmigaWindowDialog
+public sealed class AmigaBankDialog : IModalDialog, IAmigaWindowDialog, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on "How much" (the two picks have their cursor) (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => IsOpen && _digits is not null ? DialogPad.Digits : null;
+
     private int _cursor;
     private string? _digits;
 

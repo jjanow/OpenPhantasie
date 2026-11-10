@@ -29,23 +29,24 @@ Paths are relative to `src/OpenPhantasie.Client/` unless stated.
 
 ## B. The digit wheel (one root cause behind ~30 dialog findings)
 
-7. **Make the wheel opt-in.** Every modal step that is not `IPadArrows` gets the digit wheel (`DialogPad.cs:107-117`),
-   even list and any-key steps: Left / Right send nothing, X types an ignored digit, Y = Backspace (closes most dialogs),
-   and the help flips to the generic `pad.dialog_wheel_x` "X type  Y del  A ok  B back". Fix: only steps that read
-   digits / letters turn the wheel on (an interface flag), and its range follows the step (1-2, 1-5, 1-6, not 0-9).
-   Fixes the help on: game menu, pad command list, Guild Add / Purge / Rename / Examine / List, New's ancestor lists,
-   Inspect summary, Health, Continue list and notice, Treasury, Withdraw member picker.
+B7 and B9 done s188 (not seen live):
+- **B7.** The wheel is opt-in. Only a step that picks by digit with no D-pad cursor, or that types, turns it on
+  (`IPadWheel.PadWheel(session)`, else `ITypedEntry`; `Game1.ModalWheel`). Its range follows the step
+  (`DialogPad.Picks`: 1-2, 1-5, 1-6…). Wheel steps: Cast (who / spell page / heal whom), Use potion (3), Time lag's
+  0-9, Withdraw / III DOS Deposit / III Amiga "How much" amounts, Learn spell's page, Guild Drop, Spells / Training
+  "who", III training's skills, New's kind / race / class / name, Inspect "whom", Use item (item / target / option).
+  Every other step keeps D-pad Left / Right, X / Y send nothing, and its own help shows. Trade and Distribute have a
+  cursor (SELL / sale rows included), so they get no wheel.
+- **B9.** The town picture's band shows the help whenever the pad is the input (`Game1` town HUD), so the wheel line,
+  its character, `pad.dialog_yes_no` and `game.x_x_shares` show there. Side effect for group E: a help with no `.pad`
+  twin now shows there in keyboard words (before: nothing).
+
 8. **Per-step wheel help templates** in place of the generic line (each `.pad` / `.wheel` id, `{0}` = current pick),
    naming what X / A / Y / B really do there: Cast (3 steps; also lost "Up/Down more"), Use potion, Time lag, Drop,
-   Spells / Training "who", III training's skill step (show the skill name), Learn spell, New's lineage question and race /
-   class, Name / Rename ("B cancel" in New), Inspect "whom", Distribute (7 sell), Withdraw amount (no "B back" outside III
-   Amiga), III DOS Deposit and Amiga "How much" (add "B cancel"), III Trade item step ("B back", not "B done"), Trade
-   to whom. Also `DialogPad.StepChanged` resets only on a help-text change: Cast / Potion / Use item reuse one text.
-9. **Town picture hides the pad help.** It shows help only when `PadWording.Shows` matches (`Game1.cs:1643-1647`,
-   `PadWording.cs:65`); the wheel line, `pad.dialog_yes_no` and `game.x_x_shares` (no twin; `Game1.cs:2524`) never match,
-   and `PadWording.F` / `S` don't set `_formatted`. Every modal in town loses its help after the first Left / Right, and
-   the wheel's current character is shown nowhere (the typing grid draws for the mouse only, `Game1.cs` ~1911). Fix:
-   show the band help whenever `PadWording.Active`, or make `F` / `S` / the wheel line record themselves for `Shows`.
+   Spells / Training "who", III training's skill step (show the skill name), Learn spell, New's race / class and kind
+   question, Name / Rename ("B cancel" in New), Inspect "whom", Withdraw amount (no "B back" outside III Amiga), III DOS
+   Deposit and Amiga "How much" (add "B cancel"), Use item's steps. Also `DialogPad.StepChanged` resets only on a
+   help-text change: Cast / Potion / Use item reuse one text.
 
 ## C. No pad route (I–III, front end)
 
@@ -136,5 +137,5 @@ Paths are relative to `src/OpenPhantasie.Client/` unless stated.
 
 ## Suggested order
 
-A (all inputs, done s187) → B 7 + 9 (one change each, clears most dialog rows) → B 8 → C 10-13, D 24-26 → the rest → one live
+A (done s187) → B 7 + 9 (done s188) → B 8 → C 10-13, D 24-26 → the rest → one live
 virtual-pad pass on Xvfb.

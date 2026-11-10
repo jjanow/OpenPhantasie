@@ -281,4 +281,50 @@ public sealed class DialogPadTests
         Assert.False(d.IsOpen);
         Assert.Null(d.TakeChoice());
     }
+    [Fact]
+    public void Picks_NumberAListsRows_OneToNine()
+    {
+        Assert.Null(DialogPad.Picks(0));
+        Assert.Equal("123", DialogPad.Picks(3));
+        Assert.Equal("123456789", DialogPad.Picks(12));
+    }
+
+    /// <summary>Pad fix B7 (s188): a step with no wheel keeps Left / Right, X / Y send nothing, its own help shows.</summary>
+    [Fact]
+    public void NoWheel_LeftRightStayArrows_XAndYNothing_OwnHelp()
+    {
+        var pad = new DialogPad();
+        var d = new object();
+        Assert.Equal([Keys.Left, Keys.Right, Keys.Enter],
+            pad.KeysFor(d, [Buttons.DPadLeft, Buttons.X, Buttons.Y, Buttons.DPadRight, Buttons.A], wheel: false));
+        Assert.Null(pad.Help(d, null, yesNo: false, leftRightNative: false, wheel: false));
+        Assert.Equal("Pad: A yes  X no  B back", pad.Help(d, null, yesNo: true, leftRightNative: false, wheel: false));
+    }
+
+    /// <summary>Pad fix B7 (s188): only the steps that pick by number with no cursor turn the wheel, over their range.</summary>
+    [OriginalDataFact]
+    public void ModalWheel_OnlyOnNumberSteps_OverTheirRange()
+    {
+        var s = ClientSessions.Overworld(); // two members
+        var menu = new GameMenuDialog();
+        menu.Open();
+        Assert.Null(Game1.ModalWheel(menu, s));
+        var cast = new CastDialog();
+        cast.Open(s);
+        Assert.Equal("12", Game1.ModalWheel(cast, s));
+        var lag = new TimeLagDialog();
+        lag.Open();
+        Assert.Equal(DialogPad.Digits, Game1.ModalWheel(lag, s));
+        lag.HandleKeys([Keys.D3], s);
+        Assert.Null(Game1.ModalWheel(lag, s)); // the sound question: Y / N
+        var drop = new GuildDropDialog();
+        Assert.Null(Game1.ModalWheel(drop, s));
+        var withdraw = new WithdrawDialog();
+        withdraw.Open();
+        Assert.Null(Game1.ModalWheel(withdraw, s)); // the member picker has its cursor
+        withdraw.HandleKeys([Keys.D1], s);
+        Assert.Equal(DialogPad.Digits, Game1.ModalWheel(withdraw, s)); // the amount
+        var pad = new DialogPad();
+        Assert.Equal([Keys.D2], pad.KeysFor(cast, [Buttons.DPadLeft, Buttons.X], Game1.ModalWheel(cast, s))); // 1 wraps to 2
+    }
 }

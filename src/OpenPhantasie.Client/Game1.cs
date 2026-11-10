@@ -1647,8 +1647,10 @@ public partial class Game1 : Game
             UiOverlays.DrawTownHud(_spriteBatch, _pixel, _assets.TownScreen,
                 messageShows && BandMessage.Length > 0 ? BandMessage : null,
                 IsMouseVisible && _mouse.Position is { } at && at.Y >= UiOverlays.TownBandTop(_assets.TownScreen) ? _help
-                // s183: the pad in use, its words (LT / RT shopper) once no message holds the band
-                : PadHelpShown(_help) && !(messageShows && BandMessage.Length > 0) ? PadWording.Help(_help) : null,
+                // s183: the pad in use, its words (LT / RT shopper) once no message holds the band. Pad fix B9 (s188):
+                // whenever the pad is the input, not only for a help with a pad twin: a dialog's wheel line, its Y / N
+                // line and a help with no twin (the shares line) showed nothing, and the wheel's character nowhere.
+                : PadWording.Active && !(messageShows && BandMessage.Length > 0) ? PadWording.Help(_help) : null,
                 CurrentGameSettings.OriginalScreens,
                 gold: TownBarPlaces(_session) is null ? _session : null); // III Amiga: the gold line is on its town bar
         else if (ViewMode(_session) is GameMode.Overworld or GameMode.Dungeon && !CurrentGameSettings.StatusLines)

@@ -1,3 +1,4 @@
+using OpenPhantasie.Core;
 using Microsoft.Xna.Framework.Input;
 
 namespace OpenPhantasie.Client;
@@ -22,12 +23,23 @@ public interface IPadArrows
 }
 
 /// <summary>
+/// Pad fix B7 (s188): a dialog whose steps pick or type by digit / letter with nothing else to reach the pick (no D-pad
+/// cursor): <see cref="PadWheel"/> is the open step's characters for the pad wheel (<see cref="DialogPad.Picks"/> for a
+/// numbered list), null on a step that reads none. A dialog without this interface gets the wheel only where it types
+/// (<see cref="ITypedEntry.TypingAlphabet"/>); every other step keeps D-pad Left / Right, and X / Y do nothing.
+/// </summary>
+public interface IPadWheel
+{
+    string? PadWheel(GameSession session);
+}
+
+/// <summary>
 /// "Pad coverage" (s182): the pad on the remaster's modal dialogs (<see cref="IModalDialog"/>), which read keys only. On
 /// top of <see cref="InputMap.MenuPadKeys"/> (D-pad / left stick = arrows, A = Return, B = Esc, LB / RB = PgUp / PgDn):
 /// <list type="bullet">
-/// <item>a dialog that picks or types by digit or letter (who casts, which spell, an amount, a name) gets a pad wheel:
-/// D-pad / stick Left / Right step a character (the dialog's <see cref="ITypedEntry.TypingAlphabet"/>, else the digits
-/// 1…9, 0), X types it, Y is Backspace (the dialog's own Backspace: delete, or back out where it backs out). The help
+/// <item>a step that picks or types by digit or letter (who casts, which spell, an amount, a name) gets a pad wheel
+/// (B7, s188: only such a step, <see cref="IPadWheel"/> / <see cref="ITypedEntry"/>): D-pad / stick Left / Right step a
+/// character (the step's characters, else the digits 1…9, 0), X types it, Y is Backspace (the dialog's own Backspace: delete, or back out where it backs out). The help
 /// line names the character (<see cref="Help"/>) once the pad has been used in the dialog;</item>
 /// <item>a Y / N step (<see cref="IPadYesNo"/>): A = Y, X = N;</item>
 /// <item>a step whose menu takes Left / Right itself (<see cref="IPadArrows"/>) keeps them, and has no wheel.</item>
@@ -38,6 +50,9 @@ public sealed class DialogPad
 {
     /// <summary>The wheel's characters where the dialog types no alphabet of its own: a pick 1…9 first, then 0.</summary>
     public const string Digits = "1234567890";
+
+    /// <summary>The wheel for a numbered list of <paramref name="count"/> picks: 1…count (1…9 at most), null when empty.</summary>
+    public static string? Picks(int count) => count <= 0 ? null : Digits[..Math.Min(count, 9)];
 
     private object? _owner;
     private string _alphabet = Digits;
@@ -84,7 +99,7 @@ public sealed class DialogPad
     /// dialog; a new one resets the wheel). <paramref name="typingAlphabet"/>: what the step types (null: digits).
     /// </summary>
     public IReadOnlyList<Keys> KeysFor(object dialog, IEnumerable<Buttons> buttons, string? typingAlphabet = null,
-        bool yesNo = false, bool leftRightNative = false, string? stepHelp = null)
+        bool yesNo = false, bool leftRightNative = false, string? stepHelp = null, bool wheel = true)
     {
         ArgumentNullException.ThrowIfNull(dialog);
         ArgumentNullException.ThrowIfNull(buttons);
@@ -93,7 +108,9 @@ public sealed class DialogPad
             Reset();
             _owner = dialog;
         }
-        Sync(typingAlphabet);
+        var noWheel = leftRightNative || !wheel; // B7: a step with no wheel keeps Left / Right; X / Y send nothing
+        if (wheel)
+            Sync(typingAlphabet);
         StepChanged(stepHelp);
         var keys = new List<Keys>();
         foreach (var b in buttons)
@@ -104,7 +121,7 @@ public sealed class DialogPad
                 keys.AddRange(YesNoKeys([b]));
                 continue;
             }
-            var step = leftRightNative ? 0 : b switch
+            var step = noWheel ? 0 : b switch
             {
                 Buttons.DPadLeft or Buttons.LeftThumbstickLeft => -1,
                 Buttons.DPadRight or Buttons.LeftThumbstickRight => 1,
@@ -116,12 +133,12 @@ public sealed class DialogPad
                 _at = (_at + step + _alphabet.Length) % _alphabet.Length;
                 continue;
             }
-            if (!leftRightNative && b == Buttons.X && TypingGrid.KeyFor(Current) is { } typed)
+            if (!noWheel && b == Buttons.X && TypingGrid.KeyFor(Current) is { } typed)
             {
                 WheelUsed = true;
                 keys.Add(typed);
             }
-            else if (!leftRightNative && b == Buttons.Y)
+            else if (!noWheel && b == Buttons.Y)
             {
                 WheelUsed = true;
                 keys.Add(Keys.Back);
@@ -145,14 +162,17 @@ public sealed class DialogPad
     /// The help line while the pad is in use: the wheel's character and its keys, or the Y / N keys; null when the pad has
     /// not been used in the open dialog (its own help then).
     /// </summary>
-    public string? Help(object dialog, string? typingAlphabet, bool yesNo, bool leftRightNative, string? stepHelp = null)
+    public string? Help(object dialog, string? typingAlphabet, bool yesNo, bool leftRightNative, string? stepHelp = null,
+        bool wheel = true)
     {
         if (!Active || leftRightNative || !ReferenceEquals(dialog, _owner))
             return null;
-        Sync(typingAlphabet);
         StepChanged(stepHelp);
         if (yesNo)
             return UiText.S("pad.dialog_yes_no");
+        if (!wheel)
+            return null; // B7: a step with no wheel shows its own help (in the pad's words where it has them)
+        Sync(typingAlphabet);
         if (!WheelUsed)
             return null;
         return UiText.F("pad.dialog_wheel_x", Current == ' ' ? UiText.S("typing.space") : Current.ToString());

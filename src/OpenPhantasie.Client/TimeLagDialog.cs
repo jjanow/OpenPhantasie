@@ -9,8 +9,11 @@ namespace OpenPhantasie.Client;
 /// will also be asked if you want sound: answer Y or N." A digit sets the lag, then Y / N sets the sound; Esc leaves both
 /// unchanged. DOS has a fast / normal / slow Speed menu instead (not built, D-073).
 /// </summary>
-public sealed class TimeLagDialog : IModalDialog, IPadYesNo
+public sealed class TimeLagDialog : IModalDialog, IPadYesNo, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on the lag 0–9 (the sound question is Y / N) (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => IsOpen && _lag is null ? DialogPad.Digits : null;
+
     public static string LagQuestion => UiText.S("timelag.time_lag_0_9");
     public static string SoundQuestion => UiText.S("timelag.sound_y_n");
 

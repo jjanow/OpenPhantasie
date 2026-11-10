@@ -328,8 +328,11 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog, IPadArrows
 /// any game). s172: in II and III (<see cref="ElementalRules.DropsElemental"/>) the loaded elemental is the row after the
 /// characters, and its digit unloads it (ST <c>0xd57c</c>'s seven-record list; DOS III ovl2 <c>0x3c92</c>).
 /// </summary>
-public sealed class GuildDropDialog : IModalDialog
+public sealed class GuildDropDialog : IModalDialog, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on the members' numbers (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => IsOpen ? DialogPad.Picks(session.Party.Members.Count + (ListedElemental(session) is null ? 0 : 1)) : null;
+
     public static string Title => UiText.S("guild.whom_do_you_want_to_drop");
 
     public bool IsOpen { get; private set; }
@@ -397,8 +400,14 @@ public sealed class GuildDropDialog : IModalDialog
 /// DOS's "It will cost / N gold" box with A)GREE / N)OT (s65 DOSBox; manual: "you will be told … how much the training will
 /// cost"), and like DOS returns to the WHO list after each result until Esc.
 /// </summary>
-public sealed class GuildPartyPickDialog : IModalDialog
+public sealed class GuildPartyPickDialog : IModalDialog, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on "who" and III's skills (the cost box is A agree / B not) (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) =>
+        !IsOpen || _confirming is not null ? null
+        : _skillMember is not null ? DialogPad.Picks(P3Training.ScreenOrder.Count)
+        : DialogPad.Picks(session.Party.Members.Count);
+
     public static string TrainTitle => UiText.S("guild.who_is_going_to_be_trained");
     public static string LearnTitle => UiText.S("guild.who_will_learn");
 

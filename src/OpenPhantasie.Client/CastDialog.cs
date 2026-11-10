@@ -10,8 +10,16 @@ namespace OpenPhantasie.Client;
 /// (s165, Amiga <c>0xf8f6</c>) refuses on the magic first: none left before the list, the spell's cost before the target
 /// (<see cref="SpellCaster.OutOfCombatMagicRefusal"/>).
 /// </summary>
-public sealed class CastDialog : IModalDialog, IPagedDialog
+public sealed class CastDialog : IModalDialog, IPagedDialog, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on each step's numbers (the spell list: the page shown) (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => _step switch
+    {
+        Step.Caster or Step.Target => DialogPad.Picks(session.Party.Members.Count),
+        Step.Spell => DialogPad.Picks(_spells.Count - _scroll),
+        _ => null,
+    };
+
     private enum Step { Closed, Caster, Spell, Target }
 
     private const int PageSize = 9;

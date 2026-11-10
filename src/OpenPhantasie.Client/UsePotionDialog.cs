@@ -12,8 +12,17 @@ namespace OpenPhantasie.Client;
 /// Picker mode 4 offers every party slot below <c>[0x648e]</c> whatever its status, dead and asleep included [C] (the combat
 /// HEALING "ON WHOM :" uses the same mode); so does the ON WHOM step here.
 /// </summary>
-public sealed class UsePotionDialog : IModalDialog
+public sealed class UsePotionDialog : IModalDialog, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on each step's numbers (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => _step switch
+    {
+        Step.User => DialogPad.Picks(Users(session).Count),
+        Step.Potion => DialogPad.Picks(_slots.Count),
+        Step.Target => DialogPad.Picks(session.Party.Members.Count),
+        _ => null,
+    };
+
     private enum Step { Closed, User, Potion, Target }
 
     private Step _step = Step.Closed;

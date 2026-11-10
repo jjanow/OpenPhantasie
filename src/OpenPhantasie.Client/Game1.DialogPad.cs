@@ -46,8 +46,15 @@ public partial class Game1
 
     /// <summary>The keys the pad's new buttons stand for in the open <paramref name="modal"/>.</summary>
     private IEnumerable<Keys> ModalPadKeys(IModalDialog modal, GamePadState pad) =>
-        _dialogPad.KeysFor(modal, _input.NewButtons(pad), (modal as ITypedEntry)?.TypingAlphabet,
-            modal is IPadYesNo { AsksYesNo: true }, ModalTakesLeftRight(modal), modal.Help);
+        _dialogPad.KeysFor(modal, _input.NewButtons(pad), ModalWheel(modal, _session!),
+            modal is IPadYesNo { AsksYesNo: true }, ModalTakesLeftRight(modal), modal.Help, ModalWheel(modal, _session!) is not null);
+
+    /// <summary>
+    /// Pad fix B7 (s188): the open step's wheel characters (<see cref="IPadWheel"/>, else what it types,
+    /// <see cref="ITypedEntry"/>); null: the step reads no digit / letter that the D-pad cannot reach, so it has no wheel.
+    /// </summary>
+    public static string? ModalWheel(IModalDialog modal, GameSession session) =>
+        modal is IPadWheel w ? w.PadWheel(session) : (modal as ITypedEntry)?.TypingAlphabet;
 
     /// <summary>
     /// <paramref name="modal"/>'s help line, or the pad's while the pad is in use there. s185: a Y / N step whose help has a
@@ -59,8 +66,8 @@ public partial class Game1
     private string ModalHelp(IModalDialog modal) =>
         !PadWording.Active ? modal.Help
         : modal is IPadYesNo { AsksYesNo: true } && PadWording.PadTextFor(UiText.Table, modal.Help) is not null ? modal.Help
-        : _dialogPad.Help(modal, (modal as ITypedEntry)?.TypingAlphabet, modal is IPadYesNo { AsksYesNo: true },
-            ModalTakesLeftRight(modal), modal.Help) ?? modal.Help;
+        : _dialogPad.Help(modal, ModalWheel(modal, _session!), modal is IPadYesNo { AsksYesNo: true },
+            ModalTakesLeftRight(modal), modal.Help, ModalWheel(modal, _session!) is not null) ?? modal.Help;
 
     /// <summary>A dialog step whose menu moves with Left / Right (<see cref="IPadArrows"/>): the pad's wheel stays off there.</summary>
     private static bool ModalTakesLeftRight(IModalDialog modal) => modal is IPadArrows { TakesLeftRight: true };

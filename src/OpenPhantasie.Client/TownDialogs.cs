@@ -49,8 +49,11 @@ public sealed class MemberCursor
 /// III under AMIGA SCREENS (s157, <see cref="AmigaKeys"/>): drawn in the Bank's window 9 style (<see cref="View"/>), O = OK
 /// (Return), C or Esc = CANCEL (the picker leaves; the amount field goes back to the picker, nothing taken out).
 /// </summary>
-public sealed class WithdrawDialog : IModalDialog, IAmigaWindowDialog
+public sealed class WithdrawDialog : IModalDialog, IAmigaWindowDialog, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on the amount (the member picker has its cursor) (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => _open && _member is not null ? DialogPad.Digits : null;
+
     public static string WhoTitle => UiText.S("towndlg.who_will_withdraw"); // OV1 0x5de8
 
     /// <summary>
@@ -219,8 +222,11 @@ public sealed class WithdrawDialog : IModalDialog, IAmigaWindowDialog
 /// per opening through <see cref="TownMenus.LearnSpell"/>, then back to "WHO WILL LEARN?". The list is numbered after the
 /// manual's "POSSIBLE SPELLS:" (D-074, decided: manual; DOS shows names under "Available spells:").
 /// </summary>
-public sealed class LearnSpellDialog : IModalDialog, IPagedDialog
+public sealed class LearnSpellDialog : IModalDialog, IPagedDialog, IPadWheel
 {
+    /// <summary>Pad fix B7 (s188): the pad wheel on the page's spell numbers (<see cref="IPadWheel"/>).</summary>
+    public string? PadWheel(GameSession session) => _member is null ? null : DialogPad.Picks(Learnable(_member).Count - _scroll);
+
     public ListPage? Page { get; private set; }
 
     private const int PageSize = 9;
