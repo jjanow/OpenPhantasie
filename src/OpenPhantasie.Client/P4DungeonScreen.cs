@@ -158,9 +158,14 @@ public sealed partial class P4DungeonScreen
                 continue;
             }
             Note = null;
+            if (CommonTownKeys && key == SystemKeyCommon && OnTownStreet)
+            {
+                OpenSystem(); // s187 (pad fix A1): with S taken by Save, System is F10 and the S icon's click
+                continue;
+            }
             if (CommonTownKeys && key == Keys.S && OnTownStreet)
             {
-                // QoL COMMON TOWN KEYS: S saves, as F5 (IV's own S, System, stays on its icon).
+                // QoL COMMON TOWN KEYS: S saves, as F5 (IV's own S, System, is F10 and the S icon then).
                 if (HandleKeys([Keys.F5]) is { } save)
                     return save;
                 continue;
@@ -296,6 +301,12 @@ public sealed partial class P4DungeonScreen
     /// manual's town letters (<see cref="CommonTownKeySet"/>) on the street too. T, D, C and U are IV's own already.
     /// </summary>
     public bool CommonTownKeys { get; set; }
+
+    /// <summary>
+    /// s187 (pad fix A1): System's key on the street under <see cref="CommonTownKeys"/>, where S saves. The street's S icon
+    /// presses it (<see cref="PanelPress"/>), so a click or the pad's Y / X + A still opens System.
+    /// </summary>
+    public const Keys SystemKeyCommon = Keys.F10;
 
     /// <summary>The town's street menu is up with nothing over it (where the town's letters are read).</summary>
     private bool OnTownStreet => Game.LoopBuilt && _system is null && Game.Battle is null && !MenuOpen

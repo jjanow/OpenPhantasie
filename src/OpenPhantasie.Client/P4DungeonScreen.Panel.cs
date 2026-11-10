@@ -150,6 +150,8 @@ public sealed partial class P4DungeonScreen
     public (Keys Key, int? Line) PanelPress(string panel, CommandPanelIcon icon)
     {
         ArgumentNullException.ThrowIfNull(icon);
+        if (icon.Key == "S" && CommonTownKeys && OnTownStreet)
+            return (SystemKeyCommon, null); // A1: S is Save under common town keys; the icon stays System
         return PanelLineNow(panel, icon.Key) is int line
             ? line < 9 ? (Keys.D1 + line, null) : (Keys.Enter, line)
             : (PanelClickKey(panel, icon), null);

@@ -16,7 +16,7 @@ public sealed class DosDepositDialog : IModalDialog
 
     public bool IsOpen { get; private set; }
 
-    public string Help => UiText.S("towndlg.type_amount_back_clear_digit_enter");
+    public string Help => UiText.S("towndlg.type_amount_deposit"); // s187 A4: not "Enter withdraw"
 
     public void Open(GameSession session)
     {
@@ -293,8 +293,8 @@ public sealed class AmigaBankDialog : IModalDialog, IAmigaWindowDialog
     }
 
     public string Help => _digits is not null
-        ? UiText.S("towndlg.type_amount_back_clear_digit_enter")
-        : UiText.S("game.keep_window_ok_cancel");
+        ? UiText.S("towndlg.type_amount_deposit")
+        : UiText.S("p3town.bank_window_help"); // s187 A4: the keep window's line names Y / N, which the Bank ignores
 
     public void Open()
     {

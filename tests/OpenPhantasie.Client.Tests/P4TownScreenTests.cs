@@ -179,6 +179,16 @@ public class P4TownScreenTests
         Assert.Equal(P4ScreenRequest.Save, save.HandleKeys([Keys.S])); // as F5
         Assert.Null(save.SystemPage);
         Assert.Equal(UiText.S("p4.town.help_menu_common"), save.Help);
+        var system = InTown(2);
+        system.CommonTownKeys = true;
+        Assert.Null(system.HandleKeys([P4DungeonScreen.SystemKeyCommon])); // s187 A1: F10 is System, S saves
+        Assert.Equal(P4SystemPage.Menu, system.SystemPage);
+        var icon = InTown(2);
+        icon.CommonTownKeys = true;
+        var press = icon.PanelPress("_street", new CommandPanelIcon(0, "S", "System", "")).Key; // the S icon's click / pad A
+        Assert.Equal(P4DungeonScreen.SystemKeyCommon, press);
+        Assert.Null(icon.HandleKeys([press]));
+        Assert.Equal(P4SystemPage.Menu, icon.SystemPage);
         var digits = InTown(2);
         digits.CommonTownKeys = true;
         digits.HandleKeys([Keys.D1]); // the digits still open doors

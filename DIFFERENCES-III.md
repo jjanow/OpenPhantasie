@@ -989,7 +989,8 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   KEYS (off by default; on the III and IV tabs, since I and II use the set already): the manual's set (A B G M N L / C U
   D I S / T, `CommonTownKeySet`) wins in III over the bar's letters (the bar's other keys, `?` O E P R X V + -, still
   work) and in IV gives letters to the doors the town has (A B G M N L), I to F's Profile and S to Save (as F5); IV's
-  digits, F, T, D, C, U still work, and its System stays on its icon.
+  digits, F, T, D, C, U still work, and its System moves to F10 (s187; the street's S icon presses F10, so a click or the
+  pad still opens System).
 - **Side effects:** under AMIGA SCREENS without the option, I no longer inspects and L no longer leaves in III's town
   (V View Party and X Exit do). D3-070 (outside the towns, manual E) is unchanged: it is a different screen's keys.
 - **Spec:** `reverse-engineering/amiga/phantasie3/FORMAT.md` section 8.5; `OpenPhantasie.Client.AmigaTownBar.ActionForKey`,

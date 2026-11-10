@@ -23,6 +23,8 @@
     "game.arrows_enter_y_yes_n_esc_no.pad": "D-pad pick  A ok  B no",
     "game.keep_window_ok_cancel": "O/Enter/Y ok  C/N/Esc cancel",
     "game.keep_window_ok_cancel.pad": "A ok  B cancel",
+    "p3town.bank_window_help": "Up/Down or 1-2 pick  O/Enter ok  C/Esc cancel",
+    "p3town.bank_window_help.pad": "Up/Down pick  A ok  B cancel",
     "p3.reward.press_a_key": "...",
     "p3.page.press_a_number": "...",
     "core.guild.party_not_assembled": "...",

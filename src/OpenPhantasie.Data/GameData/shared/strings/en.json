@@ -1465,7 +1465,7 @@
     "p4.dungeon.no_save_event": "Finish the event first: in a dungeon the game saves only at the command prompt.",
     "p4.town.held_x": "In hand: {0}",
     "p4.town.help_menu": "1-9 door  T trade  D share out  F profile  C spell  U use  S system  F5 save",
-    "p4.town.help_menu_common": "1-9 or A B G M N L door  T trade  D share out  I profile  C spell  U use  S save",
+    "p4.town.help_menu_common": "1-9 or A B G M N L door  T trade  D share out  I profile  C spell  U use  S save  F10 system",
     "p4.hall.help_history": "Space next picture  L done  F5 save  Esc menu",
     "p4.system.help": "Space back  S save game  E end game  A about  Esc menu",
     "p4.system.end_question": "End the game and return to the main menu?",

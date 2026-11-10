@@ -209,8 +209,8 @@ public sealed class InputMap
             GameAction.ToggleAutoMap => pad.Buttons.Back == ButtonState.Pressed,
             GameAction.ToggleMapLayout => RightStickSideways(pad),
             GameAction.FastForwardHold => pad.Triggers.Left > 0.5f,
-            GameAction.OpenGuildDepart => pad.Buttons.LeftShoulder == ButtonState.Pressed
-                                         && pad.Buttons.RightShoulder == ButtonState.Pressed,
+            // s187 (pad fix A2): no LB + RB chord for OpenGuildDepart; it also fired Save and Load the same frame. The
+            // Guild's A command list and the town bar's Guild row cover it.
             _ => false,
         };
 }

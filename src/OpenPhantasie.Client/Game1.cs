@@ -1204,6 +1204,10 @@ public partial class Game1 : Game
                     pad.ThumbSticks.Left, gameTime.ElapsedGameTime.TotalMilliseconds, out var padPress);
                 if (padPress is not null)
                     Act(padPress, padPress.Bounds.Center, clicked: true);
+                // s187 (pad fix A6): IV's party lines scroll by [ ] / the right stick, its message / menu box by , . / RT +
+                // the right stick, as I–III's sidebar (IV reads none of these keys).
+                SidebarScroll.Apply(_input.NewKeys(keys), _input.NewButtons(pad), SidebarScroll.RightTriggerHeld(pad),
+                    _p4.PartyScroll, _p4.BoxScroll);
                 if (_p4.HandleKeys(_input.NewKeys(keys).Concat(padKeys)) is { } request)
                     RunPhantasie4Request(request);
             }
@@ -1651,9 +1655,9 @@ public partial class Game1 : Game
             // D-077 (manual): no status line; the key help only when a dialog shows its own. s183: and, the pad in use, the
             // map's own help in the pad's words (RT + A, the right stick: no keyboard player's help to learn them from).
             UiOverlays.DrawHud(_spriteBatch, _pixel, _session, _settings, BandMessage,
-                _help == HelpForMode(_session.Mode) && !PadHelpShown(_help) ? "" : _help, statusLine: null);
+                _help == HelpForMode(_session.Mode) && !PadHelpShown(_help) ? "" : FieldBandHelp(_session), statusLine: null);
         else
-            UiOverlays.DrawHud(_spriteBatch, _pixel, _session, _settings, BandMessage, _help, FieldStatus(_session),
+            UiOverlays.DrawHud(_spriteBatch, _pixel, _session, _settings, BandMessage, FieldBandHelp(_session), FieldStatus(_session),
                 messageKeys: _mouseUsed && _combatUi.AwaitingOrders);
         if (TownPictureScreen(_session) && TownBarPlaces(_session) is { } townBar) // s156: III Amiga's town bar
             UiOverlays.DrawTownMenuBar(_spriteBatch, _pixel, _assets, townBar, _townBar, TownBarPalette(_session),
@@ -2085,10 +2089,11 @@ public partial class Game1 : Game
 
         // III Amiga's orders screen (s118): with a member picked (its option, the rank window, the spell list) Esc goes
         // back to the member boxes / answers CANCEL instead of opening the game menu; it closes window 7 (any key does, s134).
-        // s183: I Amiga's the same (with a member picked, back to the member boxes: HandleP1OrderKey's Esc).
+        // s183: I Amiga's the same (with a member picked, back to the member boxes: HandleP1OrderKey's Esc). s187 (pad fix A3):
+        // and I Amiga's Party Options with a menu pulled down (Esc closes it, HandleFieldMenuKey).
         if ((_combatUi.AmigaOrdersShown && (_combatUi.OrderMember >= 0 || _combatUi.AmigaMessageShown)
              || _combatUi.P1OrdersShown && _combatUi.OrderMember >= 0
-             || _combatUi.AmigaFieldMenuShown && _combatUi.FieldMenuOpen is not null
+             || (_combatUi.AmigaFieldMenuShown || _combatUi.P1FieldMenuShown) && _combatUi.FieldMenuOpen is not null // s187 A3: I's too
              || _combatUi.AsksDosRank(s)) // s156: DOS III's rank menu: Esc answers Two
             && _input.Pressed(GameAction.GameMenu, keys, pad))
         {
@@ -3272,6 +3277,9 @@ public partial class Game1 : Game
         }
         if (OpenPadCommands(s, pad)) // s182: the pad's list of the Guild's / the field's letter commands
             return _padCommands;
+        if (s.Mode is GameMode.Guild or GameMode.Title) // s187 (pad fix A6): the member list scrolls by [ ] / right stick too
+            SidebarScroll.Apply(_input.NewKeys(keys), _input.NewButtons(pad), rightTriggerHeld: false,
+                UiOverlays.GuildListScroll, UiOverlays.GuildListScroll);
         string? refused = null;
         var shopper = s.Party.Members.Count > 0 ? s.Party.Members[_members.Clamp(s.Party.Members.Count)] : null;
         if (s.Mode == GameMode.Town && _townMenu.Place == TownPlace.Bank && s.TreasuryOn
@@ -4056,16 +4064,35 @@ public partial class Game1 : Game
         _help = help ?? "";
     }
 
+    /// <summary>
+    /// s187 (pad fix A5): the field help is the one without "F2 map" (the <c>_nomap</c> ids) when the art pack has no map layout (III, II Apple, I CGA:
+    /// F2 changes nothing there).
+    /// </summary>
+    private bool NoMapLayout => _assets?.Maps is null;
+
+    /// <summary>
+    /// s187 (pad fix A5): the map-only dungeon (F2's layout over the pack's glyph map, outside I Amiga's own screen) draws
+    /// no party sidebar and no overview box, so its help is the map-only one (no Tab, no [ ]), as the overworld's.
+    /// </summary>
+    private bool MapOnlyDungeon(GameSession s) =>
+        _settings.MapOnly && ViewMode(s) == GameMode.Dungeon && s.Dungeon is not null && P1MapScreen(s) is null
+        && _assets is { Maps: not null } a && _data?.MapTiles is not null
+        && !(a.TileMaps is { } tiles && a.GetDungeonCell(tiles.UnseenGlyph) is not null);
+
+    /// <summary>The help the field's band draws: the map-only one in place of the dungeon's own (<see cref="MapOnlyDungeon"/>).</summary>
+    private string FieldBandHelp(GameSession s) =>
+        MapOnlyDungeon(s) && _help == HelpForMode(s.Mode) ? UiText.S("game.map_only_help") : _help;
+
     private string HelpForMode(GameMode mode) => mode switch
     {
         GameMode.Town when _townMenu.Place == TownPlace.Armory => UiText.S("game.up_down_enter_buy_1_6"),
         GameMode.Town when _townMenu.Place != TownPlace.Menu => UiText.S("game.up_down_enter_select_bksp_back"),
         GameMode.Guild => UiText.S("game.l_list_p_purge_n_new"),
         GameMode.Title => UiText.S("game.title_guild_help"), // s185: only A / D work here; Esc (pad B) = game menu
-        GameMode.Overworld when _session is { } s && TerrainKeyFor(s) is { Count: > 0 } => UiText.S("game.3_n_e_s_w_arrows_key"),
-        GameMode.Overworld => UiText.S("game.3_n_e_s_w_arrows"),
+        GameMode.Overworld when _session is { } s && TerrainKeyFor(s) is { Count: > 0 } => (NoMapLayout ? UiText.S("game.3_n_e_s_w_arrows_key_nomap") : UiText.S("game.3_n_e_s_w_arrows_key")),
+        GameMode.Overworld => (NoMapLayout ? UiText.S("game.3_n_e_s_w_arrows_nomap") : UiText.S("game.3_n_e_s_w_arrows")),
         GameMode.Town => UiText.S("game.arrows_enter_a_b_m_n"),
-        GameMode.Dungeon => UiText.S("game.3_n_e_s_w_arrows_2"),
+        GameMode.Dungeon => (NoMapLayout ? UiText.S("game.3_n_e_s_w_arrows_2_nomap") : UiText.S("game.3_n_e_s_w_arrows_2")),
         GameMode.Combat => UiText.S("game.1_6_orders_enter_keep_bksp"),
         _ => UiText.S("game.f11_scale_esc_menu"),
     };

@@ -12,26 +12,20 @@ scroll, LT fast-forward, RT + A = field command list, A in the Guild = Guild com
 
 Paths are relative to `src/OpenPhantasie.Client/` unless stated.
 
-## A. Bugs that hit every input (fix first)
+## A. Bugs that hit every input: done s187
 
-1. **IV street S icon saves instead of opening System** under Common Town Keys: the icon sends a plain `S`, which the
-   common-keys check turns into F5 (`P4DungeonScreen.cs:161-167`, `Panel.cs:163-185`). System can't be opened on the
-   street at all then (no key either). The test checks only keyboard S. Fix: the icon sends System itself; give System
-   a key / pad button under common keys.
-2. **LB + RB (Guild depart chord) also fires Save and Load** the same frame (`InputMap.cs:205-213`,
-   `Game1.cs:2178, 2180, 2535`): I / II save, reload, then toggle the Guild; III opens only the save question. Fix:
-   drop the chord (the town bar's Guild row and B cover it) or suppress Save / Load while both shoulders are held.
-3. **I Amiga field Party Options: Esc / B with a menu pulled down opens the game menu**; the Escape case in
-   `HandleFieldMenuKey` is unreachable (`CombatPresenter.cs:620-622, 2088-2092`). Add `P1FieldMenuShown` to the Esc case.
-4. Keyboard wording: `towndlg.type_amount_back_clear_digit_enter` ("…Enter withdraw") is reused on both deposit fields
-   (`P3TownDialogs.cs:19, 296`); `game.keep_window_ok_cancel` promises Y / N that `AmigaBankDialog.HandleKeys` ignores.
-5. Keyboard help names things not on screen: the map-only dungeon's `game.3_n_e_s_w_arrows_2` names "Tab auto-map
-   … [ ] party scroll" with no sidebar / overview (`Game1.cs:3523-3536`, add a `game.map_only_dungeon_help` + `.pad` as
-   the overworld has); "F2 map" is named for packs without `map_layout` (III, II Apple, I CGA), where F2 does nothing
-   (`Game1.cs:3467, 3518`). Guild / Title hint "A add, N new, G leave" is wrong in Title (`UiOverlays.cs:607`).
-6. Mouse-only, no key either: the Guild / Title member list scroll (`UiOverlays.cs:641-650`), IV's message / party box
-   scroll (`P4DungeonScreen.cs:1223-1257`; IV's update returns before the shared sidebar scroll), I Amiga's MESS window
-   early end by clicking a row (`Game1.MapMessage.cs:122`; Amiga-faithful, may stay).
+1. IV street S icon under Common Town Keys: the icon (click, pad Y / X + A) now presses F10, which opens System on the
+   street there (`P4DungeonScreen.SystemKeyCommon`); help `p4.town.help_menu_common` names "F10 system".
+2. The LB + RB Guild-depart chord is gone (`InputMap.PadHeld`); the Guild's A command list and the town bar cover it.
+3. I Amiga field Party Options: Esc / B with a menu pulled down closes the menu (`Game1` Esc route takes
+   `P1FieldMenuShown`).
+4. III deposit fields say "Enter deposit" (`towndlg.type_amount_deposit`); III Amiga Bank's list step has its own line
+   (`p3town.bank_window_help`, no Y / N).
+5. Field help without "F2 map" when the pack has no map layout (`*_nomap` ids, `Game1.MapHelpId`); the map-only dungeon
+   shows `game.map_only_help` (`Game1.FieldBandHelp`); the Title screen's Guild hint is `ui.title_guild_hint` (A / D).
+6. The Guild / Title member list scrolls by [ ] / the right stick; IV's party lines by [ ] / the right stick and its box
+   by , . / RT + the right stick (`SidebarScroll.Apply` in Game1). Kept: I Amiga's MESS early end by a click on a row
+   (Amiga-faithful). Not seen live yet (one pad pass at the end of the list).
 
 ## B. The digit wheel (one root cause behind ~30 dialog findings)
 
@@ -142,5 +136,5 @@ Paths are relative to `src/OpenPhantasie.Client/` unless stated.
 
 ## Suggested order
 
-A (all inputs) → B 7 + 9 (one change each, clears most dialog rows) → B 8 → C 10-13, D 24-26 → the rest → one live
+A (all inputs, done s187) → B 7 + 9 (one change each, clears most dialog rows) → B 8 → C 10-13, D 24-26 → the rest → one live
 virtual-pad pass on Xvfb.

@@ -604,7 +604,9 @@ public static partial class UiOverlays
         // block above them; past 16 rows the title and its subtitle share one line.
         var cardHeight = Math.Max(PartyStripLayout.CardHeight, PartyStripHeight(assets, session, 280));
         var extra = cardHeight - PartyStripLayout.CardHeight;
-        var hint = session.Roster.Occupied.Any() ? UiText.S("ui.a_add_to_party_n_new") : UiText.S("ui.n_creates_a_new_member");
+        // s187 (pad fix A5): the Title screen's Guild takes only A / D (no N, no G).
+        var hint = session.Mode == GameMode.Title ? UiText.S("ui.title_guild_hint")
+            : session.Roster.Occupied.Any() ? UiText.S("ui.a_add_to_party_n_new") : UiText.S("ui.n_creates_a_new_member");
         int hintY, stripTop;
         if (extra <= 16)
         {
