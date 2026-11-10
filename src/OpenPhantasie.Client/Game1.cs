@@ -1457,7 +1457,8 @@ public partial class Game1 : Game
             {
                 // s182 (Pad coverage): the pad's D-pad / stick / A as the keys this step takes (CombatPad), after the keyboard's.
                 var combatKeys = _input.NewKeys(keys)
-                    .Concat(_combatPad.KeysFor(_combatUi.PadStep(_session), _input.NewButtons(pad))).ToList();
+                    .Concat(_combatPad.KeysFor(_combatUi.PadStep(_session), _input.NewButtons(pad),
+                        SidebarScroll.RightTriggerHeld(pad))).ToList();
                 foreach (var key in combatKeys)
                 {
                     if (!_combatUi.HandleKey(_session, key))
@@ -2507,12 +2508,19 @@ public partial class Game1 : Game
 
     /// <summary>
     /// Esc (the game-menu key) on a prompt that takes it as an answer (<see cref="SessionPrompt.EscapeChoice"/>, III's keep
-    /// questions: Esc = No): answers it and returns true; otherwise false and Esc keeps its usual meaning.
+    /// questions: Esc = No): answers it and returns true; otherwise false and Esc keeps its usual meaning. s190 (pad fix
+    /// list C11): III Amiga's Bank share window takes Esc / pad B as its CANCEL (C), as the other windows do.
     /// </summary>
     private bool AnswerPromptWithEscape(KeyboardState keys, GamePadState pad)
     {
-        if (InventoryScreenOpen || _showInventory || _showBestiary || CurrentPrompt is not { EscapeChoice: { } esc } prompt
-            || !_input.Pressed(GameAction.GameMenu, keys, pad))
+        if (InventoryScreenOpen || _showInventory || _showBestiary || !_input.Pressed(GameAction.GameMenu, keys, pad))
+            return false;
+        if (CurrentPrompt is { } shares && AmigaShareWindowFor(shares) is not null)
+        {
+            _prompts.CancelBankDeposit(); // CANCEL: nothing deposited (s157)
+            return true;
+        }
+        if (CurrentPrompt is not { EscapeChoice: { } esc } prompt)
             return false;
         _promptMenu.Sync(prompt);
         AnswerPrompt(prompt, esc);
@@ -2743,12 +2751,10 @@ public partial class Game1 : Game
             return;
         }
 
-        // "Pad coverage" (s182): the D-pad (PressedMove) and A (Confirm) already work here, B leaves (BackOut); the left
-        // stick steps the list too, as the D-pad.
-        var stick = _input.NewButtons(pad).ToList();
-        if (_input.PressedMove(CardinalDirection.North, keys, pad) || stick.Contains(Buttons.LeftThumbstickUp))
+        // "Pad coverage" (s182): the D-pad and the left stick (PressedMove, s190) and A (Confirm) work here, B leaves (BackOut).
+        if (_input.PressedMove(CardinalDirection.North, keys, pad))
             _townCursor = Math.Max(0, _townCursor - 1);
-        if (_input.PressedMove(CardinalDirection.South, keys, pad) || stick.Contains(Buttons.LeftThumbstickDown))
+        if (_input.PressedMove(CardinalDirection.South, keys, pad))
             _townCursor = Math.Min(Math.Max(0, _townStock.Count - 1), _townCursor + 1);
 
         if (shopper is not null && _input.Pressed(GameAction.Confirm, keys, pad) && _townStock.Count > 0)

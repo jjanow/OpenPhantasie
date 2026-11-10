@@ -245,8 +245,8 @@ public class ImportScreenTests : IDisposable
             Assert.Equal(root, s.BrowseFolder);
             Assert.Equal(UiText.S("import.help.browse.pad"), Shown(s));
             // Up, use this folder, then folders (visible first), then files.
-            Assert.Equal([ImportScreen.BrowseKind.Up, ImportScreen.BrowseKind.UseFolder, ImportScreen.BrowseKind.Folder,
-                ImportScreen.BrowseKind.Folder, ImportScreen.BrowseKind.File], s.BrowseEntries.Select(e => e.Kind));
+            Assert.Equal([FileBrowser.EntryKind.Up, FileBrowser.EntryKind.UseFolder, FileBrowser.EntryKind.Folder,
+                FileBrowser.EntryKind.Folder, FileBrowser.EntryKind.File], s.BrowseEntries.Select(e => e.Kind));
             Assert.Equal("games" + Path.DirectorySeparatorChar, s.BrowseEntries[2].Name);
             Assert.Equal(".hidden" + Path.DirectorySeparatorChar, s.BrowseEntries[3].Name);
             Assert.Equal(2, s.Cursor); // the first folder

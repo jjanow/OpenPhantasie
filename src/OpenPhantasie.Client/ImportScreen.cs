@@ -61,7 +61,7 @@ public sealed class ImportScreen
         string? browseHome = null)
     {
         ImportRoot = importRoot;
-        _browseHome = browseHome ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        _browser = new FileBrowser(browseHome);
         _run = run ?? ((paths, progress) =>
             new ImportRunner(importRoot, GameDataLocator.ShippedRoot).Run(ImportRunner.Scan(paths), progress));
         _refresh = refresh ?? (progress => new ImportRunner(importRoot, GameDataLocator.ShippedRoot).Refresh(progress));
@@ -77,7 +77,7 @@ public sealed class ImportScreen
     /// <summary>Selected row (see <see cref="RowCount"/>); while browsing, the browser's row.</summary>
     public int Cursor
     {
-        get => Browsing ? _browseCursor : _cursor;
+        get => Browsing ? _browser.Cursor : _cursor;
         private set => _cursor = value;
     }
 
@@ -98,135 +98,44 @@ public sealed class ImportScreen
 
     // --- The folder browser (s183) ------------------------------------------------------------------------------------
     // A pad can't type a path, so Tab (pad Y) on the path row, or on the missing file's row, opens a browser of the
-    // folders and files on this machine: Up / Down move, Return opens a folder (or picks a file), Backspace / Left goes up,
-    // Space picks the row (a folder or a file), Esc closes it. The keyboard can use it too.
+    // folders and files on this machine (<see cref="FileBrowser"/>, shared with the DOS save dialog since s190). The
+    // keyboard can use it too.
 
-    private readonly string _browseHome;
-    private string? _browseDir; // null: the drive list (Windows, above a drive's root)
-    private string? _lastBrowseDir;
-    private List<BrowseEntry> _entries = [];
-    private int _browseCursor;
-    private bool _browseUnreadable;
-
-    /// <summary>One row of the browser: up one folder, use this folder, or a folder / file in it.</summary>
-    public sealed record BrowseEntry(BrowseKind Kind, string Name, string Path);
-
-    public enum BrowseKind { Up, UseFolder, Folder, File }
+    private readonly FileBrowser _browser;
 
     /// <summary>The folder browser is open (it takes the keys and the rows).</summary>
     public bool Browsing { get; private set; }
 
     /// <summary>The folder the browser shows (null: the drive list).</summary>
-    public string? BrowseFolder => _browseDir;
+    public string? BrowseFolder => _browser.Folder;
 
     /// <summary>The browser's rows (<see cref="Cursor"/> picks one while browsing).</summary>
-    public IReadOnlyList<BrowseEntry> BrowseEntries => _entries;
+    public IReadOnlyList<FileBrowser.Entry> BrowseEntries => _browser.Entries;
 
     /// <summary>Open the browser where the typed path points (its folder), else where it was last, else at home.</summary>
     private void OpenBrowser()
     {
-        var typed = Checked(Typed);
-        var start = typed is not null && Directory.Exists(typed) ? typed
-            : typed is not null ? Path.GetDirectoryName(typed)
-            : _lastBrowseDir is not null && Directory.Exists(_lastBrowseDir) ? _lastBrowseDir
-            : _browseHome;
         Browsing = true;
         Scroll.Reset();
-        BrowseTo(start);
-    }
-
-    /// <summary>Show <paramref name="dir"/> (null: the drive list) with the cursor on <paramref name="select"/>, if listed.</summary>
-    private void BrowseTo(string? dir, string? select = null)
-    {
-        _browseDir = dir;
-        _browseUnreadable = false;
-        var entries = new List<BrowseEntry>();
-        if (dir is null)
-        {
-            foreach (var d in DriveInfo.GetDrives().Where(d => d.IsReady))
-                entries.Add(new BrowseEntry(BrowseKind.Folder, d.Name, d.RootDirectory.FullName));
-        }
-        else
-        {
-            _lastBrowseDir = dir;
-            if (Path.GetDirectoryName(dir) is not null || OperatingSystem.IsWindows())
-                entries.Add(new BrowseEntry(BrowseKind.Up, UiText.S("import.browse.up"), ""));
-            entries.Add(new BrowseEntry(BrowseKind.UseFolder, UiText.S("import.browse.use"), dir));
-            try
-            {
-                var info = new DirectoryInfo(dir);
-                // Visible names first, then hidden ones (a Steam library sits under ~/.local), each A-Z.
-                static IEnumerable<T> Sorted<T>(IEnumerable<T> items) where T : FileSystemInfo =>
-                    items.OrderBy(i => i.Name.StartsWith('.')).ThenBy(i => i.Name, StringComparer.OrdinalIgnoreCase);
-                entries.AddRange(Sorted(info.EnumerateDirectories()).Select(d =>
-                    new BrowseEntry(BrowseKind.Folder, d.Name + Path.DirectorySeparatorChar, d.FullName)));
-                entries.AddRange(Sorted(info.EnumerateFiles()).Select(f => new BrowseEntry(BrowseKind.File, f.Name, f.FullName)));
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Security.SecurityException)
-            {
-                _browseUnreadable = true;
-            }
-        }
-        _entries = entries;
-        var at = select is null ? -1 : entries.FindIndex(e => e.Path == select);
-        _browseCursor = at >= 0 ? at : entries.FindIndex(e => e.Kind is BrowseKind.Folder or BrowseKind.File) is var first and >= 0
-            ? first : 0;
-        Scroll.Reset();
-    }
-
-    /// <summary>Up one folder (the drive list above a Windows drive's root); the cursor lands on the folder left.</summary>
-    private void BrowseUp()
-    {
-        if (_browseDir is null)
-            return;
-        var parent = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(_browseDir));
-        if (parent is null && !OperatingSystem.IsWindows())
-            return; // the root
-        BrowseTo(parent, _browseDir);
+        _browser.Open(Checked(Typed));
     }
 
     /// <summary>The browser's keys.</summary>
     private void BrowseKey(Keys key)
     {
-        var count = _entries.Count;
-        var entry = _browseCursor < count ? _entries[_browseCursor] : null;
-        switch (key)
+        var folder = _browser.Folder;
+        switch (_browser.Key(key, VisibleLines))
         {
-            case Keys.Up when count > 0:
-                _browseCursor = (_browseCursor + count - 1) % count;
-                break;
-            case Keys.Down when count > 0:
-                _browseCursor = (_browseCursor + 1) % count;
-                break;
-            case Keys.PageUp:
-                _browseCursor = Math.Max(0, _browseCursor - VisibleLines);
-                break;
-            case Keys.PageDown:
-                _browseCursor = Math.Max(0, Math.Min(count - 1, _browseCursor + VisibleLines));
-                break;
-            case Keys.Back or Keys.Left:
-                BrowseUp();
-                break;
-            case Keys.Escape:
+            case FileBrowser.Outcome.Closed:
                 Browsing = false;
                 Scroll.Reset();
                 break;
-            case Keys.Enter or Keys.Right when entry is not null:
-                switch (entry.Kind)
-                {
-                    case BrowseKind.Up:
-                        BrowseUp();
-                        break;
-                    case BrowseKind.Folder:
-                        BrowseTo(entry.Path);
-                        break;
-                    case BrowseKind.UseFolder or BrowseKind.File when key == Keys.Enter:
-                        BrowsePick(entry.Path);
-                        break;
-                }
+            case FileBrowser.Outcome.Picked:
+                BrowsePick(_browser.Picked);
                 break;
-            case Keys.Space when entry is { Kind: not BrowseKind.Up }:
-                BrowsePick(entry.Path);
+            default:
+                if (_browser.Folder != folder)
+                    Scroll.Reset();
                 break;
         }
     }
@@ -253,15 +162,15 @@ public sealed class ImportScreen
         {
             new(AskingForOffer ? UiText.S("import.browse.title.offer") : UiText.S("import.browse.title"), MenuLineStyle.Title),
         };
-        lines.AddRange(Wrap(_browseDir ?? UiText.S("import.browse.drives"), MenuLineStyle.Header));
-        if (_browseUnreadable)
+        lines.AddRange(Wrap(_browser.Folder ?? UiText.S("import.browse.drives"), MenuLineStyle.Header));
+        if (_browser.Unreadable)
             lines.AddRange(Wrap(UiText.S("import.browse.unreadable"), MenuLineStyle.Dim));
         return lines;
     }
 
     private List<MenuLine> BrowseRows() =>
-        [.. _entries.Select((e, i) => new MenuLine((i == _browseCursor ? ">" : " ") + Tail(e.Name, Columns - 1),
-            i == _browseCursor ? MenuLineStyle.Selected : e.Kind == BrowseKind.UseFolder ? MenuLineStyle.Header : MenuLineStyle.Normal))];
+        [.. _browser.Entries.Select((e, i) => new MenuLine((i == _browser.Cursor ? ">" : " ") + Tail(e.Name, Columns - 1),
+            i == _browser.Cursor ? MenuLineStyle.Selected : e.Kind == FileBrowser.EntryKind.UseFolder ? MenuLineStyle.Header : MenuLineStyle.Normal))];
 
     public void Open(bool firstRun)
     {
@@ -503,12 +412,7 @@ public sealed class ImportScreen
         foreach (var b in buttons)
         {
             var k = Browsing
-                ? b switch
-                {
-                    Buttons.X => Keys.Space,
-                    Buttons.Y => Keys.Back,
-                    _ => InputMap.MenuPadKey(b),
-                }
+                ? FileBrowser.PadKey(b)
                 : ShowingReport
                     ? b == Buttons.Y && _offer is not null ? Keys.A : InputMap.MenuPadKey(b)
                     : b switch
@@ -529,7 +433,7 @@ public sealed class ImportScreen
         if (Running || ShowingReport)
             return null;
         var row = line - HeaderCount + Scroll.Offset;
-        var rows = Browsing ? _entries.Count : RowCount;
+        var rows = Browsing ? _browser.Entries.Count : RowCount;
         return line >= HeaderCount && line < HeaderCount + VisibleLines && row < rows ? row : null;
     }
 

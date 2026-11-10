@@ -173,8 +173,9 @@ that IV always has three slots (ON in the list, OFF on the original's Save scree
 - **The picker is the remaster's own screen in every look** (switch on). IV with the switch off uses the original's
   Save page instead (section 2a).
 - **IV's "Now Saving..."** (`_save`'s window) is not drawn: the note says "Saved in slot k." `[~]`.
-- **Other games' reads** take the newest slot of the source game. There is no picker for which slot a transfer or the
-  Hall reads `[~]`.
+- **Other games' reads** take the newest slot of the source game. A transfer's file step starts there; another slot
+  is reached by typing its path or by the step's browser (Tab / pad Y, s190), not by a slot picker. IV's Hall reads the
+  newest slot with no choice `[~]`.
 - **Main menu load in I–III** builds a new game first and then loads, as F9 after Play does. Esc in D-069's
   Guild-number question leaves the player in that new game `[~]`.
 - **IV's town names** need the running campaign's tables. In the picker over the main menu (IV with its title screen

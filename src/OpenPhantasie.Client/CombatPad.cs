@@ -11,7 +11,9 @@ namespace OpenPhantasie.Client;
 /// (save / load), LT (fast-forward) and Back stay the game's own (<c>HandleGlobalInput</c>), so no button acts twice. On a step with picks (<see cref="CombatPadStep.Picks"/>) the D-pad steps a pick (wrapping; a first
 /// Down / Right shows the first entry, a first Up / Left the last) that the help line names, and A sends its keys;
 /// before a pick A sends the step's <see cref="CombatPadStep.AKey"/> (Return: keep the order, take the lit entry).
-/// Elsewhere the D-pad is the arrows. It never sends Esc or PgUp / PgDn.
+/// Elsewhere the D-pad is the arrows. It never sends Esc. s190 (pad fix list C12): the right stick up / down scrolls the
+/// log (PgUp / PgDn), with RT held the monster-rank box (Home / End), as I–III's field sidebar takes it (the stick's left /
+/// right is the pad's F2). On the two steps where RT is a key of its own (CANCEL / Thrust) its press still sends that key.
 /// </summary>
 public sealed class CombatPad
 {
@@ -28,7 +30,7 @@ public sealed class CombatPad
     }
 
     /// <summary>The keys this frame's newly pressed <paramref name="buttons"/> send on <paramref name="step"/>.</summary>
-    public IReadOnlyList<Keys> KeysFor(CombatPadStep? step, IEnumerable<Buttons> buttons)
+    public IReadOnlyList<Keys> KeysFor(CombatPadStep? step, IEnumerable<Buttons> buttons, bool rightTriggerHeld = false)
     {
         ArgumentNullException.ThrowIfNull(buttons);
         if (step is null)
@@ -55,6 +57,8 @@ public sealed class CombatPad
                 else
                     keys.Add(arrow);
             }
+            else if (ScrollKey(b, rightTriggerHeld) is var scroll and not Keys.None)
+                keys.Add(scroll);
             else if (b == Buttons.RightTrigger)
             {
                 if (step.RightTriggerKey != Keys.None)
@@ -71,6 +75,17 @@ public sealed class CombatPad
         }
         return keys;
     }
+
+    /// <summary>
+    /// The right stick's scroll key (<see cref="CombatPresenter.HandleKey"/>): PgUp / PgDn the log, with RT held Home / End
+    /// the rank box.
+    /// </summary>
+    public static Keys ScrollKey(Buttons button, bool rightTriggerHeld) => button switch
+    {
+        Buttons.RightThumbstickUp => rightTriggerHeld ? Keys.Home : Keys.PageUp,
+        Buttons.RightThumbstickDown => rightTriggerHeld ? Keys.End : Keys.PageDown,
+        _ => Keys.None,
+    };
 
     /// <summary>
     /// The help line while the pad has picked on <paramref name="step"/>: the pick's number and label (a spell by

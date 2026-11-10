@@ -7,7 +7,7 @@ is the complete list as of s186: a fix found later in play means the audit misse
 
 Pad today (for reference): D-pad / left stick = arrows, A = Return, B = Esc, LB / RB = Save / Load (PgUp / PgDn in
 menus), X inventory, Y bestiary, Back auto-map, L3 / R3 turn, right stick sideways = F2, up / down = sidebar / prompt
-scroll, LT fast-forward, RT + A = field command list, A in the Guild = Guild command list. IV maps its own
+scroll (in a fight the log, RT + stick the rank box), LT fast-forward, RT + A = field command list, A in the Guild = Guild command list. IV maps its own
 (`P4DungeonScreen.Pad.cs`: Y / X step clickable icons, Start = Esc, B = N / Space / Backspace by context).
 
 Paths are relative to `src/OpenPhantasie.Client/` unless stated.
@@ -50,17 +50,13 @@ B7 and B9 done s188, B8 s189 (none seen live):
 
 ## C. No pad route (I–III, front end)
 
-10. **DOS-save folder and transfer file typing** (`DosSaveDialog.cs:101-167, 210-215`): pad A takes only the path
-    shown (last folder / newest slot). Older slots, outside files and other folders are unreachable; the mouse can't
-    either. Fix: Import's folder browser on Y (a letter wheel can't make `/ . - _ ~ :`); for transfers, or a pick list of
-    the source game's slots. Then reword `dossave.type_folder_…pad` / `transfer.type_file_…pad`.
-11. **III Amiga Bank deposit share window: CANCEL** (`Game1.cs:2336-2345`, `P3TownDialogs.cs:430-435`): BankShares has
-    no `EscapeChoice`, so B opens the game menu. Give it one (B = C) and add "B cancel" to the twin.
-12. **Combat log and monster-rank box scroll** (`CombatPresenter.cs:1052-1061`): PgUp / PgDn / Home / End / wheel only;
-    the right stick is unused in fights. Right stick up / down = log, RT + right stick = rank box.
-13. **Left stick on the map, old inventory overlay and bestiary**, and **diagonal steps** with DIAGONAL MOVES on:
-    `PressedMove` reads `pad.DPad` only (`InputMap.cs:145-175`). Read `_stickPush` there, eight-way in the field when the
-    option is on; update `options.diagonal_moves.desc` and the SidebarScroll doc.
+10-13 done s190: Y (Tab) on the DOS save / transfer path opens Import's browser (`FileBrowser.cs`, shared); B / Esc
+cancels III Amiga's share window; the right stick scrolls a fight's log, RT + right stick its rank box (not left / right:
+that is the pad's F2, `RightStickSideways`; on the two steps where RT is CANCEL / Thrust its press still sends that);
+the left stick steps the map, the old inventory overlay, the bestiary and the Armory list (`PressedMove`), on a slant
+with DIAGONAL MOVES on (an eight-way quantiser beside the menus' four-way one). Routing in `Game1` (share window, fight)
+not unit-tested; none seen live.
+
 14. **Modern inventory's detail box scroll** (`[` / `]`, `InventoryScreen.cs:400`): no button. Right stick left / right;
     name both right-stick scrolls in `inventory.help_pad`.
 15. **Distribute without resting** (`TownMenu.cs:233`): the DOS-row town bar's D has no pad row; the pad reaches
@@ -119,7 +115,7 @@ B7 and B9 done s188, B8 s189 (none seen live):
     Enter to restart" (and B restarts there too); III Amiga Bank pick step's twin lacks "D-pad pick".
 31. Options descriptions can't take pad wording at all: `Detail()` draws `UiText.S(desc)` raw
     (`OptionsScreen.cs:447`); route it through `PadWording.S`, then twins for WINDOW SCALE (F11), TITLE SCREEN (Esc),
-    AUTO-MAP (Tab → Back), COMBAT SPEED (Shift → LT), DIAGONAL MOVES.
+    AUTO-MAP (Tab → Back), COMBAT SPEED (Shift → LT). (DIAGONAL MOVES names the stick in its own text since s190.)
 32. Wording: `import.help.path.pad`, `dossave.up_down_scroll_enter_close.pad` say "Up/Down" where others say "D-pad".
 
 ## F. Cleanup
@@ -133,9 +129,9 @@ B7 and B9 done s188, B8 s189 (none seen live):
 - No pad remapping (keys are rebindable in the settings JSON only; no UI for either).
 - Import's browser can't reach an unmapped UNC share.
 - Not seen live (from the old leftovers): the right stick's prompt scroll, the II / III-only pad lines, III Amiga's
-  share window. Check them during the live pass after the fixes.
+  share window (B cancel since s190). Check them during the live pass after the fixes.
 
 ## Suggested order
 
-A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13, D 24-26 → the rest → one live
-virtual-pad pass on Xvfb.
+A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 → the rest → one
+live virtual-pad pass on Xvfb.

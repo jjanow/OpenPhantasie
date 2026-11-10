@@ -12,7 +12,7 @@ namespace OpenPhantasie.Client;
 /// <c>,</c> / <c>.</c> the terrain key. Not the arrows, Home / End / PgUp / PgDn (field steps, the diagonals switch), nor
 /// III's outside-bar keys (<c>+ = - ? / P</c>, <see cref="AmigaOutsideBar.ForKey"/>).</item>
 /// <item>Pad: the right stick up / down the party cards, with the right trigger held the terrain key (the D-pad and left
-/// stick step, the stick clicks turn, the left trigger fast-forwards).</item>
+/// stick step, the stick on a slant with DIAGONAL MOVES on, the stick clicks turn, the left trigger fast-forwards).</item>
 /// </list>
 /// </summary>
 public static class SidebarScroll

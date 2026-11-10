@@ -78,9 +78,9 @@ public partial class Game1
     /// <summary>A dialog step whose menu moves with Left / Right (<see cref="IPadArrows"/>): the pad's wheel stays off there.</summary>
     private static bool ModalTakesLeftRight(IModalDialog modal) => modal is IPadArrows { TakesLeftRight: true };
 
-    /// <summary>The DOS save dialog's pad: its Y / N steps take A = Y, X = N; elsewhere the menu pad (A = Return, B = Esc).</summary>
+    /// <summary>The DOS save dialog's pad: its Y / N steps take A = Y, X = N; elsewhere its own (<see cref="DosSaveDialog.PadKeys"/>).</summary>
     private IEnumerable<Keys> DosDialogPadKeys(GamePadState pad) =>
-        _dosDialog.AsksYesNo ? DialogPad.YesNoKeys(_input.NewButtons(pad)) : InputMap.MenuPadKeys(_input.NewButtons(pad));
+        _dosDialog.AsksYesNo ? DialogPad.YesNoKeys(_input.NewButtons(pad)) : _dosDialog.PadKeys(_input.NewButtons(pad));
 
     /// <summary>
     /// The pad on a prompt (<see cref="HandlePrompt"/>): the D-pad / stick are the arrows and A is Return. B never gets here

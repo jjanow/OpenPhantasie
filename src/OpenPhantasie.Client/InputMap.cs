@@ -75,6 +75,10 @@ public sealed class InputMap
     private readonly StickQuantizer _menuStick = new();
     private IReadOnlyList<Buttons> _stickPush = [];
 
+    /// <summary>s190 (pad fix list C13): the same stick read eight ways, for a diagonal step on the map (DIAGONAL MOVES).</summary>
+    private readonly StickQuantizer _fieldStick = new();
+    private (int Dx, int Dy)? _fieldPush;
+
     /// <summary>
     /// s185 (Pad leftovers): read the left stick once a frame, before any <see cref="NewButtons"/>. The stick's raw buttons
     /// cross their thresholds on different frames (a diagonal push came as Up, then Right); here a push counts once,
@@ -82,10 +86,16 @@ public sealed class InputMap
     /// this frame. I–III's menus, lists and prompts read it so; IV filters the stick's buttons out and runs its own
     /// (eight-way) quantiser.
     /// </summary>
-    public void TickStick(GamePadState pad, double elapsedMs) =>
+    public void TickStick(GamePadState pad, double elapsedMs)
+    {
         _stickPush = _menuStick.Update(pad.ThumbSticks.Left, elapsedMs, eightWay: false) is { } push
             ? StickQuantizer.ButtonsOf(push)
             : [];
+        _fieldPush = _fieldStick.Update(pad.ThumbSticks.Left, elapsedMs, eightWay: true);
+    }
+
+    /// <summary>This frame's left-stick push (<see cref="TickStick"/>) is <paramref name="button"/>.</summary>
+    private bool StickPushed(Buttons button) => _stickPush.Contains(button);
 
     private static readonly Buttons[] AllButtons = Enum.GetValues<Buttons>();
 
@@ -119,7 +129,10 @@ public sealed class InputMap
     public IEnumerable<Keys> MenuKeys(KeyboardState keys, GamePadState pad) =>
         NewKeys(keys).Concat(MenuPadKeys(NewButtons(pad)));
 
-    /// <summary>A list / cursor step: the bound move key (N / S / W / E by default), an arrow key or the D-pad.</summary>
+    /// <summary>
+    /// A list / cursor step: the bound move key (N / S / W / E by default), an arrow key, the D-pad or (s190, pad fix list
+    /// C13) a push of the left stick (<see cref="TickStick"/>: one step a push, four ways).
+    /// </summary>
     public bool PressedMove(CardinalDirection dir, KeyboardState keys, GamePadState pad)
     {
         var action = dir switch
@@ -145,24 +158,31 @@ public sealed class InputMap
         return dir switch
         {
             CardinalDirection.North =>
-                pad.DPad.Up == ButtonState.Pressed && _prevPad.DPad.Up == ButtonState.Released,
+                pad.DPad.Up == ButtonState.Pressed && _prevPad.DPad.Up == ButtonState.Released
+                || StickPushed(Buttons.LeftThumbstickUp),
             CardinalDirection.South =>
-                pad.DPad.Down == ButtonState.Pressed && _prevPad.DPad.Down == ButtonState.Released,
+                pad.DPad.Down == ButtonState.Pressed && _prevPad.DPad.Down == ButtonState.Released
+                || StickPushed(Buttons.LeftThumbstickDown),
             CardinalDirection.West =>
-                pad.DPad.Left == ButtonState.Pressed && _prevPad.DPad.Left == ButtonState.Released,
+                pad.DPad.Left == ButtonState.Pressed && _prevPad.DPad.Left == ButtonState.Released
+                || StickPushed(Buttons.LeftThumbstickLeft),
             _ =>
-                pad.DPad.Right == ButtonState.Pressed && _prevPad.DPad.Right == ButtonState.Released,
+                pad.DPad.Right == ButtonState.Pressed && _prevPad.DPad.Right == ButtonState.Released
+                || StickPushed(Buttons.LeftThumbstickRight),
         };
     }
 
     /// <summary>
     /// A step on the wilderness or dungeon map as (dx, dy), y growing south, or null. Four-way: <see cref="PressedMove"/>
     /// plus the manual's <c>3</c> for north (D-076: the 3-E-S-W diamond) and numpad 8 / 2 / 4 / 6. With
-    /// <paramref name="diagonals"/> (QoL) numpad 7 / 9 / 1 / 3, or Home / PgUp / End / PgDn when Num Lock is off.
+    /// <paramref name="diagonals"/> (QoL) numpad 7 / 9 / 1 / 3, or Home / PgUp / End / PgDn when Num Lock is off, and
+    /// (s190, pad fix list C13) the left stick pushed on a diagonal (read eight ways; four ways with the option off).
     /// </summary>
     public (int Dx, int Dy)? PressedFieldMove(KeyboardState keys, GamePadState pad, bool diagonals)
     {
         bool New(Keys k) => this.New(keys, k);
+
+        if (diagonals && _fieldPush is { Dx: not 0, Dy: not 0 } slant) return slant;
 
         if (PressedMove(CardinalDirection.North, keys, pad) || New(Keys.D3) || New(Keys.NumPad8)) return (0, -1);
         if (PressedMove(CardinalDirection.South, keys, pad) || New(Keys.NumPad2)) return (0, 1);

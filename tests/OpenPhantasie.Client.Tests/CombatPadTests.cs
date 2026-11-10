@@ -353,7 +353,9 @@ public class CombatPadTests
         var pad = new CombatPad();
         var step = new CombatPadStep("x", [new("ONE", [Keys.D1])]);
         Assert.Empty(pad.KeysFor(step, [Buttons.B, Buttons.X, Buttons.Y, Buttons.LeftShoulder, Buttons.RightShoulder,
-            Buttons.Back, Buttons.Start, Buttons.LeftTrigger, Buttons.RightTrigger, Buttons.RightThumbstickUp]));
+            Buttons.Back, Buttons.Start, Buttons.LeftTrigger, Buttons.RightTrigger]));
+        // s190 (pad fix list C12): only the right stick pages, the log and the rank box (LB / RB stay Save / Load).
+        Assert.Equal([Keys.PageUp], pad.KeysFor(step, [Buttons.RightThumbstickUp]));
         Assert.Equal([Keys.Enter], pad.KeysFor(step, [Buttons.A]));
         Assert.Equal([Keys.D1], pad.KeysFor(step, [Buttons.DPadLeft, Buttons.A]));
     }

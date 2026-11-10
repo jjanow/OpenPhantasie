@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework.Input;
+using Buttons = Microsoft.Xna.Framework.Input.Buttons;
 using OpenPhantasie.Core;
 using OpenPhantasie.Data;
 
@@ -11,9 +12,19 @@ namespace OpenPhantasie.Client;
 /// </summary>
 public sealed class DosSaveDialog : IPadYesNo
 {
-    public enum Step { Closed, EnterPath, ConfirmOverwrite, ConfirmReplace, ShowWarnings, ReviewCharacter }
+    public enum Step { Closed, EnterPath, Browse, ConfirmOverwrite, ConfirmReplace, ShowWarnings, ReviewCharacter }
 
     private const int WarningsPerPage = 9;
+
+    /// <summary>The browser's rows per page (under its title and folder lines).</summary>
+    public const int BrowseRowsPerPage = 9;
+
+    /// <summary>
+    /// s190 (pad fix list C10): the path step's browser (Tab, pad Y), so a pad can reach any folder or save file; the
+    /// keyboard can use it too. A pick fills the path and confirms it (Return).
+    /// </summary>
+    private readonly FileBrowser _browser = new();
+    private int _browseOffset;
 
     private readonly ClientSettings _settings;
     private bool _export;
@@ -168,11 +179,17 @@ public sealed class DosSaveDialog : IPadYesNo
 
     /// <summary>Lines the overlay shows for the current step.</summary>
     /// <summary>The warnings page when the report is longer than one (the panel's bar).</summary>
-    public ListPage? Page => Current == Step.ShowWarnings ? ListPage.Of(0, WarningsPerPage, Scroll, _report.Count) : null;
+    public ListPage? Page => Current switch
+    {
+        Step.ShowWarnings => ListPage.Of(0, WarningsPerPage, Scroll, _report.Count),
+        Step.Browse => ListPage.Of(BrowseHeaderLines, BrowseRowsPerPage, _browseOffset, _browser.Entries.Count),
+        _ => null,
+    };
 
     public IReadOnlyList<string> Lines => Current switch
     {
         Step.EnterPath => [Title, Tail(Path + "_", 48)],
+        Step.Browse => BrowseLines(),
         Step.ConfirmOverwrite => [UiText.S("dossave.the_folder_already_holds_dos_save"), Tail(Path, 48), UiText.S("dossave.overwrite_them")],
         Step.ConfirmReplace when _intoIII => [TitleIntoIII, UiText.S("transfer.erase_question_iii"), UiText.S("dossave.unsaved_progress_is_lost")],
         Step.ReviewCharacter => ReviewLines(),
@@ -187,6 +204,7 @@ public sealed class DosSaveDialog : IPadYesNo
     public string Help => Current switch
     {
         Step.EnterPath when _transfer => UiText.S("transfer.type_file_del_clear_enter_ok"),
+        Step.Browse => UiText.S("import.help.browse"),
         Step.EnterPath => UiText.S("dossave.type_folder_del_clear_enter_ok"),
         Step.ConfirmOverwrite or Step.ConfirmReplace => UiText.S("dossave.y_yes_n_no"),
         Step.ReviewCharacter => UiText.S("transfer.y_keep_n_skip_esc_cancel"),
@@ -212,6 +230,19 @@ public sealed class DosSaveDialog : IPadYesNo
                     if (key == Keys.Delete) { Path = ""; continue; }
                     if (key == Keys.Back && !_textBackspace && Path.Length > 0) { Path = Path[..^1]; continue; }
                     if (key == Keys.Enter) return ConfirmPath(session, data);
+                    if (key == Keys.Tab) OpenBrowser();
+                    continue;
+
+                case Step.Browse:
+                    switch (_browser.Key(key, BrowseRowsPerPage))
+                    {
+                        case FileBrowser.Outcome.Closed:
+                            Current = Step.EnterPath;
+                            continue;
+                        case FileBrowser.Outcome.Picked when BrowsePick(_browser.Picked):
+                            return ConfirmPath(session, data);
+                    }
+                    FollowBrowseCursor();
                     continue;
 
                 case Step.ConfirmOverwrite:
@@ -249,6 +280,82 @@ public sealed class DosSaveDialog : IPadYesNo
         }
         return null;
     }
+
+    /// <summary>
+    /// The pad on the dialog's menu steps (its Y / N steps use <see cref="DialogPad.YesNoKeys"/>): the menu map, plus Y
+    /// for the browser on the path step (Tab) and the browser's own buttons (<see cref="FileBrowser.PadKey"/>) in it.
+    /// </summary>
+    public IEnumerable<Keys> PadKeys(IEnumerable<Buttons> buttons) =>
+        buttons.Select(b => Current switch
+        {
+            Step.Browse => FileBrowser.PadKey(b),
+            Step.EnterPath when b == Buttons.Y => Keys.Tab,
+            _ => InputMap.MenuPadKey(b),
+        }).Where(k => k != Keys.None);
+
+    /// <summary>The browser: at the path typed (its folder, or the save file itself for a transfer).</summary>
+    private void OpenBrowser()
+    {
+        var near = Path.Trim();
+        if (near.StartsWith('~'))
+            near = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + near[1..];
+        _browser.Open(near);
+        _browseOffset = 0;
+        FollowBrowseCursor();
+        Current = Step.Browse;
+    }
+
+    /// <summary>
+    /// A browser pick: a transfer takes a file (a folder picked opens it); the DOS save takes a folder (a file picked
+    /// stands for its folder). True when the path is set and ready to confirm.
+    /// </summary>
+    private bool BrowsePick(string picked)
+    {
+        if (_transfer)
+        {
+            if (Directory.Exists(picked))
+            {
+                _browser.BrowseTo(picked);
+                _browseOffset = 0;
+                return false;
+            }
+            Path = picked;
+            return true;
+        }
+        Path = File.Exists(picked) ? System.IO.Path.GetDirectoryName(picked) ?? picked : picked;
+        return true;
+    }
+
+    /// <summary>Lines above the browser's rows: the title and the folder shown.</summary>
+    private const int BrowseHeaderLines = 2;
+
+    private IReadOnlyList<string> BrowseLines()
+    {
+        var lines = new List<string>
+        {
+            _transfer ? UiText.S("import.browse.title.offer") : UiText.S("dossave.browse_title"),
+            Tail(_browser.Folder ?? UiText.S("import.browse.drives"), 48),
+        };
+        if (_browser.Unreadable)
+            lines[1] = Tail(UiText.S("import.browse.unreadable"), 48);
+        for (var i = _browseOffset; i < Math.Min(_browser.Entries.Count, _browseOffset + BrowseRowsPerPage); i++)
+            lines.Add((i == _browser.Cursor ? ">" : " ") + Tail(_browser.Entries[i].Name, 47));
+        return lines;
+    }
+
+    /// <summary>Keep the cursor's row on the browser's page.</summary>
+    private void FollowBrowseCursor()
+    {
+        var cursor = _browser.Cursor;
+        if (cursor < _browseOffset)
+            _browseOffset = cursor;
+        else if (cursor >= _browseOffset + BrowseRowsPerPage)
+            _browseOffset = cursor - BrowseRowsPerPage + 1;
+        _browseOffset = Math.Max(0, Math.Min(_browseOffset, _browser.Entries.Count - BrowseRowsPerPage));
+    }
+
+    /// <summary>The browser (tests): its folder and the row under its cursor.</summary>
+    public FileBrowser Browser => _browser;
 
     private string? ConfirmPath(GameSession session, GameDataRepository data)
     {

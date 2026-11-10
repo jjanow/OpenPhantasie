@@ -78,8 +78,8 @@ public sealed class PadWordingSeriesTests
     [Fact]
     public void TheWordings_NameOnlyButtonsTheirScreensTake()
     {
-        // The shares window: B is the game menu there (no CANCEL by pad), so its wording names no B.
-        Assert.DoesNotContain("B ", UiText.S("p3town.bank_window_shares_help.pad"), StringComparison.Ordinal);
+        // The shares window: B is its CANCEL since s190 (pad fix list C11).
+        Assert.EndsWith("B cancel", UiText.S("p3town.bank_window_shares_help.pad"), StringComparison.Ordinal);
         // Steps taking a digit only (A does nothing): the wheel's X, no A.
         foreach (var id in new[] { "lineage.kind_help.pad", "lineage.race_help.pad", "p3train.help.pad", "p3town.trade_to_help.pad" })
         {
