@@ -285,6 +285,18 @@ public sealed class ImportScreen
         return false;
     }
 
+    /// <summary>
+    /// "Pad coverage" (s182): a pad on this screen. The shared map (<see cref="InputMap.MenuPadKey"/>: D-pad / stick =
+    /// arrows, A = Return, B = Esc, LB / RB = PgUp / PgDn) plus X for Delete (removes the added path under the cursor).
+    /// A pad can't type a path (the typed row and the report's A offer need a keyboard or a dropped file); it adds the
+    /// Steam / GOG library rows, runs IMPORT and DONE.
+    /// </summary>
+    public static IEnumerable<Keys> PadKeys(IEnumerable<Buttons> buttons) => buttons.Select(b => b switch
+    {
+        Buttons.X => Keys.Delete,
+        _ => InputMap.MenuPadKey(b),
+    }).Where(k => k != Keys.None);
+
     /// <summary>Mouse: the row drawn on line <paramref name="line"/> of <see cref="Lines"/>, or null.</summary>
     public int? RowOfLine(int line)
     {

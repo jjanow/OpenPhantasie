@@ -15,7 +15,7 @@ namespace OpenPhantasie.Client;
 /// <see cref="PageRows"/> (III's 13 Scandor towns plus the plane towns of D3-035's <c>p3.transport-planes</c>) pages so the
 /// highlight stays in view, with the panel's bar beside it.
 /// </summary>
-public sealed class TransportDialog : IModalDialog, IPagedDialog
+public sealed class TransportDialog : IModalDialog, IPagedDialog, IPadArrows
 {
     public static string Title => UiText.S("guild.transport_to_which_town");
 
@@ -37,6 +37,9 @@ public sealed class TransportDialog : IModalDialog, IPagedDialog
     public int TownId { get; private set; } = 1;
 
     public string Help => UiText.S("guild.arrows_choose_enter_go_esc_cancel");
+
+    /// <summary>The list moves with Left / Right too (the pad keeps them).</summary>
+    public bool TakesLeftRight => true;
 
     /// <summary>s140: picks made (a town or the cancel): II ST's picker clicks after <c>form_do</c> either way
     /// (<c>0x25b4</c>, before the cancel check).</summary>
@@ -127,7 +130,7 @@ public sealed class TransportDialog : IModalDialog, IPagedDialog
 /// YES/NO, with that menu's own cursor memory in <see cref="PromptMenu"/>); only YES calls
 /// <see cref="GameSession.TryAddToParty"/>.
 /// </summary>
-public sealed class GuildAddDialog : IModalDialog, IPagedDialog
+public sealed class GuildAddDialog : IModalDialog, IPagedDialog, IPadArrows
 {
     public ListPage? Page { get; private set; }
 
@@ -149,6 +152,9 @@ public sealed class GuildAddDialog : IModalDialog, IPagedDialog
 
     /// <summary>s156: the move question (menu 9) is up.</summary>
     public bool Confirming => _confirming is not null;
+
+    /// <summary>The move question's YES / NO box moves with Left / Right (the pad keeps them).</summary>
+    public bool TakesLeftRight => Confirming;
 
     /// <summary>s140: times the move question (COM menu 9; II ST alert 6, which beeps first) has been asked.</summary>
     public int MoveQuestions { get; private set; }

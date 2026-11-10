@@ -27,6 +27,7 @@ public partial class Game1 : Game
     private InputMap _input = null!;
     private QoLProgress _qol = null!;
     private CombatPresenter _combatUi = null!;
+    private readonly CombatPad _combatPad = new(); // s182: the pad's pick in a fight
     private string _message = "";
     private string _help = "";
     private readonly MessageBandClock _messageBand = new(); // when the town screen's band shows the message
@@ -1176,7 +1177,10 @@ public partial class Game1 : Game
         if (_p4 is not null)
         {
             _p4.Tick(gameTime.ElapsedGameTime.TotalMilliseconds); // s110: IV's picture animations, the open door
-            _p4.Pointer = IsMouseVisible ? _mouse.Position : null; // s151: buttons under the pointer are lit (_xbtn)
+            if (IsMouseVisible && _mouse.Moved)
+                _p4.ClearPadFocus(); // s182: the mouse takes over from the pad's picked button
+            // s151: buttons under the pointer are lit (_xbtn); s182: so is the button the pad picked (Y / X)
+            _p4.Pointer = _p4.PadPointer ?? (IsMouseVisible ? _mouse.Position : null);
             _p4.MysticSkippable = _settings.Game(GameId.P4).MysticSkip;
             _p4.CommonTownKeys = _settings.Game(GameId.P4).CommonTownKeys; // QoL COMMON TOWN KEYS (D3-074)
             _p4.OriginalSlots = !_settings.Game(GameId.P4).SaveSlots; // SAVE SLOTS off: IV's own Save page (12-save-slots.md)
@@ -1187,8 +1191,17 @@ public partial class Game1 : Game
                     || _mouse.LeftClick is not null)
                 && _p4.SkipMystic())
                 _pendingClick = null;
-            else if (_p4.HandleKeys(_input.NewKeys(keys)) is { } request)
-                RunPhantasie4Request(request);
+            else
+            {
+                // s182 "Pad coverage": the pad's buttons as the keys this prompt takes (P4DungeonScreen.Pad.cs); a button
+                // the pad picked with Y / X is clicked by A as the mouse would (Game1.Mouse.cs Act).
+                var padKeys = _p4.PadKeys([.. _input.NewButtons(pad)], P4DungeonScreen.HeldButtons(pad), _hits.Regions,
+                    out var padPress);
+                if (padPress is not null)
+                    Act(padPress, padPress.Bounds.Center, clicked: true);
+                if (_p4.HandleKeys(_input.NewKeys(keys).Concat(padKeys)) is { } request)
+                    RunPhantasie4Request(request);
+            }
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
             return;
@@ -1203,18 +1216,18 @@ public partial class Game1 : Game
             if (_update.IsOpen)
             {
                 _update.Update();
-                _update.HandleKeys(_input.NewKeys(keys));
+                _update.HandleKeys(_input.MenuKeys(keys, pad)); // s182: and the pad (shared map)
                 if (_update.RestartRequested)
                     RestartAfterUpdate();
             }
             else if (_import.IsOpen)
             {
                 _import.Update();
-                _import.HandleKeys(_input.NewKeys(keys));
+                _import.HandleKeys(_input.NewKeys(keys).Concat(ImportScreen.PadKeys(_input.NewButtons(pad))));
             }
             else if (_options.IsOpen)
             {
-                if (_options.HandleKeys(_input.NewKeys(keys)))
+                if (_options.HandleKeys(_input.NewKeys(keys).Concat(OptionsScreen.PadKeys(_input.NewButtons(pad)))))
                     AfterOptionsClosed();
                 if (_options.ImportRequested)
                 {
@@ -1227,7 +1240,7 @@ public partial class Game1 : Game
                     _update.Open();
                 }
             }
-            else if (_mainMenu.HandleKeys(_input.NewKeys(keys)) is var (choice, game))
+            else if (_mainMenu.HandleKeys(_input.MenuKeys(keys, pad)) is var (choice, game))
                 RunMainMenuChoice(choice, game);
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
@@ -1245,7 +1258,7 @@ public partial class Game1 : Game
 
         // s158: II ST's alert box (form_alert) owns the frame's keys while up: Return (s160: only Return, as the AES form
         // loop) or a click on its button closes it; nothing under it sees the keys (the field loop's click included).
-        if (_session is not null && _p2Alert.HandleKeys(_input.NewKeys(keys)))
+        if (_session is not null && _p2Alert.HandleKeys(_input.MenuKeys(keys, pad))) // s182: pad A = Return
         {
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
@@ -1254,7 +1267,8 @@ public partial class Game1 : Game
 
         // s165: II ST's timed field box (field Resurrection's 0xa18c) owns the frame's keys and clicks while up: any of
         // them, or its hold running out, ends it (0x16cbe); the key goes no further (no step, no field click).
-        if (_session is not null && _p2FieldBox.Update(_updateSeconds, _input.NewKeys(keys).Any() || _mouse.AnyPressed))
+        if (_session is not null && _p2FieldBox.Update(_updateSeconds,
+                _input.NewKeys(keys).Any() || _input.NewButtons(pad).Any() || _mouse.AnyPressed)) // s182: a pad button too
         {
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
@@ -1265,7 +1279,7 @@ public partial class Game1 : Game
             PlayClick(); // s141: II ST's field loop 0x16fea clicks (0x1719a) on every key it takes
 
         // III Amiga's message box (window 7, s135) owns the frame's keys while up: any key or OK closes it, unseen below.
-        if (_session is not null && _amigaMessage.HandleKeys(_input.NewKeys(keys)))
+        if (_session is not null && _amigaMessage.HandleKeys(_input.MenuKeys(keys, pad))) // s182: and the menu pad
         {
             if (!_amigaMessage.Shown)
                 SetFeedback("", OpenModal?.Help ?? HelpForMode(_session.Mode)); // the line went in the window, not the band
@@ -1275,7 +1289,7 @@ public partial class Game1 : Game
         }
 
         // s165: III's Damage Report owns the frame's keys while up: any key or OK closes it, unseen below.
-        if (_session is not null && _damageReport.HandleKeys(_input.NewKeys(keys)))
+        if (_session is not null && _damageReport.HandleKeys(_input.MenuKeys(keys, pad))) // s182: and the menu pad
         {
             if (!_damageReport.Shown)
                 _help = OpenModal?.Help ?? HelpForMode(_session.Mode);
@@ -1331,8 +1345,9 @@ public partial class Game1 : Game
             return;
         }
 
-        if (_session is { } barSession && (HandleOutsideBarKeys(barSession, _input.NewKeys(keys))
-                || HandleP1MapBarKeys(barSession, _input.NewKeys(keys)) || HandleTownBarKeys(barSession, _input.NewKeys(keys))))
+        if (_session is { } barSession && (HandleOutsideBarKeys(barSession, _input.NewKeys(keys), _input.NewButtons(pad))
+                || HandleP1MapBarKeys(barSession, _input.NewKeys(keys), _input.NewButtons(pad))
+                || HandleTownBarKeys(barSession, _input.NewKeys(keys), _input.NewButtons(pad))))
         {
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
@@ -1342,14 +1357,19 @@ public partial class Game1 : Game
         _withdrawDialog.AmigaKeys = AmigaBankWindows; // s157: III's withdraw in the Bank's window style takes O / C
         _guildAddDialog.AmigaWindow = ConfirmInWindow; // s162: III's Add move question in window 1 takes O / C
         _inspectDialog.AmigaSpellRows = P1SheetSpellList?.Rows; // s158: I Amiga's SPELLS view is requester 12
+        InjectPadCommand(); // s182: a pick in the pad's command list sends its key now, as typed
+        var modalWasOpen = OpenModal is not null; // s182: a dialog opened this frame takes no pad button yet
         if (_session is not null && _data is not null && (OpenModal ?? OpenModalDialog(keys, pad)) is { } modal)
         {
             // A panel with more rows than the screen holds scrolls with PgUp / PgDn (s99), when the dialog has no use for them.
-            var modalKeys = _input.NewKeys(keys).ToList();
+            // s182 (Pad coverage): the pad's buttons as keys too (DialogPad: A Return, B Esc, the wheel for digits / names).
+            var modalKeys = _input.NewKeys(keys).Concat(modalWasOpen ? ModalPadKeys(modal, pad) : []).ToList();
             if (UiOverlays.TextPanelScroll.CanScroll || UiOverlays.ScrollFrameScroll.CanScroll)
                 modalKeys.RemoveAll(k => k is Keys.PageUp or Keys.PageDown
                     && (UiOverlays.TextPanelScroll.CanScroll ? UiOverlays.TextPanelScroll : UiOverlays.ScrollFrameScroll).HandleKey(k));
             var modalLine = modal.HandleKeys(modalKeys, _session);
+            if (!modal.IsOpen)
+                _dialogPad.Reset(); // s182: the dialogs live on; the next opening starts the pad's wheel again
             OfferPurgeQuestion(_session); // s160: III's purge pick waits for S407 (the list is closed while it asks)
             if (!modal.IsOpen && ClicksOnClose(modal, _session.Mode, modalKeys))
                 PlayClick(); // s141: II ST's town lists and dialogs click as they return (0x1964a / form_do sites, 0x674)
@@ -1361,10 +1381,10 @@ public partial class Game1 : Game
                     _qol = QoLProgress.LoadOrDefault();
                 }
                 if (line.Length > 0 && OfferP2FieldBox(_session, line))
-                    SetFeedback("", modal.IsOpen ? modal.Help : HelpForMode(_session.Mode)); // s165: the line is in the box
+                    SetFeedback("", modal.IsOpen ? ModalHelp(modal) : HelpForMode(_session.Mode)); // s165: the line is in the box
                 else
                 {
-                    SetFeedback(line.Length > 0 ? line : _message, modal.IsOpen ? modal.Help : HelpForMode(_session.Mode));
+                    SetFeedback(line.Length > 0 ? line : _message, modal.IsOpen ? ModalHelp(modal) : HelpForMode(_session.Mode));
                     NoteAlertLine(line); // s140: II ST's alert boxes beep first (0x1628 / 0x1668)
                     OfferAmigaMessage(line);
                     if (line.Length > 0 && !modal.IsOpen)
@@ -1374,6 +1394,8 @@ public partial class Game1 : Game
                     RefreshTownStock();
                 if (_gameMenu.TakeChoice() is { } picked)
                     RunGameMenuChoice(picked);
+                if (_padCommands.TakeChoice() is { } padCommand)
+                    _padCommandKey = padCommand; // s182: sent next frame (InjectPadCommand)
                 if (!_amigaBank.IsOpen && _amigaBank.TakeFollow() is var follow and > 0) // the manual's bank (s117)
                 {
                     var shopper = _session.Party.Members.Count > 0 ? _session.Party.Members[_members.Clamp(_session.Party.Members.Count)] : null;
@@ -1387,12 +1409,12 @@ public partial class Game1 : Game
                 }
             }
             else
-                SetFeedback(_message, modal.IsOpen ? modal.Help : HelpForMode(_session.Mode));
+                SetFeedback(_message, modal.IsOpen ? ModalHelp(modal) : HelpForMode(_session.Mode));
         }
         else if (_session is not null && _data is not null && (_dosDialog.IsOpen || OpenDosDialog(keys, pad)))
         {
             // Modal: the dialog owns every key (Esc cancels it instead of quitting).
-            if (_dosDialog.HandleKeys(_input.NewKeys(keys), _session, _data) is { } status)
+            if (_dosDialog.HandleKeys(_input.NewKeys(keys).Concat(DosDialogPadKeys(pad)), _session, _data) is { } status)
                 SetFeedback(status, _dosDialog.IsOpen ? _dosDialog.Help : HelpForMode(_session.Mode));
             else
                 SetFeedback(_message, _dosDialog.IsOpen ? _dosDialog.Help : HelpForMode(_session.Mode));
@@ -1416,13 +1438,16 @@ public partial class Game1 : Game
             var prompt = CurrentPrompt;
             _promptMenu.Sync(prompt);
             if (!overlay && prompt is not null)
-                HandlePrompt(keys, prompt);
+                HandlePrompt(keys, pad, prompt);
             else if (!overlay)
                 HandleGameplayInput(keys, pad);
 
             if (combatWasAwaiting && _combatUi.AwaitingInput && !overlay)
             {
-                foreach (var key in _input.NewKeys(keys))
+                // s182 (Pad coverage): the pad's D-pad / stick / A as the keys this step takes (CombatPad), after the keyboard's.
+                var combatKeys = _input.NewKeys(keys)
+                    .Concat(_combatPad.KeysFor(_combatUi.PadStep(_session), _input.NewButtons(pad))).ToList();
+                foreach (var key in combatKeys)
                 {
                     if (!_combatUi.HandleKey(_session, key))
                         continue;
@@ -1432,7 +1457,11 @@ public partial class Game1 : Game
                 }
             }
 
-            if (_combatUi.P2Run is { } p2Run && ReferenceEquals(p2Run, p2RunBefore) && !overlay && _input.NewKeys(keys).Any())
+            else if (!_combatUi.AwaitingInput)
+                _combatPad.Reset();
+
+            if (_combatUi.P2Run is { } p2Run && ReferenceEquals(p2Run, p2RunBefore) && !overlay
+                && (_input.NewKeys(keys).Any() || _input.NewButtons(pad).Contains(Buttons.A)))
                 _combatUi.P2Key(); // II ST: a key ends the line's hold (evnt_multi), not a sound wait
             if (_combatUi.IsPresenting)
             {
@@ -1460,7 +1489,8 @@ public partial class Game1 : Game
                     : AmigaDisarmWindowFor(open) is not null ? UiText.S("p3combat.member_window_help")
                     : AmigaShareWindowFor(open) is not null
                         ? UiText.F("p3town.bank_window_shares_help", open.Options[0], open.Options[^1])
-                    : EventPageFor(open) is { } page ? (page.AnyKey ? UiText.S("game.event_page_any_key") : UiText.S("game.event_page_number"))
+                    : EventPageFor(open) is { } page ? (page.AnyKey ? UiText.S("game.event_page_any_key")
+                        : EventPadHelp(open) ?? UiText.S("game.event_page_number")) // s182: the pad's pick
                     : HelpForPrompt(open));
                 _promptFeedback = (_message, _help);
             }
@@ -1810,6 +1840,8 @@ public partial class Game1 : Game
                 _defeatSceneLines = null;
                 _defeatPager.Reset();
                 UiOverlays.DrawP1Requester(_spriteBatch, _pixel, _assets!.Pack!.MapRequesters!, requester);
+                if (PadRequesterMark(prompt, requester) is { } mark) // s182: the pad's hidden cursor, outlined
+                    UiOverlays.DrawPadMark(_spriteBatch, _pixel, mark);
                 scene = true;
             }
             // s157: the manual / no-fee bank's share question in the Bank's window 9 style (FORMAT.md 8.2).
@@ -1980,6 +2012,10 @@ public partial class Game1 : Game
                 UiOverlays.Hits?.Add(new HitRegion(new Rectangle(0, 0, 320, UiOverlays.ScreenBottom)) { Click = [Keys.Enter] });
             }
         }
+        // s182 (Pad coverage): the pad's pick in a fight, outlined on whatever the screen drew for it (the help line names it too).
+        if (_session is { } padSession && _combatUi.AwaitingInput
+            && CombatPad.MarkFor(_combatPad.Picked(_combatUi.PadStep(padSession)), UiOverlays.Hits) is { } padMark)
+            UiOverlays.DrawPadMark(_spriteBatch, _pixel, padMark);
         // s158: II ST's alert box (form_alert) over everything; only its button takes a click.
         if (_p2Alert.Current is { } stAlert && _assets?.Pack?.FieldSounds?.Alerts?.Look is { } alertLook)
         {
@@ -2209,11 +2245,11 @@ public partial class Game1 : Game
     /// "D)ISARM OR L)EAVE" menu and 1..n still answer directly (manual p.10). One answer per frame so the key can't also
     /// act as a step.
     /// </summary>
-    private void HandlePrompt(KeyboardState keys, SessionPrompt prompt)
+    private void HandlePrompt(KeyboardState keys, GamePadState pad, SessionPrompt prompt)
     {
-        if (HandleP1DefeatKeys(keys, prompt))
+        if (HandleP1DefeatKeys(keys, pad, prompt))
             return;
-        if (HandleP2DefeatHoldKeys(keys, prompt))
+        if (HandleP2DefeatHoldKeys(keys, pad, prompt))
             return;
         if (_victory is not null && prompt.Kind == SessionPromptKind.VictoryScene)
         {
@@ -2222,6 +2258,11 @@ public partial class Game1 : Game
             foreach (var _ in _input.NewKeys(keys))
                 _victory.Key(t);
             foreach (var _ in _input.ReleasedKeys(keys))
+                _victory.Release(t);
+            var (padPresses, padReleases) = ScenePadEvents(pad); // s182: A / the D-pad as a key's press and release
+            for (var i = 0; i < padPresses; i++)
+                _victory.Key(t);
+            for (var i = 0; i < padReleases; i++)
                 _victory.Release(t);
             if (_assets?.Pack?.EndingScene is { QueuedKeys: true })
             {
@@ -2233,7 +2274,7 @@ public partial class Game1 : Game
             }
             return;
         }
-        foreach (var newKey in _input.NewKeys(keys))
+        foreach (var newKey in _input.NewKeys(keys).Concat(PromptPadKeys(prompt, pad))) // s182: the pad's arrows and A
         {
             var key = newKey;
             if (key is Keys.PageUp or Keys.PageDown && UiOverlays.PromptScroll.CanScroll)
@@ -2567,6 +2608,16 @@ public partial class Game1 : Game
                 _messageBand.Restart();
             }
         }
+        // "Pad coverage" (s182): the pad's left / right trigger step the shopper back / on (TownMenu.ShopperStep).
+        foreach (var button in _input.NewButtons(pad))
+        {
+            if (TownMenu.ShopperStep(button) is var step and not 0 && s.Party.Members.Count > 0)
+            {
+                _members.Row = TownMenu.StepShopper(_members.Row, s.Party.Members.Count, step);
+                SetFeedback(UiText.F("game.x_is_shopping", s.Party.Members[_members.Row].Name), HelpForMode(s.Mode));
+                _messageBand.Restart();
+            }
+        }
         if (s.Party.Members.Count > 0)
             _members.Clamp(s.Party.Members.Count);
         var shopper = s.Party.Members.Count > 0 ? s.Party.Members[_members.Row] : null;
@@ -2588,7 +2639,9 @@ public partial class Game1 : Game
 
         _townMenu.DosBank = s.BankIsDos; // III: the save's p3.bank / p3.trade rules shape the Bank and Option lists
         _townMenu.Trade = s.CanTrade;
-        foreach (var key in _input.NewKeys(keys))
+        // "Pad coverage" (s182): the pad's D-pad / left stick, A and B as the row's arrows, Return and Esc (B never gets
+        // here: the global GameMenu backs out first; LB / RB, Save / Load, come as PgUp / PgDn, which the menu ignores).
+        foreach (var key in _input.MenuKeys(keys, pad))
         {
             var before = _townMenu.Place;
             var choice = _townMenu.HandleKey(key);
@@ -2637,9 +2690,12 @@ public partial class Game1 : Game
             return;
         }
 
-        if (_input.PressedMove(CardinalDirection.North, keys, pad))
+        // "Pad coverage" (s182): the D-pad (PressedMove) and A (Confirm) already work here, B leaves (BackOut); the left
+        // stick steps the list too, as the D-pad.
+        var stick = _input.NewButtons(pad).ToList();
+        if (_input.PressedMove(CardinalDirection.North, keys, pad) || stick.Contains(Buttons.LeftThumbstickUp))
             _townCursor = Math.Max(0, _townCursor - 1);
-        if (_input.PressedMove(CardinalDirection.South, keys, pad))
+        if (_input.PressedMove(CardinalDirection.South, keys, pad) || stick.Contains(Buttons.LeftThumbstickDown))
             _townCursor = Math.Min(Math.Max(0, _townStock.Count - 1), _townCursor + 1);
 
         if (shopper is not null && _input.Pressed(GameAction.Confirm, keys, pad) && _townStock.Count > 0)
@@ -3118,7 +3174,7 @@ public partial class Game1 : Game
     /// </summary>
     private bool ClicksOnClose(IModalDialog modal, GameMode mode, IReadOnlyCollection<Keys> keys) =>
         mode is GameMode.Town or GameMode.Guild
-        && !ReferenceEquals(modal, _gameMenu) && !ReferenceEquals(modal, _continueDialog)
+        && !ReferenceEquals(modal, _gameMenu) && !ReferenceEquals(modal, _continueDialog) && !ReferenceEquals(modal, _padCommands)
         && !ReferenceEquals(modal, _transportDialog) && !ReferenceEquals(modal, _timeLagDialog)
         && (!ReferenceEquals(modal, _guildWhoDialog) || keys.Any(k => k is Keys.Escape or Keys.Back));
 
@@ -3145,6 +3201,7 @@ public partial class Game1 : Game
         : _guildWhoDialog.IsOpen ? _guildWhoDialog
         : _useItemDialog.IsOpen ? _useItemDialog
         : _distributeDialog.IsOpen ? _distributeDialog
+        : _padCommands.IsOpen ? _padCommands // s182: the pad's command list (PadCommandDialog)
         : null;
 
     /// <summary>
@@ -3167,6 +3224,8 @@ public partial class Game1 : Game
             SetFeedback(_message, _distributeDialog.Help);
             return null; // opens next frame, so the key that entered the town gives nothing
         }
+        if (OpenPadCommands(s, pad)) // s182: the pad's list of the Guild's / the field's letter commands
+            return _padCommands;
         string? refused = null;
         var shopper = s.Party.Members.Count > 0 ? s.Party.Members[_members.Clamp(s.Party.Members.Count)] : null;
         if (s.Mode == GameMode.Town && _townMenu.Place == TownPlace.Bank && s.TreasuryOn
@@ -3962,7 +4021,8 @@ public partial class Game1 : Game
         _ => UiText.S("game.f11_scale_esc_menu"),
     };
 
-    private string HelpForCombat() => _combatUi.Phase switch
+    private string HelpForCombat() => _combatPad.Help(_combatUi.PadStep(_session!), id => _data?.GetSpell(id).Name ?? "")
+        ?? _combatUi.Phase switch
     {
         CombatPhase.PartyOptions => UiText.S("game.arrows_choose_enter_select_shift_auto"),
         CombatPhase.Orders when _combatUi.AsksAmigaSpell || _combatUi.AsksAmigaHeal => _combatUi.LastLine,

@@ -191,7 +191,8 @@ public partial class Game1
             // the second (h86 +0x32a's index).
             var two = P1Requesters?.Town.GetValueOrDefault(held.Key) is { } id && P1MapRequesters.Parse(UiText.S(id)).Buttons.Count > 1;
             int? answer = null;
-            foreach (var key in _input.NewKeys(keys))
+            // s182: the pad's A / B as Return / Esc (the first / the second button).
+            foreach (var key in _input.NewKeys(keys).Concat(InputMap.MenuPadKeys(_input.NewButtons(pad))))
             {
                 answer = !two ? 0 : key is Keys.Y or Keys.Enter or Keys.O or Keys.Space ? 0
                     : key is Keys.N or Keys.Escape or Keys.A or Keys.Back ? 1 : null;

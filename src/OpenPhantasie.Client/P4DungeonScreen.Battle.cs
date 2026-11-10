@@ -275,7 +275,9 @@ public sealed partial class P4DungeonScreen
                             lines.Add(Option(i, $"{i + 1} {b.Members[i].Member.Name}"));
                         break;
                     default:
-                        lines.Add(new(string.Join(" ", b.Offered().Select(ActionName)), MenuLineStyle.Normal));
+                        // s182: the pad's order (X / Y pick it, A gives it) in brackets once the pad has picked one.
+                        lines.Add(new(string.Join(" ", b.Offered().Select(k => k == _padAction ? $"[{ActionName(k)}]" : ActionName(k))),
+                            MenuLineStyle.Normal));
                         break;
                 }
                 break;

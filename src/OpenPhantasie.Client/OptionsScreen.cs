@@ -132,6 +132,18 @@ public sealed class OptionsScreen
     }
 
     /// <summary>
+    /// "Pad coverage" (s182): a pad on this screen. The shared map (<see cref="InputMap.MenuPadKey"/>: D-pad / stick =
+    /// arrows, so Left / Right on the tab row switch tabs and on a row change it; A = Return, B = Esc, LB / RB = PgUp / PgDn)
+    /// plus the triggers for [ and ] (LT / RT scroll the description box).
+    /// </summary>
+    public static IEnumerable<Keys> PadKeys(IEnumerable<Buttons> buttons) => buttons.Select(b => b switch
+    {
+        Buttons.LeftTrigger => Keys.OemOpenBrackets,
+        Buttons.RightTrigger => Keys.OemCloseBrackets,
+        _ => InputMap.MenuPadKey(b),
+    }).Where(k => k != Keys.None);
+
+    /// <summary>
     /// Mouse hover on line <paramref name="line"/> of <see cref="Lines"/>: the cursor goes to that row if Up/Down could stop
     /// there (the tab row or a row with a value). True if it is such a row.
     /// </summary>

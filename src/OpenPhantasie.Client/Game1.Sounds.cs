@@ -310,10 +310,10 @@ public partial class Game1
     /// s165: while the DEFEATED line's hold runs, any key or a click ends it (<c>0x16cbe</c>: <c>evnt_multi</c> keyboard |
     /// button | timer), not only the keys that answer the prompt. True when it answered.
     /// </summary>
-    private bool HandleP2DefeatHoldKeys(KeyboardState keys, SessionPrompt prompt)
+    private bool HandleP2DefeatHoldKeys(KeyboardState keys, GamePadState pad, SessionPrompt prompt)
     {
         if (!P2DefeatHolds || prompt.Kind != SessionPromptKind.PartyDefeat || !_defeatSounds.HoldRunning
-            || !_input.NewKeys(keys).Any() && !_mouse.LeftPressed)
+            || !_input.NewKeys(keys).Any() && !_mouse.LeftPressed && !PromptPadKeys(_input.NewButtons(pad)).Any()) // s182: A / D-pad
             return false;
         AnswerPrompt(prompt, 1);
         return true;

@@ -115,6 +115,8 @@ public sealed partial class P4DungeonScreen
         Cursor = 0;
         _typed = "";
         ResetBattleUi();
+        _padAction = null; // s182: the pad's fight order and picked button start again
+        ClearPadFocus();
         Game.Follow();
     }
 

@@ -9,7 +9,7 @@ namespace OpenPhantasie.Client;
 /// will also be asked if you want sound: answer Y or N." A digit sets the lag, then Y / N sets the sound; Esc leaves both
 /// unchanged. DOS has a fast / normal / slow Speed menu instead (not built, D-073).
 /// </summary>
-public sealed class TimeLagDialog : IModalDialog
+public sealed class TimeLagDialog : IModalDialog, IPadYesNo
 {
     public static string LagQuestion => UiText.S("timelag.time_lag_0_9");
     public static string SoundQuestion => UiText.S("timelag.sound_y_n");
@@ -24,6 +24,9 @@ public sealed class TimeLagDialog : IModalDialog
     private int? _lag;
 
     public bool IsOpen { get; private set; }
+
+    /// <summary>The sound question (Y / N) is up.</summary>
+    public bool AsksYesNo => IsOpen && _lag is not null;
 
     private (int Lag, bool Sound)? _chosen;
 

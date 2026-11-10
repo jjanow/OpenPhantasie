@@ -72,6 +72,36 @@ public sealed class InputMap
 
     private static readonly Buttons[] AllButtons = Enum.GetValues<Buttons>();
 
+    /// <summary>
+    /// "Pad coverage" (s182): the keys a pad button stands for on a screen that reads keys only (dialogs, prompts, town
+    /// menus, IV, the main menu, Options): the D-pad and left stick are the arrows, A is Return, B is Esc, and the
+    /// shoulders are PgUp / PgDn (a long panel's scroll). Other buttons send nothing; a screen that needs more (a digit,
+    /// Y / N) adds its own on top. Order follows <paramref name="buttons"/>.
+    /// </summary>
+    public static IEnumerable<Keys> MenuPadKeys(IEnumerable<Buttons> buttons) =>
+        buttons.Select(MenuPadKey).Where(k => k != Keys.None);
+
+    /// <summary>One button's key for <see cref="MenuPadKeys"/>, or <see cref="Keys.None"/>.</summary>
+    public static Keys MenuPadKey(Buttons button) => button switch
+    {
+        Buttons.DPadUp or Buttons.LeftThumbstickUp => Keys.Up,
+        Buttons.DPadDown or Buttons.LeftThumbstickDown => Keys.Down,
+        Buttons.DPadLeft or Buttons.LeftThumbstickLeft => Keys.Left,
+        Buttons.DPadRight or Buttons.LeftThumbstickRight => Keys.Right,
+        Buttons.A => Keys.Enter,
+        Buttons.B => Keys.Escape,
+        Buttons.LeftShoulder => Keys.PageUp,
+        Buttons.RightShoulder => Keys.PageDown,
+        _ => Keys.None,
+    };
+
+    /// <summary>
+    /// This frame's new keys (<see cref="NewKeys"/>) followed by the pad's newly pressed buttons as keys
+    /// (<see cref="MenuPadKeys"/>): the one feed for a key-only screen so a pad-only player can use it.
+    /// </summary>
+    public IEnumerable<Keys> MenuKeys(KeyboardState keys, GamePadState pad) =>
+        NewKeys(keys).Concat(MenuPadKeys(NewButtons(pad)));
+
     /// <summary>A list / cursor step: the bound move key (N / S / W / E by default), an arrow key or the D-pad.</summary>
     public bool PressedMove(CardinalDirection dir, KeyboardState keys, GamePadState pad)
     {

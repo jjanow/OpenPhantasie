@@ -53,7 +53,7 @@ public sealed class NameEntry
 /// are new; then the class, the inherited roll and the usual Y/N, name and sheet. N goes back to the first question.
 /// </para>
 /// </summary>
-public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog
+public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog, IPadYesNo, IPadArrows
 {
     private enum Step { Closed, Kind, Ancestor1, Ancestor2, Race, Class, Accept, Name, Sheet }
 
@@ -103,6 +103,13 @@ public sealed class GuildNewDialog : IModalDialog, ITypedEntry, IPagedDialog
     public ListPage? Page { get; private set; }
 
     public string? TypingAlphabet => _step == Step.Name ? NameEntry.Alphabet : null;
+
+    /// <summary>The rolled member's keep question (Y / N) is up.</summary>
+    public bool AsksYesNo => _step == Step.Accept;
+
+    /// <summary>The enrolled member's sheet (PRESS SPACE) types nothing: no pad wheel or wheel hint there (s182 live pass:
+    /// the name's wheel hint stayed on it). Left / Right reach it as arrows, which it ignores.</summary>
+    public bool TakesLeftRight => _step == Step.Sheet;
 
     public string Help => _step switch
     {

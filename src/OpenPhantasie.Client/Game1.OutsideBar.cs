@@ -39,9 +39,13 @@ public partial class Game1
     /// <see cref="TownInfoTakesInput"/>). True when the frame's keys were used here. The menu closes when the bar is not
     /// shown.
     /// </summary>
-    private bool HandleOutsideBarKeys(GameSession s, IEnumerable<Keys> newKeys)
+    /// <remarks>"Pad coverage" (s182): an OK window also closes with the pad's A or B (Return / Esc,
+    /// <see cref="InputMap.MenuPadKeys"/>); the bar's menus take the pad's own buttons (<see cref="AmigaOutsideBar.HandleButton"/>:
+    /// Start, D-pad, A, B), and a button the bar takes goes no further (no step, no fight).</remarks>
+    private bool HandleOutsideBarKeys(GameSession s, IEnumerable<Keys> newKeys, IEnumerable<Buttons> newButtons)
     {
-        if (_outsideBar.HandleWindowKeys(newKeys))
+        var buttons = newButtons.ToList();
+        if (_outsideBar.HandleWindowKeys(newKeys.Concat(InputMap.MenuPadKeys(buttons)).ToList()))
             return true;
         if (!OutsideBarShown(s))
         {
@@ -55,6 +59,16 @@ public partial class Game1
         }
         if (!OutsideBarTakesInput())
             return false;
+        foreach (var button in buttons)
+        {
+            var (taken, act) = _outsideBar.HandleButton(button, CurrentGameSettings.CombatSpeed);
+            if (!taken)
+                continue;
+            _hitsFresh = false; // the next draw lays out the menu as it is now
+            if (act != OutsideBarAct.None)
+                RunOutsideBarAct(act);
+            return true;
+        }
         var keys = newKeys.ToList();
         if (_outsideBar.Open is not null && keys.Contains(Keys.Escape))
         {

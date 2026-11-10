@@ -31,7 +31,7 @@ public enum GameMenuChoice
 /// Esc resumes; Main menu and Quit ask Y/N first. The shell reads the pick with <see cref="TakeChoice"/> once the menu has
 /// closed.
 /// </summary>
-public sealed class GameMenuDialog : IModalDialog
+public sealed class GameMenuDialog : IModalDialog, IPadYesNo
 {
     public static string Title => UiText.S("gamemenu.game_menu");
     public static string QuitQuestion => UiText.S("gamemenu.quit_the_game_y_n");
@@ -74,6 +74,9 @@ public sealed class GameMenuDialog : IModalDialog
     public bool IsOpen { get; private set; }
 
     public int Cursor { get; private set; }
+
+    /// <summary>The Quit / Main Menu question is up (Y answers it; Return does not).</summary>
+    public bool AsksYesNo => IsOpen && _confirm is not null;
 
     public string Help => _confirm is not null ? UiText.S("gamemenu.y_yes_n_esc_back") : UiText.S("gamemenu.up_down_enter_select_esc_resume");
 

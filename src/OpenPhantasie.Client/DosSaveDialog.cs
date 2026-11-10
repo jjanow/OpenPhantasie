@@ -9,7 +9,7 @@ namespace OpenPhantasie.Client;
 /// Export is a town action only and never overwrites without a YES (P1.4 decisions 6 and 9); import replaces the current
 /// game after a YES and loads the DOS files as-is, then lists every warning (decision 3).
 /// </summary>
-public sealed class DosSaveDialog
+public sealed class DosSaveDialog : IPadYesNo
 {
     public enum Step { Closed, EnterPath, ConfirmOverwrite, ConfirmReplace, ShowWarnings, ReviewCharacter }
 
@@ -38,6 +38,9 @@ public sealed class DosSaveDialog
 
     public Step Current { get; private set; } = Step.Closed;
     public bool IsOpen => Current != Step.Closed;
+
+    /// <summary>A Y / N step is up (the overwrite / replace questions, a transfer's keep question).</summary>
+    public bool AsksYesNo => Current is Step.ConfirmOverwrite or Step.ReviewCharacter or Step.ConfirmReplace;
     public string Path { get; private set; } = "";
     public string Title { get; private set; } = "";
     public int Scroll { get; private set; }

@@ -136,6 +136,49 @@ public sealed class AmigaOutsideBar
         return true;
     }
 
+    /// <summary>The Options menu (Cast, Examine, Party Status, Use Item): the one the pad's Start pulls down.</summary>
+    public const int OptionsMenu = 1;
+
+    /// <summary>
+    /// "Pad coverage" (s182): the bar has no keys of its own to pull a menu down (the mouse and its letters only), so the pad
+    /// gets one: Start pulls Options down (or closes the open menu); while a menu is down the D-pad / left stick Up / Down
+    /// move the highlight (wrapping), Left / Right step to the next menu, A takes the lit item and B closes the menu. The
+    /// keyboard's arrows keep moving the party (unchanged). Returns (used, act): used = the button belongs to the bar.
+    /// </summary>
+    public (bool Used, OutsideBarAct Act) HandleButton(Buttons button, AmigaCombatSpeed speed)
+    {
+        if (button == Buttons.Start)
+        {
+            if (Open is null)
+                Toggle(OptionsMenu, speed);
+            else
+                CloseMenu();
+            return (true, OutsideBarAct.None);
+        }
+        if (Open is not { } menu)
+            return (false, OutsideBarAct.None);
+        var key = InputMap.MenuPadKey(button);
+        switch (key)
+        {
+            case Keys.Up or Keys.Down:
+                var count = Menus[menu].Items.Count;
+                Item = (Math.Clamp(Item, 0, count - 1) + (key == Keys.Up ? count - 1 : 1)) % count;
+                return (true, OutsideBarAct.None);
+            case Keys.Left or Keys.Right:
+                var next = (menu + (key == Keys.Left ? Menus.Count - 1 : 1)) % Menus.Count;
+                Open = next;
+                Item = next == SpeedMenu ? (int)speed - 1 : 0;
+                return (true, OutsideBarAct.None);
+            case Keys.Enter:
+                return (true, Take(Item));
+            case Keys.Escape:
+                CloseMenu();
+                return (true, OutsideBarAct.None);
+            default:
+                return (false, OutsideBarAct.None);
+        }
+    }
+
     /// <summary>The speed an act sets, or null.</summary>
     public static AmigaCombatSpeed? SpeedOf(OutsideBarAct act) => act switch
     {

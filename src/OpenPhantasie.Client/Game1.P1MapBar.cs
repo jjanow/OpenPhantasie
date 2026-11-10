@@ -7,6 +7,7 @@ namespace OpenPhantasie.Client;
 public partial class Game1
 {
     private readonly P1MapMenuBar _p1MapBar = new();
+    private Keys? _p1MapBarKey; // a pad-picked item's command key, sent at the start of the next frame
 
     /// <summary>
     /// s155: I Amiga's map screen top and bottom (pack <c>map_message.menu_bar</c> / <c>line</c>): under AMIGA SCREENS with
@@ -30,8 +31,28 @@ public partial class Game1
     /// A key closes an open map menu (Esc is used up, any other key goes on); the menu closes by itself when the bar stops
     /// taking input.
     /// </summary>
-    private bool HandleP1MapBarKeys(GameSession s, IEnumerable<Keys> newKeys)
+    /// <remarks>"Pad coverage" (s182): the strip takes the pad's own buttons (<see cref="P1MapMenuBar.HandleButton"/>: Start
+    /// pulls Options down, D-pad, A, B), and a button it takes goes no further (no step, no fight). An item's command key
+    /// is sent at the start of the next frame (<see cref="_p1MapBarKey"/>): this frame ends here.</remarks>
+    private bool HandleP1MapBarKeys(GameSession s, IEnumerable<Keys> newKeys, IEnumerable<Buttons> newButtons)
     {
+        if (_p1MapBarKey is { } pending)
+        {
+            _p1MapBarKey = null;
+            _input.Inject([pending]);
+            return false;
+        }
+        if (P1MapScreen(s)?.MenuBar is { } padBar && P1MapBarTakesInput(s))
+            foreach (var button in newButtons)
+            {
+                var (taken, action) = _p1MapBar.HandleButton(padBar, button, s.Mode != GameMode.Dungeon);
+                if (!taken)
+                    continue;
+                _hitsFresh = false; // the next draw lays out the strip as it is now
+                if (action.Length > 0)
+                    RunP1MapBarAction(s, action, nextFrame: true);
+                return true;
+            }
         if (_p1MapBar.Open is null)
             return false;
         if (!P1MapBarTakesInput(s))
@@ -54,7 +75,9 @@ public partial class Game1
     /// outdoors); Speed sets the game's COMBAT SPEED (the Amiga's one Speed word, the fight's too). About Phantasie shows
     /// requester 27 with the logo (s156).
     /// </summary>
-    private void RunP1MapBarAction(GameSession s, string action)
+    /// <param name="nextFrame">The command key goes in at the start of the next frame (a pad pick, whose frame ends at the
+    /// strip), not this one (a click: the mouse runs before the frame's keys are read).</param>
+    private void RunP1MapBarAction(GameSession s, string action, bool nextFrame = false)
     {
         if (P1MapMenuBar.SpeedOf(action) is { } speed)
         {
@@ -78,7 +101,11 @@ public partial class Game1
             "look" when s.Mode == GameMode.Dungeon => GameAction.Look,
             _ => null,
         };
-        if (command is { } c)
+        if (command is not { } c)
+            return;
+        if (nextFrame)
+            _p1MapBarKey = _settings.GetKey(c);
+        else
             _input.Inject([_settings.GetKey(c)]);
     }
 

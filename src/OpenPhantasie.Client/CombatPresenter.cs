@@ -41,7 +41,7 @@ public enum AmigaFieldWindow
 /// The pause before each round is the manual's T)IME LAG. Holding fast-forward skips all of it (Phase 7 QoL: the party auto-thrusts via
 /// <see cref="GameSession.FightToEnd"/>).
 /// </summary>
-public sealed class CombatPresenter
+public sealed partial class CombatPresenter
 {
     private enum OrderStep { Menu, Rank, SpellNumber, HealTarget, PartyRank }
 
@@ -1208,6 +1208,7 @@ public sealed class CombatPresenter
     private void BeginOrders(GameSession session)
     {
         Phase = CombatPhase.Orders;
+        _padSerial++; // a new round's orders: the pad's pick starts again (CombatPresenter.Pad.cs)
         CastNotice = "";
         var members = session.Party.Members;
         var ranks = LivingRanks(session);

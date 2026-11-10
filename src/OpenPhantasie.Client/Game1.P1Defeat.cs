@@ -121,7 +121,7 @@ public partial class Game1
     }
 
     /// <summary>Keys and the left button go to the defeat screens' input port as presses and releases (as the victory).</summary>
-    private bool HandleP1DefeatKeys(KeyboardState keys, SessionPrompt prompt)
+    private bool HandleP1DefeatKeys(KeyboardState keys, GamePadState pad, SessionPrompt prompt)
     {
         if (_p1Defeat is null || prompt.Kind != SessionPromptKind.DefeatOutcome)
             return false;
@@ -133,6 +133,11 @@ public partial class Game1
         if (_mouse.LeftPressed && _mouse.Position is not null)
             _p1Defeat.Key(t);
         if (_mouse.LeftReleased)
+            _p1Defeat.Release(t);
+        var (padPresses, padReleases) = ScenePadEvents(pad); // s182: A / the D-pad as a key's press and release
+        for (var i = 0; i < padPresses; i++)
+            _p1Defeat.Key(t);
+        for (var i = 0; i < padReleases; i++)
             _p1Defeat.Release(t);
         return true;
     }

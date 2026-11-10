@@ -32,8 +32,13 @@ public partial class Game1
     /// its letters take its items (D3-074, <see cref="AmigaTownBar.ActionForKey"/>; with COMMON TOWN KEYS the set's letters
     /// go on to the town's own, the manual's); other keys go on to the town. True when the frame's keys were used here.
     /// </summary>
-    private bool HandleTownBarKeys(GameSession s, IEnumerable<Keys> newKeys)
+    /// <remarks>"Pad coverage" (s182): <paramref name="newButtons"/> come in as their keys (<see cref="InputMap.MenuPadKeys"/>:
+    /// D-pad the arrows, A Return, B Esc) after the real ones; Start pulls Options down or closes the menu
+    /// (<see cref="AmigaTownBar.HandleButton"/>).</remarks>
+    private bool HandleTownBarKeys(GameSession s, IEnumerable<Keys> newKeys, IEnumerable<Buttons> newButtons)
     {
+        var buttons = newButtons.ToList();
+        newKeys = newKeys.Concat(InputMap.MenuPadKeys(buttons)).ToList();
         ReturnFromBarGuild(s);
         if (_townBarKey is { } pending) // Armoury / Bank: the town's own key, read by this frame's town input
         {
@@ -45,6 +50,11 @@ public partial class Game1
         {
             _townBar.Close();
             return false;
+        }
+        if (buttons.Any(b => _townBar.HandleButton(bar, b)))
+        {
+            _hitsFresh = false; // the next draw lays out the menu as it is now
+            return true;
         }
         var used = false;
         foreach (var key in newKeys)

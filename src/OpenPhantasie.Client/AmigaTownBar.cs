@@ -131,4 +131,19 @@ public sealed class AmigaTownBar
                 return (false, "");
         }
     }
+
+    /// <summary>
+    /// "Pad coverage" (s182): the pad's Start pulls Options down (as Return does) or closes the open menu; the D-pad, A and B
+    /// reach <see cref="HandleKey"/> as the arrows, Return and Esc (<see cref="InputMap.MenuPadKeys"/>). True when used.
+    /// </summary>
+    public bool HandleButton(CombatFieldMenuBar bar, Buttons button)
+    {
+        if (button != Buttons.Start || bar.Menus.Count == 0)
+            return false;
+        if (Open is null)
+            HandleKey(bar, Keys.Enter);
+        else
+            Close();
+        return true;
+    }
 }

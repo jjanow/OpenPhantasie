@@ -265,4 +265,22 @@ public sealed class TownMenu
     }
 
     private void Open(TownPlace place) => Place = place; // the list reopens on its own remembered cursor
+
+    /// <summary>
+    /// "Pad coverage" (s182): the pad's way to change WHO IS SHOPPING (the keyboard's digit): the left trigger steps to the
+    /// member before, the right trigger to the next (both free in town: fast-forward is a fight's, the sidebar scroll the
+    /// field's). 0 for any other button. The row and arrows, A (Return) and B (Esc) come from
+    /// <see cref="InputMap.MenuPadKeys"/>.
+    /// </summary>
+    public static int ShopperStep(Buttons button) => button switch
+    {
+        Buttons.LeftTrigger => -1,
+        Buttons.RightTrigger => 1,
+        _ => 0,
+    };
+
+    /// <summary>The shopper row <paramref name="step"/> members on from <paramref name="row"/>, wrapping in a party of
+    /// <paramref name="count"/> (0 for an empty party).</summary>
+    public static int StepShopper(int row, int count, int step) =>
+        count <= 0 ? 0 : ((Math.Clamp(row, 0, count - 1) + step) % count + count) % count;
 }

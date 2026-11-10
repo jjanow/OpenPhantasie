@@ -14,7 +14,7 @@ namespace OpenPhantasie.Client;
 /// leaves. Both menus are
 /// DOS cursor menus with memory (<see cref="PromptMenu"/>). Text comes from the COM/OV2 format strings.
 /// </summary>
-public sealed class InspectDialog : IModalDialog, IPagedDialog
+public sealed class InspectDialog : IModalDialog, IPagedDialog, IPadArrows
 {
     private enum Step { Closed, Summary, AskMember, Who, Sheet, Page }
 
@@ -24,6 +24,10 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog
     /// <summary>Menu <c>0xa</c> under the sheet; its first-ever highlight is SKILLS (s58 DOSBox).</summary>
     public static SessionPrompt PageMenu { get; } =
         new(SessionPromptKind.None, [UiText.S("inspect.inspect")], [UiText.S("inspect.spells"), UiText.S("inspect.equipment"), UiText.S("inspect.skills"), UiText.S("inspect.potions")]) { MenuId = 0xa };
+
+    /// <summary>INSPECT MEMBER?'s YES / NO box and the page menu move with Left / Right (the pad keeps them); an open page
+    /// types nothing, so it has no pad wheel either (s182 live pass: the WHOM step's wheel hint stayed on it).</summary>
+    public bool TakesLeftRight => _step is Step.AskMember or Step.Sheet or Step.Page;
 
     public static string WhoTitle => UiText.S("inspect.whom_do_you_want_to_inspect"); // OV2 DS 0xbe73
 
