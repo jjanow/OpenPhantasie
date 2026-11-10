@@ -16,14 +16,16 @@ public class P1CombatFieldTests
         GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")!.CombatField!;
 
     [OriginalDataFact]
-    public void HitLine_TakesTheFieldsTopRows_NotThePartyRow()
+    public void HitLine_TakesTheFieldsTopRows_ElseTheMenuBar()
     {
         // s183 (seen in the s182 pad pass): the remaster's "X VS Y: HIT n% DMG?n" covered the party row (y 150..181).
         var l = Layout();
-        Assert.Equal(15, UiOverlays.P1HitLineTop(l, [32, 40, 38])); // three groups leave the top rows bare
-        Assert.Equal(15, UiOverlays.P1HitLineTop(l, []));
+        Assert.Equal((15, false), UiOverlays.P1HitLinePlace(l, [32, 40, 38])); // three groups leave the top rows bare
+        Assert.Equal((15, false), UiOverlays.P1HitLinePlace(l, []));
         Assert.True(15 + UiOverlays.P1HitLinePitch < l.PartyY);
-        Assert.Null(UiOverlays.P1HitLineTop(l, [80, 40, 20])); // a stack up to the frame: left off rather than over a monster
+        // user s184: a stack up to the frame puts the line on the menu bar's row, never off and never over a monster
+        Assert.Equal((l.MenuBar!.TextY, true), UiOverlays.P1HitLinePlace(l, [80, 40, 20]));
+        Assert.True(l.MenuBar.TextY + UiOverlays.P1HitLinePitch <= l.MenuBar.Rows);
     }
 
     [OriginalDataFact]

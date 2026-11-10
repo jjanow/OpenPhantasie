@@ -189,22 +189,25 @@ public static partial class UiOverlays
     /// <summary>
     /// s183: where the remaster's hit line (<see cref="CombatPresenter.FormatHitTooltip"/>, not the Amiga's) goes on I
     /// Amiga's field: the field's top rows, under the frame, where nothing is drawn while the round plays (the party row at
-    /// <see cref="CombatFieldLayout.PartyY"/>, the line under it and the menu bar above the frame are all the Amiga's).
-    /// Null when the monster groups stacked above the party (<paramref name="groupHeights"/>, front rank first) reach up
-    /// into those rows: then the line would hide a monster, and it is left off.
+    /// <see cref="CombatFieldLayout.PartyY"/> and the line under it are the Amiga's). When the monster groups stacked above
+    /// the party (<paramref name="groupHeights"/>, front rank first) reach up into those rows, the line goes on the menu
+    /// bar's row instead (<c>OnBar</c>; user s184: never left off). The line shows only while the round plays, when the
+    /// bar's titles take no pick, as the overworld puts a dialog's help on its bar (<see cref="P1MapHelpOnBar"/>).
     /// </summary>
-    public static int? P1HitLineTop(CombatFieldLayout layout, IReadOnlyList<int> groupHeights, int rows = 1)
+    public static (int Top, bool OnBar) P1HitLinePlace(CombatFieldLayout layout, IReadOnlyList<int> groupHeights, int rows = 1)
     {
         ArgumentNullException.ThrowIfNull(layout);
         ArgumentNullException.ThrowIfNull(groupHeights);
         var top = layout.Field.Y + 1;
         var bottom = top + rows * P1HitLinePitch; // the band's first row under it
-        return groupHeights.Count == 0 || layout.GroupTops(groupHeights).Min() > bottom ? top : null;
+        if (groupHeights.Count == 0 || layout.GroupTops(groupHeights).Min() > bottom || layout.MenuBar is not { } bar)
+            return (top, false);
+        return (Math.Max(0, bar.TextY), true);
     }
 
     /// <summary>
-    /// s183: the remaster's hit line on I Amiga's field at <see cref="P1HitLineTop"/> (before, it took the remaster's help
-    /// strip at y 168, over the party row): centred, on the field's pen 0.
+    /// s183: the remaster's hit line on I Amiga's field at <see cref="P1HitLinePlace"/> (before, it took the remaster's help
+    /// strip at y 168, over the party row): centred, on the field's pen 0, or on the menu bar's ground in its title pen.
     /// </summary>
     public static void DrawP1HitLine(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, GameSession session,
         CombatPresenter presenter, string text)
@@ -214,9 +217,17 @@ public static partial class UiOverlays
         var snapshot = presenter.P1Snapshot ?? (session.Combat is { } combat ? P1CombatFieldSnapshot.Of(session.Party, combat) : null);
         var heights = snapshot?.Groups.Select(g => assets.GetMonsterIdle(g[0].Id)?.Height ?? layout.Slot).ToList() ?? [];
         var lines = Lines(text, (layout.Field.W - 4) / PixelFont.Advance);
-        if (P1HitLineTop(layout, heights, lines.Count) is not int top)
-            return;
+        var (top, onBar) = P1HitLinePlace(layout, heights, lines.Count);
         var pens = Pens(layout);
+        if (onBar && layout.MenuBar is { } bar)
+        {
+            lines = Lines(text, (320 - 4) / PixelFont.Advance); // the bar's whole width
+            Fill(batch, pixel, new Rectangle(0, 0, 320, Math.Max(bar.Rows, top + lines.Count * P1HitLinePitch)), pens[bar.BarPen]);
+            for (var i = 0; i < lines.Count; i++)
+                PixelFont.Draw(batch, pixel, (320 - PixelFont.Measure(lines[i])) / 2, top + i * P1HitLinePitch, lines[i],
+                    pens[bar.TextPen]);
+            return;
+        }
         Fill(batch, pixel, new Rectangle(layout.Field.X, top - 1, layout.Field.W, lines.Count * P1HitLinePitch + 1), pens[0]);
         for (var i = 0; i < lines.Count; i++)
             PixelFont.Draw(batch, pixel, (320 - PixelFont.Measure(lines[i])) / 2, top + i * P1HitLinePitch, lines[i],
