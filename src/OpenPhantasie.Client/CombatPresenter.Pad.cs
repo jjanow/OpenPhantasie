@@ -150,6 +150,26 @@ public sealed partial class CombatPresenter
     }
 
     /// <summary>
+    /// s194 (pad fix E29): the pad's hint rows for III Amiga's orders screen (<see cref="AmigaOrdersShown"/>), which covers
+    /// the help line and has only the cells right of Fight! free (<see cref="UiOverlays.OrdersPadHintRows"/>): a short text
+    /// per step that names what the screen does not show (A with no pick = Fight!, Left / Right more spells, RT cancel), one
+    /// row a "\n". Null when the pad is not the input or the screen is not up.
+    /// </summary>
+    public IReadOnlyList<string>? AmigaOrdersPadHint(GameSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (!PadWording.Active || session.Combat is null || !AmigaOrdersShown)
+            return null;
+        var text = AmigaMessageShown ? UiText.S("pad.p3orders.message")
+            : AsksRankWindow ? UiText.S("pad.p3orders.rank")
+            : AsksAmigaSpell ? UiText.S("pad.p3orders.spell")
+            : AsksAmigaHeal ? UiText.S("pad.p3orders.heal")
+            : _orderMember >= 0 ? UiText.S("pad.p3orders.order")
+            : UiText.S("pad.p3orders.member");
+        return text.Split('\n');
+    }
+
+    /// <summary>
     /// s193 (pad fix E30): "Press any key" over a box any key closes; "Press A" while the pad is the input. A pad-only text,
     /// not a <c>.pad</c> twin: the keyboard line is the original's (sourced), shown as "..." in the public table.
     /// </summary>

@@ -1189,8 +1189,6 @@ public partial class Game1 : Game
             _p4.Tick(gameTime.ElapsedGameTime.TotalMilliseconds); // s110: IV's picture animations, the open door
             if (IsMouseVisible && _mouse.Moved)
                 _p4.ClearPadFocus(); // s182: the mouse takes over from the pad's picked button
-            if (_input.AnyRealKeyPressed(keys) || IsMouseVisible && (_mouse.Moved && _pointerMoved || _mouse.LeftClick is not null))
-                _p4.PadInput = false; // s183: the help line names keys again (a pad press sets it, in PadKeys)
             // s151: buttons under the pointer are lit (_xbtn); s182: so is the button the pad picked (Y / X)
             _p4.Pointer = _p4.PadPointer ?? (IsMouseVisible ? _mouse.Position : null);
             _p4.MysticSkippable = _settings.Game(GameId.P4).MysticSkip;
@@ -4142,6 +4140,8 @@ public partial class Game1 : Game
         GameMode.Title => UiText.S("game.title_guild_help"), // s185: only A / D work here; Esc (pad B) = game menu
         GameMode.Overworld when _session is { } s && TerrainKeyFor(s) is { Count: > 0 } => (NoMapLayout ? UiText.S("game.3_n_e_s_w_arrows_key_nomap") : UiText.S("game.3_n_e_s_w_arrows_key")),
         GameMode.Overworld => (NoMapLayout ? UiText.S("game.3_n_e_s_w_arrows_nomap") : UiText.S("game.3_n_e_s_w_arrows")),
+        // s194 (pad pass): III Amiga's town bar takes Start for its menus and not Back (C15 is the DOS row's), so its own help
+        GameMode.Town when _session is { } bs && TownBarPlaces(bs) is not null => UiText.S("game.town_bar_help"),
         GameMode.Town => UiText.S("game.arrows_enter_a_b_m_n"),
         GameMode.Dungeon => (NoMapLayout ? UiText.S("game.3_n_e_s_w_arrows_2_nomap") : UiText.S("game.3_n_e_s_w_arrows_2")),
         GameMode.Combat => UiText.S("game.1_6_orders_enter_keep_bksp"),

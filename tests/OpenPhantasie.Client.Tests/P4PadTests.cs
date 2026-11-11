@@ -29,8 +29,11 @@ public sealed class P4PadTests : IDisposable
         _ => Keys.None,
     };
 
-    private static IReadOnlyList<Keys> Pad(P4DungeonScreen s, params Buttons[] pressed) =>
-        s.PadKeys(pressed, [], [], out _);
+    private static IReadOnlyList<Keys> Pad(P4DungeonScreen s, params Buttons[] pressed)
+    {
+        PadWording.Note(pressed.Length > 0, false); // the shell's step before PadKeys (s194, F33)
+        return s.PadKeys(pressed, [], [], out _);
+    }
 
     /// <summary>The pad's keys for <paramref name="pressed"/>, then those keys into the screen.</summary>
     private static P4ScreenRequest? Press(P4DungeonScreen s, params Buttons[] pressed) => s.HandleKeys(Pad(s, pressed));
@@ -537,6 +540,7 @@ public sealed class P4PadTests : IDisposable
         Pad(town, Buttons.DPadDown);
         Assert.Equal(UiText.S("p4.pad.help_street.plain"), town.Help); // no icons drawn: no Y / X pick named (s185)
         HitRegion f = new(new Rectangle(10, 10, 16, 16), new P4PanelIconTag("_townmenu", 0)) { Click = [Keys.F] };
+        PadWording.Note(true, false);
         town.PadKeys([Buttons.Y], [], [f], out _); // a button picked: A presses it
         Assert.Equal(UiText.S("p4.pad.help_focus"), town.Help);
         town.ClearPadFocus();
@@ -802,6 +806,9 @@ public sealed class P4PadTests : IDisposable
         Assert.False(PadWording.Active);
         Pad(s, Buttons.DPadUp);
         Assert.True(PadWording.Active);
+        PadWording.Note(true, true); // s194 (F33): a frame with a key and a pad press: the keyboard wins, as in I–III
+        s.PadKeys([Buttons.DPadUp], [], [], out _);
+        Assert.False(s.PadInput);
     }
 
     [Fact]

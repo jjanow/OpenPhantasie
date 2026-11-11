@@ -96,6 +96,28 @@ public static partial class UiOverlays
             .Concat(["p3field.monster_identification", "p3field.rank", "p3field.health_labels"])
             .Concat(Enum.GetValues<P3AreaState>().Select(st => $"p3field.area_state.{(int)st}"));
 
+    /// <summary>
+    /// s194 (pad fix E29): the cells free on every step of the orders screen: right of the Fight! box (x 80) to the roster
+    /// (column 25, x 200), rows 21–22. The spell window (window 11, to y 176) covers row 21 there, so the second row sits
+    /// at y 177, one pixel under the grid, below that window's frame.
+    /// </summary>
+    public static readonly Rectangle OrdersPadHintArea = new(80, 168, 118, 16);
+
+    /// <summary>
+    /// Where <paramref name="rows"/> go in <see cref="OrdersPadHintArea"/>: two rows (y 168, 177), or only the lower one
+    /// under the spell window (<paramref name="spellWindow"/>). Empty when the rows do not all fit (too many, or one wider
+    /// than the area): the shipped texts fit (test), a translation that does not shows nothing rather than a cut line.
+    /// </summary>
+    public static IReadOnlyList<(int Y, string Text)> OrdersPadHintRows(IReadOnlyList<string> rows, bool spellWindow)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        int[] ys = spellWindow ? [177] : [168, 177];
+        if (rows.Count == 0 || rows.Count > ys.Length || rows.Any(r => PixelFont.Measure(r) > OrdersPadHintArea.Width))
+            return [];
+        var first = ys.Length - rows.Count; // one row sits on the lower line, as under the spell window
+        return [.. rows.Select((r, i) => (ys[first + i], r))];
+    }
+
     private static void DrawCell(SpriteBatch batch, Texture2D pixel, int col, int row, string text, Color colour) =>
         PixelFont.Draw(batch, pixel, col * 8, row * 8, text, colour);
 
@@ -193,6 +215,9 @@ public static partial class UiOverlays
             DrawHealWindow(batch, pixel, assets, healLayout, healWindow, session, presenter, held);
         if (presenter.AmigaMessageShown && assets.KeepWindows is { Message: { } messageWindow } messageLayout)
             DrawMessageWindow(batch, pixel, assets, messageLayout, messageWindow, presenter.CastNotice, held);
+        if (presenter.AmigaOrdersPadHint(session) is { } hint) // s194 (pad fix E29): the help line is covered
+            foreach (var (y, text) in OrdersPadHintRows(hint, presenter.AsksAmigaSpell))
+                PixelFont.Draw(batch, pixel, OrdersPadHintArea.X, y, text, C(OrdersBoxColour));
         return true;
     }
 

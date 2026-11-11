@@ -109,14 +109,15 @@ Q auto move is the last step of Y / X's order cycle (`PadAutoMove`, bracketed in
     (`CanSave`: not in a building, a menu or a fight; `p4.pad.help_wait_nosave` there). `.pad` twins for `p4.town.game_over`,
     both `combat_not_built`, the auto combat box line and System's choice list (no key letters). `p4.dungeon.help_move`
     names P. Tests in `P4PadTests`; none seen live.
-29. Mostly done s193 (`PadFixListETests`): I Amiga map line shows a pad hint ("A fight  Start menu  RT+A commands
+29. Done s193 / s194 (`PadFixListETests`, `AmigaOrdersPadHintTests`): I Amiga map line shows a pad hint ("A fight  Start menu  RT+A commands
     R-stick <> party") in turn with the message (message 4 s, then the hint; back when the text changes); I Amiga
     combat field hint on the free top row (on the bar during orders if monsters reach it; not over pulled-down menus
     or Party Options); III Amiga field hint on the empty round-line row (not under Party Health); III Amiga outdoors
     names Start (`game.outside_bar_help`, `game.outside_bar_dungeon_help`); pad twins for `p1field.*`, `p3field.help`,
-    `p3combat.rank_help`. **Left:** III Amiga's orders screen and its rank / spell / heal windows have no free row, so
-    RT cancel, Left/Right more and A Fight! are still unshown (a ~20-column gap on rows 21-22: check on Xvfb in the
-    live pass).
+    `p3combat.rank_help`. s194: III Amiga's orders screen
+    shows a short hint per step in the cells right of Fight! (x 80–198, rows 21–22; one row at y 177 under the spell
+    window): "A no pick: Fight!", "L/R more RT cancel", rank / heal / message lines (`pad.p3orders.*`,
+    `UiOverlays.OrdersPadHintRows`); seen live on Xvfb (member, order and spell steps).
 30. Done s193: game menu "Save game LB / Load game RB" (import / export rows drop the F-keys); DOS orders' WHICH RANK /
     HEAL WHOM / 1 FRONT 2 MIDDLE 3 BACK end in "(D-pad, A)"; DOS III "[original text]" is original text, so its help
     says "D-pad pick  A take  B Two"; "B redo" reads "B game menu" on the first member, "B Two" on III's rank menu
@@ -132,18 +133,47 @@ Q auto move is the last step of Y / X's order cycle (`PadAutoMove`, bracketed in
 
 ## F. Cleanup
 
-33. `Game1.cs:1184-1185` `_p4.PadInput = false` is redundant with `PadWording.Note`; IV's `PadKeys`
-    (`P4DungeonScreen.Pad.cs:281`) sets it true on a frame with both a key and a pad press (I–III: keyboard wins).
-    Delete the lines and follow `Note`'s rule.
+33. Done s194: the shell's `_p4.PadInput = false` and `PadKeys`' own set are gone; IV's flag is `PadWording.Note`'s
+    alone, so a key wins a frame with both, as in I–III (`P4PadTests.PadInput_IsPadWordingActive_OneFlag`).
+
+## G. The live virtual-pad pass (s194, Xvfb)
+
+Seen working on screen: F33 (pad / key / left-stick-only switch the help, IV street and map), A1, A6, B7 / B8 (III
+Withdraw wheel), C10, C11, C12, C13, C15 (III DOS and I town rows), C16, C17, C19 (spell step), C20, C21, C22, C23,
+D24-26 (no art pack), E28 (auto combat, Mystic skip), E29 (III Amiga orders, member / order / spell steps). Fixed in the
+pass: III Amiga's street help said "Back more" (Back toggles the auto-map there); it has its own help now
+(`game.town_bar_help`, Start menus). Not reached: C14, C18's MESS outline and Guild Add move question, C19's rank /
+heal steps, D27's paging (a one-page ledger), the right stick's prompt scroll, the II / III-only pad lines, IV's wiped
+party / game-over lines, a key and a pad press in one frame (unit-tested).
+
+Found in the pass, open (a fix found later = the audit missed it; cause where known):
+34. IV: the Mystic's result wait and the Inn's "slept" wait say "LB save" and LB saves there: the help follows
+    `CanSave` (`Phantasie4Campaign.cs:138`), and `InBuilding` (`P4TownLoop.Screens.cs:46`, `_screen is not null`) is
+    false at those waits. Whether IV's original saves there is not read `[?]`; the outdoor "took them by surprise" wait
+    before a fight says it too.
+35. III DOS look: a fight opens on the Amiga-style field ("A opens options"); A then pulls down an all-black menu that
+    blanks the monsters (`padpass/shots/p3d_f1c.png`, `p3d_f2top.png` in the s194 scratchpad). Not traced.
+36. I Amiga orders window: its yellow outline draws over the game menu, the import path box and the file browser, and
+    the fight's help line stays up under them; once it listed only one member of six. Not traced.
+37. III Amiga share windows: the bottom row keeps the message ("You have: n gold", "[original text]"), not B9's
+    pad help.
+38. IV title `_disk(0)`: the pad help (`title.disk_help.pad`) is white on the light-grey window, flush with its
+    right edge.
+39. III field menu bar with no menu pulled down: the help names an open menu's buttons ("A take  B close").
+40. Scrolled lists cut pictures: the fight's rank box (RT + right stick) splits a rank's header from its picture; the
+    bestiary shows half pictures (against "fit or scroll, never crop").
+41. Not pad: a III save whose `newGameRules` has `"modules": []` crashes the first Fight (`ArgumentOutOfRangeException:
+    No enabled module offers this order`, `FeatureModules.cs:370`; `SessionSnapshot.cs:98` defaults `Modules` to empty).
+    Reached with a hand-written settings file, not from Options. IV's found-item window said "Found Knife" while the
+    log said "Found Medium Shield"; III's victory line shows "Victory ? Return" (a glyph the font lacks); IV's log said
+    "The party greeted" before an auto combat. Each needs a look of its own.
 
 ## Accepted, not fixes
 
 - No pad remapping (keys are rebindable in the settings JSON only; no UI for either).
 - Import's browser can't reach an unmapped UNC share.
-- Not seen live (from the old leftovers): the right stick's prompt scroll, the II / III-only pad lines, III Amiga's
-  share window (B cancel since s190). Check them during the live pass after the fixes.
 
 ## Suggested order
 
 A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 (done s191) → C 14-23 (done s192)
-→ D 27 + E (done s193; E29's III Amiga orders windows left) → F → one live virtual-pad pass on Xvfb.
+→ D 27 + E (done s193) → E29's III Amiga orders + F (done s194) → live virtual-pad pass on Xvfb (s194, section G) → G 34-41.

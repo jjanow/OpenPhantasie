@@ -352,9 +352,7 @@ public sealed partial class P4DungeonScreen
         ArgumentNullException.ThrowIfNull(pressed);
         ArgumentNullException.ThrowIfNull(held);
         ArgumentNullException.ThrowIfNull(regions);
-        press = null;
-        if (pressed.Count > 0)
-            PadInput = true;
+        press = null; // s194 (F33): PadInput is the shell's PadWording.Note (a key or the mouse wins a frame with both)
         var targets = PadTargets(regions);
         var seen = targets.Select(t => (t.Tag, t.Bounds)).ToArray();
         if (!seen.SequenceEqual(_padSeen))
