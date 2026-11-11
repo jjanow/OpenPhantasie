@@ -1,6 +1,12 @@
 {
  "_schema": "openphantasie.p1-amiga-import/v1",
- "_source": "Remaster data for a Phantasie I import from the Amiga copy alone (profile p1-amiga-1.0), applied by the importer (OpenPhantasie.Importer.Pipelines.P1Amiga.P1AmigaTables). Numbers only; no text from the game disk.",
+ "_source": "Remaster data for a Phantasie I import from the Amiga copy alone (profile p1-amiga-1.0), applied by the importer (OpenPhantasie.Importer.Pipelines.P1Amiga.P1AmigaTables). Numbers, plus two name typos fixed (name_fixes, user s202: DIFFERENCES.md D-082 / D-083).",
+ "_name_fixes": "As dos_cells (CellPatches), but the Amiga's name and the fixed one: the user kept the Amiga's own wording (HEAL POT1..9) and fixed only its two typos (s202, D-082 / D-083).",
+ "name_fixes": [
+  {"why": "D-082: the Amiga's typo for scroll 19", "file": "items.json", "path": ["items", {"index": 139}, "name"], "amiga": "SROLL 19", "fixed": "SCROLL 19"},
+  {"why": "D-083: the fire elemental's name, M cut off (twns.int record 22)", "file": "elementals.json", "path": ["elementals", 0, "name"], "amiga": "FIRE  ELE", "fixed": "FIRE ELEM"},
+  {"why": "D-083: the same name in the twns.int labels", "file": "names.json", "path": ["town_labels", 12, "name"], "amiga": "FIRE  ELE", "fixed": "FIRE ELEM"}
+ ],
  "_note": "Between versions DOS wins over Amiga on numbers (AGENTS.md): an Amiga-only import takes the Amiga's text, maps and names, and DOS I's value in every cell where the Amiga's number differs (reverse-engineering/amiga/GAME-TABLES.md, section 'Amiga vs DOS: numbers'). Every other number of the eleven tables is the same on both disks.",
  "_dos_cells": "As phantasie2/apple2-import.json's st_cells (CellPatches): a path into the GameData file the Amiga import builds (DOS shape); a string is an object key, a number an array index, an object picks the array element whose fields match; byte = an offset into a hex string; fog = a map tile whose fog (tile + 120) is kept. A cell holding the Amiga value takes the DOS value; one holding neither is kept and warned.",
  "dos_cells": [

@@ -81,13 +81,13 @@ DOS wins over Amiga on numbers (AGENTS.md); an Amiga-only import gets DOS's valu
 | DNG6 byte 1169 = cell (14, 35) | `0xd6` | `0xc7` | a jammed lock, bank 2 vs bank 1 (`dungeon-representation.md` Locks) |
 | monster 79 sprite_height | 2570 | 22356 | the size table's last word; no sprite height in either `[?]` |
 
-## 6. Amiga vs DOS: text (the Amiga's text is used)
+## 6. Amiga vs DOS: text (the Amiga's text is used, except the two typos fixed by `name_fixes`, user s202)
 
 | Where | Amiga | DOS |
 |---|---|---|
 | items 101-109 (names.json `spell_level_names` 0-8) | `HEAL POT1`..`HEAL POT9` (110 `HEALING10` as DOS) | `HEALING 1`..`9` (DIFFERENCES D-082) |
-| item 139 | `SROLL 19` | `SCROLL 19` (D-082) |
-| elemental 0 (and its town label) | `FIRE  ELE` | `FIRE ELEM` (D-083) |
+| item 139 | `SROLL 19` | `SCROLL 19` (D-082: the import fixes it to DOS's) |
+| elemental 0 (and its town label) | `FIRE  ELE` | `FIRE ELEM` (D-083: the import fixes it to DOS's) |
 | MESS1 record of the chest line (DNG1 message) | no full stop after "HERE" | full stop |
 | MESS5 record of the BLANK TOWN line (DNG5 message) | a blank before " x" | an apostrophe |
 | scrolls 1-20 | upper case | mixed case (so are the scroll quotes of item descriptions 121-140) |

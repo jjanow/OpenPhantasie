@@ -314,7 +314,7 @@ def main() -> int:
             for sid, parts in ids.items():
                 print(f"{folder} {sid}: {resolve(versions['p1-amiga-1.0'], parts)!r}")
         return 0
-    # --folders a,b: build / check only those tables (s201: the shared table was already stale at the start).
+    # --folders a,b: build / check only those tables.
     only = next((a.split("=", 1)[1].split(",") for a in sys.argv[1:] if a.startswith("--folders=")), list(FOLDERS))
     bad = 0
     for folder in FOLDERS:

@@ -131,7 +131,8 @@ public class P1AmigaTablesTests
     /// <summary>
     /// The Amiga's text where it differs from DOS I's (GAME-TABLES.md "Amiga vs DOS: text"): item names 101-109 and 139,
     /// the first elemental's name, two MESS lines (MESS1, MESS5), every scroll line upper-cased (so the scroll quotes of
-    /// item descriptions 121-140 too); everything else the same.
+    /// item descriptions 121-140 too); everything else the same. User s202 (D-082 / D-083): the two typos are fixed from
+    /// the shipped <c>name_fixes</c>, so 139 and the elemental read as DOS's and only HEAL POT1..9 differ.
     /// </summary>
     [RequiresFilesFact(Adf, DosGameData + "/monsters.json")]
     public void TextDifferences_AreTheListedOnes()
@@ -140,16 +141,16 @@ public class P1AmigaTablesTests
             Enumerable.Range(0, dos[list]!.AsArray().Count)
                 .Where(i => (string)dos[list]![i]!["name"]! != (string)amiga[list]![i]!["name"]!).ToList();
 
-        Assert.Equal([.. Enumerable.Range(101, 9), 139], DifferingNames(Dos("items.json"), Amiga("items.json"), "items"));
+        Assert.Equal([.. Enumerable.Range(101, 9)], DifferingNames(Dos("items.json"), Amiga("items.json"), "items"));
         Assert.Equal("HEAL POT1", (string)Amiga("items.json")["items"]![101]!["name"]!);
         Assert.Equal("HEALING10", (string)Amiga("items.json")["items"]![110]!["name"]!);
-        Assert.Equal("SROLL 19", (string)Amiga("items.json")["items"]![139]!["name"]!);
+        Assert.Equal("SCROLL 19", (string)Amiga("items.json")["items"]![139]!["name"]!);
         Assert.Equal(Enumerable.Range(0, 9).ToList(), DifferingNames(Dos("names.json"), Amiga("names.json"), "spell_level_names"));
         foreach (var list in new[] { "classes", "races", "spells", "items", "monsters" })
             Assert.Empty(DifferingNames(Dos("names.json"), Amiga("names.json"), list));
-        Assert.Equal([12], DifferingNames(Dos("names.json"), Amiga("names.json"), "town_labels"));
-        Assert.Equal([0], DifferingNames(Dos("elementals.json"), Amiga("elementals.json"), "elementals"));
-        Assert.Equal("FIRE  ELE", (string)Amiga("elementals.json")["elementals"]![0]!["name"]!);
+        Assert.Empty(DifferingNames(Dos("names.json"), Amiga("names.json"), "town_labels"));
+        Assert.Empty(DifferingNames(Dos("elementals.json"), Amiga("elementals.json"), "elementals"));
+        Assert.Equal("FIRE ELEM", (string)Amiga("elementals.json")["elementals"]![0]!["name"]!);
         Assert.Empty(DifferingNames(Dos("monsters.json"), Amiga("monsters.json"), "monsters"));
         Assert.Empty(DifferingNames(Dos("towns.json"), Amiga("towns.json"), "towns"));
 

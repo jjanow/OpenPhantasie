@@ -16,6 +16,606 @@
     ]
    }
   ],
+  "pad.combat.rank_x": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV2.OVR",
+      31120,
+      4
+     ],
+     " {0}"
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      81666,
+      4
+     ],
+     " {0}"
+    ]
+   },
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     [
+      "PHANT.PRG",
+      137644,
+      4
+     ],
+     " {0}"
+    ]
+   },
+   {
+    "from": "p2-apple2",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2213,
+      4
+     ],
+     " {0}"
+    ]
+   }
+  ],
+  "pad.combat.back": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV1.OVR",
+      25480,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      74070,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     [
+      "PHANT.PRG",
+      143353,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      272056,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2",
+    "parts": [
+     [
+      "DUNGON2",
+      17440,
+      4
+     ]
+    ]
+   }
+  ],
+  "title.disk_help": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     "N new game  1-3 ",
+     [
+      "PHANTASI.COM:unpacked",
+      53624,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     "N new game  1-3 ",
+     [
+      "MAIN.EXE",
+      102439,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     "N new game  1-3 ",
+     [
+      "PhantasieIII",
+      17656,
+      10
+     ]
+    ]
+   }
+  ],
+  "title.disk_help.pad": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     "D-pad pick  A choose  RB ",
+     [
+      "PHANTASI.COM:unpacked",
+      53624,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     "D-pad pick  A choose  RB ",
+     [
+      "MAIN.EXE",
+      102439,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     "D-pad pick  A choose  RB ",
+     [
+      "PhantasieIII",
+      17656,
+      10
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.add": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53909,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139423,
+      10
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.drop": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53931,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139449,
+      11
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.new": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53920,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139436,
+      10
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.spells": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53893,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139403,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      91411,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      24363,
+      6
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.training": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53900,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139412,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      99701,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      26391,
+      8
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.exit": [
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139490,
+      10
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.fight": [
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139996,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      91620,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      20978,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      255311,
+      5
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.cast": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53841,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139243,
+      10
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.inspect": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53950,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139472,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      91483,
+      7
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.potion": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      54409,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139865,
+      10
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.health": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      54391,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139843,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      91710,
+      6
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.look": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      54420,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139879,
+      4
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.distribute": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      54213,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      91328,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      26944,
+      10
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.use": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53852,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139256,
+      8
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.save": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53872,
+      9
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139291,
+      9
+     ]
+    ]
+   }
+  ],
+  "pad.cmd.info": [
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139707,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      26703,
+      4
+     ]
+    ]
+   }
+  ],
   "import.row.done": [
    {
     "from": "p1-dos-1987",
@@ -6904,6 +7504,30 @@
     ]
    }
   ],
+  "p4.system.choice.about.pad": [
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      258852,
+      5
+     ]
+    ]
+   }
+  ],
+  "p4.system.choice.back.pad": [
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      264945,
+      4
+     ]
+    ]
+   }
+  ],
   "p4.system.slot_xy": [
    {
     "from": "p4-x68000-1.02",
@@ -6935,20 +7559,6 @@
     "from": "p4-x68000-1.02",
     "parts": [
      "Str {0} Int {1} Dex {2} Con {3} Cha {4}  ",
-     [
-      "P4.X",
-      255505,
-      4
-     ],
-     " {5}"
-    ]
-   }
-  ],
-  "p4.profile.abilities_x": [
-   {
-    "from": "p4-x68000-1.02",
-    "parts": [
-     "Str {0} Int {1} Dex {2} Con {3} Cha {4} ",
      [
       "P4.X",
       255505,
@@ -6990,6 +7600,20 @@
     ]
    }
   ],
+  "p4.profile.abilities_x": [
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     "Str {0} Int {1} Dex {2} Con {3} Cha {4} ",
+     [
+      "P4.X",
+      255505,
+      4
+     ],
+     " {5}"
+    ]
+   }
+  ],
   "p1field.scroll.ok": [
    {
     "from": "p1-amiga-1.0",
@@ -7008,6 +7632,609 @@
       "PHANT.PRG",
       148114,
       4
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.status": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      96275,
+      5
+     ],
+     " {0}  ",
+     [
+      "MAIN.EXE",
+      99926,
+      6
+     ],
+     " {1}"
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      22552,
+      5
+     ],
+     " {0}  ",
+     [
+      "PhantasieIII",
+      26618,
+      6
+     ],
+     " {1}"
+    ]
+   }
+  ],
+  "unifiedtown.tab.town": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      54250,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      24250,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     [
+      "PHANT.PRG",
+      128734,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      260164,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2",
+    "parts": [
+     [
+      "OUTDOORS2",
+      16443,
+      4
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.tab.party": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV1.OVR",
+      23403,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      51189,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     [
+      "PHANT.PRG",
+      136042,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2498,
+      5
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.tab.magic": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV1.OVR",
+      24892,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      4542,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     [
+      "PHANT.PRG",
+      126379,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2",
+    "parts": [
+     [
+      "OUTDOORS2",
+      470,
+      5
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.tab.game": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV1.OVR",
+      25322,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      140178,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      267276,
+      4
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.no_hall": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     "The Hall of Glory is ",
+     [
+      "MAIN.EXE",
+      90711,
+      13
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.guild": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53824,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139495,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      90725,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      27246,
+      5
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.armory": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV1.OVR",
+      23729,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     [
+      "PHANT.PRG",
+      128605,
+      6
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.mystic": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53647,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      91523,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      21856,
+      6
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.training": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53900,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139412,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      99701,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      26391,
+      8
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.use": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53852,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139256,
+      8
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.cast": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53841,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139243,
+      10
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.resurrection": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      95815,
+      12
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      20626,
+      12
+     ]
+    ]
+   },
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      257410,
+      12
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.transportation": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      95915,
+      14
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      20747,
+      14
+     ]
+    ]
+   },
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      258171,
+      14
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.save": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53872,
+      9
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139291,
+      9
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.options": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      54342,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139344,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      91510,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      27238,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     [
+      "P4.X",
+      278390,
+      7
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.autosave": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      53883,
+      9
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139303,
+      9
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.sound": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      54738,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      91376,
+      5
+     ]
+    ]
+   }
+  ],
+  "unifiedtown.printout": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "PHANTASI.COM:unpacked",
+      54224,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      139267,
+      8
      ]
     ]
    }

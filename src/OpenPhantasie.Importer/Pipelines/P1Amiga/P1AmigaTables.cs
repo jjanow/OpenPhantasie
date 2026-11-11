@@ -25,6 +25,9 @@ internal static class P1AmigaTables
     private static readonly CellPatches DosCells =
         new("amiga", "dos", "the Amiga copy's data", "the Amiga's", "DOS I's", "DOS I's value");
 
+    private static readonly CellPatches NameFixes =
+        new("amiga", "fixed", "the Amiga copy's data", "the Amiga's", "the fixed", "the fixed name");
+
     // ---- the program: hunk 3 (monsters) and hunk 12 (names, values) of `game` ---------------------------------------
 
     private const int MonsterHunk = 3;
@@ -147,7 +150,13 @@ internal static class P1AmigaTables
         // DOS wins over Amiga on numbers: DOS I's value in every cell where the Amiga's differs.
         var cells = ctx.ReadShipped(Game, CellsFile)?["dos_cells"]?.AsArray()
                     ?? throw new InvalidOperationException($"shipped {Game}/{CellsFile} missing");
-        DosCells.Apply(cells, built.ToDictionary(kv => kv.Key, kv => kv.Value.Item1), warnings);
+        var tables = built.ToDictionary(kv => kv.Key, kv => kv.Value.Item1);
+        DosCells.Apply(cells, tables, warnings);
+        // User s202 (DIFFERENCES.md D-082 / D-083): the Amiga's wording is kept, its two name typos are fixed.
+        if (ctx.ReadShipped(Game, CellsFile)?["name_fixes"]?.AsArray() is { } fixes)
+            NameFixes.Apply(fixes, tables, warnings);
+        else
+            warnings.Add($"shipped {Game}/{CellsFile} has no name_fixes: the Amiga's name typos are kept");
         return built;
     }
 

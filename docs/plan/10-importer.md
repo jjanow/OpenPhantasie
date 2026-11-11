@@ -634,8 +634,8 @@ them). Each Amiga table is put into DOS layout and goes through the DOS builders
   the DOS build, `dos_record` and `raw_hex` included.
 - **The Amiga's text:** names, messages, scrolls (upper case), Zeus's speech (own wording,
   `tools/scripts/p1_amiga_own_wording.json` → `en.own.p1-amiga-1.0.json`, I only, while I's tables are the Amiga's);
-  every difference is listed in GAME-TABLES.md section 6; D-082 (potion / scroll item names) and D-083 (the fire
-  elemental's name) are PENDING. Lines only DOS I holds take the common fallback (`en.fallback.p1-amiga-1.0.json`).
+  every difference is listed in GAME-TABLES.md section 6. D-082 / D-083 (user s202): HEAL POT1..9 kept, the
+  two typos (`SROLL 19`, `FIRE  ELE`) fixed by `amiga-import.json`'s `name_fixes`. Lines only DOS I holds take the common fallback (`en.fallback.p1-amiga-1.0.json`).
 - **With DOS I** (same run: DOS runs first; or an earlier / later import): DOS I's tables win; the Amiga writes no
   table and warns. The runner no longer counts `asset-manifest.json` as a table (`tables` stays DOS's), and a re-run
   keeps files another version recorded since (Amiga, then DOS, then an Amiga recipe re-run leaves DOS's tables).
