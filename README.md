@@ -11,6 +11,22 @@ To play, you need your own copy of each game you want to play. On first start, O
 images, a zip, or the installed game's folder) and builds the game's tables, text, art and sound from it on your
 machine.
 
+## Screenshots
+
+Each game is drawn with the pictures of the versions you imported. When you have more than one (Phantasie I's Amiga
+and DOS pictures, for example), Options → the game's tab → GRAPHICS switches between them.
+
+| | |
+|---|---|
+| ![Phantasie I, Amiga art: a fight](docs/images/p1-amiga-combat.png) | ![Phantasie I, DOS CGA art: the town](docs/images/p1-dos-cga-town.png) |
+| **Phantasie I**, Amiga art: a fight | **Phantasie I**, DOS CGA art: the town |
+| ![Phantasie II, Atari ST art: the town of Pippacott](docs/images/p2-atari-st-town.png) | ![Phantasie III, Amiga art: the town of Pendragon](docs/images/p3-amiga-town.png) |
+| **Phantasie II**, Atari ST art: the town of Pippacott | **Phantasie III**, Amiga art: the town of Pendragon |
+
+![Phantasie IV, X68000 art: the world map, in English](docs/images/p4-x68000-world-map.png)
+
+**Phantasie IV**, X68000 art: the world map, played in English
+
 ## Supported copies
 
 | Game | Version | What it gives |
