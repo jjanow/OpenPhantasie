@@ -141,6 +141,20 @@ DIFFERENCES*.md                  every place where a game's manual and its progr
 The files in `GameData/` that would hold a game's own text carry `...` where that text goes; the importer fills it in
 from your copy (`strings/en.sources.json` says where each line is found).
 
+## Contributions and bug reports
+
+Contributions and bug reports are welcome! Please use
+[GitHub Issues](https://github.com/jjanow/OpenPhantasie/issues) to report bugs or suggest improvements, and send
+[pull requests](https://github.com/jjanow/OpenPhantasie/pulls) for code, documentation, translations or tests.
+For a larger change, open an issue first so we can discuss the approach.
+
+When reporting a bug, include your operating system, OpenPhantasie version, which game and source version you
+imported, relevant options, steps to reproduce, and what you expected to happen compared with what happened.
+Logs or screenshots can help. Please do not upload original game files, disk images, ROMs or manual scans.
+
+To contribute code, follow the existing style and run `dotnet test OpenPhantasie.sln`. Keep game rules separate
+from rendering, and make changes work across the supported games and languages where applicable.
+
 ## Licence
 
 OpenPhantasie is released under the MIT licence (`LICENSE`). Third-party packages and their licences are listed in
