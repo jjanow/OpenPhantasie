@@ -907,7 +907,7 @@ public partial class Game1 : Game
             due = run.SoundPlays[_p1SoundsStarted++].Sound;
         if (due is int sound && _settings.Sound)
         {
-            if (_assets.Pack.StDosoundEffects is { } st)
+            if (_assets?.Pack?.StDosoundEffects is { } st)
                 _effects.Play(st, sound);
             else
                 _effects.Play(effects, sound);
@@ -1751,7 +1751,7 @@ public partial class Game1 : Game
         }
         else if (_combatUi.FieldRun is not null)
             UiOverlays.DrawCombatField(_spriteBatch, _pixel, _assets, _combatUi); // III Amiga: the whole screen (s117)
-        else if (_combatUi.AmigaOrdersShown && _data is not null && !_showInventory && !_showBestiary)
+        else if (_combatUi.AmigaOrdersShown && !_showInventory && !_showBestiary)
             UiOverlays.DrawCombatOrders(_spriteBatch, _pixel, _assets, _session, _data, _combatUi,
                 _mouse.LeftDown ? _mouse.Position : null); // III Amiga's orders screen (s118)
         else if (_combatUi.AmigaFieldMenuShown && !_showInventory && !_showBestiary)
@@ -1939,7 +1939,7 @@ public partial class Game1 : Game
                 _defeatSceneLines = null;
                 _defeatPager.Reset();
                 scene = UiOverlays.DrawAmigaWindow(_spriteBatch, _pixel, _assets!, _assets!.KeepWindows!, disarmView,
-                    _mouse.LeftDown ? _mouse.Position : null, inDungeon: _session?.Dungeon is not null);
+                    _mouse.LeftDown ? _mouse.Position : null, inDungeon: _session.Dungeon is not null);
             }
             // III's keep questions in the Amiga's own OK / CANCEL windows (FORMAT.md §2.3; user s103).
             else if (KeepWindowFor(prompt) is { } keep)
@@ -1947,7 +1947,7 @@ public partial class Game1 : Game
                 _defeatSceneLines = null; // no pager here: Return answers the window
                 _defeatPager.Reset();
                 scene = UiOverlays.DrawKeepWindow(_spriteBatch, _pixel, _assets!, _assets!.KeepWindows!, keep, shown.Lines,
-                    _mouse.LeftDown ? _mouse.Position : null, inDungeon: _session?.Dungeon is not null);
+                    _mouse.LeftDown ? _mouse.Position : null, inDungeon: _session.Dungeon is not null);
             }
             if (!scene)
             {

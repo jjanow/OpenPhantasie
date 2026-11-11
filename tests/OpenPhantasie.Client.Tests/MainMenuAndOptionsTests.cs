@@ -312,7 +312,7 @@ public class MainMenuAndOptionsTests
             var at = rows.FindIndex(t => t.StartsWith("AMIGA AUDIO FILTER", StringComparison.Ordinal));
             if (game is GameId.P1 or GameId.P3)
             {
-                Assert.True(rows[at - 1].StartsWith("TITLE TUNE", StringComparison.Ordinal));
+                Assert.StartsWith("TITLE TUNE", rows[at - 1], StringComparison.Ordinal);
                 Assert.EndsWith("ON", rows[at]);
             }
             else

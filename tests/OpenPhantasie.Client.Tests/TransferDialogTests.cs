@@ -212,7 +212,8 @@ public class TransferDialogTests
             Assert.Equal(UiText.S("transfer.phantasie_ii_save_file"), d.Title);
             d.HandleKeys([Keys.Enter], i, ClientSessions.Data);
             var roster = d.TakeTransfer();
-            Assert.Equal(["GLADE"], roster!.OfType<Character>().Select(c => c.Name));
+            Assert.NotNull(roster);
+            Assert.Equal(["GLADE"], roster.OfType<Character>().Select(c => c.Name));
 
             d.ReportTransfer(i.TransferFromPhantasieII(roster), GameId.P1);
             Assert.Equal(UiText.F("transfer.x_characters_transferred_to_i", 1), d.Lines[0]);

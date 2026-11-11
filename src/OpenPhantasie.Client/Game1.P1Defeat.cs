@@ -145,7 +145,8 @@ public partial class Game1
     /// <summary>Draws the defeat screens' frame (black while <c>decor.pic</c> loads); true when drawn.</summary>
     private bool DrawP1DefeatScreen(SessionPrompt prompt)
     {
-        if (_p1Defeat is not { } screen || prompt.Kind != SessionPromptKind.DefeatOutcome || _assets is null)
+        if (_p1Defeat is not { } screen || prompt.Kind != SessionPromptKind.DefeatOutcome || _assets is null
+            || _spriteBatch is null || _pixel is null)
             return false;
         var frame = screen.At(_updateSeconds - _p1DefeatStart);
         if (frame.Black)

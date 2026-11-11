@@ -86,7 +86,7 @@ public partial class Game1
     /// </summary>
     private RequesterScene? P1SheetFor(GameSession s)
     {
-        if (P1Requesters is not { Sheet: { } sheet } layout)
+        if (P1Requesters is not { Sheet: { } sheet } layout || _data is null)
             return null;
         // s156: the sheet's EQUIPMENT / SKILLS / POTIONS views (requesters 10 / 9 / 11); s158: SPELLS = requester 12.
         var scene = _inspectDialog.SheetMember is { } member ? P1MapRequesters.Sheet(sheet, member, treasury: s.TreasuryOn)

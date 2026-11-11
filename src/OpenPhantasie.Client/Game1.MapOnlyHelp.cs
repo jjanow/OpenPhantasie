@@ -10,10 +10,12 @@ public partial class Game1
     /// </summary>
     private void DrawMapOnlyHud(GameSession s, bool messageShows)
     {
+        if (_spriteBatch is null || _pixel is null)
+            return;
         var mapHelp = UiText.S("game.map_only_help");
         var (message, help) = MapOnlyBand(BandMessage, messageShows, _help, HelpForMode(s.Mode), mapHelp,
             CurrentGameSettings.StatusLines || PadHelpShown(mapHelp));
-        UiOverlays.DrawMapHud(_spriteBatch!, _pixel, message, UiOverlays.TreasuryGoldLine(s), help);
+        UiOverlays.DrawMapHud(_spriteBatch, _pixel, message, UiOverlays.TreasuryGoldLine(s), help);
     }
 
     /// <summary>

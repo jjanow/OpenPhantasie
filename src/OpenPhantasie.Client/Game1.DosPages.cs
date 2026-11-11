@@ -202,7 +202,8 @@ public partial class Game1
     /// </summary>
     private bool DrawP1DosDefeatPictures(SessionPrompt prompt, P1DosDefeatClock clock, IReadOnlyList<string> lines)
     {
-        if (prompt.Kind != SessionPromptKind.DefeatOutcome || _prompts.ShownDefeat is not { } defeat || _assets is null)
+        if (prompt.Kind != SessionPromptKind.DefeatOutcome || _prompts.ShownDefeat is not { } defeat || _assets is null
+            || _spriteBatch is null || _pixel is null)
             return false;
         var art = P1DosDefeatArt;
         if (art == DosDefeatArt.None)
@@ -231,7 +232,7 @@ public partial class Game1
     /// <summary>Draws the defeat prompt's lines shown so far (no "press Enter": DOS asks for no key); true when drawn.</summary>
     private bool DrawP1DosDefeat(SessionPrompt prompt)
     {
-        if (_p1DosDefeat is not { } clock || clock.Kind != prompt.Kind)
+        if (_p1DosDefeat is not { } clock || clock.Kind != prompt.Kind || _spriteBatch is null || _pixel is null)
             return false;
         var lines = Shown(prompt).Lines;
         if (DrawP1DosDefeatPictures(prompt, clock, lines))

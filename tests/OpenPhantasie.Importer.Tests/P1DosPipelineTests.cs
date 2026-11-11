@@ -19,7 +19,7 @@ public class P1DosPipelineTests
         var dn = script[script.IndexOf("dn = {", StringComparison.Ordinal)..];
         var note = System.Text.RegularExpressions.Regex.Match(dn, "\"_note\": \"([^\"]*)\"").Groups[1].Value;
         Assert.StartsWith("raw feature bytes; [C] grid", note);
-        Assert.Equal(note, MapTables.DungeonNote);
+        Assert.Equal(MapTables.DungeonNote, note);
         var shipped = JsonNode.Parse(File.ReadAllBytes(Path.Combine(Repo.GameData, "phantasie1", "dungeons.json")))!;
         Assert.Equal(note, (string?)shipped["_note"]);
     }
