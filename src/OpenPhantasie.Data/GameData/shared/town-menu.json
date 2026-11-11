@@ -1,0 +1,8 @@
+{
+  "_schema": "openphantasie.town-menu/v1",
+  "_note": "Spell shortcuts for the optional unified town menu; ids are the campaigns' existing spell ids (I–III zero-based, IV one-based). No new effects or destinations.",
+  "p1": { "resurrection": [43], "transportation": [53] },
+  "p2": { "resurrection": [43], "transportation": [53] },
+  "p3": { "resurrection": [43], "transportation": [53] },
+  "p4": { "resurrection": [40], "transportation": [47, 65] }
+}

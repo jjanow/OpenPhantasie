@@ -140,6 +140,16 @@ public partial class Game1
         var keys = clicked ? region.Click : region.Hover;
         switch (region.Tag)
         {
+            case UnifiedTownRowTag row when UnifiedTownShown:
+                _unifiedTown.AimRow(row.Row);
+                _unifiedTownNote = null;
+                keys = clicked ? [Keys.Enter] : [];
+                break;
+            case UnifiedTownTabTag tab when UnifiedTownShown:
+                _unifiedTown.AimTab(tab.Tab);
+                _unifiedTownNote = null;
+                keys = [];
+                break;
             case MenuLineTag menu:
                 MenuLine(menu.Line, PixelFont.ColumnAt(menu.Text, at.X - 14), clicked);
                 break;

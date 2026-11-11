@@ -119,6 +119,7 @@ public sealed partial class P4DungeonScreen
         Cursor = 0;
         _typed = "";
         ResetBattleUi();
+        _unifiedGuildShortcut = false;
         _padAction = null; // s182: the pad's fight order and picked button start again
         _padShare = 1;
         ClearPadFocus();
@@ -255,6 +256,7 @@ public sealed partial class P4DungeonScreen
                     break;
             }
             Game.Follow();
+            ReturnFromUnifiedTownService();
         }
         return null;
     }

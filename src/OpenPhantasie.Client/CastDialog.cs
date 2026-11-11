@@ -40,6 +40,7 @@ public sealed class CastDialog : IModalDialog, IPagedDialog, IPadWheel
     private int _spell;
     private List<int> _spells = [];
     private int _scroll;
+    private IReadOnlySet<int>? _spellFilter;
 
     public bool IsOpen => _step != Step.Closed;
 
@@ -57,13 +58,14 @@ public sealed class CastDialog : IModalDialog, IPagedDialog, IPadWheel
         _ => null,
     };
 
-    public string? Open(GameSession session)
+    public string? Open(GameSession session, IReadOnlySet<int>? spells = null)
     {
         if (LocationFor(session.Mode) is null || session.Party.Members.Count == 0)
             return UiText.S("cast.no_spells_can_be_cast_here");
         _step = Step.Caster;
         _caster = null;
         _scroll = 0;
+        _spellFilter = spells;
         return null;
     }
 
@@ -118,7 +120,8 @@ public sealed class CastDialog : IModalDialog, IPagedDialog, IPadWheel
                 case Step.Caster when digit <= session.Party.Members.Count:
                     _caster = session.Party.Members[digit - 1];
                     var here = LocationFor(session.Mode)!.Value;
-                    _spells = SpellCaster.OutOfCombatChoices(_caster, here, session.Options).ToList();
+                    _spells = SpellCaster.OutOfCombatChoices(_caster, here, session.Options)
+                        .Where(id => _spellFilter is null || _spellFilter.Contains(id)).ToList();
                     var knowsNone = Array.IndexOf(_caster.SpellsKnown, 1) < 0;
                     // s165: III refuses a caster with no magic left before the list (Amiga 0xf8f6: after the callers'
                     // "knows no spells", before 0xf770's list).

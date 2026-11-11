@@ -287,6 +287,8 @@ public partial class Game1 : Game
     /// already runs its load event, which prints.</summary>
     private void StartPhantasie4(Func<Phantasie4Campaign> start)
     {
+        _unifiedTown.Reset();
+        _unifiedTownNote = null;
         UiText.Table = UiText.For(GameId.P4);
         _p4 = new P4DungeonScreen(start())
         {
@@ -393,6 +395,8 @@ public partial class Game1 : Game
 
     private void StartGame(GameId game, GameOptions? options = null)
     {
+        _unifiedTown.Reset();
+        _unifiedTownNote = null;
         _data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(game));
         UiText.Table = UiText.For(game);
         _overworldView = _data.CreateTraversal();
@@ -456,6 +460,8 @@ public partial class Game1 : Game
     /// <summary>Game menu → Main menu: drop the session (unsaved progress is lost; the menu asked Y/N).</summary>
     private void ReturnToMainMenu()
     {
+        _unifiedTown.Reset();
+        _unifiedTownNote = null;
         CloseMapMessages();
         _p1OkSpec = null;
         _p1About = false;
@@ -1184,7 +1190,7 @@ public partial class Game1 : Game
             return;
         }
 
-        if (_p4 is not null)
+        if (_p4 is not null && !_options.IsOpen)
         {
             _p4.Tick(gameTime.ElapsedGameTime.TotalMilliseconds); // s110: IV's picture animations, the open door
             if (IsMouseVisible && _mouse.Moved)
@@ -1194,6 +1200,12 @@ public partial class Game1 : Game
             _p4.MysticSkippable = _settings.Game(GameId.P4).MysticSkip;
             _p4.CommonTownKeys = _settings.Game(GameId.P4).CommonTownKeys; // QoL COMMON TOWN KEYS (D3-074)
             _p4.OriginalSlots = !_settings.Game(GameId.P4).SaveSlots; // SAVE SLOTS off: IV's own Save page (12-save-slots.md)
+            if (HandleUnifiedTownInput(keys, pad))
+            {
+                _input.EndFrame(keys, pad);
+                base.Update(gameTime);
+                return;
+            }
             // QoL MYSTIC SKIP: Space / Return, a left click or the pad's A ends the Mystic's counted loops; that input
             // goes nowhere else this frame, so it does not also close the Mystic in its wait.
             if (_p4.MysticBusy && _p4.MysticSkippable
@@ -1354,6 +1366,15 @@ public partial class Game1 : Game
         // s154: I DOS's boxes own every key, click and pad button; each press turns one page (COM 0x37a0).
         if (_session is { } pageSession && UpdateDosPages(pageSession,
                 _input.NewKeys(keys).Any() || _input.NewButtons(pad).Any() || _mouse.AnyPressed))
+        {
+            _input.EndFrame(keys, pad);
+            base.Update(gameTime);
+            return;
+        }
+
+        if (_session is { Options.UnifiedTownMenu: true } unifiedSession)
+            ReturnFromBarGuild(unifiedSession);
+        if (HandleUnifiedTownInput(keys, pad))
         {
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
@@ -1581,11 +1602,12 @@ public partial class Game1 : Game
             base.Draw(gameTime);
             return;
         }
-        if (_p4 is not null)
+        if (_p4 is not null && !_options.IsOpen)
         {
             _screen.Begin();
             _screen.BeginLayout(_spriteBatch);
             _p4.Draw(_spriteBatch, _pixel);
+            DrawUnifiedTown();
             _spriteBatch.End();
             _screen.EndAndPresent(_spriteBatch, _pixel);
             EndHits();
@@ -2090,6 +2112,7 @@ public partial class Game1 : Game
             UiOverlays.DrawStAlert(_spriteBatch, _pixel, alertLook, stAlert, fill, ink,
                 _mouse.LeftDown ? _mouse.Position : null, FontSources.ForRole(_assets.Pack, UiOverlays.P2AlertFontRole));
         }
+        DrawUnifiedTown();
         _spriteBatch.End();
         if (ScenePaletteFor(_frameScene) is { } scenePalette)
             _screen.PaletteOverride = scenePalette; // s169: III DOS's CGA palette 1 screens
@@ -3419,6 +3442,8 @@ public partial class Game1 : Game
     /// <summary>Reset the shell's per-game state after a JSON load or a DOS import replaced the session state.</summary>
     private void AfterSnapshotApplied()
     {
+        _unifiedTown.Reset();
+        _unifiedTownNote = null;
         _confirm.Close();
         _guildPickDialog.Close();
         _amigaMessage.Close();

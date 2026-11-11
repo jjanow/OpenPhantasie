@@ -493,6 +493,11 @@ public static class RuleOptionRegistry
         "modern-inventory", GameId.P1, ["off", "on"],
         Manual: "off", Dos: "off", Remaster: "on", EveryGame: true, Games: [GameId.P1, GameId.P2, GameId.P3], Qol: true);
 
+    /// <summary>One town menu across campaigns; service rules and town availability stay the game's own.</summary>
+    public static readonly RuleOptionDescriptor UnifiedTownMenu = new(
+        "unified-town-menu", GameId.P1, ["off", "on"],
+        Manual: "off", Dos: "off", Remaster: "off", EveryGame: true, Qol: true);
+
     // ---- Elementals across the games (PLAN P3 QoL, user D3-040): one cross-game rule set for Guild Add / Drop / Purge
     // with a loaded elemental. Every value is an original's decoded rule; `game` (every preset) = the game's own. Not in
     // IV's tab: IV picks its elemental when the party is formed and has no Guild Add / Drop / Purge of one. Whatever the
@@ -551,6 +556,7 @@ public static class RuleOptionRegistry
         ElementalLoad, ElementalDrop, ElementalPurge, // I, II and III (EveryGame, Games)
         SharedAging, // every game (EveryGame), QoL (13-aging-normalised.md)
         ModernInventory, // I, II and III (EveryGame, Games), QoL (inventory-actions.md section 7)
+        UnifiedTownMenu,
         Treasury, GuildLimit, // every game (EveryGame), last in each tab
     ];
 
@@ -749,6 +755,8 @@ public sealed class GameOptions
     /// hand-out screens, new items worn only into empty slots, the inventory screen anywhere (and Sell in town).
     /// </summary>
     public bool ModernInventory => Is(RuleOptionRegistry.ModernInventory, "on");
+
+    public bool UnifiedTownMenu => Is(RuleOptionRegistry.UnifiedTownMenu, "on");
 
     /// <summary>
     /// True when DISPELL UNDEAD takes any monster whose XP is divisible by 7: <see cref="RuleOptionRegistry.DispellUndead"/>

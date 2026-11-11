@@ -81,7 +81,7 @@ public sealed class Phantasie4Campaign
     /// Opens a party menu at the place the party is (town, outdoors, dungeon). Answer its prompts on <see cref="Menus"/>, then
     /// call <see cref="Follow"/>: a menu that moved the party (Transportation, The Box) takes it there.
     /// </summary>
-    public void OpenMenu(P4MenuCommand command)
+    public void OpenMenu(P4MenuCommand command, IReadOnlySet<int>? spellFilter = null)
     {
         if (Menus is null)
             throw new InvalidOperationException("The party menus need IV's service data.");
@@ -91,7 +91,7 @@ public sealed class Phantasie4Campaign
             P4Place.Outdoors => P4CastPlace.Outdoors,
             _ => P4CastPlace.Dungeon,
         };
-        Menus.Open(command, place, Location.Map, Party.EncounterLevel);
+        Menus.Open(command, place, Location.Map, Party.EncounterLevel, spellFilter);
         _menuInDungeon = _place == P4Place.Dungeon;
         Follow();
     }

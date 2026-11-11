@@ -25,7 +25,7 @@ public sealed class OptionsScreen
     private readonly ClientSettings _settings;
     private readonly Func<GameId, IReadOnlyList<(string Id, string Name)>> _packs;
     private readonly Func<GameId, bool> _playable;
-    private GameSession? _running;
+    private GameOptions? _runningOptions;
     private List<GameId?> _tabs = [];
     private int _tab;
     private int _scroll;
@@ -67,11 +67,17 @@ public sealed class OptionsScreen
     /// </summary>
     public void Open(GameSession? running = null)
     {
-        _running = running;
-        _tabs = running is null
+        OpenFor(running?.Options);
+    }
+
+    /// <summary>Options for a running campaign, including IV, whose rules remain locked.</summary>
+    public void OpenFor(GameOptions? runningOptions)
+    {
+        _runningOptions = runningOptions;
+        _tabs = runningOptions is null
             ? [null, .. MainMenuScreen.Games.Select(g => (GameId?)g)]
-            : [null, running.Game];
-        _tab = running is null ? 0 : 1;
+            : [null, runningOptions.Game];
+        _tab = runningOptions is null ? 0 : 1;
         Cursor = 0;
         _scroll = 0;
         DetailBox.Reset();
@@ -273,7 +279,7 @@ public sealed class OptionsScreen
                 _ => Set(() => _settings.StartMaximized = !_settings.StartMaximized)),
         ];
         // s158: re-run the first-run importer (from the main menu only: an import replaces data a running game uses).
-        if (_running is null)
+        if (_runningOptions is null)
             rows.Add(Described("options.import_games", UiText.S("options.import_games.open"), _ =>
             {
                 ImportRequested = true;
@@ -283,7 +289,7 @@ public sealed class OptionsScreen
         // menu only: an update replaces the program and restarts it).
         rows.Add(Described("options.update.at_start", OnOff(_settings.CheckUpdatesAtStart),
             _ => Set(() => _settings.CheckUpdatesAtStart = !_settings.CheckUpdatesAtStart)));
-        if (_running is null)
+        if (_runningOptions is null)
             rows.Add(Described("options.update.now_row", "v" + Updates.AppVersion.Text, _ =>
             {
                 UpdateRequested = true;
@@ -383,8 +389,8 @@ public sealed class OptionsScreen
                 _ => Set(() => g.CommonTownKeys = !g.CommonTownKeys)));
         }
 
-        var locked = _running is not null;
-        var rules = _running?.Options ?? g.NewGameOptions(game);
+        var locked = _runningOptions is not null;
+        var rules = _runningOptions ?? g.NewGameOptions(game);
         rows.Add(new(locked ? UiText.S("options.rules_locked") : UiText.S("options.rules_new_games"), null, null, Header: true));
 
         var presets = Enum.GetValues<OptionPreset>();

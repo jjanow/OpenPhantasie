@@ -11,6 +11,10 @@ To play, you need your own copy of each game you want to play. On first start, O
 images, a zip, or the installed game's folder) and builds the game's tables, text, art and sound from it on your
 machine.
 
+For a common town interface across all four games, enable **UNIFIED TOWN MENU** in the game's new-game
+Quality of Life options. It offers Town, Party, Magic and Game tabs with keyboard, mouse and gamepad navigation.
+Unavailable services explain why; each campaign keeps its service rules. The choice is stored with the save.
+
 ## Screenshots
 
 Each game is drawn with the pictures of the versions you imported. When you have more than one (Phantasie I's Amiga

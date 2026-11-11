@@ -105,7 +105,8 @@ public sealed class P4Menus
     /// Opens a menu at <paramref name="place"/>: <paramref name="map"/> is <c>_cmapn</c> (Divine Aid's hint, a dungeon's
     /// Monster Evaluation level), <paramref name="encounterLevel"/> the outdoor <c>_emlevel</c>.
     /// </summary>
-    public void Open(P4MenuCommand command, P4CastPlace place, int map, int encounterLevel = 1)
+    public void Open(P4MenuCommand command, P4CastPlace place, int map, int encounterLevel = 1,
+        IReadOnlySet<int>? spellFilter = null)
     {
         if (Prompt != P4MenuPrompt.Closed)
             throw new InvalidOperationException("A menu is already open.");
@@ -118,7 +119,7 @@ public sealed class P4Menus
         {
             P4MenuCommand.Profile => ProfileMenu(),
             P4MenuCommand.PartyInfo => PartyInfo(),
-            P4MenuCommand.Cast => Cast(place, map, encounterLevel),
+            P4MenuCommand.Cast => Cast(place, map, encounterLevel, spellFilter),
             _ => Use(),
         }).GetEnumerator();
         Resume();
@@ -343,7 +344,7 @@ public sealed class P4Menus
         [.. P4TownRules.CastList(_o, S, place)
             .Where(n => caster.Knows(n) && P4Combat.MpCost(_o, _t.Combat, n) <= caster.Mp)];
 
-    private IEnumerable<P4MenuPrompt> Cast(P4CastPlace place, int map, int encounterLevel)
+    private IEnumerable<P4MenuPrompt> Cast(P4CastPlace place, int map, int encounterLevel, IReadOnlySet<int>? spellFilter)
     {
         Title = GameText.S("p4x.0x432ae");
         var cast = false;
@@ -360,10 +361,10 @@ public sealed class P4Menus
             var ci = _choice;
             Marked = ci;
             var caster = Party.Members[ci];
-            var spells = CastableSpells(caster, place);
+            var spells = CastableSpells(caster, place).Where(n => spellFilter is null || spellFilter.Contains(n)).ToList();
             // _getmagic opens its "Spell List" in window 34, the panel's place (s140 [C]); s151: the Client draws it there
             // (_splist: every spell of the place lettered A…, the name and button only where castable; SPACE:Quit above).
-            var page = P4TownRules.CastList(_o, S, place);
+            var page = P4TownRules.CastList(_o, S, place).Where(n => spellFilter is null || spellFilter.Contains(n));
             var offered = spells.ToList();
             yield return Pick(spells.Select(n => new P4Choice(P4Names.At(_data.Names.Spells, n - 1))), menu: "",
                 list: new P4ListWindow("_getmagic", [.. page.Select(n => offered.IndexOf(n) is >= 0 and var i

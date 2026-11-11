@@ -60,6 +60,7 @@ public partial class StringTableTests
             .Concat(TownMenu.BarLabels.Concat(TownMenu.BankLabels).Concat(TownMenu.OptionLabels).Concat(TownMenu.InnLabels)
                 .Concat(TownMenu.DosBankLabels).Append("Trade items")
                 .Select(l => "town.label." + l.ToLowerInvariant().Replace(' ', '_')))
+            .Concat(UnifiedTownMenu.StringKeys())
             // T5.0: game names and tabs, presets, rules options and their values, feature modules.
             .Concat(MainMenuScreen.Games.SelectMany(g => new[] { "menu.game." + g.Prefix(), "options.tab." + g.Prefix() }))
             .Concat(Enum.GetValues<OptionPreset>().Select(p => "options.preset." + p.Id()))
