@@ -142,9 +142,9 @@ Seen working on screen: F33 (pad / key / left-stick-only switch the help, IV str
 Withdraw wheel), C10, C11, C12, C13, C15 (III DOS and I town rows), C16, C17, C19 (spell step), C20, C21, C22, C23,
 D24-26 (no art pack), E28 (auto combat, Mystic skip), E29 (III Amiga orders, member / order / spell steps). Fixed in the
 pass: III Amiga's street help said "Back more" (Back toggles the auto-map there); it has its own help now
-(`game.town_bar_help`, Start menus). Not reached: C14, C18's MESS outline and Guild Add move question, C19's rank /
-heal steps, D27's paging (a one-page ledger), the right stick's prompt scroll, the II / III-only pad lines, IV's wiped
-party / game-over lines, a key and a pad press in one frame (unit-tested).
+(`game.town_bar_help`, Start menus). The remaining cases were completed in s197: C14, C18's MESS / Guild move question, C19 rank / heal / PartyRank,
+D27 ledger paging, right-stick prompt scroll, II / III pad lines, IV wipe / ending flow and same-frame keyboard/pad
+input. Evidence: `parity/s197-pad-live.md` and linked reports / raw traces. No live follow-ups remain from this list.
 
 Findings 34–41: closed s196 (verification notes: `parity/s196-pad-findings.md`).
 
@@ -175,6 +175,16 @@ Findings 34–41: closed s196 (verification notes: `parity/s196-pad-findings.md`
     Auto combat greeting is correct: friendly strategy tries Greet in its first three rounds (`PartyStrategy`, already
     specified and tested), so no rule was changed.
 
+42. Done s197: III Trade's receiver help names D-pad / A give/sell / B back, matching its cursor (no wheel / X).
+    Live: X does nothing, Down / A transfers the selected item, Up / A reaches Sell. Existing wording test corrected.
+43. Done s197: generic combat displays the current order question as wrapped menu rows before the existing orders /
+    spell list, resetting scroll when the question changes. The s196 layout had dropped the bottom HUD's message,
+    so rank / heal / PartyRank input worked without a visible question. I rank and healing plus III PartyRank seen
+    live after repair; Amiga screens use their existing renderers. No input mapping or combat rule changed.
+44. Done s197: III event pages put the existing pad hint in their parchment footer, which covers the HUD; a numbered
+    pick keeps C18's selected-choice footer. Keyboard keeps the original footer. Any-key / numbered pages and
+    right-stick paging seen live; regression covers keyboard preservation and pad hint/selection switching.
+
 ## Accepted, not fixes
 
 - No pad remapping (keys are rebindable in the settings JSON only; no UI for either).
@@ -183,4 +193,4 @@ Findings 34–41: closed s196 (verification notes: `parity/s196-pad-findings.md`
 ## Suggested order
 
 A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 (done s191) → C 14-23 (done s192)
-→ D 27 + E (done s193) → E29's III Amiga orders + F (done s194) → live virtual-pad pass on Xvfb (s194, section G) → G 34-41 (done s196) → the live cases not reached (section G).
+→ D 27 + E (done s193) → E29's III Amiga orders + F (done s194) → live virtual-pad pass on Xvfb (s194, section G) → G 34-41 (done s196) → remaining live cases + G42–44 (done s197).

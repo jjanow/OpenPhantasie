@@ -1128,7 +1128,7 @@
     "p3town.trade_x_to_whom": "Give {0} to whom?",
     "p3town.7_sell_for_x": "7 Sell for {0} ...",
     "p3town.trade_to_help": "1-6 give  7 sell  Esc back",
-    "p3town.trade_to_help.pad": "Left/Right who (7 sell)  X give  B back",
+    "p3town.trade_to_help.pad": "D-pad pick  A give/sell  B back",
     "p3town.same_member": "Pick another adventurer.",
     "p3combat.order.0": "...",
     "p3combat.order.1": "...",

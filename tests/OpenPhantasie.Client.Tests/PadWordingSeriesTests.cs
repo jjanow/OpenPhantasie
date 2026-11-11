@@ -78,16 +78,37 @@ public sealed class PadWordingSeriesTests
     }
 
     [Fact]
+    public void EventPageFooter_ShowsPadControlsOrSelection_AndPreservesKeyboardFooter()
+    {
+        var was = PadWording.Active;
+        try
+        {
+            PadWording.Active = false;
+            Assert.Equal("keyboard footer", Game1.EventPageFooter("keyboard footer", true, "> 2) SOUTH"));
+            PadWording.Active = true;
+            Assert.Equal(UiText.S("game.event_page_any_key.pad"), Game1.EventPageFooter("keyboard footer", true, null));
+            Assert.Equal(UiText.S("game.event_page_number.pad"), Game1.EventPageFooter("keyboard footer", false, null));
+            Assert.Equal("> 2) SOUTH", Game1.EventPageFooter("keyboard footer", false, "> 2) SOUTH"));
+        }
+        finally { PadWording.Active = was; }
+    }
+
+    [Fact]
     public void TheWordings_NameOnlyButtonsTheirScreensTake()
     {
         // The shares window: B is its CANCEL since s190 (pad fix list C11).
         Assert.EndsWith("B cancel", UiText.S("p3town.bank_window_shares_help.pad"), StringComparison.Ordinal);
         // Steps taking a digit only (A does nothing): the wheel's X, no A.
-        foreach (var id in new[] { "lineage.kind_help.pad", "lineage.race_help.pad", "p3train.help.pad", "p3town.trade_to_help.pad" })
+        foreach (var id in new[] { "lineage.kind_help.pad", "lineage.race_help.pad", "p3train.help.pad" })
         {
             Assert.Contains("X ", UiText.S(id), StringComparison.Ordinal);
             Assert.DoesNotContain("A ", UiText.S(id), StringComparison.Ordinal);
         }
+        // Trade's receiver step has a cursor (B7), so A gives/sells the row and X has no wheel action.
+        var trade = UiText.S("p3town.trade_to_help.pad");
+        Assert.Contains("D-pad pick", trade, StringComparison.Ordinal);
+        Assert.Contains("A give/sell", trade, StringComparison.Ordinal);
+        Assert.DoesNotContain("X ", trade, StringComparison.Ordinal);
         // The Y / N steps (DialogPad.YesNoKeys): A = Y, X = N.
         Assert.Equal("A keep  X skip  B cancel", UiText.S("transfer.y_keep_n_skip_esc_cancel.pad"));
         Assert.Equal(UiText.S("pad.dialog_yes_no")["Pad: ".Length..], UiText.S("gamemenu.y_yes_n_esc_back.pad"));

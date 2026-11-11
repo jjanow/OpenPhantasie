@@ -1170,6 +1170,11 @@ public static partial class UiOverlays
         string? title = null;
         var rows = new List<(string Text, Color Color, Action<Rectangle>? Hit)>();
         var cursorRow = -1;
+        // The old bottom HUD carried the current order question. Keep it in the new right column too: the orders
+        // table alone does not tell the player that a rank, spell or healing target is being requested.
+        if (presenter.AwaitingOrders)
+            foreach (var part in Lines(presenter.LastLine, menuChars))
+                rows.Add((part, TitleGold, null));
         if (presenter.Phase == CombatPhase.PartyOptions)
         {
             title = UiText.S("ui.party_options");
@@ -1220,6 +1225,11 @@ public static partial class UiOverlays
         if (title is null)
             return;
         PixelFont.Draw(batch, pixel, rx, top + 18, title, TitleGold);
+        if (presenter.AwaitingOrders)
+        {
+            menuBox.TopFor(presenter.LastLine.GetHashCode());
+            cursorRow = 0; // keep the question visible; the complete orders / spell list still scrolls below it
+        }
         menuBox.Set(rows.Count, menuRows);
         if (cursorRow >= 0)
             menuBox.Follow(cursorRow);

@@ -1880,7 +1880,7 @@ public partial class Game1 : Game
                 _defeatPager.Reset();
                 _pageEdges ??= pageFrame.Pick(n => Random.Shared.Next(n));
                 UiOverlays.DrawScrollFrame(_spriteBatch, _pixel, _assets, pageFrame, _pageEdges, eventPage.Lines,
-                    EventPadFooter(prompt) ?? eventPage.Footer, eventPage.AnyKey); // s192 (C18): the pad's pick on the page
+                    EventPageFooter(eventPage.Footer, eventPage.AnyKey, EventPadFooter(prompt)), eventPage.AnyKey);
                 scene = true;
             }
             // s153: I Amiga's event menu, the MESS window with requester 25's buttons (h41 +0x1440).
@@ -2416,6 +2416,10 @@ public partial class Game1 : Game
 
     /// <summary>III's event page as drawn: its rows and its foot line.</summary>
     private sealed record EventPage(IReadOnlyList<string> Lines, string Footer, bool AnyKey);
+
+    /// <summary>The parchment covers the HUD: put its pad hint (or selected numbered choice) in the footer itself.</summary>
+    public static string EventPageFooter(string original, bool anyKey, string? selected) =>
+        !PadWording.Active ? original : selected ?? PadWording.S(anyKey ? "game.event_page_any_key" : "game.event_page_number");
 
     /// <summary>
     /// III's dungeon event page for <paramref name="prompt"/> (Amiga <c>0x1d982</c>): a text waiting for a key ("Press a
