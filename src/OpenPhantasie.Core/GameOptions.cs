@@ -625,7 +625,8 @@ public sealed class GameOptions
         var on = modules is null
             ? restored.Modules
             : FeatureModuleRegistry.All
-                .Where(d => d.IsOptionalIn(game) && modules.Contains(d.Id, StringComparer.Ordinal))
+                .Where(d => d.Implemented && !d.CrossGame && d.IsDefaultIn(game)
+                    || d.IsOptionalIn(game) && modules.Contains(d.Id, StringComparer.Ordinal))
                 .Select(d => d.Id)
                 .ToArray();
         var result = new GameOptions(game, p, restored._options, merged, on);
@@ -652,6 +653,8 @@ public sealed class GameOptions
     public GameOptions WithModule(string id, bool on)
     {
         var d = FeatureModuleRegistry.Find(id) ?? throw new ArgumentException($"Unknown feature module '{id}'.", nameof(id));
+        if (!on && !d.CrossGame && d.IsDefaultIn(Game))
+            throw new NotSupportedException($"Feature module '{id}' is required for {Game.Prefix()}'s combat.");
         if (on && !d.Implemented)
             throw new NotSupportedException($"Feature module '{id}' is not decoded yet and can't be enabled.");
         if (on && !d.IsOptionalIn(Game))

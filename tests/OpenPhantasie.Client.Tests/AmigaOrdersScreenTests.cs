@@ -11,6 +11,15 @@ public partial class AmigaOrdersScreenTests
 {
     private static readonly GameDataRepository P3Data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P3));
 
+    [OriginalDataFact]
+    public void EmptyStoredModules_CanGiveTheFirstFightOrder()
+    {
+        var (session, ui) = AtOrders(amiga: false, GameOptions.Restore(GameId.P3, "custom", null, []));
+        Assert.True(ui.AwaitingOrders);
+        ui.HandleKey(session, Keys.T);
+        Assert.NotNull(session.Combat);
+    }
+
     /// <summary>A III party of four (Fighter, Priest, Wizard, Thief) in a normal fight, the presenter at the orders.</summary>
     private static (GameSession, CombatPresenter) AtOrders(bool amiga = true, GameOptions? options = null)
     {

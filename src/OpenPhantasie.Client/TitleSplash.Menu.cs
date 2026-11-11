@@ -198,6 +198,7 @@ public sealed partial class TitleSplash
         {
             var hy = Math.Min(at.Y + bar + h + 6, Sequence.Height - PixelFont.Font.Height - 2);
             var hx = Math.Max(2, Math.Min(at.X + (w - PixelFont.Measure(help)) / 2, Sequence.Width - PixelFont.Measure(help) - 2));
+            batch.Draw(pixel, new Rectangle(hx - 2, hy - 2, PixelFont.Measure(help) + 4, PixelFont.Font.Height + 4), Color.Black);
             PixelFont.Draw(batch, pixel, hx, hy, help, Color.White);
         }
     }

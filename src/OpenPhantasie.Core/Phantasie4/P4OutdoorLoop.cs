@@ -156,6 +156,9 @@ public sealed class P4OutdoorLoop
 
     private P4OutdoorFight? _fightAfterWait;
 
+    /// <summary>The encounter is committed; the SPACE wait leads straight into the fight, not the outdoor menu.</summary>
+    public bool WaitingForFight => _fightAfterWait is not null;
+
     /// <summary>The move under way (for a forced move's tick after the shining-sea question).</summary>
     private bool _forced;
 

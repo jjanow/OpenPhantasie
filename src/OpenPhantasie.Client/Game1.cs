@@ -755,7 +755,7 @@ public partial class Game1 : Game
                 n => Random.Shared.Next(n))
             : null;
         _combatUi.AmigaField = () => _session is { Game: GameId.P3 } && CurrentGameSettings.OriginalScreens
-                                     && assets?.PortraitGrave is not null;
+                                     && assets?.PortraitGrave is not null && assets.KeepWindows?.MenuBars.ContainsKey("fight") == true;
         _combatUi.AmigaOrders = () => _session is { Game: GameId.P3 } && CurrentGameSettings.OriginalScreens
                                       && assets?.BodyFigure is not null && assets.KeepWindows?.Rank is not null;
         _combatUi.AmigaFieldWindows = () => assets?.KeepWindows is { MonsterNames: not null, PartyHealth: not null };
@@ -1627,7 +1627,13 @@ public partial class Game1 : Game
         _frameScene = ModeScene(_session);
         DrawModeView(_session, _pixel, _assets);
         var messageShows = _messageBand.Shows(_message, gameTime.TotalGameTime.TotalSeconds, UiOverlays.TownMessageSeconds);
-        if (P1MapScreen(_session) is { } p1Map)
+        if (ViewMode(_session) == GameMode.Combat && !_combatUi.P1FieldShown && _combatUi.FieldRun is null
+            && !_combatUi.AmigaOrdersShown && !_combatUi.AmigaFieldMenuShown)
+        {
+            // The remaster combat panel uses the whole canvas to keep every portrait and rank picture complete;
+            // its help and log are in the right column above the party cards.
+        }
+        else if (P1MapScreen(_session) is { } p1Map)
         {
             // s155: I Amiga's map screen: its menu bar on top, the remaster's message on the Amiga's line (TopEdge 192); a
             // dialog's own key help above it (or on it when there is no message). s156: the overworld's frame under it;
@@ -1664,7 +1670,8 @@ public partial class Game1 : Game
                 // s183: the pad in use, its words (LT / RT shopper) once no message holds the band. Pad fix B9 (s188):
                 // whenever the pad is the input, not only for a help with a pad twin: a dialog's wheel line, its Y / N
                 // line and a help with no twin (the shares line) showed nothing, and the wheel's character nowhere.
-                : PadWording.Active && !(messageShows && BandMessage.Length > 0) ? PadWording.Help(_help) : null,
+                : PadWording.Active && (CurrentPrompt is { IsShares: true }
+                    || !(messageShows && BandMessage.Length > 0)) ? PadWording.Help(_help) : null,
                 CurrentGameSettings.OriginalScreens,
                 gold: TownBarPlaces(_session) is null ? _session : null); // III Amiga: the gold line is on its town bar
         else if (ViewMode(_session) is GameMode.Overworld or GameMode.Dungeon && !CurrentGameSettings.StatusLines)
@@ -1691,7 +1698,7 @@ public partial class Game1 : Game
         {
             UiOverlays.DrawP1CombatField(_spriteBatch, _pixel, _assets, _session, _combatUi, _data); // I Amiga's screen (s132)
             // s193 (pad fix E29): the field and its requesters cover the help line: the pad's words on one free row
-            if (!InventoryScreenOpen && _combatUi.AmigaPadHint(_session) is { } p1Hint)
+            if (CombatInputUnobscured && _combatUi.AmigaPadHint(_session) is { } p1Hint)
                 UiOverlays.DrawP1PadHint(_spriteBatch, _pixel, _assets, _session, _combatUi, p1Hint);
         }
         if (MapBox() is { } mapBox && _assets.Pack?.MapMessage is { } mapMessage)
@@ -1728,7 +1735,7 @@ public partial class Game1 : Game
         else if (_combatUi.AmigaFieldMenuShown && !_showInventory && !_showBestiary)
         {
             UiOverlays.DrawFieldMenuScreen(_spriteBatch, _pixel, _assets, _session, _combatUi); // its menu bar (s119)
-            if (_combatUi.AmigaPadHint(_session) is { } p3Hint) // s193 (pad fix E29): on the round line's empty row
+            if (CombatInputUnobscured && _combatUi.AmigaPadHint(_session) is { } p3Hint) // s193 (pad fix E29): on the round line's empty row
                 UiOverlays.DrawFieldPadHint(_spriteBatch, _pixel, _assets, _combatUi, p3Hint);
         }
         else if (_session.Mode == GameMode.Combat && !_showInventory && !_showBestiary && !_combatUi.AwaitingInput)
@@ -2072,7 +2079,7 @@ public partial class Game1 : Game
             }
         }
         // s182 (Pad coverage): the pad's pick in a fight, outlined on whatever the screen drew for it (the help line names it too).
-        if (_session is { } padSession && _combatUi.AwaitingInput
+        if (CombatInputUnobscured && _session is { } padSession && _combatUi.AwaitingInput
             && CombatPad.MarkFor(_combatPad.Picked(_combatUi.PadStep(padSession)), UiOverlays.Hits) is { } padMark)
             UiOverlays.DrawPadMark(_spriteBatch, _pixel, padMark);
         // s158: II ST's alert box (form_alert) over everything; only its button takes a click.
@@ -2106,6 +2113,10 @@ public partial class Game1 : Game
 
     /// <summary>The running game's settings (presentation QoL switches, graphics; T5.0).</summary>
     private GameSettings CurrentGameSettings => _settings.Game(_session!.Game);
+
+    private bool CombatInputUnobscured => OpenModal is null && !_dosDialog.IsOpen && CurrentPrompt is null
+        && !InventoryScreenOpen && !_showInventory && !_showBestiary && !_amigaMessage.Shown
+        && !_outsideBar.CreditsShown && !_outsideBar.StatusShown && !_damageReport.Shown && !_p2Alert.Shown;
 
     /// <returns>True when Esc was used this frame (backed out or opened the game menu).</returns>
     private bool HandleGlobalInput(KeyboardState keys, GamePadState pad)
@@ -2564,7 +2575,7 @@ public partial class Game1 : Game
         : prompt.Options.Count == 1 ? UiText.S("game.enter_continue")
         : prompt.Hotkeys is { } letters && !PadWording.Active // s185: the pad answers by D-pad and A (game.arrows_enter_or_1_x)
             ? string.Join("   ", letters.Select((c, i) => $"{c} {prompt.Options[i].Replace(")", "").ToLowerInvariant()}"))
-        : prompt.IsShares ? UiText.F("game.x_x_shares", prompt.Options[0], prompt.Options[^1])
+        : prompt.IsShares ? PadWording.Format("game.x_x_shares", prompt.Options[0], prompt.Options[^1])
         : PadWording.F("game.arrows_enter_or_1_x", prompt.Options.Count); // s185: a template: the pad's wording picked here
 
     private void HandleGameplayInput(KeyboardState keys, GamePadState pad)
@@ -3507,7 +3518,7 @@ public partial class Game1 : Game
         if (_combatUi.P2Run is not null && session.Mode != GameMode.Combat)
         {
             FillBackdrop(pixel, Color.Black);
-            UiOverlays.DrawCombat(_spriteBatch!, pixel, assets, session, _settings, _combatUi, _data!);
+            UiOverlays.DrawCombat(_spriteBatch!, pixel, assets, session, _settings, _combatUi, _data!, _help);
             return;
         }
 
@@ -3654,7 +3665,7 @@ public partial class Game1 : Game
                 break;
             case GameMode.Combat:
                 UiOverlays.DrawCombat(
-                    _spriteBatch!, pixel, assets, session, _settings, _combatUi, _data!);
+                    _spriteBatch!, pixel, assets, session, _settings, _combatUi, _data!, _help);
                 break;
         }
     }

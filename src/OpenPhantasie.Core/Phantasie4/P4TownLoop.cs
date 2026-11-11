@@ -553,7 +553,7 @@ public sealed partial class P4TownLoop
     /// <exception cref="InvalidOperationException">A building is open: the original saves only from the town menu.</exception>
     public P4TownSnapshot Capture()
     {
-        if (_screen is not null)
+        if (InBuilding)
             throw new InvalidOperationException("A building is open; leave it before saving.");
         return new(Town, Prompt, [.. _window.Lines], SharesFor, Transfer, _stage.ToString(), []);
     }

@@ -662,8 +662,9 @@ workspace. Re-export into an empty folder to refresh it (the script refuses a no
   skill / social-class names and `towns` names; IV `rule-tables` `P4GameData.RuleTablePathsFromCopy`); the other (c)
   files are left out (the import writes them whole); string tables as in 7.6; IV `en.json` = the patch (1,477 ids).
 - From `tools/public/`: `README.md`, `LICENSE` (MIT, "Jimmy Janow and OpenPhantasie contributors", 2026),
-  `THIRD-PARTY-NOTICES.md` (MonoGame MS-PL, SDL2, OpenAL Soft, xUnit, test SDK, coverlet), `.gitignore`.
-- Never: disk images, ROMs, manuals, screenshots, parity shots, extracted art / audio / text, translation sources, the
+  `THIRD-PARTY-NOTICES.md` (MonoGame MS-PL, SDL2, OpenAL Soft, xUnit, test SDK, coverlet), `.gitignore`, and (s195)
+  the README's five Client screenshots (`tools/public/screenshots/*.png` → `docs/images/`, the only images besides the icon).
+- Never: disk images, ROMs, manuals, other screenshots, parity shots, extracted art / audio / text, translation sources, the
   DOS dungeon save fixtures (`DNG*.sav` hold a level's map).
 
 ### 8.2 Tests in the public tree

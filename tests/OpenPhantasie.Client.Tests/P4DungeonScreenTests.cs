@@ -267,6 +267,7 @@ public class P4DungeonScreenTests
                     // s141: the question's lines (shown in _msg's window over the field) start with the item found.
                     Assert.NotEmpty(b.TreasureLines);
                     Assert.Equal(b.TreasureLines, b.Log.TakeLast(b.TreasureLines.Count));
+                    Assert.Equal(b.TreasureLines, s.BoxLines().Where(l => l.Style == MenuLineStyle.Dim && l.Text.Length > 0).Select(l => l.Text));
                     seen = true;
                 }
                 else

@@ -62,12 +62,24 @@ public class GameOptionsTests
     }
 
     [Fact]
-    public void Switching_off_a_home_module_is_custom()
+    public void Native_combat_cannot_be_switched_off()
     {
-        var o = GameOptions.ForPreset(GameId.P1).WithModule(FeatureModuleRegistry.P1CombatOrders.Id, false);
-        Assert.Equal(OptionPreset.Custom, o.Preset);
-        Assert.Empty(o.Modules);
-        Assert.Equal(OptionPreset.Manual, o.WithModule(FeatureModuleRegistry.P1CombatOrders.Id, true).Preset);
+        Assert.Throws<NotSupportedException>(() => GameOptions.ForPreset(GameId.P1)
+            .WithModule(FeatureModuleRegistry.P1CombatOrders.Id, false));
+        Assert.Throws<NotSupportedException>(() => GameOptions.ForPreset(GameId.P3)
+            .WithModule(FeatureModuleRegistry.P3CombatActions.Id, false));
+    }
+
+    [Theory]
+    [InlineData(GameId.P1, "p1.combat-orders")]
+    [InlineData(GameId.P2, "p1.combat-orders")]
+    [InlineData(GameId.P3, "p3.combat-actions")]
+    public void Empty_saved_modules_retain_native_combat(GameId game, string native)
+    {
+        var rules = GameOptions.Restore(game, "custom", null, []);
+        Assert.Contains(native, rules.Modules);
+        Assert.DoesNotContain("p2.rock-throwing", rules.Modules); // optional, including in II
+        Assert.NotEmpty(rules.CreateModules().CombatChoices);
     }
 
     [Fact]

@@ -43,7 +43,9 @@ public sealed partial class P4TownLoop
     private bool[] _whoEnabled = [];
 
     /// <summary>True while a building or item command runs (its prompts are answered here, then the menu returns).</summary>
-    public bool InBuilding => _screen is not null;
+    public bool InBuilding => _screen is not null || Prompt is not (P4TownPrompt.Menu or P4TownPrompt.Left or P4TownPrompt.Ending)
+        && _scene is P4TownScene.Guild or P4TownScene.Inn or P4TownScene.Bank or P4TownScene.Shipwright
+            or P4TownScene.Mystic or P4TownScene.Hall;
 
     /// <summary>The open building's window title.</summary>
     public string? ScreenTitle { get; private set; }

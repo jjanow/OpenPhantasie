@@ -1056,7 +1056,7 @@ public sealed partial class CombatPresenter
         }
         if (key is Keys.Home or Keys.End)
         {
-            RankScroll.ScrollBy(key == Keys.Home ? -Math.Max(1, RankScroll.Visible - 1) : Math.Max(1, RankScroll.Visible - 1));
+            RankScroll.ScrollBy(key == Keys.Home ? -1 : 1);
             return false;
         }
         if (key is Keys.Up or Keys.Down && SpellDigits.Length == 0 && AwaitingOrders && _step == OrderStep.SpellNumber && !_amiga
@@ -1699,7 +1699,8 @@ public sealed partial class CombatPresenter
         if (Phase == CombatPhase.PartyOptions && FieldWindow != AmigaFieldWindow.None)
             return PressAnyKey;
         if (Phase == CombatPhase.PartyOptions && _amigaParty && InfoBox.Count == 0)
-            return _p1Party ? UiText.S("p1field.help") : UiText.S("p3field.help");
+            return _p1Party ? UiText.S("p1field.help")
+                : FieldMenuOpen is null ? UiText.S("p3field.help") : UiText.S("p3field.menu_help");
         if (Phase == CombatPhase.PartyOptions)
             return InfoBox.Count > 0 ? PressAnyKey
                 : PadWording.F("combat.party_options_x_arrows_enter", CombatText.PartyOptionMenu[OptionCursor].Label);

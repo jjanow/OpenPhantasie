@@ -146,30 +146,34 @@ pass: III Amiga's street help said "Back more" (Back toggles the auto-map there)
 heal steps, D27's paging (a one-page ledger), the right stick's prompt scroll, the II / III-only pad lines, IV's wiped
 party / game-over lines, a key and a pad press in one frame (unit-tested).
 
-Found in the pass, open (a fix found later = the audit missed it; cause where known):
-34. IV: the Mystic's result wait and the Inn's "slept" wait say "LB save" and LB saves there (shots
-    `parity/shots/s194-pad-e28_03c.png`, `-e28_05c.png`): the help follows
-    `CanSave` (`Phantasie4Campaign.cs:138`), and `InBuilding` (`P4TownLoop.Screens.cs:46`, `_screen is not null`) is
-    false at those waits. Whether IV's original saves there is not read `[?]`; the outdoor "took them by surprise" wait
-    before a fight says it too. The manual ("saved anywhere", from the System icon) does not settle a building's waits.
-35. III DOS look: a fight opens on the Amiga-style field ("A opens options"); A then pulls down an all-black menu that
-    blanks the monsters (`parity/shots/s194-pad-p3d_f1c.png`, `-p3d_f2top.png`). Not traced.
-36. I Amiga orders window: its yellow outline draws over the game menu, the import path box and the file browser, and
-    the fight's help line stays up under them; once it listed only one member of six (`parity/shots/s194-pad-c23_10c.png`,
-    `-c10_11c.png`, `-c17_02c.png`). Not traced.
-37. III Amiga share windows: the bottom row keeps the message ("You have: n gold", "[original text]"), not B9's
-    pad help (`parity/shots/s194-pad-c11_09c.png`, `-c11_02c.png`).
-38. IV title `_disk(0)`: the pad help (`title.disk_help.pad`) is white on the light-grey window, flush with its
-    right edge (`parity/shots/s194-pad-c20_help.png`).
-39. III field menu bar with no menu pulled down: the help names an open menu's buttons ("A take  B close").
-40. Scrolled lists cut pictures: the fight's rank box (RT + right stick) splits a rank's header from its picture; the
-    bestiary shows half pictures (against "fit or scroll, never crop"; `parity/shots/s194-pad-c12_03full.png`,
-    `-c13_best.png`).
-41. Not pad: a III save whose `newGameRules` has `"modules": []` crashes the first Fight (`ArgumentOutOfRangeException:
-    No enabled module offers this order`, `FeatureModules.cs:370`; `SessionSnapshot.cs:98` defaults `Modules` to empty).
-    Reached with a hand-written settings file, not from Options. IV's found-item window said "Found Knife" while the
-    log said "Found Medium Shield" (`s194-pad-fight6c.png`); III's victory line shows "Victory ? Return" (a glyph the font lacks, `s194-pad-p3_f3c.png`); IV's log said
-    "The party greeted" before an auto combat. Each needs a look of its own.
+Findings 34–41: closed s196 (verification notes: `parity/s196-pad-findings.md`).
+
+34. IV saves are refused in simple building waits (Inn / Mystic / Shipwright), as in coroutine buildings, and while an
+    outdoor encounter waits to enter combat. `InBuilding`, town `Capture` and campaign `CanSave` agree; help follows the
+    same gate. Inn refusal seen live, Mystic / Inn and pending encounter covered by regression tests. This applies the
+    existing `towns.md` section 2 remaster save policy; no new manual/code decision.
+35. III's Amiga field requires the pack's fight-menu layout as well as the grave portrait. DOS has portraits but no
+    Amiga menu layout. DOS combat and its first orders seen live with `modules: []`; the menu no longer blanks monsters.
+36. Combat hints and the pad outline are drawn only when combat owns input (`CombatInputUnobscured`), so the game menu,
+    DOS path dialog and browser cannot acquire the combat cursor. Seen live (path / browser with pad active). The
+    one-member orders observation was not reproduced: the list intentionally omits members who cannot take orders
+    (`IsOrderable`); the fresh six-member party lists all six.
+37. Both gold and experience share prompts give pad help priority over the town's transient message; experience shares
+    have their own formatted pad help. Experience share seen live; Bank's share window uses its existing pad help.
+38. IV title help has a padded opaque black backing, readable over the light-grey window. Seen live.
+39. III's closed field menu names opening / choosing a menu; only an open menu says A take / B close. Both seen live.
+40. Generic combat ranks scroll complete picture blocks with their rank text beside them. Party cards sit below the
+    ranks; commands, log and help share the right column. II's monster slots wrap into blocks and keep their rank number
+    on every block. The viewport uses the full canvas so shipped pictures fit at their native size. Whole-block
+    scrolling and exact-fit edges regression-tested; DOS III layout seen live. Bestiary already fits complete rows.
+    The screenshot helper was also clipping the top/left: xdotool doubled the reparented window's relative offset;
+    `client_xvfb.sh` now uses xwininfo's absolute coordinates. Full bestiary pictures seen in a corrected capture.
+41. Empty saved module lists retain the game's required native combat module (I, II and III); it cannot be switched off
+    through `WithModule`. Optional modules still follow the saved list. Restore and first-order regressions added.
+    IV's found-item text column shows only the current item's lines, avoiding an older find above the current one;
+    checked against `TreasureLines` across a simulated fight's finds. The remaster victory line uses a supported dash.
+    Auto combat greeting is correct: friendly strategy tries Greet in its first three rounds (`PartyStrategy`, already
+    specified and tested), so no rule was changed.
 
 ## Accepted, not fixes
 
@@ -179,4 +183,4 @@ Found in the pass, open (a fix found later = the audit missed it; cause where kn
 ## Suggested order
 
 A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 (done s191) → C 14-23 (done s192)
-→ D 27 + E (done s193) → E29's III Amiga orders + F (done s194) → live virtual-pad pass on Xvfb (s194, section G) → G 34-41.
+→ D 27 + E (done s193) → E29's III Amiga orders + F (done s194) → live virtual-pad pass on Xvfb (s194, section G) → G 34-41 (done s196) → the live cases not reached (section G).

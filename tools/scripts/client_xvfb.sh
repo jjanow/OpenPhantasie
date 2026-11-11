@@ -59,8 +59,14 @@ focus() {
 
 geometry() {  # prints WxH+X+Y of the window's client area
   local w=$1
-  eval "$(xdotool getwindowgeometry --shell "$w")"
-  echo "${WIDTH}x${HEIGHT}+${X}+${Y}"
+  # xdotool can add a reparented window's relative offset twice (s196: +45,+93), cropping the game's top/left.
+  # xwininfo distinguishes absolute root coordinates from the frame-relative position.
+  xwininfo -id "$w" | awk '
+    /Absolute upper-left X:/ { x = $4 }
+    /Absolute upper-left Y:/ { y = $4 }
+    /^  Width:/ { w = $2 }
+    /^  Height:/ { h = $2 }
+    END { printf "%dx%d+%d+%d\n", w, h, x, y }'
 }
 
 shoot() {  # window id, out file

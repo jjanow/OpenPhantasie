@@ -952,9 +952,10 @@ public static partial class UiOverlays
         GameSession session,
         ClientSettings settings,
         CombatPresenter presenter,
-        GameDataRepository data)
+        GameDataRepository data,
+        string? help = null)
     {
-        DrawCombatScreen(batch, pixel, assets, session, settings, presenter, data);
+        DrawCombatScreen(batch, pixel, assets, session, settings, presenter, data, help);
         if (presenter.P2Run?.ActiveBox is { } box && presenter.P2Lines?.Invoke()?.EndBoxes is { } boxes)
             DrawP2EndBox(batch, pixel, boxes, box.Rows, FontSources.ForRole(assets.Pack, P2EndBoxFontRole)); // over everything, as the ST's objc_draw
         // s156: a rock's miss (0x18c6c): the rock sprite over everything; s163: the ST's screen spot moved onto the
@@ -1084,9 +1085,10 @@ public static partial class UiOverlays
         GameSession session,
         ClientSettings settings,
         CombatPresenter presenter,
-        GameDataRepository data)
+        GameDataRepository data,
+        string? help)
     {
-        Fill(batch, pixel, new Rectangle(0, ContentTop, 320, ContentBottom - ContentTop), new Color(42, 18, 18));
+        Fill(batch, pixel, new Rectangle(0, 0, 320, ScreenBottom), new Color(42, 18, 18));
         // Taller cards (III's 32×48 portraits, a name on two lines, s99): the title line moves up, the panel down to the
         // content's bottom, and the rank and menu rows close up a pixel each. What still does not fit scrolls: the log
         // (newest at the bottom) and the menu on the right.
@@ -1094,13 +1096,13 @@ public static partial class UiOverlays
         var evenRow = session.Game == GameId.P2; // the ST spreads the rebuilt row over the screen (0x181ca)
         var cardHeight = Math.Max(PartyStripLayout.CardHeight, PartyStripHeight(assets, session, 304, 52, shown, evenRow));
         var tall = cardHeight > PartyStripLayout.CardHeight;
-        var panel = new Rectangle(4, 16, 312, tall ? ContentBottom - 16 : 144);
-        var titleY = tall ? 18 : 22;
-        var strip = tall ? new Rectangle(8, 26, 304, cardHeight) : new Rectangle(8, 34, 304, 56);
-        var top = strip.Bottom + 2; // ranks / log on the left, the menu on the right
-        var rankStep = tall ? 13 : 14;
-        var menuTop = top + (tall ? 9 : 10);
-        var inside = panel.Bottom - 1; // the panel's bottom edge
+        var panel = new Rectangle(4, 1, 312, ScreenBottom - 2);
+        // Complete monster pictures need the upper part of the panel. Keep the party cards together below them;
+        // the orders and log share the right column, leaving the left column's full height for rank blocks.
+        var strip = new Rectangle(8, panel.Bottom - 2 - cardHeight, 304, cardHeight);
+        const int top = 4;
+        const int titleY = top;
+        var menuTop = top + 28;
         DrawPanel(batch, pixel, panel, new Color(24, 10, 10, 230), new Color(160, 80, 80));
 
         // s136: II's round is paced by its Speed (COMBAT SPEED), not I's T)IME LAG.
@@ -1112,8 +1114,9 @@ public static partial class UiOverlays
                 _ => UiText.S("options.combat_speed.normal"),
             })
             : UiText.F("ui.combat_time_lag_x", settings.TimeLag);
-        PixelFont.Draw(batch, pixel, 10, titleY, heading, TitleGold);
-        PixelFont.Draw(batch, pixel, 190, titleY, PadWording.Help(UiText.S("ui.shift_skip")), DimText); // s185: LT, pad in use
+        var rx = tall ? 166 : 156;
+        PixelFont.Draw(batch, pixel, rx, titleY, heading, TitleGold);
+        PixelFont.Draw(batch, pixel, rx, titleY + 8, PadWording.Help(UiText.S("ui.shift_skip")), DimText);
 
         // s110 (III Amiga): a spell flash on a member is drawn over its portrait after the whole strip, so no later card
         // covers the part that runs past the portrait (the Amiga blits it over the screen).
@@ -1131,35 +1134,37 @@ public static partial class UiOverlays
             DrawCombatFlash(batch, assets, memberRun.Layout, onMember, memberAt);
 
         // Left column: the rank list "RANK n : k NAME(S)", each rank with its monster's picture at its own size (s99, user:
-        // no art squeezed) and its line beside it, wrapped; every rank, in a box that scrolls by pixels (the wheel, the
-        // bar, Home / End) when the pictures run past it. The log under it keeps its last rows.
-        var rx = tall ? 166 : 156;
-        var logRows = tall ? 2 : 3;
-        var rankBox = new Rectangle(8, top, rx - 10, inside - logRows * PixelFont.LineHeight - top - 1);
+        // no art squeezed) and its line beside it, wrapped; whole picture blocks scroll by the wheel, bar or Home / End.
+        const int logRows = 2;
+        var rankBox = new Rectangle(8, top, rx - 10, strip.Top - top - 2);
         LastRankBox = rankBox;
         if (session.Combat is not null || presenter.P2RankRows is not null)
             DrawRankBox(batch, pixel, assets, session.Combat, presenter, rankBox);
 
         // The log: every line whole (wrapped to the column), the newest at the bottom; it scrolls back (PgUp / PgDn, the
         // wheel, the bar) when there are more lines than room.
-        var logChars = (rx - 18) / PixelFont.Advance;
-        var logTop = rankBox.Bottom + 2;
+        var logChars = (panel.Right - rx - 10) / PixelFont.Advance;
+        var helpLines = Lines(PadWording.Help(help ?? ""), logChars);
+        var helpTop = strip.Top - helpLines.Count * PixelFont.LineHeight - 2;
+        for (var i = 0; i < helpLines.Count; i++)
+            PixelFont.Draw(batch, pixel, rx, helpTop + i * PixelFont.LineHeight, helpLines[i], DimText);
+        var logTop = helpTop - logRows * PixelFont.LineHeight - 2;
         var logLines = presenter.Log.SelectMany(l => Lines(l, logChars)).ToList();
         var logBox = presenter.LogScroll;
         var following = logBox.Offset >= logBox.MaxOffset;
         logBox.Set(logLines.Count, logRows);
         if (following)
             logBox.End();
-        var logArea = new Rectangle(8, logTop - 1, rx - 10, logRows * PixelFont.LineHeight);
+        var logArea = new Rectangle(rx, logTop - 1, panel.Right - rx - 4, logRows * PixelFont.LineHeight);
         HitScrollArea(logBox, logArea);
         for (var i = 0; i < logRows && logBox.Offset + i < logLines.Count; i++)
-            PixelFont.Draw(batch, pixel, 10, logTop + i * PixelFont.LineHeight, logLines[logBox.Offset + i], BodyText);
+            PixelFont.Draw(batch, pixel, rx + 2, logTop + i * PixelFont.LineHeight, logLines[logBox.Offset + i], BodyText);
         DrawScrollBar(batch, pixel, logBox, logArea);
 
         // Right column: PARTY OPTIONS menu, the spell list or the orders list, in a box that scrolls when its rows run
         // past the panel (the highlighted row always in view).
         var menuChars = (panel.Right - 4 - rx) / PixelFont.Advance;
-        var menuRows = (inside - menuTop - PixelFont.GlyphHeight) / 8 + 1;
+        var menuRows = Math.Max(1, (logTop - 2 - menuTop - PixelFont.GlyphHeight) / 8 + 1);
         var menuArea = new Rectangle(rx - 1, menuTop - 1, 314 - rx, menuRows * 8);
         var menuBox = presenter.MenuScroll;
         string? title = null;
@@ -1214,7 +1219,7 @@ public static partial class UiOverlays
         }
         if (title is null)
             return;
-        PixelFont.Draw(batch, pixel, rx, top, title, TitleGold);
+        PixelFont.Draw(batch, pixel, rx, top + 18, title, TitleGold);
         menuBox.Set(rows.Count, menuRows);
         if (cursorRow >= 0)
             menuBox.Follow(cursorRow);
@@ -1230,18 +1235,9 @@ public static partial class UiOverlays
     }
 
     /// <summary>
-    /// A modal Core prompt (<see cref="SessionPrompts"/>): its text lines, then the answers with the DOS highlight on
-    /// <paramref name="cursor"/> (<see cref="PromptMenu"/>) — YES/NO side by side, a menu numbered one per line, any key for
-    /// CONTINUE. Lines longer than the panel are cut (DOS lines are ≤ 40 chars).
-    /// </summary>
-    /// <summary>Pixels the rank box scrolls per step (a key, a wheel notch).</summary>
-    public const int RankScrollStep = 6;
-
-    /// <summary>
     /// The combat rank list in <paramref name="box"/>: per living rank its first monster's idle picture 1:1 (a coloured
-    /// block without one) and the rank line wrapped beside it, the row as tall as the taller; all of it clipped to the box
-    /// and scrolled by <see cref="CombatPresenter.RankScroll"/> in <see cref="RankScrollStep"/>-pixel steps. "WHICH
-    /// RANK?" takes a click on a row.
+    /// block without one) and the rank line wrapped beside it. <see cref="CombatPresenter.RankScroll"/> moves by complete
+    /// blocks; "WHICH RANK?" takes a click on a visible block.
     /// </summary>
     private static void DrawRankBox(SpriteBatch batch, Texture2D pixel, AssetCatalog assets, CombatEncounter? combat,
         CombatPresenter presenter, Rectangle box)
@@ -1284,22 +1280,17 @@ public static partial class UiOverlays
                 picture = posed;
             var size = picture is null ? new Point(12, 12) : new Point(picture.Width, picture.Height);
             var text = Lines(lines[i], Math.Max(1, (inner.Width - size.X - 6) / PixelFont.Advance));
-            rows.Add((picture, size, text, Math.Max(size.Y, 3 + text.Count * PixelFont.LineHeight) + 2));
+            rows.Add((picture, size, text, Math.Max(size.Y, 3 + text.Count * PixelFont.LineHeight)));
         }
         var scroll = presenter.RankScroll;
-        var total = rows.Sum(r => r.Height);
-        scroll.Set((total + RankScrollStep - 1) / RankScrollStep, Math.Max(1, box.Height / RankScrollStep));
-        if (scroll.Offset * RankScrollStep > Math.Max(0, total - box.Height))
-            scroll.ScrollTo((Math.Max(0, total - box.Height) + RankScrollStep - 1) / RankScrollStep);
+        var visible = WholePictureRows(scroll, rows.Select(r => r.Height).ToArray(), box.Height);
         HitScrollArea(scroll, box);
-        var y = box.Y - scroll.Offset * RankScrollStep;
-        var tops = new List<int>();
         Clipped(batch, box, () =>
         {
-            for (var r = 0; r < rows.Count; r++)
+            foreach (var (r, offset) in visible)
             {
+                var y = box.Y + offset;
                 var (picture, size, text, height) = rows[r];
-                tops.Add(y);
                 var art = new Rectangle(box.X + 2, y, size.X, size.Y);
                 if (picture is not null)
                     batch.Draw(picture, art, Color.White);
@@ -1322,14 +1313,27 @@ public static partial class UiOverlays
                     if (lineY >= box.Y && lineY + PixelFont.GlyphHeight <= box.Bottom) // a line shows whole or not at all
                         PixelFont.Draw(batch, pixel, art.Right + 4, lineY, text[k], Color.White);
                 }
-                y += height;
             }
         });
         if (presenter.AsksRank)
-            for (var i = 0; i < rows.Count; i++)
-                if (Rectangle.Intersect(new Rectangle(box.X, tops[i], inner.Width, rows[i].Height), box) is { IsEmpty: false } hit)
-                    Hits?.Add(new HitRegion(hit) { Click = [HitTest.Digit(i + 1)] });
+            foreach (var (i, offset) in visible)
+                Hits?.Add(new HitRegion(new Rectangle(box.X, box.Y + offset, inner.Width, rows[i].Height))
+                    { Click = [HitTest.Digit(i + 1)] });
         DrawScrollBar(batch, pixel, scroll, box);
+    }
+
+    /// <summary>Scroll by complete entries. Text and its picture stay together; the last entry is always reachable.</summary>
+    public static IReadOnlyList<(int Index, int Y)> WholePictureRows(ScrollBox scroll, IReadOnlyList<int> heights, int room)
+    {
+        scroll.Set(heights.Count, 1);
+        var rows = new List<(int, int)>();
+        var y = 0;
+        for (var i = scroll.Offset; i < heights.Count && y + heights[i] <= room; i++)
+        {
+            rows.Add((i, y));
+            y += heights[i] + SlotGap;
+        }
+        return rows;
     }
 
     /// <summary>Pixels between two monster slots of a rank, across and down (s162).</summary>
@@ -1375,49 +1379,48 @@ public static partial class UiOverlays
         var sparkle = presenter.P2Run?.Sparkle is { Target: not null } sp ? sp : null;
         var sparkleLayout = presenter.P2Lines?.Invoke()?.Sparkle;
         var inner = new Rectangle(box.X, box.Y, box.Width - ScrollBox.BarWidth - 2, box.Height);
-        var rows = new List<(IReadOnlyList<string> Text, List<(Monster? Monster, Texture2D? Picture, Rectangle At)> Slots, int Height)>();
-        var y0 = 0;
+        var rows = new List<(int Rank, IReadOnlyList<string> Text, List<(Monster? Monster, Texture2D? Picture, Rectangle At)> Slots, int Height)>();
         for (var i = 0; i < lines.Count; i++)
         {
-            var text = Lines(lines[i], Math.Max(1, (inner.Width - 4) / PixelFont.Advance));
             // The rank's own kind sizes its slots, so a row whose monsters are all erased keeps its height (s163).
             var kind = kinds is not null && i < kinds.Count ? kinds[i] : slots[i].FirstOrDefault(m => m is not null);
             var idle = kind is null ? null : assets.GetMonsterIdle(kind.Id);
             var size = idle is null ? new Point(12, 12) : new Point(idle.Width, idle.Height);
-            var textHeight = 3 + text.Count * PixelFont.LineHeight;
-            var rects = SlotRects([.. slots[i].Select(_ => size)], 2, textHeight, inner.Width - 4);
-            var cells = new List<(Monster?, Texture2D?, Rectangle)>();
-            for (var k = 0; k < rects.Count; k++)
+            // A visual row of slots is one scroll block, with its rank line beside it (repeated after a wrap).
+            var across = Math.Max(1, (inner.Width - 8 - 8 * PixelFont.Advance) / (size.X + SlotGap));
+            for (var first = 0; first < Math.Max(1, slots[i].Count); first += across)
             {
-                var m = slots[i][k];
-                var picture = m is null ? null : idle;
-                if (m is not null && pose is { Monster: { } posing } && ReferenceEquals(posing, m)
-                    && P2PoseArt(assets, presenter, PictureNames.MonsterAttacking(m.Id), pose.Silhouette) is { } posed)
-                    picture = posed;
-                cells.Add((m, picture, rects[k]));
+                var count = Math.Min(across, slots[i].Count - first);
+                var pictureWidth = Math.Max(size.X, count * (size.X + SlotGap) - SlotGap);
+                var text = Lines(lines[i], Math.Max(1, (inner.Width - pictureWidth - 8) / PixelFont.Advance));
+                var cells = new List<(Monster?, Texture2D?, Rectangle)>();
+                for (var k = 0; k < count; k++)
+                {
+                    var m = slots[i][first + k];
+                    var picture = m is null ? null : idle;
+                    if (m is not null && pose is { Monster: { } posing } && ReferenceEquals(posing, m)
+                        && P2PoseArt(assets, presenter, PictureNames.MonsterAttacking(m.Id), pose.Silhouette) is { } posed)
+                        picture = posed;
+                    cells.Add((m, picture, new Rectangle(2 + k * (size.X + SlotGap), 0, size.X, size.Y)));
+                }
+                rows.Add((i, text, cells, Math.Max(size.Y, 3 + text.Count * PixelFont.LineHeight)));
             }
-            var height = (rects.Count == 0 ? textHeight : rects.Max(r => r.Bottom)) + 2;
-            rows.Add((text, cells, height));
-            y0 += height;
         }
         var scroll = presenter.RankScroll;
-        var total = y0;
-        scroll.Set((total + RankScrollStep - 1) / RankScrollStep, Math.Max(1, box.Height / RankScrollStep));
-        if (scroll.Offset * RankScrollStep > Math.Max(0, total - box.Height))
-            scroll.ScrollTo((Math.Max(0, total - box.Height) + RankScrollStep - 1) / RankScrollStep);
+        var visible = WholePictureRows(scroll, rows.Select(r => r.Height).ToArray(), box.Height);
         HitScrollArea(scroll, box);
-        var y = box.Y - scroll.Offset * RankScrollStep;
-        var tops = new List<int>();
         Clipped(batch, box, () =>
         {
-            foreach (var (text, cells, height) in rows)
+            foreach (var (index, offset) in visible)
             {
-                tops.Add(y);
+                var y = box.Y + offset;
+                var (_, text, cells, _) = rows[index];
+                var textX = box.X + (cells.Count == 0 ? 2 : cells.Max(c => c.At.Right)) + 4;
                 for (var k = 0; k < text.Count; k++)
                 {
                     var lineY = y + 3 + k * PixelFont.LineHeight;
                     if (lineY >= box.Y && lineY + PixelFont.GlyphHeight <= box.Bottom) // a line shows whole or not at all
-                        PixelFont.Draw(batch, pixel, box.X + 2, lineY, text[k], Color.White);
+                        PixelFont.Draw(batch, pixel, textX, lineY, text[k], Color.White);
                 }
                 foreach (var (monster, picture, at) in cells)
                 {
@@ -1433,13 +1436,12 @@ public static partial class UiOverlays
                             art.Y + StCombatSparkle.Offset(sparkle.RollY, art.Height - sl.Size), sprite.Width, sprite.Height),
                             Color.White);
                 }
-                y += height;
             }
         });
         if (presenter.AsksRank)
-            for (var i = 0; i < rows.Count; i++)
-                if (Rectangle.Intersect(new Rectangle(box.X, tops[i], inner.Width, rows[i].Height), box) is { IsEmpty: false } hit)
-                    Hits?.Add(new HitRegion(hit) { Click = [HitTest.Digit(i + 1)] });
+            foreach (var (i, offset) in visible)
+                Hits?.Add(new HitRegion(new Rectangle(box.X, box.Y + offset, inner.Width, rows[i].Height))
+                    { Click = [HitTest.Digit(rows[i].Rank + 1)] });
         DrawScrollBar(batch, pixel, scroll, box);
     }
 

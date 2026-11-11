@@ -291,7 +291,7 @@ public sealed partial class P4DungeonScreen
                 lines.Add(new(UiText.S("p4.battle.end." + b.End.ToString().ToLowerInvariant()), MenuLineStyle.Header));
                 break;
         }
-        foreach (var l in b.Log.TakeLast(10))
+        foreach (var l in b.Prompt == P4BattlePrompt.Treasure ? b.TreasureLines : b.Log.TakeLast(10))
             lines.Add(new(l, MenuLineStyle.Dim));
         return lines;
     }

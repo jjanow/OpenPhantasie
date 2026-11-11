@@ -542,7 +542,7 @@
     "core.encounter.a_day_encounter": "A DAY ENCOUNTER",
     "core.encounter.combat_vs_x": "Combat vs {0}!",
     "core.combat.party_wiped_out": "The party has been wiped out.",
-    "core.combat.victory_return_to_inn": "Victory — return to an inn to distribute loot.",
+    "core.combat.victory_return_to_inn": "Victory - return to an inn to distribute loot.",
     "core.combat.neither_side_prevails": "Neither side could prevail — the party withdraws.",
     "core.combat.stalemate_withdrew": "Stalemate — withdrew.",
     "core.combat.x_experience_points_and_x_gold": "{0} ... AND {1} ...",

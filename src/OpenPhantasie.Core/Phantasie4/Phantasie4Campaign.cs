@@ -135,7 +135,9 @@ public sealed class Phantasie4Campaign
     /// saves from the System icon of a place's main menu). In a location map under <c>p4.dungeon-reload</c> =
     /// <c>x68000</c> also only at the command prompt (<see cref="SaveRefusedMidEvent"/>).
     /// </summary>
-    public bool CanSave => Battle is null && !Town.InBuilding && (Menus?.Prompt ?? P4MenuPrompt.Closed) == P4MenuPrompt.Closed
+    public bool CanSave => Battle is null && (_place != P4Place.Town || !Town.InBuilding)
+        && (_place != P4Place.Outdoors || !Outdoor.WaitingForFight && Outdoor.Prompt != P4OutdoorPrompt.Fight)
+        && (Menus?.Prompt ?? P4MenuPrompt.Closed) == P4MenuPrompt.Closed
         && !SaveRefusedMidEvent;
 
     /// <summary>

@@ -237,6 +237,8 @@ request) never reads as "Custom".
   is listed under "from other games", off in every preset. IV always has it (`BuiltIntoHome`), so it is no switch there.
 - Placeholder modules (shown "NOT BUILT"): III's `p3.body-part-injury`, `p3.bows`, `p3.party-ranks` and `p3.aim` for the
   other games. III's own combat is the built module `p3.combat-actions`.
+  Native combat modules (`CrossGame = false`) are required: restore retains them even with an empty stored module list,
+  and `WithModule` cannot switch them off. Optional modules still follow the saved list.
 - **Every-game option (P3 QoL, user s79 from D3-003):** `guild-limit` is one descriptor with `EveryGame` set
   (`RuleOptionDescriptor.AppliesTo`): no game prefix, shown last in every game's tab and locked per save like the rest.
   `game` (both Original presets: the game's own cap from its `rules.json`, I's 21 or 22 under `p1.guild-size` = `dos`)

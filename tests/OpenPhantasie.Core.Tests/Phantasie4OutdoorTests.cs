@@ -227,6 +227,22 @@ public class Phantasie4OutdoorTests
         Assert.Equal(new P4OutdoorFight(false, true, false, false, 0), o.PendingFight);
     }
 
+    [OriginalDataFact]
+    public void PendingEncounter_CannotBeSavedAtItsSpaceWait()
+    {
+        var game = Phantasie4World.NewCampaign(Manual, Party(),
+            new ScriptRng(1, 50, 50, 188, 188, 188, 1, 5), new P4Location(P4Place.Outdoors, 9, 9, 10));
+        game.Start();
+        Assert.Equal(P4OutdoorPrompt.Wait, game.Outdoor.Prompt);
+        Assert.True(game.Outdoor.WaitingForFight);
+        Assert.False(game.CanSave);
+        Assert.Throws<InvalidOperationException>(() => game.Capture());
+        game.Outdoor.Continue();
+        Assert.False(game.Outdoor.WaitingForFight);
+        Assert.NotNull(game.Outdoor.PendingFight);
+        Assert.False(game.CanSave);
+    }
+
     [OriginalDataTheory]
     [InlineData(2, false, true)] // rand(10) < 3: they surprise the party after all
     [InlineData(3, true, false)] // else the party surprises them
@@ -551,9 +567,8 @@ public class Phantasie4OutdoorTests
         w.Enter(P4Building.Shipwright);
         Assert.Equal(P4TownPrompt.Confirm, w.Prompt);
         Assert.Equal("_noyes", w.IconMenu); // s138 / s140: _shipyard asks with _noyes's YES / NO box, not _confirm's panel
-        var back = Town(party, Code);
-        back.Restore(w.Capture()); // a save at the question keeps the box
-        Assert.Equal((P4TownPrompt.Confirm, "_noyes"), (back.Prompt, back.IconMenu));
+        Assert.True(w.InBuilding);
+        Assert.Throws<InvalidOperationException>(() => w.Capture()); // System is not available inside the building
         w.Answer(true);
         Assert.Null(w.IconMenu);
         Assert.Equal(3500, party.Gold);

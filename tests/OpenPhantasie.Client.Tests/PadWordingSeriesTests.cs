@@ -60,10 +60,12 @@ public sealed class PadWordingSeriesTests
             var pad = PadWording.Format("p3town.bank_window_shares_help", "1", "3");
             Assert.Equal(UiText.F("p3town.bank_window_shares_help.pad", "1", "3"), pad);
             Assert.StartsWith("1-3 shares", pad, StringComparison.Ordinal);
-            // An id with no twin: its own text.
-            Assert.Equal(UiText.F("game.x_x_shares", "1", "3"), PadWording.Format("game.x_x_shares", "1", "3"));
-            // The town picture draws a help only in the pad's words (Game1.PadHelpShown): the formatted one counts.
             Assert.True(PadWording.Shows(pad));
+            // The experience-share question also names its pad controls (G37).
+            var experience = PadWording.Format("game.x_x_shares", "1", "3");
+            Assert.Equal(UiText.F("game.x_x_shares.pad", "1", "3"), experience);
+            // The town picture draws a help only in the pad's words (Game1.PadHelpShown): the formatted one counts.
+            Assert.True(PadWording.Shows(experience));
             Assert.True(PadWording.Shows(UiText.S("p3town.bank_window_pick_help")));
             Assert.False(PadWording.Shows(UiText.F("game.x_x_shares", "1", "3")));
             PadWording.Active = false;
