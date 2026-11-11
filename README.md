@@ -50,6 +50,32 @@ report says what that changes (for DOS Phantasie I: map regions already explored
 Other versions (C64, Apple II Phantasie I / III,
 PC-88, PC-98, MSX2, …) are recognised but cannot be imported yet.
 
+## Planned source-platform support
+
+The long-term plan is to support every platform each game was released on. The following original-game versions
+still need playable imports and their own graphics, fonts and audio where available. These are future plans, with
+no fixed implementation order or release dates; current support is listed above. Windows, Linux and macOS are the
+systems OpenPhantasie runs on, separate from these source platforms.
+
+| Game | Platforms still to add | Existing support to extend |
+|---|---|---|
+| Phantasie I | Apple II, Commodore 64, Atari 8-bit, Atari ST, MSX2, NEC PC-88, NEC PC-98, Sharp X1 | Standalone Amiga import: use an Amiga copy for the game data as well as presentation, without needing DOS |
+| Phantasie II | Commodore 64, Atari 8-bit, MSX2, NEC PC-88, NEC PC-98 | Atari ST and Apple II imports already work |
+| Phantasie III | Apple II, Commodore 64, Atari ST, MSX2, NEC PC-88, NEC PC-98 | Standalone Amiga import: use an Amiga copy for the game data as well as presentation, without needing DOS |
+| Phantasie IV | NEC PC-88, NEC PC-98, MSX2 (including the existing DJANGO English patch) | X68000 import already works |
+
+That is 22 additional game/platform combinations and two standalone Amiga imports. Reference disk images are
+available for this backlog, but recognising an image does not mean it can be imported yet. Original game files
+will continue to come from the player's own copy.
+
+Some further ports need release confirmation and source disks: FM-7 for I / II, Sharp X1 for II, Macintosh for
+I / II / III, and X68000 for III. The existing research has conflicting or incomplete evidence for these, so they
+are research candidates rather than confirmed implementation targets. Manual references alone do not establish
+that a port shipped. Phantasie II has no DOS or Amiga release; III has no Atari 8-bit release.
+
+The [platform matrix](docs/plan/09-trilogy-matrix.md#1-platform-matrix) and
+[importer inventory](docs/plan/10-importer.md#31-per-game) contain the existing research and import details.
+
 ## Downloading and playing
 
 Ready-to-run builds for **Windows**, **Linux** and **macOS** are on the
