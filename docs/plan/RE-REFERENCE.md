@@ -102,9 +102,10 @@ Use `tools/scripts/client_xvfb.sh` (required by `AGENTS.md`):
   animations), `audio :N out.wav SECONDS` (records the sink; run it in the background, then press keys), `stop :N`
   (also unloads the sink).
 - A key that "does nothing" is usually a screen that doesn't take it (e.g. IV shop lists have no Space-back).
-- III fight recipe: `--test-party --test-level 10 --test-game 3`, `e`, `Left Left Left Return` (EXIT), `w w`, then `e w`
-  pairs until "HEARS MONSTERS"; parry all and cast a weak spell (Fireflash I) so the monsters outlive the round and its
-  flash shows (a last-round flash is never drawn).
+- III fight recipe: `--test-party --test-level 10 --test-game 3` (Amiga look, s194): by pad (vpad below) B leaves the
+  Guild for the street, Start pulls Options down, D-pad down ×4 and A take Exit, A outdoors starts a fight, A opens
+  its Options, A takes Fight: the orders screen. No key pressed, so the help stays in the pad's words. Parry all and
+  cast a weak spell (Fireflash I) so the monsters outlive the round and its flash shows (a last-round flash is never drawn).
 - Pad testing (s181; the user owns no pad): `tools/scripts/vpad.py <fifo>` makes a virtual Xbox 360 pad through
   `/dev/uinput` (writable for this user; SDL maps it with no setup). Start it before the Client, send `press A`,
   `dpad down`, `trig LT 255`, `axis RY 30000`… into the FIFO, then `quit` (the device is system-wide).

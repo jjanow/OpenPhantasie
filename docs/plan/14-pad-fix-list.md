@@ -147,25 +147,28 @@ heal steps, D27's paging (a one-page ledger), the right stick's prompt scroll, t
 party / game-over lines, a key and a pad press in one frame (unit-tested).
 
 Found in the pass, open (a fix found later = the audit missed it; cause where known):
-34. IV: the Mystic's result wait and the Inn's "slept" wait say "LB save" and LB saves there: the help follows
+34. IV: the Mystic's result wait and the Inn's "slept" wait say "LB save" and LB saves there (shots
+    `parity/shots/s194-pad-e28_03c.png`, `-e28_05c.png`): the help follows
     `CanSave` (`Phantasie4Campaign.cs:138`), and `InBuilding` (`P4TownLoop.Screens.cs:46`, `_screen is not null`) is
     false at those waits. Whether IV's original saves there is not read `[?]`; the outdoor "took them by surprise" wait
-    before a fight says it too.
+    before a fight says it too. The manual ("saved anywhere", from the System icon) does not settle a building's waits.
 35. III DOS look: a fight opens on the Amiga-style field ("A opens options"); A then pulls down an all-black menu that
-    blanks the monsters (`padpass/shots/p3d_f1c.png`, `p3d_f2top.png` in the s194 scratchpad). Not traced.
+    blanks the monsters (`parity/shots/s194-pad-p3d_f1c.png`, `-p3d_f2top.png`). Not traced.
 36. I Amiga orders window: its yellow outline draws over the game menu, the import path box and the file browser, and
-    the fight's help line stays up under them; once it listed only one member of six. Not traced.
+    the fight's help line stays up under them; once it listed only one member of six (`parity/shots/s194-pad-c23_10c.png`,
+    `-c10_11c.png`, `-c17_02c.png`). Not traced.
 37. III Amiga share windows: the bottom row keeps the message ("You have: n gold", "[original text]"), not B9's
-    pad help.
+    pad help (`parity/shots/s194-pad-c11_09c.png`, `-c11_02c.png`).
 38. IV title `_disk(0)`: the pad help (`title.disk_help.pad`) is white on the light-grey window, flush with its
-    right edge.
+    right edge (`parity/shots/s194-pad-c20_help.png`).
 39. III field menu bar with no menu pulled down: the help names an open menu's buttons ("A take  B close").
 40. Scrolled lists cut pictures: the fight's rank box (RT + right stick) splits a rank's header from its picture; the
-    bestiary shows half pictures (against "fit or scroll, never crop").
+    bestiary shows half pictures (against "fit or scroll, never crop"; `parity/shots/s194-pad-c12_03full.png`,
+    `-c13_best.png`).
 41. Not pad: a III save whose `newGameRules` has `"modules": []` crashes the first Fight (`ArgumentOutOfRangeException:
     No enabled module offers this order`, `FeatureModules.cs:370`; `SessionSnapshot.cs:98` defaults `Modules` to empty).
     Reached with a hand-written settings file, not from Options. IV's found-item window said "Found Knife" while the
-    log said "Found Medium Shield"; III's victory line shows "Victory ? Return" (a glyph the font lacks); IV's log said
+    log said "Found Medium Shield" (`s194-pad-fight6c.png`); III's victory line shows "Victory ? Return" (a glyph the font lacks, `s194-pad-p3_f3c.png`); IV's log said
     "The party greeted" before an auto combat. Each needs a look of its own.
 
 ## Accepted, not fixes
