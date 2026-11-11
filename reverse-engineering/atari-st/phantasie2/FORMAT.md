@@ -994,6 +994,13 @@ These are undead plus one insect, which matches the manual's Mist / Dark Voids (
   - M = Departed Souls
   - N = The Forgotten Temple
 - **Unnamed slots:** the six blank-named `SCROLL ` slots point at continuation pages. Item 137 shows the same page as L.
+  find_items never hands one out: `0xaeb2`–`0xaee6` turns 122 / 123 into 121, 133 into 132, 135 / 136 into 134 and 137
+  into 138 `[C]` (s201).
+- **Remaster data (s201):** GameData `scrolls.json` has `item_records` (item → the lettered scroll's `id`, 1–14; the blank
+  slots → the scroll find_items turns them into, so a blank slot from elsewhere, e.g. an imported save, shows that whole
+  scroll rather than its one continuation page `[~]`) and `page_layout: "rows"` (the lines are the screen rows, shown as
+  stored). Before it the Client read scroll "item − 120": only SCROLL A was right; B–J showed the scroll two letters
+  on (B, item 124, showed D's text), K showed N's, L–N only the name, and the blank 122 / 123 / 133 showed B / C / M. Built by `P2GameDataBuilder.Scrolls` / `build_p2_gamedata.scrolls`.
 
 ### 9.7 `DNGX.SAV`, `DNG.SAV`, `SACK.DAT` (played state)
 

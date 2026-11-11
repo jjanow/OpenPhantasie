@@ -130,6 +130,41 @@ public class P3TransportPlanesTests
         Assert.True(s.TransportationPending);
     }
 
+    /// <summary>
+    /// The elemental is not a member for the rule (town.md section 8). Town entry unloads it (OV1 <c>0x19d3</c>), so the
+    /// one moment it is loaded while a visit is recorded is a newcomer joining in a plane town: the elemental's own bit
+    /// stays clear. A bit it carries anyway does not offer the town, loaded or summoned (in the members, as in a fight).
+    /// </summary>
+    [OriginalDataFact]
+    public void Visited_TheElementalDoesNotCount()
+    {
+        var s = Visited(members: 1);
+        s.EnterTown(17);
+        s.OpenGuild();
+        Assert.True(s.TryAddElemental(0, out var err), err);
+        var elemental = s.Party.Elemental!;
+        var newcomer = s.CreateAndEnroll("NEWCOMER", Race.Human, CharacterClass.Fighter);
+        Assert.True(s.TryAddToParty(newcomer, out err), err);
+        Assert.Same(elemental, s.Party.Elemental); // loaded while the visit is recorded
+        Assert.True(newcomer.P3.HasVisitedPlaneTown(17));
+        Assert.False(elemental.P3.HasVisitedPlaneTown(17));
+        s.LeaveGuild();
+
+        s.EnterTown(1);
+        s.OpenGuild();
+        Assert.True(s.TryAddElemental(0, out err), err);
+        s.LeaveGuild();
+        elemental = s.Party.Elemental!;
+        elemental.P3.MarkPlaneTownVisited(15); // a bit only the elemental has
+        Assert.Equal([.. Scandor.Where(t => t != 1), 17], s.TransportDestinations);
+        s.Party.Members.Add(elemental); // summoned: in the members, still not counted
+        Assert.True(s.Party.ElementalSummoned);
+        Assert.Equal([.. Scandor.Where(t => t != 1), 17], s.TransportDestinations);
+        s.Party.DismissElemental();
+        newcomer.P3.MarkPlaneTownVisited(15);
+        Assert.Equal([.. Scandor.Where(t => t != 1), 15, 17], s.TransportDestinations);
+    }
+
     [OriginalDataFact]
     public void JoiningInAPlaneTown_CountsAsAVisit()
     {

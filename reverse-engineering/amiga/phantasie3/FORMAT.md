@@ -1322,3 +1322,18 @@ sound off, the master ADF's saved party, "Continue a previously saved game"). Sh
     (`:164`, the III test party just out of Pendragon): the text pixels equal the Amiga's but the gold value (another
     party) (`p3-remaster-window22-overworld.png`); `e` dropped, `o` closed it.
 
+
+## Game tables for a standalone import: survey (s201) `[?]`
+
+Not built: an Amiga-only III import still needs DOS III's tables (`P3DosPipeline`). What a static comparison of the
+reference dump with DOS III's files (`reverse-engineering/dos/phantasie3/unpacked/ssi-1988/`) shows so far:
+
+- `monsinfo.dat` = `CREATURE.DAT` and `inititem.dat` = `INITARMS.DAT`, byte for byte `[C]`.
+- `D/dnga.dat` … `D/dngk.dat` (4,352 B each): the first 4,224 bytes equal DOS's `DNGS.DAT` record for that dungeon
+  (11 × 4,224 B) byte for byte `[C]`; the last 128 bytes are not mapped `[?]`. `D/DNPA` … `DNPK` (4,224 B) differ from
+  them in 0-66 bytes (DNPJ equals it): presumably the dungeon map saves (DOS `DNP<c>`, 10-importer.md 3.3) of a played copy `[~]`; not to be read.
+  `D/DNGA` … `DNGK` (90 B) `[?]`.
+- `D/s1` … `D/s20`: the scrolls as plain text (25,472 B in all; DOS `SCROLLS.DAT` 19,950 B ciphered): layout `[?]`.
+- `D/pln1` … `pln4` (128, 128, 128, 512 B) vs DOS `PLNS.DAT` (658 B) `[?]`; `D/w0.cmp` … `w4.cmp` (the world, packed;
+  DOS `WORLD.DAT` 3,750 B) `[?]`.
+- Names, items, towns, rule tables, spells: in `PhantasieIII` (DOS: `MAIN.EXE`'s root module), not located `[?]`.

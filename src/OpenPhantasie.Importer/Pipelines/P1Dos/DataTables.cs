@@ -25,11 +25,24 @@ internal static class DataTables
     /// </summary>
     public const int TwnsIntTownsOffset = 2445;
 
+    public const int TownRecordSize = TownStride;
+    public const int TownRecords = TownCount;
+
     public static JsonObject Towns(byte[] twnsInt)
     {
         if (twnsInt.Length < TwnsIntTownsOffset + TownStride * TownCount)
             throw Py.Bad($"TWNS.INT: expected at least {TwnsIntTownsOffset + TownStride * TownCount} bytes, got {twnsInt.Length}");
-        var data = twnsInt.AsSpan(TwnsIntTownsOffset, TownStride * TownCount);
+        return Towns(twnsInt.AsSpan(TwnsIntTownsOffset, TownStride * TownCount), "TWNS.DAT (SSI 1987 IBM/DOS)");
+    }
+
+    /// <summary>
+    /// towns.json from the 12 town records in DOS layout (291 bytes each, little-endian: the layout
+    /// <c>dos_record</c> keeps for a DOS export). The Amiga import passes its records converted to it.
+    /// </summary>
+    public static JsonObject Towns(ReadOnlySpan<byte> data, string source)
+    {
+        if (data.Length != TownStride * TownCount)
+            throw Py.Bad($"towns: expected {TownStride * TownCount} bytes, got {data.Length}");
         var towns = new JsonArray();
         for (var index = 0; index < TownCount; index++)
         {
@@ -54,7 +67,7 @@ internal static class DataTables
         }
         return new JsonObject
         {
-            ["_source"] = "TWNS.DAT (SSI 1987 IBM/DOS)",
+            ["_source"] = source,
             ["_layout"] = new JsonObject
             {
                 ["record_stride"] = TownStride,
@@ -91,8 +104,13 @@ internal static class DataTables
 
     private static readonly (int Off, string Key)[] ElementalBytes = [(216, "birth_race"), (220, "class")];
 
+    public const int ElementalRecordSize = CharRec;
+    public const int ElementalRecords = ElementalCount;
+
     private static JsonObject Elemental(ReadOnlySpan<byte> rec)
     {
+        if (rec.Length != CharRec)
+            throw Py.Bad($"elemental record: {rec.Length} bytes, expected {CharRec}");
         var name = Py.Strip(Py.Latin1(Py.UntilNul(rec[270..282])));
         if (name.Any(c => c > 0x7f))
             throw Py.Bad("TWNS.INT: elemental name is not ASCII");
@@ -137,13 +155,25 @@ internal static class DataTables
             throw Py.Bad($"TWNS.INT: elemental records expected at 12141, found {start}");
         if (twnsInt.AsSpan(start - 22 * CharRec, 22 * CharRec).ContainsAnyExcept((byte)0))
             throw Py.Bad("TWNS.INT: roster placeholder block is not zero");
+        return Elementals(twnsInt.AsSpan(start, ElementalCount * CharRec),
+            "TWNS.INT tail, 3 x 282-byte character records at file 12141/12423/12705 " +
+            "(tools/scripts/extract_elementals.py). Roster records 22-24.");
+    }
+
+    /// <summary>
+    /// elementals.json from the three character records in DOS layout (282 bytes each, little-endian). The Amiga
+    /// import passes its records converted to it.
+    /// </summary>
+    public static JsonObject Elementals(ReadOnlySpan<byte> records, string source)
+    {
+        if (records.Length != ElementalCount * CharRec)
+            throw Py.Bad($"elementals: expected {ElementalCount * CharRec} bytes, got {records.Length}");
         var templates = new JsonArray();
         for (var i = 0; i < ElementalCount; i++)
-            templates.Add(Elemental(twnsInt.AsSpan(start + i * CharRec, CharRec)));
+            templates.Add(Elemental(records.Slice(i * CharRec, CharRec)));
         return new JsonObject
         {
-            ["_source"] = "TWNS.INT tail, 3 x 282-byte character records at file 12141/12423/12705 " +
-                          "(tools/scripts/extract_elementals.py). Roster records 22-24.",
+            ["_source"] = source,
             ["_notes"] = "Every field not listed is 0, including @12 defense and the combat fields @246/@248/@250 " +
                          "(DOS prep never reaches party slot 7, combat-resolution.md, the summon-elemental section). " +
                          "known_spells: record @0x60 slots set to 1; every other slot is 2. race 15 = UNDEAD (displayed); " +
@@ -167,14 +197,21 @@ internal static class DataTables
         return output;
     }
 
-    public static JsonObject Scrolls(byte[] data)
+    public static JsonObject Scrolls(byte[] data) => Scrolls(data, encrypted: true);
+
+    /// <summary>
+    /// scrolls.json from the 20 records of 800 bytes: DOS's SCROLLS.DTX (<paramref name="encrypted"/>) or the Amiga's
+    /// plain-text scrolls.dtx (the same records unciphered; no <c>step</c> field, <c>_format</c> for <c>_cipher</c>).
+    /// </summary>
+    public static JsonObject Scrolls(byte[] data, bool encrypted)
     {
         if (data.Length != ScrollSize * ScrollCount)
             throw Py.Bad($"SCROLLS.DTX: expected {ScrollSize * ScrollCount} bytes, got {data.Length}");
         var scrolls = new JsonArray();
         for (var n = 0; n < ScrollCount; n++)
         {
-            var plain = DecryptScroll(data.AsSpan(n * ScrollSize, ScrollSize), n);
+            var record = data.AsSpan(n * ScrollSize, ScrollSize);
+            var plain = encrypted ? DecryptScroll(record, n) : record.ToArray();
             var rows = new List<string>();
             for (var li = 0; li < ScrollSize / ScrollLine; li++)
             {
@@ -192,15 +229,22 @@ internal static class DataTables
             var printable = plain.Count(c => c is >= 32 and < 127 or 0);
             if (printable != plain.Length)
                 throw Py.Bad($"SCROLLS.DTX: scroll {n + 1} failed to decrypt cleanly");
-            scrolls.Add(new JsonObject
-            {
-                ["id"] = n + 1,
-                ["step"] = 9 + 4 * n,
-                ["printable_ratio"] = Py.Round4(printable, plain.Length),
-                ["lines"] = Py.Strings(rows.Select(Py.RStrip)),
-                ["text"] = body,
-            });
+            var scroll = new JsonObject { ["id"] = n + 1 };
+            if (encrypted)
+                scroll["step"] = 9 + 4 * n;
+            scroll["printable_ratio"] = Py.Round4(printable, plain.Length);
+            scroll["lines"] = Py.Strings(rows.Select(Py.RStrip));
+            scroll["text"] = body;
+            scrolls.Add(scroll);
         }
+        if (!encrypted)
+            return new JsonObject
+            {
+                ["_source"] = "scrolls.dtx (Phantasie I Amiga v1.0)",
+                ["_format"] = "plain text, not ciphered: 20 records of 800 bytes = 20 lines of 40 characters, NUL-padded " +
+                              "(reverse-engineering/amiga/GAME-TABLES.md)",
+                ["scrolls"] = scrolls,
+            };
         return new JsonObject
         {
             ["_source"] = "SCROLLS.DTX",
@@ -289,14 +333,21 @@ internal static class DataTables
 
     private sealed record MessRecord(int Offset, int Prefix, string Text);
 
-    public static JsonObject Messages(Func<string, byte[]> read)
+    public static JsonObject Messages(Func<string, byte[]> read) => Messages(n => read($"MESS{n}"), encrypted: true);
+
+    /// <summary>
+    /// messages.json from MESS1..10 (<paramref name="file"/> takes the file number): DOS's ciphered files
+    /// (<paramref name="encrypted"/>) or the Amiga's plain-text mess1..10 (the decrypted bytes as they are; no
+    /// <c>initial_key</c> / <c>phase</c>, <c>_format</c> for <c>_cipher</c>).
+    /// </summary>
+    public static JsonObject Messages(Func<int, byte[]> file, bool encrypted)
     {
         var areas = new JsonArray();
         for (var n = 1; n <= 10; n++)
         {
-            var name = $"MESS{n}";
-            var cipher = read(name);
-            var plain = DecryptMess(cipher, n);
+            var name = encrypted ? $"MESS{n}" : $"mess{n}";
+            var cipher = file(n);
+            var plain = encrypted ? DecryptMess(cipher, n) : cipher;
             var slots = ParseSlotTable(plain);
             var tableEnd = slots.Count * 2;
             var textStart = FindTextStart(plain, slots, tableEnd);
@@ -353,22 +404,29 @@ internal static class DataTables
             var pr = Py.Round4(printableCount, Math.Max(1, plain.Length));
             if (printableCount * 100L <= 90L * plain.Length)
                 throw Py.Bad($"{name} decrypt looks wrong (printable ratio {pr})");
-            areas.Add(new JsonObject
+            var area = new JsonObject { ["id"] = n, ["source"] = name, ["size"] = cipher.Length };
+            if (encrypted)
             {
-                ["id"] = n,
-                ["source"] = name,
-                ["size"] = cipher.Length,
-                ["initial_key"] = (0xFF - 3 * n) & 0xFF,
-                ["phase"] = Py.Mod(6 - 3 * n, 8),
-                ["printable_ratio"] = pr,
-                ["text_start"] = textStart,
-                ["base"] = b,
-                ["slot_count"] = slots.Count,
-                ["record_count"] = recs.Count,
-                ["slots"] = slotMsgs,
-                ["records"] = recArray,
-            });
+                area["initial_key"] = (0xFF - 3 * n) & 0xFF;
+                area["phase"] = Py.Mod(6 - 3 * n, 8);
+            }
+            area["printable_ratio"] = pr;
+            area["text_start"] = textStart;
+            area["base"] = b;
+            area["slot_count"] = slots.Count;
+            area["record_count"] = recs.Count;
+            area["slots"] = slotMsgs;
+            area["records"] = recArray;
+            areas.Add(area);
         }
+        if (!encrypted)
+            return new JsonObject
+            {
+                ["_source"] = "mess1..mess10 (Phantasie I Amiga v1.0)",
+                ["_format"] = "plain text, not ciphered: the bytes DOS's MESS1..10 decrypt to; " +
+                              "records=41 bytes (1 prefix + 40 text) (reverse-engineering/amiga/GAME-TABLES.md)",
+                ["areas"] = areas,
+            };
         return new JsonObject
         {
             ["_source"] = "MESS1..MESS10",

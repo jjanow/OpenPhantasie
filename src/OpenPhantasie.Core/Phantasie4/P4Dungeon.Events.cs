@@ -306,10 +306,16 @@ public sealed partial class P4Dungeon
                 {
                     var w = W(at + 1);
                     var take = w == 0 ? _vm.Number : w;
-                    // The Guild treasury pays an event's price from spendable gold; short (a script without CMPGOLD), the
-                    // purse goes below zero as the original's.
-                    if (!_options.TreasuryOn || !Party.TrySpend(_options, take, TreasuryEntryKind.Event))
-                        Party.Gold -= take;
+                    if (_options.TreasuryOn)
+                    {
+                        // The Guild treasury pays an event's price from spendable gold. Short (only O_008's typed amount
+                        // over spendable gold above 30,000, which CMPGOLD's cap lets through: events.md section 4), it
+                        // takes what there is, so neither the purse nor the treasury goes below zero.
+                        Party.TrySpend(_options, Math.Min(take, Math.Max(0, Party.SpendableGold(_options))),
+                            TreasuryEntryKind.Event);
+                    }
+                    else
+                        Party.Gold -= take; // the original's sub.l at 0x19f1e, no check (it wraps the u32 purse; Core's long goes negative [~])
                     _vm.Pc = at + 3;
                     break;
                 }

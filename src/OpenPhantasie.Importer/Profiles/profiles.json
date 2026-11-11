@@ -380,6 +380,7 @@
    "platform": "amiga",
    "status": "supported",
    "feeds": [
+    "tables",
     "art:amiga"
    ],
    "companions": [

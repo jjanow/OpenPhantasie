@@ -12,6 +12,8 @@ Text inside pictures (*.PKH) is not covered here (T6.1 "art text", needs the pic
 
 Translations live in reverse-engineering/x68000/phantasie4/translation/en.json: {"<exact Japanese>": "<English>"}.
 They are keyed by the Japanese text, so one entry covers every copy, and re-running this script never loses them.
+Where one Japanese fragment needs different English in different places (word order, a line that reads differently in
+its own context), the special key "@rows" maps a row id ("P4.X:0x41a06", "SCR1:0x0302") to its own English (s201).
 Rows whose text has no Japanese characters get status "source-english" (the binary already has English).
 
 Output: reverse-engineering/x68000/phantasie4/extracted/text/strings.json (+ untranslated.txt work list)
@@ -132,6 +134,7 @@ def main():
     x = XFile(open(os.path.join(UNP, 'disk1', 'P4.X'), 'rb').read())
     rows = p4x_rows(x) + o_rows() + scr_rows()
     trans = json.load(open(TRANS, encoding='utf-8')) if os.path.exists(TRANS) else {}
+    by_row = trans.pop('@rows', {})
     stats = {}
     for n, r in enumerate(rows):
         r['id'] = f"{r['src']}:{r['off']}"
@@ -139,6 +142,8 @@ def main():
             r['en'], r['status'] = r['ja'], 'source-english'
         elif r['ja'] in trans and trans[r['ja']] is None:
             r['en'], r['status'] = '', 'not-text'  # data bytes that decode as Shift-JIS (marked null by hand)
+        elif r['id'] in by_row:
+            r['en'], r['status'] = by_row[r['id']], 'done'
         elif r['ja'] in trans:
             r['en'], r['status'] = trans[r['ja']], 'done'
         else:
@@ -161,6 +166,9 @@ def main():
         for s in uniq_todo:
             f.write(json.dumps(s, ensure_ascii=False) + '\n')
     print(json.dumps(meta['counts']))
+    stale_rows = [k for k in by_row if k not in {r['id'] for r in rows}]
+    if stale_rows:
+        print(f'{len(stale_rows)} @rows ids match no row:', stale_rows[:5])
     unused = [k for k in trans if k not in {r['ja'] for r in rows}]
     if unused:
         print(f'{len(unused)} translation keys match no string (check for typos):', unused[:5])

@@ -1,0 +1,71 @@
+{
+ "_schema": "openphantasie.p1-amiga-import/v1",
+ "_source": "Remaster data for a Phantasie I import from the Amiga copy alone (profile p1-amiga-1.0), applied by the importer (OpenPhantasie.Importer.Pipelines.P1Amiga.P1AmigaTables). Numbers only; no text from the game disk.",
+ "_note": "Between versions DOS wins over Amiga on numbers (AGENTS.md): an Amiga-only import takes the Amiga's text, maps and names, and DOS I's value in every cell where the Amiga's number differs (reverse-engineering/amiga/GAME-TABLES.md, section 'Amiga vs DOS: numbers'). Every other number of the eleven tables is the same on both disks.",
+ "_dos_cells": "As phantasie2/apple2-import.json's st_cells (CellPatches): a path into the GameData file the Amiga import builds (DOS shape); a string is an object key, a number an array index, an object picks the array element whose fields match; byte = an offset into a hex string; fog = a map tile whose fog (tile + 120) is kept. A cell holding the Amiga value takes the DOS value; one holding neither is kept and warned.",
+ "dos_cells": [
+  {
+   "why": "terrain: the Amiga's lake (100) where DOS has mountains (34); user s53 keeps the DOS terrain (amiga/FORMAT.md, Overworld / dungeon map graphics, 'vs DOS')",
+   "file": "overworld.json",
+   "path": ["regions", "OUT2.DAT", "tiles", 8, 11],
+   "fog": true,
+   "amiga": 100,
+   "dos": 34
+  },
+  {
+   "why": "terrain: the Amiga's lake (100) where DOS has forest (16); user s53 keeps the DOS terrain",
+   "file": "overworld.json",
+   "path": ["regions", "OUT12.DAT", "tiles", 14, 11],
+   "fog": true,
+   "amiga": 100,
+   "dos": 16
+  },
+  {
+   "why": "fixed fight: the Amiga ships it spent (x8, no fight), DOS live (x7, overworld-movement.md 'tile % 10')",
+   "file": "overworld.json",
+   "path": ["regions", "OUT9.DAT", "tiles", 18, 1],
+   "fog": true,
+   "amiga": 68,
+   "dos": 67
+  },
+  {
+   "why": "fixed fight: spent on the Amiga, live on DOS",
+   "file": "overworld.json",
+   "path": ["regions", "OUT9.DAT", "tiles", 19, 15],
+   "fog": true,
+   "amiga": 68,
+   "dos": 67
+  },
+  {
+   "why": "fixed fight: spent on the Amiga, live on DOS",
+   "file": "overworld.json",
+   "path": ["regions", "OUT9.DAT", "tiles", 9, 20],
+   "fog": true,
+   "amiga": 68,
+   "dos": 67
+  },
+  {
+   "why": "fixed fight: spent on the Amiga, live on DOS",
+   "file": "overworld.json",
+   "path": ["regions", "OUT16.DAT", "tiles", 15, 4],
+   "fog": true,
+   "amiga": 88,
+   "dos": 87
+  },
+  {
+   "why": "DNG6 cell (14, 35): a jammed lock of bank 2 (0xd6) on the Amiga, of bank 1 (0xc7) on DOS (dungeon-representation.md, Locks)",
+   "file": "dungeons.json",
+   "path": ["levels", "DNG6", "raw_hex"],
+   "byte": 1169,
+   "amiga": 214,
+   "dos": 199
+  },
+  {
+   "why": "ORANGE DRAGON's sprite height, the last word of the size table: no sprite height in either program (DOS 22356, Amiga 2570; what reads it is [?], monsters.json _fields sprite_height [~]); DOS's kept",
+   "file": "monsters.json",
+   "path": ["monsters", {"index": 79}, "sprite_height"],
+   "amiga": 2570,
+   "dos": 22356
+  }
+ ]
+}

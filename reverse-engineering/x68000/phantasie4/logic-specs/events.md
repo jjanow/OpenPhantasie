@@ -146,7 +146,7 @@ compare result, `0x4A432`). `evint` = last number typed (INPUTN), `evstr` = last
 | 0F | CMPN | w | 3 | cmp = evint − w |
 | 10 | HASITEM | b | 2 | tff = 1 if item b is in the party pack (`_par`+20, 128) or any member's carried slots (+52–5A); nothing removed |
 | 11 | GIVEITEM | b | 2 | put item b in the first empty pack slot (pack full → overwrite slot rand(127), 1–127); rings 129 / 131 get 20 charges (any other item keeps the slot's old charge byte); "<item> obtained." + WAIT |
-| 12 | CMPGOLD | w | 3 | w = 0 → evint. If party gold ≤ 30 000: cmp = gold − w; else cmp = 30 000 |
+| 12 | CMPGOLD | w | 3 | w = 0 → evint (low 16 bits). If party gold ≤ 30 000 (unsigned): cmp = gold − w; else cmp = 30 000 |
 | 13 | GIVEGOLD | w | 3 | party gold += w; "w GP obtained." + WAIT. If gold > 990 000 afterwards, gold **+=** 990 000 (original bug: meant as a cap) |
 | 14 / 15 / 16 | TESTLF / SETLF / CLRLF | b | 2 | per-location flag b: tff = flag / flag = 1 / flag = 0 |
 | 17 / 18 / 19 | TESTSF / SETSF / CLRSF | b | 2 | story flag b: same |
@@ -175,7 +175,7 @@ compare result, `0x4A432`). `evint` = last number typed (INPUTN), `evstr` = last
 | 30 | TRAP | b | 2 | `_dtrap` (§6.1); the operand is **not used**. tff = 0 if the party turned back, else 1 |
 | 31 | STEPBACK | | 1 | put the party back on the square it came from |
 | 32 | TAKEITEM | b | 2 | remove the first item b found (pack first, then members' slots); no message |
-| 33 | TAKEGOLD | w | 3 | w = 0 → evint; party gold −= w (no check: scripts test with CMPGOLD first) |
+| 33 | TAKEGOLD | w | 3 | w = 0 → evint (its low 16 bits: `move.w`, `andi.l #0xffff`); party gold −= w (`sub.l` at `0x19f1e` on the u32 at `0x789e4`, no check: scripts test with CMPGOLD first). CMPGOLD's cap (gold > 30 000 → cmp = 30 000, unsigned `bls` at `0x1989a`) lets O_008's typed amount over the gold through, and the u32 then wraps (s201 read). Remaster: with the Guild treasury on it takes at most the spendable gold (`11-guild-treasury.md` section 8); off, Core's signed purse goes below zero instead of wrapping, and the typed amount is not cut to 16 bits `[~]` |
 | 34 | RACEIS | b | 2 | tff = 1 if any member (alive or not) is of race b (only use: 34 = Duck, O_003) |
 | 35 | ENCOPT | b | 2 | writes `_encopt`; **nothing reads it** (dead variable) |
 | 36 | TGLSF | b | 2 | story flag b ^= 1 |

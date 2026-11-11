@@ -141,6 +141,13 @@ internal static class WorldExtrasLoader
             kv => (IReadOnlyList<int>)kv.Value);
     }
 
+    /// <summary>
+    /// <c>scrolls.json</c> <c>page_layout</c> = <c>rows</c> (II ST): a scroll's lines are the screen rows the original
+    /// prints (centred titles, blank rows kept), so an <c>item_records</c> page is shown as stored, not trimmed.
+    /// </summary>
+    public static bool LoadScrollPagesAsRows(string scrollsPath) =>
+        JsonSerializer.Deserialize<ScrollExtrasDto>(File.ReadAllText(scrollsPath), Options)?.PageLayout == "rows";
+
     private sealed class ExtrasDto
     {
         public List<PlaceDto>? Places { get; set; }
@@ -177,6 +184,7 @@ internal static class WorldExtrasLoader
     private sealed class ScrollExtrasDto
     {
         [JsonPropertyName("item_records")] public Dictionary<string, List<int>>? ItemRecords { get; set; }
+        [JsonPropertyName("page_layout")] public string? PageLayout { get; set; }
     }
 }
 

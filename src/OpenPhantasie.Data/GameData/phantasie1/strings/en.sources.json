@@ -8586,6 +8586,17 @@
       38
      ]
     ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "game",
+      50826,
+      37
+     ]
+    ]
    }
   ],
   "core.endgame.zeus_2": [
@@ -8596,6 +8607,17 @@
       "OV1.OVR",
       22844,
       40
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "game",
+      50864,
+      33
      ]
     ]
    }
@@ -8610,6 +8632,17 @@
       40
      ]
     ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "game",
+      50898,
+      38
+     ]
+    ]
    }
   ],
   "core.endgame.zeus_4": [
@@ -8620,6 +8653,17 @@
       "OV1.OVR",
       22926,
       40
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "game",
+      50937,
+      35
      ]
     ]
    }
@@ -8634,6 +8678,17 @@
       40
      ]
     ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "game",
+      50973,
+      36
+     ]
+    ]
    }
   ],
   "core.endgame.zeus_6": [
@@ -8646,6 +8701,17 @@
       40
      ]
     ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "game",
+      51010,
+      34
+     ]
+    ]
    }
   ],
   "core.endgame.zeus_7": [
@@ -8655,6 +8721,17 @@
      [
       "OV1.OVR",
       23049,
+      25
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "game",
+      51045,
       25
      ]
     ]
@@ -8674,6 +8751,17 @@
       "OV1.OVR",
       22943,
       23
+     ]
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "game",
+      50937,
+      35
      ]
     ]
    }

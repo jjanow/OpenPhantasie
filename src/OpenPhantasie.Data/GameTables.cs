@@ -122,6 +122,9 @@ public sealed class GameTables
     public IReadOnlyDictionary<int, IReadOnlyList<int>> ScrollItemRecords { get; init; } =
         new Dictionary<int, IReadOnlyList<int>>();
 
+    /// <summary><c>scrolls.json</c> <c>page_layout</c> = <c>rows</c>: scroll lines are screen rows, shown as stored (II ST).</summary>
+    public bool ScrollPagesAsRows { get; init; }
+
     /// <summary>Phantasie III's own tables (<c>rule-tables.json</c>); null for folders without one.</summary>
     public Phantasie3RuleTables? Phantasie3 { get; init; }
 
@@ -180,6 +183,7 @@ public sealed partial class GameDataRepository
                 : [],
             Scrolls = LoadScrolls(scrollsPath, m.Count("scrolls")),
             ScrollItemRecords = WorldExtrasLoader.LoadScrollItemRecords(scrollsPath),
+            ScrollPagesAsRows = WorldExtrasLoader.LoadScrollPagesAsRows(scrollsPath),
             Phantasie3 = m.Game == GameId.P3 && File.Exists(p3Path) ? Phantasie3RuleTables.Load(p3Path) : null,
             Phantasie4 = m.Game == GameId.P4 && File.Exists(p3Path) ? Phantasie4RuleTables.Load(p3Path) : null,
             CreationTables = CreationTablesLoader.Load(RequireFile(dir, "creation-tables.json"), requireLifespans: false),
@@ -217,6 +221,7 @@ public sealed partial class GameDataRepository
             Places = t.Places,
             TileTerrain = t.TileTerrain,
             ScrollItemRecords = t.ScrollItemRecords,
+            ScrollPagesAsRows = t.ScrollPagesAsRows,
         };
     }
 
@@ -283,9 +288,12 @@ public sealed partial class GameDataRepository
             if (!known || !planes.TryGetValue(p.Plane, out var map) || (uint)p.X >= map.GridWidth || (uint)p.Y >= map.GridHeight)
                 throw new InvalidDataException($"{dir}: place {p.Kind} {p.Number} ({p.Name}) at {p.Plane} ({p.X}, {p.Y}) is not in the folder.");
         }
+        // The values are scroll ids (the Client looks them up by id): III's and the Apple II's run from 0, II ST's lettered
+        // scrolls from 1.
+        var scrollIds = t.Scrolls.Select(s => s.Id).ToHashSet();
         foreach (var (item, records) in t.ScrollItemRecords)
         {
-            if ((uint)item >= t.Items.Count || records.Any(r => (uint)r >= t.Scrolls.Count))
+            if ((uint)item >= t.Items.Count || records.Any(r => !scrollIds.Contains(r)))
                 throw new InvalidDataException($"{dir}: scroll item {item} points outside the folder's tables.");
         }
     }

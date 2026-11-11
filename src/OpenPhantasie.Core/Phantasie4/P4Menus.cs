@@ -227,7 +227,7 @@ public sealed class P4Menus
                 {
                     // _page2: A–E, each press moves the mark one down (wrapping); N (the sixth line) turns to page 3.
                     yield return Pick(Enumerable.Range(0, 5).Select(k =>
-                            new P4Choice($"{(char)('A' + k)} {StrategyText(k, m.Strategy[k] & 0x0F)}"))
+                            new P4Choice($"{StrategyHeading(k)} - {StrategyText(k, m.Strategy[k] & 0x0F)}"))
                         .Append(new P4Choice(GameText.S("p4x.0x4063c"))), menu: "_p_info3menu");
                     if (_choice is >= 0 and < 5)
                     {
@@ -262,6 +262,13 @@ public sealed class P4Menus
 
     /// <summary>Movement strategy D value 2: "Support companions" (the member covered is set with <see cref="P4Battle.SetSupport"/>).</summary>
     public const int CoverCompanions = 2;
+
+    /// <summary>
+    /// Strategy <paramref name="letter"/>'s heading ("A: Automatic defence" … "E: Use of magic", <c>_page2</c>'s labels at
+    /// 0x406cb–0x4077b). s201: the choices show it, so a letter is never shown without what it sets.
+    /// </summary>
+    public static string StrategyHeading(int letter) =>
+        GameText.S("p4x.0x" + new[] { 0x406cb, 0x406f7, 0x40723, 0x4074f, 0x4077b }[letter].ToString("x"));
 
     /// <summary>The text of strategy <paramref name="letter"/> (0–4 = A–E) value <paramref name="value"/> (<c>_ds1</c> lists 2–6).</summary>
     public static string StrategyText(int letter, int value)
@@ -327,8 +334,8 @@ public sealed class P4Menus
                     .ToString("x")) + " " + found[k]);
             _window.Line(GameText.S("p4x.0x433ac"));
             yield return Pick([
-                new($"A {PartyStrategyText(0, Party.StoryFlags[P4Party.AttitudeFlag])}"),
-                new($"B {PartyStrategyText(1, Party.StoryFlags[P4Party.FleeFlag])}"),
+                new($"{GameText.S("p4x.0x40674")} - {PartyStrategyText(0, Party.StoryFlags[P4Party.AttitudeFlag])}"),
+                new($"{GameText.S("p4x.0x4069f")} - {PartyStrategyText(1, Party.StoryFlags[P4Party.FleeFlag])}"),
             ], menu: "_p_info1menu"); // _party_info: SPACE (window 36's one button) leaves, A / B turn the strategy
             if (_choice < 0)
                 yield break;

@@ -166,14 +166,18 @@ public sealed class ImportRunner
             }
             if (d.PlayedFiles.Count > 0)
                 ctx.Warnings.Insert(0, PlayedWarning(d));
-            // A re-import of the same version replaces its earlier outputs.
+            // A re-import of the same version replaces its earlier outputs. A file another version wrote since (DOS I's
+            // tables over an Amiga I import's, s201) is that version's now and stays.
             if (manifest["games"]?[d.Profile.Game]?["versions"]?[d.Profile.Id]?["outputs"] is JsonObject previous)
+            {
+                var others = OutputsOfOtherVersions(manifest, d.Profile.Id);
                 foreach (var (key, _) in previous)
                 {
                     var stale = Path.Combine(staging, key.Replace('/', Path.DirectorySeparatorChar));
-                    if (File.Exists(stale) && !ctx.Pending.ContainsKey(key))
+                    if (File.Exists(stale) && !ctx.Pending.ContainsKey(key) && !others.Contains(key))
                         File.Delete(stale);
                 }
+            }
             foreach (var (key, bytes) in ctx.Pending)
             {
                 var path = Path.Combine(staging, key.Replace('/', Path.DirectorySeparatorChar));
@@ -328,14 +332,36 @@ public sealed class ImportRunner
         "phantasie4" => "Phantasie IV", _ => folder,
     };
 
+    /// <summary>Every output path the manifest records for a version other than <paramref name="profileId"/>.</summary>
+    private static HashSet<string> OutputsOfOtherVersions(JsonObject manifest, string profileId)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (_, game) in manifest["games"] as JsonObject ?? [])
+            foreach (var (id, v) in game?["versions"] as JsonObject ?? [])
+                if (id != profileId && v?["outputs"] is JsonObject outputs)
+                    foreach (var (key, _) in outputs)
+                        keys.Add(key);
+        return keys;
+    }
+
+    /// <summary>Versions that feed tables but read nothing play rewrites (Amiga I: grids from maps.int, s201).</summary>
+    private static readonly HashSet<string> PlayedCopySafe = new(StringComparer.Ordinal) { "p1-amiga-1.0" };
+
+    /// <summary>
+    /// GameData files outside <c>graphics/</c> and <c>strings/</c> that are a pack's, not a table: I's
+    /// <c>asset-manifest.json</c> (the Amiga pack's sprite list), which Amiga I writes whoever gives I's tables.
+    /// </summary>
+    private static readonly HashSet<string> NotTables = new(StringComparer.Ordinal) { "GameData/phantasie1/asset-manifest.json" };
+
     /// <summary>The player-facing warning for a played copy (user decision s158: import as is and say what was lost).</summary>
     public static string PlayedWarning(Detection d)
     {
         var outs = d.PlayedFiles.Where(f => f.StartsWith("OUT", StringComparison.OrdinalIgnoreCase)).ToList();
         var files = string.Join(", ", d.PlayedFiles);
         // s163: Amiga I's OUT*.DAT give only the town / dungeon places of its map pictures; fog and fights come from
-        // DOS I's tables, so play (fog lifted, fights spent) changes nothing it imports.
-        if (!d.Profile.Feeds.Contains("tables"))
+        // DOS I's tables, so play (fog lifted, fights spent) changes nothing it imports. s201: its own tables read the
+        // grids from maps.int (never rewritten) and only the features / text pages from OUT*.DAT, which play leaves.
+        if (!d.Profile.Feeds.Contains("tables") || PlayedCopySafe.Contains(d.Profile.Id))
             return $"This copy of {d.Profile.Title} has been played ({files} changed). Only what play leaves as it was " +
                    "is read from those files, so the import is the same as from a fresh copy.";
         // DOS I stores spent fixed fights in its regions; the Apple's II stores only the fog (FORMAT.md 3.6).
@@ -385,6 +411,7 @@ public sealed class ImportRunner
         // A profile that can feed tables but wrote none (the Apple II II after the ST's) leaves the owner as it is.
         var tablePrefix = $"GameData/{d.Profile.Game}/";
         if (d.Profile.Feeds.Contains("tables") && ctx.Pending.Keys.Any(k => k.StartsWith(tablePrefix, StringComparison.Ordinal)
+                                                                            && !NotTables.Contains(k)
                                                                             && !k.StartsWith(tablePrefix + "graphics/", StringComparison.Ordinal)
                                                                             && !k.StartsWith(tablePrefix + "strings/", StringComparison.Ordinal)))
             game["tables"] = d.Profile.Id;

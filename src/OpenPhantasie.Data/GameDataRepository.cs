@@ -68,9 +68,15 @@ public sealed partial class GameDataRepository
     /// <summary>Phantasie III's tile terrain; null for I / II.</summary>
     public TileTerrainDefinition? TileTerrain { get; private init; }
 
-    /// <summary>Phantasie III's scroll item → text records; empty for I / II.</summary>
+    /// <summary>
+    /// Scroll item → the scroll ids it shows (<c>scrolls.json</c> <c>item_records</c>: III, II ST, II Apple II, IV); empty for
+    /// I (item n shows scroll n − 120).
+    /// </summary>
     public IReadOnlyDictionary<int, IReadOnlyList<int>> ScrollItemRecords { get; private init; } =
         new Dictionary<int, IReadOnlyList<int>>();
+
+    /// <summary><c>scrolls.json</c> <c>page_layout</c> = <c>rows</c> (II ST): scroll lines are screen rows, shown as stored.</summary>
+    public bool ScrollPagesAsRows { get; private init; }
 
     /// <summary>DOS map tile rules (<c>asset-manifest.json</c> → <c>map_tiles</c>, P0.7); null when the section is absent.</summary>
     public MapTileManifest? MapTiles { get; private init; }

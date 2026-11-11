@@ -62,7 +62,10 @@ public class ImportedStringsTests
             var sources = JsonNode.Parse(File.ReadAllBytes(Repo.Path(GameData + table + "/" + ImportedStrings.SourcesFile)))!["strings"]!.AsObject();
             var expected = Strings(GameData + table + "/strings/en.json");
             var got = Imported(r, table, profile);
-            var listed = sources.Where(kv => kv.Value!.AsArray().Any(a => a!["from"]!.GetValue<string>() == profile))
+            // Lines in the version's own wording ("wording": "own", s201 I Amiga's Zeus speech) go to its own-wording
+            // file, not this one, and differ from en.json by design: checked by the version's own tests.
+            var listed = sources.Where(kv => kv.Value!.AsArray().Any(a => a!["from"]!.GetValue<string>() == profile
+                                                                          && a["wording"] is null))
                 .Select(kv => kv.Key).ToHashSet();
             foreach (var id in listed)
                 if (!got.TryGetValue(id, out var text))

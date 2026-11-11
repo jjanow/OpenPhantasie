@@ -36,7 +36,7 @@ and DOS pictures, for example), Options → the game's tab → GRAPHICS switches
 | Game | Version | What it gives |
 |---|---|---|
 | Phantasie I | DOS, SSI 1987 or the WizardWorks Bonus Edition, including the Steam / GOG "Phantasie Memorial Set" (360K disk image or the game's folder) | the game (tables, text, maps) and the DOS CGA pictures |
-| Phantasie I | Amiga v1.0, 1987 (`.adf`) | the Amiga pictures, title music and sounds (needs the DOS copy for the game itself) |
+| Phantasie I | Amiga v1.0, 1987 (`.adf`) | the game itself, and the Amiga pictures, title music and sounds (with the DOS copy imported too, the game data is DOS's) |
 | | Amiga Kickstart 1.3 ROM | the Amiga screen font (optional, for the Amiga look) |
 | Phantasie II | Atari ST v1.0 (two `.stx` or `.st` disks) | the game and the Atari ST pictures and music |
 | Phantasie II | Apple II v1.0 (two-sided `.dsk` pair, including the Steam / GOG "Phantasie Memorial Set" disks) | the game and the Apple II pictures (a few values still differ from the Atari ST version and are under review) |
@@ -59,7 +59,7 @@ systems OpenPhantasie runs on, separate from these source platforms.
 
 | Game | Platforms still to add | Existing support to extend |
 |---|---|---|
-| Phantasie I | Apple II, Commodore 64, Atari 8-bit, Atari ST, MSX2, NEC PC-88, NEC PC-98, Sharp X1 | Standalone Amiga import: use an Amiga copy for the game data as well as presentation, without needing DOS |
+| Phantasie I | Apple II, Commodore 64, Atari 8-bit, Atari ST, MSX2, NEC PC-88, NEC PC-98, Sharp X1 | DOS and Amiga imports already work (the Amiga copy alone too) |
 | Phantasie II | Commodore 64, Atari 8-bit, MSX2, NEC PC-88, NEC PC-98 | Atari ST and Apple II imports already work |
 | Phantasie III | Apple II, Commodore 64, Atari ST, MSX2, NEC PC-88, NEC PC-98 | Standalone Amiga import: use an Amiga copy for the game data as well as presentation, without needing DOS |
 | Phantasie IV | NEC PC-88, NEC PC-98, MSX2 (including the existing DJANGO English patch) | X68000 import already works |

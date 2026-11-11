@@ -271,7 +271,9 @@ public sealed partial class P4DungeonScreen
         if (s.Class < 0)
             yield break;
         yield return new($"{GameText.S("p4x.0x40201")}: {P4Names.At(names.Classes, s.Class)}", MenuLineStyle.Normal);
-        yield return new(UiText.F("p4.create.abilities_x_y", string.Join(" ", s.Abilities), s.MoveBase), MenuLineStyle.Normal);
+        // s201: each ability beside its label (one header run then five numbers was hard to read in the column).
+        var ab = Enumerable.Range(0, 5).Select(i => (object)(i < s.Abilities.Count ? s.Abilities[i] : 0));
+        yield return new(UiText.F("p4.create.abilities_x_y", [.. ab, s.MoveBase]), MenuLineStyle.Normal);
     }
 
     private IEnumerable<MenuLine> HallLines(P4HallPerson h)
@@ -283,8 +285,11 @@ public sealed partial class P4DungeonScreen
         var origin = h.Slot < P4Hall.FirstImportSlot ? P4Names.At(names.Origins, h.Origin)
             : h.Origin is >= 0 and < 6 ? GameText.S(ImportOrigins[h.Origin]) : $"#{h.Origin}";
         yield return new($"{P4Names.At(names.Socials, h.Social)}, {origin}", MenuLineStyle.Normal);
-        yield return new(string.Join(" ", h.Stats), MenuLineStyle.Normal);
-        yield return new(UiText.F("p4.hall.descendants_x", W.HallDescendants(h)), MenuLineStyle.Normal);
+        // s201: the five abilities beside their names; a negative descendant count shows "?" as _dsp_hinfo does (FORMAT 6.3).
+        yield return new(UiText.F("p4.hall.abilities_x_y_z_w_v",
+            [.. Enumerable.Range(0, 5).Select(i => (object)(i < h.Stats.Count ? h.Stats[i] : 0))]), MenuLineStyle.Normal);
+        var descendants = W.HallDescendants(h);
+        yield return new(UiText.F("p4.hall.descendants_x", descendants < 0 ? "?" : descendants), MenuLineStyle.Normal);
         var (a, b) = P4TownLoop.HallDeeds(h);
         yield return new(GameText.S(a) + (b.Length > 0 ? " " + GameText.S(b) : ""), MenuLineStyle.Normal);
         // Imports show their three game results: Completed / Not completed / blank (not played; 0x41bc7 is empty).
@@ -346,8 +351,11 @@ public sealed partial class P4DungeonScreen
         yield return new(Game.Options.TreasuryOn
             ? UiText.F("p4.profile.score_exp_x_y", m.Score, m.Experience)
             : UiText.F("p4.profile.score_exp_gold_x_y_z", m.Score, m.Experience, m.Account), MenuLineStyle.Normal);
-        yield return new(UiText.F("p4.profile.abilities_x", string.Join(" ", m.Abilities)), MenuLineStyle.Normal);
-        yield return new(UiText.F("p4.profile.skills_x", string.Join(" ", m.Skills)), MenuLineStyle.Normal);
+        // s201: each number beside its name (bare number runs could not be read without the manual).
+        yield return new(UiText.F("p4.profile.abilities_x",
+            [.. Enumerable.Range(0, 6).Select(i => (object)(i < m.Abilities.Length ? m.Abilities[i] : 0))]), MenuLineStyle.Normal);
+        yield return new(UiText.F("p4.profile.skills_x",
+            string.Join(", ", m.Skills.Select((v, i) => $"{P4Names.At(names.Skills, i)} {v}"))), MenuLineStyle.Normal);
         var eq = P4Equipment.Best(Game.Options, Game.Tables.Towns, Game.Services.Items, m);
         foreach (var id in new[] { eq.Shield, eq.Armour, eq.Weapon, eq.Bow, eq.Thrown }.Where(i => i != 0))
             yield return new("* " + Game.Services.Items.Name(id), MenuLineStyle.Normal);

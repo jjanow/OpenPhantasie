@@ -300,9 +300,12 @@ public sealed class UseItemDialog : IModalDialog, IPagedDialog, IPadWheel
         {
             if (records.Count == 0)
                 return [name, UiText.S("useitem.scroll_picture")];
+            // II ST's pages are screen rows (page_layout "rows"): shown as stored, as the fallback below does.
             var pages = records.Select(r => data.Scrolls.FirstOrDefault(sc => sc.Id == r))
                 .Where(sc => sc is not null)
-                .Select(sc => sc!.Lines.Select(l => l.Trim()).Where(l => l.Length > 0).ToList())
+                .Select(sc => data.ScrollPagesAsRows
+                    ? sc!.Lines.Select(l => l.TrimEnd()).ToList()
+                    : sc!.Lines.Select(l => l.Trim()).Where(l => l.Length > 0).ToList())
                 .ToList();
             return [name, .. pages.SelectMany((p, i) => i == 0 ? p : ["", .. p])];
         }

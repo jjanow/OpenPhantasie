@@ -825,3 +825,46 @@ reaches the amount (50, user s84) `[~]` (the remaster does not track which membe
 saved (F5 refused in the Client).
 D4-058 (Aim Blow, decided s99: manual) is built as an option: `manual` lands an Aim Blow on the head (rand(12) ≤ 3) or
 torso, except on type 5; `x68000` keeps the ordinary melee roll. MSX2 and PC-98 match X68000 (only −15 to hit).
+
+## 15. PC-98 cross-check (s201, static `[C]`)
+
+The PC-98 release (1990-09-14, the version whose manual is the source of truth) against §1–§11. Static only: no PC-98
+emulator is installed (no np2kai / MAME on the machine), and none was needed once the code read the same.
+
+**Binary.** `P4.EXE` (244,409 B, sha1 `f7ec5095…a760`) off `Phantasie IV (Disk 1).hdm` with `mcopy`; MS C 1988, large
+model, Microsoft EXEPACK. `tools/scripts/pc98_p4_unpack.py` gives the load image (0x75440 B); DGROUP is paragraph
+`0x6B97`, so DS:d = image `0x6B970 + d`. Floating point goes through the MS C math helpers (`lcall 2214:xxxx`, `pow` at
+`27A0:0497`) with the constants in DGROUP. `rand(n)` is `627C:008B`. No symbols: functions were found by the strings and
+tables they use; the names are the X68000 ones they match.
+
+**Data.** Byte-for-byte (as 16-bit ints where X68000 has 32-bit `int`): the bow / thrown class bonus tables K (DS
+`0x7672` / `0x7686`), the 24 edge squares of §8.1 (DS `0x7AC4`), the random-defence list {9, 10, 13, 16, 17, 18, 19}
+(DS `0x79EA`) and the attack-spell walk 8, 37, 7, … 59 (DS `0x79F8`) of §9.2; `TABL`, spell costs and the spell pages
+were already known identical (s82, s104). Every combat constant of §3–§4 (100, 0.5, 0.2, 1.2, 2, 115, 0.7, 0.6) is in
+DGROUP and is the one the matching code loads.
+
+**Code read, all identical to X68000:**
+
+| Rule (spec) | PC-98 (image offset) | Result |
+|---|---|---|
+| Hit chance §3.1 (`_chatkp`) | `0x1A8B0` | melee Hm (÷ Slash n), − defence if ≥ 0; Aim Blow −15 / Lunge −30, floored at 0 (the action word 0x0B / 0x0D); bow / thrown Hr − trunc(defence / 4); target `_mc` ≤ 2 or = 4 → 200 |
+| Leg / off-hand §3.1 (`_chlostp`) | `0x1A48F`, `0x1A4DA` | leg (`_pc` 2) 3c/4; off-hand c/2; off-hand damage 2d/3 |
+| Action offset F §3.2 | `0x1A4FD` | Thrust +1, Attack −1, Slash −n, else 0 |
+| Damage §3.2 (`_chatkd`) | `0x1A567` | bow / thrown trunc((r/100)^0.2 × Wr × 1.2 − armour / 2) + K[class]; < 0 → 0, = 0 → 1 (unsigned `cmp 1 / sbb`); melee trunc((r/100)^0.5 × Wm − armour) + F, ≤ 0 → 0; bare hand rand(rand(2L + 18) − 1) − 1 + rand(rand(3L − 1)) − armour; then + `_epstr`, cap 255 |
+| Hit roll, bare-hand strike §3.2 (`_chrexe`) | `0x1B192`–`0x1B275` | hit if rand(100) ≤ c; class 6 with no weapon: rand(100) < 25 → "clean strike", + L + 10, else the critical |
+| Critical §3.3 (`_critical`) | `0x1A3E6` | items 35 / 36 / 74 → 35, 59 → 75, 62 / 75 → 50, 63 / 84 → 40, 83 → 25; critical if rand(100) < t |
+| Monster turn §4.1–4.2 (`_monexe`) | `0x1F847` | asleep: rand(100) < 15 wakes; acts if rand(100) ≤ 5p² + 3 × `_emlevel`; spell pick up to 10 tries, re-picked when in force: 9–14, 16–19, 30–33, 38 ("spell already in force" for monsters); attacks n = max(1, trunc(+16 / 115 + 0.7)); hit rand(100) < trunc(+16 / n) − D (+35) or target `_pc` < 3; damage (r/100)^0.5 × +18; drain magic MP × 0.6 + 0.5 (still dead code: 35 is cast as Mind Blast first) |
+| Encounter options §8 (`_enc_opt`) | `0x21D4B` | Greet rand(100) × (1 − `_emcham`) > (50 outdoors / 90) − nice; Beg rand(100) < 90 + nice outdoors / 60 + 3 × nice; Demand rand(100) ≤ c × XP / first XP + 2 × `_par`+0B − 3 × `_emlevel`, c = 25 / 15; ends 106 (greet) and 3 (beg) |
+| R rolls §9 "R compares unsigned" | `_pmagic1` `0x16DFB` (4 sites: `0x1712D`, `0x17478`, `0x177DE`, `0x179B9`), `_pmagic2` `0x289E8` (2) | (caster +37 − monster +24) × 5 + 50, compared unsigned (`jb` / `jae`), as X68000 |
+| Resurrection §9.1 | `0x28B5E` | target dead (+0A = 0) and Constitution (+32) ≥ 1; rand(100) ≤ (caster L − target L) × 5 + 50 unsigned; a random free square in 10 tries (rand(49) − 1, walk byte `_pos`+1 ≠ 0); condition 1, HP = max, `_heal(10)` |
+| Fear §9.1 | `0x28C9C` | rand(100) ≤ (L − `_emlevel`) × 5 + 50 unsigned; `_emlevel` −= 6, or 1 when ≤ 6. Nothing else: no rout, event fights or not |
+| Auto Resurrection §9.2 (`_try_cast`) | `0x1E81F`, `0x1E96A`–`0x1E9E7` | a dead member is offered Resurrection when 40 is not chosen this round and his square's walk byte (`_tmark` → `_pos`+1) is set, as X68000 |
+
+So the PC-98 program is the same C source as the X68000 one for combat: no rule, constant or table checked differs, and
+no PENDING entry is needed. What this does **not** settle: the §14 `[~]` items are the remaster's own readings where it
+does not copy the code (the Constitution test for auto Resurrection instead of the walk byte, "in force" for lasting
+spells approximated, equipment picked at fight start, the manual Fear still routing event fights). For auto
+Resurrection and Fear PC-98 has the X68000 code's behaviour (walk byte; Fear only lowers `_emlevel`), so those two
+stay `[~]` as remaster choices against a code side now confirmed on two platforms; party "in force" (`_splfc`) and
+equipment were not read on PC-98. Not read on PC-98: initiative / MV (`_calmove`, phases), `_set1` (whether it calls `_equip`), the
+auto-flight HP thresholds, monster spells `_mmagic`, spoils §11.

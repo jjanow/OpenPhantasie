@@ -7,8 +7,9 @@ namespace OpenPhantasie.Importer.Tests;
 /// reference dump's never-rewritten files (s163), the other seven from the unplayed data files of the WHDLoad install
 /// package (reverse-engineering/amiga/original-images/SOURCES.txt). The reference dump was played: its OUT9 / 10 / 11 /
 /// 13 / 14 have fog lifted, while its OUT1 / OUT5 (no fog and no fixed fight to change) are byte-identical to the
-/// pristine ones. A played copy is reported with a warning that the import is unchanged (fog and fights come from DOS
-/// I's tables; the Amiga files give only the town / dungeon places).
+/// pristine ones. A played copy is reported with a warning that the import is unchanged: s201, its own tables take the
+/// grids from maps.int (never rewritten) and only the feature records and text pages, which play leaves, from the
+/// region files (amiga/GAME-TABLES.md section 3).
 /// </summary>
 public class P1AmigaPlayedCopyTests
 {

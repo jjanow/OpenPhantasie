@@ -156,7 +156,9 @@ public class Phantasie4TreasuryTests
         party.Treasury.Add(100, TreasuryEntryKind.Trip);
         Assert.True(party.TrySpend(Trip, 50, TreasuryEntryKind.Armory));
         Assert.Equal((0L, 80L), (party.Gold, party.Treasury.Balance));
-        Assert.Equal((TreasuryEntryKind.Armory, -20L), (party.Treasury.Ledger[^1].Kind, party.Treasury.Ledger[^1].Amount));
+        // The purse's 30 is logged as trip gold brought in, then the whole price as the spend (balances 130, 80).
+        Assert.Equal([(TreasuryEntryKind.Trip, 30L, 130L), (TreasuryEntryKind.Armory, -50L, 80L)],
+            party.Treasury.Ledger.Skip(1).Select(e => (e.Kind, e.Amount, e.Balance)));
         Assert.False(party.TrySpend(Trip, 81, TreasuryEntryKind.Armory));
         Assert.Equal((0L, 80L), (party.Gold, party.Treasury.Balance));
         Assert.False(party.CanAfford(Manual, 1)); // off: the treasury does not count
@@ -177,7 +179,8 @@ public class Phantasie4TreasuryTests
         w.Choose(0);
         Assert.Contains(40, party.Members[0].Items);
         Assert.Equal((0L, 5L), (party.Gold, party.Treasury.Balance));
-        Assert.Equal((TreasuryEntryKind.Armory, 10L - price), (party.Treasury.Ledger[^1].Kind, party.Treasury.Ledger[^1].Amount));
+        Assert.Equal((TreasuryEntryKind.Trip, 10L), (party.Treasury.Ledger[^2].Kind, party.Treasury.Ledger[^2].Amount));
+        Assert.Equal((TreasuryEntryKind.Armory, (long)-price), (party.Treasury.Ledger[^1].Kind, party.Treasury.Ledger[^1].Amount));
         w.Choose(0); // 5 GP left: "can't pay"
         Assert.Equal(1, party.Members[0].Items.Count(i => i == 40));
         Assert.Equal(5, party.Treasury.Balance);
@@ -315,6 +318,38 @@ public class Phantasie4TreasuryTests
         Assert.Equal(on ? treasury : 200, party.Treasury.Balance);
         if (on)
             Assert.Equal(TreasuryEntryKind.Event, party.Treasury.Ledger[^1].Kind);
+    }
+
+    /// <summary>
+    /// O_008's fortune teller (INPUTN; CMPGOLD 0; JLT; TAKEGOLD 0): above 30,000 gold CMPGOLD answers 30,000 whatever the
+    /// amount (<c>bls</c> at <c>0x1989a</c>), so a typed amount over the gold reaches TAKEGOLD's unchecked <c>sub.l</c>
+    /// (<c>0x19f1e</c>). On, the treasury takes only what there is (purse and treasury stay ≥ 0, the trip part logged);
+    /// off keeps the original's unchecked subtraction (Core's long goes below zero; the X68000's u32 wraps, events.md).
+    /// </summary>
+    [OriginalDataTheory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TakeGold_PastCmpGoldsCap_NeverGoesBelowZeroUnderTheTreasury(bool on)
+    {
+        // (5,5): INPUTN; CMPGOLD 0; JLT 12; TAKEGOLD 0; END
+        byte[] code = [0x22, 0x00, 0x0E, 0x12, 0, 0, 0x06, 12, 0, 0x33, 0, 0, 0x00];
+        var party = Party();
+        party.Gold = on ? 1000 : 31000;
+        if (on)
+            party.Treasury.Add(31000, TreasuryEntryKind.Accounts);
+        var d = Dungeon(party, on ? Trip : Manual, OpenMap(code));
+        d.Enter(4, 5, 5, 0);
+        Assert.Equal(P4DungeonPrompt.Number, d.Prompt);
+        d.EnterNumber(40000);
+        if (on)
+        {
+            Assert.Equal((0L, 0L), (party.Gold, party.Treasury.Balance));
+            Assert.Equal(
+                [(TreasuryEntryKind.Trip, 1000L, 32000L), (TreasuryEntryKind.Event, -32000L, 0L)],
+                party.Treasury.Ledger.Skip(1).Select(e => (e.Kind, e.Amount, e.Balance)));
+        }
+        else
+            Assert.Equal(-9000L, party.Gold); // unchanged off path (the original wraps its u32 instead) [~]
     }
 
     // --- The bank's treasury view ---------------------------------------------------------------------------------------

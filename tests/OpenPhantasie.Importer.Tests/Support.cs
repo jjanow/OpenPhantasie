@@ -74,6 +74,29 @@ public static class PipelineHarness
     private static readonly Dictionary<string, Result> Cache = new();
 
     /// <summary>
+    /// As <see cref="Run(string, string[])"/> with another shipped GameData folder (e.g. the public repo's mask), not
+    /// cached.
+    /// </summary>
+    public static Result RunWithShipped(string shippedRoot, string profileId, params string[] repoRelativeSources)
+    {
+        var scan = ImportRunner.Scan(repoRelativeSources.Select(Repo.Path).ToList());
+        var detection = scan.Detections.Single(d => d.Profile.Id == profileId);
+        Assert.Equal(DetectionStatus.Ready, detection.Status);
+        var staging = Directory.CreateTempSubdirectory("phantasie-import-test-").FullName;
+        try
+        {
+            var session = new ImportSession { ShippedGameDataRoot = shippedRoot, StagingRoot = staging, Detections = scan.Detections };
+            var ctx = new ImportContext(session, detection);
+            PipelineRegistry.For(profileId)!.Run(ctx);
+            return new Result(new Dictionary<string, byte[]>(ctx.Pending), ctx.Warnings.ToList(), detection);
+        }
+        finally
+        {
+            Directory.Delete(staging, recursive: true);
+        }
+    }
+
+    /// <summary>
     /// Scan <paramref name="repoRelativeSources"/>, detect <paramref name="profileId"/> and run its pipeline. Shipped
     /// GameData = the committed GameData; there is no earlier import. Results are cached per (profile, sources).
     /// </summary>

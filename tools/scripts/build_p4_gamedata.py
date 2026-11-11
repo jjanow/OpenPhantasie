@@ -1029,7 +1029,7 @@ def strings(rows, lang):
         "_schema": "phantasie.strings/v1",
         "_note": ("Phantasie IV in-game text (X68000 P4.X, O_001-O_021, SCR1-5), " +
                   ("English: the s78 translation (translation/en.json, merged into extracted/text/strings.json; notes in "
-                   "docs/manuals/phantasie4/translation-notes.md), not yet checked in the running game. " if lang == "en"
+                   "docs/manuals/phantasie4/translation-notes.md), read in the running game s201 (parity/s201-p4-translation.md). " if lang == "en"
                    else "Japanese as in the binary (Shift-JIS decoded). ") +
                   "Ids: p4x.<image address> (relocation-confirmed rows and every Japanese row of the data segment), "
                   "o<map>.<base-relative address> (event text, as the bytecode addresses it; '$' = line break), "

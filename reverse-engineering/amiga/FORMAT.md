@@ -10,6 +10,8 @@ xdftool reverse-engineering/amiga/original-images/phantasie1/phantasie-v1.0-1987
   unpack reverse-engineering/amiga/unpacked/
 ```
 
+Game tables (monsters, names, towns, maps, text): `GAME-TABLES.md` (s201).
+
 Volume name `PHANT`. **No IFF FORM/ILBM** assets — `strings` hits on `FORM` are
 false positives inside English prose. Graphics are raw bitplane blobs.
 

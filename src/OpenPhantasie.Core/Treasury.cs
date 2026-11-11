@@ -142,6 +142,9 @@ public static class GoldPurse
     /// <summary>
     /// Takes <paramref name="amount"/> from <paramref name="stores"/> in order (each a getter / setter pair over a trip
     /// store), then from <paramref name="treasury"/> (null = off). Returns false and takes nothing when the total is short.
+    /// With a treasury the whole spend is in the ledger (section 4): the part paid from trip gold is logged as trip gold
+    /// brought in, then the full price as the spend, so every entry's balance and each trip's total stay the real change
+    /// in the treasury. Off, nothing is logged (the game's own purse logic).
     /// </summary>
     public static bool TrySpend(
         long amount, Treasury? treasury, TreasuryEntryKind kind, params (Func<long> Get, Action<long> Set)[] stores)
@@ -159,8 +162,11 @@ public static class GoldPurse
                 set(get() - take);
             left -= take;
         }
-        if (left > 0)
-            treasury!.Take(left, kind);
+        if (treasury is not null)
+        {
+            treasury.Add(amount - left, TreasuryEntryKind.Trip);
+            treasury.Take(amount, kind);
+        }
         return true;
     }
 }

@@ -1,0 +1,15 @@
+{
+ "_note": "Phantasie I, Amiga v1.0 (p1-amiga-1.0, s201): ids the Amiga prints in its own wording, for an import whose I tables are the Amiga's. Zeus's speech (game hunk 33 +0x2, the ending h32's data; file 50826..51070; amiga/FORMAT.md, the party's victory): upper case and the Amiga's own line breaks, so no DOS line is found verbatim. Parts as in en.sources.json: [file, offset, length] into the Amiga's game. build_string_sources.py adds them as alternatives marked \"wording\": \"own\"; --show-amiga prints what they resolve to.",
+ "strings": {
+  "phantasie1": {
+   "core.endgame.zeus_1": [["game", 50826, 37]],
+   "core.endgame.zeus_2": [["game", 50864, 33]],
+   "core.endgame.zeus_3": [["game", 50898, 38]],
+   "core.endgame.zeus_4": [["game", 50937, 35]],
+   "core.endgame.zeus_5": [["game", 50973, 36]],
+   "core.endgame.zeus_6": [["game", 51010, 34]],
+   "core.endgame.zeus_7": [["game", 51045, 25]],
+   "amiga.endgame.zeus_4": [["game", 50937, 35]]
+  }
+ }
+}

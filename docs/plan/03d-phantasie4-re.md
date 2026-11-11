@@ -46,7 +46,7 @@ Phase 09 T6.2 (and the text half of T6.1). The IV counterpart of `03b-phantasie2
       Record fields: 3d.5.
 - [x] **T6.1 in-game text** (`tools/scripts/extract_x68k_p4_text.py` → `extracted/text/strings.json`): 2125 rows from
       P4.X, `O_001–021` and `SCR1–5`; **all 1279 unique Japanese strings translated** (`translation/en.json`; notes in
-      `docs/manuals/phantasie4/translation-notes.md`). Not yet checked in the running game; picture text is not covered.
+      `docs/manuals/phantasie4/translation-notes.md`). Read in the running game s201 (`parity/s201-p4-translation.md`; dungeon event texts not reached live); picture text is not covered.
 - [x] **3d.4 Function map:** a Ghidra (68000) project over P4.X with the symbol table applied
       (`tools/scripts/x68k_p4_ghidra_prep.py` + `GhidraP4Setup.java`: all 705 functions decompiled, integer FPACK calls
       rewritten so arithmetic shows). `FUNCTIONS.md` lists all 705 text symbols (gameplay read; UI / graphics plumbing
@@ -89,7 +89,7 @@ Phase 09 T6.2 (and the text half of T6.1). The IV counterpart of `03b-phantasie2
       HP formula and the +3B melee bonus hold as read statically (`FORMAT.md` section 6.4, `combat.md` section 1);
       `_get_modifer` below 5.0 confirmed (`ancestry.md` section 5.2); MSX2's monster HP differs (0.5–1.4 × base in 0.1
       steps; X68000 gives 0.5×, 1.5× or the 1.8× cap, a precedence slip; D4-055). Full-system X68000 runs in XEiJ
-      (IPL ROM 1.0; how-to in `RE-REFERENCE.md`). Left: the PC-98 combat cross-check; the MSX2 III → IV transfer (MSX・FAN
+      (IPL ROM 1.0; how-to in `RE-REFERENCE.md`). PC-98 combat (s201, `combat.md` section 15): hit, damage, critical, monster turn, encounter options, R rolls, Resurrection, Fear and auto Resurrection read the same as X68000. Left: the MSX2 III → IV transfer (MSX・FAN
       1991-03 says it was cut; the MSX2 disk still has the transfer screens) needs an MSX2 emulator (none set up).
 - [x] **3d.8 Event bytecode, `MOUT`, pictures.** `tools/scripts/x68k_p4_events.py` disassembles all 21 `O_0xx` files
       (473 of 484 known strings reached plus 70 the string extractor skipped; the rest is unreachable content), listings

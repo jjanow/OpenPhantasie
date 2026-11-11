@@ -69,19 +69,22 @@ GIVEGOLD gold.
 
 A parked party that is away from town keeps its own purse and found gold. That is its trip gold, and it is not swept.
 
-Ledger kinds: `trip` (trip gold brought into town), `accounts` (account gold collected: starting gold, level gold,
-transfers in), `sale`, and the spends (section 4).
+Ledger kinds: `trip` (trip gold brought into town, or the trip-gold part of a spend: section 4), `accounts` (account
+gold collected: starting gold, level gold, transfers in), `sale`, and the spends (section 4).
 
 ## 4. Spending
 
 Every cost goes through one helper. `CanAfford(n)` tests spendable gold. `Spend(n, kind)` takes trip gold first, then
-the treasury, and logs the spend. With the option `off`, both behave exactly as the purse code did.
+the treasury, and logs the spend whole: the part paid from trip gold first as a `trip` entry (trip gold brought in),
+then the full price as the spend's entry. So each entry's balance and each trip's total stay the treasury's real
+change, and a field spend paid from the purse alone still shows in the ledger (two lines that cancel). With the option
+`off`, both behave exactly as the purse code did and nothing is logged.
 
 | Game | Spends routed through the helper |
 |---|---|
 | I, II | Armory buy, Guild training, spell learning, wilderness inn (256, purse then found gold today) |
 | III | Armory buy, training, spell learning, wilderness inn (250) |
-| IV | training (`_trang`), Magic Hall (`_mage`), Armory (`_buyitem`), shipwright (1500), outdoor inn (256), Magic Bag (spell 50), dungeon TAKEGOLD (a payment), and CMPGOLD tests spendable gold, so it stays consistent with TAKEGOLD |
+| IV | training (`_trang`), Magic Hall (`_mage`), Armory (`_buyitem`), shipwright (1500), outdoor inn (256), Magic Bag (spell 50), dungeon TAKEGOLD (a payment), and CMPGOLD tests spendable gold, so it stays consistent with TAKEGOLD. TAKEGOLD past CMPGOLD's 30 000 cap (below) takes at most the spendable gold |
 
 **Losses keep their own code and only ever touch trip gold:**
 - Beg for mercy and wilderness surrender (I–IV)
@@ -160,7 +163,13 @@ and also have a QoL value (e.g. `p1.gold-cap` `lifted`, `p1.rename-party`) stay 
   map-only, town), III Amiga and DOS (wilderness, dungeon, town, Guild) and the remaster's combat screen.
 - **Trips:** Transportation from town to town (I–III and IV) arrives without leaving, so the trip number does not go up
   (the sweep still runs on arrival).
-- **Spends in the field:** a field spend takes the purse first, so its trip-gold part is not in the ledger (only the
-  treasury's part is). IV's TAKEGOLD without a CMPGOLD test before it can push the purse below zero, as the original
-  does, and leaves the treasury alone `[~]`.
+- **Spends in the field:** a spend's trip-gold part is logged as a `trip` entry before the spend's full price (section
+  4; s201, before that only the treasury's part was logged).
+- **IV TAKEGOLD:** every TAKEGOLD in the shipped scripts has a CMPGOLD for the same amount before it on its path
+  (O_006, O_008, O_009, O_010, O_013, O_018). The one way past it is CMPGOLD's cap: above 30 000 gold it answers
+  30 000 whatever the amount (unsigned `bls` at `0x1989a`), so O_008's typed amount (`CMPGOLD 0` / `TAKEGOLD 0`) over
+  the gold reaches TAKEGOLD's unchecked `sub.l` (`0x19f1e`, u32 purse at `0x789e4`), which wraps the purse in the
+  original (`logic-specs/events.md` section 4). With the treasury on, TAKEGOLD takes at most the spendable gold (purse,
+  then treasury; neither goes below zero; s201). Off, Core keeps the unchecked subtraction, but its signed purse goes
+  below zero where the X68000's wraps to about 4.29 billion `[~]` (not changed).
 - **Not unit-tested:** the I–III Bank routing in `Game1` (checked live on Xvfb for I, II and III) and III's window 22.

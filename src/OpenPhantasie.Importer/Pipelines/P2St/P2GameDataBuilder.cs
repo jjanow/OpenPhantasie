@@ -345,10 +345,35 @@ internal sealed class P2GameDataBuilder
             ("slot_count", a["slots"]!.AsArray().Count), ("record_count", a["records"]!.AsArray().Count),
             ("slots", J.Clone(a["slots"])), ("records", J.Clone(a["records"])))))));
 
+    /// <summary>
+    /// find_items (PHANT.PRG <c>0xaeb2</c>–<c>0xaee6</c>) never hands out a blank-named scroll slot: 122 / 123 become 121,
+    /// 133 becomes 132, 135 / 136 become 134, 137 becomes 138 [C]. item_records maps those slots to the same lettered scroll.
+    /// </summary>
+    private static readonly Dictionary<int, int> BlankScrollItems = new()
+    {
+        [122] = 121, [123] = 121, [133] = 132, [135] = 134, [136] = 134, [137] = 138,
+    };
+
+    /// <summary>
+    /// item_records (s201): scroll item 121–140 → the lettered scroll (its <c>id</c>) it shows, so the Client never falls
+    /// back to "item − 120" (which put SCROLL B, item 124, on SCROLL D's text).
+    /// </summary>
+    private static JsonObject ScrollItemRecords(JsonObject sc)
+    {
+        var byItem = sc["scrolls"]!.AsArray().ToDictionary(s => (int)s!["item_id"]!, s => (int)s!["id"]!);
+        var map = new JsonObject();
+        for (var item = 121; item <= 140; item++)
+            if (byItem.TryGetValue(BlankScrollItems.GetValueOrDefault(item, item), out var id))
+                map[item.ToString(System.Globalization.CultureInfo.InvariantCulture)] = J.Ints([id]);
+        return map;
+    }
+
     public static JsonObject Scrolls(JsonObject sc) => J.O(
         ("_source", $"{Source}: {(string)sc["_source"]!}"),
         ("_layout", J.Clone(sc["_layout"])),
         ("_item_map", J.Clone(sc["_item_map"])),
+        ("item_records", ScrollItemRecords(sc)),
+        ("page_layout", "rows"),
         ("scrolls", J.A(sc["scrolls"]!.AsArray().Select(s => (JsonNode?)J.O(
             ("id", J.Clone(s!["id"])), ("step", 0), ("item_id", J.Clone(s["item_id"])), ("name", J.Clone(s["name"])),
             ("records", J.Clone(s["records"])), ("lines", J.Clone(s["lines"])), ("text", J.Clone(s["text"])))))));

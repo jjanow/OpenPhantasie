@@ -63,6 +63,56 @@ public class TreasuryTests
         Assert.Equal(10, purse);
     }
 
+    /// <summary>
+    /// A field spend (the wilderness inn, 256: purse, then found gold, then the treasury) is in the ledger whole: the trip
+    /// gold it used as "trip gold" brought in, then the full price, so each balance and the trip total are the treasury's
+    /// real change. A spend from trip gold alone logs both lines too; off logs nothing.
+    /// </summary>
+    [Fact]
+    public void TrySpend_LogsTheTripGoldPart_ThenTheWholePrice()
+    {
+        long purse = 100, sack = 50;
+        var t = new Treasury();
+        t.Add(1000, TreasuryEntryKind.Accounts);
+        t.StartTrip();
+        (Func<long>, Action<long>) p = (() => purse, v => purse = v), k = (() => sack, v => sack = v);
+        Assert.True(GoldPurse.TrySpend(256, t, TreasuryEntryKind.Inn, p, k));
+        Assert.Equal((0, 0, 894), (purse, sack, t.Balance));
+        Assert.Equal(
+            [new TreasuryEntry(1, TreasuryEntryKind.Trip, 150, 1150), new TreasuryEntry(1, TreasuryEntryKind.Inn, -256, 894)],
+            t.Ledger.Skip(1));
+        Assert.Equal(-106, t.TripTotal(1)); // the treasury lost 106: what the purse and sack didn't cover
+
+        purse = 300;
+        Assert.True(GoldPurse.TrySpend(256, t, TreasuryEntryKind.Inn, p, k));
+        Assert.Equal((44, 894), (purse, t.Balance));
+        Assert.Equal(
+            [new TreasuryEntry(1, TreasuryEntryKind.Trip, 256, 1150), new TreasuryEntry(1, TreasuryEntryKind.Inn, -256, 894)],
+            t.Ledger.Skip(3));
+
+        var count = t.Ledger.Count;
+        Assert.True(GoldPurse.TrySpend(44, null, TreasuryEntryKind.Inn, p)); // off: nothing to log
+        Assert.Equal((0, count), (purse, t.Ledger.Count));
+    }
+
+    [OriginalDataFact]
+    public void WildernessInn_UnderTheTreasury_LogsTheWholeStay()
+    {
+        var s = NewGame("trip", out _, out _);
+        Assert.True(s.LeaveTown());
+        var balance = s.Treasury.Balance;
+        Assert.True(balance >= WildernessInn.Price);
+        s.Party.GoldCarried = 6;
+        s.Sack.Gold = 0;
+        var r = WildernessInn.Stay(s.Party, s.Sack, new SeededDosRandomSource(1), s.Options);
+        Assert.NotEqual(TownTransactionKind.Failed, r.Kind);
+        Assert.Equal(0, s.Party.GoldCarried);
+        Assert.Equal(balance - WildernessInn.Price + 6, s.Treasury.Balance);
+        Assert.Equal(
+            [(TreasuryEntryKind.Trip, 6L), (TreasuryEntryKind.Inn, -(long)WildernessInn.Price)],
+            s.Treasury.Ledger.TakeLast(2).Select(e => (e.Kind, e.Amount)));
+    }
+
     // ---- the option -------------------------------------------------------------------------------------------------
 
     [Fact]

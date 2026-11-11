@@ -320,11 +320,25 @@ def messages(ms):
     }
 
 
+# find_items (PHANT.PRG 0xaeb2-0xaee6) never hands out a blank-named scroll slot: 122 / 123 -> 121, 133 -> 132,
+# 135 / 136 -> 134, 137 -> 138 [C]. item_records maps those slots to the same lettered scroll.
+BLANK_SCROLL_ITEMS = {122: 121, 123: 121, 133: 132, 135: 134, 136: 134, 137: 138}
+
+
+def scroll_item_records(sc):
+    """s201: scroll item 121-140 -> [id of the lettered scroll it shows] (the Client's "item - 120" fallback was wrong)."""
+    by_item = {s["item_id"]: s["id"] for s in sc["scrolls"]}
+    return {str(i): [by_item[BLANK_SCROLL_ITEMS.get(i, i)]] for i in range(121, 141)
+            if BLANK_SCROLL_ITEMS.get(i, i) in by_item}
+
+
 def scrolls(sc):
     return {
         "_source": f"{SOURCE}: {sc['_source']}",
         "_layout": sc["_layout"],
         "_item_map": sc["_item_map"],
+        "item_records": scroll_item_records(sc),
+        "page_layout": "rows",
         "scrolls": [{"id": s["id"], "step": 0, "item_id": s["item_id"], "name": s["name"], "records": s["records"],
                      "lines": s["lines"], "text": s["text"]} for s in sc["scrolls"]],
     }

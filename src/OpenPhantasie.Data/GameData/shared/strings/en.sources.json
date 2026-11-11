@@ -6934,13 +6934,27 @@
    {
     "from": "p4-x68000-1.02",
     "parts": [
-     "Str Int Dex Con Cha {0}  ",
+     "Str {0} Int {1} Dex {2} Con {3} Cha {4}  ",
      [
       "P4.X",
       255505,
       4
      ],
-     " {1}"
+     " {5}"
+    ]
+   }
+  ],
+  "p4.profile.abilities_x": [
+   {
+    "from": "p4-x68000-1.02",
+    "parts": [
+     "Str {0} Int {1} Dex {2} Con {3} Cha {4} ",
+     [
+      "P4.X",
+      255505,
+      4
+     ],
+     " {5}"
     ]
    }
   ],

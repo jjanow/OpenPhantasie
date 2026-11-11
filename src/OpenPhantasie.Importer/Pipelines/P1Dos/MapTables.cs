@@ -92,7 +92,14 @@ internal static class MapTables
         };
     }
 
-    public static JsonObject Overworld(Func<string, byte[]> read)
+    public static JsonObject Overworld(Func<string, byte[]> read) =>
+        Overworld(read, "OUT*.DAT (SSI 1987 IBM/DOS overworld regions)");
+
+    /// <summary>
+    /// overworld.json from the 18 regions in DOS layout (<c>OUTn.DAT</c>, 1024 bytes each); the Amiga import passes its
+    /// regions rebuilt in this layout (<c>P1Amiga.P1AmigaTables</c>).
+    /// </summary>
+    public static JsonObject Overworld(Func<string, byte[]> read, string source)
     {
         var regions = new JsonObject();
         foreach (var n in OverworldRegions)
@@ -104,7 +111,7 @@ internal static class MapTables
         }
         return new JsonObject
         {
-            ["_source"] = "OUT*.DAT (SSI 1987 IBM/DOS overworld regions)",
+            ["_source"] = source,
             ["_note"] = "26×20 tile grid + 15 feature records + 40-byte text pages " +
                         "(OV2.OVR FUN_538B / FUN_6214). Fog encodes as tile+120.",
             ["grid_width"] = OwWidth,
@@ -136,13 +143,21 @@ internal static class MapTables
     /// dungeons.json: DNG1..10 raw bytes and text runs, each level's MESSn messages and menus, and the top-level
     /// notes (extract_maps.py, then extract_dungeon_events.py on its output).
     /// </summary>
-    public static JsonObject Dungeons(Func<string, byte[]> read)
+    public static JsonObject Dungeons(Func<string, byte[]> read) =>
+        Dungeons(n => read($"DNG{n}"), n => DataTables.DecryptMess(read($"MESS{n}"), n),
+            "DNG1..DNG10 (SSI 1987 IBM/DOS dungeon levels)");
+
+    /// <summary>
+    /// dungeons.json from the ten levels (<paramref name="level"/>) and their decrypted MESSn bytes
+    /// (<paramref name="plainMess"/>; the Amiga's mess files are already plain).
+    /// </summary>
+    public static JsonObject Dungeons(Func<int, byte[]> level, Func<int, byte[]> plainMess, string source)
     {
         var levels = new JsonObject();
         for (var n = 1; n <= 10; n++)
         {
-            var d = read($"DNG{n}");
-            var plain = DataTables.DecryptMess(read($"MESS{n}"), n);
+            var d = level(n);
+            var plain = plainMess(n);
             levels[$"DNG{n}"] = new JsonObject
             {
                 ["id"] = $"p1:{n}", // game-prefixed id = level number (Phase 09 T1.2)
@@ -154,7 +169,7 @@ internal static class MapTables
         }
         var doc = new JsonObject
         {
-            ["_source"] = "DNG1..DNG10 (SSI 1987 IBM/DOS dungeon levels)",
+            ["_source"] = source,
             ["_note"] = DungeonNote,
             ["levels"] = levels,
             ["_grid_byte_length"] = GridByteLength,

@@ -221,4 +221,6 @@ town to another" (PDF 11 / pr.17) — **D3-035** (NOT A CONFLICT, user s89; the 
 
 **Remaster option** (QoL, not DOS): `p3.transport-planes` = `visited` (off in every preset) also lists each plane town
 15–17 a member of the party has entered (a remaster-only per-character flag), after the 14; the pick runs the normal
-town entry. D3-035 has the details.
+town entry. The elemental is not counted: town entry unloads it before the visit is recorded, a newcomer joining in a
+plane town marks only the characters, and a flag the elemental carries (loaded or summoned) does not offer a town
+(`P3TransportPlanesTests.Visited_TheElementalDoesNotCount`). D3-035 has the details.

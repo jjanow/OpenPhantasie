@@ -4,12 +4,13 @@ using OpenPhantasie.Importer.Formats;
 namespace OpenPhantasie.Importer.Pipelines.P1Amiga;
 
 /// <summary>
-/// Phantasie I Amiga v1.0 (1987): the Amiga art pack (<c>graphics/amiga.json</c>, root
+/// Phantasie I Amiga v1.0 (1987): I's tables (<see cref="P1AmigaTables"/>, s201: an Amiga-only import is a playable I;
+/// DOS I's tables win when that copy is imported too), the Amiga art pack (<c>graphics/amiga.json</c>, root
 /// <c>reverse-engineering/amiga/extracted</c>), its fonts, and the raw files its audio reads (<c>tamb.dat</c>, the title
 /// tune; <c>game</c>, the sound effects). Ports <c>amiga_gfx_common.py</c>, <c>extract_amiga_graphics.py</c>,
 /// <c>extract_amiga_map_graphics.py</c>, <c>build_amiga_asset_manifest.py</c> and <c>extract_amiga_fonts.py</c>.
-/// <para>Reads I's DOS tables (<c>overworld.json</c>, <c>map-patches.json</c>, <c>monsters.json</c>, <c>names.json</c>)
-/// for the map pictures and the asset manifest, so it runs after <c>p1-dos-1987</c> (or the Bonus build); topaz 8 comes from the Kickstart
+/// <para>Reads I's tables (<c>overworld.json</c>, <c>map-patches.json</c>, <c>monsters.json</c>, <c>names.json</c>)
+/// for the map pictures and the asset manifest: its own, or DOS I's, so it runs after <c>p1-dos-1987</c> (or the Bonus build); topaz 8 comes from the Kickstart
 /// 1.3 ROM when the player gave it (profile <c>kickstart-1.3</c>); otherwise it is skipped and the import report offers
 /// to add the ROM (the profile's <c>companions</c>, s160).</para>
 /// </summary>
@@ -27,11 +28,17 @@ public sealed class P1AmigaPipeline : IImportPipeline
                                              "window 22's labels matched it pixel for pixel (FORMAT.md 8.9). ";
 
     public string ProfileId => "p1-amiga-1.0";
-    public int RecipeVersion => 1;
+    public int RecipeVersion => 2; // 2 (s201): I's tables from the Amiga alone (P1AmigaTables)
+
+    /// <summary>DOS I's tables win when both copies are imported in one run: DOS runs first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p1-dos-1987", "p1-dos-bonus-1991"];
 
     public void Run(ImportContext ctx)
     {
+        // I's tables first (unless DOS I's are imported): the map pictures and the asset manifest read them.
+        ctx.Progress("tables");
+        var tables = P1AmigaTables.Write(ctx);
+
         var game = ctx.Files.Read("game");
         // Pillow wrote every art image in mode RGBA except the font previews (RGB).
         void Png(string rel, RgbaImage img) => ctx.WritePng(Root + rel, img, forceAlpha: true);
@@ -52,8 +59,12 @@ public sealed class P1AmigaPipeline : IImportPipeline
         ctx.WriteFile("reverse-engineering/amiga/unpacked/PHANT/tamb.dat", ctx.Files.Read("tamb.dat"));
         ctx.WriteFile("reverse-engineering/amiga/unpacked/PHANT/game", game);
 
-        // The game's own lines of the string tables (10-importer.md 7.6).
-        ImportedStrings.Write(ctx);
+        // The game's own lines of the string tables (10-importer.md 7.6): verbatim, and (I only, while I's tables are
+        // the Amiga's) the lines it prints in its own wording (Zeus's speech). With the Amiga's tables, the remaster's
+        // wording for the lines only DOS I holds (the common shared / I fallback, s163).
+        ImportedStrings.Write(ctx, ownWordingGame: tables ? P1DosPipeline.Game : null);
+        if (tables)
+            ImportedStrings.WriteFallback(ctx, ImportedStrings.CommonFallbackGame);
     }
 
     private static void Fonts(ImportContext ctx)

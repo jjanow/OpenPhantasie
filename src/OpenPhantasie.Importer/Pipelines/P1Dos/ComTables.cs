@@ -20,10 +20,22 @@ internal static class ComTables
     /// The 80 monster records at DS:0x1a6c. The script's cross-check against the DOSBox capture
     /// <c>monster_runtime_table.bin</c> is not done here (10-importer.md 5.2: it stays in the private repo's tests).
     /// </summary>
-    public static JsonObject Monsters(ComImage com)
+    public static JsonObject Monsters(ComImage com) =>
+        Monsters(com.Ds(MonsterTableDs, MonsterStride * MonsterCount), com.Ds(SpriteDimDs, 4 * MonsterCount),
+            "PHANTASI.COM unpacked (EXEPACK), DS:0x1a6c, 80 x 0x39; " +
+            "equals extracted/monster_runtime_table.bin (DOSBox capture)");
+
+    public const int MonsterRecordSize = MonsterStride;
+
+    /// <summary>
+    /// monsters.json from the 80 records in DOS layout (0x39 bytes each, little-endian) and the 80 (width, height)
+    /// u16 LE pairs; <paramref name="source"/> is the file's <c>_source</c>. The Amiga import passes its table
+    /// converted to this layout (<c>P1Amiga.P1AmigaTables</c>).
+    /// </summary>
+    public static JsonObject Monsters(byte[] table, byte[] dims, string source)
     {
-        var table = com.Ds(MonsterTableDs, MonsterStride * MonsterCount);
-        var dims = com.Ds(SpriteDimDs, 4 * MonsterCount);
+        if (table.Length != MonsterStride * MonsterCount || dims.Length != 4 * MonsterCount)
+            throw Py.Bad("monster table: wrong size");
         var monsters = new JsonArray();
         for (var i = 0; i < MonsterCount; i++)
         {
@@ -58,8 +70,7 @@ internal static class ComTables
         }
         return new JsonObject
         {
-            ["_source"] = "PHANTASI.COM unpacked (EXEPACK), DS:0x1a6c, 80 x 0x39; " +
-                          "equals extracted/monster_runtime_table.bin (DOSBox capture)",
+            ["_source"] = source,
             ["_fields"] = new JsonObject
             {
                 ["armor"] = "+0x14 [C] party damage subtracts armor*10 (OV2 0xbce)",
@@ -114,17 +125,41 @@ internal static class ComTables
     {
         var values = com.Ds(ValueTableDs, 2 * ItemNameCount);
         var ptrs = com.Ds(NamePtrsDs, 2 * ItemNameCount);
-        var items = new JsonArray();
+        var list = new List<(string Name, int Ptr, int Value)>();
         for (var i = 0; i < ItemNameCount; i++)
         {
             int namePtr = Py.U16(ptrs, i * 2);
-            int v = Py.U16(values, i * 2);
+            list.Add((com.CString(namePtr), namePtr, Py.U16(values, i * 2)));
+        }
+        return Items(list, "PHANTASI.COM unpacked (EXEPACK), SSI 1987 IBM/DOS", "name_ptr_ds",
+            ("value_table_ds", ValueTableDs), ("name_ptrs_ds", NamePtrsDs),
+            "Combat points / min-STR / kind are formula-derived from index " +
+            "(FUN_0000_3053), not a fixed-size stat record. value_factor V is " +
+            "the only parallel numeric table (DS:0xd54).");
+    }
+
+    public const int ItemCount = ItemNameCount;
+
+    /// <summary>
+    /// items.json from the 181 (name, name pointer, value factor) entries. The pointer goes under
+    /// <paramref name="ptrKey"/>, the two table addresses under the given <c>_layout</c> keys (DOS: DS offsets; the Amiga
+    /// import: offsets in its hunk 12).
+    /// </summary>
+    public static JsonObject Items(IReadOnlyList<(string Name, int Ptr, int Value)> entries, string source, string ptrKey,
+        (string Key, int At) valueTable, (string Key, int At) ptrTable, string note)
+    {
+        if (entries.Count != ItemNameCount)
+            throw Py.Bad($"items: {entries.Count} entries, expected {ItemNameCount}");
+        var items = new JsonArray();
+        for (var i = 0; i < ItemNameCount; i++)
+        {
+            var (name, namePtr, v) = entries[i];
             var rec = new JsonObject
             {
                 ["id"] = $"p1:{i}", // game-prefixed id (Phase 09 T1.2)
                 ["index"] = i,
-                ["name"] = com.CString(namePtr),
-                ["name_ptr_ds"] = Py.Hex4(namePtr),
+                ["name"] = name,
+                [ptrKey] = Py.Hex4(namePtr),
                 ["value_factor"] = v,
                 ["sell_price_v2_div_8"] = v * v / 8,
             };
@@ -143,14 +178,12 @@ internal static class ComTables
         }
         return new JsonObject
         {
-            ["_source"] = "PHANTASI.COM unpacked (EXEPACK), SSI 1987 IBM/DOS",
-            ["_note"] = "Combat points / min-STR / kind are formula-derived from index " +
-                        "(FUN_0000_3053), not a fixed-size stat record. value_factor V is " +
-                        "the only parallel numeric table (DS:0xd54).",
+            ["_source"] = source,
+            ["_note"] = note,
             ["_layout"] = new JsonObject
             {
-                ["value_table_ds"] = Py.Hex4(ValueTableDs),
-                ["name_ptrs_ds"] = Py.Hex4(NamePtrsDs),
+                [valueTable.Key] = Py.Hex4(valueTable.At),
+                [ptrTable.Key] = Py.Hex4(ptrTable.At),
                 ["equipment_count"] = 101,
                 ["extended_id_count"] = ItemNameCount,
             },
@@ -187,28 +220,36 @@ internal static class ComTables
         return Enumerable.Range(0, table.Count).Select(i => (int)Py.U16(b, 2 * i)).ToArray();
     }
 
-    private static JsonArray Named(ComImage com, IReadOnlyList<int> ptrs, string label)
+    /// <summary>
+    /// The name tables of one version: its string reader and pointer tables (classes 6, races 15, spells 60, items 181)
+    /// and its monster table in DOS layout with the address of record 0 (for the <c>offset</c> fields).
+    /// <paramref name="File"/> names the program in error messages.
+    /// </summary>
+    public sealed record NameTables(string File, Func<int, string> CString, int[] Classes, int[] Races, int[] Spells,
+        int[] Items, byte[] MonsterTable, int MonsterBase, int MonsterStride);
+
+    private static JsonArray Named(NameTables t, IReadOnlyList<int> ptrs, string label)
     {
         var a = new JsonArray();
         for (var i = 0; i < ptrs.Count; i++)
         {
-            var name = com.CString(ptrs[i]);
+            var name = t.CString(ptrs[i]);
             if (name.Length == 0)
-                throw Py.Bad($"PHANTASI.COM {label}: empty name at {i}");
+                throw Py.Bad($"{t.File} {label}: empty name at {i}");
             a.Add(new JsonObject { ["index"] = i, ["offset"] = Py.Hex4(ptrs[i]), ["name"] = name });
         }
         return a;
     }
 
-    private static JsonArray Spells(ComImage com)
+    private static JsonArray Spells(NameTables t)
     {
-        var ptrs = Pointers(com, SpellPtrs);
+        var ptrs = t.Spells;
         var used = Enumerable.Range(0, 54).Append(DivineSlot).ToList();
         for (var i = 0; i < 60; i++)
-            if (!used.Contains(i) && com.CString(ptrs[i]).Length != 0)
-                throw Py.Bad("PHANTASI.COM: spell slot layout moved");
+            if (!used.Contains(i) && t.CString(ptrs[i]).Length != 0)
+                throw Py.Bad($"{t.File}: spell slot layout moved");
         // Remaster index 54 = DOS slot 57 (spells.json uses 0..54).
-        var output = Named(com, used.Select(i => ptrs[i]).ToList(), "spells");
+        var output = Named(t, used.Select(i => ptrs[i]).ToList(), "spells");
         ((JsonObject)output[^1]!)["dos_slot"] = DivineSlot;
         return output;
     }
@@ -217,16 +258,15 @@ internal static class ComTables
     public static IReadOnlyList<string> SpellNames(JsonObject names) =>
         ((JsonArray)names["spells"]!).Select(s => (string)s!["name"]!).ToList();
 
-    private static JsonArray MonsterNames(ComImage com)
+    private static JsonArray MonsterNames(NameTables t)
     {
-        var table = com.Ds(MonsterTableDs, MonsterStride * MonsterCount);
         var a = new JsonArray();
         for (var i = 0; i < MonsterCount; i++)
             a.Add(new JsonObject
             {
                 ["index"] = i,
-                ["offset"] = Py.Hex4(MonsterTableDs + i * MonsterStride),
-                ["name"] = Py.Latin1(Py.UntilNul(table.AsSpan(i * MonsterStride, 0x14))),
+                ["offset"] = Py.Hex4(t.MonsterBase + i * t.MonsterStride),
+                ["name"] = Py.Latin1(Py.UntilNul(t.MonsterTable.AsSpan(i * MonsterStride, 0x14))),
             });
         return a;
     }
@@ -254,7 +294,7 @@ internal static class ComTables
                     {
                         var s = Py.Strip(Py.Latin1(data.AsSpan(i, j - i)));
                         if (s.Length != 0)
-                            a.Add(new JsonObject { ["offset"] = Py.Hex4(i), ["name"] = s });
+                            a.Add(TownLabel(i, s));
                     }
                     i = j + 1;
                     continue;
@@ -265,22 +305,37 @@ internal static class ComTables
         return a;
     }
 
-    public static JsonObject Names(ComImage com, byte[] twnsInt)
+    public static JsonObject Names(ComImage com, byte[] twnsInt) =>
+        Names(new NameTables("PHANTASI.COM", com.CString, Pointers(com, ClassPtrs), Pointers(com, RacePtrs),
+                Pointers(com, SpellPtrs), Pointers(com, ItemPtrs), com.Ds(MonsterTableDs, MonsterStride * MonsterCount),
+                MonsterTableDs, MonsterStride), twnsInt,
+            "PHANTASI.COM unpacked (EXEPACK) via DS pointer tables + TWNS.INT",
+            "offset = DS offset (TWNS.INT labels: file offset). spell_level_names are really " +
+            "the potion item names, ids 101..110 (only referenced from the item pointer table). " +
+            "Monster stats: monsters.json.");
+
+    /// <summary>names.json from one version's name tables and its TWNS.INT (the town labels).</summary>
+    public static JsonObject Names(NameTables t, byte[] twnsInt, string source, string note) =>
+        Names(t, TownLabels(twnsInt), source, note);
+
+    /// <summary>A town label entry (<c>town_labels</c>): its file offset and name.</summary>
+    public static JsonObject TownLabel(int offset, string name) => new() { ["offset"] = Py.Hex4(offset), ["name"] = name };
+
+    /// <summary>names.json from one version's name tables and its town labels.</summary>
+    public static JsonObject Names(NameTables t, JsonArray townLabels, string source, string note)
     {
-        var items = Pointers(com, ItemPtrs);
+        var items = t.Items;
         return new JsonObject
         {
-            ["_source"] = "PHANTASI.COM unpacked (EXEPACK) via DS pointer tables + TWNS.INT",
-            ["_note"] = "offset = DS offset (TWNS.INT labels: file offset). spell_level_names are really " +
-                        "the potion item names, ids 101..110 (only referenced from the item pointer table). " +
-                        "Monster stats: monsters.json.",
-            ["classes"] = Named(com, Pointers(com, ClassPtrs), "classes"),
-            ["races"] = Named(com, Pointers(com, RacePtrs), "races"),
-            ["spells"] = Spells(com),
-            ["spell_level_names"] = Named(com, items[101..111], "spell_level_names"),
-            ["items"] = Named(com, items[..EquipmentCount], "items"),
-            ["monsters"] = MonsterNames(com),
-            ["town_labels"] = TownLabels(twnsInt),
+            ["_source"] = source,
+            ["_note"] = note,
+            ["classes"] = Named(t, t.Classes, "classes"),
+            ["races"] = Named(t, t.Races, "races"),
+            ["spells"] = Spells(t),
+            ["spell_level_names"] = Named(t, items[101..111], "spell_level_names"),
+            ["items"] = Named(t, items[..EquipmentCount], "items"),
+            ["monsters"] = MonsterNames(t),
+            ["town_labels"] = townLabels,
         };
     }
 }

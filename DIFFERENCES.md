@@ -85,6 +85,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 | D-079 | Amiga field: a monster's "%s CASTS A SPELL" vs the Amiga's blank line with sound 9 | DECIDED: keep the text, add sound 9, no wait (user s138) · built |
 | D-080 | Amiga map boxes: four texts differ from DOS ("[original text]" etc. with no blank before "!", "THAT IS A WALL") | DECIDED: Amiga text in the Amiga boxes (user s157) · built |
 | D-081 | Amiga POTIONS view: the Amiga's ring letters run into "…ND OF NIKADEMUS" (no end marker) | DECIDED: an Amiga bug, fixed: clean rows (user s157) · built |
+| D-082 | Amiga-only import: item names "HEAL POT1".."HEAL POT9" and "SROLL 19" vs the manual's Healing 1..9 / SCROLL n | PENDING (built with the Amiga's names) |
+| D-083 | Amiga-only import: the fire elemental named "FIRE  ELE" vs the manual's FIRE (DOS "FIRE ELEM") | PENDING (built with the Amiga's name) |
 
 ---
 
@@ -1018,3 +1020,28 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Remaster:** requester 11 prints "RINGS: " + the letters and "[original text]" in full (as built s156).
 - **Side effects:** none.
 - **Spec:** `reverse-engineering/amiga/FORMAT.md` (the sheet's requesters).
+
+## D-082 — Amiga-only import: potion and scroll item names
+
+- **Manual:** the healing potions are "Healing 1" … "Healing 10" (TREASURES, POTIONS); the Armory list shows scrolls as
+  "SCROLL 8" (TOWNS, the Armory example).
+- **DOS:** `HEALING 1` … `HEALING10`, `SCROLL 1` … `SCROLL 20` (agrees with the manual).
+- **Amiga (game h12 item names, `reverse-engineering/amiga/GAME-TABLES.md` section 6):** items 101-109 `HEAL POT1` …
+  `HEAL POT9` (110 `HEALING10`), item 139 `SROLL 19` (a typo).
+- **Decision:** PENDING (s201). Only an import made from the Amiga disk alone shows these (with DOS I imported, DOS's
+  names are used).
+- **Remaster:** an Amiga-only import uses the Amiga's names (the Amiga's text is used where the import takes the
+  Amiga's tables, as the Apple II's for II); nothing else reads item names. Choosing the manual / DOS names would be a
+  shipped name patch in `phantasie1/amiga-import.json`.
+- **Side effects:** none on rules (items are found by number).
+- **Spec:** `reverse-engineering/amiga/GAME-TABLES.md`.
+
+## D-083 — Amiga-only import: the fire elemental's name
+
+- **Manual:** the three elementals are FIRE, WATER and EARTH (character creation, the roster's last three).
+- **DOS:** `FIRE ELEM`, `WATER ELEM`, `EARTH ELEM` (TWNS.INT's records 22-24).
+- **Amiga (twns.int 12424):** `FIRE  ELE` (two blanks, the M cut off); WATER / EARTH as DOS.
+- **Decision:** PENDING (s201). Only an Amiga-only import shows it.
+- **Remaster:** an Amiga-only import uses the Amiga's name.
+- **Side effects:** none (the summon finds the record by number).
+- **Spec:** `reverse-engineering/amiga/GAME-TABLES.md` section 2 / 6.

@@ -73,7 +73,9 @@ public class P1AmigaPipelineTests
         // The font files are the script's own output; the asset manifest's map_tiles part is hand-formatted.
         foreach (var f in GameDataFiles.Where(f => f.Contains("/fonts/")))
             Assert.True(Golden.BytesEqualFile(Output(r, "GameData/" + f), "src/OpenPhantasie.Data/GameData/" + f), f);
-        Assert.Equal(GameDataFiles.Length, r.Outputs.Keys.Count(k => k.StartsWith("GameData/", StringComparison.Ordinal)));
+        // s201: alone (no DOS I), the Amiga also writes I's eleven tables (P1AmigaTablesTests).
+        Assert.Equal(GameDataFiles.Length + P1AmigaTablesTests.Tables.Length,
+            r.Outputs.Keys.Count(k => k.StartsWith("GameData/", StringComparison.Ordinal)));
     }
 
     [RequiresFilesFact(Adf, Kickstart)]
