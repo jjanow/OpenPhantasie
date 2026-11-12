@@ -526,7 +526,8 @@ entry — and on Save game when the purse is non-zero — "You have: G gold / X 
 shares (a DEAD member 0/1/2/3). Share = floor(total / Σ shares); each member's gold share goes into `@262` (bank), XP share
 into `@266`, dead members included; remainders are dropped and the purse is zeroed. Manual agrees in outline (PDF p.15).
 **Remaster (D-037, user):** keeps Core's `TownMenus.Distribute` — equal split among living members, gold to the carried
-purse, remainder to the first survivor.
+purse, remainder to the first survivor — run on town entry (`GameSession.EnterTown`, before aging as DOS `0x1992`; I and
+II, s207). Found items wait for the town's Distribute.
 
 ## Aging — on town entry, not at the Inn [C] (s11, OV1 `0x1954`)
 Called when the party arrives in a town (OV1 `0x1e56`) and from `0x277a`, with the

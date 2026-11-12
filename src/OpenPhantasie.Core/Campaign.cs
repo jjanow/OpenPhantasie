@@ -266,9 +266,17 @@ public interface ICampaign
     /// <summary>
     /// D3-071 (manual, user s142): an ordinary town entry shares out the XP pool and opens the found-item hand-out (III:
     /// "the experience will be divided among the adventurers when they reach a town"; Amiga <c>0x7964</c> →
-    /// <c>0xbc7c(1)</c>). I / II: only the town's Distribute.
+    /// <c>0xbc7c(1)</c>). I / II: <see cref="SplitsPoolOnTownEntry"/> instead.
     /// </summary>
     bool PaysOutOnTownEntry => false;
+
+    /// <summary>
+    /// D-037 (manual PDF p.15: the XP and gold "will be divided among individual party members when they enter a town";
+    /// DOS I OV1 <c>0x1954</c> → <c>0x167d</c> at <c>0x1992</c>, II ST <c>0xbda6</c>, I Amiga h29 / h8 <c>+0x16d6</c>):
+    /// an ordinary town entry splits the fight pool's XP and gold at once, with Core's equal split
+    /// (<see cref="TownMenus.Distribute"/>). The found items still wait for the town's Distribute. I / II only.
+    /// </summary>
+    bool SplitsPoolOnTownEntry => false;
 
     /// <summary>
     /// D3-071: a paying town entry's first steps, before the found items' hand-out (only when the XP pool or the found

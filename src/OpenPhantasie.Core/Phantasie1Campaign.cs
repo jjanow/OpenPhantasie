@@ -11,6 +11,9 @@ namespace OpenPhantasie.Core;
 /// </summary>
 public sealed class Phantasie1Campaign : ICampaign
 {
+    /// <summary>D-037: the fight pool's XP / gold are split on town entry (manual p.15, DOS / ST / Amiga).</summary>
+    public bool SplitsPoolOnTownEntry => true;
+
     public static Phantasie1Campaign Instance { get; } = new();
 
     private Phantasie1Campaign()

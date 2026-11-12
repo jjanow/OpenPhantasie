@@ -518,7 +518,9 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   to each member; remainders dropped.
 - **Core:** equal split among living members, gold to the party purse, remainder to the first survivor.
 - **Decision (user s35):** keep Core's payout.
-- **Side effects:** no share prompt or bank deposit on entry (Bank Deposit does the share split, D-049).
+- **Side effects:** no share prompt or bank deposit on entry (Bank Deposit does the share split, D-049). The split runs on
+  town entry, as the manual, DOS, the ST II and the Amiga I do (`GameSession.EnterTown`, I and II, s207; until s207 it ran
+  only from the town's Distribute). Found items still wait for Distribute; with nobody living the pool waits too.
 - **Option `p1.payout-remainder`** (P3.2, s76, locked per save): `first-survivor` (Core's payout; Original (manual) and Remaster presets) · `dropped` (the remainders are lost, as DOS; Original (DOS) preset). Q2 only. The DOS save export's automatic payout of the fight XP/gold follows it too (s77); its split of the carried purse into the banks keeps the remainder with the first member either way.
 
 ## D-038 — Leaving a dungeon only through the door you came in by

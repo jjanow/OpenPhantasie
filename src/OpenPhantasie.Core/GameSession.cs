@@ -875,6 +875,11 @@ public sealed partial class GameSession
         Mode = GameMode.Town;
         SweepTreasury(TreasuryEntryKind.Trip); // s175: trip gold is banked on arrival, before any share-out
         Note(GameText.F("core.session.entered_town_x", townId));
+        // D-037 (manual p.15; DOS 0x1954 calls the split 0x167d at 0x1992, before aging and the elemental leaving): the
+        // fight pool's XP / gold are divided on arrival, Core's equal split. With the treasury on, the sweep above has
+        // already banked the gold, so only the XP is split. Nobody living: the pool waits (Distribute would refuse).
+        if (Campaign.SplitsPoolOnTownEntry && (Sack.Experience > 0 || Sack.Gold > 0) && Party.LivingMembers.Any())
+            NoteResult(TownMenus.Distribute(Party, Sack, items: false, dropRemainder: Options.PayoutRemainderDropped));
         foreach (var line in Aging.ApplyTownEntry(Party, townId, TravelTime, Options.OriginalLifespans,
                      Campaign.TownEntryAgeUnits(TravelTime), Campaign.AgesTheDead))
             Note(line);

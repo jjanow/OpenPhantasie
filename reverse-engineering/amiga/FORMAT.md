@@ -871,8 +871,9 @@ expanded by `+0x9bc`). Period, volume and length come per step from the script; 
   (`+0x88e`); the Inn's report `+0xafe` (requester 15 "%-9s IS RESTING %s": the remaster's town Inn puts the rest on the
   message line and opens its menu at once, nothing closes); the entry hand-out `+0x75e` / `+0x7dc` (h5 `+0x34a` → h8
   `+0x16d6`: when h13 `+0x7cc` / `+0x7ce` hold gold / XP, the shares window h29 `+0x322`, then "%u GOLD|AND %u XP" (gold
-  × 10 / the shares, XP / the shares) into each member's bank `+0x106` and EX. PTS `+0x10a`; I's remaster pays nothing on
-  town entry, `ICampaign.PaysOutOnTownEntry` is III's only; what fills the two words not traced `[?]`); h23 `+0xb5a`'s
+  × 10 / the shares, XP / the shares) into each member's bank `+0x106` and EX. PTS `+0x10a`; I's remaster pays the pool on
+  town entry with D-037's equal split since s207 (`ICampaign.SplitsPoolOnTownEntry`, a line on the message row, no window
+  of the Amiga's `[~]`); what fills the two words not traced `[?]`); h23 `+0xb5a`'s
   window (`+0xbf8`, building not traced `[?]`).
   h32 `+0x5e4` / `+0x636` the defeat's raw tone. **Built s153:** pack
   `cue_sounds` (`CueSounds`, Client `Game1.P1Cues.cs`): under AMIGA SCREENS the step tone at each one-cell overworld /
