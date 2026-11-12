@@ -18,6 +18,15 @@ public partial class Game1
         s.Game == GameId.P3 && s.Mode == GameMode.Town && CurrentGameSettings.OriginalScreens
         && _assets?.KeepWindows?.MenuBars.GetValueOrDefault("town") is { } bar ? bar : null;
 
+    /// <summary>
+    /// The new game's welcome line. III's Amiga town bar (D3-074) makes G Trade Item and puts the Guild's items in its own
+    /// menu, so "G enters the Guild" holds only on the DOS row or with COMMON TOWN KEYS (whose G is the Guild).
+    /// </summary>
+    private string WelcomeLine() =>
+        _session is { } s && TownBarPlaces(s) is not null && !CurrentGameSettings.CommonTownKeys
+            ? PadWording.S("game.welcome_to_pendragon_guild_on_the_bar")
+            : PadWording.S("game.welcome_to_pelnor_g_enters_the");
+
     /// <summary>The bar answers the mouse and the arrows only on the street with nothing else up (as the town's ? / /).</summary>
     private bool TownBarTakesInput(GameSession s) =>
         TownBarPlaces(s) is not null && TownInfoTakesInput(s) && _townMenu.Place == TownPlace.Menu

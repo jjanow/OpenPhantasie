@@ -317,7 +317,7 @@ public sealed partial class P4Dungeon
                     else if (_options.P4GoldUncapped())
                         Party.Gold = (uint)(Party.Gold - take); // the original's sub.l at 0x19f1e, no check: the u32 purse wraps
                     else
-                        Party.Gold -= take; // manual 65,000 cap (D4-031): what an overdraw does there is the user's call [U]; Core's long goes below zero
+                        Party.Gold -= Math.Min(take, Math.Max(0, Party.Gold)); // manual 65,000 cap (D4-031, user s206): an overdraw takes what the purse holds
                     _vm.Pc = at + 3;
                     break;
                 }

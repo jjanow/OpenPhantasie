@@ -325,12 +325,12 @@ public class Phantasie4TreasuryTests
     /// amount (<c>bls</c> at <c>0x1989a</c>), so a typed amount over the gold reaches TAKEGOLD's unchecked <c>sub.l</c>
     /// (<c>0x19f1e</c>). On, the treasury takes only what there is (purse and treasury stay ≥ 0, the trip part logged);
     /// off with the X68000's uncapped gold (its preset) keeps the original's unchecked subtraction, whose u32 purse wraps;
-    /// off under the manual 65,000 cap the overdraw is the user's call (D4-031 note, [U]): Core's long goes below zero.
+    /// off under the manual 65,000 cap the overdraw takes what the purse holds (D4-031, user s206): the purse goes to 0.
     /// </summary>
     [OriginalDataTheory]
     [InlineData(true)]
     [InlineData(false)]
-    public void TakeGold_PastCmpGoldsCap_NeverGoesBelowZeroUnderTheTreasury(bool on)
+    public void TakeGold_PastCmpGoldsCap_NeverGoesBelowZeroUnderTheCap(bool on)
     {
         // (5,5): INPUTN; CMPGOLD 0; JLT 12; TAKEGOLD 0; END
         byte[] code = [0x22, 0x00, 0x0E, 0x12, 0, 0, 0x06, 12, 0, 0x33, 0, 0, 0x00];
@@ -350,7 +350,7 @@ public class Phantasie4TreasuryTests
                 party.Treasury.Ledger.Skip(1).Select(e => (e.Kind, e.Amount, e.Balance)));
         }
         else
-            Assert.Equal(-9000L, party.Gold); // manual cap, treasury off: open question [U] (DIFFERENCES-IV D4-031)
+            Assert.Equal(0L, party.Gold); // manual cap, treasury off: takes what there is (DIFFERENCES-IV D4-031, user s206)
     }
 
     /// <summary>

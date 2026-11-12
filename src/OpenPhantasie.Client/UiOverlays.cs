@@ -601,7 +601,20 @@ public static partial class UiOverlays
                 new Rectangle(0, ContentTop, 320, ContentBottom - ContentTop),
                 Color.White * 0.18f);
 
-        DrawPanel(batch, pixel, new Rectangle(8, 20, 304, 140), new Color(14, 20, 34, 220), PanelEdge);
+        // Two columns of three so a full party fits the panel, race and class in full (s99: no "HALFL"). s206: the columns
+        // sit side by side unwrapped when their widest entries fit (the panel widens to the screen's edges if it must:
+        // "ARENTINO HUMAN RANGER L10" had kept its "L10" on a line of its own); only an entry that cannot fit even then goes
+        // on, never cut, on the column's next line, and the list scrolls when that runs past the panel.
+        const int columnChars = 24;
+        var members = session.Party.Members;
+        var entries = Enumerable.Range(0, 2).Select(c => members.Skip(c * 3).Take(3)
+            .Select(ch => UiText.F("ui.x_x_x_l_x", ch.Name, UiText.Name(ch.Race).ToUpperInvariant(),
+                UiText.Name(ch.Class).ToUpperInvariant(), ch.Level)).ToList()).ToList();
+        var layout = GuildListLayout.For(
+            entries[0].Select(PixelFont.Measure).DefaultIfEmpty(0).Max(), entries[1].Select(PixelFont.Measure).DefaultIfEmpty(0).Max());
+        var columns = entries.Select(col => col.SelectMany(e => layout.Wraps ? Lines(e, columnChars) : [e]).ToList()).ToList();
+
+        DrawPanel(batch, pixel, new Rectangle(layout.PanelX, 20, layout.PanelWidth, 140), new Color(14, 20, 34, 220), PanelEdge);
 
         // Taller cards (III's 32×48 portraits, a name on two lines) take their extra rows from the gaps of the title
         // block above them; past 16 rows the title and its subtitle share one line.
@@ -634,25 +647,38 @@ public static partial class UiOverlays
 
         DrawPartyStrip(batch, pixel, assets, session, new Rectangle(20, stripTop, 280, cardHeight + 2));
 
-        // Two columns of three so a full party fits the panel, race and class in full (s99: no "HALFL"); an entry wider than
-        // its column goes on, never cut, on the column's next line, and the list scrolls when that runs past the panel.
-        const int columnChars = 24;
         var listTop = stripTop + cardHeight + 5;
-        var members = session.Party.Members;
-        var columns = Enumerable.Range(0, 2).Select(c => members.Skip(c * 3).Take(3)
-            .SelectMany(ch => Lines(UiText.F("ui.x_x_x_l_x", ch.Name, UiText.Name(ch.Race).ToUpperInvariant(),
-                UiText.Name(ch.Class).ToUpperInvariant(), ch.Level),
-                columnChars)).ToList()).ToList();
         var rows = (159 - listTop - PixelFont.GlyphHeight) / PixelFont.LineHeight + 1;
-        var list = new Rectangle(14, listTop - 1, 296, rows * PixelFont.LineHeight);
+        var list = new Rectangle(layout.ListLeft - 2, listTop - 1, layout.ListRight - layout.ListLeft + 6, rows * PixelFont.LineHeight);
         GuildListScroll.Set(columns.Max(c => c.Count), rows);
         GuildListScroll.TopFor(members.Count);
         HitScrollArea(GuildListScroll, list);
         for (var c = 0; c < columns.Count; c++)
             for (var r = 0; r < rows && GuildListScroll.Offset + r < columns[c].Count; r++)
-                PixelFont.Draw(batch, pixel, 16 + c * 148, listTop + r * PixelFont.LineHeight,
+                PixelFont.Draw(batch, pixel, c == 0 ? layout.ListLeft : layout.SecondX, listTop + r * PixelFont.LineHeight,
                     columns[c][GuildListScroll.Offset + r], BodyText);
         DrawScrollBar(batch, pixel, GuildListScroll, list);
+    }
+
+    /// <summary>
+    /// Where the Guild screen's member list goes (s206): the usual panel (x 8, 304 wide; text 16…306, the second column at
+    /// 164) when both columns' widest entries fit it unwrapped, the second column moved right of the first's widest entry
+    /// if need be; else the panel widened to x 2…318 (text 8…312); else the usual panel with entries wrapped at the
+    /// column (<see cref="Wraps"/>), as before s206. Text right edges stay clear of the scroll bar.
+    /// </summary>
+    public readonly record struct GuildListLayout(int PanelX, int PanelWidth, int ListLeft, int ListRight, int SecondX, bool Wraps)
+    {
+        private const int Gap = 9; // about one and a half spaces, so the columns read apart
+
+        public static GuildListLayout For(int leftWidest, int rightWidest) =>
+            Fit(8, 304, 16, 306, leftWidest, rightWidest) ?? Fit(2, 316, 8, 312, leftWidest, rightWidest)
+            ?? new GuildListLayout(8, 304, 16, 306, 16 + 148, Wraps: true);
+
+        private static GuildListLayout? Fit(int panelX, int panelWidth, int left, int right, int leftWidest, int rightWidest)
+        {
+            var second = Math.Max(left + 148, left + leftWidest + Gap);
+            return second + rightWidest <= right ? new GuildListLayout(panelX, panelWidth, left, right, second, Wraps: false) : null;
+        }
     }
 
     /// <summary>The Guild screen's member list (<see cref="DrawGuild"/>), when its entries need more lines than fit.</summary>

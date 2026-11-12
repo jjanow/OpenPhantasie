@@ -368,9 +368,13 @@ public sealed class InspectDialog : IModalDialog, IPagedDialog, IPadArrows, IPad
     /// <summary>
     /// Equipment (COM <c>0x2c65</c>): weapon <c>@86</c>, armor <c>@84</c>, shield <c>@82</c>, each <c>"%-13.12sPTS:%-2u"</c> with the
     /// points of <c>0x3053</c> (= <see cref="ItemRules.CombatGate"/>; a game with a point table, III, prints its table's).
+    /// III adds a fourth row for a worn bow, as its sheet lists it (manual "the weapon, armor, shield, bow"); III's own
+    /// window was not read, so the row's place and format are I's `[~]` (s206). I / II have no bow slot (WornBow 0).
     /// </summary>
     public static IReadOnlyList<string> EquipmentLines(Character ch, GameDataRepository data) =>
-        [EquipLine(ch.WornWeapon, data), EquipLine(ch.WornArmor, data), EquipLine(ch.WornShield, data)];
+        ch.WornBow != 0
+            ? [EquipLine(ch.WornWeapon, data), EquipLine(ch.WornArmor, data), EquipLine(ch.WornShield, data), EquipLine(ch.WornBow, data)]
+            : [EquipLine(ch.WornWeapon, data), EquipLine(ch.WornArmor, data), EquipLine(ch.WornShield, data)];
 
     private static string EquipLine(int id, GameDataRepository data)
     {

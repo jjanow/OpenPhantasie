@@ -178,6 +178,28 @@ public class TreasuryTests
         }
     }
 
+    /// <summary>A town-to-town TRANSPORTATION closes the trip as an arrival on foot does (user s206, section 8).</summary>
+    [OriginalDataTheory]
+    [InlineData("trip", 1)]
+    [InlineData("off", 0)]
+    public void Transportation_StartsANewTrip(string treasury, int trip)
+    {
+        var s = NewGame(treasury, out _, out _);
+        s.OpenGuild();
+        var w = s.CreateAndEnroll("Wiza", Race.Human, CharacterClass.Wizard);
+        Assert.True(s.TryAddToParty(w, out _));
+        s.LeaveGuild();
+        w.SpellsKnown[SpellId.Transportation] = 1;
+        w.MagicCur = w.MagicMax = 50;
+        Assert.True(s.CastSpell(w, SpellId.Transportation).Success);
+        Assert.True(s.TransportationPending);
+        var to = s.TransportDestinations[0];
+        Assert.Equal(0, s.Treasury.Trip);
+        Assert.True(s.ChooseTransportDestination(to));
+        Assert.Equal(to, s.CurrentTownId);
+        Assert.Equal(trip, s.Treasury.Trip);
+    }
+
     [OriginalDataFact]
     public void On_TripGold_IsCarriedUntilTown_ThenBankedAsATrip()
     {

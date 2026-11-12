@@ -842,14 +842,18 @@ public class Phantasie4TownServicesTests
         Assert.Equal(P4MenuPrompt.Closed, menus.Prompt);
     }
 
-    [OriginalDataFact]
-    public void Cast_Transportation_MovesTheCampaignToTheTown()
+    /// <remarks>With the Guild treasury on, the town-to-town hop starts a new trip (user s206).</remarks>
+    [OriginalDataTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Cast_Transportation_MovesTheCampaignToTheTown(bool treasury)
     {
         var party = Party(1);
         var m = party.Members[0];
         m.Spells[46] = 1;
         m.Mp = 10;
-        var game = Phantasie4World.NewCampaign(Code, party, new ScriptRng(), new P4Location(P4Place.Town, 2, 0, 0));
+        var o = treasury ? Code.With(RuleOptionRegistry.Treasury.Id, "trip") : Code;
+        var game = Phantasie4World.NewCampaign(o, party, new ScriptRng(), new P4Location(P4Place.Town, 2, 0, 0));
         game.Start();
         Assert.Equal(P4TownPrompt.Menu, game.Town.Prompt);
         game.OpenMenu(P4MenuCommand.Cast);
@@ -864,9 +868,11 @@ public class Phantasie4TownServicesTests
         menus.Answer(true);
         menus.Continue(); // the menu closes once the party moved
         Assert.Equal(P4MenuPrompt.Closed, menus.Prompt);
+        Assert.Equal(0, party.Treasury.Trip);
         game.Follow();
         Assert.Equal(P4Place.Town, game.Place);
         Assert.Equal(5, game.Town.Town);
+        Assert.Equal(treasury ? 1 : 0, party.Treasury.Trip);
     }
 
     [OriginalDataFact]

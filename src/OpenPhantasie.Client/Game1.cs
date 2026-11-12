@@ -453,7 +453,7 @@ public partial class Game1 : Game
                   && StartMapMessages(mapLayout, boxLines, _fightMark)))
                 _combatUi.Start(_session);
         }
-        SetFeedback(_testLevel is int l && options is null ? UiText.F("game.level_x_test_party_ready_in", l) : PadWording.S("game.welcome_to_pelnor_g_enters_the"), // s193 (E30): no G on the pad
+        SetFeedback(_testLevel is int l && options is null ? UiText.F("game.level_x_test_party_ready_in", l) : WelcomeLine(), // s193 (E30): no G on the pad
             HelpForMode(_session.Mode));
     }
 

@@ -1138,6 +1138,7 @@ public sealed partial class GameSession
         if (townId is int t)
         {
             Cue(FieldCues.Transport); // II ST 0x262c: sound 22, then the palette fade (the pack's transport_fade, s140)
+            StartTreasuryTrip(); // user s206: a town-to-town hop starts a new trip, as leaving town does (11-guild-treasury.md 8)
             EnterTown(t);
             if (IsPhantasie3)
                 Note(GameText.S("core.p3.party_transported")); // root 0x8e50, after the redraw

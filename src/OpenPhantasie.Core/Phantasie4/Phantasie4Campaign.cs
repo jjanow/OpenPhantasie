@@ -191,6 +191,13 @@ public sealed class Phantasie4Campaign
         if (Menus is { Prompt: P4MenuPrompt.Closed, Transfer: { } moved })
         {
             Menus.Transfer = null;
+            if (moved.Kind == P4Transfer.Town && _place == P4Place.Town && Options.TreasuryOn)
+            {
+                // Town-to-town Transportation closes the trip as an arrival on foot does (user s206,
+                // 11-guild-treasury.md section 8): bank what the party holds, then a new trip starts.
+                Party.SweepTreasury(Options, inTown: true);
+                Party.Treasury.StartTrip();
+            }
             GoTo(moved);
         }
         else if (_menuInDungeon && Menus is { Prompt: P4MenuPrompt.Closed } && _place == P4Place.Dungeon

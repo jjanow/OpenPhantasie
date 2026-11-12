@@ -29,7 +29,7 @@ who decides. Keep each entry to **Source · Code · Decision · Remaster · Side
 | D4-019 | Thieves have fewer HP than other classes (manual p. 17) vs Wizards' HP table lower than Thieves' | DECIDED: manual, Thief HP = lowest other class − 1 (user s82; code table as option) · built (`p4.thief-hp`) |
 | D4-020 | Shop resale "at a slightly higher price" vs sold for price / 4 + 1 and resold at full price | DECIDED: manual, resale at paid × 1.25 (user s82; code full-price resale as option) · built (`p4.resale`) |
 | D4-030 | Town entry: manual auto-deposits party gold into accounts; code shares out party experience, gold untouched | DECIDED: manual auto-deposit + XP share-out (code XP-only as option) · built (`p4.town-entry`) |
-| D4-031 | Gold caps: manual 65,000 for party gold and accounts; code caps 65,000 only in the bank (sell 65,535, loot 999,999,999, level-up 65,535) | DECIDED: manual 65,000 on every path, withdraw bug fixed (option: uncapped) · built (`p4.gold-cap`); PENDING sub-question (s205): TAKEGOLD's overdraw under the manual cap `[U]` |
+| D4-031 | Gold caps: manual 65,000 for party gold and accounts; code caps 65,000 only in the bank (sell 65,535, loot 999,999,999, level-up 65,535) | DECIDED: manual 65,000 on every path, withdraw bug fixed (option: uncapped) · built (`p4.gold-cap`); TAKEGOLD's overdraw under the manual cap takes what the purse holds (user s206) |
 | D4-032 | Town inn: manual "stay at least two weeks"; code passes no time | DECIDED: manual, town inn stay takes two weeks (code no-time as option) · built (`p4.inn-time`) |
 | D4-033 | Lifespans: manual Elf ~2000, Dwarf/Gnome 200, Human 80, others 40–50; code Elf never dies, Halfling 215–345, Pixie/Sprite/Human 89–138, races 7+ and hybrids 30–49 | DECIDED: manual lifespans (X68000 code as option; QoL: aging normalised across I–IV, `shared-aging`, `docs/plan/13-aging-normalised.md`) · built (`p4.lifespans`) |
 | D4-034 | Aging effect: manual "abilities decline"; X68000 sets all abilities and Luck to 0 (MSX2 × 0.8) | DECIDED: abilities × 0.8 once, as MSX2 (X68000 zeroing as option) · built (`p4.aging`) |
@@ -350,15 +350,15 @@ more code detail (level-up gold capped at 65,535 is one of D4-031's cases). Use 
   - PC-98 (the manual's platform): code not read; its program holds the same strings (Disk 1, e.g. [original text] at offset 352,122, 預金入金 352,069), so no sign of a different build.
 - **Decision (user s81):** manual: party gold and every account are capped at 65,000 on every path (bank, selling, fight loot, level-up gold); the withdraw wrap bug is not reproduced. Option: uncapped. (The user named no option for the code's mixed caps.)
 - **Remaster:** built s83: `p4.gold-cap` (`manual` 65,000 on every path, the withdraw wrap not reproduced; `uncapped` no cap — also the Original (X68000) preset, as the code's mixed caps have no option of their own; `P4Town.Cap`, `Withdraw`, `P4Training.LevelUpGold`).
-- **PENDING sub-question (s205): an event payment over the purse under the manual cap.** Code `[C]`
+- **Sub-question (s205), DECIDED (user s206): an event payment over the purse under the manual cap.** Code `[C]`
   (`logic-specs/events.md` section 4): CMPGOLD answers 30,000 whenever the purse is above 30,000, whatever the price,
   so O_008's typed amount (cut to 16 bits, up to 65,535) can be more than the purse; TAKEGOLD's unchecked `sub.l`
   (`0x19f1e`) then wraps the u32 purse to about 4.29 billion. The manual says only that the purse holds at most 65,000.
   Readings: (a) wrap, then the manual cap (the purse becomes 65,000, as GIVEGOLD's 990,000 bug is clamped today);
   (b) take only what the purse holds (to 0); (c) leave it as now. Remaster now: with `uncapped` (the X68000 preset) and
-  the Guild treasury off, the purse wraps as the original's; with `manual` and the treasury off, Core's signed purse
-  goes below zero (neither reading picked); with the treasury on, at most the spendable gold is taken. User decision
-  needed.
+  the Guild treasury off, the purse wraps as the original's; with the treasury on, at most the spendable gold is taken.
+  Decision (user s206): (b), with `manual` and the treasury off TAKEGOLD takes at most what the purse holds (to 0), the
+  same rule as the treasury's. Built s206 (`P4Dungeon.Events` TAKEGOLD).
 - **Side effects:** none beyond the rule.
 - **Spec:** `towns.md` §5, §6.2.
 

@@ -59,7 +59,8 @@ A sweep moves gold into the treasury and logs it in the ledger. It is idempotent
 - **in town only:** the active party's purse and found gold.
 
 When it runs:
-- on town entry (before any share-out), and on leaving town;
+- on town entry (before any share-out), and on leaving town or by Transportation to another town (both start a new
+  trip, user s206);
 - after every town or Guild action that can add gold: creating a character, training (III and IV level gold), selling,
   Trade, a transfer in, IV's arrival hand-out;
 - on loading a save or selecting a parked party that is in a town.
@@ -161,10 +162,10 @@ and also have a QoL value (e.g. `p1.gold-cap` `lifted`, `p1.rename-party`) stay 
   the bottom-right corner, the town messages keeping left of it `[~]`. The I Amiga sheet's bank cell is left blank.
   Checked on Xvfb (s175): I Amiga and DOS (wilderness, dungeon, map-only, town, Guild), II ST (incl. the terrain key,
   map-only, town), III Amiga and DOS (wilderness, dungeon, town, Guild) and the remaster's combat screen.
-- **Trips:** Transportation from town to town (I–III and IV) arrives without leaving, so the trip number does not go up
-  (the sweep still runs on arrival). s205: the spec defines a trip only by leaving town (section 3, "gold won since
-  the party last left town"), and no original has trips, so whether Transportation starts one is the user's call `[U]`.
-  Both towns sweep, so no trip gold is at risk either way; only the ledger's trip grouping changes.
+- **Trips:** Transportation from town to town (I–III and IV) starts a new trip, as leaving town does (user s206): the
+  party's gold is swept, the trip number goes up, and the new town's entries go under the new trip. No original has
+  trips; no gold is at risk either way, only the ledger's grouping. A IV Transportation cast outside a town is an
+  ordinary arrival (the trip ends; the next one starts on leaving).
 - **Spends in the field:** a spend's trip-gold part is logged as a `trip` entry before the spend's full price (section
   4; s201, before that only the treasury's part was logged).
 - **IV TAKEGOLD:** every TAKEGOLD in the shipped scripts has a CMPGOLD for the same amount before it on its path
@@ -174,8 +175,8 @@ and also have a QoL value (e.g. `p1.gold-cap` `lifted`, `p1.rename-party`) stay 
   original (`logic-specs/events.md` section 4). With the treasury on, TAKEGOLD takes at most the spendable gold (purse,
   then treasury; neither goes below zero; s201). Off (s205): CMPGOLD 0 / TAKEGOLD 0 cut the typed amount to its low
   16 bits (under every option), and with `p4.gold-cap` = `uncapped` (the X68000 preset) the purse wraps as the
-  original's u32. Off under the manual 65,000 cap, Core's signed purse still goes below zero: what an overdraw does
-  there is a pending user question (DIFFERENCES-IV D4-031) `[U]`. Only TAKEGOLD wraps: a gain after a wrap (e.g.
+  original's u32. Off under the manual 65,000 cap it takes at most what the purse holds (DIFFERENCES-IV D4-031, user
+  s206). Only TAKEGOLD wraps: a gain after a wrap (e.g.
   GIVEGOLD) can take Core's long past 2^32 where the original's u32 would wrap again, so a wrapped purse's later values
   can differ from the original's `[~]` (reachable only after an overdraw).
 - **Not unit-tested:** the I–III Bank routing in `Game1` (checked live on Xvfb for I, II and III) and III's window 22.
