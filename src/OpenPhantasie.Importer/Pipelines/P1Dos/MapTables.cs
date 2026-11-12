@@ -124,7 +124,7 @@ internal static class MapTables
 
     // The committed dungeons.json carries three top-level notes: _note, which takes extract_maps.py's wording (user
     // s159; before s160 the file kept the script's old "grid geometry TBD" note of commit 13a3d839), and the hand-added
-    // _grid_byte_length / _grid_note (13a3d839, 48a09246), which no script writes (extract_dungeon_events.py edits the
+    // _grid_byte_length / _grid_note (13a3d839, 950a42db), which no script writes (extract_dungeon_events.py edits the
     // file in place, so they stayed). They are ours, so they are constants here, in the committed key order.
     public const string DungeonNote =
         "raw feature bytes; [C] grid = first 1254 B = 33x38, then side tables / events / scripts (dungeon-representation.md).";

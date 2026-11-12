@@ -352,7 +352,7 @@ public static class P3Build
             ]),
             ["towns"] = list,
         };
-        // Hand step (git 6850fb9b, s91 wrap: the s89 D3-033 armory restock decision): the committed _layout / _notes were
+        // Hand step (git 8de504c3, s91 wrap: the s89 D3-033 armory restock decision): the committed _layout / _notes were
         // rewritten after the build to name the restock decision. They are our text: take them from the shipped file when it has them.
         if (shipped is not null)
             foreach (var key in new[] { "_layout", "_notes" })
@@ -429,8 +429,8 @@ public static class P3Build
 
     /// <summary>
     /// rule-tables.json blocks added to the committed file by hand after the build (ours: decoded constants and user
-    /// decisions; git: <c>creation_age</c> s98 42dad69b, <c>armory_restock</c> s89/s91 6850fb9b, <c>town_entry_payout</c>
-    /// s144 509662b4, <c>transfer</c> s147 854b7989). Appended from the shipped file in this order.
+    /// decisions; git: <c>creation_age</c> s98 45e29d15, <c>armory_restock</c> s89/s91 8de504c3, <c>town_entry_payout</c>
+    /// s144 490a779d, <c>transfer</c> s147 71cdc308). Appended from the shipped file in this order.
     /// </summary>
     public static readonly string[] RuleTablesShippedBlocks = ["creation_age", "armory_restock", "town_entry_payout", "transfer"];
 
