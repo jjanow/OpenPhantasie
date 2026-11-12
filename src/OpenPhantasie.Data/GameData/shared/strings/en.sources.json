@@ -8238,6 +8238,90 @@
      ]
     ]
    }
+  ],
+  "reset.which_save_x": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV2.OVR",
+      32737,
+      5
+     ],
+     " {0} SAVE?"
+    ]
+   },
+   {
+    "from": "p1-amiga-1.0",
+    "parts": [
+     [
+      "game",
+      24244,
+      5
+     ],
+     " {0} SAVE?"
+    ]
+   },
+   {
+    "from": "p2-st-1.0",
+    "parts": [
+     [
+      "PHANT.PRG",
+      128370,
+      5
+     ],
+     " {0} SAVE?"
+    ]
+   },
+   {
+    "from": "p2-apple2",
+    "parts": [
+     [
+      "OUTDOORS2",
+      15430,
+      5
+     ],
+     " {0} SAVE?"
+    ]
+   }
+  ],
+  "reset.caution": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     [
+      "OV1.OVR",
+      25293,
+      11
+     ]
+    ]
+   }
+  ],
+  "reset.warning": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     "ALL DATA IN THIS SAVE ",
+     [
+      "OV1.OVR",
+      25332,
+      13
+     ]
+    ]
+   }
+  ],
+  "reset.warning_slot_x": [
+   {
+    "from": "p1-dos-1987",
+    "parts": [
+     "ALL DATA IN SAVE {0} ",
+     [
+      "OV1.OVR",
+      25332,
+      13
+     ]
+    ]
+   }
   ]
  }
 }

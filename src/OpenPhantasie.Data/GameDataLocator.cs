@@ -45,6 +45,9 @@ public static class GameDataLocator
     /// <summary>The game's tables come from the player's import.</summary>
     public static bool IsImported(GameId game) => _state.TableGames.Contains(Folder(game));
 
+    /// <summary>The version profile <paramref name="game"/>'s imported tables come from (<c>import.json</c>), or null.</summary>
+    public static string? TablesVersion(GameId game) => _state.Tables.GetValueOrDefault(Folder(game));
+
     /// <summary>The game can be started: imported, or (dev build) its committed GameData is present.</summary>
     public static bool IsAvailable(GameId game) =>
         IsImported(game) || (BuiltInFallback && File.Exists(Path.Combine(ShippedRoot, Folder(game), "game.json")));

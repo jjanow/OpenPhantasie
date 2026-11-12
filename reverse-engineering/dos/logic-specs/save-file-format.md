@@ -238,9 +238,20 @@ on every entry, `0x1e78`).
 
 ### Other writers `[~]`
 OV1 `0x4ca8` / `0x4e76` read and write every game file (OUT*, SACK.DAT, DNG.SAV, DNGX.SAV, DNG1..10, GUILD/TWNS) as
-one block for the Utility menu's backup / restore / **Reset the game** (`0x4a4b`). Reset (`0x4885`) zeroes the block
-`0x4800..0x6b2e` (SACK.DAT, DNG.SAV, DNGX.SAV) before writing it back, so after a reset no dungeon id matches and every
-dungeon loads fresh — the manual p.22 "dungeons reset". Not traced further.
+one block for the Utility menu's backup / restore / **Reset the game** (`0x4a4b`; screen "CAUTION !!! / ALL DATA ON
+YOUR GAME DISK WILL BE RESET / Press R for reset or X to exit"). Reset (`0x4885`, s204 static read) `[C]`:
+1. **Erases every character:** for records 0..24 at `[0x63e0]` (stride `0x11a`) writes `@92 = 0` (the occupied marker)
+   and `@218 = 0` (in_party). The 282-B bodies are left in place but every slot reads as empty.
+2. `[0x64ee] = 0` and the town index `[0xc470] = 0` (Pelnor).
+3. **Re-fogs the regions and re-arms fixed fights** (`0x4914(i)` for i = 0..17, skipping 0 and 4): for each of the
+   `0x208` bytes of 1 KB block i, `b -= 120` if `b ≥ 120`; `b -= 1` if `b % 10 == 8` (a spent x8 fight back to x7);
+   then `b += 120` (fogged) unless i is 0 or 4. The block → file map is `0x4ca8`'s read order: `0x400` B per file,
+   OUT1..OUT16, OUT18, OUT19 (no OUT17), so blocks 0 / 4 = OUT1 / OUT5, which ship unfogged with no fight cells and are
+   left as they are.
+4. Zeroes `0x4800..0x6b2e` (SACK.DAT, DNG.SAV, DNGX.SAV), so every dungeon loads fresh.
+This matches the manual (p. 19, BACKING UP CHARACTERS, key 5): "old characters will be erased and the dungeons reset —
+just as if you had bought a new game". TWNS.DAT (town / Armory state) is not written by `0x4885`; whether `0x4a4b`'s
+write-back restores it not traced `[~]` (the remaster resets towns, following the manual).
 
 ## Loot sack (`SACK.DAT`) [C] (s35 DOSBox)
 

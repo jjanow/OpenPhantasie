@@ -305,6 +305,17 @@ public partial class Game1
             else if (_slotScreen.Click(line))
                 RunSaveSlotPick();
         }
+        else if (_reset.IsOpen)
+        {
+            // P3 Reset the game: hovering selects a row, a click chooses it.
+            if (!clicked)
+                _reset.Point(line);
+            else
+            {
+                _reset.Click(line);
+                RunResetRequest();
+            }
+        }
         else if (_update.IsOpen)
         {
             if (clicked)

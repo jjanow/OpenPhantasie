@@ -1190,6 +1190,16 @@ public partial class Game1 : Game
             return;
         }
 
+        // P3 Reset the game (16-reset-game.md): its confirmation owns every key while shown (over the main menu).
+        if (_reset.IsOpen)
+        {
+            _reset.HandleKeys(_input.NewKeys(keys).Concat(ResetGameScreen.PadKeys(_input.NewButtons(pad))));
+            RunResetRequest();
+            _input.EndFrame(keys, pad);
+            base.Update(gameTime);
+            return;
+        }
+
         if (_p4 is not null && !_options.IsOpen)
         {
             _p4.Tick(gameTime.ElapsedGameTime.TotalMilliseconds); // s110: IV's picture animations, the open door
@@ -1265,6 +1275,11 @@ public partial class Game1 : Game
                 {
                     _options.UpdateRequested = false;
                     _update.Open();
+                }
+                if (_options.ResetRequested is { } resetGame)
+                {
+                    _options.ResetRequested = null;
+                    OpenReset(resetGame);
                 }
             }
             else if (_mainMenu.HandleKeys(_input.MenuKeys(keys, pad)) is var (choice, game))
@@ -1591,11 +1606,14 @@ public partial class Game1 : Game
         _frameScene = null; // s169: each screen below names its own (III DOS's CGA palette 1 screens)
         UiOverlays.Screen = _screen; // a scrolling box's content is clipped to it (UiOverlays.Clipped)
         _screen.PaletteOverride = null; // s157: a screen that needs its own palette sets it while it draws
-        if (_slotScreen.IsOpen)
+        if (_slotScreen.IsOpen || _reset.IsOpen)
         {
             _screen.Begin();
             _screen.BeginLayout(_spriteBatch);
-            UiOverlays.DrawMenuScreen(_spriteBatch, _pixel, _slotScreen.Lines(), _slotScreen.Help);
+            if (_slotScreen.IsOpen)
+                UiOverlays.DrawMenuScreen(_spriteBatch, _pixel, _slotScreen.Lines(), _slotScreen.Help);
+            else
+                UiOverlays.DrawMenuScreen(_spriteBatch, _pixel, _reset.Lines(), _reset.Help);
             _spriteBatch.End();
             _screen.EndAndPresent(_spriteBatch, _pixel);
             EndHits();

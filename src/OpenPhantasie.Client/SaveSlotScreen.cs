@@ -16,6 +16,9 @@ public enum SaveSlotMode
 
     /// <summary>The game picked on the main menu: NEW GAME, then every slot.</summary>
     Start,
+
+    /// <summary>P3 Reset the game (16-reset-game.md): every slot, as Load; the pick opens the reset's confirmation.</summary>
+    Reset,
 }
 
 /// <summary>A pick on a <see cref="SaveSlotScreen"/>: a slot, or (Start only) a new game when <see cref="Slot"/> is null.</summary>
@@ -345,9 +348,15 @@ public sealed class SaveSlotScreen
         {
             SaveSlotMode.Save => UiText.S("saveslots.title_save"),
             SaveSlotMode.Load => UiText.S("saveslots.title_load"),
+            SaveSlotMode.Reset => UiText.S("reset.title"),
             _ => UiText.S("menu.game." + Game.Prefix()),
         };
-        var head = Mode == SaveSlotMode.Start ? UiText.S("saveslots.start_question") : UiText.S("menu.game." + Game.Prefix());
+        var head = Mode switch
+        {
+            SaveSlotMode.Start => UiText.S("saveslots.start_question"),
+            SaveSlotMode.Reset => UiText.F("reset.which_save_x", UiText.S("menu.game." + Game.Prefix())),
+            _ => UiText.S("menu.game." + Game.Prefix()),
+        };
         var detail = Detail().SelectMany(d => UiOverlays.Lines(d, Columns)).ToList();
         var rowLines = Enumerable.Range(0, RowCount)
             .Select(r => UiOverlays.Lines((r == Cursor ? ">" : " ") + RowText(r), Columns))

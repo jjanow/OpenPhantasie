@@ -252,6 +252,8 @@ public class MainMenuAndOptionsTests
         Assert.EndsWith("ON", Line(o, "AUTO-MAP BOX"));
         o.HandleKeys([Keys.Enter]);
         Assert.False(settings.Game(GameId.P1).AutoMap);
+        o.HandleKeys([Keys.Down]); // → RESET GAME (s204, from the main menu only)
+        Assert.EndsWith("...", Line(o, "RESET GAME"));
         o.HandleKeys([Keys.Down]); // → preset (the header is skipped)
         Assert.EndsWith("ORIGINAL (MANUAL)", Line(o, "PRESET"));
         o.HandleKeys([Keys.Right]);
@@ -389,9 +391,10 @@ public class MainMenuAndOptionsTests
         var first = o.Cursor;
         Assert.InRange(first, 2, OptionsScreen.VisibleRows);
         o.HandleKeys([Keys.PageDown]);
-        Assert.InRange(o.Cursor, first + 1, first + OptionsScreen.VisibleRows);
+        var second = o.Cursor;
+        Assert.InRange(second, first + 1, first + OptionsScreen.VisibleRows); // s204: one short when a header ends the page
         o.HandleKeys([Keys.PageUp]);
-        Assert.Equal(first, o.Cursor); // no header in I's first two pages: back where it was
+        Assert.Equal(second - OptionsScreen.VisibleRows, o.Cursor); // a page back (no header in I's first page)
         o.HandleKeys([Keys.PageUp]);
         Assert.Equal(0, o.Cursor); // the tab row
 

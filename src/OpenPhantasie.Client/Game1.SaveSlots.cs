@@ -80,6 +80,9 @@ public partial class Game1
             case { Mode: SaveSlotMode.Load, Slot: { } slot }:
                 LoadFrom(slot.Path);
                 break;
+            case { Mode: SaveSlotMode.Reset, Slot: { } slot }:
+                OpenResetFor(slot);
+                break;
             case { Mode: SaveSlotMode.Start, Slot: null }:
                 StartNew(game);
                 break;

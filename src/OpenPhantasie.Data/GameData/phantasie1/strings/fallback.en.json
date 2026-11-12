@@ -5,6 +5,10 @@
  "tables": {
   "shared": {
    "typing.space": "SPACE",
+   "reset.which_save_x": "Which {0} save?",
+   "reset.caution": "Caution!",
+   "reset.warning": "Everything in this save will be reset.",
+   "reset.warning_slot_x": "Everything in save {0} will be reset.",
    "import.row.done": "DONE",
    "import.nothing": "No supported game was found there. Supported: Phantasie I (DOS 1987, Amiga), II (Atari ST), III (DOS 1988, Amiga), IV (X68000); disk images, zip files or installed folders.",
    "module.p1.combat-orders.desc": "Phantasie I's combat orders: THRUST, ATTACK, SLASH, LUNGE, CAST and PARRY, with party melee and combat spells. Phantasie II uses the same set. ON gives the party these orders in combat.",

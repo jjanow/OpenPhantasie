@@ -84,6 +84,7 @@ public sealed class OptionsScreen
         Changed = false;
         ImportRequested = false;
         UpdateRequested = false;
+        ResetRequested = null;
         IsOpen = true;
     }
 
@@ -301,6 +302,9 @@ public sealed class OptionsScreen
     /// <summary>s174: the UPDATE NOW row was picked: the screen closed and the shell opens the update screen.</summary>
     public bool UpdateRequested { get; set; }
 
+    /// <summary>A game tab's RESET GAME row was picked: the screen closed and the shell opens the reset for this game.</summary>
+    public GameId? ResetRequested { get; set; }
+
     /// <summary>The IMPORT GAMES row was picked: the screen closed and the shell opens the import screen.</summary>
     public bool ImportRequested { get; set; }
 
@@ -388,6 +392,15 @@ public sealed class OptionsScreen
             rows.Add(Described("options.common_town_keys", OnOff(g.CommonTownKeys),
                 _ => Set(() => g.CommonTownKeys = !g.CommonTownKeys)));
         }
+
+        // P3 Reset the game (user s203 / s204, 16-reset-game.md): from the main menu only, as IMPORT GAMES (a running game
+        // may use the save). Picks a save, then Keep / Erase the characters and YES / NO.
+        if (_runningOptions is null)
+            rows.Add(Described("options.reset_game", UiText.S("options.reset_game.open"), _ =>
+            {
+                ResetRequested = game;
+                IsOpen = false;
+            }));
 
         var locked = _runningOptions is not null;
         var rules = _runningOptions ?? g.NewGameOptions(game);
