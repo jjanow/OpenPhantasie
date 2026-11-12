@@ -7,7 +7,7 @@ namespace OpenPhantasie.Importer.Pipelines.P2St;
 /// supplies only numbers and our own text (item points / strength fields, spell categories / costs / summaries, the
 /// manual's creation-table cells and lifespan tables), so importing II never needs I imported.
 /// <para>Not written: <c>rules.json</c> and <c>travel-time.json</c> (class a; the committed files were edited after
-/// the script, commits b544befa and 1668087d, so they stay shipped), <c>strings/en.json</c> and
+/// the script, commits a3f9eaed and ed122414, so they stay shipped), <c>strings/en.json</c> and
 /// <c>graphics/index.json</c> (hand-written).</para>
 /// <para>The script's three checks against I's original names (I's undead list by name, items 0-100 and spells 0-53
 /// equal to I's by name) are left out: I's shipped overlay has no names. The value checks stay.</para>

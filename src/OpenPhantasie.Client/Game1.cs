@@ -1194,6 +1194,8 @@ public partial class Game1 : Game
         if (_reset.IsOpen)
         {
             _reset.HandleKeys(_input.NewKeys(keys).Concat(ResetGameScreen.PadKeys(_input.NewButtons(pad))));
+            if (_reset.TakeBackToPicker())
+                OpenSaveSlots(_reset.Game, SaveSlotMode.Reset); // s205: Esc steps back to the picker it came from
             RunResetRequest();
             _input.EndFrame(keys, pad);
             base.Update(gameTime);
@@ -3238,12 +3240,12 @@ public partial class Game1 : Game
     /// </summary>
     private void SaveGame()
     {
-        if (CurrentGameSettings.SaveSlots)
+        if (SaveSlotRouting.SingleSavePath(ClientSettings.DataDirectory, _session!.Game, CurrentGameSettings.SaveSlots) is not { } single)
         {
-            OpenSaveSlots(_session!.Game, SaveSlotMode.Save);
+            OpenSaveSlots(_session.Game, SaveSlotMode.Save);
             return;
         }
-        WriteSave(ClientSettings.SavePathFor(_session!.Game), null);
+        WriteSave(single, null);
     }
 
     /// <summary>The autosave on leaving town: always the game's one save (with SAVE SLOTS, its AUTO slot).</summary>
@@ -3493,12 +3495,12 @@ public partial class Game1 : Game
     /// <summary>Load (F9, the game menu, a town's Load). QoL SAVE SLOTS: the slot picker; off, the one save.</summary>
     private void LoadGame()
     {
-        if (CurrentGameSettings.SaveSlots)
+        if (SaveSlotRouting.SingleSavePath(ClientSettings.DataDirectory, _session!.Game, CurrentGameSettings.SaveSlots) is not { } single)
         {
-            OpenSaveSlots(_session!.Game, SaveSlotMode.Load);
+            OpenSaveSlots(_session.Game, SaveSlotMode.Load);
             return;
         }
-        LoadFrom(ClientSettings.SavePathFor(_session!.Game));
+        LoadFrom(single);
     }
 
     /// <summary>Continue from the save at <paramref name="path"/> (D-069: the Guild-number question, or the party list).</summary>

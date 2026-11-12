@@ -15,25 +15,25 @@ public partial class Game1
     /// <summary>The RESET GAME row was picked for <paramref name="game"/>.</summary>
     private void OpenReset(GameId game)
     {
-        var dir = ClientSettings.DataDirectory;
-        if (SaveSlots.Slotted(game, _settings.Game(game).SaveSlots))
+        var route = SaveSlotRouting.Reset(ClientSettings.DataDirectory, game, _settings.Game(game).SaveSlots);
+        switch (route.Kind)
         {
-            if (!SaveSlots.All(dir, game).Any(s => File.Exists(s.Path)))
-            {
+            case ResetEntryKind.Picker:
+                OpenSaveSlots(game, SaveSlotMode.Reset);
+                break;
+            case ResetEntryKind.NoSave:
                 _reset.OpenNotice(game, UiText.S("reset.no_save"));
-                return;
-            }
-            OpenSaveSlots(game, SaveSlotMode.Reset);
-            return;
+                break;
+            case ResetEntryKind.OldSave:
+                _reset.OpenNotice(game, UiText.S("continue.old_save"));
+                break;
+            case ResetEntryKind.Unreadable:
+                _reset.OpenNotice(game, UiText.S("saveslots.unreadable_refused"));
+                break;
+            case ResetEntryKind.Confirm:
+                _reset.Open(game, route.Slot!, null);
+                break;
         }
-        var single = new SaveSlot(game, SaveSlots.FirstNumber(game), SaveSlots.SinglePath(dir, game));
-        var info = SaveSlots.Describe(single);
-        if (info.Empty)
-            _reset.OpenNotice(game, UiText.S("reset.no_save"));
-        else if (info.Unreadable)
-            _reset.OpenNotice(game, info.Old ? UiText.S("continue.old_save") : UiText.S("saveslots.unreadable_refused"));
-        else
-            _reset.Open(game, single, null);
     }
 
     /// <summary>The picker's Reset pick: the confirmation for that slot.</summary>

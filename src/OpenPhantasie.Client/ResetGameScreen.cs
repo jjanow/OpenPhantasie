@@ -9,7 +9,8 @@ namespace OpenPhantasie.Client;
 /// GAME row. The original's warning (DOS I OV1 "CAUTION !!! / ALL DATA ON YOUR GAME DISK WILL BE RESET"), then Keep / Erase
 /// the characters, then YES / NO (NO first). The shell runs the reset on <see cref="TakeRequest"/> and shows the outcome
 /// with <see cref="ShowResult"/>; any key then closes. Up/Down move, Return chooses, K / E and Y / N pick at once, Esc goes
-/// back a step.
+/// back a step: from YES / NO to Keep / Erase, from Keep / Erase to the slot picker when it came first
+/// (<see cref="TakeBackToPicker"/>), else out.
 /// </summary>
 public sealed class ResetGameScreen
 {
@@ -20,6 +21,7 @@ public sealed class ResetGameScreen
     private (SaveSlot Slot, ResetMode Mode)? _request;
     private string _result = "";
     private List<int?> _lineRows = [];
+    private bool _backToPicker;
 
     public bool IsOpen { get; private set; }
 
@@ -47,6 +49,7 @@ public sealed class ResetGameScreen
         SlotLabel = label;
         _step = Step.Choose;
         _request = null;
+        _backToPicker = false;
         _result = "";
         Cursor = 0;
         IsOpen = true;
@@ -57,7 +60,9 @@ public sealed class ResetGameScreen
     {
         Game = game;
         Slot = null;
+        SlotLabel = null;
         _request = null;
+        _backToPicker = false;
         ShowResult(line);
         IsOpen = true;
     }
@@ -79,6 +84,17 @@ public sealed class ResetGameScreen
     }
 
     public void Close() => IsOpen = false;
+
+    /// <summary>
+    /// True once after Esc (pad B) on Keep / Erase closed a confirmation that the slot picker opened (a slot label is
+    /// shown): the shell opens the picker again, one step back.
+    /// </summary>
+    public bool TakeBackToPicker()
+    {
+        var back = _backToPicker;
+        _backToPicker = false;
+        return back;
+    }
 
     /// <summary>A pad here: the D-pad moves, A chooses, B goes back.</summary>
     public static IEnumerable<Keys> PadKeys(IEnumerable<Buttons> buttons) => buttons.Select(b => b switch
@@ -111,6 +127,7 @@ public sealed class ResetGameScreen
                         Cursor = _mode == ResetMode.Keep ? 0 : 1;
                         break;
                     }
+                    _backToPicker = SlotLabel is not null; // the picker came first (the game's one save has no label)
                     Close();
                     return true;
                 case Keys.Up or Keys.Down:

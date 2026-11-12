@@ -166,4 +166,6 @@ from a save with the option off keeps the lifespan it had there (e.g. a DOS-fact
 - **IV lazy lifespan:** an IV member with no stored lifespan gets one at its next town entry from its current Luck, so a
   member who already declined lands at the low end of its band `[~]`. IV's join from III with no III lifespan uses III's
   LCK the same way.
-- **Not seen live:** no Client run on Xvfb was needed (no new screen; the Options row is the generic one) `[~]`.
+- **Seen live on Xvfb:** I's creation, inn and town entry (s179); the I → III transfer, also under `p3.lifespans` =
+  `dos` (age, lifespan and "has aged" carried; a missing lifespan gets the band), and IV's lazy lifespan at town entry
+  from the current Luck (s205, `parity/s205-qol-live.md`). II ↔ I and the III → IV join are unit-tested only `[~]`.

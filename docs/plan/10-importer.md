@@ -421,7 +421,15 @@ the "fresh repo" item, not of the importer itself. **Built s158** (8.2): such te
 4. **Importer language:** C# (`OpenPhantasie.Importer`); players need no Python.
 5. **Memorial Set layout:** detect files by content (fingerprints), not by folder names. The GOG installer is kept and
    unpacked since s166 (`reverse-engineering/dos/original-images/memorial-set-gog/`).
-6. **Played DOS I copy:** import it as it is and warn the player what was lost (fog already lifted, fixed fights spent).
+6. **Played DOS I copy:** the player is asked (user s205): RESTORE THE MAPS runs DOS I's own Reset rule
+   (`GameSession.DosResetCells`, OV1 `0x4914`; `16-reset-game.md` section 3) on the 26×20 grid of every played region but
+   OUT1 / OUT5, which gives a fresh copy's cells back (fog on, fixed fights armed; checked against the unplayed image);
+   KEEP THEM AS PLAYED imports as it is and warns what was lost (fog already lifted, fixed fights spent; decision s158).
+   Asked only when a region file (`OUT*.DAT`) is played and the version reads its grids from it
+   (`ImportRunner.CanRestoreMaps`: DOS I 1987 and the Bonus Edition; Amiga I reads `maps.int`, the Apple's II stores fog only
+   and has no decoded reset rule). The Client asks after the scan (Y / N, rows, pad A / B; Esc imports nothing); the CLI
+   asks on a terminal or takes `--restore-maps` / `--keep-maps` (no answer: keep). The choice is recorded in `import.json`
+   (`maps_restored`) and kept by recipe re-runs and `--check`.
 
 Public repo: built fresh, pushed to GitHub as **private** `jjanow/OpenPhantasie`; the user makes it public.
 

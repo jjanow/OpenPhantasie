@@ -46,6 +46,29 @@ public class ResetGameScreenTests
     }
 
     [Fact]
+    public void EscOnTheFirstQuestion_StepsBackToThePicker_OnlyWhenThePickerCameFirst()
+    {
+        // s205 (live on IV): Esc on Keep / Erase went to the main menu although the slot picker came first.
+        var picked = Open(); // the picker's pick: a slot label
+        picked.HandleKeys([Keys.E, Keys.Escape]); // YES / NO back to Keep / Erase: still open, no step back
+        Assert.True(picked.IsOpen);
+        Assert.False(picked.TakeBackToPicker());
+        Assert.True(picked.HandleKeys([Keys.Escape]));
+        Assert.True(picked.TakeBackToPicker());
+        Assert.False(picked.TakeBackToPicker()); // once
+
+        var single = new ResetGameScreen(); // SAVE SLOTS off: the game's one save, no label
+        single.Open(GameId.P2, new SaveSlot(GameId.P2, 0, "/saves/savegame-p2.json"), null);
+        Assert.True(single.HandleKeys([Keys.Escape]));
+        Assert.False(single.TakeBackToPicker());
+
+        var done = Open(); // the outcome page closes on any key, Esc too, without a step back
+        done.ShowResult("DONE.");
+        Assert.True(done.HandleKeys([Keys.Escape]));
+        Assert.False(done.TakeBackToPicker());
+    }
+
+    [Fact]
     public void ErasePlusY_RequestsAPurge_AndTheOutcomeClosesOnAnyKey()
     {
         var r = Open();

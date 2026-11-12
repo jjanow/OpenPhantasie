@@ -17,8 +17,7 @@ public partial class Game1
     /// <summary>Opens the picker on <paramref name="game"/>'s slots (Save: the numbered ones; Load / Start: all).</summary>
     private void OpenSaveSlots(GameId game, SaveSlotMode mode)
     {
-        var dir = ClientSettings.DataDirectory;
-        var slots = mode == SaveSlotMode.Save ? SaveSlots.Writable(dir, game) : SaveSlots.All(dir, game);
+        var slots = SaveSlotRouting.Offered(ClientSettings.DataDirectory, game, mode);
         _slotScreen.Open(game, mode, SaveSlots.Describe(slots), PlaceNamer(game));
     }
 
@@ -28,8 +27,7 @@ public partial class Game1
     /// </summary>
     private void StartOrOfferSaves(GameId game)
     {
-        if (_settings.Game(game).SaveSlots
-            && SaveSlots.All(ClientSettings.DataDirectory, game).Any(s => File.Exists(s.Path)))
+        if (SaveSlotRouting.OffersSaves(ClientSettings.DataDirectory, game, _settings.Game(game).SaveSlots))
         {
             OpenSaveSlots(game, SaveSlotMode.Start);
             return;
@@ -46,52 +44,47 @@ public partial class Game1
     }
 
     /// <summary>IV's save of slot <paramref name="slot"/> (1–3; IV always has its original's three, either way the switch is).</summary>
-    private static string P4SlotPath(int slot) =>
-        slot >= 1 && slot <= SaveSlots.NumberedCount(GameId.P4)
-            ? SaveSlots.PathOf(ClientSettings.DataDirectory, GameId.P4, slot)
-            : ClientSettings.SavePathFor(GameId.P4);
+    private static string P4SlotPath(int slot) => SaveSlotRouting.P4SlotPath(ClientSettings.DataDirectory, slot);
 
     /// <summary>The picker closed: runs its pick (Esc on Save says nothing was saved).</summary>
     private void RunSaveSlotPick()
     {
         var game = _slotScreen.Game;
         var mode = _slotScreen.Mode;
-        if (_slotScreen.TakePick() is not { } pick)
+        var pick = _slotScreen.TakePick();
+        var slot = pick?.Slot;
+        switch (SaveSlotRouting.Pick(game, mode, pick, _p4 is not null, _session is not null))
         {
-            if (mode != SaveSlotMode.Save)
-                return;
-            if (_p4 is not null)
-                _p4.Note = UiText.S("saveslots.not_saved");
-            else if (_session is not null)
-                SetFeedback(UiText.S("saveslots.not_saved"), HelpForMode(_session.Mode));
-            return;
-        }
-        switch (pick)
-        {
-            case { Mode: SaveSlotMode.Save, Slot: { } slot } when game == GameId.P4:
-                WriteP4Save(slot.Path, slot);
+            case SlotPickAction.NotSavedP4:
+                _p4!.Note = UiText.S("saveslots.not_saved");
                 break;
-            case { Mode: SaveSlotMode.Save, Slot: { } slot }:
-                WriteSave(slot.Path, slot);
+            case SlotPickAction.NotSaved:
+                SetFeedback(UiText.S("saveslots.not_saved"), HelpForMode(_session!.Mode));
                 break;
-            case { Mode: SaveSlotMode.Load, Slot: { } slot } when game == GameId.P4:
-                LoadP4From(slot.Path);
+            case SlotPickAction.WriteP4:
+                WriteP4Save(slot!.Path, slot);
                 break;
-            case { Mode: SaveSlotMode.Load, Slot: { } slot }:
-                LoadFrom(slot.Path);
+            case SlotPickAction.Write:
+                WriteSave(slot!.Path, slot);
                 break;
-            case { Mode: SaveSlotMode.Reset, Slot: { } slot }:
-                OpenResetFor(slot);
+            case SlotPickAction.LoadP4:
+                LoadP4From(slot!.Path);
                 break;
-            case { Mode: SaveSlotMode.Start, Slot: null }:
+            case SlotPickAction.Load:
+                LoadFrom(slot!.Path);
+                break;
+            case SlotPickAction.OpenReset:
+                OpenResetFor(slot!);
+                break;
+            case SlotPickAction.StartNew:
                 StartNew(game);
                 break;
-            case { Mode: SaveSlotMode.Start, Slot: { } slot } when game == GameId.P4:
-                LoadSavedPhantasie4(slot.Number);
+            case SlotPickAction.StartP4Slot:
+                LoadSavedPhantasie4(slot!.Number);
                 break;
-            case { Mode: SaveSlotMode.Start, Slot: { } slot }:
+            case SlotPickAction.StartThenLoad:
                 StartGame(game); // as F9 after a new game: the save's own rules replace the new game's
-                LoadFrom(slot.Path);
+                LoadFrom(slot!.Path);
                 break;
         }
     }

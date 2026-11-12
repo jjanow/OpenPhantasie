@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework.Input;
 using OpenPhantasie.Core;
 using OpenPhantasie.Data;
 using OpenPhantasie.Importer;
+using OpenPhantasie.Importer.Profiles;
 
 namespace OpenPhantasie.Client;
 
@@ -16,6 +17,9 @@ namespace OpenPhantasie.Client;
 /// <para>s160: when the report names a file the import still lacks (<see cref="ImportReport.Offers"/>: Amiga I / III
 /// imported without the Kickstart 1.3 ROM, so no topaz font), A asks for that file: only the path row shows, and the
 /// path typed or dropped there is imported at once, alone (the rest of the import stays).</para>
+/// <para>s205: the paths are scanned first; for a played copy whose maps would come over played (DOS I:
+/// <see cref="ImportRunner.CanRestoreMaps"/>) the player is asked whether to restore them as on a fresh copy, then the
+/// import runs.</para>
 /// </summary>
 public sealed class ImportScreen
 {
@@ -41,7 +45,13 @@ public sealed class ImportScreen
     /// </summary>
     public ScrollBox Scroll { get; } = new();
 
-    private readonly Func<IReadOnlyList<string>, IProgress<string>, ImportReport> _run;
+    private readonly Func<IReadOnlyList<string>, IProgress<string>, ImportReport>? _run;
+    private readonly Func<IReadOnlyList<string>, ScanResult> _scan;
+    private readonly Func<ScanResult, IReadOnlySet<string>, IProgress<string>, ImportReport> _import;
+    private Task<ScanResult>? _scanTask;
+    private ScanResult? _pendingScan;
+    private readonly List<Detection> _restoreQueue = [];
+    private readonly HashSet<string> _restore = new(StringComparer.Ordinal);
     private readonly Func<IProgress<string>, ImportReport> _refresh;
     private readonly Func<IReadOnlyList<StoreLibraries.Library>> _libraries;
     private readonly List<string> _paths = [];
@@ -51,19 +61,24 @@ public sealed class ImportScreen
     private List<MenuLine> _report = [];
     private ImportOffer? _offer;
 
-    /// <param name="run">Scan and import the paths (default: <see cref="ImportRunner"/> into <paramref name="importRoot"/>).</param>
+    /// <param name="run">Scan and import the paths in one step, asking nothing (tests). Default: the paths are scanned
+    /// (<paramref name="scan"/>), a played copy's maps asked about, then imported (<paramref name="import"/>).</param>
     /// <param name="refresh">Re-run the versions built by an older recipe (default: <see cref="ImportRunner.Refresh"/>).</param>
     /// <param name="browseHome">Where the folder browser starts (default: the user's home folder).</param>
     public ImportScreen(string importRoot,
         Func<IReadOnlyList<string>, IProgress<string>, ImportReport>? run = null,
         Func<IReadOnlyList<StoreLibraries.Library>>? libraries = null,
         Func<IProgress<string>, ImportReport>? refresh = null,
-        string? browseHome = null)
+        string? browseHome = null,
+        Func<IReadOnlyList<string>, ScanResult>? scan = null,
+        Func<ScanResult, IReadOnlySet<string>, IProgress<string>, ImportReport>? import = null)
     {
         ImportRoot = importRoot;
         _browser = new FileBrowser(browseHome);
-        _run = run ?? ((paths, progress) =>
-            new ImportRunner(importRoot, GameDataLocator.ShippedRoot).Run(ImportRunner.Scan(paths), progress));
+        _run = run;
+        _scan = scan ?? (paths => ImportRunner.Scan(paths));
+        _import = import ?? ((found, restore, progress) =>
+            new ImportRunner(importRoot, GameDataLocator.ShippedRoot).Run(found, progress, restoreMaps: restore));
         _refresh = refresh ?? (progress => new ImportRunner(importRoot, GameDataLocator.ShippedRoot).Refresh(progress));
         _libraries = libraries ?? StoreLibraries.Find;
     }
@@ -72,7 +87,13 @@ public sealed class ImportScreen
     public bool IsOpen { get; private set; }
     /// <summary>Opened at start because no game is available (the welcome text shows).</summary>
     public bool FirstRun { get; private set; }
-    public bool Running => _task is { IsCompleted: false };
+    public bool Running => _task is { IsCompleted: false } || _scanTask is not null;
+
+    /// <summary>s205: asking whether a played copy's maps are restored (<see cref="RestoreTitle"/>); rows RESTORE / KEEP.</summary>
+    public bool AskingRestore => _restoreQueue.Count > 0;
+
+    /// <summary>The version asked about while <see cref="AskingRestore"/>.</summary>
+    public string? RestoreTitle => AskingRestore ? _restoreQueue[0].Profile.Title : null;
     public bool ShowingReport { get; private set; }
     /// <summary>Selected row (see <see cref="RowCount"/>); while browsing, the browser's row.</summary>
     public int Cursor
@@ -180,6 +201,8 @@ public sealed class ImportScreen
         AskingForOffer = false;
         Browsing = false;
         _offer = null;
+        _restoreQueue.Clear();
+        _pendingScan = null;
         Imported = false;
         Cursor = 0;
         Scroll.Reset();
@@ -193,12 +216,12 @@ public sealed class ImportScreen
     private int LibraryRow(int i) => 1 + _paths.Count + i;
     private int ImportRow => 1 + _paths.Count + Libraries.Count;
     private int DoneRow => ImportRow + 1;
-    public int RowCount => AskingForOffer ? 1 : DoneRow + 1;
+    public int RowCount => AskingRestore ? 2 : AskingForOffer ? 1 : DoneRow + 1;
 
     /// <summary>Text typed (Window.TextInput): goes into the path row; backspace deletes.</summary>
     public void OnTextInput(char c)
     {
-        if (!IsOpen || Running || ShowingReport || Browsing || Cursor != 0)
+        if (!IsOpen || Running || ShowingReport || Browsing || AskingRestore || Cursor != 0)
             return;
         if (c == '\b')
         {
@@ -212,7 +235,7 @@ public sealed class ImportScreen
     /// <summary>Files or folders dropped on the window.</summary>
     public void AddPaths(IEnumerable<string> paths)
     {
-        if (!IsOpen || Running)
+        if (!IsOpen || Running || AskingRestore)
             return;
         Browsing = false; // a drop answers as the browser's pick would
         if (AskingForOffer)
@@ -265,12 +288,56 @@ public sealed class ImportScreen
         AskingForOffer = false;
         Typed = "";
         _progress = UiText.S("import.scanning");
-        _task = Task.Run(() => _run(paths, new SyncProgress(m => _progress = m)));
+        if (_run is { } run)
+            _task = Task.Run(() => run(paths, new SyncProgress(m => _progress = m)));
+        else
+            _scanTask = Task.Run(() => _scan(paths));
     }
 
-    /// <summary>Poll the background import (call once a frame).</summary>
+    /// <summary>Run the import of the scanned paths with the answers given.</summary>
+    private void StartImport(ScanResult scan)
+    {
+        _pendingScan = null;
+        var restore = new HashSet<string>(_restore, StringComparer.Ordinal);
+        _task = Task.Run(() => _import(scan, restore, new SyncProgress(m => _progress = m)));
+    }
+
+    /// <summary>The answer for the version asked about: the next one is asked, or the import runs.</summary>
+    private void AnswerRestore(bool restore)
+    {
+        if (restore)
+            _restore.Add(_restoreQueue[0].Profile.Id);
+        _restoreQueue.RemoveAt(0);
+        Cursor = 0;
+        Scroll.Reset();
+        if (_restoreQueue.Count == 0 && _pendingScan is { } scan)
+            StartImport(scan);
+    }
+
+    /// <summary>Poll the background scan and import (call once a frame).</summary>
     public void Update()
     {
+        if (_scanTask is { IsCompleted: true } scanned)
+        {
+            _scanTask = null;
+            if (scanned.IsFaulted)
+            {
+                ShowingReport = true;
+                Scroll.Reset();
+                _offer = null;
+                _report = Wrap(UiText.F("import.failed", scanned.Exception!.GetBaseException().Message), MenuLineStyle.Normal);
+                return;
+            }
+            _restore.Clear();
+            _restoreQueue.Clear();
+            _restoreQueue.AddRange(ImportRunner.RestorableMaps(scanned.Result));
+            _pendingScan = scanned.Result;
+            Cursor = 0;
+            Scroll.Reset();
+            if (_restoreQueue.Count == 0)
+                StartImport(scanned.Result);
+            return;
+        }
         if (_task is not { IsCompleted: true } task)
             return;
         _task = null;
@@ -348,6 +415,31 @@ public sealed class ImportScreen
                 }
                 continue;
             }
+            if (AskingRestore)
+            {
+                switch (key)
+                {
+                    case Keys.Up or Keys.Down:
+                        Cursor = 1 - Cursor;
+                        break;
+                    case Keys.Enter or Keys.Space:
+                        AnswerRestore(Cursor == 0);
+                        break;
+                    case Keys.Y:
+                        AnswerRestore(true);
+                        break;
+                    case Keys.N:
+                        AnswerRestore(false);
+                        break;
+                    case Keys.Escape: // nothing is imported; the paths stay
+                        _restoreQueue.Clear();
+                        _pendingScan = null;
+                        Cursor = ImportRow;
+                        Scroll.Reset();
+                        break;
+                }
+                continue;
+            }
             if (Browsing)
             {
                 BrowseKey(key);
@@ -411,7 +503,9 @@ public sealed class ImportScreen
         var keys = new List<Keys>();
         foreach (var b in buttons)
         {
-            var k = Browsing
+            var k = AskingRestore
+                ? InputMap.MenuPadKey(b)
+                : Browsing
                 ? FileBrowser.PadKey(b)
                 : ShowingReport
                     ? b == Buttons.Y && _offer is not null ? Keys.A : InputMap.MenuPadKey(b)
@@ -468,13 +562,25 @@ public sealed class ImportScreen
         public void Report(string value) => report(value);
     }
 
-    private int HeaderCount => Browsing && !Running && !ShowingReport ? BrowseHeader().Count : 2 + MainMenuScreen.Games.Count + 1;
+    private int HeaderCount => Browsing && !Running && !ShowingReport && !AskingRestore ? BrowseHeader().Count
+        : AskingRestore ? RestoreHeader().Count
+        : 2 + MainMenuScreen.Games.Count + 1;
+
+    /// <summary>The question about a played copy's maps (s205), over its two rows.</summary>
+    private List<MenuLine> RestoreHeader()
+    {
+        var lines = new List<MenuLine> { new(UiText.S("import.restore.title"), MenuLineStyle.Title) };
+        lines.AddRange(Wrap(UiText.F("import.restore.question", RestoreTitle ?? ""), MenuLineStyle.Normal));
+        lines.Add(new("", MenuLineStyle.Normal));
+        return lines;
+    }
 
     /// <summary>
     /// The help line, by keys. s185: the menu screen shows its <c>.pad</c> twin while the pad is the input
     /// (<see cref="PadWording.Help"/>, applied where it is drawn), as every other screen; no flag of its own.
     /// </summary>
     public string Help => Running ? UiText.S("import.help.running")
+        : AskingRestore ? UiText.S("import.help.restore")
         : ShowingReport ? (_offer is null ? UiText.S("import.help.report") : UiText.S("import.help.report.offer"))
         : Browsing ? UiText.S("import.help.browse")
         : AskingForOffer ? UiText.S("import.help.offer")
@@ -484,6 +590,8 @@ public sealed class ImportScreen
 
     public IReadOnlyList<MenuLine> Lines()
     {
+        if (AskingRestore)
+            return Scrolled(RestoreHeader(), [Row(0, UiText.S("import.row.restore")), Row(1, UiText.S("import.row.keep_maps"))]);
         if (Browsing && !Running && !ShowingReport)
             return Scrolled(BrowseHeader(), BrowseRows());
         var lines = new List<MenuLine>

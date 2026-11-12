@@ -27,6 +27,9 @@ public sealed class ImportContext
     public CancellationToken Cancel => _session.Cancel;
     public List<string> Warnings { get; } = [];
 
+    /// <summary>The player chose to restore this played copy's maps (<see cref="ImportRunner.CanRestoreMaps"/>, s205).</summary>
+    public bool RestoreMaps => _session.RestoreMaps.Contains(Profile.Id) && ImportRunner.CanRestoreMaps(Detection);
+
     /// <summary>The files of another detected (Ready) version in this run, e.g. <c>kickstart-1.3</c>; null if absent.</summary>
     public FileSet? OptionalFiles(string profileId) =>
         _session.Detections.FirstOrDefault(d => d.Profile.Id == profileId && d.Status == DetectionStatus.Ready)?.Files;

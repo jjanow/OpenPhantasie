@@ -324,7 +324,8 @@ public class Phantasie4TreasuryTests
     /// O_008's fortune teller (INPUTN; CMPGOLD 0; JLT; TAKEGOLD 0): above 30,000 gold CMPGOLD answers 30,000 whatever the
     /// amount (<c>bls</c> at <c>0x1989a</c>), so a typed amount over the gold reaches TAKEGOLD's unchecked <c>sub.l</c>
     /// (<c>0x19f1e</c>). On, the treasury takes only what there is (purse and treasury stay ≥ 0, the trip part logged);
-    /// off keeps the original's unchecked subtraction (Core's long goes below zero; the X68000's u32 wraps, events.md).
+    /// off with the X68000's uncapped gold (its preset) keeps the original's unchecked subtraction, whose u32 purse wraps;
+    /// off under the manual 65,000 cap the overdraw is the user's call (D4-031 note, [U]): Core's long goes below zero.
     /// </summary>
     [OriginalDataTheory]
     [InlineData(true)]
@@ -349,7 +350,49 @@ public class Phantasie4TreasuryTests
                 party.Treasury.Ledger.Skip(1).Select(e => (e.Kind, e.Amount, e.Balance)));
         }
         else
-            Assert.Equal(-9000L, party.Gold); // unchanged off path (the original wraps its u32 instead) [~]
+            Assert.Equal(-9000L, party.Gold); // manual cap, treasury off: open question [U] (DIFFERENCES-IV D4-031)
+    }
+
+    /// <summary>
+    /// The original (X68000 preset: gold uncapped, treasury off): TAKEGOLD's <c>sub.l</c> on the u32 purse at
+    /// <c>0x789e4</c> wraps (31,000 − 40,000 = 4,294,958,296), and CMPGOLD then answers 30,000 (above its cap), so a later
+    /// price is paid from the wrapped purse.
+    /// </summary>
+    [OriginalDataFact]
+    public void TakeGold_Original_WrapsTheU32Purse()
+    {
+        // (5,5): INPUTN; CMPGOLD 0; JLT 12; TAKEGOLD 0; END
+        byte[] code = [0x22, 0x00, 0x0E, 0x12, 0, 0, 0x06, 12, 0, 0x33, 0, 0, 0x00];
+        var party = Party();
+        party.Gold = 31000;
+        var d = Dungeon(party, Code, OpenMap(code));
+        d.Enter(4, 5, 5, 0);
+        d.EnterNumber(40000);
+        Assert.Equal(4294958296L, party.Gold);
+        Assert.Equal(0L, party.Treasury.Balance);
+        // (5,5): CMPGOLD 100; JLT 11; TAKEGOLD 100; END
+        byte[] price = [0x22, 0x00, 0x12, 100, 0, 0x06, 11, 0, 0x33, 100, 0, 0x00];
+        Dungeon(party, Code, OpenMap(price)).Enter(4, 5, 5, 0);
+        Assert.Equal(4294958196L, party.Gold);
+    }
+
+    /// <summary>
+    /// CMPGOLD 0 / TAKEGOLD 0 read the low 16 bits of the number typed (<c>move.w</c>, <c>andi.l #0xffff</c>): 70,000
+    /// typed is 4,464 (70,000 − 65,536), so a purse of 5,000 passes CMPGOLD and pays 4,464, under every preset.
+    /// </summary>
+    [OriginalDataTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TypedGold_IsCutTo16Bits(bool code)
+    {
+        // (5,5): INPUTN; CMPGOLD 0; JLT 12; TAKEGOLD 0; END
+        byte[] script = [0x22, 0x00, 0x0E, 0x12, 0, 0, 0x06, 12, 0, 0x33, 0, 0, 0x00];
+        var party = Party();
+        party.Gold = 5000;
+        var d = Dungeon(party, code ? Code : Manual, OpenMap(script));
+        d.Enter(4, 5, 5, 0);
+        d.EnterNumber(70000);
+        Assert.Equal(536L, party.Gold);
     }
 
     // --- The bank's treasury view ---------------------------------------------------------------------------------------

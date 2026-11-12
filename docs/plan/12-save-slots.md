@@ -180,7 +180,10 @@ that IV always has three slots (ON in the list, OFF on the original's Save scree
   Guild-number question leaves the player in that new game `[~]`.
 - **IV's town names** need the running campaign's tables. In the picker over the main menu (IV with its title screen
   off) a town shows as TOWN n `[~]`.
-- **Not unit-tested:** the routing in `Game1`.
+- **Unit-tested (s205):** `Game1`'s routing decisions sit in `SaveSlotRouting` (the slots each mode lists, Save / Load
+  with the switch on or off, the main menu's Start, the picker's outcome in every mode for I–III and IV, in game and over
+  the main menu, Esc on Save, and the RESET GAME row); `SaveSlotRoutingTests`. `Game1` itself (the I/O each outcome
+  runs) is not built in tests (it needs a graphics device).
   - Checked live on Xvfb: I's F5 / overwrite question / F9 into D-069's question, the main menu's Start screen
     (scrolled list), and IV's F5 / F9 with Pendragon named; s177 IV with the switch off: F5's Save page, a save to
     slot 2 (then "*2:Save"), F9's load page and the load. Not live: the title's `_disk(0)` with slots 2 / 3.

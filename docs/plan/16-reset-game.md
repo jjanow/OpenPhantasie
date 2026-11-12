@@ -70,7 +70,8 @@ the result is written back over the same file. A save that can't be read is refu
   no save gives "THIS GAME HAS NO SAVE TO RESET."
 - **Confirmation** (`ResetGameScreen`): "CAUTION !!!" and "ALL DATA IN SAVE n WILL BE RESET" (DOS I's lines), then KEEP
   THE CHARACTERS / ERASE THE CHARACTERS (K / E), then "RESET THE WORLD AND … THE CHARACTERS?" with NO first, YES (Y / N).
-  Esc steps back. The outcome line stays until a key; then the main menu.
+  Esc steps back: YES / NO → Keep / Erase → the slot picker when it came first (s205), else the main menu. The outcome
+  line stays until a key; then the main menu.
 - Keys, mouse (hover / click a row) and pad (D-pad, A choose, B back).
 
 ## 5. Built (s204)
@@ -81,6 +82,8 @@ Code: `GameSession.Reset.cs` (Core: `AdoptResetRoster`, `KeptRoster`, `ApplyDosR
 `reset.*`, `options.reset_game*` (four lines that match DOS text have reworded fallbacks in I's `fallback.en.json`).
 Tests: `GameResetTests` (Core: the cell rule, pristine data unchanged and OUT1 left alone, Purge, Keep with the treasury
 off / on, the XP pool, no party, II / III Keep round trip and load, the file rewrite, IV Keep / Purge / file reload), `ResetGameScreenTests` (Client: the steps, keys, pad, clicks, fit, the
-Options row from the main menu only, the picker's Reset mode).
+Options row from the main menu only, the picker's Reset mode), `SaveSlotRoutingTests` (Client, s205: the RESET GAME
+row's route: the picker, "no save", the old / unreadable refusals, the one save's confirmation).
 
-Left: see `PLAN.md` P3 "Reset the game".
+Live (s205, `parity/s205-reset-live.md`): II, III and IV Keep / Erase on Xvfb, the picker's Reset mode (IV), the no-save
+line (III); Esc on Keep / Erase now steps back to the picker. Left: see `PLAN.md` P3 "Reset the game".

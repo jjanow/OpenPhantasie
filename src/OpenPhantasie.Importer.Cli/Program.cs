@@ -2,13 +2,15 @@ using OpenPhantasie.Data;
 using OpenPhantasie.Importer;
 using OpenPhantasie.Importer.Profiles;
 
-// openphantasie-import <path>... [--out DIR] [--list] [--check] [--steam]
+// openphantasie-import <path>... [--out DIR] [--list] [--check] [--steam] [--restore-maps | --keep-maps]
 // openphantasie-import --refresh [--out DIR]
 //   Scans the paths (disk images, zips, folders), lists what it finds and (without --list) imports it into DIR
 //   (default: the Client's import folder, <LocalApplicationData>/OpenPhantasie/import). Same library as the
 //   Client's import screen (10-importer.md 4.1).
 //   --check: import into a scratch copy and compare every output with the sha1 DIR's import.json recorded for that
 //   version; DIR is not changed. Exit 0 when all match, 1 otherwise.
+//   --restore-maps / --keep-maps: a played DOS I copy's maps (fog lifted, fixed fights spent) are restored as on a
+//   fresh copy, or imported as they are. Without either, the importer asks on a terminal and keeps them otherwise (s205).
 //   --refresh: re-run the versions DIR's import.json records with an older recipe, from their recorded sources (4.4).
 
 var paths = new List<string>();
@@ -16,7 +18,8 @@ string? outDir = null;
 var listOnly = false;
 var check = false;
 var refresh = false;
-const string Usage = "usage: openphantasie-import <path>... [--out DIR] [--list] [--check] [--steam] | --refresh [--out DIR]";
+bool? restoreMaps = null;
+const string Usage = "usage: openphantasie-import <path>... [--out DIR] [--list] [--check] [--steam] [--restore-maps | --keep-maps] | --refresh [--out DIR]";
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -32,6 +35,12 @@ for (var i = 0; i < args.Length; i++)
             break;
         case "--refresh":
             refresh = true;
+            break;
+        case "--restore-maps":
+            restoreMaps = true;
+            break;
+        case "--keep-maps":
+            restoreMaps = false;
             break;
         case "--steam":
             paths.AddRange(StoreLibraries.Find().Select(l => l.Path));
@@ -99,8 +108,21 @@ if (check)
     return results.All(v => v.Same) ? 0 : 1;
 }
 
+var restore = new HashSet<string>(StringComparer.Ordinal);
+foreach (var d in ImportRunner.RestorableMaps(scan))
+{
+    var yes = restoreMaps;
+    if (yes is null && !Console.IsInputRedirected)
+    {
+        Console.Write($"{d.Profile.Title} has been played: its maps have the fog lifted and fixed fights already won. " +
+                      "Restore them as on a fresh copy? [y/N] ");
+        yes = Console.ReadLine()?.Trim().StartsWith("y", StringComparison.OrdinalIgnoreCase) == true;
+    }
+    if (yes == true)
+        restore.Add(d.Profile.Id);
+}
 return Print(new ImportRunner(outDir, GameDataLocator.ShippedRoot)
-    .Run(scan, new Progress<string>(m => Console.WriteLine("  " + m))));
+    .Run(scan, new Progress<string>(m => Console.WriteLine("  " + m)), restoreMaps: restore));
 
 int Print(ImportReport report)
 {

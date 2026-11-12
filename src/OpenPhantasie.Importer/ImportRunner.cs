@@ -48,6 +48,8 @@ internal sealed class ImportSession
     public required IReadOnlyList<Detection> Detections { get; init; }
     public IProgress<string>? Progress { get; init; }
     public CancellationToken Cancel { get; init; }
+    /// <summary>Profile ids whose played maps the player chose to restore (<see cref="ImportRunner.CanRestoreMaps"/>).</summary>
+    public IReadOnlySet<string> RestoreMaps { get; init; } = new HashSet<string>();
 
     public byte[]? ReadStaged(string key)
     {
@@ -87,7 +89,10 @@ public sealed class ImportRunner
         return new ScanResult { Paths = paths, Containers = containers, Detections = detections, Notes = notes };
     }
 
-    public ImportReport Run(ScanResult scan, IProgress<string>? progress = null, CancellationToken cancel = default)
+    /// <param name="restoreMaps">Versions (profile ids) whose played maps are restored as on a fresh copy
+    /// (<see cref="CanRestoreMaps"/>; the player is asked, user s205). Others import as they are (decision 6).</param>
+    public ImportReport Run(ScanResult scan, IProgress<string>? progress = null, CancellationToken cancel = default,
+        IReadOnlySet<string>? restoreMaps = null)
     {
         var report = new ImportReport();
         report.Notes.AddRange(scan.Notes);
@@ -102,7 +107,7 @@ public sealed class ImportRunner
             return report;
 
         var staging = ImportRoot + ".tmp";
-        var manifest = Stage(staging, scan, work, report, progress, cancel);
+        var manifest = Stage(staging, scan, work, report, progress, cancel, restoreMaps);
 
         if (report.Versions.All(v => !v.Ok))
         {
@@ -135,7 +140,7 @@ public sealed class ImportRunner
     /// recording each version in the returned manifest (not yet written).
     /// </summary>
     private JsonObject Stage(string staging, ScanResult scan, List<Detection> work, ImportReport report,
-        IProgress<string>? progress, CancellationToken cancel)
+        IProgress<string>? progress, CancellationToken cancel, IReadOnlySet<string>? restoreMaps)
     {
         if (Directory.Exists(staging))
             Directory.Delete(staging, recursive: true);
@@ -147,7 +152,7 @@ public sealed class ImportRunner
         var session = new ImportSession
         {
             ShippedGameDataRoot = ShippedGameDataRoot, StagingRoot = staging, Detections = scan.Detections,
-            Progress = progress, Cancel = cancel,
+            Progress = progress, Cancel = cancel, RestoreMaps = restoreMaps ?? new HashSet<string>(),
         };
         foreach (var d in work)
         {
@@ -165,7 +170,7 @@ public sealed class ImportRunner
                 continue;
             }
             if (d.PlayedFiles.Count > 0)
-                ctx.Warnings.Insert(0, PlayedWarning(d));
+                ctx.Warnings.Insert(0, PlayedWarning(d, ctx.RestoreMaps));
             // A re-import of the same version replaces its earlier outputs. A file another version wrote since (DOS I's
             // tables over an Amiga I import's, s201) is that version's now and stays.
             if (manifest["games"]?[d.Profile.Game]?["versions"]?[d.Profile.Id]?["outputs"] is JsonObject previous)
@@ -237,7 +242,7 @@ public sealed class ImportRunner
             Paths = full.Paths, Containers = full.Containers, Notes = [],
             Detections = full.Detections.Where(d => ids.Contains(d.Profile.Id)).ToList(),
         };
-        var report = scan.Importable.Any() ? Run(scan, progress, cancel) : new ImportReport();
+        var report = scan.Importable.Any() ? Run(scan, progress, cancel, RestoredMaps(ImportRoot)) : new ImportReport();
         foreach (var s in stale.Where(s => report.Versions.All(v => v.ProfileId != s.ProfileId || !v.Ok)))
             report.Notes.Add($"{s.Title} was imported by an older version of the importer, and its files were not found " +
                              $"again ({(s.Sources.Count == 0 ? "none recorded" : string.Join(", ", s.Sources))}): import " +
@@ -268,7 +273,7 @@ public sealed class ImportRunner
         try
         {
             var report = new ImportReport();
-            var manifest = Stage(staging, scan, work, report, progress, cancel);
+            var manifest = Stage(staging, scan, work, report, progress, cancel, RestoredMaps(ImportRoot));
             var result = new List<CheckedVersion>();
             foreach (var v in report.Versions)
             {
@@ -353,10 +358,37 @@ public sealed class ImportRunner
     /// </summary>
     private static readonly HashSet<string> NotTables = new(StringComparer.Ordinal) { "GameData/phantasie1/asset-manifest.json" };
 
-    /// <summary>The player-facing warning for a played copy (user decision s158: import as is and say what was lost).</summary>
-    public static string PlayedWarning(Detection d)
+    /// <summary>
+    /// A played copy whose import would carry the play (fog lifted, fixed fights spent): DOS I's regions, read from the
+    /// OUT*.DAT play rewrites. The player is asked whether to restore them (user s205) by DOS's own Reset rule
+    /// (<see cref="Core.GameSession.DosResetCells"/>), which gives a fresh copy's cells back.
+    /// </summary>
+    public static bool CanRestoreMaps(Detection d) =>
+        d.Profile.Game == "phantasie1" && d.Profile.Feeds.Contains("tables") && !PlayedCopySafe.Contains(d.Profile.Id)
+        && d.PlayedFiles.Any(IsRegionFile);
+
+    /// <summary>The versions of <paramref name="scan"/> the player is asked about (<see cref="CanRestoreMaps"/>).</summary>
+    public static IReadOnlyList<Detection> RestorableMaps(ScanResult scan) => [.. scan.Importable.Where(CanRestoreMaps)];
+
+    /// <summary>The versions the import at <paramref name="importRoot"/> recorded with restored maps (re-runs keep the choice).</summary>
+    public static IReadOnlySet<string> RestoredMaps(string importRoot)
     {
-        var outs = d.PlayedFiles.Where(f => f.StartsWith("OUT", StringComparison.OrdinalIgnoreCase)).ToList();
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        var manifest = LoadManifest(Path.Combine(importRoot, ManifestName));
+        foreach (var (_, game) in manifest["games"] as JsonObject ?? [])
+            foreach (var (id, v) in game?["versions"] as JsonObject ?? [])
+                if (v?["maps_restored"] is JsonValue r && r.TryGetValue<bool>(out var b) && b)
+                    ids.Add(id);
+        return ids;
+    }
+
+    private static bool IsRegionFile(string f) => f.StartsWith("OUT", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The player-facing warning for a played copy (user decision s158: import as is and say what was lost;
+    /// s205: or restored, when the player chose that).</summary>
+    public static string PlayedWarning(Detection d, bool restored = false)
+    {
+        var outs = d.PlayedFiles.Where(IsRegionFile).ToList();
         var files = string.Join(", ", d.PlayedFiles);
         // s163: Amiga I's OUT*.DAT give only the town / dungeon places of its map pictures; fog and fights come from
         // DOS I's tables, so play (fog lifted, fights spent) changes nothing it imports. s201: its own tables read the
@@ -364,6 +396,10 @@ public sealed class ImportRunner
         if (!d.Profile.Feeds.Contains("tables") || PlayedCopySafe.Contains(d.Profile.Id))
             return $"This copy of {d.Profile.Title} has been played ({files} changed). Only what play leaves as it was " +
                    "is read from those files, so the import is the same as from a fresh copy.";
+        if (restored && CanRestoreMaps(d))
+            return $"This copy of {d.Profile.Title} has been played ({files} changed). Its saved map regions " +
+                   $"({string.Join(", ", outs)}) were restored as on a fresh copy: the fog is back and fixed fights are " +
+                   "armed again.";
         // DOS I stores spent fixed fights in its regions; the Apple's II stores only the fog (FORMAT.md 3.6).
         var fights = d.Profile.Game == "phantasie1" ? " and fixed fights already won stay gone" : "";
         return outs.Count > 0
@@ -437,6 +473,7 @@ public sealed class ImportRunner
             ["sources"] = new JsonArray(d.Containers.Select(c => (JsonNode)JsonValue.Create(c.SourcePath ?? c.Description)!).ToArray()),
             ["key_files"] = keyFiles,
             ["played_files"] = new JsonArray(d.PlayedFiles.Select(f => (JsonNode)JsonValue.Create(f)!).ToArray()),
+            ["maps_restored"] = ctx.RestoreMaps,
             ["warnings"] = new JsonArray(ctx.Warnings.Select(w => (JsonNode)JsonValue.Create(w)!).ToArray()),
             ["outputs"] = outputs,
         };

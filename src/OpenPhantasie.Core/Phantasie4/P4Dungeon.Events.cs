@@ -169,7 +169,7 @@ public sealed partial class P4Dungeon
                 {
                     var w = W(at + 1);
                     if (w == 0)
-                        w = _vm.Number;
+                        w = TypedGold; // evint's low 16 bits
                     // Under the Guild treasury the test reads spendable gold, as TAKEGOLD pays from it.
                     var gold = Party.SpendableGold(_options);
                     _vm.Cmp = gold <= 30000 ? (int)gold - w : 30000;
@@ -305,7 +305,7 @@ public sealed partial class P4Dungeon
                 case 0x33: // TAKEGOLD (no check: scripts test with CMPGOLD first)
                 {
                     var w = W(at + 1);
-                    var take = w == 0 ? _vm.Number : w;
+                    var take = w == 0 ? TypedGold : w; // evint's low 16 bits (move.w, andi.l #0xffff), as CMPGOLD
                     if (_options.TreasuryOn)
                     {
                         // The Guild treasury pays an event's price from spendable gold. Short (only O_008's typed amount
@@ -314,8 +314,10 @@ public sealed partial class P4Dungeon
                         Party.TrySpend(_options, Math.Min(take, Math.Max(0, Party.SpendableGold(_options))),
                             TreasuryEntryKind.Event);
                     }
+                    else if (_options.P4GoldUncapped())
+                        Party.Gold = (uint)(Party.Gold - take); // the original's sub.l at 0x19f1e, no check: the u32 purse wraps
                     else
-                        Party.Gold -= take; // the original's sub.l at 0x19f1e, no check (it wraps the u32 purse; Core's long goes negative [~])
+                        Party.Gold -= take; // manual 65,000 cap (D4-031): what an overdraw does there is the user's call [U]; Core's long goes below zero
                     _vm.Pc = at + 3;
                     break;
                 }
@@ -389,6 +391,9 @@ public sealed partial class P4Dungeon
     /// <c>_setgp</c>: party gold += w; "w GP obtained." + WAIT. The code's "cap" adds another 990,000 when the gold passes
     /// 990,000 (original bug, kept under <c>p4.gold-cap</c> = uncapped); the manual's 65,000 cap (D4-031) applies otherwise.
     /// </summary>
+    /// <summary>CMPGOLD / TAKEGOLD 0's amount: the low 16 bits of the number typed (INPUTN takes up to 99,999; events.md section 4).</summary>
+    private int TypedGold => _vm.Number & 0xFFFF;
+
     private void GiveGold(int w)
     {
         var gold = Party.Gold + w;

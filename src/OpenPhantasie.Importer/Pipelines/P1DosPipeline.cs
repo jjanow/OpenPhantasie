@@ -49,7 +49,7 @@ public class P1DosPipeline : IImportPipeline
         ctx.WriteGameData(Game, "messages.json", DataTables.Messages(Read));
 
         ctx.Progress("maps");
-        ctx.WriteGameData(Game, "overworld.json", MapTables.Overworld(Read));
+        ctx.WriteGameData(Game, "overworld.json", MapTables.Overworld(ctx.RestoreMaps ? RestoredRegion(Read) : Read));
         ctx.WriteGameData(Game, "dungeons.json", MapTables.Dungeons(Read), ensureAscii: true);
 
         ctx.WriteGameData(Game, "item-descriptions.json", Derived.ItemDescriptions(items, scrolls));
@@ -71,6 +71,26 @@ public class P1DosPipeline : IImportPipeline
         // The Bonus build's image and overlays hold them at 1987's offsets, so it resolves 1987's alternatives.
         ImportedStrings.Write(ctx, sourcesProfile: StringSourcesProfile);
     }
+
+    /// <summary>
+    /// s205: a played copy's regions as a fresh copy has them, when the player chose so: DOS I's own Reset rule
+    /// (<see cref="Core.GameSession.DosResetCells"/>, OV1 <c>0x4914</c>) on the 26×20 grid of every region but OUT1 / OUT5
+    /// (shipped open, no fights, left alone by the Reset). On a fresh copy it changes nothing.
+    /// </summary>
+    internal static Func<string, byte[]> RestoredRegion(Func<string, byte[]> read) => name =>
+    {
+        var data = read(name);
+        if (!name.StartsWith("OUT", StringComparison.OrdinalIgnoreCase) || name.Equals("OUT1.DAT", StringComparison.OrdinalIgnoreCase)
+            || name.Equals("OUT5.DAT", StringComparison.OrdinalIgnoreCase) || data.Length < GridBytes)
+            return data;
+        var copy = (byte[])data.Clone();
+        var grid = copy[..GridBytes];
+        Core.GameSession.DosResetCells(grid);
+        grid.CopyTo(copy, 0);
+        return copy;
+    };
+
+    private const int GridBytes = 26 * 20;
 
     /// <summary>The program file: 1987's <c>PHANTASI.COM</c> or the Bonus Edition's <c>PHANTASI.EXE</c>.</summary>
     internal static byte[] ProgramFile(FileSet files) =>
