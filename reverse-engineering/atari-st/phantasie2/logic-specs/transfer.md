@@ -1,13 +1,13 @@
 # Phantasie II (Atari ST): I → II and II → I character transfer — logic spec
 
 Phase 09 T3. Rules read from the converter in `UTILIT2.PRG` (I → II routine image `0x0e38`, converter `0x0edc` mode 2,
-XP pass `0x128a`); the byte table is `../FORMAT.md` §6. This file states **what** the transfer does to a character, in
+XP pass `0x128a`); the byte table is `../FORMAT.md` section 6. This file states **what** the transfer does to a character, in
 the terms of the remaster's shared `Character` model; offsets are cited so each rule can be checked against the byte
 table. Tags as in `docs/plan/RE-REFERENCE.md`: `[C]` read from the ST code, `[~]` probable, `[?]` open. **Checked live in
-Hatari (s76, `../parity/transfer-live.md`)**: UTILIT2's output equals these rules byte for byte on three rosters; Core's
+Hatari (`../parity/transfer-live.md`)**: UTILIT2's output equals these rules byte for byte on three rosters; Core's
 converter is pinned to two of them (`tests/…/Fixtures/p2-transfer/`).
 
-Manual: the combined I/II rulebook p.27 ("Updated Rules", quoted in `docs/plan/09-trilogy-manual-p2.md` §2).
+Manual: the combined I/II rulebook p.27 ("Updated Rules", quoted in `docs/plan/09-trilogy-manual-p2.md` section 2).
 Differences with the manual: `DIFFERENCES-II.md` D2-001 … D2-004. Core: `TransferIToII` (`src/OpenPhantasie.Core`).
 
 ## 1. What is converted
@@ -15,13 +15,13 @@ Differences with the manual: `DIFFERENCES-II.md` D2-001 … D2-004. Core: `Trans
 - The **22 character slots** of I's Guild, empty ones included (`0x0edc` loops over 22; an empty slot, `@92 = 0`, gets
   the edits and stays empty). The three elemental records (slots 22–24) are **not** converted; II's guild takes its own
   from II's `TWNS.INT` (`5950 + 22·318`, live).
-- The XP raise (§4 step 2) runs only on **occupied** records (`@92 > 0`).
+- The XP raise (section 4 step 2) runs only on **occupied** records (`@92 > 0`).
 - The transfer replaces the whole II roster (the manual: "Any characters you have created beforehand … will be erased").
   `twns.dat` and `sack.dat` are written from II templates, so the party's found gold and items are gone too `[~]`.
 
 ## 2. The rule: copy everything, then change these fields `[C]`
 
-The record is copied whole (bytes 0–281, I's layout; FORMAT §5) and then the fields below are changed — only their low
+The record is copied whole (bytes 0–281, I's layout; FORMAT section 5) and then the fields below are changed — only their low
 bytes: **the high byte of every edited word is kept** (live: HP 310/300 → 256/256, MP 291/290 → 261/261; the item, worn
 and points words are below 256 in any real record). Every field not
 listed keeps its I value: stats, skills and skill bonuses, status (a DEAD character stays DEAD), race, class, age clock
@@ -30,16 +30,16 @@ and lifespan, roster ordinal, in-party flag, cast flag, runes and the other I wo
 | Field (Core) | Offset | II value | Note |
 |---|---|---|---|
 | MP max, MP current | low bytes 17, 19 | `(v & ~0xFF) \| 5` → **5** for any MP < 256 | MP ceiling `@14` is kept |
-| HP max, HP current | low bytes 21, 23 | `v & ~0xFF` → **0** for any HP < 256 | manual silent; the status is not changed `[~]` (see §6) |
+| HP max, HP current | low bytes 21, 23 | `v & ~0xFF` → **0** for any HP < 256 | manual silent; the status is not changed `[~]` (see section 6) |
 | Level | low byte 89 | **20** if it was 20 (an undead), else **0** | manual: "they will be at level 0" |
 | Worn shield, armor, weapon | 83, 85, 87 | SM SHIELD **4**, LEATHER **23**, MACE **49** | D2-001 |
-| Carried items | 223, 225, 227; 229–239 | slot 1 = 4, slot 2 = 49, slot 3 = 23; slots 4–9 empty | every I item is gone; the wand survives as the score flag (§6, D2-001) |
+| Carried items | 223, 225, 227; 229–239 | slot 1 = 4, slot 2 = 49, slot 3 = 23; slots 4–9 empty | every I item is gone; the wand survives as the score flag (section 6, D2-001) |
 | Weapon points, shield soak, armor soak | 241, 243, 245 | 4, 4, 3 | the MACE / SM SHIELD / LEATHER values |
 | Armor in effect | 247 | 1 if it was 0 | a fight-start copy (`@246`); Core has no field for it, combat prep rewrites it |
-| Current town | 255 | **1** = PIPPACOTT (II's `@254` is 1-based, FORMAT §9 `[C]`; Core town **1**) | Core first read it as I's 0-based index (town 2); fixed with the T5 wiring |
-| Spell flags | 97–203, 204–215 | §3 | D2-002, D2-004 |
-| Bank gold | 262, 263 | §5 | D2-003 |
-| Experience | 266–269 | §4 | |
+| Current town | 255 | **1** = PIPPACOTT (II's `@254` is 1-based, FORMAT section 9 `[C]`; Core town **1**) | |
+| Spell flags | 97–203, 204–215 | section 3 | D2-002, D2-004 |
+| Bank gold | 262, 263 | section 5 | D2-003 |
+| Experience | 266–269 | section 4 | |
 | II-only bytes | 282–317 | all 0 | @284 (origin `[~]`) = 0 = Gelnor; the rest `[?]`. Not in the Core model yet |
 
 Bytes the ST copies whose meaning in II is open: `@42` (TOSS in II `[~]`, 0 in every I record, so a transferred character
@@ -56,7 +56,7 @@ Spell flags are words at `@96 + 2·slot`, slots 0–59; a player's spell number 
    (class bytes 2/4 and 1/5). The flag is set whether or not the character knew the spell in I (1 = known).
 
 Manual: "all spells except for any divine spells (#55 and above). Wizards will keep spell #5 and Priests spell #1."
-Options (user, s76): step 3 is `p2.transfer-spells` — `st` (as above; Original (Atari ST) preset) or `manual` (Wizards
+Options (user): step 3 is `p2.transfer-spells` — `st` (as above; Original (Atari ST) preset) or `manual` (Wizards
 #5 and Priests #1 only, the same "set to 1" mechanics; Original (manual) and Remaster presets: read strictly, the manual
 takes Rangers' and Monks' spells). Step 2 is `p2.transfer-divine` — `p27` (#55 and above, as the ST) or `p14` (#58 and above,
 p.14's "DIVINE SPELLS (#58+)": slots 54–56 are cleared too).
@@ -114,15 +114,16 @@ anyone keeps is 7 · 256 + 100 = 1,892 GP. A character with under 100 GP gains g
 
 - Remaster gap (no ST equivalent): a remaster bank balance above 65,535 (`p1.gold-cap` = `lifted`) is read as 65,535
   first, as the DOS export writes it.
-- Option `p2.transfer-gold` (D2-003): `st` (the formula; user s76: accepted) or `no-gain` = min(old, formula), so nobody
-  gains gold (a candidate, pending the user).
+- Option `p2.transfer-gold` (D2-003, decided: `st`, the formula) or `no-gain` = min(old, formula), so nobody
+  gains gold.
 
 ## 6. Open points
 
 - HP 0 with status kept: is a transferred character with HP 0 and status OK able to fight before resting or training?
-  Check by loading a converted roster in `PHANT.PRG` `[?]`. (Training at level 0 → 1 should give HP; the Inn refills HP.)
-- Whether II's own Guild training uses the II FIGHTER / PRIEST sums of §4 `[?]`.
-- D2-001 settled (s76 research): no II version has a wand item. II's "wand of Nikademus" is a **flag**: the character's
+  Check by loading a converted roster in `PHANT.PRG` `[?]`. Training at level 0 → 1 gives HP (live, `training.md` section 2);
+  the Inn refills HP. (II → I arrivals die to the first hit, section 8.)
+- II's own Guild training uses the same FIGHTER / PRIEST sums as section 4 (`training.md` section 1, live).
+- D2-001 settled: no II version has a wand item. II's "wand of Nikademus" is a **flag**: the character's
   I score `@70` > 99, which the transfer copies unchanged (`PHANT.PRG` `0x3a16` prints "- WAND OF NIK -"; the Mystic
   `0xd7e4` adds "heroes of Gelnor"). So the ST keeps the wand as the manual says; no option. Core:
   `TransferIToII.HasWandOfNikademus`.
@@ -136,16 +137,16 @@ What the original does around the converter, and how the remaster offers it.
 CHARACTERS → FROM PHANTASIE 1 TO PHANTASIE 2); the manual's p.27 calls it "the Utilities function", the Apple/C64
 text "Option 6" on the dungeon side. It "should be the first thing you do".
 
-**Steps (ST, live s76, `../parity/transfer-live.md` §1) `[C]`:**
+**Steps (ST, live, `../parity/transfer-live.md` section 1) `[C]`:**
 1. Alert "THIS WILL ERASE ANY CHARACTERS ON THE PHANTASIE 2 DISK. OKAY?" (YES / NO).
 2. "INSERT PHANTASIE 1 DATA DISK": I's own roster file (`guild.dat`) is read. Only the roster: nothing else of I's.
-3. "INSERT PHANTASIE 2 DATA DISK": II's `guild.dat` is written (§1–§5, II's own elementals), `twns.dat` from II's
+3. "INSERT PHANTASIE 2 DATA DISK": II's `guild.dat` is written (section 1–section 5, II's own elementals), `twns.dat` from II's
    template, `sack.dat` zeroed, `DNG.SAV` / `DNGX.SAV` deleted. `OUT*.DAT` get their grids back from II's `MAPS.INT` (the new-game routine
-   `0xb2c(2)`, called first; s208 `[C]` static, FORMAT §9.1), so the fog is reset too: regions 1 and 2 open, the rest
+   `0xb2c(2)`, called first; `[C]` static, FORMAT section 9.1), so the fog is reset too: regions 1 and 2 open, the rest
    fogged. (`MAPS.INT` is the buffer loaded at start-up; a II → I transfer earlier in the same run reloads it with I's
    `maps.int`, so an I → II after it would copy I's grids `[~]`, not checked live.)
 4. The next `START.PRG` run starts in Pippacott with nobody in the party; the converted characters are free Guild
-   members (`@218` is kept but ignored and cleared by the next save, `../parity/roster-live.md` §4.4).
+   members (`@218` is kept but ignored and cleared by the next save, `../parity/roster-live.md` section 4.4).
 
 So a transfer is **a new II game whose roster is I's converted roster**.
 
@@ -161,7 +162,7 @@ So a transfer is **a new II game whose roster is I's converted roster**.
   grew under I's `guild-limit` = `none` is left behind and named in the report); `none` converts every slot and keeps
   the slot numbers (Guild number = slot + 1, no compacting).
 - **Occupied:** a remaster slot holding a character is an occupied record. A character made in the remaster has no
-  DOS `@92` (`RosterOrdinal` 0); it is given its slot number, as the DOS export writes `@92`, so the §4 step 2 XP raise
+  DOS `@92` (`RosterOrdinal` 0); it is given its slot number, as the DOS export writes `@92`, so the section 4 step 2 XP raise
   runs for it too (the manual: "enough experience to improve").
 - **Reset (a new game):** the party, the elemental and the parked parties are empty, the purse 0, the sack and pending
   treasure empty, no dungeon save, every town from its template, the start in Pippacott (II's new-game start), every
@@ -191,7 +192,7 @@ data disk (II's `guild.dat` read), the P1 game disk (I's `maps.int` / `twns.int`
 **No options.** The manual has no II → I, so the ST's values run (`TransferIToIIRules.St`: Rangers and Monks get their
 spell too, divine #55+ kept, the gold formula), whatever the II save's `p2.transfer-*` say. Not a manual difference.
 
-**HP 0 `[C]` (live s146, `../parity/transfer-live.md` section 8):** every arrival has HP 0 / max 0 and status OK, like an
+**HP 0 `[C]` (live, `../parity/transfer-live.md` section 8):** every arrival has HP 0 / max 0 and status OK, like an
 I → II arrival (section 6), and XP 0 unless II's XP was at least 5,120 (no raise), so most cannot train until they earn
 XP. In the ST I (v2.0) such a member dies to the first hit that lands on it; run C's party of six was wiped by four
 coyotes and the Great Demon destroyed every one. Unlike I → II (XP raised to the level-0 training minimum, 100 GP or

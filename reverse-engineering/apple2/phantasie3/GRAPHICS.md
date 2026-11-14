@@ -1,6 +1,6 @@
 # Phantasie III (Apple II, SSI 1987): graphics
 
-s212. Images: `../original-images/phantasie3/` (the `[cr]` v1.0 sides 1A / 1B / 2A / 3A, and the original v3.0 disk 1
+Images: `../original-images/phantasie3/` (the `[cr]` v1.0 sides 1A / 1B / 2A / 3A, and the original v3.0 disk 1
 sides A / B in `woz-original-v3.0/`). Scripts: `tools/scripts/extract_a2_p3_graphics.py` (PNGs +
 `extracted/graphics/extraction-index.json`; default source the v3.0 WOZ pair, read by `tools/scripts/a2_woz.py`),
 `tools/scripts/build_a2_p3_asset_manifest.py` (the Client pack `src/OpenPhantasie.Data/GameData/phantasie3/graphics/apple2.json`).
@@ -24,7 +24,7 @@ Tags: [C] read from the files / BASIC / 6502 code, [~] probable, [?] not known.
 | Graveyard (CEMETARY3) | HPLOT gate + party figures + the demon from sprite rows | procedural: not extracted [~ could be replayed] |
 | Sound | `CALL 770` with pitch / duration at 768 / 769 (`INFO`, $302: as II's), `PEEK(-16336)` clicks | not decoded [?] |
 
-Copies (s212, compared file by file): 1A = 3A and 1B = 2A on every art file; v3.0 disk 1 equals them on `SHAPES`,
+Copies (compared file by file): 1A = 3A and 1B = 2A on every art file; v3.0 disk 1 equals them on `SHAPES`,
 `MONSTER SHAPES`, `MONSTER PLOT`, `SCREEN`, `IMPREVERSE`, `PIC*`, `OUTPIC`, `NIKADEMUS`, `DUNGPLOT`, `PICPLOT`, the
 MN3x and OT files. They differ on three [C]:
 - `ICE DRAGON`: the `[cr]` file is the cracker's screen ("ALBERT FOR YOU ON 27.MAY.87", "SanYauTim 325", an italic
@@ -155,7 +155,7 @@ remaster's text needs; the pack uses the remaster 5 × 7 font as II's does.
   `.evil` (the ending's room).
 - `index.json`: `default_order` amiga, apple2 (as II's ST, Apple): the Amiga stays the default; with no Amiga copy the
   Apple's art is drawn, before DOS CGA (pick-only, `fallback_order`).
-- Checked in the Client on Xvfb (s212, `parity/shots/s212-p3-apple2-*.png`): title, combat (monsters), Scandor and the
+- Checked in the Client on Xvfb (`parity/shots/s212-p3-apple2-*.png`): title, combat (monsters), Scandor and the
   Netherworld from Apple tiles (tile swaps), a dungeon level (white box, cursor). Client code a III pack without the
   Amiga's layouts needs: the gods' reward draws its picture page only with a `scroll_frame` (the parchment of the
   speech page, `UiOverlays.DrawRewardScene`), so with this pack the reward is the plain text box and

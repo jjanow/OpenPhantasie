@@ -1,12 +1,13 @@
 # Phantasie II (Atari ST) — function map of `PHANT.PRG` and diff against Phantasie I (Amiga `game`)
 
-Phase 09 T3, task **3b.6** (`docs/plan/03b-phantasie2-re.md`). Static only: nothing here has been checked in Hatari yet.
+Phase 09 T3, task **3b.6** (`docs/plan/03b-phantasie2-re.md`). Static map; live checks of the rules are in the topic specs
+(`training.md`, `toss-rock.md`, `terrain.md`, `encounters.md`, `endgame.md`, …), which supersede section 5 where they differ.
 Tags: `[C]` read directly in both binaries, `[~]` strong evidence (string, float or call-graph match; or a read of one
-side only), `[?]` weak (shape match only). Addresses: II = **image addresses** (`FORMAT.md` §1: text at 0, data at
+side only), `[?]` weak (shape match only). Addresses: II = **image addresses** (`FORMAT.md` section 1: text at 0, data at
 `0x1e298`); I = **`hN:0xOFF`** = hunk N of the Amiga `game` + offset (the convention of `amiga/FORMAT.md`).
 
 Regenerate: `python3 tools/scripts/fmap_st_p2_amiga.py` (writes `00-function-map.json` next to this file) and
-`python3 tools/scripts/fmap_st_p2_amiga.py --table` (prints the §8 tables). The JSON keeps the strings, callees and the full
+`python3 tools/scripts/fmap_st_p2_amiga.py --table` (prints the section 8 tables). The JSON keeps the strings, callees and the full
 signature diff of every function.
 
 ## 1. Method
@@ -33,7 +34,7 @@ signature diff of every function.
    partner does not call. Anything else is **changed**, with the differing parts listed (`text`, `float`, `const`,
    `calls`). **new** = no I partner; **runtime** = libc / OS / GEM glue. "same" is therefore `[~]` at best; a "changed"
    that only differs in `const` is often compiler or platform noise (UI coordinates, GEM object numbers): the
-   rules-relevant changes are listed by hand in §5.
+   rules-relevant changes are listed by hand in section 5.
 
 ## 2. Summary counts
 
@@ -42,7 +43,7 @@ signature diff of every function.
 | II functions found | 602 = **393 game** + 209 runtime |
 | II game functions paired with I | **276** (same **113**, changed **164**) |
 | II game functions with no I partner (**new**) | **116** (63 of them call GEM/VDI: ST user interface; 16 reference strings) |
-| I game functions (hunks 0–89) with no II partner (**removed / platform**) | **126** (mostly Intuition/graphics/audio: hunks 77, 80, 86, 89; see §8.2) |
+| I game functions (hunks 0–89) with no II partner (**removed / platform**) | **126** (mostly Intuition/graphics/audio: hunks 77, 80, 86, 89; see section 8.2) |
 | How the 276 pairs were found | 92 string anchors, 111 callee, 23 caller, 37 module order, 14 read |
 | Changed pairs by differing part | const 148, calls 59, text 53, float 4 (several per pair) |
 | Confidence of the 393 rows | `[C]` 14 pairs + 6 new functions read in full, `[~]` the rest of the string/float/sim ≥ 0.6 rows, `[?]` 44 weak shape matches |
@@ -85,7 +86,7 @@ Named bindings: `0x19e7c` vswr_mode (VDI 32) · `0x19eb6` v_clsvwk (VDI 101) · 
 3. **Record @282 = SCORE, @284 = ORIGIN, @286–@300 and @302–@316 = two 8-word per-amulet arrays** `[C]` for @282/@284
    (sheet `0x03a50` prints `LUCK %3u SCORE %7u` with @10 and @282, and `ORIGIN: %s` from the table at data+`0x1494`
    `GELNOR / FERRONRAH / NETHERWORLD` indexed by @284); `[~]` for the arrays (creation clears both; encounter start
-   reads @284 + 2k, see §5.6). Creation sets @284 = 1 (FERRONRAH), or 2 (NETHERWORLD) when the creating town index > 6
+   reads @284 + 2k, see section 5.6). Creation sets @284 = 1 (FERRONRAH), or 2 (NETHERWORLD) when the creating town index > 6
    `[~]`; transferred characters keep 0 = GELNOR.
 
 ## 5. Findings: what II changed (rules)
@@ -106,13 +107,13 @@ RANGER, FIGHTER, PRIEST, WIZARD); `s = sum / mult`; `F = 1.8^level`; `X = (F −
 | WIZARD | (2·INT + LUCK) / 42.9 | same |
 
 - So **yes: PHANT.PRG's own Guild training uses the changed FIGHTER/PRIEST sums**, the same constants as UTILIT2's
-  transfer threshold (`FORMAT.md` §6). Effect: with equal stats S, the required XP is ×4/3 of I's for both classes
+  transfer threshold (`FORMAT.md` section 6). Effect: with equal stats S, the required XP is ×4/3 of I's for both classes
   (FIGHTER 8.25/S → 11/S, PRIEST 9.05/S → 12.1/S, times the level factor); strength counts double for fighters,
   intelligence double for priests.
 - **New in II:** `if level == 0: F = 1.0` (`0x0cf84`). The Amiga I has no such reset at all (DOS I resets on XP = 0
   instead, `town-menus.md`). At level 0 the threshold is 0.2 × the level-1 value, which is what lets transferred
-  characters train at once. Gold for level 0 is `pow(0, 2.2)` through FFP log: **0 gold**, live s78 (`parity/roster-live.md` §4,
-  `training.md`). Level-up also changed its spell-mark rule (every unknown spell ≤ the new level, `training.md` §2).
+  characters train at once. Gold for level 0 is `pow(0, 2.2)` through FFP log: **0 gold**, live (`parity/roster-live.md` section 4,
+  `training.md`). Level-up also changed its spell-mark rule (every unknown spell ≤ the new level, `training.md` section 2).
 - Same in I-Amiga and II: `(20 − CHA)` is squared **without** the DOS clamp at 0 (`k = max(20 − CHA, 0)` in DOS), so a
   CHA above 20 still costs gold on both 68000 versions `[C]` (version difference, not a II change).
 
@@ -129,8 +130,8 @@ RANGER, FIGHTER, PRIEST, WIZARD); `s = sum / mult`; `F = 1.8^level`; `X = (F −
 - **Skill**: @42 TOSS grows like the other nine skills (level-up loop over @30…@48 with the class table at
   `0x25cd6`). Its bonus @62 is **recomputed at creation and at every level-up**: `@62 = 2·level + 4·DEX + STR + 10`,
   +15 for DWARF (race 1), +30 for GNOME (race 4) (`0x0cb70`, `0x0c730`); "level" is the level *before* the increment, and creation runs `level_up(0)`, so a new
-  character gets 4·DEX + STR + 10 + race bonus. Live s78: a transferred TROLL FIGHTER (STR 26, DEX 3) trained 0 → 1 gets
-  @62 = 48 `[C]` (`parity/roster-live.md` §4). I has no such line (I never uses @42/@62).
+  character gets 4·DEX + STR + 10 + race bonus. Live: a transferred TROLL FIGHTER (STR 26, DEX 3) trained 0 → 1 gets
+  @62 = 48 `[C]` (`parity/roster-live.md` section 4). I has no such line (I never uses @42/@62).
 
 ### 5.3 Terrain (`overworld_step 0x06022` ↔ I `h59:0x0000`; `lava_or_swim 0x0fac2` ↔ I `h71:0x0e88`) `[C]` static
 
@@ -148,20 +149,20 @@ else 60 (both). Class switch, I → II:
 - **Lava** (mode 8 = `0x0fac2(0)`): every living member takes `1 + ⌊rnd100 · d / 10⌋` (1 to d·10 + 1), no skill roll,
   then DIES if HP ran out. Lava cells return before the random-encounter roll, so **no encounters** on lava (manual
   agrees). Swimming (`0x0fac2(1)`) is I's rule: `rnd100 < SWIM @48` swims, else 1–6 damage.
-- Mist = class 11 and Dark Voids = class 7 `[~]` (fill patterns, seen live s78); full rules in `terrain.md`.
+- Mist = class 11 and Dark Voids = class 7 `[~]` (fill patterns, seen live); full rules in `terrain.md`.
 
 ### 5.4 Divine spells (`cast_spell_field 0x06ecc` ↔ I `h50:0x07c4`) `[C]` static
 
 Two new spell cases, by spell number (slot + 1):
 Both test the **location** word `0x24eb4` (3 = dungeon, 2 = wilderness `[~]`: mode 6 frees the dungeon buffers when
 it is 3), not the main-loop mode.
+Full rules (exact FFP results, ids, draw order): `magic-divine.md` section 2–section 3. In short:
 - **#58 DIVINE I** — only at location 3 (dungeon): deity = `DEMIGOD / ATHENA / APOLLO / ZEUS`
-  [⌊rnd100·rnd100·0.0004⌋]; the stored FFP constant is just below 0.0004, so even 100·100 gives 3.99… → 3 and the
-  index stays 0–3 `[~]` (depends on `ffpmul` rounding). Prints `%s [original text]`, then dungeon
-  message 105 (`dungeon_message 0x116aa`).
-- **#57 DIVINE II** — only at location 2 (wilderness) **in region 26** (`0x25b92`): sets the forced-encounter monster
-  `0x2832c` = max(1, ⌊rnd100·rnd100·0.0072⌋) (1–71 with the stored constant), or with 25 % (rnd100 < 25)
-  ⌊75 + 0.02·rnd100⌋ (75–76, Pluto's dragons), and starts combat (mode 11). The id is 1-based; the 25 % branch draws a new r (75 or 76 = beasts V/VI); see `magic-divine.md` (s78), which supersedes this section.
+  [⌊rnd100·rnd100·0.0004⌋] (index 4, past the table, at 100·100). Prints `%s [original text]`, then
+  dungeon message 105 (`dungeon_message 0x116aa`).
+- **#57 DIVINE II** — only at location 2 (wilderness) **in region 26** (`0x25b92`): sets the 1-based forced-encounter
+  monster `0x2832c` = max(1, ⌊rnd100·rnd100·0.0072⌋), or with 25 % (rnd100 < 25, a new draw) ⌊75 + 0.02·rnd100⌋
+  (75 / 76 / 77, Pluto's beasts V–VII), and starts combat (mode 11).
 - Learning: `guild_learn_spell 0x0d0d2` keeps I's bounds (learnable slot < 55, `#55`/`#54` tests) `[C]`, so divine
   spells are never learnt at the Guild; #57 is granted at the DNG3 pool, #58 only by Phantasie I (`magic-divine.md`).
 
@@ -179,28 +180,18 @@ it is 3), not the main-loop mode.
 
 ### 5.6 Amulets, orb and the endgame `[~]`
 
-Superseded by `endgame.md` (s78, `[C]`): the minion flags are @286 + 2(k−1), the beast runes @302 + 2(k−1), and the
-win is DNG8 script op 23. The lines below are the s76 first reading.
+The rules are in `endgame.md` (`[C]`, live-checked). This section keeps only the function pairs:
 
-- **Pluto's minions**: `encounter_start 0x09bf4` (I `h44:0x0000`) treats a first monster group whose reaction
-  modifier (+0x2a) is below −10 as minion k = −10 − value (1–8). If any party member has word @(284 + 2k) = 1
-  (the first per-amulet array, @286 + 2(k − 1)), the encounter is replaced by a random monster ⌊rnd100·36/100⌋ ("AN ENCOUNTER");
-  otherwise `[original text]`. On victory (`combat_victory 0x0a290`, I `h44:0x0614`) the first living member
-  `TAKES AN AMULET`: item 140 + k (AMULET k, items 141–148) goes into the first free party slot;
-  `[original text]`.
-- **Score and orb**: `score_check 0x0d798` (I `h8:0x0d84`, which tests I's rings 141–151) now tests item 150 (ORB) and
-  SCORE @282 > 150, raises @282 of every party member to a computed value, and prints `score_rank_text 0x00f64`
-  (I `h23:0x07b2`) with one of
-  `novice adventurers / experienced adventurers / not ready to destroy the orb / ready to destroy the orb / to find the
-  orb / heroes of Ferronrah / [original text] Gelnor also` (I: "… THE GODS AND FACE THE TESTS").
-- **Amulet use**: `use_item` calls `0x02ab0` with k = item − 141: GEM dialog 18; answer 2 → `YOU ARE CHANGED` and
-  @302 + 2k := 1 for every member with @286 + 2k = 1; answer 3 → `LOOKS NICE !` `[~]`.
-- **Item use** `use_item 0x0dfcc` (I `h8:0x1342`) tests item ids 140, 141 and 149 (FLMN WAND) where I tested 141 and 150
+- **Pluto's minions** (first group's reaction modifier +0x2a below −10): `encounter_start 0x09bf4` ↔ I `h44:0x0000`; `combat_victory 0x0a290` ↔ I `h44:0x0614`
+  (amulet into the sack, `endgame.md` section 3.1).
+- **Score and orb**: `score_check 0x0d798` ↔ I `h8:0x0d84` (I tests rings 141–151); `score_rank_text 0x00f64` ↔ I
+  `h23:0x07b2` (I: "… THE GODS AND FACE THE TESTS"); `endgame.md` section 2.
+- **Amulet use**: `use_item` → `0x02ab0` (new, GEM dialog 18, `endgame.md` section 3.2).
+- **Item use** `use_item 0x0dfcc` ↔ I `h8:0x1342` tests item ids 140, 141 and 149 (FLMN WAND) where I tested 141 and 150
   `[~]`; the item-line printers `0x03946` / `0x17c92` special-case 141–150.
-- **Ending**: mode 7 runs `endgame_filmon 0x12f2a` (I `h32:0x06d0`, Zeus "WELL DONE, MY SMALL FRIENDS", `final.pic`):
-  rewritten (Filmon the Sage, `final2.pic`, `crowd.pic`, title `%s - the %s from %s` by origin `0x1298e`), then
-  mode 2 again. Pluto's farewell (`pluto_voice 0x0ad9a`, "You hear a booming voice") is called from combat victory.
-  The Astral Plane / Great Demon defeat path (`0x12bea` ↔ `h32:0x055c`) is kept from I.
+- **Ending**: `endgame_filmon 0x12f2a` ↔ I `h32:0x06d0` (I: Zeus "WELL DONE, MY SMALL FRIENDS", `final.pic`), rewritten
+  (`endgame.md` section 7; title by origin `0x1298e`). Pluto's farewell `pluto_voice 0x0ad9a` (new) is called from combat
+  victory. The Astral Plane / Great Demon defeat path (`0x12bea` ↔ `h32:0x055c`) is kept from I.
 
 ### 5.7 Other changes worth a spec line
 
@@ -220,39 +211,37 @@ win is DNG8 script op 23. The lines below are the s76 first reading.
 
 | # | 3b.7 row | Functions to spec (II ↔ I) | What is known / what is open |
 |---|---|---|---|
-| 1 | **Training** | `0x0cdde` ↔ `h5:0x13b0`; `0x0c71a` ↔ `h5:0x1748` | done: `training.md` (live s78; level-0 gold = 0) |
-| 2 | **Toss Rock** | `0x0f298` ↔ `h71:0x0446`; `0x07610` ↔ `h35:0x0000` (block `0x0773a…0x079aa`); `0x0c71a`, `0x0c90c` | done: `toss-rock.md` (live s78; `@28` = town-exit formula, damage ≥ 1) |
-| 3 | **Terrain** | `0x06022` ↔ `h59:0x0000`; `0x0fac2` ↔ `h71:0x0e88` (+ removed `h71:0x0a50` pool) | §5.3; open: which classes are Mist / Dark Voids (needs `OUT*.DAT` cell values, 3b.8), encounter tables `0x0fe38` ↔ `h74:0x0000` |
-| 4 | **Endgame** | `0x12f2a` ↔ `h32:0x06d0`; `0x0ad9a` new; `0x0a290` ↔ `h44:0x0614`; `0x00f64` ↔ `h23:0x07b2`; `0x0d798` ↔ `h8:0x0d84`; `0x1298e` new | §5.6 `[~]`; open: win condition, what sets @282 ranks, orb destruction trigger |
-| 5 | **Amulets / orb** | `0x09bf4` ↔ `h44:0x0000`; `0x0a290`; `0x0dfcc` ↔ `h8:0x1342`; `0x12078` ↔ `h41:0x1ba4` (s95: the field-id map, DOS OV2 `0x1ba5`, not an item activation); `0x02ab0` new ("YOU ARE CHANGED", sets @302) | minion → amulet k `[~]`; open: meaning of the two 8-word arrays, FLMN WAND (149) use |
-| 6 | **DIVINE II / I** | `0x06ecc` ↔ `h50:0x07c4`; combat side `0x07610` (spell numbers 55/58/60 tables) | §5.4 `[C]`; open: where #57/#58 are granted (dungeon events `0x11ab6` ↔ `h41:0x15b8`?), 0/1-based monster id |
-| 7 | **Origin** | `0x0c90c` ↔ `h5:0x0832` (sets @284); `0x03a50`, `0x03192`, `0x17536` (print); `0x09bf4` | §4.3; open: town-index rule `> 6` → NETHERWORLD needs II's town list (3b.8) |
-| 8 | **Rulebook quiz** | `0x19d42` (new) ← `0x07344` mode 3 | §5.5 `[C]`; decision needed (see §7) |
-| 9 | **Monsters / encounters** | `0x0a72e` + `0x186de` ↔ `h44:0x0998`; `0x0fe38` ↔ `h74:0x0000`; `0x09dac` ↔ `h44:0x00d6` | done s80: `encounters.md` (static; L / reaction averaged, wandering 12·T, no Black Knights, height fit) |
-| 10 | **Temple** | `0x00938`/`0x00974` ↔ `h23:0x03e8` | **no work**: same screen title in I (§4.2); close the row |
+| 1 | **Training** | `0x0cdde` ↔ `h5:0x13b0`; `0x0c71a` ↔ `h5:0x1748` | done: `training.md` (live; level-0 gold = 0) |
+| 2 | **Toss Rock** | `0x0f298` ↔ `h71:0x0446`; `0x07610` ↔ `h35:0x0000` (block `0x0773a…0x079aa`); `0x0c71a`, `0x0c90c` | done: `toss-rock.md` (live; `@28` = town-exit formula, damage ≥ 1) |
+| 3 | **Terrain** | `0x06022` ↔ `h59:0x0000`; `0x0fac2` ↔ `h71:0x0e88` (+ removed `h71:0x0a50` pool) | done: `terrain.md` (Mist = 11, Dark Voids = 7 `[~]`); encounter tables `0x0fe38` ↔ `h74:0x0000`: `encounters.md` section 4 |
+| 4 | **Endgame** | `0x12f2a` ↔ `h32:0x06d0`; `0x0ad9a` new; `0x0a290` ↔ `h44:0x0614`; `0x00f64` ↔ `h23:0x07b2`; `0x0d798` ↔ `h8:0x0d84`; `0x1298e` new | done: `endgame.md` |
+| 5 | **Amulets / orb** | `0x09bf4` ↔ `h44:0x0000`; `0x0a290`; `0x0dfcc` ↔ `h8:0x1342`; `0x12078` ↔ `h41:0x1ba4` (the field-id map, DOS OV2 `0x1ba5`, not an item activation); `0x02ab0` new ("YOU ARE CHANGED", sets @302) | done: `endgame.md` section 1, section 3, section 7 |
+| 6 | **DIVINE II / I** | `0x06ecc` ↔ `h50:0x07c4`; combat side `0x07610` (spell numbers 55/58/60 tables) | done: `magic-divine.md` (dungeon events `0x11ab6` ↔ `h41:0x15b8`?) |
+| 7 | **Origin** | `0x0c90c` ↔ `h5:0x0832` (sets @284); `0x03a50`, `0x03192`, `0x17536` (print); `0x09bf4` | done: `endgame.md` section 9 |
+| 8 | **Rulebook quiz** | `0x19d42` (new) ← `0x07344` mode 3 | section 5.5 `[C]`; D2-011 decided: not included |
+| 9 | **Monsters / encounters** | `0x0a72e` + `0x186de` ↔ `h44:0x0998`; `0x0fe38` ↔ `h74:0x0000`; `0x09dac` ↔ `h44:0x00d6` | done: `encounters.md` (L / reaction averaged, wandering 12·T, no Black Knights, height fit) |
+| 10 | **Temple** | `0x00938`/`0x00974` ↔ `h23:0x03e8` | **no work**: same screen title in I (section 4.2); close the row |
 | 11 | Data formats (3b.8) | `0x04b88`/`0x04c8c` (3000-B regions), `0x0292a`/`0x13608` (scrolls), `0x10320` (DNG/MESS), `0x0ed50` (TWNS.INT), `0x13526` (roster save) | sizes known, layouts open |
 | 12 | GEM UI (presentation only) | 63 new GEM-calling functions; I h77/h80/h86 | no rules; skip |
 
 ## 7. Conflicts for the user
 
-Nothing here contradicts a rule the manual states outright, but these points need a decision (like I's D-036) or
-belong next to an existing `DIFFERENCES-II.md` entry. Not decided here.
+All five are now decided in `DIFFERENCES-II.md` (the id after each item).
 
-1. **Rulebook quiz hangs the game after two wrong answers** (§5.5). The manual says nothing about a quiz. Options:
+1. **Rulebook quiz hangs the game after two wrong answers** (section 5.5). The manual says nothing about a quiz. Options:
    leave it out (as I's D-036 did for I's protection), keep it as an option without the hang, or keep it 1:1.
-2. **Training XP for FIGHTER and PRIEST rises by a third in II** (§5.1). The manual says training is unchanged from I
-   ("no change stated"), and gives no formula. Manual-silent change: does II use II's numbers (1:1) — presumably yes —
-   and is it worth a `DIFFERENCES-II.md` note?
-3. **DIVINE spells** (§5.4) add facts to the open **D2-004** (#55+ vs #58+): in the code DIVINE II (#57) works only in
+   → **D2-011**: not included.
+2. **Training XP for FIGHTER and PRIEST rises by a third in II** (section 5.1). The manual says training is unchanged from I
+   ("no change stated"), and gives no formula. → **D2-012**: NOT A CONFLICT, II's numbers.
+3. **DIVINE spells** (section 5.4) add facts to **D2-004** (decided: #55+) (#55+ vs #58+): in the code DIVINE II (#57) works only in
    wilderness region 26 and starts a fight with a random (often dragon) monster; DIVINE I (#58) works only in
    dungeons and gives a deity's advice. The manual only says divine spells are "for special purposes".
-4. **Magical pools are gone in II** (§5.3): terrain class 11 became an encounter terrain, and I's pool effect (one of
+4. **Magical pools are gone in II** (section 5.3): terrain class 11 became an encounter terrain, and I's pool effect (one of
    the six stats changed, "%s IS CHANGED", `h71:0x0a50`) has no II counterpart. II's similar text "YOU ARE CHANGED"
    (`0x02ab0`) is the amulet-use dialog called from `use_item` (it sets @302 + 2k for members with @286 + 2k = 1),
-   not a pool. The II manual's terrain text does not mention pools either way.
+   not a pool. The II manual's terrain text does not mention pools either way (`terrain.md` section 3). → **D2-010**: NOT A CONFLICT.
 5. **Lava "almost always causes damage"** (manual) vs the code: a lava cell always damages every living member unless
-   its digit d is 0, in which case it does nothing. Probably consistent (d = 0 cells are the "almost"), listed so the
-   user can confirm once the `OUT*.DAT` values are known.
+   its digit d is 0, in which case it does nothing. → **D2-007**: NOT A CONFLICT.
 
 ## 8. Function tables
 

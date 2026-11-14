@@ -3,7 +3,7 @@
 Phase 09 T3, task 3b.7. What II's Guild Training and level-up do differently from Phantasie I. Everything not listed
 is I's rule: `reverse-engineering/dos/logic-specs/town-menus.md` §Training and §Level-up gains. Tags as in
 `docs/plan/RE-REFERENCE.md` (`[C]` read in `PHANT.PRG`, `[C] live` also seen in Hatari). Live check:
-`../parity/toss-training-live.md`. Function pairs: `00-function-map.md` §5.1.
+`../parity/toss-training-live.md`. Function pairs: `00-function-map.md` section 5.1.
 
 Code: `guild_train 0x0cdde` (I-Amiga `h5:0x13b0`), cost box `confirm_cost 0x017e4`, `level_up 0x0c71a`
 (`h5:0x1748`), class switch table data+`0x46f6` (order THIEF, MONK, RANGER, FIGHTER, PRIEST, WIZARD).
@@ -55,7 +55,7 @@ AGREE / NOT, a short purse gives "You can not afford it", the price uses the car
 bank. Other live values: MONK level 2 XP 50 → 2575; PRIEST level 4 XP 10 → 6508; WIZARD level 3, CHA 18, Pippacott
 (price 150) → 66 gold (= 11 · 2² · 150 / 100).
 
-**FFP arithmetic (s92, `[C]`, checked with `tools/scripts/st_p2_ffp_oracle.py`, the program's own routines in a 68000
+**FFP arithmetic (`[C]`, checked with `tools/scripts/st_p2_ffp_oracle.py`, the program's own routines in a 68000
 emulator).** `guild_train 0x0cf58…0x0d012` computes in FFP singles, step for step:
 `s = itof(sum) / D` (D as stored: THIEF `0x9E666645`, MONK `0xC6000046`, RANGER `0xD3333346`, FIGHTER `0x84000046`,
 PRIEST `0x91333346`, WIZARD `0xAB999946`); `s += 1e−5` (`0xA7C5AC30`); **F = 1.8 (`0xE6666641`), multiplied by 1.8 once per
@@ -65,7 +65,7 @@ level above 1** (no `pow`; 1.0 = `0x80000041` at level 0); `X = (F + −0.8) · 
 The threshold does not: the single-precision F drifts at high levels, so over every sum 3–129 × the six divisors ×
 levels 0–14 × the five XP values around each threshold, 7,925 of 57,150 `n` differ from a double model by 1–3 (e.g.
 THIEF sum 3 level 12: X = 7,629,300.0 in FFP vs 7,629,303.6). Core: `TrainingRules.Arithmetic` = `motorola_ffp`
-(II's `rules.json`, with each class's `divisor_ffp`) runs this path (`MotorolaFfp.Sub` / signed `Add` ported s92);
+(II's `rules.json`, with each class's `divisor_ffp`) runs this path (`MotorolaFfp.Sub` / signed `Add`);
 test `P2TrainingFfpTests` (40 oracle cases, 24 of them where FFP and double differ). The live values above agree with
 both.
 
@@ -74,7 +74,7 @@ both.
 Same as I's routine (`town-menus.md` §Level-up gains: MP ceiling, nine skills, HP re-roll, level + 1) plus:
 
 1. **TOSS bonus and skill:** before the skill loop, `@62 = 2·L + 4·DEX + STR + 10` (+15 DWARF, +30 GNOME); TOSS then
-   grows like any skill (`toss-rock.md` §3).
+   grows like any skill (`toss-rock.md` section 3).
 2. **Spell marks: every unknown spell up to the new level**, not only the new level's:
    `for each spell s: if 0 < spell_level[class][s] ≤ L + 1 and flag[s] == 0: flag[s] = 2` ("can learn").
    DOS marks `== L + 1` only (with the same "still 0" test); Amiga I marks `== L + 1` and has no "still 0" test at all.
@@ -99,16 +99,16 @@ re-rolled dice) → also D2-013.
 ## 4. Core (s79)
 
 - **Threshold and price:** `RulesProfile.Training` (`TrainingRules`, `GameData/phantasie2/rules.json` `training`):
-  §1's sums and divisors, `F = 1.0` at level 0, `Shortfall` = `−trunc(XP − X)`, `GoldCost` with no CHA clamp
+  section 1's sums and divisors, `F = 1.0` at level 0, `Shortfall` = `−trunc(XP − X)`, `GoldCost` with no CHA clamp
   (`charisma_clamp: false`) and level 0 free. `TownMenus.Train` / `CanTrain` / `TrainingXpShortfall` /
   `TrainingGoldCost` take the profile's rules; I's values still run through the bit-exact DOS chain. Session:
   `GameSession.Train`, `TrainingXpShortfall`, `TrainingGoldCost`.
-- **Level-up deltas (data):** `spell_marks: up_to_new_level` (§2 item 2) and `hp_tie: new_maximum` (§2 item 3), read by
-  `LevelUp.Apply`. TOSS (§2 item 1) grows while the Toss Rock module is on (`toss-rock.md` §7).
-- **D2-013 (user s79: manual, as I):** rules options `p2.training-cost` (`manual`: the cost is shown with "You need N";
+- **Level-up deltas (data):** `spell_marks: up_to_new_level` (section 2 item 2) and `hp_tie: new_maximum` (section 2 item 3), read by
+  `LevelUp.Apply`. TOSS (section 2 item 1) grows while the Toss Rock module is on (`toss-rock.md` section 7).
+- **D2-013 (user: manual, as I):** rules options `p2.training-cost` (`manual`: the cost is shown with "You need N";
   `st`: hidden, the ST's `confirm_cost`) and `p2.hit-dice` (`manual`: `factor·(CON + 5)/15`, the chart; `st`: `>> 4`).
   Both `manual` in the Original (manual) and Remaster presets, `st` in Original (Atari ST).
-- **D2-015 (user s79: manual):** `creation-tables.json` gives WIZARD slot 43 (#44 RESURRECTION) level 13; its
+- **D2-015 (user: manual):** `creation-tables.json` gives WIZARD slot 43 (#44 RESURRECTION) level 13; its
   `dos_tables.spell_levels` holds the ST's 0, applied by `p2.wizard-resurrection` = `st` (Original (Atari ST)).
 - Pinned by `Phantasie2RulesTests`: the six live "You need" boxes, the 0 and 66 gold boxes, the live WIZARD spell marks,
   the KLEPTO / GLADE TOSS values.

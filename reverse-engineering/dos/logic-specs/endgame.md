@@ -1,6 +1,6 @@
 # Endgame: quest chain, win, party defeat (Astral Plane) — PLAN P0.8
 
-Spec only (s31). It covers the rune and ring quest, the Black Lord fight that wins the game, the Zeus victory
+It covers the rune and ring quest, the Black Lord fight that wins the game, the Zeus victory
 screen, and the party-defeat sequence ("Astral Plane" / "Great Demon") with the dead-character fates.
 Address conventions follow `docs/plan/RE-REFERENCE.md` (OV1 string imm = file + `0x5ff7`, OV2 string imm = file + `0x433d`,
 jump tables file = T − `0x53dc`, party record `0x5bb0 + i·0x11a`, runtime `+0xNN` = GUILD `@NN`).
@@ -11,7 +11,7 @@ jump tables file = T − `0x53dc`, party record `0x5bb0 + i·0x11a`, runtime `+0
   (lose) sequence**, not the win. The win screen is Zeus (`zeus.ibm`) with the "Well done, my small friends" speech.
 - The "victory text" `scrolls.json` id 17 ("Congratulations… recovered The Wand") is **an item you pick up**
   (SCROLL 17 = item 137, on a pedestal in the Fortress). The game does not show it automatically.
-- The 5 rune words `@72..@80` are now pinned: **AIR, EARTH, FIRE, WATER, GOD**.
+- The 5 rune words `@72..@80` are pinned: **AIR, EARTH, FIRE, WATER, GOD**.
 
 ---
 
@@ -52,8 +52,8 @@ entry 6 = DISSOLVE):
   ends), the gold reward is zeroed, the group's XP is paid (`0x8c1`), and **`[0x74aa] := 1`** (`0x087b`). End of combat
   then returns **7**.
 
-**Remaster (s32, D-021):** FEAR now makes ordinary monsters run, but the Black Lord is `never_flees`
-(`monster-traits.json`), so against him FEAR only lowers `L` exactly as below — this route is unchanged
+**Remaster (D-021):** FEAR makes ordinary monsters run, but the Black Lord is `never_flees`
+(`monster-traits.json`), so against him FEAR only lowers `L` as below — this route is unchanged
 (test `BlackLord_FearThreeTimes_ThenDissolve_Wins`).
 
 So DISSOLVE kills the Black Lord once FEAR has lowered `L` far enough:
@@ -127,12 +127,12 @@ with `MESSn` (message slot = `messages.json` slot index). The level buffer is th
 | **18** | `0x2868` | **SET-MIN**: every non-DEAD member with field `a` < `b` gets field `a := b` |
 | **19** | `0x28b0` | **TEST**: count members (**DEAD included**) with field `a ≥ b`; if none → push the party back to its previous cell (`0x29a9`), show message `c`, stop the script |
 
-**s36 additions from the disassembly (`0x24b2..0x294e`) [C]:**
+**Details from the disassembly (`0x24b2..0x294e`) [C]:**
 - Ops 1–4 compute `dmg = rand0_99·a / (10·LUCK @10)` and call `0x124a(i, dmg, 1)`. Flag 1 only suppresses
   `0x124a`'s own print; `0x124a` still floors the hit at **1**, so a member reported with just a name ("unhurt", `dmg ≤ 0`)
   loses 1 HP **(quirk)**. A death runs `0x12cf` (CON loss, D-009). After the loop, no non-DEAD member → state 6 mid-script.
 - Ops 5 / 17 return state 11 at once (later ops don't run). With `a = 0` (`[0x64e6] = 1`) they continue, and the end check
-  (`0x293d`: `[0x64e6] > 0` → 11) then fights monster 0 — `a = 0` never occurs in DNG1..10 `[~]` (s36 scan).
+  (`0x293d`: `[0x64e6] > 0` → 11) then fights monster 0 — `a = 0` never occurs in DNG1..10 `[~]` (data scan).
 - Opcodes ≥ 20 are no-ops (`0x291a`: `cmp ax, 0x14; jae` tail). They occur only in 4th-option spills.
 - Teleport (12/13) sets the position **and** the previous cell (`[0x751e]/[0x7520]`) to `(a, b)`; the destination's event
   does not run. TEST's push-back (`0x29a9`) goes to the previous cell, then shows message `c` and stops.
@@ -141,14 +141,13 @@ with `MESSn` (message slot = `messages.json` slot index). The level buffer is th
   In DNG1..10 this matters only for DNG8 ev3 and ev5 (repeatable records, `0xcf`/`0xce` first ops): on a second visit the
   stale `b` is `0x16` (op 22, no-op, no continue), so the rest of the script is skipped. Core reproduces the bytes.
 - TEST ids in the data: 42 (score ≥ 60), 43–47 (runes), **55 `@90` ≥ 100** (DNG5 ev20) and **161 race ≥ 14** (DNG8 ev25,
-  i.e. ELEMENTAL/UNDEAD only). **`@90` [C] (s39)** is the pool-visit product: creation writes 1 (OV1 `0x0cbe`); the
+  i.e. ELEMENTAL/UNDEAD only). **`@90` [C]** is the pool-visit product: creation writes 1 (OV1 `0x0cbe`); the
   wilderness pool `0x656b` skips a member whose `@90` is divisible by `k = 2·(tile % 10) + 1` and otherwise multiplies it
   by `k` (16-bit `imul`). So each pool kind works once per character, and DNG5 ev20 (`@90 ≥ 100`) passes only after
   enough distinct pools (e.g. 3·5·7 = 105). No other reference in COM / OV1 / OV2 (raw `0a 5c` and `[reg+0x5a]` sweeps).
-  The pool's effects themselves are P0.3.
-- `r1` is never read (confirmed again).
+  The pool's effects: `overworld-movement.md` §Magical pool.
 
-**Message and menu format — OV2 `0x2a95` / `0x2418` [C] (s36):** MESSn is read into `0x6506` and decrypted (`0x1ea6`).
+**Message and menu format — OV2 `0x2a95` / `0x2418` [C]:** MESSn is read into `0x6506` and decrypted (`0x1ea6`).
 Message `id` = slot word `u16[2(id−1)]`; empty when it equals `u16[2·id]` (→ plain, returns 1). The record is at
 `0xe6 + word` (hard-coded text base `0x65ec`): `prefix, 40 chars`. The first prefix is the text length; the text runs on
 through records `id+1, …` (one per 40 chars). The **option count is the prefix of record `id+1`, minus 1**; a message
@@ -156,7 +155,7 @@ shorter than 40 chars forces it to 2. A menu exists only when `2 ≤ prefix ≤ 
 same stream (3 chars when prefix > 7). Return = 1-based choice. Emulated by `tools/scripts/extract_dungeon_events.py` →
 `dungeons.json` `levels.*.messages` (golden: DNG1 103 ATTACK/TALK/LEAVE HIM, DNG10 70 PRAY/ATTACK/RUN, DNG7 74 four options,
 DNG10 50 plain).
-**Continuation records (s41) [C]:** the table holds every non-empty slot, and the later records of a long message
+**Continuation records [C]:** the table holds every non-empty slot, and the later records of a long message
 are slots too (prefix = the option byte ≤ 20, not a length). `0x2a95` asked for one shows its leftover text as a
 stray menu (DNG1 7, the second line of the purple-gas message 6 → blank line + "THE PARTY" / "MEMBERS CHO"). No cell,
 event, script op 11/16/19 or SET-CELL value in DNG1..10 asks for one, so DOS never shows them. The extractor tags them
@@ -166,7 +165,7 @@ next record is itself a start) are left as starts.
 Field ids go through `0x1ba5` (the OV2 field-id map). The ones the quest uses: **42 = `@70` score**,
 **43..47 = `@72..@80` runes**, 55 = `@90`, 161 = `@256` race. (152..160 = carried items `@222..@238` are mapped, but no DNG1..10 script reads them — see §6.1.)
 
-`[0x64a0]` = monster-hold surprise flag H (s33 [C]): see `combat-resolution.md` §Surprise.
+`[0x64a0]` = monster-hold surprise flag H [C]: see `combat-resolution.md` §Surprise.
 
 ### 2.2 Runes — `@72..@80` pinned [C]
 
@@ -208,11 +207,11 @@ Where the rings come from (script GIVE ops):
 | E | 145 | DNG7 ev19 green Bleeb riddle, option 4 (record spill, §2.1) |
 | F | 146 | DNG7 ev21 green Bleeb riddle, option 2 (then teleport) |
 | G, H | 147–148 | DNG8 ev16 "TWO RINGS IN A CASE" (an alarm summons guards) |
-| I | 149 | **PHANTASIA's Armory [C] (s49)**: `TWNS.DAT` record 7 `stock[149] = 1` (raw byte at `7·291 + 149`) |
+| I | 149 | **PHANTASIA's Armory [C]**: `TWNS.DAT` record 7 `stock[149] = 1` (raw byte at `7·291 + 149`) |
 
 With 8 rings (144) a party needs Σ levels ≥ 35. Ring I is not needed.
 
-**Ring I [C] (s49).** The old "not in `TWNS.DAT`" note was wrong. PHANTASIA (TWNS index 7) stocks exactly one item:
+**Ring I [C].** PHANTASIA (TWNS index 7) stocks exactly one item:
 RING I ×1.
 - The Armory lister (OV1 `0x3e2d`, bound `cmp ax, 0xb5`) lists every slot 1..180, so it is for sale. Price
   `⌊124²·100/500⌋ + 1` = **3076 GP**; V = 124, PHANTASIA price index 100.
@@ -231,7 +230,7 @@ NIKADEMUS") is Lord Wood's man in DNG5. His script also hands over 4 scrolls (12
 
 DNG10's entrance is OUT19 feature (20,10) → start (16,0). OUT18 holds town arg 99 (OLYMPIA) and fixed god/monster encounters.
 
-**Route to OUT18/OUT19 [C] (s49): TRANSPORTATION to the blank town.** This matches MESS5 106, "TO VISIT GODS TELEPORT
+**Route to OUT18/OUT19 [C]: TRANSPORTATION to the blank town.** This matches MESS5 106, "TO VISIT GODS TELEPORT
 TO BLANK TOWN".
 1. Town CAST SPELL TRANSPORTATION (OV1 `0x275b`). The MP is spent first. Then the picker runs at **unpacked COM
    `0x16a2`**; the OV1 call target is `0xc2c6`, and `0xc2c6 − 0xac24` gives the unpacked address.
@@ -243,7 +242,7 @@ TO BLANK TOWN".
      took its place (the next town in record order; the first entry after the last) [~].
    - Each entry is printed by `0x1887`. Index 11 prints DS `0xd07` = `" "` instead of the record's name, so the 12th
      entry is a **blank line**: the "blank town".
-   - The current town is not excluded, and there is no visited/known check. **Remaster (D-062, user s53, manual "from one
+   - The current town is not excluded, and there is no visited/known check. **Remaster (D-062, user: manual "from one
      town to another"):** the current town is left out (`GameSession.TransportDestinations`); the blank 12th entry stays.
    - It is a cursor list, not a typed number (Amiga: the same prompt and list). Arg 99 is only OLYMPIA's OUT18 map-feature code.
    - ESC returns −1 (nothing happens, MP stays spent). Enter returns the cursor.
@@ -267,8 +266,7 @@ TO BLANK TOWN".
      - OUT19 column 25 / rows 18–19 and column 0..1 are wall.
 6. PHANTASIA (record 7, printed by name) is reachable only through the same picker (§2.3).
 
-**Consequence:** without TRANSPORTATION there is no DNG10, so no GOD rune, so no DNG9 gate, so no win. Core had
-TRANSPORTATION as a message-only stub until s49 (§8).
+**Consequence:** without TRANSPORTATION there is no DNG10, so no GOD rune, so no DNG9 gate, so no win. Core: §8.
 
 Events 1–6 are repeatable (`r0 = 0x32`). Each is "THE DEEP VOICE OF A GOD SPEAKS", then TEST + "PASSED", and
 two SET-CELL ops open the next room:
@@ -357,14 +355,14 @@ wait for a key; WRITE guild.dat (0x5bdf, 0x183c = 22 × 0x11a bytes from [0x63e0
     # 0xc791 → COM 0x1e5d: create (AH=3Ch, 0x37b8) + write (0x38e7); the load twin 0xc75a → 0x1e26 opens (AH=3Dh)
 [0x64ee] := 0; current town [0x63e2] := 1; [0x64ea] := 1; clear screen; return 1
 ```
-Remaster (s127): Core puts the speech in `GameSession.PendingVictoryScene` (`SessionPromptKind.VictoryScene`, one key);
+Remaster: Core puts the speech in `GameSession.PendingVictoryScene` (`SessionPromptKind.VictoryScene`, one key);
 with the Amiga pack the Client shows the Amiga's screen instead (`final.pic` fading in, the party row, the speech line by
 line; `reverse-engineering/amiga/FORMAT.md` "The victory screen").
 
 The OV1 dispatcher then sets `[0x64e8] := 2` and runs the town loop (`0xb4` → `0x1e15(0)`). **The game goes on.
 There is no game-over or credits screen**, and `0x4d5` writes no win flag **[C]**.
 
-**Which town [C] (s58 static + DOSBox):** the town loop and the town entry `0x1954` take the **0-based** record index
+**Which town [C] (static + DOSBox):** the town loop and the town entry `0x1954` take the **0-based** record index
 `[0x64ee]` (`town-menus.md` §Armory restock), so `[0x64ee] := 0` is **PELNOR**. The `[0x63e2] := 1` (OV1 `0x47f`; the
 defeat path has the same pair at `0x5b7`/`0x5c0`) fits that word's other uses, where Pelnor is 1: town Exit stores the
 record's `+0x111` overworld region there and in `[0x64ea]` (OV1 `0x3309..0x3310`, Pelnor 1), and `0x4299(arg)` reads
@@ -409,15 +407,15 @@ return anyRevived ? 2 : 1
 - **DESTROYED** (`0x1ef`): erases the portrait, prints "%s YOU HAVE BEEN DESTROYED" (`0x5b5c`), stores the record's
   `@92` in the first negative entry of the free-slot list `[0x6472]` (8 words, all −1 at guild load, `0x7ff`), and
   calls `0x1bae` on the party record.
-- **`0x1bae(rec)` [C] (s49)** writes exactly three words: `@218` (`+0xda`, in-party flag), `@24` (`+0x18`, status = 0
+- **`0x1bae(rec)` [C]** writes exactly three words: `@218` (`+0xda`, in-party flag), `@24` (`+0x18`, status = 0
   DEAD) and `@92` (`+0x5c`, roster id). Nothing else. Its three callers:
   - `0x242`: the DESTROYED member's **party** record. `0x974` then compacts it away (`@92` = 0).
   - `0x3dd`: summon slot 6 (`0x624c`) at defeat, when `[0x62a8]` (its `@92`) ≠ 0.
   - `0x197e`, at the top of **town entry** `0x1954`. It walks `[0x6472]` while an entry is > 0, calls
     `0x1bae(roster base [0x63e0] + (id − 1)·0x11a)`, and sets the entry to −1.
 - So DOS **does not erase the roster record**. At the next town entry it only zeroes `@218`/`@24`/`@92` of that
-  GUILD.DAT slot, and the name, stats and items stay. This decodes the PLAN P0.8 "DESTROYED keeps the GUILD.DAT record"
-  line. Core removes the roster slot; that line stays open for the D-002 roster-cap consequence.
+  GUILD.DAT slot, and the name, stats and items stay. Core removes the roster slot `[~]` (keeping it would count
+  against the D-002 roster cap).
 
 **Odds [C]** (`rand` is uniform 0..32767; `rand/0x2000 ∈ {0..3}`, each 1/4; `rand/0x2aab ∈ {0,1,2}`, each 1/3 to
 within 1/32768). CON is lowered at death (OV2 `0x12cf`, D-009), so CON 0 is a real case.
@@ -437,19 +435,19 @@ After the demon:
   (20,5). That is the OUT1 feature `arg 6` = "[original text]" **[C data, ~ that `[0x64ea]`/
   `[0x63e4..6]` are region/x/y]**. Party gold and found items are lost.
 - **Nobody survives** (return 1): back into the town loop (state 1, `0xb4`) with an empty party. State 1 → `0x1e15(0)` →
-  the full town entry `0x1954`: aging (no-op, empty party) and the Armory restock of town 1 (s41; Core `EnterTown(1)`).
+  the full town entry `0x1954`: aging (no-op, empty party) and the Armory restock of town 1 (Core `EnterTown(1)`).
 
 There is no "game over" either way.
 
-**Timing [C] (s154).** Every line of the sequence is printed by OV1 `0x24c(s)`: clear row 24, print `s` centred on row
+**Timing [C].** Every line of the sequence is printed by OV1 `0x24c(s)`: clear row 24, print `s` centred on row
 24, `0xe81c(500)` = COM `0x3bf8(500)`, clear row 24. `0x3bf8` waits **500 hundredths = 5.00 s** on the DOS clock and **a
 key ends the wait early** (the keyboard is flushed before and after; `message-and-text.md` Text boxes). Each line is its
 own wait, so a key skips the current line only. Lines: [original text] (`0x2d8`), YOU HAVE ARRIVED AT THE
 ASTRAL PLANE (`0x397`), [original text] (`0x3b2`), then one fate line per member (`0x1c8` → `0x24c`;
 UNDEAD `0x156` → `0x24c`). Between them: the CEMEN pictures (below, "Pictures"), music
-`0x17` / `0x14` and, before each fate, `0x15` (`0xde87` = COM `0x3263`, the sound dispatcher, a no-op with the sound off `[0x308a]` = 0). **s156 (static, unpacked COM) `[C]`: every tune blocks until it ends**: the dispatcher's table (`0x3313`) sends `0x17` to `0x2354` (two sweeps `0x1d09` and a tone), `0x14` to `0x200c` (20 × three tones), `0x15` to `0x523` (a sweep `0x1bd7`); each plays the PC speaker (PIT channel 2, port `0x61`) and waits in a counted busy loop (`0xa4` / `0x1c7a`: duration × `[0x5ba8]`, a CPU-speed scale) before it returns, so the next line waits for the tune. Their lengths are not timed `[?]`. After the last fate: compaction, the bottom rows cleared, no wait. So the sequence is
+`0x17` / `0x14` and, before each fate, `0x15` (`0xde87` = COM `0x3263`, the sound dispatcher, a no-op with the sound off `[0x308a]` = 0). **Every tune blocks until it ends `[C]` (static, unpacked COM)**: the dispatcher's table (`0x3313`) sends `0x17` to `0x2354` (two sweeps `0x1d09` and a tone), `0x14` to `0x200c` (20 × three tones), `0x15` to `0x523` (a sweep `0x1bd7`); each plays the PC speaker (PIT channel 2, port `0x61`) and waits in a counted busy loop (`0xa4` / `0x1c7a`: duration × `[0x5ba8]`, a CPU-speed scale) before it returns, so the next line waits for the tune. Their lengths are not timed `[?]`. After the last fate: compaction, the bottom rows cleared, no wait. So the sequence is
 (3 + party size) × 5 s plus the pictures and tunes. Manual: silent on the timing (no conflict).
-**Pictures [C] (s157, static: OV1 `0x2af`/`0x5fe`/`0x6a8`/`0x747`/`0x787`, COM `0x1b9e`/`0x2398`/`0x544`/`0xcf0`..`0xd50`/`0x3abd`).**
+**Pictures [C] (static: OV1 `0x2af`/`0x5fe`/`0x6a8`/`0x747`/`0x787`, COM `0x1b9e`/`0x2398`/`0x544`/`0xcf0`..`0xd50`/`0x3abd`).**
 - `0x2c7` calls COM `0x3abd(0)` (INT 10h AH 0Bh, BH 1): **CGA palette 0** (black, light green, light red, yellow at high
   intensity) for the whole sequence; the s63 shots' yellow ghosts and text, red face. The screen is cleared and line 1 prints
   on black.
@@ -460,7 +458,7 @@ UNDEAD `0x156` → `0x24c`). Between them: the CEMEN pictures (below, "Pictures"
   copies 18 bytes even → odd bank at the loop's end offset `0x2b2` (a quirk: screen row 17 takes row 16's x 200..271, its
   doorway stays); `0x336` copies the blank strip into bank rows 9..53 of both banks: screen rows 18..107). **There is no
   wipe on screen**: COM `0xcf0` (A → screen) shows the empty doorway with line 2, COM `0xd10` (B → screen) the face with
-  line 3, both whole-screen copies. (Earlier text here called `0x302..0x378` a wipe animation; it is this off-screen blank.)
+  line 3, both whole-screen copies.
 - The row (`0x5fe(n)`): text rows 19..23 cleared; n = members with status 0 (all of them here); gap = ((320 − 32n)/(n + 1))
   rounded down to 4 px; slot i at x = gap + i·(gap + 32), y 156; `0x6a8` copies the 32 × 32 ghost from DS `0xba1a` (OV1
   file `0x5a23`, 256 B, 8 bytes a row) into each slot.
@@ -471,10 +469,10 @@ UNDEAD `0x156` → `0x24c`). Between them: the CEMEN pictures (below, "Pictures"
 - Extracted by `tools/scripts/extract_dos_defeat_pictures.py` → `reverse-engineering/dos/extracted/ui/defeat-temple.png`,
   `defeat-demon.png`, `defeat-ghost.png`, `defeat-figures/00..15.png` (palette 0 high).
 
-Remaster (s154, AMIGA SCREENS off, I): the defeat box shows 5.00 s by itself, then the outcome adds one line every
+Remaster (AMIGA SCREENS off, I): the defeat box shows 5.00 s by itself, then the outcome adds one line every
 5.00 s and closes 5.00 s after the last; any key (or a click / pad button) ends the current line's wait
-(`GameData/phantasie1/dos-screens.json` `defeat`). **s157 (user: the pictures follow the art pack, not the layout
-switch):** on this clock the outcome draws one line at a time on the bottom row over pictures:
+(`GameData/phantasie1/dos-screens.json` `defeat`). **User: the pictures follow the art pack, not the layout
+switch:** on this clock the outcome draws one line at a time on the bottom row over pictures:
 - **DOS (CGA) pack** (`dos-cga.json` `defeat_pictures` + the optional pictures `defeat.temple` / `defeat.demon` /
   `defeat.ghost` / `defeat.figure.N`, not in `requires`): DOS's own screens as above (empty doorway + ghosts with line 2,
   the face with line 3, each fate before its line, a destroyed slot cleared, OV1's slot places and y 156, yellow text)
@@ -483,7 +481,7 @@ switch):** on this clock the outcome draws one line at a time on the bottom row 
 - **Amiga pack** (the default) on the DOS layout: the Amiga's pictures (`decor.pic`, door, face, ghost, race portraits, its
   row places and pen 5) on DOS's beats: decor with the door shut and the ghosts with line 2, the door gone and the face with
   line 3, each fate before its line `[~]` (the Amiga's 7-s door sink has no place on a 5-s line; no Amiga sounds here).
-- A pack with neither set: the timed text panel (s154). Never CGA art unless the player picked the CGA pack.
+- A pack with neither set: the timed text panel. Never CGA art unless the player picked the CGA pack.
 - The defeat box (line 1) stays the remaster's panel with the step's report above "[original text]" (DOS: the
   line alone on black) `[~]`. The tunes block (above) but their lengths are not timed, so the 5.00-s lines run without them
   `[?]`.
@@ -523,22 +521,21 @@ Cited by PDF page (`pdftotext -layout`; the printed page numbers are inconsisten
 - The manual says **nothing** about runes, the six tests, Zeus' GOD rune, the Black Lord, the win screen, DIVINE I,
   party defeat, the Astral Plane / Great Demon judgement, or UNDEAD characters.
 
-**Manual ↔ DOS:** I found **no direct contradiction**. Two items to log as NOT A CONFLICT, so the user can review
-them (§7):
+**Manual ↔ DOS:** **no direct contradiction**. Two items are NOT A CONFLICT, listed for the user's review:
 1. Manual p.16 names only the RESURRECT spell as a way back from death. DOS also revives automatically through the
    Great Demon after a party defeat (§4: resurrect / UNDEAD / destroy). The manual is silent, so DOS stands.
 2. Manual p.6 frames the quest as "destroying Nikademus". In DOS the game is won by killing the **Black Lord**
    (Nikademus is never met; Zeus: "removed a Great Evil"; scroll 17: Nikademus is "still in full force in other
    places"). This is story framing, not a rule.
 
-One more conflict, **D-027 — DECIDED s37 (DOS, but a NO purges a same-dungeon slot):** p.14 implies a time-based restore ("if you return soon… the
+One more conflict, **D-027 — DECIDED (DOS, but a NO purges a same-dungeon slot):** p.14 implies a time-based restore ("if you return soon… the
 monsters you killed might still be dead"). DOS restores a dungeon only from the single-slot DNG.SAV/DNGX.SAV on an id
-match, written only by a YES at the exit, with no time factor anywhere (s36 [C], `dungeon-representation.md`
+match, written only by a YES at the exit, with no time factor anywhere ([C], `dungeon-representation.md`
 §Leaving and re-entering).
 
 ## 6. Q6 — "a bug that prevents winning" (Apple II rumor)
 
-**Verdict for DOS [C static]:** I found **no defect that makes the game unwinnable**. The win test (§1) is sound,
+**Verdict for DOS [C static]:** **no defect makes the game unwinnable**. The win test (§1) is sound,
 the Black Lord is reachable, and the rune chain is complete (Zeus' missing FIRE test is covered by EARTH's FIRE
 requirement). There are **soft-locks**, all from one-shot events. Each one lasts only until DNG9/DNG10 is reloaded
 from the original file:
@@ -554,7 +551,7 @@ from the original file:
 - `DNG.SAV` = id word + the saved map-screen image, 76 rows × 2 CGA banks × 42 B (6386 B ✓).
 - `DNGX.SAV` = the 2500-byte level buffer (✓ size).
 - Otherwise the original `DNGn` is loaded. There is a single save slot, written only by OV2 `0x5929`, only when
-  the player leaves by an exit cell and answers YES to "[original text]" **[C] (s36)**.
+  the player leaves by an exit cell and answers YES to "[original text]" **[C]**.
 
 So a soft-lock becomes permanent only if the player saves that dungeon's state after the mistake. Even then it
 clears once another dungeon's state is saved **[C]**. Leaving with NO keeps whatever the slot held before (it can be an
@@ -598,26 +595,21 @@ The Black Lord fight can also be won with FEAR + DISSOLVE (§1), so the third tr
 - USE ITEM on the wand prints "UNUSABLE". The restock never wipes it (id ≥ 120). DNG9's WAVE / BREAK WAND menu (ev13) is
   a cell event and doesn't check the inventory: no TEST op reads item fields 152..160 in DNG1..10.
 - **Manual (p.12)** says USE ITEM lets you "find the unusual properties of an item". DOS answers "UNUSABLE" for every
-  non-potion, non-scroll item, rings and wand included. **D-061 DECIDED (user s53): manual** — any other item shows a
+  non-potion, non-scroll item, rings and wand included. **D-061 DECIDED (user): manual** — any other item shows a
   detailed description: its kind, point value (weapon damage / shield and armor protection), strength needed, sale value
   and the remaster's text from `item-descriptions.json` (`ItemRules.Describe`). Potions and scrolls work as in DOS.
 
-The rumor is about the Apple II build. I did not check C64/Amiga (not needed for DOS).
+The rumor is about the Apple II build. C64/Amiga not checked (not needed for DOS).
 
 ## 7. Open items
 
-- **Closed s49 [C]:** Ring I source (PHANTASIA Armory, §2.3); route to OUT18/OUT19 (TRANSPORTATION → blank 12th entry
-  = OLYMPIA → OUT18 (10,5) → south → OUT19, §2.4); `0x1bae` (`@218`/`@24`/`@92` := 0, §4); WAND effects (Mystic + sheet
-  label only, §6.1); SCROLL 17 outside the Fortress (lore only, §6.1).
-- **[U]** Manual p.12 USE ITEM "find the unusual properties of an item" vs DOS "UNUSABLE" for every non-potion/non-scroll
-  (§6.1). Manual p.20 TRANSPORTATION "from one town to another" (manual p.8: 11 initial towns) vs DOS's 12-entry
-  picker with a blank-named OLYMPIA and the current town allowed (§2.4) — for the user to classify.
-- **[C] s58** Equipment screen `RING:%s` (COM `0x8441`): the buffer is cut to 9 chars before printing (COM-raw `0x2e37`), so the
-  wand's `J` never prints (`save-file-format.md` §inventory; Client `InspectDialog` matches).
-- FEAR's manual "running away" vs DOS `L −= 6` → P0.5 / D-021.
-- **Closed s63 [D✓]:** real party defeats (§4) — fates, OUT1 (20,5) wake, Pelnor restock with no survivor.
-- **P0.4 (s36 [C]):** DNG.SAV is a screen image; dungeon persistence is the whole level buffer in DNGX.SAV (writer
-  OV2 `0x5929`, `dungeon-representation.md` §Leaving and re-entering). Core replaced `ClearedEventKeys` with the buffer.
+None open. Decided: D-061 (USE ITEM shows item details, manual; §6.1), D-062 (TRANSPORTATION leaves out the current
+town, the blank 12th entry stays; §2.4), D-021 (FEAR; §1), D-027 (dungeon restore; §5). Manual p.20 TRANSPORTATION "from one
+town to another" (p.8: 11 initial towns) vs DOS's 12-entry picker with a blank-named OLYMPIA is covered by D-062.
+- **[C]** Equipment screen `RING:%s` (COM `0x8441`): the buffer is cut to 9 chars before printing (COM-raw `0x2e37`), so
+  the wand's `J` never prints (`save-file-format.md` §inventory; Client `InspectDialog` matches).
+- DNG.SAV is a screen image; dungeon persistence is the whole level buffer in DNGX.SAV (writer OV2 `0x5929`,
+  `dungeon-representation.md` §Leaving and re-entering). Core replaced `ClearedEventKeys` with the buffer.
 
 ## 8. Core implementation (P0.8 [I]) — done s36
 
@@ -625,11 +617,11 @@ Implemented: `DungeonScript` (interpreter on the live 2500-byte buffer), `dungeo
 `@90` in `Character`/`GuildCodec`, `Endgame` (state 7 incl. DISSOLVE, DIVINE I after the GUILD write), `PartyDefeat`
 (fates, DOS draw order), session wiring `GameSession.Endgame.cs` (event menus `AnswerDungeonEvent`, `PartyDefeatPending` →
 `ResolvePartyDefeat`). Tests `EndgameTests`.
-**s49:** town TRANSPORTATION now moves the party. `GameSession.CastSpell` sets `TransportationPending`;
+Town TRANSPORTATION moves the party: `GameSession.CastSpell` sets `TransportationPending`;
 `ChooseTransportDestination(int? townId)` (1..12, null = ESC) runs `EnterTown`. The OUT18 arg 99 → Core town **12**
-(OLYMPIA); it was 11 = STARVILLE. Tests `TransportationTests`. The Client has no picker UI yet (P2). Open: the Client has no prompt UI for event menus / defeat yet (P2); party
-defeat does not touch Core's pooled `Party.GoldCarried` (DOS `@262 &= 0xff` on revival is applied) `[~]`. Swimming deaths
-(`0x68ff`) are in Core since s39 (`Swimming`, overworld state 10; `overworld-movement.md` §Swimming). The original outline:
+(OLYMPIA). Tests `TransportationTests`; Client picker `GuildAndTransportDialogs.cs`. `[~]` Party defeat does not touch
+Core's pooled `Party.GoldCarried` (DOS `@262 &= 0xff` on revival is applied). Swimming deaths (`0x68ff`) are in Core
+(`Swimming`, overworld state 10; `overworld-movement.md` §Swimming). The implementation outline (all built):
 
 1. **Data** (`OpenPhantasie.Data`): extract per-level event records + scripts from DNG1..10 (`0x4f6`/`0x5aa`,
    format §2.1) into `dungeons.json` as a script table. Don't hard-code the quest in C#.
@@ -645,4 +637,4 @@ defeat does not touch Core's pooled `Party.GoldCarried` (DOS `@262 &= 0xff` on r
 4. **Lose**: `PartyDefeat.Resolve(party, rng)` per §4, with RNG draws in DOS order (one `rand` for the resurrect
    test only when `CON > 0` and `L > 2`, then one for undead when reached). Fates table test with a scripted
    RNG; reset purse/found items; place survivors at OUT1 (20,5), else the town with an empty party.
-5. **Persistence**: one-slot dungeon save (id + level buffer) replaces `ClearedEventKeys`, behind the P0.4 decode.
+5. **Persistence**: one-slot dungeon save (id + level buffer) replaces `ClearedEventKeys`.

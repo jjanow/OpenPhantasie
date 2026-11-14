@@ -1,11 +1,11 @@
 # Phantasie III (DOS SSI 1988, + Amiga v1.0): format and RE notes
 
-Phase 09 T4 (started s78, static only). Plan and status: `docs/plan/03c-phantasie3-re.md`. Files: `unpacked/README.md`
+Phase 09 T4. Plan and status: `docs/plan/03c-phantasie3-re.md`. Files: `unpacked/README.md`
 (DOS) and `reverse-engineering/amiga/phantasie3/unpacked/README.md` (Amiga). Tables: `extracted/` (written by
 `tools/scripts/extract_dos_p3_tables.py`). Manual ↔ code conflicts: `DIFFERENCES-III.md`.
 
 Tags: `[C]` confirmed from code or data bytes · `[~]` probable (value match, one sample, or reasoning) · `[?]` unknown.
-s78–s79 work is static; s81 ran the first DOSBox-X checks (3c.8: §6 transfer; combat in `logic-specs/`).
+Static unless marked live (DOSBox-X checks from s81: section 6 transfer; combat in `logic-specs/`).
 
 ## 1. Address conventions
 
@@ -94,24 +94,23 @@ great service for the cause of [evil/good] … I grant thee the highest [origina
 - **Every point and requirement value equals the manual's tables** (III PDF 11–12 / pr.17–18) for all 100 equipment ids
   `[C]`. Only names differ (all in D3-005): #81/#82 "Dagger +1/+2" (manual "Knife +1/+2"), #52 "Compound Bow +2"
   (manual prints "+1" twice), "God Armour" / "Halberd" (manual "God Armor" / "Halbred").
-- Which attribute sum each requirement is compared with `[C]` (s79, ovl2 `0x39b5`, called by the disburse screen
+- Which attribute sum each requirement is compared with `[C]` (ovl2 `0x39b5`, called by the disburse screen
   ovl2 `0x061f` and by "ready best equipment" ovl2 `0x37f1`): ids 1–40 (shields, armour) **STR**, 41–60 (bows)
   **STR + DEX**, 61–100 (melee weapons) **2·STR + DEX**; any other id 0. An item is usable when that sum ≥
-  `requirement[id]`. This equals the manual (T2 leftover "III's STR+DEX bow rule" closed).
+  `requirement[id]`. This equals the manual.
 - **Value** `DS:0xf92 + 2·id` (u16, ids 0..180) `[C]` bytes, and the **town price index** `DS:0x10fc + 2·town`, indexed
   by the town number (100 unused, 150 Pendragon, 145, 140, 130, 125, 200, 115, 200, 105, 100, 88, 95, 90, **123
-  Sciattica**, 100, 100, 100 for towns 0–17) `[C]` bytes; that it has 18 entries, one per `INITARMS.DAT` row, is `[~]`
-  (s82: the s78 reading stopped at 14 entries). The armory build (root `0x0fb8…0x102e`) walks the
-  town's stock bytes and stores `value · index[FAR:0xdd98] / 100` (long math) per stocked id `[~]`; whether index entry
-  0 or 1 is Pendragon: town 1 = Pendragon = entry 1 (150) `[C]` (s81). `INITARMS.DAT` (= Amiga `inititem.dat`): the
-  per-town stock table, §9.3.
+  Sciattica**, 100, 100, 100 for towns 0–17) `[C]` bytes; that it has 18 entries, one per `INITARMS.DAT` row, is `[~]`.
+  The armory build (root `0x0fb8…0x102e`) walks the town's stock bytes and stores `value · index[FAR:0xdd98] / 100`
+  (long math) per stocked id `[~]`; town 1 = Pendragon = entry 1 (150) `[C]`. `INITARMS.DAT` (= Amiga `inititem.dat`):
+  the per-town stock table, section 9.3.
 
 ### 4.2 Spells (`spells.json`)
 
 57 names `[C]`: as I for #1–12, 17–52, 54 except: **#13–16 Arrow Flame I, P.Arrow Flame I, Arrow Flame II, P.Arrow
 Flame II** (I: Strength I–IV); **#53 empty** (Vision removed, as the manual says); **#55 Accuracy, #56 Party Accuracy,
 #57 Divine Aid** (the only divine spell name). "Ninja II" is #45 and "Ninja I" #50, as in I and the manual. Spell
-learnability per class/level (s82): `DS:0x1208` = **13 rows × 15 levels** of spell numbers (0 = none), cell for cell
+learnability per class/level: `DS:0x1208` = **13 rows × 15 levels** of spell numbers (0 = none), cell for cell
 the manual's "Spells Available at Different Levels by Class" (III PDF 10 / pr.14): Fighter 1 row, Thief 1, Priest 3,
 Ranger 2, Monk 2, Wizard 4, in that order `[C]` bytes; the per-class row grouping is `[~]` (by the manual match; the
 Learn Spells code ovl2 `0x1a6c` was not read). No spell appears twice in a class. MP costs: the manual's table gives
@@ -119,10 +118,10 @@ Learn Spells code ovl2 `0x1a6c` was not read). No spell appears twice in a class
 
 ### 4.3 Classes, races, origin, social class
 
-See §3. The I → III maps (used by the transfer) `[C]`: class `DS:0x48` = `[1,4,3,0,2,5]` (THIEF→Thief, MONK→Monk,
+See section 3. The I → III maps (used by the transfer) `[C]`: class `DS:0x48` = `[1,4,3,0,2,5]` (THIEF→Thief, MONK→Monk,
 RANGER→Ranger, FIGHTER→Fighter, PRIEST→Priest, WIZARD→Wizard); race `DS:0x4e` =
 `[0,1,2,4,3,13,14,11,6,15,8,12,7,9,10,17]` (every I race to the same-named III race; I's UNDEAD 15 → Undead 17).
-Class modifiers / race modifiers / race maxima (s88, corrects the s79 note) `[C]`: static DGROUP tables (the segment
+Class modifiers / race modifiers / race maxima `[C]`: static DGROUP tables (the segment
 words `[0x5a50]`, `[0x5a52]`, `[0x5a54]` are all `0x28c0`), one signed byte per attribute a = STR, INT, DEX, CON, CHA:
 **class modifier** `DS:0xf24 + 5·class` (6 rows), **race modifier** `DS:0xf42 + 5·race`, **race maximum**
 `DS:0xa28 + 5·race` (16 rows each, race 5 "Random" all 0). Creation (root `0xa719`, `attribute(a, class, race)`):
@@ -159,10 +158,10 @@ fields are big-endian** (the file is shared with the 68000 version) `[~]`. Overl
 | 24 | combat rating | `[~]` 35/35 |
 | 25 | HP base | `[~]` 35/35 |
 | 26 | reaction modifier (s8) | `[~]` 34/35 |
-| 27 | **picture id** (Amiga: sheet and picture, ≥ 48 = none; > 41 = a giant picture, which also drops the second group and caps the count at 2) | `[C]` Amiga (s97, `reverse-engineering/amiga/phantasie3/FORMAT.md` §6); **DOS the same `[C]` (s102, static)**: the group maker (root `0xefd8`, `0xf0ef…0xf137`) copies byte 27 to each group's `+0x32`; a rank-1 value > 41 drops rank 2 (its id := −1), sets rank 1's `+0x48` flag and caps its count (`+2`) at 2; a rank-2 value > 41 drops rank 2; a dropped rank 2 gets count 0 (built in Core s83) |
+| 27 | **picture id** (Amiga: sheet and picture, ≥ 48 = none; > 41 = a giant picture, which also drops the second group and caps the count at 2) | `[C]` Amiga (`reverse-engineering/amiga/phantasie3/FORMAT.md` section 6); **DOS the same `[C]` (static)**: the group maker (root `0xefd8`, `0xf0ef…0xf137`) copies byte 27 to each group's `+0x32`; a rank-1 value > 41 drops rank 2 (its id := −1), sets rank 1's `+0x48` flag and caps its count (`+2`) at 2; a rank-2 value > 41 drops rank 2; a dropped rank 2 gets count 0 (built in Core) |
 | 28 | next-group chance | `[~]` |
 | 29–30 | companion monster ids | `[~]` |
-| 31–32 | treasure item ids: the two items the lead group can leave after a fight (root `0xee93`, `logic-specs/encounters.md` §4) | `[C]` (s88) |
+| 31–32 | treasure item ids: the two items the lead group can leave after a fight (root `0xee93`, `logic-specs/encounters.md` section 4) | `[C]` |
 | 33 | flag: 1 on undead and demons (+ Constrictor) | `[?]` purpose; candidate for Dispell Undead |
 | 34–35 | gold (BE) | `[~]` 34/35 |
 | 36–37 | XP (BE) | `[~]` (Skeleton 77 = I; Viper 731 vs I 732) |
@@ -178,13 +177,13 @@ fighting skill) and the "very tall monsters" rule must come from code or from fi
 fields are 16-bit words except the name; DOS little-endian, Amiga big-endian `[~]` (Amiga sample values fit). Offsets
 below are record-relative (= `FAR:0x9de8 + off` in DOS). Sources: the Inspect sheet (root `0xa292`, prints each field at
 a fixed row/column) `[C]`, the creation skill seeding (root `0xa1f2`) `[C]`, the transfer (ovl1) `[C]`, the creation /
-admission code (ovl2 `0x227d`, s79) `[C]`, combat and equipment code (s79, `logic-specs/`) `[C]`, Amiga sample `[~]`.
+admission code (ovl2 `0x227d`) `[C]`, combat and equipment code (s79, `logic-specs/`) `[C]`, Amiga sample `[~]`.
 
-**Where records live (DOS, s79)** `[C]`: the roster = 20 records at `FAR:0xe820 + 0x106·i`; the party = 7 slots
+**Where records live (DOS)** `[C]`: the roster = 20 records at `FAR:0xe820 + 0x106·i`; the party = 7 slots
 (6 members + an elemental) at `FAR:0x236 + 0x106·i`, party size `FAR:0xb614`, elemental-in-party flag `FAR:0xb612`;
 `FAR:0x9de8` is a work copy (combat copies a member there and back with `rep movsw`, 0x83 words).
 
-**Cross-check with the Amiga `gamesave.dat` (s79)** `[C]` data: in all 26 live records the worn ids fall in the
+**Cross-check with the Amiga `gamesave.dat`** `[C]` data: in all 26 live records the worn ids fall in the
 right ranges (shield 1–20, armour 21–40, weapon 61–100, bow 41–60 or 0) and appear in the carried list; `+0x26` equals
 the number of non-zero carried ids and `+0x56` the number of non-zero spells; ranks are 2 or 0; fresh characters
 carry exactly the kit `[4, 22, 41, 64]` (Wizards with spell 5). The Amiga file holds 25 roster slots (elementals
@@ -196,19 +195,19 @@ Air / Mist / Mud in 20–24) and then the 7 party slots (25–31).
 | 0x08 | **combat rank**: 2 Front, 1 Middle, 0 Back (new characters 2) | `[C]` change-rank root `0xfb5f` stores 2 − menu choice; S30+rank prints "(Back)/(Mid)/(Front)"; creation writes 2 |
 | 0x0a–0x14 | STR, INT, DEX, CON, CHA, LCK | `[C]` sheet rows 11–16 |
 | 0x16 | `[?]` (0) | |
-| 0x18 | **Phantasie II score** ("Phant2?"): the Mystic adds "[original text]" when ≠ 0; dungeon events read it as II's score (Filmon: ≥ 200 "who destroyed the orb of Ferronrah", 1–199 "could not"; the archive altar needs ≥ 200, `logic-specs/dungeon-events.md` §5–6); DOS's transfer never sets it | `[C]` ovl2 `0x2ca2` (s81), DNGS ops (s82) |
-| 0x1a | magic ceiling for class and level ("MaxPow"): the inn sets it to `table[class·15 + min(level, 15)]` (byte table at `0xafb` of segment `[0x5e16]` = DGROUP, i.e. `DS:0xafb`: cell for cell the manual's Maximum Magic Points table, s82); creation: `table[class·15 + 1]` | `[C]` inn ovl2 `0x347d`, creation ovl2 `0x227d` |
+| 0x18 | **Phantasie II score** ("Phant2?"): the Mystic adds "[original text]" when ≠ 0; dungeon events read it as II's score (Filmon: ≥ 200 "who destroyed the orb of Ferronrah", 1–199 "could not"; the archive altar needs ≥ 200, `logic-specs/dungeon-events.md` section 5–6); DOS's transfer never sets it | `[C]` ovl2 `0x2ca2` (s81), DNGS ops (s82) |
+| 0x1a | magic ceiling for class and level ("MaxPow"): the inn sets it to `table[class·15 + min(level, 15)]` (byte table at `0xafb` of segment `[0x5e16]` = DGROUP, i.e. `DS:0xafb`: cell for cell the manual's Maximum Magic Points table); creation: `table[class·15 + 1]` | `[C]` inn ovl2 `0x347d`, creation ovl2 `0x227d` |
 | 0x1c / 0x1e | magic max / current (sheet "Magic Power: cur/max" prints +0x1e then +0x1c). Creation: both = 75 % of +0x1a. At an inn, if there was no inn stay since the last fight (`FAR:0xde70` clear; combat clears it, the inn sets it) and max < ceiling: max +1 with chance 20·(ceiling − max) % ("Magic increases!"); every inn sets current = max | `[C]` |
 | 0x20 / 0x22 | HP max / current (sheet prints +0x22 / +0x20) | `[C]` |
 | 0x24 | in-party flag (≠ 0: "[original text]") | `[C]` add-member ovl2 `0x3a0a`; creation writes 0 |
 | 0x26 | **number of carried items** (0–9) | `[C]` creation writes 4 with the 4-item kit; inventory / disburse loops |
 | 0x28 | age clock, 1/26 year (sheet Age = +0x28 / 26, as I's `@264`); +1 per inn stay | `[C]` |
-| 0x2a | maximum age: `⌊LCK · race factor⌋` at creation (§5.1); no reader found in DOS (D3-041) | `[C]` ovl2 `0x2719` (s98); editor field "MaxAge" |
+| 0x2a | maximum age: `⌊LCK · race factor⌋` at creation (section 5.1); no reader found in DOS (D3-041) | `[C]` ovl2 `0x2719`; editor field "MaxAge" |
 | 0x2c | status (Dead 0, Okay 1, Asleep 2, Out 3, Down 4) | `[C]` |
 | 0x30 + 4k | **skill values**, k = Attack 0, Parry 1, Find Item 2, Find Trap 3, Disarm 4, Listen 5, **Fire Bow 6**, Pick Lock 7, Swim 8 | `[C]` sheet (Attack +0x30, Parry +0x34, Swim +0x50, Listen +0x44, Find Trap +0x3c, Disarm +0x40, Find Item +0x38, Pick Lock +0x4c, Fire Bow +0x48) |
 | 0x32 + 4k | **skill seeds** (I's `@50..68` bonus, added on training `[~]`): 2·STR+30, 2·DEX+30, 2·INT+30, 2·INT+30, 2·DEX+30, 2·INT+30, *Fire Bow*, 2·DEX+30, 2·CON+30 | `[C]` root `0xa1f2` |
 | 0x4a | Fire Bow seed = **2·Level + 4·DEX + STR + 10, +30 if Thief, +15 if Elf** | `[C]` root `0xa1f2…0xa28a` (Thief/Elf bonuses match the manual) |
-| 0x54 | **experience shares**: the town entry's "Shares for <name>:" (ovl2 `0x0000`(1), every character) stores the typed value, living 1–3 (pre-filled with this word; 0 or less → 1 first), dead 0–3 (pre-filled 0). Payout: `r = pool mod Σshares` points to `rnd(characters)` one by one, then each character shares × ((pool − r) ÷ Σshares); creation writes 1 | `[C]` ovl2 `0x0000` (`0x1af`, `0x2a8`, `0x49b…0x57f`) (s82, s144 `capture_s143_town_entry.md` 3) |
+| 0x54 | **experience shares**: the town entry's "Shares for <name>:" (ovl2 `0x0000`(1), every character) stores the typed value, living 1–3 (pre-filled with this word; 0 or less → 1 first), dead 0–3 (pre-filled 0). Payout: `r = pool mod Σshares` points to `rnd(characters)` one by one, then each character shares × ((pool − r) ÷ Σshares); creation writes 1 | `[C]` ovl2 `0x0000` (`0x1af`, `0x2a8`, `0x49b…0x57f`) (`capture_s143_town_entry.md` 3) |
 | 0x56 | **number of known spells** (≤ 32) | `[C]` root `0xabbe` appends spell n (1–56) at +0xb0 + 2·count |
 | 0x58 | origin: Gelnor 0, Ferronrah 1, Netherworld 2, Scandor 3, Light 4, Darkness 5 (sheet prints string 129 + origin) | `[C]` sheet; creation: 3, or 4 / 5 / 2 when created in place 15 / 16 / 17 (ovl2 `0x227d`) |
 | 0x5c | Phantasie I score (transfer) ("Phant1?") | `[C]` transfer writes the I score here |
@@ -219,13 +218,13 @@ Air / Mist / Mud in 20–24) and then the 7 party slots (25–31).
 | 0x6e | **last combat action code** (string 3 + code: 0 Attack … 5 Parries … 6 Aim, 11–16 R2 forms; editor "Combat Opt"); creation 3 (Thrust) | `[C]` root `0xd4ff` copies the fight's last choices here at fight **end**; `0xd55b` loads it as the next fight's default; monster melee tests it for Parry (`0xb64e`), so only a saved Parry counts (D3-036). Amiga sample: 0, 2, 3, 5, 13, 15 |
 | 0x70 | **last spell chosen** in combat (editor "Spell Opt"); creation 0 | `[C]` root `0xd4ff`; Amiga sample 4, 5, 8, 39–41, 56 |
 | 0x74 | **level** | `[C]` sheet row 4; creation 1 |
-| 0x7e | roster slot (the party record is copied back there, root `0x853d`) | `[C]` (s81) |
-| 0x82 | score (recomputed from `+0x8a` and level at the Mystic and on leaving a dungeon; Darklord held at 200–249, Superhero ≥ 250) | `[C]` sheet, root `0x9884` (s81) |
+| 0x7e | roster slot (the party record is copied back there, root `0x853d`) | `[C]` |
+| 0x82 | score (recomputed from `+0x8a` and level at the Mystic and on leaving a dungeon; Darklord held at 200–249, Superhero ≥ 250) | `[C]` sheet, root `0x9884` |
 | 0x86 | **bow slot** (41–60) | `[C]` ovl2 `0x37f1`; combat bow damage and the Fire Bow option test it (root `0xd730`, `0xfc41`) |
-| 0x88 | unused: no access in the root or any overlay (work copy, party and roster bases) and no DNGS op addresses it | `[C]` (s82) |
-| 0x8a | **quest bits** 0–7; score = Σ weight[bit] (DS `0x1c50`: 0, 4, 8, 12, 17, 20, 25, 30) + level / 6 (root `0x9884`); bit 2 (the cursed wand) also tested by the inventory screen. **Written only by DNGS event ops** (type 24, all party records): Kilmor found, funeral, wand, Old Bow, Gnome Bow, Lord Wood, Castle of Light, Castle of Darkness | `[C]` reader (s81), writers (s82, `logic-specs/dungeon-events.md` §4) |
-| 0x8c | **deed bits**, written only by DNGS ops: 0 Guaggle Beast, 1 / 2 soups, 3–5 statues broken, 6 Gem of Light, 7 Light Fairy attacked; events compare the word as a number (≥ 1 / 8 / 56 = evil). Amiga 7 / 71 fit | `[C]` (s82, `logic-specs/dungeon-events.md` §4) |
-| 0x8e | social class (0–5) | `[C]` sheet; creation roll (§5.1) |
+| 0x88 | unused: no access in the root or any overlay (work copy, party and roster bases) and no DNGS op addresses it | `[C]` |
+| 0x8a | **quest bits** 0–7; score = Σ weight[bit] (DS `0x1c50`: 0, 4, 8, 12, 17, 20, 25, 30) + level / 6 (root `0x9884`); bit 2 (the cursed wand) also tested by the inventory screen. **Written only by DNGS event ops** (type 24, all party records): Kilmor found, funeral, wand, Old Bow, Gnome Bow, Lord Wood, Castle of Light, Castle of Darkness | `[C]` reader, writers (`logic-specs/dungeon-events.md` section 4) |
+| 0x8c | **deed bits**, written only by DNGS ops: 0 Guaggle Beast, 1 / 2 soups, 3–5 statues broken, 6 Gem of Light, 7 Light Fairy attacked; events compare the word as a number (≥ 1 / 8 / 56 = evil). Amiga 7 / 71 fit | `[C]` (`logic-specs/dungeon-events.md` section 4) |
+| 0x8e | social class (0–5) | `[C]` sheet; creation roll (section 5.1) |
 | 0x94 | class | `[C]` sheet + Thief bonus |
 | 0x96 + 2k | **9 carried item ids**, k < +0x26 (worn items stay in this list too) | `[C]` creation kit, inventory, ready-best loop |
 | 0xa8 | race | `[C]` sheet + Elf bonus |
@@ -252,8 +251,8 @@ prompts skipped). It needs a free roster slot (`FAR:0x97c0` < 20). It writes, in
   others; r < 30 Peasant, < 60 Labourer, < 90 Craftsman, else Noble (so other races are never Noble). `rnd(n)` is
   `rand() % n + 1` (root `0x2c31`). **Gold** `+0xfe` = social class · 256 (0 / 256 / 512 / 768);
 - **attributes** (new characters only; a transfer keeps its own) ovl2 `0x3e60`: STR, INT, DEX, CON, CHA in that order,
-  each `attribute(a, class, race)` (three `rnd(6)` each, §4.3), then **LCK = rnd(6) + 7** (8–13) `[C]` (s88);
-- **maximum age and age** (ovl2 `0x2691…0x2748`, MSEM87 emulator code `int 34h…3Dh`, decoded s98) `[C]`: `f` = LCK as
+  each `attribute(a, class, race)` (three `rnd(6)` each, section 4.3), then **LCK = rnd(6) + 7** (8–13) `[C]`;
+- **maximum age and age** (ovl2 `0x2691…0x2748`, MSEM87 emulator code `int 34h…3Dh`) `[C]`: `f` = LCK as
   a single-precision float; races > 4 `f = f · 2.0 / 5.0`; races 1 Dwarven and 4 Halfling `f = f · 5.0 / 2.0`; race 2
   Elven `f = 19.0 · f`; races 0 Human and 3 Gnome keep `f` (constants DS `0x5e18` 2.0, `0x5e20` 5.0, `0x5e28` 19.0f,
   `0x5e2c` 260.0). A `race == 13` / `== 14` test sits on the races > 4 path but every race > 4 takes the 2 / 5 branch,
@@ -267,32 +266,33 @@ prompts skipped). It needs a free roster slot (`FAR:0x97c0` < 20). It writes, in
   Fighter and Thief none. Answers III Q4 ("normal beginning spell by class") `[C]`;
 - body areas all Okay; then the name prompt (new characters) and the roster insert (root `0x834:0x1d5b`).
 
-**Random-draw order at creation** (s88, ovl2 `0x227d…0x2757`) `[C]`: race `rnd(10)` (only for "Random") → HP dice
+**Random-draw order at creation** (ovl2 `0x227d…0x2757`) `[C]`: race `rnd(10)` (only for "Random") → HP dice
 (`rnd(2)` per die) → social class `rnd(100)` / `rnd(75)` → STR, INT, DEX, CON, CHA (3 × `rnd(6)` each) → LCK `rnd(6)` →
 age `rnd(7)` → nothing more (skill seeds root `0xa1f2` and starting skills root `0x9ea0` draw nothing). HP is rolled
 before the attributes, so it cannot depend on CON (D3-022). "Keep character?" No goes back to the race menu `[~]`.
-Remaster (s92): `Phantasie3Campaign.RollNewMember` (the `ICampaign.RollNewMember` hook) draws in this order, 3d6 by
+Remaster: `Phantasie3Campaign.RollNewMember` (the `ICampaign.RollNewMember` hook) draws in this order, 3d6 by
 `RollAttribute` (cap = race_mod + 8, the manual's table); under the manual's HP (D3-022, CON counts) the HP dice move
-after LCK. s98: the age clock starts at DOS's value (`P3CreationAgeRule`, `rule-tables.json` `creation_age`); the maximum age is not kept; D3-041 (s99, manual) gives III characters I's lifespan bands instead.
+after LCK. The age clock starts at DOS's value (`P3CreationAgeRule`, `rule-tables.json` `creation_age`); the maximum
+age is not kept: D3-041 (manual) gives III characters I's lifespan bands instead.
 
-Transferred characters therefore get the same kit and first spell (FORMAT §6), plus the gold of their social class
+Transferred characters therefore get the same kit and first spell (FORMAT section 6), plus the gold of their social class
 (Noble = 768) before the transfer adds old gold ÷ 35 `[~]` (order of the two writes not traced).
 
 **Equipping** (ovl2 `0x37f1`, "ready best equipment") `[C]`: for each carried item the character can use (attribute
-sum ≥ requirement, §4.1) it wears the item in the matching slot when its point value is ≥ the worn item's
+sum ≥ requirement, section 4.1) it wears the item in the matching slot when its point value is ≥ the worn item's
 (shields 1–20 → `+0x68`, armour 21–40 → `+0x6a`, bows 41–60 → `+0x86`, weapons 61–100 → `+0x6c`). Ties go to the later
 item. A slot is never emptied: a worn item no longer carried or usable stays until replaced; a character with no items
-is skipped (s144 re-read, `capture_s143_town_entry.md` 3). The disburse screen ("Player: Class: SH AR BW WP", ovl2
+is skipped (`capture_s143_town_entry.md` 3). The disburse screen ("Player: Class: SH AR BW WP", ovl2
 `0x061f`) shows the four slots.
 
 ## 6. The I → III transfer (DOS, overlay 1) — 3c.4
 
-Builds on `reverse-engineering/cross-version/wand-and-transfer.md` §2 (s76); new detail from s78 `[C]` unless tagged:
+Builds on `reverse-engineering/cross-version/wand-and-transfer.md` section 2; `[C]` unless tagged:
 
 - **Entry:** a start-up question, "Are you playing off the hard drive?" / "Would you like to transfer older characters
   saved from Phantasie I?" (DS:`0x2b12`, `0x2b36`), not a Utilities menu. Reads `guild.dat` from "a Phantasie I data
   disk" (282-B records, 22 slots). The II path (318-B records, chosen when `final2.pic` exists) only runs if the first
-  open fails, and the code then reopens `Guild.dat` anyway, so it looks unreachable `[~]` (s76).
+  open fails, and the code then reopens `Guild.dat` anyway, so it looks unreachable `[~]`.
   **Live s81:** the transfer question is asked only after "No" to the hard-drive question (ovl1 `0x994`: "Yes" sets
   `[0x2bb6]:0x1bb0` = 1 and skips it), so a hard-disk install cannot transfer. It then needs a saved game on the data
   disk ("There is not a saved game on this data disk to load. Save a game to this data disk and try again later.").
@@ -305,18 +305,16 @@ Builds on `reverse-engineering/cross-version/wand-and-transfer.md` §2 (s76); ne
   count)` and stops the loop when it reaches 0 ("[original text]") (D3-003).
 - **Per character** the player sees name, class, race, level, status, age and the six stats and answers "Will you keep
   this character?" (DS:`0x2970`).
-- **Fields written into the new record:** name (7 chars); STR, INT, DEX, CON, CHA, LCK; class via
-  `DS:0x48`; race via `DS:0x4e` (**Undead → level 20**, ovl1 `0x434`, D3-007); status (I `@24`); age clock (I `@264` → +0x28); Phantasie I score
-  (I `@70` → +0x5c); origin 0 = Gelnor (II path: Ferronrah if its II score ≥ 100); social class **3 = Noble**; town 1 =
-  Pendragon; XP = **100 × old level** (u32); bank gold += **old bank gold ÷ 35** (no +100); ~~level stays 0 (except Undead)~~ level 1, Undead 20 (s79 order below, live s81). Then the
-  ovl2 character review (`0x227d`) gives the class kit (items 4, 22, 41|44, 64) and the class spells `[~]` (s76).
-- **Order, corrected s79 (T4)** `[C]`: ovl1 first copies the six stats, race and class into the work record
-  (img `0x140ee…0x1411f`), sets `FAR:0xb5e6` (transfer mode) and calls the shared creation routine ovl2 `0x227d` (§5.1),
-  which writes **level 1**, the class kit and first spell, fresh HP / magic / skills (seeded and trained once,
-  root `0xa1f2` / `0x9ea0`), a **random social class and gold = that class · 256**. Back in ovl1 (img `0x14160…0x141f0`)
-  it writes the name, age, status, XP = 100 × old level, level 20 if Undead, gold **+=** old gold ÷ 35, town 1, social
-  class 3 (Noble), I score, origin, and inserts the record. So: non-Undead transferred characters start at **level 1** (not 0 as s78 wrote; D3-016), and
-  their gold is (random class) · 256 + old ÷ 35 while the class shown is Noble.
+- **Order and fields:** ovl1 first copies the six stats (STR, INT, DEX, CON, CHA, LCK), race (via `DS:0x4e`) and class
+  (via `DS:0x48`) into the work record (img `0x140ee…0x1411f`), sets `FAR:0xb5e6` (transfer mode) and calls the shared
+  creation routine ovl2 `0x227d` (section 5.1), which writes **level 1**, the class kit (items 4, 22, 41|44, 64) and first
+  spell, fresh HP / magic / skills (seeded and trained once, root `0xa1f2` / `0x9ea0`), a **random social class and
+  gold = that class · 256**. Back in ovl1 (img `0x14160…0x141f0`) it writes the name (7 chars), age clock (I `@264` →
+  +0x28), status (I `@24`), XP = **100 × old level** (u32), **level 20 if Undead** (ovl1 `0x434`, D3-007), bank gold
+  **+=** **old bank gold ÷ 35** (no +100), town 1 = Pendragon, social class **3 = Noble**, Phantasie I score (I `@70` →
+  +0x5c), origin 0 = Gelnor (II path: Ferronrah if its II score ≥ 100), and inserts the record. So non-Undead
+  transferred characters start at **level 1** (D3-016), and their gold is (random class) · 256 + old ÷ 35 while the
+  class shown is Noble.
   **Verified live s81** (DOSBox-X, a Phantasie I `GUILD.DAT`): I level 3 → III level 1 with XP 300; level 1 → level 1
   with XP 100; UNDEAD (I race 15) level 2 → III Undead (17) level 20 with XP 200. All got social class 3 and the kit
   (shield 4, armour 22, bow 41 / 44 for the Thief, weapon 64) with stats unchanged. I race 13 (thiefo) became Lizard
@@ -329,18 +327,18 @@ Builds on `reverse-engineering/cross-version/wand-and-transfer.md` §2 (s76); ne
 
 **Amiga III** imports from Phantasie I only (strings) `[C]`; not decoded `[?]`.
 
-**Remaster (s147):** `Phantasie3Campaign.AdmitTransferred` runs the creation routine's transfer-mode draws in DOS's order
+**Remaster:** `Phantasie3Campaign.AdmitTransferred` runs the creation routine's transfer-mode draws in DOS's order
 (HP dice, the social-class roll for the bank gold, the age roll; no attributes) and then ovl1's writes; the values are
 `rule-tables.json` `transfer`. The manual's rules are the defaults (level 0, D3-007 / D3-016; I / II source, D3-004;
 divine spells as Divine Aid, D3-002; the wand, D3-001) with DOS's as `p3.transfer-*` options; DOS's add is kept (D3-003)
-and the transfer is a game-menu action at any time (D3-030). XP is DOS's 100 × old level (D3-072, user s148).
+and the transfer is a game-menu action at any time (D3-030). XP is DOS's 100 × old level (D3-072, user ruling).
 
 ## 7. Manual questions answered (from `09-trilogy-manual-p3.md` §3)
 
 | Q | Answer |
 |---|---|
 | 1 transfer platforms | DOS: from Phantasie I only (startup question); II path dead `[~]`. Amiga: from I only (strings) `[C]` |
-| 2 transfer details | §6: the six stats, class/race remapped, status, age, I score, social Noble, origin Gelnor, XP = 100·level, gold ÷ 35; no skills, items, spells. s79: level 1 and the class kit, first spell, fresh skills from the creation routine (D3-016) |
+| 2 transfer details | section 6: the six stats, class/race remapped, status, age, I score, social Noble, origin Gelnor, XP = 100·level, gold ÷ 35; no skills, items, spells; level 1 and the class kit, first spell, fresh skills from the creation routine (D3-016) |
 | 3 divine-spell numbering | III's only divine spell is #57 Divine Aid; #55/#56 are Accuracy/Party Accuracy `[C]`; DOS transfer keeps no spells (D3-002) |
 | 5 social classes | Six names: Peasant, Labourer, Craftsman, Noble + endgame titles Darklord / Superhero (D3-006) `[C]` strings |
 | 6 body-area count | Six in the record and on the sheet `[C]` |
@@ -349,14 +347,15 @@ and the transfer is a game-menu action at any time (D3-030). XP is DOS's 100 × 
 | 17 towns / scrolls | 14 town names; 16 numbered scrolls in 20 item slots (III and VII ×3) `[C]` |
 | — Fire Bow bonuses | Thief +30, Elf +15 `[C]`, as the manual |
 | — Vision #53 | removed (empty name) `[C]` |
-| 4 beginning spell (s79) | Priest and Ranger #1 Healing I, Monk and Wizard #5 Fireflash I, also for transferred characters (§5.1) `[C]` |
-| 7 broken-limb rules (s79) | "Broken" means Broken **or Gone** everywhere: any arm or leg ≥ Broken → no bow; right arm ≥ Broken → Parry only (spells and swings blocked). The left arm alone blocks only the bow. A Down character (a leg ≥ Broken) cannot fire either (`logic-specs/body-areas.md`) `[C]` |
-| 8 HP per location (s79) | No: one HP pool; the injury level comes from the hit's damage against the HP left after it (integer HP-left ÷ damage: 0 Gone, 1 Broken, 2 Injured, ≥ 3 none) `[C]` |
-| 9 hit-location odds (s79) | A 6 × 6 cumulative table `DS:0x12cc` (melee, bow, spell, Aim, "tall" rows) `[C]` (`logic-specs/body-areas.md`) |
-| 18 inn and Breaks (s79) | Town inn: full HP and every Injured / Broken area healed (Gone stays). Wilderness inn: full HP and 2 cure points (1 Break or 2 Injuries). D3-015 `[C]` |
-| 19 thief reach (s79) | Thieves pick rank 1 or 2 for Thrust and Slash (and Lunge, like Fighters), not for Attack. D3-011 / D3-012 `[C]` |
+| 4 beginning spell | Priest and Ranger #1 Healing I, Monk and Wizard #5 Fireflash I, also for transferred characters (section 5.1) `[C]` |
+| 7 broken-limb rules | "Broken" means Broken **or Gone** everywhere: any arm or leg ≥ Broken → no bow; right arm ≥ Broken → Parry only (spells and swings blocked). The left arm alone blocks only the bow. A Down character (a leg ≥ Broken) cannot fire either (`logic-specs/body-areas.md`) `[C]` |
+| 8 HP per location | No: one HP pool; the injury level comes from the hit's damage against the HP left after it (integer HP-left ÷ damage: 0 Gone, 1 Broken, 2 Injured, ≥ 3 none) `[C]` |
+| 9 hit-location odds | A 6 × 6 cumulative table `DS:0x12cc` (melee, bow, spell, Aim, "tall" rows) `[C]` (`logic-specs/body-areas.md`) |
+| 18 inn and Breaks | Town inn: full HP and every Injured / Broken area healed (Gone stays). Wilderness inn: full HP and 2 cure points (1 Break or 2 Injuries). D3-015 `[C]` |
+| 19 thief reach | Thieves pick rank 1 or 2 for Thrust and Slash (and Lunge, like Fighters), not for Attack. D3-011 / D3-012 `[C]` |
 
-Still open: Q10 autosave, Q11 Amiga gold cap, Q12 elementals, Q13 fees/XP/training numbers.
+Answered in the logic specs: Q10 autosave (`town.md` section 4, D3-028), Q12 elementals (`elementals.md`), Q13 fees / XP /
+training (`town.md` section 2, `training.md`). Still open: Q11 (the Amiga's gold cap), Q14 (`09-trilogy-manual-p3.md` section 3).
 
 ## 8. Save files (3c.7, DOS) `[C]` (s79, static)
 
@@ -371,8 +370,8 @@ offset or not at all `[~]`. Files are written with `O_WRONLY|O_CREAT|O_TRUNC|O_B
 
 | File off | Size | Source | Content |
 |---|---|---|---|
-| 0x0000 | 0x1478 (5240) | `FAR:0xe820` | **roster**: 20 × 262-B records (§5) |
-| 0x1478 | 0x7b0 (1968) | `FAR:0x236` | **party block**: 7 × 262-B party records (`0x236–0x95f`, slot 6 = the elemental), then found items 60 × u16 (`0x960`, cap 60: "The party can't carry any more items.", root `0xf421`; manual 90, D3-020), count u16 (`0x9d8`), party experience u32 (`0x9da`), party gold u32 (`0x9de`), days out u32 (`0x9e2`, counts thirds of a day; step costs by the terrain word `FAR:0xb61a`, `logic-specs/planes.md` §3a) — the order of the Party Status screen (root `0x1b6d`) |
+| 0x0000 | 0x1478 (5240) | `FAR:0xe820` | **roster**: 20 × 262-B records (section 5) |
+| 0x1478 | 0x7b0 (1968) | `FAR:0x236` | **party block**: 7 × 262-B party records (`0x236–0x95f`, slot 6 = the elemental), then found items 60 × u16 (`0x960`, cap 60: "The party can't carry any more items.", root `0xf421`; manual 90, D3-020), count u16 (`0x9d8`), party experience u32 (`0x9da`), party gold u32 (`0x9de`), days out u32 (`0x9e2`, counts thirds of a day; step costs by the terrain word `FAR:0xb61a`, `logic-specs/planes.md` section 3a) — the order of the Party Status screen (root `0x1b6d`) |
 | 0x1c28 | 0x24 (36) | `FAR:0x97f0` | 18 globals copied there before the write (table below) |
 | 0x1c4c | 0xcba (3258) | `0x27f3:0000` | the first 0xcba bytes of `INITARMS.DAT` as loaded at start-up (ovl1 `0x5e0` reads 0xcba B of `initarms.dat` there): per-town armory stock and other run-time state `[~]` |
 
@@ -380,27 +379,27 @@ Globals block (`FAR:0x97f0 + 2k`, source segment `0x1820` unless noted):
 
 | k | Source | Meaning |
 |---|---|---|
-| 0, 1 | `0x09f8`, `0x487e` | copies of the party x / y (start 24, 37) `[~]` (s81) |
-| 2, 3 | `0x97ec`, `0x9814` | x / y to return to (start 4, 4; plane arrivals rewrite them) `[~]` (s81) |
-| 4, 5 | `0x4882`, `0x4884` | **party x / y** on the current wilderness map `[C]` (s81, `logic-specs/planes.md`; `0x4880` next to them = elemental-in-combat flag `[C]`) |
+| 0, 1 | `0x09f8`, `0x487e` | copies of the party x / y (start 24, 37) `[~]` |
+| 2, 3 | `0x97ec`, `0x9814` | x / y to return to (start 4, 4; plane arrivals rewrite them) `[~]` |
+| 4, 5 | `0x4882`, `0x4884` | **party x / y** on the current wilderness map `[C]` (`logic-specs/planes.md`; `0x4880` next to them = elemental-in-combat flag `[C]`) |
 | 6 | `0x27f3:0x0cc0` | `[?]` (1 at start) |
 | 7 | `0x487c` | set to 1 when the party leaves a town (ovl3 `0x88`) `[~]` "in the wilderness" |
 | 8 | `0xe596` | **in-town flag** (inn: town inn vs wilderness inn; set entering a town, ovl3 `0x6c8`) `[C]` |
 | 9 | `0xb61e` | combat-active flag `[~]` |
 | 10 | `0x97c0` | **roster count** (creation needs < 20) `[C]` |
-| 11 | `0x27f3:0x0cc8` | **filled party slots** including the elemental (≤ 7) `[C]` (s81, `logic-specs/elementals.md`) |
+| 11 | `0x27f3:0x0cc8` | **filled party slots** including the elemental (≤ 7) `[C]` (`logic-specs/elementals.md`) |
 | 12 | `0xb614` | **party size** `[C]` |
 | 13 | `0xb612` | **elemental in party** `[C]` |
 | 14 | `0xdd98` | **current town / place** `[C]` |
 | 15 | `0xde70` | rested-since-combat flag (cleared at combat start, set by an inn stay; magic max only grows when clear) `[~]` |
-| 16 | `0xe810` | number of item kinds the current town's armory stocks (`INITARMS` row byte 0, root `0x0f22`) `[C]` (s81) |
+| 16 | `0xe810` | number of item kinds the current town's armory stocks (`INITARMS` row byte 0, root `0x0f22`) `[C]` |
 | 17 | `0x09f2` | `[?]` (1 at start) |
 
 The game save is **one slot per data disk** (load: "There is not a saved game on this data disk to load", string
 553). It holds no map position file of its own: the world position is in the globals `[~]`.
 
 **Dungeon saves** (ovl4 `0x62d`, "Would you like to save this map …" / "[original text]") `[C]`:
-`file_io` with c = the dungeon's record letter `FAR:0xb5b0` (from `DS:0x1c84 + 2·dungeon`, 'A'…'K', s82):
+`file_io` with c = the dungeon's record letter `FAR:0xb5b0` (from `DS:0x1c84 + 2·dungeon`, 'A'…'K'):
 
 | File | Name string | Size | Content |
 |---|---|---|---|
@@ -408,9 +407,9 @@ The game save is **one slot per data disk** (load: "There is not a saved game on
 | `DNG<c>` | 501 "DNGX" | 0x5a (90) | dungeon state from `FAR:0x0000` (position, facing, …) `[?]` fields |
 
 A fresh dungeon is read from `dngs.dat` (string 503) at offset `record · 0x1080` with record = letter − 'A' (11 records = 46,464 B) `[C]`.
-`plns.dat` (string 520) holds the three plane maps, read by offset (§9.2).
+`plns.dat` (string 520) holds the three plane maps, read by offset (section 9.2).
 
-**Amiga** `gamesave.dat` (11,812 B = 45 × 262 + 22 `[~]`, s78) has a different layout (25 roster slots, …); not decoded.
+**Amiga** `gamesave.dat` (11,812 B = 45 × 262 + 22 `[~]`) has a different layout (25 roster slots, …); not decoded.
 Not run in DOSBox: the byte layout above is from the save/load code, not from a saved file.
 
 ## 9. Data files (3c.7, s81, static) — WORLD, PLNS, INITARMS, SCROLLS, DNGS
@@ -423,7 +422,7 @@ Behaviour that uses them: `logic-specs/planes.md` (maps, places, scrolls), `logi
 3750 B = **50 × 75 tile bytes, row-major**: tile(x, y) = byte `y · 50 + x`, x 0–49 west → east, y 0–74 north → south
 (ovl1 `0x5e0` reads it whole into a 0xea6-B block, `FAR:0xddae`; width `FAR:0x97c8` = 50, last row `0x27f3:0x0cce` =
 74; ovl3 `0x375` indexes `map[y · width + x]`). The party starts at (24, 37), Pendragon. Tile id → terrain in
-`logic-specs/planes.md` §3. Checked against the hard-coded place list: the 14 town squares hold tiles 26–38, the 8
+`logic-specs/planes.md` section 3. Checked against the hard-coded place list: the 14 town squares hold tiles 26–38, the 8
 dungeon squares 39–46, the 8 inn squares 47–54. Row 0 is all tile 1 (Water); the outer frame is blocked ("Ocean") by
 position, not by tile. 5 × 5 sections of 10 × 15 squares = the manual's map sections `[~]`. No code writes the file
 back `[~]`.
@@ -446,7 +445,7 @@ the Netherworld 61–88, 154–213 and 242–249 (Black Path, Mist, Steam, Lava,
 ### 9.3 `INITARMS.DAT` — armory stock per town `[C]`
 
 3328 B. The first 0xcba = 3258 B = **18 rows × 181 B** are loaded at `0x27f3:0000` (ovl1 `0x5e0`) and saved inside
-`gamesave.dat` (§8), so they are the live stock; the last 70 B are padding (`0x3a`). Row = town number (0 unused,
+`gamesave.dat` (section 8), so they are the live stock; the last 70 B are padding (`0x3a`). Row = town number (0 unused,
 1–14 the Scandor towns, 15–17 the plane towns, all empty):
 
 | Byte | Meaning |
@@ -455,35 +454,35 @@ the Netherworld 61–88, 154–213 and 242–249 (Black Path, Mist, Steam, Lava,
 | 1–180 | stock count of item id 1–180 (0 = not sold; 200 / 99 / 77 on potions and scrolls, i.e. plenty) |
 
 The armory (root `0x0f22`) lists every id with a non-zero count and prices it `value[id] · price_index[town] / 100`
-(§4.1). Pendragon (row 1): Clothing 21 / Robes 22 ×5, Leather 23, Knife 61, Club 63, Mace 64, Healing / Magic Potion 5
-(105 / 115) ×5, Scroll IV (126, the map) and Scroll VIII (132) ×200. **No restocking** (s88) `[C]`: only buying (−1) and
-selling (+1, in the town of the sale) change a count; nothing regenerates it (`logic-specs/town.md` §7) — **D3-033**.
+(section 4.1). Pendragon (row 1): Clothing 21 / Robes 22 ×5, Leather 23, Knife 61, Club 63, Mace 64, Healing / Magic Potion 5
+(105 / 115) ×5, Scroll IV (126, the map) and Scroll VIII (132) ×200. **No restocking** `[C]`: only buying (−1) and
+selling (+1, in the town of the sale) change a count; nothing regenerates it (`logic-specs/town.md` section 7) — **D3-033**.
 
 ### 9.4 `SCROLLS.DAT` — scroll texts `[C]`
 
 19950 B = **19 records × 1050 B** of NUL-terminated text (root `0xeb` reads record `k` at `k · 0x41a`); lines are
-cut by the window width (no CR). Item → record map in `logic-specs/planes.md` §7 (Scroll IV is a picture, not text;
+cut by the window width (no CR). Item → record map in `logic-specs/planes.md` section 7 (Scroll IV is a picture, not text;
 three-page scrolls use consecutive records). Record titles include "Departed Souls" (4), "[original text]" (5),
 "The Universe" (7–9: "[original text] many planes…"), "[original text]" (13), "The Plane
 of Light" (15), "[original text]" (16), "[original text]" (17), "[original text]" (18).
 
 ### 9.5 `DNGS.DAT` — dungeon records (`[C]` layout, field meanings partly `[~]` / `[?]`)
 
-46464 B = **11 records × 4224 (0x1080) B**, one per dungeon (names = master strings 34–44). **Record ≠ dungeon − 1**
-(corrected s82): the entry code takes a letter from `DS:0x1c84 + 2·dungeon` and loads record `letter − 'A'`: dungeons
+46464 B = **11 records × 4224 (0x1080) B**, one per dungeon (names = master strings 34–44). **Record ≠ dungeon − 1**:
+the entry code takes a letter from `DS:0x1c84 + 2·dungeon` and loads record `letter − 'A'`: dungeons
 1–11 → records 9, 7, 4, 3, 0, 2, 1, 10, 8, 5, 6 (J H E D A C B K I F G) `[C]` (ovl4 `0x6c7`, `0x77d`); the Amiga
-`D/DNPA…DNPK` match the DOS record of the same letter. Records 9 and 10 (dungeons 1 and 8) are byte-identical. The
-record is loaded into the work buffer (`FAR:0xb63c`) on entry and saved as `DNP<letter>` (§8). Events, quest bits and
-exits: `logic-specs/dungeon-events.md`.
+`D/DNPA…DNPK` are played copies of the DOS record of the same letter. Records 9 and 10 (dungeons 1 straw hut and 8
+sulphur cave) are byte-identical. The record is loaded into the work buffer (`FAR:0xb63c`) on entry and saved as
+`DNP<letter>` (section 8). Events, quest bits and exits: `logic-specs/dungeon-events.md`.
 
 | Offset | Size | Content |
 |---|---|---|
 | 0x000 | 720 | **map, 24 × 30 cells**, cell(x, y) = byte `24 · y + x` (ovl4 `0x2248` / `0x2275`; x 0–23, y 0–29; ovl4 `0xe14` rejects moves outside) `[C]` |
 | 0x2d0 | 1 | dungeon level L (0–5), picks the random / lair monster band `[C]` |
 | 0x2d1 | 10 | monster id for each forced-fight cell 0x80–0x89 (`record[0x251 + cell]`) `[C]` |
-| 0x2db | 3 × 3 | exits, one per exit cell 0xd7–0xd9: (destination, x, y). Only the destination is read (ovl4 `0x977`): 29 / 31 / 41 = go to the Light / Dark / Netherworld plane at its fixed start square; any other value (3–23 in the data) = stay on the plane, back on the dungeon's square. x, y are never read (s82) `[C]` (`logic-specs/dungeon-events.md` §7) |
+| 0x2db | 3 × 3 | exits, one per exit cell 0xd7–0xd9: (destination, x, y). Only the destination is read (ovl4 `0x977`): 29 / 31 / 41 = go to the Light / Dark / Netherworld plane at its fixed start square; any other value (3–23 in the data) = stay on the plane, back on the dungeon's square. x, y are never read `[C]` (`logic-specs/dungeon-events.md` section 7) |
 | 0x2e4 | 5 × 35 | **event squares** 0xdd–0xff (`0x2e4 + 5 · (cell − 0xdd)`, ovl4 `0x12a4`, entered after the copy-protection quiz ovl4 `0x43e` passes): byte 0 = message number (+1) with bit 7 = once only (the entry becomes 0xff), byte 1 = number of choices offered (keys 1…n, n up to 9), program index for choice k = byte `2 + k − 1` (byte 2 when there is no choice; for n > 3 this runs on into the next entries; ovl4 `0x1351…0x1369`) `[C]` |
-| 0x393 | 512 | **event programs**: ops at `0x393 + 2 · index` (2 or 4 bytes); op byte bit 7 = continue with the next op, bit 6 = clear the op after use, bits 0–5 = type 1–27 (ovl4 `0x14b0`, jump table `0x1aea`): all 27 types decoded in `logic-specs/dungeon-events.md` §3 (s82) `[C]` |
+| 0x393 | 512 | **event programs**: ops at `0x393 + 2 · index` (2 or 4 bytes); op byte bit 7 = continue with the next op, bit 6 = clear the op after use, bits 0–5 = type 1–27 (ovl4 `0x14b0`, jump table `0x1aea`): all 27 types decoded in `logic-specs/dungeon-events.md` section 3 `[C]` |
 | 0x593 | 2 each | text pointers, big-endian; text at `pointer − 0x800` within the record (e.g. 0xe71 → 0x671 "[original text]") `[C]` |
 | … – 0x107f | | texts and other tables `[?]` |
 
@@ -491,7 +490,7 @@ Cell codes (map bytes) as the code treats them, `[C]` unless tagged:
 
 | Cell | Meaning |
 |---|---|
-| 0 | **wall** `[C]` (s88): the step code ovl4 `0xf4f` returns 2 for cell 0 while `FAR:0xdd96` is clear, and the mover (ovl4 `0xad5`) does not move on any result below 5; `FAR:0xdd96` is only ever written 0 (ovl1 `0x5f1`, ovl4 `0x63d`), so cell 0 always blocks (`logic-specs/dungeon-events.md` §7a) |
+| 0 | **wall** `[C]`: the step code ovl4 `0xf4f` returns 2 for cell 0 while `FAR:0xdd96` is clear, and the mover (ovl4 `0xad5`) does not move on any result below 5; `FAR:0xdd96` is only ever written 0 (ovl1 `0x5f1`, ovl4 `0x63d`), so cell 0 always blocks (`logic-specs/dungeon-events.md` section 7a) |
 | 1 | walkable, drawn as a wall (shape 0x2e): a secret door `[~]` |
 | 7 | secret door `[~]` |
 | 8–17 | random-encounter squares: a fight when `FAR:0xdd8c` > `rand() % 100`, monster `12 · L + (cell − 8) + rand() % 3` (ovl4 `0xeb5`) |
@@ -502,9 +501,6 @@ Cell codes (map bytes) as the code treats them, `[C]` unless tagged:
 | 0x8a | the square of a won event fight (type 5) `[~]` |
 | ≥ 0xdd | event squares (treasure, traps, messages, fights), table at 0x2e4 |
 
-Records 9 and 10 (dungeons 1 straw hut and 8 sulphur cave) are byte-identical (s82; s81 called them the castles, which
-followed the wrong record = dungeon − 1 rule). Amiga `D/DNPA…DNPK` are played copies of the same records.
-
 ### 9.6 Extractors and GameData (s82)
 
 `tools/scripts/extract_dos_p3_{world,towns,scrolls,dungeons,rules}.py` write `extracted/world.json`, `towns.json`,
@@ -512,8 +508,8 @@ followed the wrong record = dungeon − 1 rule). Amiga `D/DNPA…DNPK` are playe
 `src/OpenPhantasie.Data/GameData/phantasie3/` from them (`--check` compares). Findings on the way, `[C]` unless tagged:
 
 - **Places** are read from ovl3 `place_at_party` by its `cmp [0x4882], x` / `cmp [0x4884], y` / `mov [0x0cbc], type` /
-  `mov [0xdd84], n` operands: 30 Scandor squares + the Netherworld's two, equal to `planes.md` §4; every square sits on
-  a tile of its kind. The four Light / Dark squares use another code shape (kept from §4 by hand).
+  `mov [0xdd84], n` operands: 30 Scandor squares + the Netherworld's two, equal to `planes.md` section 4; every square sits on
+  a tile of its kind. The four Light / Dark squares use another code shape (kept from section 4 by hand).
 - **Scroll lines:** a 38-character cut is the only width from 30 to 44 that never splits a word in the 19 records `[~]`.
 - **Dungeon texts:** the pointer table at 0x593 runs to the lowest text (0x66f in every record: 110 slots), zero
   entries are empty slots; 348 texts in all. An event square's message byte names slot `(E[0] & 0x7f) − 1` (`logic-specs/dungeon-events.md`).
@@ -669,7 +665,7 @@ The remaster draws the view from the party's cell with the pack's `view_counters
 Troll Baby and Forest Elf, both show index 27); index < 41 → normal picture at `768 · index`; 41..46 → giant at
 `0x7b00 + 2880 · (index − 41)`; any other index → **normal picture 15** (the Skeleton's): Mud Elemental (48) and Wolf
 (65) show the Skeleton on DOS, where the Amiga cuts nothing (D3-067) `[C]`. Byte 27 > 41 still makes the group a giant
-group (§4.4), so these two stand at the giant places with a normal picture. The remaster's DOS CGA pack does not draw
+group (section 4.4), so these two stand at the giant places with a normal picture. The remaster's DOS CGA pack does not draw
 these three choices (D3-067, user s161): Wolf takes the Wild Dog's picture, Mud Elemental the party elemental's and
 Troll Baby the party Troll's (SHAPES.CGA party pictures 22 / 20), as the Amiga pack does.
 

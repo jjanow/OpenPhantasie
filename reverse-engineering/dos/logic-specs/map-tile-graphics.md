@@ -4,8 +4,8 @@ Static RE of OV2 (capstone `CS_MODE_16` on file offsets; OV2 string/data immedia
 Extractor: `tools/scripts/extract_dos_map_tiles.py` → `reverse-engineering/dos/extracted/tiles/` (PNGs + `tiles.json`).
 The selection rules are shipped as data in `src/OpenPhantasie.Data/GameData/phantasie1/asset-manifest.json` → `map_tiles`.
 
-> **s52: these CGA images are not drawn** (user: no CGA on screen; the Amiga set is shown, `../../amiga/FORMAT.md`
-> §map graphics). Kept as the future PC graphics set. The dungeon cell → glyph rule (`0x21df`) is still used.
+> **These CGA images are drawn only by the `dos-cga` art pack** (the Amiga set is the default, `../../amiga/FORMAT.md`
+> section map graphics). The dungeon cell → glyph rule (`0x21df`) is used by every pack.
 
 ## Screen + palette
 
@@ -64,7 +64,7 @@ inns and signs: OUT1 a line of `60` from the town (14,15) west past the signs `6
 `41` (7,13); OUT8 a line of `63` from the inn (5,10) and sign `66` (6,9) east to the town `40` (18,15). Location-text
 tiles (`x6`) sit on these lines. **Tile 74 = bridge [~]:** its only cell, OUT8 (14,11), is where that `63` road
 crosses the river column `101` at x = 14 (and it is the class-7 fight tile → WARRIOR, a bridge guard).
-This **replaces** the s39 guess "class 0 = path" (from the encounter mix, `overworld-movement.md` §Day encounter).
+Class 0 is not the path (an older guess from the encounter mix, `overworld-movement.md` section Day encounter).
 
 The manual's terrain key (PDF p.25) pictures are not the DOS art (other platform), so they cannot be matched to
 patterns. Names for classes 0–3, 8, 9 are visual judgements; only the costs and the code paths are [C].
@@ -91,7 +91,7 @@ screen (72, 24). Glyph `0xed` (party) also stores the position via `0x52fa`.
 
 Quirk [C]: cell `0x01` (walkable, 42 cells over 10 levels) draws exactly like a wall `0x00`.
 The map window starts cleared (black) and `0x20e5` redraws the cells round the party as it moves (radius 1, radius 0
-on `0x01` and `0xb9..0xc7`, s67 `0x2102`; L)OOK draws more — `dungeon-representation.md` §Sight), so unseen cells and floor are both black. The window image is what `DNG.SAV` stores
+on `0x01` and `0xb9..0xc7`, `0x2102`; L)OOK draws more — `dungeon-representation.md` section Sight), so unseen cells and floor are both black. The window image is what `DNG.SAV` stores
 (`dungeon-representation.md` §Writer: 76 rows × 2 banks × 42 bytes from `0x3d2`).
 
 ## Open

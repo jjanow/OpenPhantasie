@@ -1,6 +1,6 @@
 # Phase 12: Save slots (P3 QoL)
 
-**Asked for (user, s81 in D3-028; built at the user's request):** "modern save slots beside autosave". Each game gets
+**Asked for (user, s81 in D3-028):** "modern save slots beside autosave". Each game gets
 numbered save slots next to its autosave. Save and Load pick a slot from a list that shows each slot's party, place and
 date. A slot that holds a save asks before it is overwritten. The main menu can load a save. It covers all four games,
 since the end goal is one interface for the series. Off = the original single save, exactly as before. IV is the
@@ -52,7 +52,7 @@ save file.
 
 ## 2a. IV with the switch off: the original's three slots (user s177)
 
-The user's call on section 8's `[U]`: two states, a toggle. Off = the original three-slot system, on = the QoL picker.
+The user's call (s177): two states, a toggle. Off = the original three-slot system, on = the QoL picker.
 
 - **Save** (F5, System ▸ S, the final screen's YES) opens `_diskmenu(1)` as P4.X draws it (`0x1AB4`, `_disk(1)`
   `0x1C7E`) `[C]`: window 34 titled "Select File", " SPACE" (table entry 1, icon 20) at icon place 0, then all three
@@ -174,17 +174,17 @@ that IV always has three slots (ON in the list, OFF on the original's Save scree
   Save page instead (section 2a).
 - **IV's "Now Saving..."** (`_save`'s window) is not drawn: the note says "Saved in slot k." `[~]`.
 - **Other games' reads** take the newest slot of the source game. A transfer's file step starts there; another slot
-  is reached by typing its path or by the step's browser (Tab / pad Y, s190), not by a slot picker. IV's Hall reads the
+  is reached by typing its path or by the step's browser (Tab / pad Y), not by a slot picker. IV's Hall reads the
   newest slot with no choice `[~]`.
 - **Main menu load in I–III** builds a new game first and then loads, as F9 after Play does. Esc in D-069's
   Guild-number question leaves the player in that new game `[~]`.
 - **IV's town names** need the running campaign's tables. In the picker over the main menu (IV with its title screen
   off) a town shows as TOWN n `[~]`.
-- **Unit-tested (s205):** `Game1`'s routing decisions sit in `SaveSlotRouting` (the slots each mode lists, Save / Load
+- **Unit-tested:** `Game1`'s routing decisions sit in `SaveSlotRouting` (the slots each mode lists, Save / Load
   with the switch on or off, the main menu's Start, the picker's outcome in every mode for I–III and IV, in game and over
   the main menu, Esc on Save, and the RESET GAME row); `SaveSlotRoutingTests`. `Game1` itself (the I/O each outcome
   runs) is not built in tests (it needs a graphics device).
   - Checked live on Xvfb: I's F5 / overwrite question / F9 into D-069's question, the main menu's Start screen
-    (scrolled list), and IV's F5 / F9 with Pendragon named; s177 IV with the switch off: F5's Save page, a save to
-    slot 2 (then "*2:Save"), F9's load page and the load. Not live: the title's `_disk(0)` with slots 2 / 3.
-  - Not checked live: II, III (same code path as I), the pad (no pad on Xvfb) and the mouse.
+    (scrolled list), and IV's F5 / F9 with Pendragon named; IV with the switch off: F5's Save page, a save to slot 2
+    (then "*2:Save"), F9's load page and the load. The s179 pass covered I–IV (keys, mouse, Esc; IV `_diskmenu(1)`,
+    the title's `_disk(0)` with slots 2 / 3); the virtual pad in s181 (LB save, RB load, D-pad, A, B).

@@ -2,20 +2,20 @@
 
 Phase 09 T3, task 3b.7. This spec covers only what II changes in the wilderness step. Everything else follows Phantasie
 I's rules in `reverse-engineering/dos/logic-specs/overworld-movement.md` (DOS OV2 `0x5f3b..0x6188`) and
-`map-tile-graphics.md`. Code: `PHANT.PRG` image addresses (`../FORMAT.md` §1).
+`map-tile-graphics.md`. Code: `PHANT.PRG` image addresses (`../FORMAT.md` section 1).
 Tags as in `docs/plan/RE-REFERENCE.md`:
 - `[C]` read from the ST code
-- `[L]` also seen live in Hatari (s78, `../parity/terrain-live.md`)
+- `[L]` also seen live in Hatari (`../parity/terrain-live.md`)
 - `[~]` probable
 - `[?]` open
 
-Manual: the combined I/II rulebook p.27, "New terrain features" (quoted in §6). Differences with the manual:
+Manual: the combined I/II rulebook p.27, "New terrain features" (quoted in section 6). Differences with the manual:
 `DIFFERENCES-II.md` D2-007 (lava, NOT A CONFLICT), D2-008 (mist and dark voids, NOT A CONFLICT) and D2-014 (how the terrain
-looks, NOT A CONFLICT). Manual question Q10 (`docs/plan/09-trilogy-manual-p2.md`): §7.
+looks, NOT A CONFLICT). Manual question Q10 (`docs/plan/09-trilogy-manual-p2.md`): section 7.
 
 ## 1. Terms
 
-- **Cell value** `v` = the region grid byte (`OUTn.DAT` bytes 0–519; `../FORMAT.md` §9.2). A fogged cell stores `v + 120`.
+- **Cell value** `v` = the region grid byte (`OUTn.DAT` bytes 0–519; `../FORMAT.md` section 9.2). A fogged cell stores `v + 120`.
 - **Class** `c = v / 10`, **digit** `T = v mod 10`. The step code stores them in `[0x25b80]` and `[0x25f30]`.
 - **r** = `rnd100` (`0xfd40` = `rand() / 327`, 0..100). Each use is a new draw. The value 100 has a weight of only
   68/32768.
@@ -26,7 +26,7 @@ looks, NOT A CONFLICT). Manual question Q10 (`docs/plan/09-trilogy-manual-p2.md`
 1. **Target cell.** It is the party position plus the direction. Leaving the 26 × 20 grid swaps the region first
    (`0x66ba`, then `0x6724`, as in I).
 2. **Reveal before the read.** `0x676c` → `0x5816` un-fogs the square of radius `[0x25b8c]` around the target, redraws
-   the window and resets the radius to 1. The radius is 1 except right after VISION (§5). Only then does `0x6792` read
+   the window and resets the radius to 1. The radius is 1 except right after VISION (section 5). Only then does `0x6792` read
    the target byte. So every rule below sees the decoded value, as in DOS.
 3. **Wall.** Tile 100 means no move and no time. The window is redrawn round the old cell. On an in-grid bump, the game
    shows one of two timed messages (RSC 15 if region > 16, else 17; I: "THE RIVER STYX" / "[original text]"). Off
@@ -46,8 +46,8 @@ looks, NOT A CONFLICT). Manual question Q10 (`docs/plan/09-trilogy-manual-p2.md`
    - T = 8: plain move.
 6. **Dispatch on the class:**
    - 5: dungeon (state 13).
-   - **7 or 11: terrain fight (§3).**
-   - **8: lava (§4).**
+   - **7 or 11: terrain fight (section 3).**
+   - **8: lava (section 4).**
 7. **Dispatch on the cell value:**
    - 40: town ("ENTER?").
    - 41: wilderness inn (state 9).
@@ -69,7 +69,7 @@ else:
 ```
 
 - **Both classes run the same code** (`0x63b6` sends c = 7 and c = 11 to `0x6338`). The only difference between
-  them is the picture (§5) and which monsters their digits select.
+  them is the picture (section 5) and which monsters their digits select.
 - **Once per trip.** F is set only when the fight fires. It is cleared in three places:
   - the state-1 handler `0x73d0`: after the town loop, that is on leaving a town
   - the state-3 handler `0x7454`: when the dungeon loop returns 2, that is dungeon → wilderness
@@ -89,7 +89,7 @@ else:
   | 74 / — | 48–50 | DEMON, VAMPIRE, GHOST |
 
   Undead, devils and one insect per digit. Companions come from each monster's own `companions` field (the live fight:
-  WIGHT lead with ZOMBIE and GHOUL ranks, §8).
+  WIGHT lead with ZOMBIE and GHOUL ranks, section 8).
 - **vs I:** I's class 7 is a **certain** fight (100 %), once per trip, against a fixed monster `12·T + 10` (tile 74 →
   WARRIOR at the OUT8 bridge, 75 → GREAT TROLL in the Black Lord's realm). I's class 11 is the **magical pool**
   (state 8, "A MAGICAL POOL" / "%s IS CHANGED"). II turned class 7 into a 9 % roll over three monsters, and gave
@@ -100,7 +100,7 @@ else:
 
 ```
 T == 0 (tile 80):  plain move                        # no damage, no encounter roll (64 cells, OUT30/OUT31)
-T == 6 (tile 86):  location text only (§2 step 5)    # 1 cell, OUT30
+T == 6 (tile 86):  location text only (section 2 step 5)    # 1 cell, OUT30
 T == 8:            plain move (none on the maps)
 otherwise:         state 8 = 0xfac2(0):
     title " L A V A :"
@@ -116,10 +116,10 @@ otherwise:         state 8 = 0xfac2(0):
 - There is **no skill or save roll**. Every living member is hurt on every lava step, and the damage is rolled per
   member. Lava returns before the 6 % roll, so **no encounters** on lava (the manual agrees).
 - The same routine with mode 1 is swimming: "SWIMMING :", `r < SWIM @48` → "SWIMS", else "SINKS AND TAKES" `(5r +
-  100)/100` = 1–6. That is I's rule, unchanged.
+  100)/100` = 1–6 (6 only at r = 100; I: 1–5). Otherwise I's rule.
 - In I, state 8 was the magical pool. II reuses the number for lava. I's class-8 cells (sparse magenta dots, a desert
   reading `[~]`) are ordinary land.
-- **Where:** 81 ×84, 82 ×55, 83 ×45, 85 ×404 (harmless 80 ×64). Regions 17, 22, 27, 28, 30 and 31 (table in §5).
+- **Where:** 81 ×84, 82 ×55, 83 ×45, 85 ×404 (harmless 80 ×64). Regions 17, 22, 27, 28, 30 and 31 (table in section 5).
 
 ## 5. Which cells are which, and how they are drawn
 
@@ -206,7 +206,7 @@ damaging cells (+64 harmless digit-0, +1 text).
 `../parity/terrain-live.md`. Summary:
 - **Setup:** PIPPACOTT's exit was moved to OUT17 (11,5) with a test-only `TWNS.DAT` edit, the party HP was set to 200,
   and OUT17 was un-fogged.
-- **Pictures:** class 11 shows grey dots, class 7 solid black, class 8 the swirl, exactly over the cells of §5.
+- **Pictures:** class 11 shows grey dots, class 7 solid black, class 8 the swirl, exactly over the cells of section 5.
 - **Mist (112):** the 15th step from town started a fight. RAM showed monster `[0x2832c]` = 26 (WIGHT), F = 1,
   `[0x25f60]` = 2, and the travel time 900 = 15 × 60. The monsters attacked first; Show names gave ZOMBIE ×4, WIGHT
   ×3, GHOUL ×2.
@@ -221,7 +221,7 @@ damaging cells (+64 harmless digit-0, +1 text).
   for the picture, not the rules.
 - `[~]` Mist = class 11 and Dark Voids = class 7 rests on the pictures against the manual's words. No ST text names
   them.
-- **First strike in a terrain fight** `[C]` static (s83). The terrain path (`0x6338..0x638e`) sets only the trip flag
+- **First strike in a terrain fight** `[C]` static. The terrain path (`0x6338..0x638e`) sets only the trip flag
   `[0x25b8a]` and `[0x25f60]` = 2, then calls the group builder `0xafb6`. Every writer of the surprise words `[0x25cdc]` /
   `[0x25e9a]` was listed (`0x7664` clear F at round 1; `0x84e8`, `0x8eb2`, `0x8ed6`, `0x8ee2`, `0xa004` H in the round;
   `0x9cfa`/`0x9d02` minion swap; `0xfe8a`/`0xfe92` night; `0x100b4`…`0x10270` day menus; `0x10bb4`, `0x10d56` dungeon
@@ -229,7 +229,7 @@ damaging cells (+64 harmless digit-0, +1 text).
   builder. So a terrain fight starts with the words the last encounter left (F is always 0 by then, cleared in round 1),
   I's stale-surprise class-7 quirk; Core does the same (`TileClassFight` with the stale globals). The one live sample
   (monsters struck first) fits a stale H.
-- **Wall texts** `[C]` (s83): the step shows `OUT.RSC` (the wilderness resource) tree 15 **" THE RIVER STYX "** past region
+- **Wall texts** `[C]`: the step shows `OUT.RSC` (the wilderness resource) tree 15 **" THE RIVER STYX "** past region
   16, else tree 17 **" [original text] "**, I's pair (read from the resource file; `PHANT.RSC`'s trees 15 / 17 are other
   dialogs).
 - Not traced, because II keeps I's code: the region-swap geometry (`0x66ba`: new region = region − 4·dx − dy) and the
@@ -248,17 +248,17 @@ damaging cells (+64 harmless digit-0, +1 text).
 - **Step:** `OverworldTraversal` takes the game's `TerrainRules` (`GameTables.CreateTraversal`, `GameDataRepository.CreateTraversal`).
   A terrain fight is a `TileClassFight` with the 0-based lead monster `12·T + r′/34` and uses I's trip flag
   (`OverworldState.TileClassFightDone`, the same three clears). It starts with the stale surprise globals, like I's class-7
-  fight (§9 first strike `[~]`). Lava is `OverworldMoveKind.Lava` → `Lava.Resolve`: " L A V A :", then each living
+  fight (section 9 first strike). Lava is `OverworldMoveKind.Lava` → `Lava.Resolve`: " L A V A :", then each living
   member's `r·T/10 + 1` (`DamageSource.Lava`), deaths, and a wiped party goes to the defeat screen. Digit 0 is a plain move.
-- **Step costs:** `GameData/phantasie2/travel-time.json` (§2 step 4: classes 0–3 `(c + 1)·75`, the rest 60; read by
-  `GameTables.TravelTime`). D2-040 (user s81, manual as I's D-055): the file charges the path 30; the ST's 60 is `p2.path-time` = `st`.
+- **Step costs:** `GameData/phantasie2/travel-time.json` (section 2 step 4: classes 0–3 `(c + 1)·75`, the rest 60; read by
+  `GameTables.TravelTime`). D2-040 (user: manual, as I's D-055): the file charges the path 30; the ST's 60 is `p2.path-time` = `st`.
 - **Order check:** Core tests class 5 before the digits 6/7/8 (the ST does the reverse). A test shows II's maps have no tile
   56/57/58, so the two orders agree.
-- **Graphics (s81):** II's ST pack is wired (`GameData/phantasie2/graphics/atari-st.json`); the fill patterns of §5
-  resolve as `overworld.pattern.N` (D2-014). (s82) The Client draws the ST region pictures (the ST's own polygon fills
+- **Graphics:** II's ST pack is wired (`GameData/phantasie2/graphics/atari-st.json`); the fill patterns of section 5
+  resolve as `overworld.pattern.N` (D2-014). The Client draws the ST region pictures (the ST's own polygon fills
   with these patterns), every dungeon / castle icon of a region and the water / lava colour cycle. The ST shows **no map
   legend**, so none is drawn (originals first); the pattern pictures stay available for a later QoL legend (PLAN P3).
-- s83: the wall texts are I's pair, now `[C]` (§9). **Swimming** rolls `rand / 327` in II (`Swimming.Resolve(…,
+- **Swimming** rolls `rand / 327` in II (`Swimming.Resolve(…,
   TerrainRoll.Rand327)`, from the terrain rules' `roll`): the swim test `rnd < SWIM @48` and the damage
   `(5·rnd′ + 100) / 100`, which reaches **6** at rnd′ = 100 (I: 1–5). **Lava** draws each living member's swim roll
   first and ignores it (the routine `0xfac2` is shared: `0xfb5c` rolls before the mode test), then the damage roll; a member

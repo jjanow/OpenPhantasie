@@ -14,8 +14,8 @@ round is resolved and repeated until one side is dead / fled / surrendered / the
 party begs mercy.
 
 ## Inputs
-- Party "CV" in the spell / special resist rolls: runtime `char*0x11a+0x5bc0` = **`@16` MP max** (party base `0x5bb0`). [C] (s33; was
-  mislabelled "CV `@14`" from the old `0x5bb2` base — `@14` is the MP ceiling). There is no separate party CV field.
+- Party "CV" in the spell / special resist rolls: runtime `char*0x11a+0x5bc0` = **`@16` MP max** (party base `0x5bb0`). [C] (s33)
+  No separate party CV field exists (`@14` is the MP ceiling).
 - Monster CV: `mon*0x39+0x7547` (spell/breath paths). [C]
 - Melee also uses separate weapon-hit / defense fields (below) — not always CV. [C]
 - RNG helpers (see §RNG). [C]
@@ -73,15 +73,14 @@ else gets rank 1. In repeat mode the previous rank is kept, clamped to the curre
 `@250` writers in OV2: prep `0x3294` (= `@30`), QUICKNESS `0x04be` (cap 255 at `0x04b3`), and fixed pairs
 `@250/@248` = 255/25 (`0x07f7`) and 200/20 (`0x09ab`), which belong to some special spell/summon `[~]`. So swings ≤ 4.
 HEALTH REPORT `A:` (`0x45ed`) prints the same `@250/75 + 1`, i.e. the most swings a SLASH can get.
-**Manual differences (user decided s20 → manual):** D-011 no skill gate, ATTACK 2 / SLASH 3, or 4 at `@250 ≥ 225`;
-D-012 LUNGE for fighters only (others → THRUST rank 1). Core: `CombatAction.SlashFor` / `LungeFor`. The PARRY roll isn't mentioned in the manual (no conflict).
-Core chooser (s21): `CombatOrders.Choose` / `GameSession.ChooseAction` — PARRY rolled at order time, thieves pick a rank,
-an unusable spell takes the PARRY path. Client (s36): orders start as PARRY and repeat each round via mode 0 (`CombatText.RepeatFor`); each status-OK member is asked, Enter keeps, 1–6 changes.
+**Manual differences (user: manual):** D-011 no skill gate, ATTACK 2 / SLASH 3, or 4 at `@250 ≥ 225`;
+D-012 LUNGE for fighters only (others → THRUST rank 1). Core: `CombatAction.SlashFor` / `LungeFor`. The manual doesn't mention the PARRY roll (no conflict).
+Core chooser: `CombatOrders.Choose` / `GameSession.ChooseAction` (PARRY rolled at order time, thieves pick a rank,
+an unusable spell takes the PARRY path). Client: orders start as PARRY and repeat each round via mode 0 (`CombatText.RepeatFor`); each status-OK member is asked, Enter keeps, 1–6 changes.
 **[D✓] s65 (§Orders):** the repeat array `0x5b96` is reset to 4 (PARRY) only by COM `0x7c`, called on leaving town (OV1 `0xd0`)
-and after a party defeat (`0x84`); it survives rounds, encounters, a failed FLEE and a surprise opening (D-078; user s66:
-manual — the remaster never resets them). A melee order at
-a rank that no longer exists does nothing and prints nothing. HITS / MISSES name only the attacker ("VIPER HITS" then
-"priesto TAKES 8 DAMAGE"). The thief's rank order reads "THRUST AT RANK 3".
+and after a party defeat (`0x84`). It survives rounds, encounters, a failed FLEE and a surprise opening (D-078, user: manual,
+the remaster never resets them). A melee order at a rank that no longer exists does nothing and prints nothing. HITS / MISSES
+name only the attacker ("VIPER HITS" then "priesto TAKES 8 DAMAGE"). The thief's rank order reads "THRUST AT RANK 3".
 
 ## RNG helpers [C]
 
@@ -114,14 +113,13 @@ quotient = (DX:AX) / (BX:CX)     # result in AX (and DX as needed)
 ## Armor & weapon fields [C] (re-derived s19)
 
 Character record base in DS: `char*0x11a + 0x5bb0` ↔ disk offset 0 — in COM, OV1 **and OV2**
-(s19 histogram: status `+0x18` = `0x5bc8` is OV2's most-used record field). Everything below was
-first derived with base `0x5bb2` and was 2 bytes too low; this version is checked against the
-pass-3/4 fixture bytes (all 6 characters reproduce `@246`, `@248`, `@250`, `@12`).
+(status `+0x18` = `0x5bc8` is OV2's most-used record field). Checked against the pass-3/4 fixture
+bytes: all 6 characters reproduce `@246`, `@248`, `@250`, `@12`. (Older notes used base `0x5bb2`, 2 bytes too low.)
 
 | Disk off | Runtime | Role |
 |---|---|---|
 | 12 | `0x5bbc` | **Defense rating**, written by combat prep (below) |
-| 28 | `0x5bcc` | Weapon damage component A — writer **[?]** (see `save-file-format.md`) |
+| 28 | `0x5bcc` | Weapon damage component A — writer [C]: town Exit OV1 `0x3249` (formula in `save-file-format.md`) |
 | 30 | `0x5bce` | Attack skill → copied to weapon-hit effective |
 | 32 | `0x5bd0` | Parry skill → defense rating |
 | 240 | `0x5ca0` | Weapon damage component B (worn weapon points) |
@@ -142,7 +140,7 @@ every usable item (`0x3053`) it keeps the largest combat-point value within its 
 | armor (21–40) | `+0xf4 = points` | `@244` | `@84` |
 | weapon (41–100) | `+0xf0 = points` | `@240` | `@86` |
 
-It does **not** write `@28` (damage A); that writer is still **[?]**.
+It does **not** write `@28` (damage A); the town Exit does (OV1 `0x3249`, `save-file-format.md`).
 
 `0x3263` (combat prep) [C] — OV2 `0x327c`–`0x3302`, run for each party slot:
 ```
@@ -163,16 +161,16 @@ Callers: encounter start `0x3386` (only when `[0x64e8] == 3`), wilderness/dungeo
 watch; if it is alive and `rand < listen@40` it hears the monsters (message, no ambush). Else
 prep runs, **every OK member is set to SLEEP**, and the watch member alone is set back to OK.
 This matches the manual ("whoever is on watch will hopefully hear the monsters… otherwise party
-members will wake up in the middle of combat"). Re-traced s36 (`overworld-movement.md` §Night encounter: monster
-`r + 12·T`, `r ∈ {0,1,4}`; DEAD watcher → no roll, all asleep). **In Core (s36):** `NightEncounter`, wired in
-`GameSession` random encounters; the day branches of `0x70ed` are still not wired.
+members will wake up in the middle of combat"). Details in `overworld-movement.md` §Night encounter (monster
+`r + 12·T`, `r ∈ {0,1,4}`; DEAD watcher → no roll, all asleep). Core: `NightEncounter`; the day branches of `0x70ed`
+are `WildernessEncounter` (§Surprise).
 
 **Combat buffs (OV2 `0x0470..0x05ce`) [C]:** QUICKNESS `@250 = @30·(100+pct)/100` (cap 255);
 STRENGTH `@248 = @28 + @240 + 2/4/7/11`; PROTECTION `@246 = @244 + 1/3/6/10`.
 
 **HEALTH REPORT (OV2 `0x45a0`, loop at `0x45d8`) [C]:** format DS `0xbdb1` = `"%-10.9s%c HP%4d/%-4dA:%d MP%3d/%d"`:
-name, status letter (DEAD 'D', OK ' ', asleep 'S'), HP `@22`/`@20`, A, MP `@18`/`@16` (s49 arg order from the pushes), i.e. `name HP cur/max A:n MP cur/max` with
-`A = @250 / 75 + 1`: the maximum swing count the action chooser allows (§Action chooser, s20).
+name, status letter (DEAD 'D', OK ' ', asleep 'S'), HP `@22`/`@20`, A, MP `@18`/`@16` (arg order from the pushes), i.e. `name HP cur/max A:n MP cur/max` with
+`A = @250 / 75 + 1`: the maximum swing count the action chooser allows (§Action chooser).
 The manual doesn't describe this screen.
 
 ## Monster record & encounter build — OV2 `0x34aa` [C] (s22)
@@ -180,9 +178,9 @@ The manual doesn't describe this screen.
 Source: the 80 × 0x39 table at DS:`0x1a6c` of the unpacked `PHANTASI.COM` (field table in
 `data-tables.md` §Monsters; extracted by `extract_monsters.py`, equal to the DOSBox capture). The builder
 copies one record per group into `0x7522 + g·0x39` (same layout), so combat reads, e.g., armor at
-`+0x7536`, damage `+0x7538`, level `+0x753a`, CV `+0x7547`, defense `+0x754f`, attack power `+0x7559`.
-The s3 offsets (armor `+0x14`, CV `+0x25`, defense `+0x2d`, AP `+0x37`) were right; the "disproved" verdict
-compared them against a `monsters.json` parsed from EXEPACK-packed bytes.
+`+0x7536`, damage `+0x7538`, level `+0x753a`, CV `+0x7547`, defense `+0x754f`, attack power `+0x7559`
+(record offsets armor `+0x14`, CV `+0x25`, defense `+0x2d`, AP `+0x37`). Parse the unpacked image: EXEPACK-packed
+bytes give a wrong table.
 
 Called from `0x3312` with the first monster id `[0x64e6]` (1-based, out of range → 0). Per group `g = 0..2`:
 ```
@@ -202,34 +200,34 @@ if room and g < 2 and rand0_99 < +0x2b: next group, else stop                   
 to a field spell's "[original text]" estimate and are overwritten here, so in combat
 **`L = Σ group levels`** (minus 6 per cast of the spell at `0x834`). XP is earned per kill (`+0x1a` into
 `[0x7512]` at `0x1656`); victory (`0x3fbe`) divides gold by `[0x6490]` and XP by `10·[0x6490]` before printing them — `[0x6490]` = number of
-non-DEAD members (`0x43ae() + 1`, s27; summon `0x8e1` increments it), not the party-size word `[0x648e]`.
+non-DEAD members (`0x43ae() + 1`; summon `0x8e1` increments it), not the party-size word `[0x648e]`.
 Quirk (moot): the `< 0` clamp at `0x39e1` tests group 0's count, not group g's; no record has `f ≥ 0x80`.
 
-**Re-checked s25 (capstone):** a group that fails the width test is dropped entirely: no count or HP rolls, no
+**Width test detail (capstone):** a group that fails the width test is dropped entirely: no count or HP rolls, no
 `L`/gold/companion, and the group count `[0x6492]` stays `g` (`0x3b53..0x3b67`). The width test is `sum ≥ 135` → no room.
 Treasure ids are read for `g == 0` only, before the width test (`0x394c`). The next-group roll (`0x3b22`) is drawn
 before the `g < 2` check, so the third group still uses up a roll. Companion byte order: `Companions[0]` = `+0x27`
 (SKUM raw bytes `02 03` = `[2, 3]`). **All ids are 0-based inside the builder:** the only −1 is at init (`0x34c1`,
 out of 0..0x4f → 0); the record (`0x1a6c + m·0x39`) and width table (`0x2c3e + 4m`) are indexed by `m`, and companions are
 stored without adjustment; the BLACK KNIGHT compare is `m == 0x4c`. Init also sets party slot 6's status word to 1 (`0x352f`) `[~]`.
-**Build state [C] (s33):** `3 − [0x64a0]`. With `H = 0` it is 3 (ready). With `H = 1` it is 2, which the build's own
+**Build state [C]:** `3 − [0x64a0]`. With `H = 0` it is 3 (ready). With `H = 1` it is 2, which the build's own
 compaction (`0x3378`, `[0x74ae] = 1`, states > 1 → 3) turns back into 3 before the first round, so the monster is ready.
 With `H = 2` it is 1 = **asleep** (the 15 % wake check `0x1081`), which compaction keeps. The 2 that the death path
 `0x163d` writes is the same "done this round" value. A dead monster is HP 0, and compaction drops it, so the two uses
 do not collide. The write draws no RNG. Writers and effects of `H`: §Surprise.
-**BLACK KNIGHT spot [C] (s33):** `[0x64e8] = 3` means "in a dungeon" (`0x1e35`). `[0x64ec]` is the dungeon number,
+**BLACK KNIGHT spot [C]:** `[0x64e8] = 3` means "in a dungeon" (`0x1e35`). `[0x64ec]` is the dungeon number,
 read from the overworld feature record at dungeon entry (`0x1de1`) and passed to the loader `0x1e47`
 (`sprintf "DNG%-d"`). So the rule reads: **a BLACK KNIGHT group built inside DNG9 (Fortress of the Black Knights) uses
 size factor 4 instead of the record's 3**, giving 1..4 knights (`rand0_99·4/102`) instead of 1..3. It applies to every
 group of id 76 in the build (group 0 or a companion), not only at one square.
 **XP accumulator `[0x7512]`:** zeroed at build (`0x3334`). It grows by `+0x1a` in the shared monster-damage routine
 `0x1597` (callers `0x432`, `0xc19`, `0x14b5`, `0x14f1`), and also at **`0x8c1`**: the DISSOLVE / DISPELL UNDEAD dissolve path adds
-the front group's XP × `[0x74be+2g]` (= living − 1), §Combat spell effects (s31). The per-round party options (`0x3b70`, §Party options) use it for the
-monster morale check and THREATEN. Every exit (`0x3fbe..0x40e1`) divides it by `10·[0x6490]` (non-DEAD members) and adds share·n to the pool `[0x63f4]`, which is kept in tens and capped at `0xffff` (§Outputs, kill-XP payout [C] s41).
-**Core (s25):** `EncounterBuilder.Build` implements the build above, with RNG draws in DOS order. `CombatEncounter.RecordKill`
-adds XP on every kill through the damage routine; gold, `L`, treasure ids (kept, not dropped yet) and the reaction sum
-(read by §Party options) are set at build. The BLACK KNIGHT spot is a flag the caller passes; since s33 `GameSession.BeginDungeonCombat` passes
-`Dungeon.LevelId == 9`. The surprise hold `H = 2` builds every monster asleep (s33, §Surprise).
+the front group's XP × `[0x74be+2g]` (= living − 1), §Combat spell effects. The per-round party options (`0x3b70`, §Party options) use it for the
+monster morale check and THREATEN. Every exit (`0x3fbe..0x40e1`) divides it by `10·[0x6490]` (non-DEAD members) and adds share·n to the pool `[0x63f4]`, which is kept in tens and capped at `0xffff` (§Outputs, kill-XP payout).
+**Core:** `EncounterBuilder.Build` implements the build above, with RNG draws in DOS order. `CombatEncounter.RecordKill`
+adds XP on every kill through the damage routine; gold, `L`, treasure ids (dropped by `TreasureDrop`, §Outputs) and the reaction sum
+(read by §Party options) are set at build. The BLACK KNIGHT spot is a flag the caller passes; `GameSession.BeginDungeonCombat` passes
+`Dungeon.LevelId == 9`. The surprise hold `H = 2` builds every monster asleep (§Surprise).
 
 ## To-hit [C]
 
@@ -242,7 +240,7 @@ hit    if roll <  chance   # FUN_0000_1a7b
 ```
 No clamp — can go &lt;0 / &gt;100 (always miss / always hit).
 
-**Operands [C] (s33, raw bytes re-read with party base `0x5bb0`):**
+**Operands [C] (raw bytes, party base `0x5bb0`):**
 
 | path | site | attacker | defender | compare |
 |---|---|---|---|---|
@@ -252,21 +250,21 @@ No clamp — can go &lt;0 / &gt;100 (always miss / always hit).
 `c` = `[bp−2]` of the round scheduler = the caster (the non-HEALING cast path never overwrites it; HEALING moves the
 target into `[bp−2]` and keeps the caster in `[bp−4]`, `0x23f`/`0x253`). `0x5bc0` is `@16` MP max beyond doubt: the
 wilderness inn rolls `rand ≤ 20·(@14 − @16)` then `@16++` and `@18 := @16` (`0x67a3..0x680a`, = town Inn), and the MAGIC
-potion caps `@18` at `@16` (`0x4488..0x44ba`). The old "caster CV `@14`" was this same address read with base `0x5bb2`.
+potion caps `@18` at `@16` (`0x4488..0x44ba`).
 **No level term** in either roll. Other caster operands: CHARM / TELEPORTATION / FEAR / DISPELL UNDEAD use level `@88`
 (§Combat spell effects); FIREFLASH damage scales with **INT `@2`** (`magic-spells.md` §Effect coefficients; target: §FIREFLASH target); MINDBLAST,
 FLAMEBOLT, DISSOLVE and DOS SLEEP have no caster term.
-**Core (s33):** `SpellCaster.CasterHitsGroup` reads `MagicMax` (was `MpCeiling`); `MonsterSpecials` already read `MagicMax`.
+Core: `SpellCaster.CasterHitsGroup` and `MonsterSpecials` read `MagicMax`.
 **Manual (PDF p.18, printed 14):** "Active magic's effectiveness depends upon the spellcaster's magic power and experience
 level, as well as the strength of the target." DOS modes 1–3 use magic power (MP max) vs target CV but **no level** —
-conflict D-028. **Decided (user, s34): manual. Remaster design, not DOS:**
+conflict D-028. **Decided (user): manual. Remaster design, not DOS:**
 `chance = 5·(caster @16 MP max − group CV) + 2·(caster level @88 − group level +0x18) + 50`, hit if `rand ≤ chance`;
 equal levels = the DOS roll. Core: `SpellCaster.CasterHitsGroup` (`CasterLevelWeight = 2`), also used by remaster SLEEP.
 The monster party-wide special roll (`0x1a7b`) stays DOS.
-**`0x1382` group loop and wiped groups [C] (s33):** it loops `di < [0x6492]` (built group count, wiped groups
+**`0x1382` group loop and wiped groups [C]:** it loops `di < [0x6492]` (built group count, wiped groups
 included; the non-empty count `[0x6494]` is not used) over the rank-order table `0x74f4`. Modes 1–3 draw the resist
 roll (`0x13e0`) before any living test, so **a wiped group still uses up one roll**. On a hit its record is scaled,
-which nobody sees. `0x1382` prints no per-group message. Core (s33) rolls for every built rank, wiped ones included.
+which nobody sees. `0x1382` prints no per-group message. Core rolls for every built rank, wiped ones included.
 
 ### Party → monster melee (main swing loop) [C]
 ```
@@ -328,14 +326,14 @@ action[0x74fa + 2·idx] := 4
 print "%s DIES"
 ```
 Deterministic: seeds 8–10 lose 2, 11–13 lose 1. Combat prep writes its defense rating to `0x5bbc` = `@12`, so `@10`
-is intact here. A CON-0 corpse can't be resurrected. **Remaster follows this rule** (`DIFFERENCES.md` D-009, user s14;
-Core `CombatResolver.DeathConLoss`, s30 — every party-damage path goes through `ApplyPartyDamage`, as DOS goes through `0x124a`).
-Other status-zero writes audited (s31) `[C]`: OV1 `0x9df` is the party compaction `0x974` clearing a vacated slot
+is intact here. A CON-0 corpse can't be resurrected. **Remaster follows this rule** (`DIFFERENCES.md` D-009;
+Core `CombatResolver.DeathConLoss` — every party-damage path goes through `ApplyPartyDamage`, as DOS goes through `0x124a`).
+Other status-zero writes audited `[C]`: OV1 `0x9df` is the party compaction `0x974` clearing a vacated slot
 (`@92 := 0`, status := 0) and OV1 `0x2475` is the Guild remove-member path clearing the slot (`@218`, `@92`, status) — neither
 is a death and neither touches CON. OV2 `0x667b` is an `add @6, di` case of a stat-add switch (a stat change, not a death).
 The only OV2 status := 0 is `0x12de`. **Non-combat deaths do lower CON**: dungeon event damage `0x2642`, traps `0x314f`
 ("IN THE TRAP:") and swimming `0x68ff` ("SWIMMING:") all call `0x124a`, so a death there runs `0x12cf` too. Core trap
-damage (`DungeonTraps.Spring`, the DOS rule since s39) and swimming (`Swimming`, s39) go through `ApplyPartyDamage`. Aging death (OV1, town entry)
+damage (`DungeonTraps.Spring`) and swimming (`Swimming`) go through `ApplyPartyDamage`. Aging death (OV1, town entry)
 does not go through `0x12cf` — no CON loss there `[~]` (OV1 aging writer not re-checked).
 
 ### Spell AoE sample (`FUN_0000_1a7b` param paths) [C]
@@ -383,9 +381,9 @@ So the k-th of n monsters aims at roughly party slot `k·partySize/n` (+0..0.9 s
 across the party, they are not a uniform random pick.
 
 **Inputs:** `L = [0x7508]` "[original text]" (`0x4897`). Writers: encounter build `0x3542` (:= 0) then
-`0x3ac4` adds `m[+0x18]` once per **group**; `0x486e`/`0x4890` (MONSTER EVAL., s41 [C]: wilderness `2·([0x649c]+1)`
+`0x3ac4` adds `m[+0x18]` once per **group**; `0x486e`/`0x4890` (MONSTER EVAL. [C]: wilderness `2·([0x649c]+1)`
 capped 12, dungeon `2·levelbuf[0x4e7] + 2`; `magic-spells.md` §Wilderness/dungeon cast dispatch); `0x834` a spell lowers it by 6. Fields `+0x18`/`+0x1e`/`+0x20`:
-§Monster record (s22); the special effects: §Monster specials below (s26). `ranks` = `[0x6492]`, the group count set at build.
+§Monster record; the special effects: §Monster specials below. `ranks` = `[0x6492]`, the group count set at build.
 
 ## Monster specials — OV2 `0x1004` → `0x16a9` [C] (s26)
 Taken when the gate passes (`rand0_99 + 1 ≤ gate·(2g + 2)/(ranks + 2)`, integer division). Unlike melee, the third rank
@@ -422,11 +420,10 @@ else:    resist: affected if (group CV +0x25 − @16 MP max)·5 + 50 > rand0_99 
          else:      field(i, code) := (field · scaled + 5) / 10      # 0x1d5a / 0x1d71 via field map 0x1ba5
 ```
 Field map `0x1ba5` for these ids: `0x37 < id < 0x3b` → `0x5c36 + 2·id`, so `0x38` = `@246` armor eff, **`0x39` = `@248` weapon
-damage eff**, `0x3a` = `@250` weapon hit eff. The resist operand is `@16` (MP max, `0x5bc0`) — that is what the code reads
-(**[C] s33**: `0x5bc0` is MP max, see §To-hit operands; Core `MonsterSpecials` reads `MagicMax`).
+damage eff**, `0x3a` = `@250` weapon hit eff. The resist operand is `@16` (MP max, `0x5bc0`) **[C]** (§To-hit operands;
+Core `MonsterSpecials` reads `MagicMax`).
 
-**Field-id map `0x1ba5(slot, id)` → record word — full table [C] (s33, re-read from the raw bytes; disk offset = immediate −
-`0x5bb0`).** Returns `slot·0x11a + K`; read by `0x1d5a`, written by `0x1d71`. Callers: `0x1a7b` (specials 17–24, ids
+**Field-id map `0x1ba5(slot, id)` → record word — full table [C] (raw bytes; disk offset = immediate − `0x5bb0`).** Returns `slot·0x11a + K`; read by `0x1d5a`, written by `0x1d71`. Callers: `0x1a7b` (specials 17–24, ids
 `0x39`/`0x3a`) and the dungeon script ops SET-MIN / TEST (`0x288e`, `0x28a2`, `0x28cb`; `endgame.md` §2). No OV1/COM copy.
 
 | id (dec) | test in code | K | record word |
@@ -439,7 +436,7 @@ damage eff**, `0x3a` = `@250` weapon hit eff. The resist operand is `@16` (MP ma
 | 42 | `== 0x2a` | `0x5bf6` | `@70` score |
 | 43–47 | `0x2a < id < 0x30` | `0x5bf8 + 2·(id − 43)` | runes `@72..@80` (AIR, EARTH, FIRE, WATER, GOD) |
 | 48–50 | `0x2f < id < 0x33` | `0x5ba2 + 2·id` | `@82` shield, `@84` armor, `@86` weapon (worn) |
-| 55 | `== 0x37` (checked last) | `0x5c0a` | `@90` — magical-pool product [C] (s39; `save-file-format.md`) |
+| 55 | `== 0x37` (checked last) | `0x5c0a` | `@90` — magical-pool product [C] (`save-file-format.md`) |
 | 56–58 | `0x37 < id < 0x3b` | `0x5c36 + 2·id` | `@246` armor eff, `@248` weapon dmg eff, `@250` weapon hit eff |
 | 60–120 | `0x3b < id < 0x79` | `0x5c10 + 2·(id − 61)` | `@94..@214` (60 → `@94` cast-since-rest, 61 → `@96` …; spell-known words etc., per-id meaning `[?]`) |
 | 152–160 | `0x97 < id < 0xa1` | `0x5c8e + 2·(id − 152)` | carried items `@222..@238` |
@@ -447,16 +444,15 @@ damage eff**, `0x3a` = `@250` weapon hit eff. The resist operand is `@16` (MP ma
 | 162–164 | `0xa1 < id < 0xa5` | `0x5b5c + 2·id` | `@240` weapon pts, `@242` shield, `@244` armor pts |
 | 14–17, 40, 41, 51–54, 59, 121–151, ≥ 165 | none | — | **falls through**: returns the id itself as a near pointer (DOS bug if ever used) — invalid `[?]` |
 
-The ids are word indices with a 1-based start (id n ↔ `@2n − 2` in the first block). All values that earlier notes took
-from this function with base `0x5bb2` were 2 too low; every entry above is computed from base `0x5bb0` and agrees with
-the s31 endgame ids (42, 43–47, 55, 152–160, 161) and with the fixture-checked combat fields (56–58, 162–164).
+The ids are word indices with a 1-based start (id n ↔ `@2n − 2` in the first block). Every entry is computed from base
+`0x5bb0` and agrees with the endgame ids (42, 43–47, 55, 152–160, 161) and with the fixture-checked combat fields (56–58, 162–164).
 
 **Melee riders** (applied after each hit's `0x124a` and the living recount; skipped if the party is wiped):
 - 101: `@18 MP cur := (6·@18 + 5)/10`, "[original text]".
 - 100: `status := SLEEP`, `action := 4` (and repeat `0x5b96 := 4`), "A STUNNING BLOW" — written **even if the hit killed the
   target** (DOS bug: the corpse becomes SLEEP at HP 0, counts as alive in `0x43ae`, never wakes since waking needs HP ≥ 1).
 
-**Remaster deviations (user, s26):** D-015 — a stunning blow only stuns a member who survived the hit. D-016 — 17–20 scale armor
+**Remaster deviations (user):** D-015 — a stunning blow only stuns a member who survived the hit. D-016 — 17–20 scale armor
 eff `@246` (field `0x38`) to match the message, not weapon damage `@248`. The manual describes no monster abilities (no conflict
 with the values above).
 Both DOS behaviours stay reachable as rules options (Original (DOS) preset): `p1.stunning-blow` = `dos`
@@ -472,7 +468,7 @@ The counts are current: every monster death (`0x1694`, after "%s DIES" and the X
 the monster block `k`/`n` count the monsters still alive. Encounter build sets the identity order (`0x34f0`).
 Matches the manual's sample screen (RANK 1: 5, RANK 2: 2, RANK 3: 1). Party actions keep their rank *position*.
 
-**Surprise flags:** traced in full s33, see §Surprise below.
+**Surprise flags:** §Surprise below.
 
 The manual says nothing about initiative, re-ranking or rank-3 melee (no conflict).
 
@@ -512,7 +508,7 @@ is HP 0 (`0x1637`), and compaction `0x33c9` drops HP ≤ 0 slots. So build state
 | `0x2847` | DNG script op 17, "MONSTERS APPEAR" | 1 | **0** |
 | `0x2f30..0x2f56` | dungeon lock ambush (`0x2e03`, door kinds 2..13; see below) | `rand0_99 > 50` and someone heard → **0**, else 1 | `rand0_99 ≤ 50` → 1, else **0** (drawn first) |
 | `0x7143` | overworld `0x70ed`, "[original text]" (`rand0_99 < 35`) | 1 | 1 |
-| `0x7284` | Black Knights menu, **any answer** (before the switch; s39). RUN that gets away and SURRENDER end here: no fight, `F` = 0 left for the next fixed encounter | **0** | — |
+| `0x7284` | Black Knights menu, **any answer** (before the switch). RUN that gets away and SURRENDER end here: no fight, `F` = 0 left for the next fixed encounter | **0** | — |
 | `0x7284` → `0x729b` | Black Knights menu: RUN fails (`rand0_99 ≥ 44`) | 1 | 1 |
 | `0x7284` → `0x72a1` | Black Knights menu: FIGHT | **0** | 1 |
 | `0x7376` | "[original text]" → ATTACK | **0** | **2** |
@@ -523,7 +519,7 @@ is HP 0 (`0x1637`), and compaction `0x33c9` drops HP ≤ 0 slots. So build state
 | `0x3d9f` | PARTY OPTIONS Flee fails (§Party options) | — | 0 |
 | `0x11f`, `0x1103`, `0x111d`, `0x1125` | scheduler (above) | 0 | 0 / 1 |
 
-Menus return a 0-based choice (COM menu table: the entry for id `n` is at DS `0x20 + 16·n` — s36 re-check, the earlier "`0x10 + 16·id`" was one entry off; labels DS `0x64c`). Menu `0xf` = [original text] /
+Menus return a 0-based choice (COM menu table: the entry for id `n` is at DS `0x20 + 16·n`, not `0x10 + 16·n`; labels DS `0x64c`). Menu `0xf` = [original text] /
 RUN / FIGHT / SURRENDER (the code adds 1). `0x10` = [original text] / ATTACK / LEAVE. `0x11` = RUN / FIGHT,
 titled "%s HEARS MONSTERS". `0x1f` = YES / NO under the lock's "%s [original text]" (0 = YES = go back). Listening rolls: overworld
 `rand0_99·222/100 ≤ @40` (the last member who succeeds is the listener), lock `rand0_99 < @40`, both for non-DEAD members.
@@ -536,7 +532,7 @@ elif rand > 91: if max score [0x63ea] > 83: "[original text]" (no fight)
                 else menu 0xf, F := 0: RUN → rand < 44 no fight, else F,H := 1,1;  FIGHT → H := 1 (0,1);  SURRENDER → found gold := 0
                 monster 77 (BLACK KNIGHT)
 else:           pick a monster; if rand < 31: menu 0x10 (ATTACK → F,H := 0,2; LEAVE → no fight)
-                (monster pick and full pseudocode: overworld-movement.md §Day encounter, s39)
+                (monster pick and full pseudocode: overworld-movement.md §Day encounter)
                 else listener roll:
                   someone heard: rand < 6·T + 20 → message, F,H := 1,1
                                  else menu 0x11: FIGHT → rand < 30 ? F,H := 1,1 : "[original text]", F,H := 0,2
@@ -551,12 +547,11 @@ else:           pick a monster; if rand < 31: menu 0x10 (ATTACK → F,H := 0,2; 
 pick lock. `> 14` prints and pushes back. For kinds 2..13 the listener roll runs first. If someone hears, menu `0x1f` asks
 "GO BACK ?", and going back pushes the party out (`0x29a9`) with no fight. Otherwise monster `12·[0x64f0] + di − 1`, then
 the two rolls in the table (`H` first, `F` second; both are always drawn).
-**[D✓] s44 (re-check of the s43 DOSBox frames, `capture_s43_2026-10-16.md` §2c):** 24 lock-ambush fights, all nobody-heard
-(the driver answered YES to "GO BACK ?", so every heard roll was a push-back and re-roll): **15 opened with PARTY OPTIONS**, 5
-with a monster message, 4 blank (between messages). The decode predicts F = 1 and options when H = 1, ≈ 51 % → ≈ 12.2 of 24;
-15 is ≈ 1 σ. The s43 "24/24 monster-first" was a detector bug: the `top.sh` OCR returns empty on the yellow PARTY OPTIONS bar,
-so every fight was logged MONSTERS_FIRST. Frames: `screens-s43/ambush-open/`, classifier `tools/scripts/s43_capture/openclass.py`.
-Decode and Core unchanged.
+**[D✓] s44** (`capture_s43_2026-10-16.md` §2c, frames `screens-s43/ambush-open/`, classifier
+`tools/scripts/s43_capture/openclass.py`): 24 lock-ambush fights, all nobody-heard (the driver answered YES to "GO BACK ?", so
+every heard roll was a push-back and re-roll): **15 opened with PARTY OPTIONS**, 5 with a monster message, 4 blank (between
+messages). The decode predicts F = 1 and options when H = 1, ≈ 51 % → ≈ 12.2 of 24; 15 is ≈ 1 σ. (The `top.sh` OCR returns
+empty on the yellow PARTY OPTIONS bar, so a first log read all 24 as monster-first.)
 
 ### What the combinations do [C]
 | `F`,`H` at build | Start | Round 1 | Later |
@@ -580,8 +575,8 @@ and mostly sleeping monsters. In 0,1 the first round is empty, so Black Knights 
   **[D✓] s45:** a day encounter on OUT1 tile 0 printed nothing and fought ZOMBIE (id 13, outside the day pick 0..11 and the
   night pick 0/1/4 for T = 0) monster-first, after a full-round fight — the fall-off path with stale 0,0 flags
   (`capture_s45_2026-10-16.md` §4).
-- Both flags sit in the BSS the C startup zero-fills (unpacked COM `0x4f94..0x4fa6`, DS `0x3244..0xb8f0`), so they are 0 at program start [C] (s56). **No save file stores
-  them [C] (s39):** the only DS writers of `0x649e`/`0x64a0` are the OV2 sites above (raw `9e 64` / `a0 64`: none in OV1
+- Both flags sit in the BSS the C startup zero-fills (unpacked COM `0x4f94..0x4fa6`, DS `0x3244..0xb8f0`), so they are 0 at program start [C]. **No save file stores
+  them [C]:** the only DS writers of `0x649e`/`0x64a0` are the OV2 sites above (raw `9e 64` / `a0 64`: none in OV1
   or the unpacked COM). The town Save game writes GUILD / SACK (60 words from `0x63fa`, ending at `0x6472`) / TWNS, and
   the dungeon save `0x5929` writes the id, the map image and the level buffer. None of them covers `0x649e..0x64a1`. Stale
   flags therefore live only in RAM for the rest of the run.
@@ -592,24 +587,23 @@ and mostly sleeping monsters. In 0,1 the first round is empty, so Black Knights 
 employed by party members when they approach a door. If they hear monsters, a message is shown, and you have the
 option of turning back." That matches the lock's "GO BACK ?". p.10 night encounters ("whoever is on watch will
 hopefully hear the monsters…") matches `0x70ed`. p.9's "AN ENCOUNTER. Next, you will see this display: … PARTY
-OPTIONS" describes the normal case (1,1). D-034: user (s34) confirmed — works as intended, DOS rule kept.
-The flash itself is D-058 (user s46: manual): DOS prints "AN ENCOUNTER" nowhere (only "[original text]" before night
+OPTIONS" describes the normal case (1,1). D-034: user confirmed — works as intended, DOS rule kept.
+The flash itself is D-058 (user: manual): DOS prints "AN ENCOUNTER" nowhere (only "[original text]" before night
 fights); Core notes `GameSession.EncounterBanner` = "AN ENCOUNTER" at the start of every fight, and the night banner in
 its place for night fights (manual silent on night).
 
-**Core (s33):** `SurpriseFlags` (`F`, `H`, presets) and `Surprise` (the `[C]` source rolls: script op 5, lock ambush,
+**Core:** `SurpriseFlags` (`F`, `H`, presets) and `Surprise` (the `[C]` source rolls: script op 5, lock ambush,
 the `0x70ed` sub-rolls). `CombatEncounter.Surprise` / `OpensWithoutOrders`, plus the builder's asleep state for `H = 2`
-and the scheduler rules above. `MonstersFrozen` is now `H ≠ 0`. `GameSession.BeginCombat(…, surprise)` defaults to
+and the scheduler rules above. `MonstersFrozen` is `H ≠ 0`. `GameSession.BeginCombat(…, surprise)` defaults to
 1,1. Morale check and options are refused in a no-orders opening, `CombatRoundHasOptions` tells the Client, and the
-snapshot keeps all three fields. **s39 (P0.3 + P0.4 merged):** overworld: the `0x70ed` day branches (`WildernessEncounter`)
-and the stale globals (`GameSession.SurpriseGlobals`: set at every fight start, copied back at every fight end, used by
-x7 / class-7 / fall-off fights, saved in the session) are in Core. Dungeon: wandering and forced fights open Normal (1,1)
-with the cell's monster and no longer print "MONSTERS APPEAR"; the lock ambush uses `Surprise.LockAmbush` after the
-listen roll / GO BACK prompt (`dungeon-representation.md` §Locks); script ops 5/17 pass their flags through
-`DungeonScriptResult.Surprise` (op 17 → no PARTY OPTIONS, `DungeonCellsTests.ScriptOp17_OpensWithoutPartyOptions`).
-F/H are never saved by DOS [C]. No DOSBox capture has checked this: the Normal pass-1 wait changes
-every fight but is pinned only by the asm-derived unit tests, which makes it the first candidate for a per-round
-fixture `[D+]`.
+snapshot keeps all three fields. Overworld: the `0x70ed` day branches (`WildernessEncounter`) and the stale globals
+(`GameSession.SurpriseGlobals`: set at every fight start, copied back at every fight end, used by x7 / class-7 /
+fall-off fights, saved in the session). Dungeon: wandering and forced fights open Normal (1,1) with the cell's monster
+and print no "MONSTERS APPEAR"; the lock ambush uses `Surprise.LockAmbush` after the listen roll / GO BACK prompt
+(`dungeon-representation.md` §Locks); script ops 5/17 pass their flags through `DungeonScriptResult.Surprise` (op 17 →
+no PARTY OPTIONS, `DungeonCellsTests.ScriptOp17_OpensWithoutPartyOptions`).
+No DOSBox capture has checked the Normal pass-1 wait: it changes every fight but is pinned only by the asm-derived unit
+tests, so it is the first candidate for a per-round fixture `[D+]`.
 
 ## Party options — OV2 `0x3b70` [C] (s27)
 
@@ -627,17 +621,17 @@ if XP·(rand + 100) / XP₀ ≥ (rand + 200)·n:          # roughly "twice as ma
     else: [0xc432] := 45; every living monster's state := 2 (done this round)   # 0x3e13
 ```
 `T = [0x649a]` = last overworld tile / 10 (written only by the overworld step, OV2 `0x5f7a`), so in a dungeon it is the
-stale value from the entrance tile. **A failed run wakes sleepers [C] (s33):** the loop at `0x3e19..0x3e5f` writes 2 over
+stale value from the entrance tile. **A failed run wakes sleepers [C]:** the loop at `0x3e19..0x3e5f` writes 2 over
 every living slot `0..[0x74be+2g]` of every group, whatever the old state (state 1 included); the next compaction
 (`0x33c9` with `[0x74ae] = 1`, `0x3433..0x345f`) turns every state > 1 into 3 and copies states ≤ 1 unchanged. So
 asleep (1) → 2 → 3 = awake. In DOS only a surprise build makes state 1, so this only ever hit surprise sleepers.
-**Conflict with D-020 (reported s33, not coded):** since s32 the remaster's SLEEP spell makes a lasting asleep state that
+**D-030 (decided: sleepers stay asleep):** the remaster's SLEEP spell makes a lasting asleep state that
 "wakes only on the 15 % roll" (D-020, manual p.15/p.14). DOS logic applied to it would wake every slept monster on a failed
 monster run; the manual says nothing about it. Core keeps D-020 sleepers asleep through a failed run (`MonstersLoseRound`
-only) until the user decides.
+leaves `Asleep` alone); option `p1.failed-run` `dos` wakes them.
 
 **Menu** `0x6978` (menu `0x18`, labels at COM DS `0xd4ff`): **Beg mercy / Threaten / Greetings / FIGHT / Flee**, then
-Show names (`0x3e6f`) and Party health (`0x45a0`), which return to the menu. **[C] (s49 static, capstone on raw OV2):**
+Show names (`0x3e6f`) and Party health (`0x45a0`), which return to the menu. **[C] (static, capstone on raw OV2):**
 Show names opens a box and, for each rank `r < [0x6492]` in rank order (group `g = [0x74f4+2r]`, skipped unless
 `[0x74be+2g] > −1`), prints DS `0xbccd` = `"RANK %1d : %1d  %s(S)"` (file `0x7990`, string delta `0x433d`) with `r+1`,
 `[0x74be+2g]+1` (Client: living count — same after compaction `[~]`) and the group name (`0x7522 + 57g`), then waits for a key (`0xe3c4`). Party health is the HEALTH REPORT
@@ -654,14 +648,14 @@ Apple rulebook lists 1 FIGHT / 2 ACCEPT SURRENDER / 3 GREETINGS / 4 BEG FOR MERC
 | Flee (`0x3d27`) | `rand < 80 − p`, wilderness `p = 10·(1 − T)` (no abs), dungeon `p = 5·[0x648e]` | gold 0, no treasure, `[0x74ac] = 1`, end | every order `[0x74fa+2i] := 4`, `[0x64a0] := 0`, compaction (undoes a failed monster run's state 2), round (5) without orders |
 
 - Every exit goes through the normal end of combat (`0x3f29`), which never clears `[0x7512]`: **kill XP is always paid**,
-  also when the monsters run. (The old "RUN grants no XP" note came from a walkthrough; the code pays XP and full gold.)
+  also when the monsters run, with full gold (a walkthrough's "RUN grants no XP" is wrong).
   "MONSTERS KILLED" is printed only when no monster is left.
 - `Σreaction` = `[0x750c]`, the sum of `+0x29` once per group (`0x3acc`); CHARM's success path (`0x797`) adds 15 and clears `[0x74b6]` (§Combat spell effects).
 - `[0xc432]` = THREATEN factor: 15 at build (`0x332e`), 45 after a failed monster run.
 - `[0x74b6]` := 1 at the top of the shared monster-damage routine `0x1597`, so after the first hit GREETINGS can't work.
 - `[0x63ec]` = party average level: Σ `@88` over all `[0x648e]` slots (DEAD too) / party size, truncated (OV1 `0x3269`,
-  party set-up on leaving town) — written only there, so THREATEN reads a value that is stale for the whole trip (Core s41:
-  `GameSession.TownExitAverageLevel`). The same loop writes `+0x1c` (`@28`, see PLAN P0.1) and `[0x63ea]` = max `@70`.
+  party set-up on leaving town) — written only there, so THREATEN reads a value that is stale for the whole trip (Core:
+  `GameSession.TownExitAverageLevel`). The same loop writes `+0x1c` (`@28`, §Armor & weapon fields) and `[0x63ea]` = max `@70`.
 - `[0x64e8]`: 2 = wilderness, 3 = dungeon (set on dungeon entry OV2 `0x1e35`, on leaving town OV1 `0x73`).
 - `[0x6490]` (end of combat divisor) = `0x43ae() + 1` = number of non-DEAD members (`0x43ae` lists slots with `@24 ≠ 0`
   into `0x64a2` and returns the last index) **[C]**. If 0 → state 6.
@@ -671,20 +665,20 @@ Apple rulebook lists 1 FIGHT / 2 ACCEPT SURRENDER / 3 GREETINGS / 4 BEG FOR MERC
   `[0x74b2]` (dungeon surrender) = 0, `[0x74b0]` (spell end) = 0. BEG, GREET and FLEE zero `[0x74ba]` and `[0x74b4]` together,
   and so does TELEPORTATION (`[0x74b0] = 1`) at the end of combat (`0x3f77..0x3f91`, which also zeroes the gold) **[C]** — so
   Core's single `TreasureForfeited` flag is enough. Dissolve / DISPELL run (`[0x74b0] = 2`) keep both.
-- **`[0x74ac]` = 1 (BEG, FLEE) → step back [C] (s33).** The post-combat hook `0x6255` (state 12 after `0x3f29`) calls `0x29a9`
+- **`[0x74ac]` = 1 (BEG, FLEE) → step back [C].** The post-combat hook `0x6255` (state 12 after `0x3f29`) calls `0x29a9`
   when `[0x64e8] = 3` (dungeon) and `[0x74ac] ≠ 0`, then clears it. `0x29a9` redraws the current cell (`0x21df`), copies the
   previous cell `[0x751e]/[0x7520]` (saved by every step, `0x1f58`) back to the position `[0x751a]/[0x751c]` and `[0x63e4]/[0x63e6]`,
   and redraws it (`0x20e5(cell, x, y, 0)`) **without** running the cell's event (`0x2249` is not called). So after begging or
   fleeing in a dungeon the party stands on the cell it came from and must walk into the fight cell again. Nothing happens in
   the wilderness. (`0x29a9` is also the dungeon script TEST op's push-back, `endgame.md`.)
-- **`[0x74b4]` ≠ 0 → clear the fight cell [C] (s33).** End of combat `0x3f97..0x3fa6`, dungeon only, before the party-wipe
+- **`[0x74b4]` ≠ 0 → clear the fight cell [C].** End of combat `0x3f97..0x3fa6`, dungeon only, before the party-wipe
   check: `0x2a26` reads the cell under the party (`0x20c3`) and rewrites it with `0x2a02` (`buf[y·33 + x] := v`):
   forced fight `0x80..0x89` → `0x8a` (plain, "falls through"); `0xb9..0xc7` → `0xb9`; `0xc8..0xd6` → `0xc8` (the lock/ambush
-  cells keep only their base value, which is door kind 1 = an open door, nothing happens — **[C] s39**, `0x2e03`).
+  cells keep only their base value, which is door kind 1 = an open door, nothing happens — **[C]**, `0x2e03`).
   Wandering-encounter cells `0x08..0x11` are not touched. It runs on every exit except BEG / GREET / FLEE / TELEPORTATION:
-  kills, monster run, surrender, dissolve, DISPELL run (raw `b4 74` sweep s39: CHARM never clears it). Core s39:
+  kills, monster run, surrender, dissolve, DISPELL run (raw `b4 74` sweep: CHARM never clears it). Core:
   `DungeonEncounters.ClearFightCell` from the session's end of combat; BEG / FLEE step back.
-- **`[0x1a5a]` = dungeon wandering-encounter chance [C] (s33).** Only reader: the cell handler `0x2249` for cells
+- **`[0x1a5a]` = dungeon wandering-encounter chance [C].** Only reader: the cell handler `0x2249` for cells
   `0x08..0x11` (8..17): `if rand0_99 ≤ [0x1a5a]` (signed `jle`, so `[0x1a5a] + 1` %) → fight: surprise flags `[0x649e]` =
   `[0x64a0]` = 1 (`0x227e`, see the surprise item), first monster `[0x64e6] = rand0_99/33 + cell + [0x64f0] − 7`, and in
   `[0x64ec] = 6` a second roll `rand0_99 > 50` replaces it with `0x22`; state 11 (build). Else `[0x64f2] = cell + 3` and, if
@@ -693,17 +687,17 @@ Apple rulebook lists 1 FIGHT / 2 ACCEPT SURRENDER / 3 GREETINGS / 4 BEG FOR MERC
   (`0x3c0b`; the next build takes it back). No COM / OV1 reference. The unpacked image's initial value is **9** (DS `0x1a5a`
   = `09 00`) — only seen if a dungeon is reached without state 13 `[~]`. DNGX.SAV does not keep it **[C]** (`0x5929` writes
   only the level buffer, and entry resets it anyway). `[0x64f0]` = the level tier, buffer byte `0x4e7`; `[0x64fa]` = 1 on
-  every step, so the no-fight message always shows (`dungeon-representation.md` §Fight cells, s39 [C]). Core s39:
+  every step, so the no-fight message always shows (`dungeon-representation.md` §Fight cells [C]). Core:
   `DungeonState.WanderingChance`, `DungeonEncounters`.
 
 **Remaster (D-017, user):** BEG always works (manual; no roll). **D-018:** the found-item list keeps the manual's 90
 items; BEG drops list positions 0, 2, …, 48 of Core's compact list (DOS leaves holes in its 60 slots) `[~]`.
-**D-019 (decided s32: DOS):** a monster run that gets away pays the gold of every monster, as DOS does (the manual
+**D-019 (decided: DOS):** a monster run that gets away pays the gold of every monster, as DOS does (the manual
 reads as gold "retrieved from the monsters"; the user kept DOS).
-**Core (s27):** `PartyOptions.MoraleCheck` / `Choose`, `GameSession.StartCombatRound` / `ChoosePartyOption`,
-`LootSack.ForfeitToBeggars`, `OverworldState.TerrainClass`. Treasure flags are recorded on the encounter only (Core drops no
-treasure yet). Client (s36): `CombatPresenter` runs the morale check, then the PARTY OPTIONS menu (DOS order, arrows + Enter; s49: Show names / Party health offered, decoded above; the highlight is no longer reset each round — DOS menus
-remember the last choice, s45), then orders.
+**Core:** `PartyOptions.MoraleCheck` / `Choose`, `GameSession.StartCombatRound` / `ChoosePartyOption`,
+`LootSack.ForfeitToBeggars`, `OverworldState.TerrainClass`; treasure flags feed `TreasureDrop` (§Outputs). Client:
+`CombatPresenter` runs the morale check, then the PARTY OPTIONS menu (DOS order, arrows + Enter, Show names / Party
+health offered; the highlight keeps the last choice, as DOS menus do), then orders.
 
 ## Combat spell effects — OV2 `0x767..0x9bf` [C] (s31)
 
@@ -721,7 +715,7 @@ spell index − 3, so entry k is spell index 40 + k. Every handler then joins `0
 | 41 | 44 | NINJA II (#45) | `0x7ed` | caster only: `@250` weapon hit eff := 255, `@248` weapon dmg eff := 25, `@246` armor eff := 10 |
 | 42 | 45 | FEAR (#46) | `0x80c` | if `rand < 5·(lvl − L) + 50`: `L` `[0x7508]` −= 6 (no message) |
 | 43 | 46 | DISSOLVE (#47) | `0x83c` | if `rand ≤ 110 − 10·L`: **dissolve** (below) |
-| 44 | 47 | [original text] (#48) | `0x8cc` | if `[0x6490] == 5` and `[0x62a8] ≠ 0`: party size `[0x648e]` := 7, `[0x6490]++`, living list `[0x64a2 + 2·[0x6490]]` := 6, redraw `0xdbd3(7)`. No roll, no message (§[original text] below, s33) |
+| 44 | 47 | [original text] (#48) | `0x8cc` | if `[0x6490] == 5` and `[0x62a8] ≠ 0`: party size `[0x648e]` := 7, `[0x6490]++`, living list `[0x64a2 + 2·[0x6490]]` := 6, redraw `0xdbd3(7)`. No roll, no message (§[original text] below) |
 | 45 | 48 | DISPELL UNDEAD (#49) | `0x8fc` | below |
 | 46 | 49 | NINJA I (#50) | `0x9a1` | caster only: `@250` := 200, `@248` := 20, `@246` := 8 |
 | 47 | 50 | AWAKEN (#51) | `0x9bf` | `0x3eff`: every non-DEAD member's status := OK; "PARTY AWAKENS" |
@@ -769,14 +763,14 @@ round, combat ends at once (`0xc8b`) and the flag still applies at `0x3f77`. End
   post-combat `0x2a26`). **Kill XP is kept.** No "MONSTERS KILLED" unless nothing is alive.
 - `[0x74b0] == 2`: nothing extra. After dissolve the gold is already 0 and "MONSTERS KILLED" prints (`[0x74aa]`); after
   DISPELL's run the full gold is paid (like a monster run, §Party options / D-019) and kill XP so far.
-- `[0x74aa]` is also read at `0x420a`: monster id `[0x64e6] == 0x49` with `[0x74aa] ≠ 0` returns state 7 `[?]` (P0.8
-  endgame); dissolve sets it, so DISSOLVE / DISPELL on that encounter counts as killing it.
+- `[0x74aa]` is also read at `0x420a`: monster id `[0x64e6] == 0x49` (Black Lord) with `[0x74aa] ≠ 0` returns state 7,
+  the win (`endgame.md` section 1); dissolve sets it, so DISSOLVE / DISPELL on that encounter counts as killing it.
 
 **SLEEP — `0x1382` mode 6** (`0x1501`; no CV resist roll, unlike modes 1–3): for each group in rank order, for each slot:
 `rand` (drawn and discarded, ×0 power), then `r = rand`; if `r ≥ L²` and the monster's HP ≥ 1: "%s IS SLEPT", state
 `[0x64b0 + 16g + 2k]` := **2**. State 2 = "done this round": the next round-top compaction (`0x33c9` with `[0x74ae] = 1`)
 sets every state > 1 to 3, so the spell only takes the monster out of the **rest of the current round**. `L ≥ 10` → never
-works. Core: left to the parallel status-effect pass.
+works. Core: the remaster rule (D-020) is in §Status effects.
 
 **Notes / quirks**
 - CHARM, TELEPORTATION, FEAR, DISSOLVE print nothing when they fail; FEAR and TELEPORTATION print nothing on success either.
@@ -787,11 +781,11 @@ works. Core: left to the parallel status-effect pass.
   FEAR never makes monsters run: the morale check (§Party options) does not read `L`.
 - NINJA **sets** the three fields (it can lower a better value). `@250 = 255` → SLASH `255/75 + 1` = 4 swings,
   `200` → 3 (§Action chooser). A later QUICKNESS/STRENGTH/PROTECTION recomputes all members from base and overwrites it.
-- [original text]: traced end to end in s33, see §[original text] below.
-- The old "DISPELL grants no XP" and "FEAR pays 0 XP/0 GP" notes have no source in the code or the manual (the manual
-  only says XP is earned by killing monsters, PDF p.12). The dissolve path *adds* XP.
+- [original text]: §[original text] below.
+- DISPELL and FEAR do not forfeit XP: no source in the code or the manual says so (the manual only says XP is earned by
+  killing monsters, PDF p.12). The dissolve path *adds* XP; a monster run keeps kill XP and full gold (§Party options).
 
-**Manual (PDF pp.18–20, printed 14–16) vs DOS** — **decided by the user s32** (D-020…D-024; D-019 = DOS). The DOS text
+**Manual (PDF pp.18–20, printed 14–16) vs DOS** — **decided by the user** (D-020…D-024; D-019 = DOS). The DOS text
 above stays the record of what the binary does; the remaster rules are in "Remaster (s32)" below.
 - FEAR: "frightens the monsters into running away in terror"; "A second FEAR spell … can cause the victim to be even more
   afraid". DOS: `L −= 6`, the monsters never run because of it. **Conflict.**
@@ -807,10 +801,10 @@ above stays the record of what the binary does; the remaster rules are in "Remas
 - DISSOLVE ("slowly dissolve away into nothing"), NINJA ("Ninja 1 costs more magic points, it is not as powerful as
   Ninja 2" — I: 2 MP 200/20/8, II: 1 MP 255/25/10), AWAKEN ("rouses all sleeping party members"): no conflict.
 
-**Core (s31):** `CombatSpells` (Core) holds the rules; `SpellCaster.ApplySpecial` calls it. `CombatEncounter.SpellEnd`
+**Core:** `CombatSpells` holds the rules; `SpellCaster.ApplySpecial` calls it. `CombatEncounter.SpellEnd`
 (= `[0x74b0]`) is resolved at the next round top by `GameSession.RunMoraleCheck` (`CombatSpells.EndBySpell`);
 `DispellUndeadTried` (`[0x74b8]`), `MonstersFrozen` (`[0x64a0]` from DISPELL's run, cleared at round end) and
-`Dissolved` (`[0x74aa]`). SLEEP, AWAKEN (status-effect pass, parallel) and [original text] (s33, §[original text]) not changed here.
+`Dissolved` (`[0x74aa]`). SLEEP / AWAKEN: §Status effects; [original text]: §[original text].
 
 **Remaster (s32, user decisions — not DOS):**
 - **CHARM (D-022):** DOS roll; success → "[original text]", `SpellEnd = Charmed`, the round stops right after the
@@ -818,7 +812,7 @@ above stays the record of what the binary does; the remaster rules are in "Remas
 - **TELEPORTATION (D-023):** no roll; `SpellEnd = Teleported`, the round stops right after the caster; kill XP, gold 0,
   treasure forfeited.
 - **FEAR (D-021):** DOS roll and `L −= 6`; then, unless a living monster is `never_flees` (`monster-traits.json`: Black
-  Lord), "MONSTERS RUN" = DISPELL's run path (`MonstersFrozen`, `SpellEnd = Ended`, full gold per D-019). **s34 (user):**
+  Lord), "MONSTERS RUN" = DISPELL's run path (`MonstersFrozen`, `SpellEnd = Ended`, full gold per D-019). User:
   FEAR's runners stop for the whole round — every living monster is also set done for the round (state 2), so the
   first-round hold release after pass 1 (`0x10f3`) doesn't let them act in passes 3 and 5. DISPELL's run keeps the DOS release.
 - **DISPELL UNDEAD (D-024):** "undead" = `monster-traits.json` `undead` list (XP-mod-7 set minus BANTIR, DEMON, HIGH DEMON).
@@ -850,8 +844,8 @@ loop:
   last slot (index `L`) is never the FIREFLASH target.** A group of one (`L = 0`) gives `k = 0`.
 - `0x74c4 + 16g + 2k` is the monster's HP (`0x1597` subtracts the damage there and sets HP 0 / state 2 on a kill).
 - **Manual (PDF p.19, printed 15):** "FIREFLASH (#5-#8) shoots a powerful blast of flame at **one monster close to the
-  spellcaster**." In DOS it is a monster in the rank *farthest* from the party. **D-059 DECIDED (user s53): manual.**
-- **Remaster rule (s53):** the target is one living monster of the **front rank** — the first entry of the rank order
+  spellcaster**." In DOS it is a monster in the rank *farthest* from the party. **D-059 DECIDED (user): manual.**
+- **Remaster rule:** the target is one living monster of the **front rank** — the first entry of the rank order
   with a living monster (rank 1 unless it was wiped) — picked evenly among that group's living monsters
   (`rand(0, n)`). RNG order as DOS: damage roll first, then the one target roll (none for a group of one).
   Core: `SpellCaster.PickFireflashTarget`.
@@ -946,7 +940,7 @@ non-DEAD) or slot 6 (last rebuilt in a fight with the elemental in and one adven
 `0x64a2` and `0x6490` lie in the COM's BSS (past the unpacked image), so before any rebuild they hold whatever memory
 held. Core: `DosLivingList` on `Party.DosLiving` (saved in the wilderness snapshot, kept up whatever the options), read
 only under D-033's `dos` values: the summon test and list write under `p1.summon-party`, the specials' pick under
-`p1.monster-spell-target` (split s172; a `manual` summon writes nothing, so with only the target option on `dos` the
+`p1.monster-spell-target` (a `manual` summon writes nothing, so with only the target option on `dos` the
 elemental is listed at the next rebuild and no entry goes stale); an entry never written gives no target.
 
 **Fighting [C].** It does nothing in the round it arrives (action 4 from the build; `0x1b4` skips actions ≤ 4). From
@@ -959,8 +953,8 @@ other writers of `@246/@248/@250` are the buffs and NINJA (caster); `@12` is wri
 OV2, unpacked COM). So the summoned elemental fights with the record's stored values — **0** from the template:
 hit chance `0/swings − defense` (never hits a monster with defense ≥ 0), weapon damage 0, armor 0, defense 0; PARRY
 still subtracts the shield `@242` = 100. Only a QUICKNESS/STRENGTH/PROTECTION cast *after* the summon gives it real
-values, and those then stay on slot 6 for the rest of the trip (no prep resets them). `[~]` on the gameplay result;
-a DOSBox check would settle it (summon, then watch "%s MISSES").
+values, and those then stay on slot 6 for the rest of the trip (no prep resets them). `[~]` on the gameplay result
+(not seen live; check: summon, then watch "%s MISSES").
 
 **End of combat [C].** `0x3f29` first resets `[0x648e]` 7 → 6 (`0x3f2e`), then counts survivors (`0x3fa9`) and wakes
 the party (`0x3fbb` → `0x3eff`). So the elemental **gets no XP or gold share**, is not woken, and does not count as a
@@ -968,32 +962,31 @@ survivor: if all six adventurers are DEAD, the result is state 6 (party defeated
 alive and the monsters are dead. While it is in combat it does keep the fight going (`0x43ae` counts it). Its HP,
 status and MP stay on slot 6 for the next fight of the trip.
 
-**In Core (s49, `Aging.ApplyTownEntry`) — [C]+[D✓] s49** (`capture_s49_2026-10-23.md` §3: elemental loaded, no summon needed → only the control
-member "has aged"; the 6th member (past 70 %) aged on the next entry without it). The town-entry drop (`0x19dc`) lowers `[0x648e]` from 6 to 5 *before* the aging loop
-`0x19eb` (which runs to `[0x648e]`) and the town loop's recount `0x974` (`0x1e7d`) restores 6 only afterwards. If
-that reading holds, the 6th member skips aging (and the `@254` town write) on the visit where the elemental leaves.
-Confirmed live. The `@254` write (`0x1b44`) loops all 7 slots, so it is not skipped (s49 bytes).
+**Town entry with an elemental loaded [C]+[D✓] s49** (Core `Aging.ApplyTownEntry`). The town-entry drop (`0x19dc`) lowers
+`[0x648e]` from 6 to 5 *before* the aging loop `0x19eb` (which runs to `[0x648e]`), and the town loop's recount `0x974`
+(`0x1e7d`) restores 6 only afterwards. So the 6th member skips aging on the visit where the elemental leaves. The `@254`
+write (`0x1b44`) loops all 7 slots, so it is not skipped. Live: `capture_s49_2026-10-23.md` §3 (elemental loaded, no summon
+needed → only the control member "has aged"; the 6th member, past 70 %, aged on the next entry without it).
 
 **Manual (PDF p.20, printed 16; p.9) vs DOS:**
 - "[original text] (#48) calls up Earth, Fire, or Water (one spell summons one elemental) to fight for the party." DOS:
-  one elemental, the one loaded at the Guild — agrees. **"to fight for the party" vs prep: conflict D-032 — decided (user, s34): fix the bug**; the remaster runs the
+  one elemental, the one loaded at the Guild — agrees. **"to fight for the party" vs prep: conflict D-032 — decided (user): fix the bug**; the remaster runs the
   normal prep on slot 7.
 - "The elemental will only serve a party of six adventurers." DOS needs six **non-DEAD** members at the cast, and only
-  five once a monster has acted earlier in the round (`[0x6490]` index/count mix). **Conflict D-033 — decided (user, s34):
+  five once a monster has acted earlier in the round (`[0x6490]` index/count mix). **Conflict D-033 — decided (user):
   manual**, six non-DEAD members in every pass.
 - "elementals must be added to your party while you are at the adventurer's Guild in one of the towns" / p.9 "add
   the elementals to the party while you're still at the Guild": agrees (Guild prep above). The manual says nothing
   about how long the elemental stays, XP, or leaving at town entry: no conflict.
 
-**Core (s33):** `Party.Elemental` (slot 7, kept out of `Party.Members` outside combat), `GuildHall.TryAddElemental`
+**Core:** `Party.Elemental` (slot 7, kept out of `Party.Members` outside combat), `GuildHall.TryAddElemental`
 (six members, none loaded) and the Add refusal while loaded; Drop / Purge (party member) / town entry / party defeat
 clear it. `CombatSpells.SummonElemental`: no roll, MP spent, condition **six non-DEAD members** (D-033, manual; the
 `p1.summon-party` `dos` value plays DOS's test, list write and second summon on `Party.DosLiving`, above; the specials'
-pick from that list is `p1.monster-spell-target`), appended with
-action none; `GameSession` removes it from the party on every
-combat exit before rewards / wake-up, a fight won with all six adventurers DEAD counts as a wipe, and `BeginCombat`
-sets a loaded elemental's status to OK (HP kept). The elemental's combat fields are a switch,
-`ElementalPrepRule`: `Prepared` (default since s34, D-032 — normal prep from its record) or `Dos` (stored values, 0 for a
+pick from that list is `p1.monster-spell-target`), appended with action none; `GameSession` removes it from the party
+on every combat exit before rewards / wake-up, a fight won with all six adventurers DEAD counts as a wipe, and
+`BeginCombat` sets a loaded elemental's status to OK (HP kept). The elemental's combat fields are a switch,
+`ElementalPrepRule`: `Prepared` (default, D-032 — normal prep from its record) or `Dos` (stored values, 0 for a
 fresh template). Templates: `GameData/phantasie1/elementals.json` (`tools/scripts/extract_elementals.py`).
 
 ## Outputs / rewards — end of combat OV2 `0x3f29..0x421a` [C] (s33)
@@ -1001,7 +994,7 @@ fresh template). Templates: `GameData/phantasie1/elementals.json` (`tools/script
   **per-survivor** shares, labelled `[original text]` (`0xbd05`, `0x4025`). DOS never prints the encounter totals.
   XP + gold stay in the RAM pool and items go to the found-item list (`SACK.DAT`), **not** distributed immediately.
 - XP/gold are shared out on town entry (`town-menus.md` §Town-entry share split); items at the Inn hand-out screen.
-- **Kill-XP payout [C] (s41, capstone OV2 `0x3fbe..0x40e1`).** `n` = `[0x6490]` (non-DEAD adventurers, sleepers count):
+- **Kill-XP payout [C] (capstone OV2 `0x3fbe..0x40e1`).** `n` = `[0x6490]` (non-DEAD adventurers, sleepers count):
   ```
   0x3fbe  gold := gold / n                     # [0x750e:0x7510], 32-bit via f8d1
   0x3fd7  xp   := xp / (10·n)                  # [0x7512:0x7514]; 10·n built as ((n<<2)+n)<<1
@@ -1012,8 +1005,8 @@ fresh template). Templates: `GameData/phantasie1/elementals.json` (`tools/script
   So each survivor's XP share is **⌊kill XP / (10·n)⌋ · 10**, and the pool `[0x63f4]` is kept **in tens**. The town split
   (OV1 `0x16dd..0x16f8`) multiplies it by 10 again before dividing by the shares (`town-menus.md`). Remainders are lost:
   up to 10·n − 1 XP and n − 1 gold per fight. The pool cap is 0xffff tens = 655,350 XP; the purse cap is 65,535 GP.
-  **s35 check:** 4 SKELETON = 4·77 = 308 XP, n = 6 → ⌊308/60⌋·10 = **50** (old Core: 308/6 = 51). 4 BANTIR = 4·147 = 588,
-  n = 5 → ⌊588/50⌋·10 = **110** (old Core: 117). Both match DOSBox exactly, with no extra factor and the monster records unchanged.
+  **s35 DOSBox check:** 4 SKELETON = 4·77 = 308 XP, n = 6 → ⌊308/60⌋·10 = **50** (not 308/6 = 51). 4 BANTIR = 4·147 = 588,
+  n = 5 → ⌊588/50⌋·10 = **110** (not 117). Both exact, with no extra factor and the monster records unchanged.
   **s41 DOSBox check:** 6 KOBOLD (50) + 5 ORC (90) = 750 XP, n = 5 → ⌊750/50⌋·10 = **150** each, as seen (divisible, so no loss).
   - BEG (gold = −`[0x63f6]`) **[D✓] s65** (DOSBox: 556 GP, 6 survivors → 4 left): `f8d1` divides signed (truncating
     toward zero), so the purse keeps `[0x63f6] − ⌊[0x63f6]/n⌋·n` = `[0x63f6] mod n` gold, and the screen shows −⌊G/n⌋.
@@ -1025,13 +1018,13 @@ fresh template). Templates: `GameData/phantasie1/elementals.json` (`tools/script
   - **Manual (PDF p.15):** "[original text] AND GOLD are displayed at the end of combat — the number of experience
     points earned from the encounter and any gold retrieved from the monsters. These will be divided among individual
     party members when they enter a town." DOS shows per-survivor shares rounded down to tens instead of the encounter
-    total, and drops the remainders. The manual says nothing about rounding. **D-053 decided (user s42): manual. Built s46.**
-  - **Core (s46, D-053 manual):** `GameSession.DepositEncounterTotals` runs at both deposit sites, after the elemental
+    total, and drops the remainders. The manual says nothing about rounding. **D-053 decided (user): manual.**
+  - **Core (D-053 manual):** `GameSession.DepositEncounterTotals` runs at both deposit sites, after the elemental
     leaves and before the wake-up. It logs `"{xp} [original text] AND {gold} GOLD"` (the encounter totals; exact
     wording is the remaster's, the manual gives none) and puts the whole XP and gold in the sack — no per-survivor
     remainder loss. The D-037 town split (`TownMenus.Distribute`) does the dividing. `LootSack` keeps the DOS cap,
-    655,350 XP (`CombatEncounter.XpPoolCap`), but holds whole XP rather than tens. The DOS share rule above stays
-    documented only (s41's `SurvivorShares` was removed); `CombatEncounter.Survivors` remains.
+    655,350 XP (`CombatEncounter.XpPoolCap`), but holds whole XP rather than tens. The DOS share rule above is the
+    `p1.combat-shares` `dos` value (`GameOptions.SurvivorShares` → `DepositSurvivorShares`); `CombatEncounter.Survivors` remains.
 
 **Full post-combat flow [C]** (every exit: kills, monster run, BEG/THREATEN/GREET/FLEE, spell end; flags as in §Party options):
 ```
@@ -1040,7 +1033,7 @@ fresh template). Templates: `GameData/phantasie1/elementals.json` (`tools/script
 0x3f77  if [0x74b0] == 1 (TELEPORTATION):  gold := 0; [0x74ba] := 0; [0x74b4] := 0
 0x3f97  if dungeon and [0x74b4]:  0x2a26 clear the fight cell (§Party options)
 0x3fa9  n := non-DEAD members (0x43ae + 1); n == 0 → state 6
-0x3fbb  0x3eff wake the party; print XP/(10n)·10, gold/n "[original text]"; add gold/n·n → [0x63f6], XP/(10n)·n → [0x63f4] (cap 0xffff; pool in tens, s41)
+0x3fbb  0x3eff wake the party; print XP/(10n)·10, gold/n "[original text]"; add gold/n·n → [0x63f6], XP/(10n)·n → [0x63f4] (cap 0xffff; pool in tens)
         --- treasure roll ---
 0x40e4  dungeon ([0x64e8] == 3):
             if first monster [0x64e6] == 0x49 (BLACK LORD) or not [0x74ba]:  [0x74ba] := 0
@@ -1080,29 +1073,29 @@ automatically give away their treasure.) You will be asked if you want to keep t
 - **[D✓] s68** (`working/capture_s68_loot.md`): finder = first non-DEAD slot (DEAD 99 skipped, 7/7), "%s SPOTS AN ITEM" then one
   KEEP IT? per id; dungeon THREATEN surrender with every `@34` = 0 → KEEP IT? with no SPOTS (3/3); `[0,0]` monsters → nothing;
   a monster run still rolls. Not seen: a victory failing presence, a victory with no finder.
-- **Conflict D-031 — decided (user, s34): manual, wilderness always drops (remaster skips the `2·L + 20` roll):** wilderness victory and wilderness surrender roll `rand0_99 ≤ 2·L + 20`
+- **Conflict D-031 — decided (user): manual, wilderness always drops (remaster skips the `2·L + 20` roll):** wilderness victory and wilderness surrender roll `rand0_99 ≤ 2·L + 20`
   (`0x41aa`; `[0x74b2]` stays 0 outside a dungeon) — the manual says wilderness monsters "automatically give away their
   treasure" and surrender gives "the monsters' gold and items".
 - Not in the manual (no conflict): the `id − 1 … id + 3` shift, the scroll-137 guard, the Black Lord's no-treasure rule.
-- **Guard leak [C] (s33):** the 137 guard checks `id`, not the shifted `v`. FIRE ELEMENTAL (record 53, treasure `[0, 135]`)
+- **Guard leak [C]:** the 137 guard checks `id`, not the shifted `v`. FIRE ELEMENTAL (record 53, treasure `[0, 135]`)
   rolls `v = 138 − rand/20`, so 20 % of its drops are **v = 137 = SCROLL 17** (the win scroll, `endgame.md`) anywhere it is
-  met — no other record has a treasure id in 134…138. Whether that scroll then works outside the Fortress is P0.8 `[?]`.
+  met — no other record has a treasure id in 134…138. Outside the Fortress it is lore only and cannot win the game
+  (`endgame.md` section 6.1).
+  **Fixed in the remaster (user):** the guard tests the shifted `v`, so FIRE ELEMENTAL's `v = 137` drops nothing outside
+  the Fortress.
 - 90 vs 60 items: D-018 (decided, manual).
 
-- **Guard leak fixed in the remaster (user, s34):** the SCROLL 17 guard tests the shifted `v`, so FIRE ELEMENTAL's `v = 137`
-  drops nothing outside the Fortress.
-
-**Core (s34):** `TreasureDrop.Roll` (flow above, wilderness roll removed per D-031) and `TreasureDrop.Drop` (`0x421d`; also for
+**Core:** `TreasureDrop.Roll` (flow above, wilderness roll removed per D-031) and `TreasureDrop.Drop` (`0x421d`; also for
 script op 6 with `shift: false`), called by `GameSession` after the deposit and party wake-up on every non-wipe exit.
 `CombatEncounter.FirstMonsterId` carries `[0x64e6]` for the Black Lord rule. KEEP IT?: `GameSession.PendingTreasure` /
 `TreasurePrompt` / `AnswerTreasure(keep)` — YES stores it (full sack → "Sack is full!!!", item lost), NO loses it; pending
-items are saved. `[~]`: a shifted `v ≤ 0` or past the item table gives nothing. Client prompt (s36): Game1 modal, Y/N.
-- ~~Monsters dispelled yield no XP~~ — unsourced (not in the manual); DOS dissolve *adds* XP (§Combat spell effects, s31). Monsters that RUN on their own keep the kill XP and full gold (§Party options).
+items are saved. `[~]`: a shifted `v ≤ 0` or past the item table gives nothing. Client prompt: Game1 modal, Y/N.
+Dissolved monsters add XP (§Combat spell effects); monsters that RUN keep the kill XP and full gold (§Party options).
 
 ## Night encounters [X]
-Wilderness night encounters: the member on **watch** rolls *listen* to wake the
-party; failure means members start combat asleep (`%s IS SLEPT`/`AWAKENS`); a
-priest/high-ranger AWAKEN spell speeds waking.
+Decoded: **Night encounter** under §Armor & weapon fields, §Surprise and `overworld-movement.md` §Night encounter. The
+watch member rolls listen; on a failure the others start the fight asleep (`%s IS SLEPT`/`AWAKENS`); a priest /
+high-ranger AWAKEN (#51) wakes them.
 
 ## Status effects — apply, tick, expire [C] (s31)
 Combat status lives in four places: party status `@24` (`0x5bc8`: 0 DEAD, 1 OK, 2 SLEEP), the party's effective combat
@@ -1156,7 +1149,7 @@ next build.
 - A member woken mid-round still has action 4, so it does nothing until the next orders. Monsters can hit sleepers (§Turn order).
 
 **Monster sleep.** State 1 (asleep, `rand < 15` per pass to wake, `0x1081`) is only ever set by the build when `[0x64a0]` = 2
-(monsters surprised, `[C]` s33, §Surprise). The party's **SLEEP #42** (`0x7a5` → `0x1382(caster, 6, 0)`, case `0x1501`) does **not** use it:
+(monsters surprised, `[C]`, §Surprise). The party's **SLEEP #42** (`0x7a5` → `0x1382(caster, 6, 0)`, case `0x1501`) does **not** use it:
 ```
 for each rank position, each living slot k:       # rank order, then slot order
     rand0_99                                       # scaled power roll, power 0 (shared loop 0x148d), unused
@@ -1165,35 +1158,33 @@ for each rank position, each living slot k:       # rank order, then slot order
 State 2 is "done this round", reset to 3 by the next round's compaction, so a slept monster only loses the rest of the
 round it was slept in; it gets no wake roll and prints no "AWAKENS". Casting SLEEP again works the same way ("a second SLEEP
 spell will not deepen a trance" — trivially true). There is no caster term.
-**Manual check — conflict, reported s31, decided s32 (D-020: manual):**
+**Manual check — conflict, decided (D-020: manual):**
 (a) *duration* — p.15 SLEEP "causes the opponents to fall into a daze, and they cannot attack, parry, or cast spells"; p.14
 combat spells "last only for the duration of combat" and "a second SLEEP spell will not deepen a trance". Read together this
 suggests a trance that persists; DOS gives the rest of the casting round only (state 2 at `0x1501`, reset at `0x3b7e`).
 (b) *resistance* — p.14: active magic's "effectiveness depends upon the spellcaster's magic power and experience level, as
 well as the strength of the target"; DOS SLEEP depends only on `L²` (`0x1501`), no caster term, `L ≥ 10` always resists.
 
-**Core (s31):** `CombatEncounter.WakeParty` (`0x3eff`) on every combat exit in `GameSession` and for AWAKEN;
+**Core:** `CombatEncounter.WakeParty` (`0x3eff`) on every combat exit in `GameSession` and for AWAKEN;
 `Monster.DoneThisRound` = state 2 (reset at round start, set by acting / waking / failed run).
 
 **Remaster (s32, D-020 — not DOS):** SLEEP rolls once per group with the CONFUSION/WEAKNESS/BINDING caster-vs-CV roll
-(`rand ≤ 5·(caster @16 MP max − group CV) + 50` — `@14` until s33, see §To-hit; shared `SpellCaster.CasterHitsGroup`; `L` not used;
-since s34 plus the D-028 level term `2·(caster level − group level)`). On a hit every awake monster
+(`rand ≤ 5·(caster @16 MP max − group CV) + 50`, §To-hit; shared `SpellCaster.CasterHitsGroup`; `L` not used;
+plus the D-028 level term `2·(caster level − group level)`). On a hit every awake monster
 of the group gets `MonsterStatusFlags.Asleep` = DOS state 1 (no turns, wake on `rand < 15` per pass, `0x1081`, across
 rounds); sleepers already asleep are skipped ("The spell has no effect" if none fell asleep). Sleepers stay valid melee /
-spell targets and don't wake when hit (user, s32; the old first-pass `IsNeutralized` target skip is removed). Monster
-`StatusFlags` are saved in mid-combat snapshots.
-Buff spells already rebuilt from base (`SpellCaster.ApplyQuickness/Strength/Protection`), specials scale current values
-(`MonsterSpecials`), `Prepare(fightStart)` = prep. Night encounters and surprise (`[0x649e]`/`[0x64a0]`) are still not in Core (P0.3).
-Save (s33): the combat snapshot stores `Prep` (armor / weapon damage / weapon hit effective + packed action, per member), so a
+spell targets and don't wake when hit (user). Monster `StatusFlags` are saved in mid-combat snapshots.
+Buff spells rebuild from base (`SpellCaster.ApplyQuickness/Strength/Protection`), specials scale current values
+(`MonsterSpecials`), `Prepare(fightStart)` = prep. Night encounters and surprise: §Turn order / §Surprise.
+Save: the combat snapshot stores `Prep` (armor / weapon damage / weapon hit effective + packed action, per member), so a
 mid-combat load keeps QUICKNESS / STRENGTH / PROTECTION / NINJA / SLOWED / armor-reduced, as DOS keeps them until the next prep.
-Older saves without it fall back to `Prepare(fightStart: false)`; no version bump. The old write-only `PartySlowed` /
-`PartyWeakened` / `*FlatBonus` / `QuicknessPercentBonus` flags (no DOS counterpart — DOS has no "slowed" flag, only the scaled
-`@250`) were removed.
+A snapshot without it falls back to `Prepare(fightStart: false)`. Core has no "slowed" flag: DOS has none either, only the
+scaled `@250`.
 
 ## HP by class & level [C] (manual chart [X]; CON scaling OV1 `0x0ab6`, s31)
 Manual p.13, "Hit Points by Class and Level for Adventurers with 10 Constitution" (averages). Every cell is exactly
 **2 × `hp_factors[class][L]`** (`TWNS.INT @0x000`, `creation-tables.json` `hp_factors`) — the table below is that product,
-checked cell by cell against the `pdftotext` reading (the old OCR copy had Priest L1 6, L11 96, Monk L3 16, Wizard L2 6, L6 26 wrong).
+checked cell by cell against the `pdftotext` reading (an OCR copy misreads Priest L1 as 6, L11 96, Monk L3 16, Wizard L2 6, L6 26).
 
 | Lvl | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1215,23 +1206,15 @@ So HP scale **linearly with CON + 5**: relative to the CON-10 chart, a character
 `/16` makes even CON 10 a bit below the chart). CON lost at death (D-009, `0x12cf`) is read by every later re-roll, but HP max
 can't drop because of the `+1` floor. The manual only says HP max "depends on the character's constitution, class, and
 experience level" — no formula, so no conflict beyond **D-007** (user: dice = `factor·(CON + 5)/15`, so CON 10 rolls exactly
-`factor` d3 and averages the chart; Core `LevelUp.HitDiceCount`, s17).
+`factor` d3 and averages the chart; Core `LevelUp.HitDiceCount`).
 
 ## Offset 28 dual-use — retracted (s19)
-The old "`@28` = scroll count *and* weapon hit" reading came from OV2 offsets taken with the wrong
-party base. `@28` is weapon damage A; weapon-hit effective copies the attack skill `@30`; the
-scroll count on the equipment screen is counted from the carried items (COM `0x2cf6`). Buying
-scrolls changes no combat field.
+Historical. `@28` is weapon damage A only (§Armor & weapon fields); the equipment screen counts scrolls from the carried
+items (COM `0x2cf6`), so buying scrolls changes no combat field.
 
 ## Still unknown / next checks
-- Equip selector is **[C]** for `5ca0` / `5ca4` / `5ca2`; trace the separate
-  creation/equip writer for `5bcc` and `5bce` (**[~]**).
-- ~~Initiative / turn order coefficients~~ — §Turn order (s21).
-- ~~Monster special-ability effect (`+0x20` → `0x16a9`)~~ — §Monster specials (s26).
-- ~~How SLASH chooses 3 vs 4 swings~~: `@250/75 + 1`, with the skill gate (§Action chooser, s20).
-- ~~Status-effect ordering (SLOWED, QUICKNESS, sleep, etc.)~~ — §Status effects (s31).
-- ~~CON → HP scaling~~ — §HP by class & level (s31).
-- ~~Decode the `0x1a6c` monster table~~ — done s22 (EXEPACK image, §Monster record); `ToCombatant` uses it.
+- Writer of `@30` attack skill (`0x5bce`) at creation / training not traced here (**[~]**); `@28` (`0x5bcc`) is the town
+  Exit (§Armor & weapon fields).
 - Dynamic verify: breakpoints on `0x655b`, `0x3675`/`dfa9`, damage product before `/10`.
 
 ## Remaster note

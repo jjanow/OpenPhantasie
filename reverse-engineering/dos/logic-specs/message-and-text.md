@@ -87,8 +87,7 @@ menu → New member; `0x8` PURGE/KEEP → KEEP; `0xa` SPELLS/EQUIPMENT/SKILLS/PO
 `0x18` PARTY OPTIONS → FIGHT; `0x20` Utility menu → Return. Every other menu starts on its first option.
 - **DOSBox s58** (`capture_s58_2026-10-25.md` §4, §5, §7): "[original text]" (`0x1c`) answered NO reopens on NO (`m7`); a NO
   to "SAVE THE DUNGEON MAP?" (`0x1e`) leaves ENTER? on YES (`d9`); s56 saw KEEP IT? (`0x1b`) carry NO to the next KEEP IT?.
-  This **supersedes the s43 reading "one YES/NO cursor shared by every YES/NO prompt"** (that capture's NO was given to the
-  same menu). The town Option menu reopened on Save game (`po1`); Inspect's page menu opened on SKILLS (§1).
+  So there is no shared YES/NO cursor (s43's NO was given to the same menu). The town Option menu reopened on Save game (`po1`); Inspect's page menu opened on SKILLS (§1).
 - YES/NO boxes: Left/Right move the cursor (`f6`); Down does nothing (§5). The keys `y`, `n`, `N` do nothing (`b14..b16`).
 - **Dungeon event menus (MESS menus, `0x2a95`) do not remember:** DNG7 ev19 reopened on option 1 every time, not on the last
   pick (§5). Up on option 1 wraps to the last option (§7); Down on the last wraps to option 1 `[~]` (assumed symmetric).
@@ -148,13 +147,13 @@ So **the encounter lines before a wilderness fight and op 17's MONSTERS APPEAR w
 
 **[D✓] s154 DOSBox-X** (Xvfb, sound off; s58 pre-fight set with DNG9 (15,1) patched to `0xDA`): bumping (14,0) shows the
 full-width band "[original text]" on rows 9..11 and it is still up 5 s later; the key closes it. Stepping onto `0xDA`
-shows "[original text] 1  TO 2" in the same band, still up 5 s later. This **supersedes s56's "stairs: no key
-needed"** (that run's next key closed the band unseen). Shots `reverse-engineering/dos/working/s154-shots/`.
+shows "[original text] 1  TO 2" in the same band, still up 5 s later. (s56 saw no wait: that run's next key
+closed the band unseen.) Shots `reverse-engineering/dos/working/s154-shots/`.
 
 **Remaster (s154, AMIGA SCREENS off):** `P1DosMapPages` (Client) pages one step's lines: every line of the keys above
 (data: `GameData/phantasie1/dos-screens.json` `map_boxes`), every Core `MapWindow` (Text, Report, Box) is its own page in
 the remaster's text panel and waits for a key (or a click, or a pad button); other lines stay on the message line.
-A fight Core started waits for the last page. **s156:** a step whose lines are all paged keeps the message line from
+A fight Core started waits for the last page. A step whose lines are all paged keeps the message line from
 before it, as DOS's row 24 (`P1DosMapPages.MessageLine`).
 
 **Places (s156, static `[C]` + DOSBox-X):** on DOS's 40 × 25 grid of 8 × 8 cells:

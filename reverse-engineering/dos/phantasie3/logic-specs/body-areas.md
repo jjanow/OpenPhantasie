@@ -1,8 +1,8 @@
 # Phantasie III — body areas (injury, status, healing)
 
-Phase 09 T4 3c.6 (s79, static; nothing run in DOSBox). Cross-game module: III adds body areas to I's HP model.
+Phase 09 T4 3c.6. Static unless marked live. Cross-game module: III adds body areas to I's HP model.
 Source of truth: the III manual (PDF 7 / pr.8, PDF 9 / pr.12–13, App. II PDF 14–15 / pr.23–24; summary in
-`docs/plan/09-trilogy-manual-p3.md` §4). Code: DOS `MAIN.EXE` (addresses: `../FORMAT.md` §1, functions:
+`docs/plan/09-trilogy-manual-p3.md` section 4). Code: DOS `MAIN.EXE` (addresses: `../FORMAT.md` section 1, functions:
 `../FUNCTIONS.md`). Tags: `[C]` read from code / data bytes, `[~]` probable, `[?]` not decoded. Manual ↔ code
 conflicts are in `DIFFERENCES-III.md` (D3-0nn); they are not decided here.
 
@@ -14,7 +14,7 @@ conflicts are in `DIFFERENCES-III.md` (D3-0nn); they are not decided here.
 - **Monsters:** each monster group in combat (far record; word 0 = monster id, HP of member m at `+4 + 2m`, status at
   `+0x18 + 2m`, up to 5 members) holds six areas per member at `+0x4c + 10k + 2m` `[C]`. **Monster k order differs:
   0 Head, 1 Torso, 2 Right Leg, 3 Right Arm, 4 Left Leg, 5 Left Arm** (root `0xe6c6` messages) `[C]`.
-- There is **no HP per area** (manual Q8): one HP pool, and the area state is set from the size of the hit (§2) `[C]`.
+- There is **no HP per area** (manual Q8): one HP pool, and the area state is set from the size of the hit (section 2) `[C]`.
 - Hit-location odds: `DS:0x12cc`, 5 rows × 6 **cumulative** words, indexed by the monster k order above `[C]`:
 
 | Row | Used for | Head | Torso | R Leg | R Arm | L Leg | L Arm | (cumulative) |
@@ -63,7 +63,7 @@ if area[k] < severity:                       # areas only get worse, never by st
 |---|---|---|
 | HP ≤ 0 or status already Dead | Dead (0) | dead (0) |
 | Head or Torso **Gone** | **Dead** (0) | dead (0) |
-| Head or Torso **Broken** | **Out** (3) | 4 (Unconscious; the combat list prints **"O"**, manual "U": D3-021, `encounters.md` §2) `[C]` |
+| Head or Torso **Broken** | **Out** (3) | 4 (Unconscious; the combat list prints **"O"**, manual "U": D3-021, `encounters.md` section 2) `[C]` |
 | already Asleep | Asleep (2) | 2 (Sleeping) |
 | Left or Right Leg ≥ Broken | **Down** (4) | 3 (Down) |
 | otherwise | Okay (1) | 1 (Okay) |
@@ -71,11 +71,11 @@ if area[k] < severity:                       # areas only get worse, never by st
 The manual's death rule "Head or Torso removed" `[C]` matches; "enough hit points to an arm to kill him" has no
 separate rule: an arm is only removed by a hit larger than the HP left, which also kills (HP 0).
 
-**Death step** (`damage_character` root `0xbbb6`, s88) `[C]`:
+**Death step** (`damage_character` root `0xbbb6`) `[C]`:
 
 ```
 hp_left = max(0, HP − damage)
-if damage > 0 and the hit may injure: take_injury (§2); s = status_from_body (table above)
+if damage > 0 and the hit may injure: take_injury (section 2); s = status_from_body (table above)
     if s is Dead or Out, or the member is not Asleep: status = s      # a non-lethal hit leaves a sleeper Asleep
 HP = hp_left
 if HP < 1 or status == Dead:
@@ -84,10 +84,10 @@ if HP < 1 or status == Dead:
 
 - There are **no HP thresholds** for Out or Down: HP 0 is death; Out / Down come only from the body areas (table above).
 - **No Constitution loss at death** (unlike Phantasie I's OV2 `0x12cf`, DIFFERENCES.md D-009): no code on the death
-  path writes CON. The only CON writers in the program are Resurrection, the Astral Plane (`planes.md` §6: −1 on
+  path writes CON. The only CON writers in the program are Resurrection, the Astral Plane (`planes.md` section 6: −1 on
   being raised or turned Undead, root `0x20e0` / `0x213b`), a cap at 22 (root `0x8622`) and creation.
-- **Resurrection** (root `0x18b6`; callers spell #44 out of combat root `0x8f62` and root `0xcf10` in combat code `[~]`; target must be Dead): HP = 1, magic current = max,
-  status Okay, **CON −rnd(2)** (1–2), all six areas Okay, then CON raised to 3 if below. This matches the manual
+- **Resurrection** (root `0x18b6`; callers spell #44 out of combat root `0x8f62` and root `0xcf10` in combat code `[~]`;
+  target must be Dead): HP = 1, magic current = max, status Okay, **CON −rnd(2)** (1–2), all six areas Okay, then CON raised to 3 if below. This matches the manual
   ("Resurrection … CON permanently −1 or −2", III PDF 11 / pr.16), so III follows the manual where I's DOS did not.
 - So Phantasie I's death step (status DEAD + CON loss at death) must **not** be used for III.
 
@@ -122,9 +122,10 @@ status = body status (table above, without the HP / Asleep tests)
 ```
 
 So an area costs its state in points (Gone 3, Broken 2, Injured 1) and the worst affordable area goes first. After a
-cure the level drops to the points left **within the same pass** (confirmed in the disassembly s82, `0xab3b…0xab44`), so
-the scan goes on from the next k: with 4 points, Head Injured, Left Arm Gone, Left Leg Injured, DOS cures the arm and
-the leg, not the Head (D3-031: user s82 chose the manual, most vital first — remaster starts over after each cure, Head, Torso, Arms, Legs `[~]`; this DOS pass is option `p3.heal-order`). Otherwise equal states go by lower k (Head, Left Arm, Right Arm, Torso, …).
+cure the level drops to the points left **within the same pass** (`0xab3b…0xab44`), so the scan goes on from the next k:
+with 4 points, Head Injured, Left Arm Gone, Left Leg Injured, DOS cures the arm and the leg, not the Head. Otherwise
+equal states go by lower k (Head, Left Arm, Right Arm, Torso, …). D3-031 (user ruling: the manual, most vital first):
+the remaster starts over after each cure, Head, Torso, Arms, Legs `[~]`; this DOS pass is option `p3.heal-order`.
 Points left over smaller than every remaining area are lost. At level 0 the loop also "cures" Okay areas (no effect).
 
 | Source | P | HP | Tag |
@@ -142,29 +143,27 @@ Gone" — **D3-014**. **Town inns** heal every Injured and Broken area, where th
 2 Injuries"; the wilderness inn matches it — **D3-015** (manual Q18: rest fixes Breaks too).
 
 Every inn stay also: age clock +1, magic current = max, and (if no inn stay since the last fight) a chance to raise
-magic max (`FORMAT.md` §5) `[C]`.
+magic max (`FORMAT.md` section 5) `[C]`.
 
-**The inn routine** (ovl2 `0x347d`, s136 static `[C]`), town and wilderness alike: the title (" Inn welcomes you." with
+**The inn routine** (ovl2 `0x347d`, static `[C]`), town and wilderness alike: the title (" Inn welcomes you." with
 the town / place name in a town, "The party's health improves!" outside), then for each party slot in order: the name and
 "is resting."; a **Dead** member (status +0x2c = 0) gets " in peace." and nothing else (no age, magic or HP); a living one:
 age clock +0x28 +1; the magic ceiling +0x1a := `DS:0xafb[15·class + min(level, 15)]` (level +0x74, class +0x94: the
 manual's Maximum Magic Points table for the member's level, refreshed at every stay); when the rested flag `FAR:0xde70`
 is clear and max +0x1c < ceiling, `20 · (ceiling − max) > rnd(100)` (root `0x2c31`, 1…100) → "Magic increases!" and
 max +1; then current +0x1e := max. In a town: HP +0x22 := max +0x20 and every area not Gone → Okay; outside: 2 cure points
-(root `0x27bc(2)` on a copy of the record, with full HP). Then status := Okay and `0x107b` sets it from the body (for every slot, the Dead too: what `0x107b` gives a Dead
-member with HP 0 is not read here `[~]`; the remaster keeps the Dead dead). After
-the loop `FAR:0xde70` := 1. **`FAR:0xde70` is cleared at the start of every fight** (`combat_main` root `0x104c0`, the
+(root `0x27bc(2)` on a copy of the record, with full HP). Then status := Okay and `0x107b` sets it from the body (for every
+slot, the Dead too: what `0x107b` gives a Dead member with HP 0 is not read here `[~]`; the remaster keeps the Dead
+dead). After the loop `FAR:0xde70` := 1. **`FAR:0xde70` is cleared at the start of every fight** (`combat_main` root `0x104c0`, the
 clear at `0x1057c`; its other uses are the save / load copies `0x8142` / `0x8285`): DOS raises magic only on the first
 inn stay after a fight, for every living member, whether or not they cast. The manual: "Characters who have cast spells
-while in the wilderness may have their maximum number of Magic Points increased" — **D3-069**, decided s137: the manual.
-The remaster (s136): III's inns run this routine (`P3Inn`), the gate kept as the remaster had it (the member cast a spell
-since the last stay, `Character.CastSinceRest`); D3-069 decided (s137): a cast outside town counts (a fight, the
-wilderness, a dungeon), a town cast does not. In-town flag `FAR:0xe596` `[C]`: entering a place of type 1 (town) sets it
+while in the wilderness may have their maximum number of Magic Points increased" — **D3-069**, decided for the manual.
+The remaster: III's inns run this routine (`P3Inn`) with the gate "the member cast a spell outside town since the last
+stay" (`Character.CastSinceRest`: a fight, the wilderness, a dungeon count; a town cast does not). In-town flag `FAR:0xe596` `[C]`: entering a place of type 1 (town) sets it
 (ovl3 `0x6c8`); leaving town clears it (ovl3 `0x88`); a place of type 3 (independent inn, strings 45–52) charges
 250 gold and calls the inn with the flag clear — the manual's 250-gold independent inn.
 
 ## 5. Open
 
 - Row 1 of the odds table: which spells use it (`[~]` Fireflash / Flamebolt per the manual) `[?]`.
-- ~~Monster status letters~~ decoded s81: S / D / O / K (`encounters.md` §2, D3-021).
 - Spell damage paths and the "no injury" flag users other than breath (`0xb582` passes it) `[?]`.

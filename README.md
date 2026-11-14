@@ -39,39 +39,38 @@ and DOS pictures, for example), Options → the game's tab → GRAPHICS switches
 | Phantasie I | Amiga v1.0, 1987 (`.adf`) | the game itself, and the Amiga pictures, title music and sounds (with the DOS copy imported too, the game data is DOS's) |
 | | Amiga Kickstart 1.3 ROM | the Amiga screen font (optional, for the Amiga look) |
 | Phantasie II | Atari ST v1.0 (two `.stx` or `.st` disks) | the game and the Atari ST pictures and music |
-| Phantasie II | Apple II v1.0 (two-sided `.dsk` pair, including the Steam / GOG "Phantasie Memorial Set" disks) | the game and the Apple II pictures (a few values still differ from the Atari ST version and are under review) |
+| Phantasie II | Apple II v1.0 (two-sided `.dsk` pair, including the Steam / GOG "Phantasie Memorial Set" disks) or v2.1 | the game (with the Atari ST version's numbers where they differ) and the Apple II pictures |
 | Phantasie III | DOS, SSI 1988, WizardWorks 1991 or the "Phantasie Memorial Set" (disk image or folder) | the game and the DOS CGA pictures |
 | Phantasie III | Amiga v1.0, 1987 (`.adf`) | the game itself, and the Amiga pictures, music and sounds (with the DOS copy imported too, the game data is DOS's) |
+| Phantasie III | Apple II v3.0 (`.woz` pair) or v1.0 (`.dsk`) | the game itself (with DOS's numbers where they differ) and the Apple II pictures |
 | Phantasie IV | X68000 Ver.1.02 (two `.dim` disks) | the game, its pictures, music and voices, with the English translation |
 
 Copies are recognised by their content (checksums of the program and data files), not by file or folder names, so
 an installed store version can be pointed at directly. A copy that has been played is imported as it is; the import
 report says what that changes (for DOS Phantasie I: map regions already explored and fixed fights already won).
-Other versions (C64, Apple II Phantasie I / III, Apple II Phantasie II v2.1,
-PC-88, PC-98, MSX2, …) are recognised but cannot be imported yet.
+Other versions (C64, Apple II Phantasie I, PC-88, PC-98, MSX2, …) are recognised but cannot be imported yet.
 
 ## Planned source-platform support
 
-The long-term plan is to support every platform each game was released on. The following original-game versions
-still need playable imports and their own graphics, fonts and audio where available. These are future plans, with
-no fixed implementation order or release dates; current support is listed above. Windows, Linux and macOS are the
-systems OpenPhantasie runs on, separate from these source platforms.
+The long-term plan is to support every platform each game was released on. These original versions still need
+playable imports and their own graphics, fonts and audio where available, with no fixed order or release dates.
+(Windows, Linux and macOS are the systems OpenPhantasie runs on, separate from these source platforms.)
 
 | Game | Platforms still to add | Existing support to extend |
 |---|---|---|
 | Phantasie I | Apple II, Commodore 64, Atari 8-bit, Atari ST, MSX2, NEC PC-88, NEC PC-98, Sharp X1 | DOS and Amiga imports already work (the Amiga copy alone too) |
-| Phantasie II | Commodore 64, Atari 8-bit, MSX2, NEC PC-88, NEC PC-98 | Atari ST and Apple II v1.0 imports already work (Apple II v2.1 is recognised) |
-| Phantasie III | Apple II, Commodore 64, Atari ST, MSX2, NEC PC-88, NEC PC-98 | DOS and Amiga imports already work (the Amiga copy alone too) |
+| Phantasie II | Commodore 64, Atari 8-bit, MSX2, NEC PC-88, NEC PC-98 | Atari ST and Apple II imports already work |
+| Phantasie III | Commodore 64, Atari ST, MSX2, NEC PC-88, NEC PC-98 | DOS, Amiga and Apple II imports already work (the Amiga or Apple II copy alone too) |
 | Phantasie IV | NEC PC-88, NEC PC-98, MSX2 (including the existing DJANGO English patch) | X68000 import already works |
 
-That is 22 additional game/platform combinations. Reference disk images are
-available for this backlog, but recognising an image does not mean it can be imported yet. Original game files
-will continue to come from the player's own copy.
+That is 21 additional game/platform combinations. Reference disk images are available for this backlog, but
+recognising an image does not mean it can be imported yet. Original game files will continue to come from the
+player's own copy.
 
 Some further ports need release confirmation and source disks: FM-7 for I / II, Sharp X1 for II, Macintosh for
-I / II / III, and X68000 for III. The existing research has conflicting or incomplete evidence for these, so they
-are research candidates rather than confirmed implementation targets. Manual references alone do not establish
-that a port shipped. Phantasie II has no DOS or Amiga release; III has no Atari 8-bit release.
+I / II / III, and X68000 for III. The evidence for these is conflicting or incomplete (a manual mentioning a platform
+does not prove a port shipped), so they are research candidates, not confirmed targets. Phantasie II has no DOS or
+Amiga release; III has no Atari 8-bit release.
 
 The [platform matrix](docs/plan/09-trilogy-matrix.md#1-platform-matrix) and
 [importer inventory](docs/plan/10-importer.md#31-per-game) contain the existing research and import details.

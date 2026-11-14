@@ -1,7 +1,7 @@
 # Phantasie III vs Phantasie I (and II where relevant): rules matrix from the SSI manuals
 
-> Cold file (s69, Phase 09 T0). Full manual-to-manual comparison behind `09-trilogy-matrix.md`; every claim carries a page
-> citation. Built from the manuals' text layers and page renders; check the cited page before building a rule on it.
+Cold file (Phase 09 T0): the full manual-to-manual comparison behind `09-trilogy-matrix.md`. Every claim carries a page
+citation, taken from the manuals' text layers and page renders; check the cited page before building a rule on it.
 
 ## Sources and citation keys
 
@@ -12,7 +12,7 @@
 - **II**: `docs/manuals/phantasie2/phantasie2-manual.pdf`. This is actually the combined "Phantasie I and Phantasie II Rulebook" (PDF 1). The II-specific changes are on PDF 16, and the I→II transfer text is on PDF 12 and 16.
 - **WW**: `docs/manuals/phantasie1-and-3/phantasie1-and-3-wizardworks-manual-1990.pdf`. Single pages. The I part is PDF 2–11; the III part is PDF 12–14.
 
-Method: `pdftotext` per page plus page renders for the tables (the III and I spell-availability tables, the I potions page, the AU IBM card). US vs AU: I ran an automated word-sequence diff of the rulebook pages and every difference it found was OCR noise or column reordering. **This was not a line-by-line proofread.** The only real AU differences are the missing warranty/TOC-left page and the added command cards (PDF 16–19).
+Method: `pdftotext` per page plus page renders for the tables (the III and I spell-availability tables, the I potions page, the AU IBM card). US vs AU: an automated word-sequence diff of the rulebook pages found only OCR noise and column reordering (**not a line-by-line proofread**). The only real AU differences are the missing warranty/TOC-left page and the added command cards (PDF 16–19).
 
 ---
 
@@ -32,7 +32,7 @@ Method: `pdftotext` per page plus page renders for the tables (the III and I spe
 | LUCK | random 8–13 (I PDF 11) | random 8–13 (III PDF 6 / pr.7) | same |
 | Skills | 8: attack, parry, swim, listen, spot trap, disarm trap, find item, pick lock (I PDF 12) | **9**: adds **Fire Bow** (III PDF 4 / pr.3). Attack can exceed 100 at high level (ibid.) | **new skill** |
 | Racial/class skill bonuses | none stated | "Thieves get a free +30 to their Fire Bow Skill. Elves receive a +15 to Fire Bow Skill." (III PDF 14 / pr.23) | **new** |
-| Social class | none | **New.** "four social classes are: Peasant Laborer, Craftsman, and Noble" (III PDF 5 / pr.4). It sets starting gold and the gold gained per level. Humans, Elves and Dwarves tend higher (pr.4); App. II adds Gnomes and Halflings (III PDF 14 / pr.23) | **new**; the class names are garbled (see §3) |
+| Social class | none | **New.** "four social classes are: Peasant Laborer, Craftsman, and Noble" (III PDF 5 / pr.4). It sets starting gold and the gold gained per level. Humans, Elves and Dwarves tend higher (pr.4); App. II adds Gnomes and Halflings (III PDF 14 / pr.23) | **new**; the class names are garbled (section 3 item 5) |
 | Starting gold | "All characters start with 256 gold pieces" (I PDF 12) | depends on social class (III PDF 5 / pr.4) | **changed** |
 | Pre-generated party | not stated as such (I PDF 9 only shows an example roster) | "A reasonable beginning party has been pre-generated and pre-equipped and is listed as the first 6 members" (III PDF 5 / pr.4; PDF 14 / pr.22) | **new**. The IBM card says: "No pregenerated characters exist on the disk on the IBM version." (III-AU PDF 18) |
 | Name length | C64: max 9 characters (I-RC p.2; WW PDF 3) | not stated in III | — |
@@ -61,13 +61,13 @@ The HP and max-MP tables are **identical** between I and III. Neither manual sta
 | Attack / Slash | Attack = 2 normal swings at rank 1; Slash = 3–4 swings, each less likely to hit, 1–2 less damage (I PDF 15) | Same swings. **New fallbacks**: if attack % is too low, Attack becomes Thrust and Slash becomes Attack (III PDF 8 / pr.11) |
 | Lunge | fighters only, one swing at rank 2 (I PDF 15) | same. **New**: a non-fighter who Lunges Thrusts instead (III PDF 8 / pr.11) |
 | Aim | — | **New.** One swing aimed at head or torso, lower chance to hit. Falls back to Thrust if attack % is too low (III PDF 8 / pr.11; PDF 9 / pr.13) |
-| Ranged attacks | none in I | **Fire Bow** at a chosen rank (III PDF 8 / pr.11). Bows "replaced thrown rocks"; "easier to hit … and Armor is less effective vs. them". Position has no effect on bow hits (III PDF 14–15 / pr.23–24). See §4 |
+| Ranged attacks | none in I | **Fire Bow** at a chosen rank (III PDF 8 / pr.11). Bows "replaced thrown rocks"; "easier to hit … and Armor is less effective vs. them". Position has no effect on bow hits (III PDF 14–15 / pr.23–24). Section 4 |
 | Thieves | can thrust/attack/slash any rank (I PDF 15) | same (III PDF 8 / pr.11) |
 | Party formation | none. Only monster ranks exist; rank 1 is closest and most attacks hit only rank 1 (I PDF 14) | **New: Front / Middle / Back.** Front gives a better chance to hit with hand weapons but an "even greater chance to be hit"; Back is harder to hit and much worse at hitting with hand weapons. The bonus is relative to the rest of the party ("If all of the adventurers are Back, then none of them get any bonuses") and does not affect spells or bows (III PDF 8 / pr.11; PDF 15 / pr.24) |
 | Monster ranks | rank list with counts (I PDF 14) | rank, name, and **per-monster status U/S/D/K** (Unconscious/Sleeping/Down/Okay) (III PDF 15 / pr.24) |
 | Status effects on hit chance | — | "Sleeping adventurers and monsters are automatically hit … Down … much easier to hit … but can still dodge" (III PDF 15 / pr.24) |
 | Adventurer statuses | "health status" only (I PDF 11) | Okay, Down, Sleeping, Dead, Out (unconscious) (III PDF 7 / pr.8) |
-| Body-part injury | none | **New**, see §4 |
+| Body-part injury | none | **New**, section 4 |
 | Accept Surrender | take gold and items "if the monsters do surrender" (I PDF 15) | "demands surrender from a depleted group"; tip: "it only works after you've killed a percentage of the enemy" (III PDF 8 / pr.10; PDF 15 / pr.25) |
 | Beg for Mercy | lose gold and some newfound items (I PDF 15) | lose "all of the party's gold, some of its new items" (III PDF 8 / pr.10) |
 | Flee | if it fails, "the monsters will continue to attack" (I PDF 15) | if it fails, "the monsters get free shots" (III PDF 8 / pr.10) |
@@ -90,7 +90,7 @@ The HP and max-MP tables are **identical** between I and III. Neither manual sta
 | **#55, #56** | — (I's list ends at #54) | **New: Accuracy (#55, 3 MP, C/P), Party Accuracy (#56, 4 MP, C/P)**. They raise one adventurer's (or the whole party's) Fire Bow % "to 250" (III PDF 10 / pr.15) |
 | **#57+** | — | "Divine Spells (#57+): these spells may only be acquired during the course of the game for special purposes" (III PDF 11 / pr.16) |
 | Passive-spell example | Strength 3 cancels an enemy Weakness 4 (I PDF 18) | an enemy Slow is overridden by Quickness (III PDF 10 / pr.14). "Slow" is not on the III list, so this is presumably a monster-only spell (inferred) |
-| Healing #1–4 | HP only: 1-9 / 1-27 / 1-57 / 1-99 (I PDF 19) | Same HP, **plus body areas**: H1 cures 1 Injury, H2 1 Break or 2 Injuries, H3 1 Gone + 1 Break & Injury, H4 "more than 1 Gone" (III PDF 11 / pr.16) |
+| Healing #1–4 | HP only: 1-9 / 1-27 / 1-57 / 1-99 (I PDF 19) | Same HP, **plus body areas** (tiers in section 4) (III PDF 11 / pr.16) |
 | Fireflash #5–8 | one monster "close to the spellcaster" (I PDF 19) | one monster ("close to" dropped); **attacks a specific Body Area** (III PDF 11 / pr.16; PDF 9 / pr.12–13) |
 | Flamebolt #37–40 | every monster, reduced by armour (I PDF 19) | same, **plus hits a Body Area** (III PDF 9 / pr.12–13) |
 | Mindblast #33–36 | HP damage (I PDF 19) | "only affect the monster's Hit Points" (III PDF 9 / pr.13) |
@@ -99,7 +99,7 @@ The HP and max-MP tables are **identical** between I and III. Neither manual sta
 | Resurrection #44 | raises the dead; CON permanently −1 or −2 (I PDF 19) | same (III PDF 11 / pr.16) |
 | Awaken #51 | — | the manual names it "spell 51, Awaken" for night fights (III PDF 8 / pr.11) |
 
-**Spells available by class and level.** I read both tables from page renders (I PDF 20; III PDF 10 / pr.14). Everything not listed below is the same.
+**Spells available by class and level** (both tables read from page renders: I PDF 20; III PDF 10 / pr.14). Everything not listed below is the same.
 
 | Class | Change I → III |
 |---|---|
@@ -121,7 +121,7 @@ The HP and max-MP tables are **identical** between I and III. Neither manual sta
 | Weapons | #41–100 = 60 melee weapons (Stick … God sword), requirement = STR×2+DEX, requirements 2…60 (I PDF 22) | **#41–60 are now 20 Bows** (Self Bow … God Bow), requirement = STR+DEX (III PDF 11 / pr.17). **#61–100 = 40 melee weapons** (Knife … God Sword), requirement = 2×STR+DEX, requirements 3…60 (III PDF 12 / pr.18). The melee list is condensed and renumbered. **Gone in III:** Stick, Small club, Small staff, Small mace (+1/+2), Small flail, Small hammer, Pitch fork, Maul, Morning Star, Spetum, God axe, Dagger +1…+4, Staff +1, Axe +1, Large Axe +1, Sword +3, Sword +7, Halbred +3/+4/+7. **New in III:** Knife +1/+2, Club +1/+2, Flail +2. Point values and requirements for shared names also differ (e.g. Knife: I 1 pt/req 4, III 1 pt/req 3) |
 | Bow table oddity | — | #51 and #52 are both printed "Compound Bow +1" (III PDF 11 / pr.17). #52 is probably a misprint for +2 (inferred) |
 | Magic equipment | — | "Magic Armor and Weapons have lower requirements" (III PDF 6 / pr.6; PDF 11 / pr.17) |
-| Healing potions #101–110 | 1/4/9/16/25/**35**/49/64/81/100 HP (I PDF 23, checked on the render) | 1/4/9/16/25/**36**/49/64/81/100 HP, **plus body-area healing** (1–3 cure 1 Injury; 4–6 cure 1 Break or 2 Injuries; 7–9 cure 1 Gone, 1 Break & Injury; 10 cures more than 1 Gone) (III PDF 12 / pr.18, 36 checked on the render; table on PDF 9 / pr.12). I's 35 breaks the n² pattern and is probably a misprint (inferred) |
+| Healing potions #101–110 | 1/4/9/16/25/**35**/49/64/81/100 HP (I PDF 23, checked on the render) | 1/4/9/16/25/**36**/49/64/81/100 HP, **plus body-area healing** (tiers in section 4) (III PDF 12 / pr.18, 36 checked on the render; table on PDF 9 / pr.12). I's 35 breaks the n² pattern and is probably a misprint (inferred) |
 | Magic potions #111–120 | 3…30 MP (I PDF 23) | identical (III PDF 12 / pr.18) |
 | Scrolls | 20 scrolls about Gelnor; read only in town (I PDF 23) | number not stated; some on sale at Armories; read only in a city (III PDF 12 / pr.18–19) |
 | Quest artefacts | "Rings and Wand" (I PDF 23) | none named. Only the Wand of Nikademus is mentioned, as the one item that survives a transfer (III PDF 13 / pr.20) |
@@ -163,7 +163,7 @@ The HP and max-MP tables are **identical** between I and III. Neither manual sta
 
 | I | III |
 |---|---|
-| 80 types on Gelnor; example stats for skeletons, vipers and magic users (I PDF 17) | Count not stated. **New Monster Reputation Table** giving each monster a Fighting Skill (Low/Med/High/V High) and a Reputation (Good/Neutral/Bad) (III PDF 9 / pr.13). The text layer of that table is scrambled; I have **not** transcribed it. Monsters also have 6 body locations (III PDF 9 / pr.12) and status U/S/D/K (III PDF 15 / pr.24) |
+| 80 types on Gelnor; example stats for skeletons, vipers and magic users (I PDF 17) | Count not stated. **New Monster Reputation Table** giving each monster a Fighting Skill (Low/Med/High/V High) and a Reputation (Good/Neutral/Bad) (III PDF 9 / pr.13). The text layer of that table is scrambled; it is **not** transcribed here. Monsters also have 6 body locations (III PDF 9 / pr.12) and status U/S/D/K (III PDF 15 / pr.24) |
 
 ### 1i. Death, resurrection, aging
 
@@ -184,10 +184,10 @@ The HP and max-MP tables are **identical** between I and III. Neither manual sta
 | I | III (Apple keys) |
 |---|---|
 | Town: A, G, M, N, B, L; C, U, D, I, S (I PDF 8, 11) | same plus **T Trade** (III PDF 13 / pr.21) |
-| — | combat keys 1–9 and Other 1–5 (see §1c). Mouse on ST/Amiga/Mac; joystick on C64/Atari 800 (III PDF 14 / pr.22) |
+| — | combat keys 1–9 and Other 1–5 (section 1c). Mouse on ST/Amiga/Mac; joystick on C64/Atari 800 (III PDF 14 / pr.22) |
 | — | Melee screen shows stick figures with per-limb O/I/B/G (III PDF 7 / pr.8) |
 
-IBM (DOS) III card (III-AU PDF 18): highlight-bar menus, Esc exits most menus, "Makedata" creates a Data Disk, "Makehard" installs to `C:\PH3`, run "Main", load a saved game via "Options menu → Load Game", no pre-generated characters, "All other rules are as stated in the rulebook." (The DUNGEONS / SPEED / COMBAT / SAVING / KEYBOARD paragraphs on the left half of AU PDF 18 belong to the Amiga card, not the IBM one; I confirmed this on the page render.)
+IBM (DOS) III card (III-AU PDF 18): highlight-bar menus, Esc exits most menus, "Makedata" creates a Data Disk, "Makehard" installs to `C:\PH3`, run "Main", load a saved game via "Options menu → Load Game", no pre-generated characters, "All other rules are as stated in the rulebook." (The DUNGEONS / SPEED / COMBAT / SAVING / KEYBOARD paragraphs on the left half of AU PDF 18 belong to the Amiga card, not the IBM one, checked on the page render.)
 
 ### 1l. Save and disk handling
 
@@ -237,18 +237,18 @@ Also: "The Other Utilities Menu is used to Backup your characters onto another d
 | XP | "majority" lost; enough remains to "train up several levels" |
 | Level | reset to **0** |
 | Spells | lost, except Divine spells **#57+** and the "normal beginning spell by class" |
-| Everything else | not stated (see §3) |
+| Everything else | not stated (section 3) |
 
-II comparison (I→II, II PDF 12 and 16): the wording is almost the same. It keeps "divine spells (#55 and above). Wizards will keep spell #5 and Priests spell #1", the level becomes 0, and characters already on the II disk are erased. (II's text really prints "must pay all items"; `09-trilogy-manual-p2.md` section 2 checked the scan.)
+II's I→II text (II PDF 12 and 16) is almost the same: it keeps "divine spells (#55 and above). Wizards will keep spell #5 and Priests spell #1", the level becomes 0, and characters already on the II disk are erased (`09-trilogy-manual-p2.md` section 2). Both side by side: `09-trilogy-matrix.md` section 3.
 
 ---
 
 ## 3. Unclear or open in the manuals (no guesses)
 
-The list stays as the manuals leave it. Answers from the DOS III code: `reverse-engineering/dos/phantasie3/FORMAT.md`
-section 7 (Q1–9, 15–19). Since then: Q10 autosave decided as the manual (D3-028), Q12 one character is enough for an
-elemental (`logic-specs/elementals.md`), Q13 bank fee (D3-025), skill tables (D3-032) and XP / costs
-(`logic-specs/training.md`), Q20 not a conflict (`09-trilogy-matrix.md` section 4). Still open: Q11 (the Amiga's gold
+The questions as the manuals leave them. Answers: Q1–9 and 15–19 from the DOS III code
+(`reverse-engineering/dos/phantasie3/FORMAT.md` section 7); Q10 autosave decided as the manual (D3-028); Q12 one character
+is enough for an elemental (`logic-specs/elementals.md`); Q13 bank fee (D3-025), skill tables (D3-032) and XP / costs
+(`logic-specs/training.md`); Q20 not a conflict (`09-trilogy-matrix.md` section 4). Still open: Q11 (the Amiga's gold
 cap) and Q14.
 
 1. **Transfer platforms.** The Apple section is the only one that documents it. It is not known whether C64, ST, Amiga, Mac or IBM/DOS III have I/II transfer, or which I/II disk formats each accepts.
@@ -349,5 +349,5 @@ III bow rules:
 - The Differences heading names only "PHANTASIE and THE WRATH OF NIKODEMUS", without II (WW PDF 12).
 - Its Tips still mention the Monster Reputation Table, which WW does not include (WW PDF 14).
 - The C64 III text says "If you have created a character, you will automatically start the game in the town of Pendragon" (WW PDF 12). AU has "If you have **not** created a character" (III-AU PDF 16), so a word was dropped.
-- Social class is printed as four names (see §3, item 5).
+- Social class is printed as four names (section 3 item 5).
 - There is nothing about character transfer.

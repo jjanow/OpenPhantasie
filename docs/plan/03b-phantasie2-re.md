@@ -4,7 +4,7 @@ Phase 09 T3. The II counterpart of `03-dos-disassembly-and-logic-extraction.md` 
 `04-amiga-graphics-extraction.md` (graphics), as `06-implementation-roadmap.md` planned. Those two stay the reference
 for I and III; this file covers II only. What is left of II overall is on `PLAN.md` (T3).
 
-- **Rules source:** Atari ST v1.0 (user, s71: the last-released of Apple II / C64 / ST). Images: the v1.0 Pasti set
+- **Rules source:** Atari ST v1.0 (user: the last-released of Apple II / C64 / ST). Images: the v1.0 Pasti set
   `reverse-engineering/atari-st/original-images/phantasie2/` (`SOURCES.txt` one folder up).
 - **Source of truth:** the manual, `docs/manuals/phantasie2/phantasie2-manual.pdf` (the combined I + II rulebook; II's
   changes on p.27; full comparison `09-trilogy-manual-p2.md`). Manual ↔ code conflicts go to the user and into
@@ -16,7 +16,7 @@ for I and III; this file covers II only. What is left of II overall is on `PLAN.
 ## Status
 
 - [x] **3b.1 Container.** `tools/scripts/stx_to_st.py` reads Pasti; `mtools` reads the FAT12 image. 59 files extracted,
-      checked byte for byte against the TOSEC `.st` set (`unpacked/README.md`). Both sets turn out to be played copies.
+      checked byte for byte against the TOSEC `.st` set (`unpacked/README.md`). Both sets are played copies.
 - [x] **3b.2 Program inventory.** `PHANT.PRG` (game, unpacked DRI C, 155,785 B), `START.PRG` (loader), `UTILIT2.PRG`
       (backup + I↔II transfer utility). No packer, no disk-level protection; a rulebook-quiz exists (`FORMAT.md` section 3).
 - [x] **3b.3 Master tables.** Items (181, values identical to I), classes, races, status, 60 spell slots, 80 monsters
@@ -35,7 +35,7 @@ for I and III; this file covers II only. What is left of II overall is on `PLAN.
       by running `PHANT.PRG`'s routines in a 68000 emulator, `tools/scripts/st_p2_ffp_oracle.py`); II swimming
       (`rand / 327`, damage to 6) and lava's shared roll. Rules-profile values read from the code: starting gold 256,
       Guild fills 22 (live), gold clamps 65,535, divine costs 1 / 2 MP, lifespans = DOS factors; sprite sizes are in
-      `monsters.json`. D2-042 (wilderness inn time) raised from this work.
+      `monsters.json`. Raised: D2-042 (wilderness inn time).
 - [x] **3b.8 Data and save formats:** `extract_st_p2_{towns,maps,dungeons,scrolls,saves}.py` → `extracted/`,
       `FORMAT.md` section 9. No factory-fresh save files exist; the fresh state is the `MAPS.INT` / `TWNS.INT`
       templates on disk 1 (the game reads them, seen live). File sizes vs Amiga I: `OUT*.DAT` 3000 vs 2500, `DNG*` 2048
@@ -100,7 +100,8 @@ for I and III; this file covers II only. What is left of II overall is on `PLAN.
 
 ## Manual questions answered
 
-From `09-trilogy-manual-p2.md` section 3 (all static, from `UTILIT2.PRG` unless noted):
+From `09-trilogy-manual-p2.md` section 3 (all static, from `UTILIT2.PRG` unless noted). Transfer detail (Q1–Q8):
+`logic-specs/transfer.md`, `FORMAT.md` section 6.
 
 | Q | Answer |
 |---|---|
@@ -112,7 +113,7 @@ From `09-trilogy-manual-p2.md` section 3 (all static, from `UTILIT2.PRG` unless 
 | 6 entry point | ST: the BACKUP UTILITY (`UTILIT2.PRG`) menu "TRANSFER CHARACTERS → FROM PHANTASIE 1 TO PHANTASIE 2"; reads I's data disk `guild.dat` |
 | 7 erase / repeat | The 22 character slots of II's `GUILD.DAT` are overwritten; the 3 elemental slots are not converted. No guard against repeating seen `[~]` |
 | 8 wand of Nikademus | It does **not** survive on the ST (D2-001) |
-| 9 Toss Rock | ST: a GEM button, the 7th action (THRUST, ATTACK, SLASH, LUNGE, CAST, PARRY, TOSS); no REDO on the ST. Any status-OK member, any rank (always asked). Hit if `rand/327 ≤ TOSS`, so TOSS ≥ 100 always hits, TOSS 0 ≈ 1 %. Damage = max(0, ⌊12·r/100⌋ − monster armor) + ⌊r·@28/100⌋, at least 1 (`@28` = town-exit (11·STR + 3·level·\|7 − 2·class\|)/66: STR, level and class, thieves best). No STR/DEX requirement. Start = max(0, 4·DEX + STR − 39), +15 DWARF, +30 GNOME; grows only at level-up. Shown on the sheet as TOSS (`logic-specs/toss-rock.md`) |
+| 9 Toss Rock | ST: a GEM button, the 7th action (THRUST, ATTACK, SLASH, LUNGE, CAST, PARRY, TOSS); no REDO on the ST. Any status-OK member, any rank (always asked); no STR/DEX requirement. Hit if `rand/327 ≤ TOSS` (TOSS ≥ 100 always hits, TOSS 0 ≈ 1 %). Start = max(0, 4·DEX + STR − 39), +15 DWARF, +30 GNOME; grows only at level-up; shown on the sheet as TOSS. Damage and `@28`: `logic-specs/toss-rock.md` |
 | 10 terrain | `logic-specs/terrain.md` section 7 (live) |
 | 11 towns | 10 reachable towns (Ferronrah 1–6 PIPPACOTT … FERRON, Netherworld 7–10 BLACK MOOR … DARK ABYSS); STARVILLE and OLYMPIA are I's unreachable leftovers. Start = PIPPACOTT. Every town has the same services (Guild, Armory, Bank, Inn, Mystic, gate); they differ only in stock, restock list, price index and exit. TRANSPORTATION stays on the plane (Ferronrah: the other five; Netherworld: 7↔8, 9↔10) → D2-030; the town Inn no longer refills the dead → D2-031; I's inn decisions repeat → D2-032. Guild = 22 slots + 3 elementals (`logic-specs/towns.md`) |
 | 12 scrolls, amulets, orb, win | 14 scrolls (SCROLL A–N) over the file's 19 records (`FORMAT.md` section 9.6); 8 amulets, the orb and the win condition in `endgame.md` |

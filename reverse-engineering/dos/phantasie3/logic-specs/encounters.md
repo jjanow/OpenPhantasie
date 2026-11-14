@@ -1,8 +1,8 @@
 # Phantasie III — encounters: monster groups, status letters, Greet / Surrender / Mercy / Flee, monsters fleeing
 
-Phase 09 T4 3c.6 (s81, static; nothing run in DOSBox). Source of truth: the III manual (Encounter Menu PDF 7 / pr.9–10,
+Phase 09 T4 3c.6. Static unless marked live. Source of truth: the III manual (Encounter Menu PDF 7 / pr.9–10,
 end of round PDF 8 / pr.11, Monster Reputation Table PDF 9 / pr.13, Monster Status PDF 15 / pr.24, tips PDF 15 /
-pr.25). Code: DOS `MAIN.EXE` (addresses `../FORMAT.md` §1; functions `../FUNCTIONS.md`). Tags: `[C]` read from code /
+pr.25). Code: DOS `MAIN.EXE` (addresses `../FORMAT.md` section 1; functions `../FUNCTIONS.md`). Tags: `[C]` read from code /
 data bytes, `[~]` probable, `[?]` not decoded. Conflicts go to `DIFFERENCES-III.md`; not decided here.
 
 ## 1. Monster groups `[C]`
@@ -10,14 +10,14 @@ data bytes, `[~]` probable, `[?]` not decoded. Conflicts go to `DIFFERENCES-III.
 A fight has at most **two monster groups** (= ranks): rank 1 at `FAR:0xe5b0`, rank 2 at `FAR:0xe63a` (138 B each,
 id −1 = no group). `make_encounter(id, status)` (root `0xefd8`) clears both, fills rank 1 from monster `id` and, if
 `rnd(100) ≤ byte 28` (next-group chance), fills rank 2 from companion byte 29 or 30 (`rnd(2) & 1`). `fill_group`
-(root `0xe3e4`) copies from the 38-B `CREATURE.DAT` record (`../FORMAT.md` §4.4):
+(root `0xe3e4`) copies from the 38-B `CREATURE.DAT` record (`../FORMAT.md` section 4.4):
 
 | Group off | Value | From monster byte |
 |---|---|---|
 | +0x00 | monster id | — |
 | +0x02 | count = `rnd(byte 14)` (1..group max) | 14 |
 | +0x04 + 2m | HP of member m (m < 5) = byte 25; values > 200 mean `100·b − 20000` (201 → 100 … 255 → 5500) | 25 |
-| +0x0e + 2m | per-member **magic points** (specials spend them; the breath / Sleep resist side, `combat-round.md` §3) | 24 |
+| +0x0e + 2m | per-member **magic points** (specials spend them; the breath / Sleep resist side, `combat-round.md` section 3) | 24 |
 | +0x18 + 2m | status of member m (the caller's start status) | — |
 | +0x22 | attack power = byte 15 · 10 | 15 |
 | +0x24 / +0x26 / +0x28 | damage / armour / defence (s8) | 16 / 17 / 18 |
@@ -27,7 +27,7 @@ id −1 = no group). `make_encounter(id, status)` (root `0xefd8`) clears both, f
 | +0x30 | **reaction** (s8); Charm adds 15 (root `0xc744`) | 26 |
 | +0x32 | byte 27 (s8): > 41 → the encounter is this group alone, at most 2 monsters, flag `+0x48` = 1 (a large picture `[~]`) | 27 |
 | +0x34 + 2k | 3 specials | 21–23 |
-| +0x4c + 10k + 2m | six body areas (`body-areas.md` §1) | — |
+| +0x4c + 10k + 2m | six body areas (`body-areas.md` section 1) | — |
 
 **Monster party strength** `strength()` (root `0xf460`): for both groups, the sum of `level` (+0x2a) over the five
 member slots whose **HP word has bit 0 set** (`test byte [hp], 1`) `[C]` code reading. That is "odd HP", not "alive";
@@ -36,7 +36,7 @@ value at the start of the fight is kept in `FAR:0x9816` (root `0x1069a`).
 
 ## 2. Monster status letters `[C]`
 
-Per-member status (`monster_status_from_body`, root `0xec1a`; table in `body-areas.md` §3): 0 dead, 1 Okay, 2 Asleep,
+Per-member status (`monster_status_from_body`, root `0xec1a`; table in `body-areas.md` section 3): 0 dead, 1 Okay, 2 Asleep,
 3 Down (a leg ≥ Broken), 4 head or torso Broken. The combat list (root `0x110f5` / `0x11297`) prints, per rank: the
 count, the name with "(s)" and one letter per member:
 
@@ -48,7 +48,7 @@ count, the name with "(s)" and one letter per member:
 | anything else (1 Okay) | **K** (`0x6a6c`) | K Okay |
 
 The unconscious state prints **"O"** (as the characters' "Out"), where the manual's example shows "S U D" —
-**D3-021** (display only). `body-areas.md` §3's `[~]` "U" is corrected to "O" `[C]`. "[original text]"
+**D3-021** (display only). "[original text]"
 (root `0x1101c` mode 1) shows only "Rank :", the rank, the count and the name.
 
 ## 3. Reputation `[~]`
@@ -67,7 +67,7 @@ Mercy / Flee the group copy +0x30, which Charm can raise).
 
 | Option | Success test | Success | Failure |
 |---|---|---|---|
-| **Greet** (root `0x112e9`) | `id < 44` and `FAR:0xb618` = 0 `[?]` and `rnd(100) < reaction + 40` | "Greetings...": fight ends, outcome 4; no gold, no treasure (XP see below) | "No Response..." |
+| **Greet** (root `0x112e9`) | `id < 44` and `FAR:0xb618` = 0 (no monster hurt yet, section 6) and `rnd(100) < reaction + 40` | "Greetings...": fight ends, outcome 4; no gold, no treasure (XP see below) | "No Response..." |
 | **Accept Surrender** (root `0x10dcb` → `0xd171`) | `strength() < start_strength / 2` and `rnd(100) ≤ 50` and `id < 44` | "[original text]": fight ends as a win (outcome 1: gold, XP, treasure) | "No Response..." |
 | **Beg for Mercy** (root `0x10e14`) | `rnd(100) < reaction + 60` and `id < 44` | "[original text]": party gold = 0, fight ends, no gold or treasure (XP see below). Found items are **not** touched | "No Response..." |
 | **Flee** (root `0x10f30`) | see below | "[original text]" | "[original text]", free-shots flag `FAR:0xb57c` = 1 |
@@ -76,7 +76,7 @@ Mercy / Flee the group copy +0x30, which Charm can raise).
 flee():
     ok = false
     if rank 1 exists and none of its members has status Okay: ok = true       # all asleep / down / out
-    elif FAR:0xb5c2 != 0: ok = true                                           # [?] (also selects a combat mode)
+    elif FAR:0xb5c2 != 0: ok = true                                           # the party surprised the monsters (section 7)
     elif no party member (elemental excluded) is Okay or Down: ok = false
     elif id >= 44: ok = false
     else: ok = rnd(100) < 70 + reaction − strength()
@@ -93,7 +93,7 @@ flee():
   items" (PDF 7 / pr.10). The items of the fight are lost anyway (no treasure roll after Mercy), so "new items" may mean
   those `[~]`; not raised separately — listed under D3-024's side effects for the user.
 - Accept Surrender "only works after you've killed a percentage of the enemy" (PDF 15 / pr.25): the code's
-  percentage is **half the start strength** (with the odd-HP sum of §1) `[C]`.
+  percentage is **half the start strength** (with the odd-HP sum of section 1) `[C]`.
 - **Rewards after a fight** `[C]`: in the **wilderness** (driver root `0xde54`, `0xe077…0xe0a0`) `combat_rewards`
   (root `0xecde`) runs whenever the party survives, whatever the outcome. It pays, per rank, the monster's gold or XP
   value (bytes 34–35 / 36–37, big-endian; values over 64,000 mean `(v − 64,000) · 1000`) times a per-rank counter
@@ -101,7 +101,7 @@ flee():
   `FAR:0xb62c` is set**, which Flee, Mercy and Greet clear; treasure (root `0xee93`) needs outcome ≠ 0 and `FAR:0xe598`
   clear (Greet sets it). So after Greet, Mercy or a successful Flee the party keeps the XP for the monsters already
   killed, without gold or items. In a **dungeon** (ovl4 `0x1e5e`) rewards are paid only for outcomes 1–3.
-- **Treasure after a fight** (root `0xee93`, s88) `[C]`: items only (gold is `combat_rewards` above), and only from the
+- **Treasure after a fight** (root `0xee93`) `[C]`: items only (gold is `combat_rewards` above), and only from the
   **lead group's monster type**: the record `FAR:0xe6c4` that `make_encounter` (root `0xefd8`) points at the first
   group's monster (`CREATURE.DAT` + 38 · id; the second group uses `FAR:0xe7ba`). Its bytes 31 and 32 are two item ids
   (`monsters.json` `treasure_items`, e.g. Skeleton 66 / 67).
@@ -126,28 +126,26 @@ flee():
   - The finder's "not Out" test reads the record of member −1 (`imul [bp+8]` with the −1 argument, root `0xe5c2`), i.e.
     `FAR:0x15c`, so Out (and Asleep / Down) members can find; only Dead ones are skipped `[~]` (the byte there was not checked).
   - Dungeon fights (ovl4 `0x1e69`) run the same routine for outcomes 1–3, with the lead monster set by ovl4 `0x1da0`.
-  - Remaster (s92): `Phantasie3Campaign.RollTreasure` / `FindTreasure` (the `ICampaign.RollTreasure` hook in place of I's
-    `TreasureDrop`); Greet, Mercy, Flee and Teleportation forfeit it (outcome 0 / the greet flag). The finder prints
-    "<name> finds <item>."; the keep question was still I's "KEEP IT?" text (superseded s97, next bullet).
-  - **s97 (static, root `0xf2eb`)** `[C]`: one window, the finder's name at column 4 row 10, DS `0x68ba` "finds" after
-    it, the item name after that (no full stop), DS `0x68c0` "[original text]" at column 6 row 12, then the
-    menu "Yes" (DS `0x68db`, column 12) / "No" (DS `0x68d8`, column 25) on row 14. Built: the offer carries its finder
-    (`TreasureOffer`, saved as `PendingTreasureFinders`) and the prompt shows DOS's two lines; dungeon op 6 keeps its
-    own "Keep <item>?".
-  - **Default answer (s98, static)** `[C]`: the two-item menu root `0x75a3` gets highlight 1 from `0xf2eb` on every call
+  - **The offer screen** (root `0xf2eb`, static) `[C]`: one window, the finder's name at column 4 row 10, DS `0x68ba`
+    "finds" after it, the item name after that (no full stop), DS `0x68c0` "[original text]" at column 6 row
+    12, then the menu "Yes" (DS `0x68db`, column 12) / "No" (DS `0x68d8`, column 25) on row 14.
+  - **Default answer** (static) `[C]`: the two-item menu root `0x75a3` gets highlight 1 from `0xf2eb` on every call
     (`[bp+0x16]`), so "Yes" is lit each time, with no memory of the last answer. It returns 1 (keep) for `Y` or Return
-    on "Yes", 0 for `N`, Esc, or Return on "No"; Left / Right move the bar. Built: the III fight-find prompt opens on
-    "Yes" every time (`SessionPrompt.Remembers` = false; I's KEEP IT? menu `0x1b` keeps its memory). **s102:** Esc
-    answers "No" as in DOS (`SessionPrompt.EscapeChoice` = 2; the Client gives Esc to the prompt before the game menu).
-    III's dungeon "Keep <item>?" (ovl4 op 6) uses the same menu with the same highlight `[C]` (`dungeon-events.md` §3,
+    on "Yes", 0 for `N`, Esc, or Return on "No"; Left / Right move the bar.
+  - Remaster: `Phantasie3Campaign.RollTreasure` / `FindTreasure` (the `ICampaign.RollTreasure` hook in place of I's
+    `TreasureDrop`); Greet, Mercy, Flee and Teleportation forfeit it (outcome 0 / the greet flag). The offer carries its
+    finder (`TreasureOffer`, saved as `PendingTreasureFinders`) and the prompt shows DOS's two lines, opens on "Yes"
+    every time (`SessionPrompt.Remembers` = false; I's KEEP IT? menu `0x1b` keeps its memory) and takes Esc as "No"
+    (`SessionPrompt.EscapeChoice` = 2; the Client gives Esc to the prompt before the game menu). III's dungeon
+    "Keep <item>?" (ovl4 op 6, its own text) uses the same menu with the same highlight `[C]` (`dungeon-events.md` section 3,
     op 6), so both III keep questions open on "Yes" every time and take Esc as "No".
 
 ## 5. End of round: monsters flee `[C]`
 
 After each round (combat_round root `0xd8c7`, `0xdb96…0xdc22`) the same test as Accept Surrender (`0xd171`) runs; if
 it passes, "[original text]" and the fight ends **as a win** (outcome 1, the same code as "all monsters dead"),
-so gold / XP / treasure for the fight are awarded as for a win (§4, rewards) `[~]`. The manual: "If they are losing badly, they may attempt to flee" (PDF 8 /
-pr.11) — agrees ("losing badly" = below half strength, 50 %).
+so gold / XP / treasure for the fight are awarded as for a win (section 4, rewards) `[~]`. The manual: "If they are losing
+badly, they may attempt to flee" (PDF 8 / pr.11) — agrees ("losing badly" = below half strength, 50 %).
 
 Fight outcomes (`FAR:0xe59c`, returned by combat_main root `0x104c0`): 0 fled / begged / teleported away, 1 won
 (killed, surrendered, monsters fled), 2 Nikademus (77 or 78) killed, 3 Lord Wood (79) killed, 4 greeted `[C]`;
@@ -159,9 +157,9 @@ Fight outcomes (`FAR:0xe59c`, returned by combat_main root `0x104c0`): 0 fled / 
   surrender now and then.
   s110 (`../screens-s110/`) is consistent with the odd-HP reading: three Skeletons poked to HP 200 / 200 / 200 (start
   strength 3) took hits to 184 / 194 / 200 (all even, strength 0) and fled at the end of that round `[~]` (one fight).
-- (s83 closed) `FAR:0xb618` (blocks Greet) = "a party member has hurt a monster this fight": set by `damage_monster`
+- Decoded: `FAR:0xb618` (blocks Greet) = "a party member has hurt a monster this fight": set by `damage_monster`
   (root `0xb191`), cleared at every fight start (root `0x1055c`, ovl4 `0x1d82`) and by Charm (root `0xc758`, which also
-  adds 15 to both groups' reaction) `[C]`. `FAR:0xb5c2` (free flee) = the party surprised the monsters: §7 `[C]`.
+  adds 15 to both groups' reaction) `[C]`. `FAR:0xb5c2` (free flee) = the party surprised the monsters: section 7 `[C]`.
 
 ## 7. The wilderness encounter (s83, static) `[C]`
 
@@ -201,15 +199,15 @@ pay combat_rewards unless wiped; treasure (root 0xee93) unless wiped or greeted
 ```
 
 `pick(kind, L)` (root `0xf143`): kind 1 `12L + {0, 1, 4}` (`rnd(3) − 1`, 2 → 4); kind 2 `12L + rnd(10) + 1`; kind 3
-`12L + DS:0xa17[t + rnd(4)]` (t = the terrain index, `planes.md` §3; values 0–5 for Scandor's terrain, 17–20 for the
+`12L + DS:0xa17[t + rnd(4)]` (t = the terrain index, `planes.md` section 3; values 0–5 for Scandor's terrain, 17–20 for the
 Netherworld's); then an id above 74 or below 0 becomes 11, and 61 becomes 60. Monster ids here are 0-based (the
 `CREATURE.DAT` record). Mode 1 = the monsters get a free round before the party chooses (as event op 17, root
-`0x1072f`); mode 2 sets the free-flee flag `FAR:0xb5c2` (Flee succeeds outright, §4) and also gives the party a free first round (`combat-round.md` §1). The skill accessor root
-`0xe617(member, k)` maps k 2 Swim, 3 Listen, 4 Find Trap, 5 Disarm, 6 Find Item, 7 Pick Lock (record `+0x50`, `+0x44`,
+`0x1072f`); mode 2 sets the free-flee flag `FAR:0xb5c2` (Flee succeeds outright, section 4) and also gives the party a free first round
+(`combat-round.md` section 1). The skill accessor root `0xe617(member, k)` maps k 2 Swim, 3 Listen, 4 Find Trap, 5 Disarm, 6 Find Item, 7 Pick Lock (record `+0x50`, `+0x44`,
 `+0x3c`, `+0x40`, `+0x38`, `+0x4c`).
 
 The manual agrees where it speaks: "the watch rolls its Listen %" for night fights (III PDF 8 / pr.11), no encounters
 on water (PDF 13 / pr.21); the rates are manual-silent. Not a conflict.
 
-Remaster (T4, s83): `Phantasie3Campaign.World.cs` `RollWildernessEncounter`; the fight build happens after the
+Remaster: `Phantasie3Campaign.World.cs` `RollWildernessEncounter`; the fight build happens after the
 questions, so DOS's draw order (the build before the Listen roll) is not kept `[~]`.

@@ -1,14 +1,13 @@
 # Pad fix list (s186 code audit)
 
-s186 replaced the play-found "Pad leftovers" with a code audit. Four read-only passes covered every input handler in
-`src/OpenPhantasie.Client` (I–III gameplay, modal dialogs, IV, front end + global keys) and found ~125 raw findings. They
-are merged below by root cause into ~45 fixes. The audit
-is the complete list as of s186: a fix found later in play means the audit missed it; add it here, with the cause.
+**Status: every item is done (s187–s197).** A code audit (s186, four read-only passes over every input handler in
+`src/OpenPhantasie.Client`: I–III gameplay, modal dialogs, IV, front end + global keys) found ~125 raw findings, merged
+below by root cause into ~45 fixes. A pad bug found later in play means the audit missed it: add it here with the cause.
 
 Pad today (for reference): D-pad / left stick = arrows, A = Return, B = Esc, LB / RB = Save / Load (PgUp / PgDn in
-menus), X inventory, Y bestiary, Back auto-map (on I–III's town row: the town command list, s192), Start + Back scale,
-L3 / R3 turn, right stick sideways = F2, up / down = sidebar / prompt
-scroll (in a fight the log, RT + stick the rank box), LT fast-forward, RT + A = field command list, A in the Guild = Guild command list. IV maps its own
+menus), X inventory, Y bestiary, Back auto-map (on I–III's town row: the town command list), Start + Back scale,
+L3 / R3 turn, right stick sideways = F2, up / down = sidebar / prompt scroll (in a fight the log, RT + stick the rank
+box), LT fast-forward, RT + A = field command list, A in the Guild = Guild command list. IV maps its own
 (`P4DungeonScreen.Pad.cs`: Y / X step clickable icons, Start = Esc, B = N / Space / Backspace by context).
 
 Paths are relative to `src/OpenPhantasie.Client/` unless stated.
@@ -142,7 +141,7 @@ Seen working on screen: F33 (pad / key / left-stick-only switch the help, IV str
 Withdraw wheel), C10, C11, C12, C13, C15 (III DOS and I town rows), C16, C17, C19 (spell step), C20, C21, C22, C23,
 D24-26 (no art pack), E28 (auto combat, Mystic skip), E29 (III Amiga orders, member / order / spell steps). Fixed in the
 pass: III Amiga's street help said "Back more" (Back toggles the auto-map there); it has its own help now
-(`game.town_bar_help`, Start menus). The remaining cases were completed in s197: C14, C18's MESS / Guild move question, C19 rank / heal / PartyRank,
+(`game.town_bar_help`, Start menus). The remaining cases were seen in s197: C14, C18's MESS / Guild move question, C19 rank / heal / PartyRank,
 D27 ledger paging, right-stick prompt scroll, II / III pad lines, IV wipe / ending flow and same-frame keyboard/pad
 input. Evidence: `parity/s197-pad-live.md` and linked reports / raw traces. No live follow-ups remain from this list.
 
@@ -192,5 +191,4 @@ Findings 34–41: closed s196 (verification notes: `parity/s196-pad-findings.md`
 
 ## Suggested order
 
-A (done s187) → B 7 + 9 (done s188) → B 8 (done s189) → C 10-13 (done s190) → D 24-26 (done s191) → C 14-23 (done s192)
-→ D 27 + E (done s193) → E29's III Amiga orders + F (done s194) → live virtual-pad pass on Xvfb (s194, section G) → G 34-41 (done s196) → remaining live cases + G42–44 (done s197).
+All done, in this order: A, B, C 10-13, D 24-26, C 14-23, D 27 + E, F, the live pass (section G), 34-41, 42-44.

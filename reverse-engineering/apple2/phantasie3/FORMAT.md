@@ -1,6 +1,6 @@
 # Phantasie III (Apple II, SSI 1987): disks, tables and a standalone import
 
-s212. Where each of III's game tables lives on the Apple II disks, how `tools/scripts/extract_a2_p3_tables.py` (and its
+Where each of III's game tables lives on the Apple II disks, how `tools/scripts/extract_a2_p3_tables.py` (and its
 C# port `P3Apple2Tables`, `src/OpenPhantasie.Importer/Pipelines/P3Apple2/`) reads it into the shapes of DOS III's
 extract, and every cell where the Apple differs from DOS III. Program notes (Bank, Divide, Beg for Mercy, restock,
 Parry, Drop / Purge): `README.md` next to this file. Tags: `[C]` read in the code or data, `[~]` probable or a layout
@@ -38,7 +38,7 @@ line 200) copies side A to a Player disk and side B to a Dungeon disk, deleting 
 | `WIN`, `WIN PIC`, `ICE DRAGON` | [cr]: a 233-byte crack stub and the cracker's own screens; the real ones only on v3.0 (art; not read here) |
 | `SC7`, `SC9`, `SC11`, `SC17`, `SC20` | **[cr] damaged**: each holds another scroll's page (`SC7` = `SC9` = Departed Souls, `SC11` = News about the Great War, `SC17` = SC11's v3.0 page, `SC20` = Kilmor's account); load address $1388 in the [cr] catalog |
 | `CHAR3`, `TWN31`, `TWN317` | [cr] played |
-| `TWN317` | **resolved** (was `[?]`): v3.0's is the Town of Death template (= `TF3` record 17, load $1E46 = $0EA6 + 16 · 250, its slot). The [cr] file is **Asmith's record** (`TF3` record 8) with four stock bytes changed (items 12, 16, 17, 18 = 5, 5, 5, 1), load $1388 = `TWN36`'s slot: a played / mis-stored file of the crack, not game data. The import never reads `TWN3n` (it reads the `TF3` template) |
+| `TWN317` | v3.0's is the Town of Death template (= `TF3` record 17, load $1E46 = $0EA6 + 16 · 250, its slot). The [cr] file is **Asmith's record** (`TF3` record 8) with four stock bytes changed (items 12, 16, 17, 18 = 5, 5, 5, 1), load $1388 = `TWN36`'s slot: a played / mis-stored file of the crack, not game data. The import never reads `TWN3n` (it reads the `TF3` template) |
 
 `TF3` record t is file `TWN3t` (both load at $0EA6 + 250 (t − 1)); `BACKUP` 500–550 (new game) writes `TF3`'s 17
 records to `TWN31`–`TWN317` and clears `CHAR3` `[C]`.
@@ -131,8 +131,8 @@ MOUNTAINS, BUILDINGS, DUNGEON, PATHWAY, BRIDGE, LAVA, DESERT, WATER, MIST; on th
 PLANE / THE DARK PLANE / NETHERWORLD LEVEL THREE, 5400), the ones digit the square's monster level (6 / 7: a sign / a
 place text, 8: no encounter); 40 town, 41 inn, 50–59 a dungeon, 100 ocean / River Styx (blocked, 5270).
 - **Scandor** = `OT1`–`OT25`, 5 × 5 sections, section s at (10 ((s − 1) mod 5), 15 ((s − 1) div 5)): the 50 × 75 map.
-  Against DOS's `WORLD.DAT`, terrain by terrain (DOS tile → terrain by its ranges), **3,712 of 3,750 squares agree** (the 38 others: Lansing's square and its road, a few coast, desert, forest and path squares);
-  DOS's tile ids (coast and edge variants of each terrain) are not derivable from the Apple's bytes (no neighbour rule
+  Against DOS's `WORLD.DAT`, terrain by terrain (DOS tile → terrain by its ranges), **3,712 of 3,750 squares agree**
+  (the 38 others: Lansing's square and its road, a few coast, desert, forest and path squares); DOS's tile ids (coast and edge variants of each terrain) are not derivable from the Apple's bytes (no neighbour rule
   reproduces them: 757 squares miss with the best 8-neighbour rule).
 - **Planes**: Light `OT29`, Dark `OT31` (10 × 15 each), the Netherworld `OT41`–`OT43` (30 × 15): the Apple's own maps,
   not DOS's 9 × 9 / 31 × 16. A dungeon exit's (destination, x, y) is (section, x, y) where the party lands
@@ -180,8 +180,8 @@ dungeon records equal to 0x593; the public folder; load, start in Pendragon, lea
 
 The cells, by group (each a real Apple ≠ DOS difference unless "lacks"):
 1. **Monsters** (69 numbers; Apple / DOS, DOS's packed values decoded): attack power on 27 monsters, 24 of them 5
-   above DOS's tens (Wild Cat 45 / 40), Kobold 45 / 50, Undead Gnome 60 / 80, Giant Ghost 95 / 100; Drip Slime xp 87 / 97; Kobold damage 7 / 8, next-group 100 / 7; Goblin gold
-   350 / 100 and treasure 72, 24 / none; Wight reaction −10 / −11; Gremlin −2 / 0; **Wolf** a full record (armour 2 /
+   above DOS's tens (Wild Cat 45 / 40), Kobold 45 / 50, Undead Gnome 60 / 80, Giant Ghost 95 / 100; Drip Slime xp
+   87 / 97; Kobold damage 7 / 8, next-group 100 / 7; Goblin gold 350 / 100 and treasure 72, 24 / none; Wight reaction −10 / −11; Gremlin −2 / 0; **Wolf** a full record (armour 2 /
    5, damage 16 / 2, level 5 / 0, special 0 / 7, hp 14 / 0, rating 7 / 14, companion 31 / 0, next group 65 / 31: DOS's
    Wolf is a zero-level stub); Giant Ghost damage 21 / 15; Dragon next group 60 / 0; Dragon King companions 35, 59 /
    none, next group 90 / 0; Spirit defense 300 / −1; the bosses' whole numbers against DOS's packed ones: Light Fairy hp

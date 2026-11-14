@@ -1,8 +1,7 @@
 # Wand of Nikademus and the I → II (→ III) transfer: cross-version research (s76, static only)
 
 Tags: [C] confirmed from code or data bytes · [~] probable · [?] unknown or not looked at.
-Nothing was run in an emulator. Extracted files and listings were kept in the s76 session scratchpad (not in the repo; re-run the scripts).
-Scripts are in `tools/scripts/cross-version/` (Applesoft and C64 BASIC detokenisers, DOS 2 ATR and D64 extractors, D88 to raw, EXEPACK
+Nothing was run in an emulator. Extracted files and listings are not in the repo (re-run the scripts). Scripts are in `tools/scripts/cross-version/` (Applesoft and C64 BASIC detokenisers, DOS 2 ATR and D64 extractors, D88 to raw, EXEPACK
 unpacker, capstone 6502/68k/x86 wrappers).
 
 ## 0. Headline: the ST does not drop the wand. Every version turns it into a flag made from Phantasie I's SCORE.
@@ -17,19 +16,19 @@ manual's "pay all items except the wand of Nikademus" is built.
 | Apple II (4am crack, v2/5/86) | record byte 42 (= I's score: Apple I `7452 PRINT "SCORE" FN P(42)`) | `FN P(42) > 99` | items screen `"WAND OF NIK(USELESS NOW)"` (line 5460); inspect list `"-WAND OF NIK-"` (7525); Mystic `Z = Z + (FN P(42) > 99)` → `"ALSO HEROES OF "H$(0)` (=GELNOR) (4632/4662) | [C] |
 | C64 (v1.0 side A/B; v1.2 side A has the same TOWN2/OUTDOORS2) | byte 42 | bytecode `89 2a b4 00 80 89 63 2a 4f` = `IF FN P(42) > 99` | `"-WAND OF NIK-"` (TOWN2 `0x3eaf`, OUTDOORS2 `0x52eb`); Mystic count (TOWN2 `0x26f2`). There is no "USELESS NOW" line | [C] |
 | Atari 8-bit (atarimania set) | byte 42 | `lda #$2a; jsr $363f; cmp #$64; bcc` | `"-WAND OF NIK-"` (AUTORUN.SYS side A, mem `0x3234`); Mystic (TOWNR.COM mem `0x4dc4`, followed by the byte-8 ≥ 151 test) | [C] |
-| **Atari ST** | word @70 (`0x46`) = DOS/Amiga I score (`save-file-format.md` @70 [C]). The UTILIT2 converter copies it: @70/71 are not in FORMAT §6's exception list | `cmpi.w #$63,$46(a0); ble` | PHANT.PRG `0x3a16` → `0x3012(…, wandflag)` → RSC tree 0x17 object 7 **"- WAND OF NIK -"** (objects 4/6/7 = THE ORB / FILMON WAND / WAND OF NIK). The same in `0x17d62` → OUT.RSC tree 0x24 obj 7. Mystic `0xd7e4` → `0xf64` → `"[original text]"` | [C] |
+| **Atari ST** | word @70 (`0x46`) = DOS/Amiga I score (`save-file-format.md` @70 [C]). The UTILIT2 converter copies it: @70/71 are not in FORMAT section 6's exception list | `cmpi.w #$63,$46(a0); ble` | PHANT.PRG `0x3a16` → `0x3012(…, wandflag)` → RSC tree 0x17 object 7 **"- WAND OF NIK -"** (objects 4/6/7 = THE ORB / FILMON WAND / WAND OF NIK). The same in `0x17d62` → OUT.RSC tree 0x24 obj 7. Mystic `0xd7e4` → `0xf64` → `"[original text]"` | [C] |
 | PC-98 (Star Craft) | byte `0x23` of the 155-byte record. The utility converter `0x32bf` writes 08,09,0a,0b,0c(w),12–20 even,29–2b,2c(dw),30,31,35,37–6c,7e,88–91,93–96,99 and never `0x23` | `mov al,[si+23h]; cmp al,63h; jbe` (Program disk img `0xc58a`) | sheet `"  [original text]"` (DS:1a00, refs `0xc5a4` and 4 more) | [C] code. That I's score sits at `0x23` in the PC-98 I record is [~] (the utility printout has "P1 P2" score columns) |
 | PC-88 (Star Craft) | `0x23`. The utility converter at img `0xabb0`–`0xae05` is the PC-98 C code compiled for Z80 (same field writes, no `0x23`) | `ld de,23h; add hl,de; ld a,(hl); cp 64h; jp c` (Program disk ×4, Player disk ×3) | "[original text]" strings present | [C] converter. [~] that those `cp 64h` sites are the wand display |
 | MSX2 (Logic Tank 1988) | — | `cp 64h` on `+23h` at 7 sites (same record) | "[original text]" in the overlays | [?] **No I→II transfer routine found.** There is no utility, and no "Phantasie I"/old-man text in PM2.COM or any *.OVR. GSELECT only offers start options. The MSX manual's text layer is OCR garbage |
 
-So **D2-001 needs reframing** (for the parent; tracked files not edited). The ST does what the manual says, the
-same way every other version does it. The item (I id 150) is gone everywhere. "The wand" in II is a derived
+So the ST does what the manual says, the same way every other version does it (D2-001: NOT A CONFLICT, the wand is a
+score flag and is kept). The item (I id 150) is gone everywhere. "The wand" in II is a derived
 flag (I score > 99). Only the Apple label calls it useless, and it is.
 
 What makes the I score > 99 [C]:
 - **Apple I:** the Zeus win does `POKE FN C(42),100` for every party member (dungeon side B, line 150). The
   Mystic max score includes `22 * I%(10)` for holding item 150, the wand.
-- **DOS I:** the score is only the Mystic formula (`endgame.md` §2.3: Σlevels + 18 per distinct ring id
+- **DOS I:** the score is only the Mystic formula (`endgame.md` section 2.3: Σlevels + 18 per distinct ring id
   141..150 + 66 for WAND 150 + 1, all ÷ 3), and the Zeus win writes no score. So > 99 in practice needs the
   wand plus most rings and high levels.
 - **Amiga I** (the I that feeds ST II): the game has no `move.w #100,$46(An)` (`7c 00 64 00 46/47`). So it
@@ -39,10 +38,10 @@ What makes the I score > 99 [C]:
 
 | Version | Items | Starter kit | Wand |
 |---|---|---|---|
-| Apple II | `FOR X=152 TO 160: POKE Y+X,0` (all 9 slots) | 152/153/154 := 4/49/23. Worn 48/49/50 := 4/23/49. Points 162/163/164 := 4/4/3 (lines 1030–1060, side B `0xb0a4`–`0xb1ce`) | flag via byte 42 (§0) [C] |
+| Apple II | `FOR X=152 TO 160: POKE Y+X,0` (all 9 slots) | 152/153/154 := 4/49/23. Worn 48/49/50 := 4/23/49. Points 162/163/164 := 4/4/3 (lines 1030–1060, side B `0xb0a4`–`0xb1ce`) | flag via byte 42 (section 0) [C] |
 | C64 | same table (side B file `B`, lines 2030–2095; BASIC V2 source) | same | same [C] |
 | Atari 8-bit | side C `B.COM`, 6502 at `$4925`–`$4a3e`: 152–160 := 0, then the same kit (`$49a3`–`$49cd`) | same | byte 42 not written [C] |
-| ST | FORMAT §6 (slots 4–9 := 0, kit 4/49/23) | same | @70 kept [C] |
+| ST | FORMAT section 6 (slots 4–9 := 0, kit 4/49/23) | same | @70 kept [C] |
 | PC-98 / PC-88 | `@88..@91 := 0`, then `@88/89/8a := 4/23/49`, `@93/94/95 := 4/4/3`, `@96 := 1`; worn `@29/2a/2b := 4/23/49` | same ids | `0x23` kept [C] |
 | MSX2 | no transfer found | — | [?] |
 
@@ -109,8 +108,9 @@ with `--WAND--` as I id 150 (PC-98 utility img near `0x7b00`) [C]. It is only us
   - Item 180 is special elsewhere: the sack pooling skips it (`cmp si,0B4h; jge`, ovl2 `0x39f`) and `0x5c8`
     removes it from the sack (cursed) [C].
   - So **DOS III does not keep the wand** [C static]. That contradicts III's manual ("lose all of their items
-    except the Wand of Nikademus") and the Apple III code. Whether a DOS III event treats the Gelnor/score field as
-    "has the wand" is not decoded [?].
+    except the Wand of Nikademus") and the Apple III code (D3-001). No DOS III event treats the Gelnor/score field
+    as "has the wand": the wand is quest bit 2 of `+0x8a`, set only by dungeon event ops; the I score feeds only
+    Filmon's text (`dos/phantasie3/logic-specs/dungeon-events.md` section 4–5) [C].
 - **Amiga III:** strings show a transfer from Phantasie I only ("Transfer Phantasie I characters", `final.pic` /
   `final2.pic`, "This [original text] disk!"). Not decoded [?].
 - **III's manual:** "Your characters will lose all of their items except the Wand of Nikademus… They will
@@ -121,7 +121,7 @@ with `--WAND--` as I id 150 (PC-98 utility img near `0x7b00`) [C]. It is only us
 
 | Version | Rule | Tag |
 |---|---|---|
-| ST | ⌊hi/35⌋·256 + 100 | [C] (FORMAT §6) |
+| ST | ⌊hi/35⌋·256 + 100 | [C] (FORMAT section 6) |
 | Apple II, C64 | `POKE Y+14,PEEK(Y+14)/35`, `POKE Y+15,100`. Byte 14 = high byte (bank `FN P(14)*256+FN P(15)`) → **identical** | [C] |
 | PC-98, PC-88 | `@0c` word: `div 2300h` (= 35·256), `shl 8`, `+64h` → **identical** (PC-98 `0x32d8`–`0x32ec`; PC-88 `0xabda`–`0xabfd`, `ld de,2300h; call div`) | [C] |
 | **Atari 8-bit** | `$499d lda #$64; ldy #$0e; sta (80),y` → byte 14 := 100. Later `$4a0a lda (80),14; lsr ×5; sta (80),15` → byte 15 := 100>>5 = **3**. It reads byte 14 **after** overwriting it, so the result is a **flat amount for everyone**. The shipped saves are little-endian (a new character is `0,1` = 256 in CHAR2.RUD; C64 is `1,0`), so the result is **868 GP** (3·256 + 100). Probably a bug: >>5 ≈ ÷32 meant to replace ÷35, applied to the wrong byte | [C] code. [~] 868 vs 25,603 (byte order taken from save data, not from the bank code) |
@@ -152,7 +152,7 @@ with `--WAND--` as I id 150 (PC-98 utility img near `0x7b00`) [C]. It is only us
   - Apple, C64 and Atari zero bytes 20–40 even on transfer. Those bytes are ATTACK 20, PARRY 22, FIND 24,
     SPOT 26, DISARM 28, LISTEN 30, PICK LOCK 34, SWIM 38 (Apple sheet 7456–7464).
   - PC-98 and PC-88 zero `@12..@20` even.
-  - **The ST copies skills** (FORMAT §6). The transfer screen in every US 8-bit version says "YOU FEEL AS IF YOU
+  - **The ST copies skills** (FORMAT section 6). The transfer screen in every US 8-bit version says "YOU FEEL AS IF YOU
     HAVE LOST MANY SKILLS AND SPELLS" [C]. This may need a new D2 entry.
 - **XP.**
   - Apple/C64: Q = XP/256 + 1 → `EXP(LOG(Q)/4.5)-1`, stored in units of 256.
@@ -169,8 +169,7 @@ with `--WAND--` as I id 150 (PC-98 utility img near `0x7b00`) [C]. It is only us
 
 - MSX2 transfer: none found [?].
 - Amiga III: not decoded [?].
-- DOS III dungeon events: not decoded [?].
-- Apple II `.woz` originals: only the 4am crack was read here (since s169 the `.woz` decodes; its files equal the crack's
-  but for `SSI.INIT` / `SSI.INIT2`, `QWERTY` and RDOS: `reverse-engineering/apple2/phantasie2/FORMAT.md` section 1).
+- Apple II `.woz` originals: only the 4am crack was read here (the `.woz` now decodes; its files equal the crack's but
+  for `SSI.INIT` / `SSI.INIT2`, `QWERTY` and RDOS: `reverse-engineering/apple2/phantasie2/FORMAT.md` section 1).
 - C64 v1.2 side B: not on IA.
 - Linking each Apple III script record to its message: not done [~].

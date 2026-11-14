@@ -4,12 +4,12 @@ Phase 09 T6.2 (and the text half of T6.1). The IV counterpart of `03b-phantasie2
 `03-dos-disassembly-and-logic-extraction.md` stays the reference for I's rules. What is left of IV overall is on
 `PLAN.md` (T6).
 
-- **Rules source:** X68000, Star Craft, released 1991-03-28 (user, s71: the last release). Images:
+- **Rules source:** X68000, Star Craft, released 1991-03-28 (user: the last release). Images:
   `reverse-engineering/x68000/original-images/phantasie4/` (2 × 2HD `.dim`, TOSEC; `SOURCES.txt` one folder up).
   Cross-checks: PC-98 (`pc98/original-images/phantasie4/`, x86 MS-DOS), MSX2 + the 2008 DJANGO English patch
   (`msx2/original-images/phantasie4/patch-2008/`, cross-check only).
-- **Source of truth:** the **Japanese PC-9801 manual** (found s81 on MOCAGH), as the manuals are for I–III (user s81:
-  manual first, above the magazines and catalogue): `docs/manuals/phantasie4/phantasie4-pc98-manual-jp.pdf`, with the
+- **Source of truth:** the **Japanese PC-9801 manual** (from MOCAGH), as the manuals are for I–III (user: manual first,
+  above the magazines and catalogue): `docs/manuals/phantasie4/phantasie4-pc98-manual-jp.pdf`, with the
   spell list and the supplementary (start-up) manual; transcription + English in
   `docs/manuals/phantasie4/phantasie4-manual-en.md`. Secondary written sources: the MSX Magazine articles, the postcard
   advert and the item catalogue (summarised in `09-trilogy-iv-parentage.md`; more in
@@ -46,7 +46,8 @@ Phase 09 T6.2 (and the text half of T6.1). The IV counterpart of `03b-phantasie2
       Record fields: 3d.5.
 - [x] **T6.1 in-game text** (`tools/scripts/extract_x68k_p4_text.py` → `extracted/text/strings.json`): 2125 rows from
       P4.X, `O_001–021` and `SCR1–5`; **all 1279 unique Japanese strings translated** (`translation/en.json`; notes in
-      `docs/manuals/phantasie4/translation-notes.md`). Read in the running game s201 (`parity/s201-p4-translation.md`; dungeon event texts not reached live); picture text is not covered.
+      `docs/manuals/phantasie4/translation-notes.md`). Read in the running game (`parity/s201-p4-translation.md`; dungeon
+      event texts not reached live); picture text is not covered.
 - [x] **3d.4 Function map:** a Ghidra (68000) project over P4.X with the symbol table applied
       (`tools/scripts/x68k_p4_ghidra_prep.py` + `GhidraP4Setup.java`: all 705 functions decompiled, integer FPACK calls
       rewritten so arithmetic shows). `FUNCTIONS.md` lists all 705 text symbols (gameplay read; UI / graphics plumbing
@@ -89,7 +90,9 @@ Phase 09 T6.2 (and the text half of T6.1). The IV counterpart of `03b-phantasie2
       HP formula and the +3B melee bonus hold as read statically (`FORMAT.md` section 6.4, `combat.md` section 1);
       `_get_modifer` below 5.0 confirmed (`ancestry.md` section 5.2); MSX2's monster HP differs (0.5–1.4 × base in 0.1
       steps; X68000 gives 0.5×, 1.5× or the 1.8× cap, a precedence slip; D4-055). Full-system X68000 runs in XEiJ
-      (IPL ROM 1.0; how-to in `RE-REFERENCE.md`). PC-98 combat (s201, `combat.md` section 15): hit, damage, critical, monster turn, encounter options, R rolls, Resurrection, Fear and auto Resurrection read the same as X68000. Left: the MSX2 III → IV transfer (MSX・FAN
+      (IPL ROM 1.0; how-to in `RE-REFERENCE.md`). PC-98 combat (`combat.md` section 15): hit, damage, critical, monster
+      turn, encounter options, R rolls, Resurrection, Fear and auto Resurrection read the same as X68000. Left: the MSX2
+      III → IV transfer (MSX・FAN
       1991-03 says it was cut; the MSX2 disk still has the transfer screens) needs an MSX2 emulator (none set up).
 - [x] **3d.8 Event bytecode, `MOUT`, pictures.** `tools/scripts/x68k_p4_events.py` disassembles all 21 `O_0xx` files
       (473 of 484 known strings reached plus 70 the string extractor skipped; the rest is unreachable content), listings
@@ -164,11 +167,8 @@ MP); the catalogue's spell numbers for three spell potions; potions going bad.
   plus `  ?` and Duck. Classes (10) include Gargoyle and Sage; social classes (10) are III's four + the six listed.
 - **The MSX Magazine sample's Human Ranger 18/17/16/16/17 is Lord Wood** from the shipped Hall (`FAME`) `[C]`.
 - **The Hall ships with three persons** (Lord Wood, Filmon, Nikademus) `[C]`, as magazine B says; 11 slots in all.
-- **Deeds lines `[C]`** (P4.X): "Leader of the armies of Scandor who fought Nikademus", "A sage, adviser to Scandor for
-  over 75 years", "Attempted to conquer Scandor", "Defeated the Black Lord and defended / failed to defend Gelnor",
-  "freed / failed to free Ferronrah from the curse of Nikademus's orb", "Defeated Lord Wood and aided Nikademus …",
-  "Defeated Nikademus and saved / failed to save Scandor", "Nothing of note". Hall columns: name, race, class, level,
-  social class, origin, the six abilities, Phantasie I / II / III, descendants, deeds, status (alive / dead,
+- **Deeds lines `[C]`** (P4.X): the 11-entry table is in `ancestry.md` section 8. Hall columns: name, race, class,
+  level, social class, origin, the six abilities, Phantasie I / II / III, descendants, deeds, status (alive / dead,
   completed / not).
 - **III transfer** caps the count ("N more can be transferred") and reads III's player disk in drive 1 `[C]` (strings).
 
@@ -176,19 +176,17 @@ MP); the catalogue's spell numbers for three spell potions; potions going bad.
 
 Code facts behind the two entries (the decisions are in `DIFFERENCES-IV.md`):
 
-1. **Nikademus as an ancestor** (magazine B "very strong descendant of Nikademus" vs fan page D): both codes agree with
-   D `[C]`. X68000: with Nikademus (Hall slot 2) as the first ancestor every option ends in "不可能です" (Not possible)
-   and creation restarts; as the second ancestor his race (`  ?`) combines with nothing, also "Not possible". MSX2
-   segment `1001` checks "first ancestor is Hall slot 2" on both the S/D path (`0x1621`) and the H path (`0x1822`) and
-   answers "ふかのうです" (`0x17CC`); his race 33 forms no `combine` pair (`0x171E`). "Sorry, the ancestor you found was
-   …" is the S/D race-roll message, not a Nikademus joke (`ancestry.md` sections 3.2, 9).
+1. **Nikademus as an ancestor** (magazine B "very strong descendant of Nikademus" vs fan page D): X68000 and MSX2 both
+   agree with D `[C]`: every path with him ends in "Not possible" (Hall slot 2 blocked as ancestor 1; his race `  ?`
+   combines with nothing). "Sorry, the ancestor you found was …" is the S/D race-roll message, not a Nikademus joke.
+   Addresses: `ancestry.md` sections 9 and 12.
 2. **"With Lord Wood or Filmon as an ancestor you start of noble birth, so levelling up costs no money"** (magazine C,
-   1991-07): in both codes a descendant gets Royalty only from a Hall ancestor who is a Super Hero (social 4) and
-   Outcast from a Dark Lord (5) (MSX2 `_mkdetail` twin `0x1C11`–`0x1CF3`); Lord Wood (Royalty) and Filmon (Noble) pass
-   nothing on, and the social class is otherwise random by race `[C]`. Training cost has no social-class or ancestry
-   term, but every level-up pays social^social × L × 30 gold (Noble 810 × L, Royalty the 65 535 cap), so a noble-born
-   character's levelling does pay for itself `[~]`. No second MSX2 build is known (the TOSEC `[a]` disk differs only in
-   the save-set sectors), so both are magazine-vs-code questions, not platform differences.
+   1991-07): no such rule in either code `[C]`. A Hall ancestor changes the social class only as a Super Hero (social 4
+   → Royalty) or Dark Lord (5 → Outcast); otherwise it is random by race. Training cost has no social or ancestry term,
+   but every level-up pays social^social × L × 30 gold (Noble 810 × L, Royalty the 65 535 cap), so a noble-born
+   character's levelling does pay for itself `[~]` (`ancestry.md` section 9, `training.md`). No second MSX2 build is
+   known (the TOSEC `[a]` disk differs only in the save-set sectors), so both are magazine-vs-code questions, not
+   platform differences.
 
 The catalogue: every equipment DEF/ATT value matches; its differences are only spelling (`translation-notes.md`).
 Technopolis's PC-98 sheet of a Lord Wood descendant who is a Craftsman fits D4-002.

@@ -26,7 +26,7 @@ Two consecutive 16-entry Amiga OCS tables in `game`:
 
 Each entry is a big-endian word `0x0RGB` (4 bits/channel). Kroah's Sprite Viewer (and its published reference PNGs)
 expands them with the Amiga→ST nibble LUT; the game sets every table with LoadRGB4 / SetRGB4, so the screen shows
-`c · 17` per gun (`hw4`). The sprites, covers, town, defeat and ending pictures and (since s127) the map art are
+`c · 17` per gun (`hw4`). The sprites, covers, town, defeat and ending pictures and the map art are
 extracted `hw4` (see "Palette tables in use" below). Swatches: `extracted/palettes/{combat,alt}.{json,png}` (LUT).
 
 **Palette tables in use (s125, static) `[C]`.** All palette loads go through `h77 +0x466` (copy 16 words to the
@@ -45,7 +45,7 @@ colour map `h79 +0x52c`, then `LoadRGB4`, `h236 +0x54`) or `h77 +0x288` (one pen
 
 The map art (`extract_amiga_map_graphics.py`: patterns, regions, icons, glyphs, compass, party sprite via `SetRGB4`) is
 therefore on screen `c · 17` too: h56 `+0x550` draws the map, then LoadRGB4s `+0x74` (s127 read), the same path the
-four captured screens use. Extracted `hw4` since s127; seen on FS-UAE s128 (map section below): equal pixel for pixel. The colourblind table has the new map colours (`#AA4400`, `#446600`, `#228800`, `#2266AA`).
+four captured screens use; FS-UAE s128 (map section below): equal pixel for pixel. The colourblind table has the new map colours (`#AA4400`, `#446600`, `#228800`, `#2266AA`).
 
 ## Sprites — `*.pat` (4.3)
 
@@ -86,7 +86,7 @@ four captured screens use. Extracted `hw4` since s127; seen on FS-UAE s128 (map 
   them in table `0x94` (`p1_amiga_patch_title.py ADF decor.pic final.pic 0x94`; same loader and LoadRGB4 as combat).
   `parity/shots/p1-amiga-sprites-a.png` / `-b.png` (window shots, 2×, screen origin at (160, 100)): all **115,808**
   sprite pixels equal the new PNGs, the **35,091** non-black ones included; the old LUT PNGs matched 0 of those 35,091.
-  All 16 pens occur in the sample. A real combat screen was not reached in s125; s128 reached one (below).
+  All 16 pens occur in the sample.
 - **A real fight on FS-UAE (s128)** (OUT1 east of Pelnor; `parity/shots/p1-amiga-encounter.png`, `p1-amiga-combat-orders.png`
   exact; `p1-amiga-combat-*-window.png` window grabs, 3× wide): the encounter screen has the menu "Party Options" (Beg
   mercy, Threaten, Greetings, Fight, Flee, Show names, Party health); Fight opens a blue orders window (rows "NAME
@@ -144,7 +144,7 @@ its monster id, `+0xee` the party row's last index, `+0xf0` the row's record ind
   then `+0x274`: with h54 `+0x1e8` set, `h77 +0x4d2` saves the 16 pens (GetRGB4 into h79 `+0x4f0`), `h77 +0x246` BltClears
   all four planes (8000 B each: the **whole screen**, the menu bar's rows too), the flag cleared, **sound 17** (38 one-tick
   steps; the player blocks) on that black screen, then the set-up `+0x2fc(0)`; state 4 (h44 `+0xd6`, Party Options)
-  follows. (s135 credited this to h44 `+0x614`: that is state **12**, the fight's end, "Round end" below.) `+0x2fc` has
+  follows (h44 `+0x614` is state 12, "Round end" below). `+0x2fc` has
   one caller (`+0x29c`) and h71 `+0x1050` three (h35 `+0xe`, `+0x16cc`, h44 `+0xca`). **The surprise flags decide which**
   (s136 `[C]` static): h4 `+0x10` / `+0x12` are DOS's `F` / `H` (`combat-resolution.md` "Surprise"; writers in h74, the
   outdoor encounter: "HEARS MONSTERS" › FIGHT with roll ≥ 30 sets `H` = 2, `F` = 0 at `+0x4ba`; "YOU SPOT SLEEPING
@@ -312,7 +312,7 @@ then the member-by-member blits. The 0.23 s between the line and the redraw fits
   (`divs.w #2`, signed; none when the text is longer than 40), then the text; h23 `+0xd28` copies the result into the
   IntuiText (LeftEdge 8, screen x 41). So a line's ink starts at x 41 + 6·⌊(40 − n)/2⌋ (s135 live, shots
   `p1-amiga-combat-23` / `-24`: "MONSTERS KILLED" x 113, "[original text]" 107, "140 XP AND 40 GP" 113, z6font
-  pixel-equal; this corrects s133's "no centring, left at x 41"). h65 `+0x1f4` has no other caller. Each calls `h80 +0x546(0x17, h3 + 60·rows)`
+  pixel-equal). h65 `+0x1f4` has no other caller. Each calls `h80 +0x546(0x17, h3 + 60·rows)`
   (`+0x1468`: h3 + 360, a list). `h80 +0x546` notes `CurrentTime`, opens the requester and loops: GetMsg on the window's
   port, a GADGETUP (class 0x40) would end it, every other message (keys, clicks) is replied and **swallowed**; else
   `+0xd2a(limit)` with limit = (n / 60)·10⁶ µs (h202 `+0` unsigned divide, h205 `+0` multiply), so the box stays
@@ -411,8 +411,7 @@ the title text (slot 0x56) := "[original text]" (`h23 +0xd28`), then `h23 +0x570
   PARRY (Core's chooser does the same).
 - **Scroll gadgets** id 2 / 3 (GRELRIGHT | GRELBOTTOM −26, −80 / −26, −38, 18×9 = screen (247, 87) / (247, 129)): two
   borders 12 [1] (`EBB`) at −2 and −1, fill 15, IText pen 0 at (6, 2) with text slots 0x45 `^` / 0x46 `@` in the game's
-  font: z6font's own `^` / `@` (s134: every pixel of both on `-07` once the ghost dots are taken out; the s133 measure
-  had them wrong). Each is GADGDISABLED (Intuition's ghost:
+  font: z6font's own `^` / `@` (s134: every pixel of both on `-07` once the ghost dots are taken out). Each is GADGDISABLED (Intuition's ghost:
   a pen-0 dot every 4 px, odd rows shifted 2, shot `-07`) when it cannot move (`+0xcd0`: up while the page starts at 0,
   down while no spell lies past it). Up: start −= min(start, 6); Down: start += 6; the list is rebuilt and refreshed
   (RefreshGList).
@@ -473,16 +472,13 @@ is FS-UAE's 2× capture, screen origin at (37, 18) of it: the picture's frame on
   `fonts/z6font/6` (size 6) `[C]` (s134, "Fonts": the window's font).
 - Colour `[C]`: **`0xE24`** = `#EE2244` on screen (×17 per gun). Town entry loads its own palette: `h29 +0x2e`
   `pea h69+0x54; jsr h77+0x466` (the LoadRGB4 routine of the title), also from `h20 +0x186`. That is file
-  **`0x1947C`**: `000 E00 E24 800 EE0 264 0E0 A20 0EE 0AE 04E 666 444 AAA 888 EEE`, so pen 2 = `E24`. (s102's
-  "`#FF0000` in both palette tables" read the combat / alt tables, which the town does not use.) `pelnor.pic` decoded
+  **`0x1947C`**: `000 E00 E24 800 EE0 264 0E0 A20 0EE 0AE 04E 666 444 AAA 888 EEE`, so pen 2 = `E24` (the combat / alt
+  tables are not the town's). `pelnor.pic` decoded
   with this table (×17) equals the capture pixel for pixel, apart from the pointer, the party figure and the name.
-- Remaster, before s120 (5× shot on Xvfb): ink x 142–176, y 185–191 (remaster-5x7, 7 rows), `#FF0000`; the street in
-  the combat table through the house LUT (pink tower, orange wall, blue road). s120: pack `town_screen.name_field` 10
-  pads the name to the field before centring (left edge 130; STARVILLE 3 px left of the Amiga's 133 `[~]`),
-  `name_colour` `#EE2244`, and `pelnor-town.png` is extracted with `0x1947C` ×17 (`extract_amiga_graphics.py`); after
-  (`parity/shots/p1-remaster-town-name.png`, 5×, origin (160, 16)): ink x 130–164, y 185–191, `#EE2244`. Still
-  different: the remaster's 5×7 font (7 rows, the pack's `font`) against z6font's 5 rows. **s135:** the town line is
-  z6font: "PELNOR" pixel-equal at (130, 185) on an exact FS-UAE shot (`parity/shots/p1-amiga-town-pelnor-exact.png`);
+- Remaster: pack `town_screen.name_field` 10 pads the name to the field before centring (left edge 130; STARVILLE 3 px
+  left of the Amiga's 133 `[~]`), `name_colour` `#EE2244`, and `pelnor-town.png` is extracted with `0x1947C` ×17
+  (`extract_amiga_graphics.py`; shot `parity/shots/p1-remaster-town-name.png`, 5×, origin (160, 16): ink x 130–164).
+  The town line is z6font (s135): "PELNOR" pixel-equal at (130, 185) on an exact FS-UAE shot (`parity/shots/p1-amiga-town-pelnor-exact.png`);
   `h80:0x818` draws on the window's RastPort, whose font the boot code sets to z6font, so "LEAVING %s" and every other
   town message on that line use it too. **s153:** "LEAVING PELNOR" caught on a disk copy whose h29 `+0x1ac` (`jsr h92 +0`,
   the next step after the print) is patched to `bra.s *` (shot `parity/shots/p1-amiga-town-leaving-pelnor.png`, file row
@@ -571,9 +567,9 @@ module, h234 / h236 dos / graphics stubs.
   Delay with no sound after it ends line 0 and its release line 1; in a line a press ends it and its release the
   next. The Amiga's own line text: line 3 "…AND REST TO", 4 "PREPARE YOU FOR THE NEXT ADVENTURE.", 5 "…DIVINE
   SPELL." (remaster: DOS breaks, `core.endgame.zeus_3..5`). WaitTOF at 60 Hz (NTSC, as the title tune) `[~]`.
-- **Built s131 from the capture:** each sound's wait = per step its ticks / 50 + 7 ms, then 75 ms per call
-  (`sound_effects.step_overhead_seconds` / `call_overhead_seconds`, fitted on 25 and 21 `[~]`; one-step sounds come out
-  0.08 s over their ticks, live 0.01–0.06); the rendered audio stretches each step the same way (the tail is silent);
+- **Built s131 from the capture:** each sound's wait (s131's 7 ms a step + 75 ms a call, fitted on 25 and 21, put
+  one-step sounds 0.07–0.08 s over their ticks, live 0.01–0.06: replaced by s153's per-channel model, "Sound effects"
+  Hold); the rendered audio stretches each step the same way (the tail is silent);
   a line = 180 polls of 21.87 ms (`line_poll_seconds`); disk waits `ending_scene.disk` `[~]` (patched town-exit path):
   `final.pic` 3.45 s after 22, `guild.dat` 5.95 s after 24, the town 3.06 s after the fade-out ends (the 3.40 s of black
   live counts from the last lit pen); keys through the input port (`queued_keys`: presses and releases queue, each
@@ -642,13 +638,13 @@ period, volume; `AmigaDosoundScore.Tone`, `SoundEffectPlayer.PlayTone`, played f
 Sound switch on), `sign` (defeat 5, (139, 39), 180 polls; `P1DefeatScreen` step `Sign`, the Client passes
 `PartyDefeatsThisRun`) and `font` z6font (the lines centred in it). Live (Xvfb, `--test-level 10 --p1-defeat`): the line in
 z6font, a 37-Hz tone for 7.3 s, then 20 3.6 s after it. **s156:** the Client counts
-the defeat screens of its program run (`Game1._p1DefeatScreensThisProgramRun`, as h33 `+0`: a load keeps counting). Left
+the defeat screens of its program run (`Game1._p1DefeatScreensThisProgramRun`, as h33 `+0`: a load keeps counting).
 **Filmed s158** `[C]`: the run's counter (h33 `+0`, chip `0x19268` in that run) patched to 4 through the UAE debugger,
 then a defeat: "Sorry, we've run out of Demons" at (139, 39), every pixel of `decor.sorry-sign` (shot
 `p1-amiga-defeat-5th-sign-live`, test `P1DefeatScreenTests.FifthDefeatSign_MatchesTheLiveShot`), up between 6.7 and 10 s
 before the face (ashots 1.7 s apart).
 
-`logo.pic` (s156, static `[C]`; s102 read it as 320×44): h80 `+0xcb4` ("NO MEMORY FOR LOGO") AllocMems 0x1b80 bytes,
+`logo.pic` (s156, static `[C]`): h80 `+0xcb4` ("NO MEMORY FOR LOGO") AllocMems 0x1b80 bytes,
 reads the file into them and points the Image h81 `+0x22` (176 × 80, depth 4, PlanePick 0xff: plane after plane, 22 bytes
 a row) at them, then h86 `+0(0x1b)` shows requester 27 with it ("Info › About Phantasie", section "The map's message
 line"). Decoded so on the map palette it is a clean picture: "phantasie" in red, "VERSION 1.0", the SSI and ANDROMEDA
@@ -667,8 +663,7 @@ Hunk offsets as in the map section below (`hunks()` of `extract_amiga_p3_common.
   4. `h77 +0x466(h69 +0xb4)`: copy 16 colour words and `LoadRGB4` them (`h236 +0x54` → graphics LVO −192). That is
      file `0x194DC` (`PALETTE_ALT_OFF`): `000 820 EB0 AAA C22 620 048 068 A20 0EE 0AE 04E 48A 666 888 EEE`. LoadRGB4
      takes 4-bit guns, so the covers are extracted with `c · 17` per gun (`load_palette(hw4=True)`); the house
-     Amiga→ST LUT would zero the odd nibbles (`EB0`, the yellow of the logos). The covers were extracted with the
-     combat palette `0x194BC` before s102 (magenta stone).
+     Amiga→ST LUT would zero the odd nibbles (`EB0`, the yellow of the logos).
   5. Flush the window's messages, then **play `tamb.dat`** (h89 `+0x304`, a byte-code tune player); each note checks
      `h80 +0x4e4`, which returns true on an IDCMP `MOUSEBUTTONS` (8) or `RAWKEY` (0x400) message, and a key or mouse
      button **ends the tune**. It lasts 2678 dos ticks = **53.56 s** (s108, "Title tune" below).
@@ -711,7 +706,8 @@ the waveform, the expansion buffer). Remaster: `OpenPhantasie.Data.Audio.AmigaDo
      (unless A off; both test the A flag). C is never played. Units: masks `1, 2, 4, 8` at h90 `+0x3e8`. Channels 0
      and 3 are the left output, 1 and 2 the right.
   5. `Delay(wait)` (h234 `+0xe4`, dos ticks of 1/50 s on PAL and NTSC), then `ADCMD_FINISH` (`+0x7f4` style, request
-     `+0x2cc`) to each channel sent: it stops at the end of its current waveform cycle. Then the next commands.
+     `+0x2cc`) to each channel sent (it stops at once: "Sound effects" below; the renderer finishes at the wrap). Then the
+     next commands.
 - **The waveform** (`+0x8ee` into h91 `+0x278`): from 127 down by 8 while above 0 = `127, 119, …, 7` (16 bytes, a
   falling ramp, all positive).
 - **Numbers:** 338 steps, Σ⌊n·6/5⌋ = **2678 ticks = 53.56 s**. Step 1: A = `0x153` → Paula 606 (369.2 Hz on NTSC; the
@@ -749,8 +745,7 @@ ramp waveform on Paula, period ⌊PSG × 1.7897732⌋, volume (v & 15) × 4, wai
 expanded by `+0x9bc`). Period, volume and length come per step from the script; the ramp loops within a step
 (`ioa_Cycles` 0), a script never loops.
 
-- **The table** (h89 `+0x0`, called once from h17 `+0x12c`): 30 longs at **h91 `+0x1f4`** (BSS; the "h89 data
-  `+0x1f4`" of s127 was this). All 30 start as h90 `+0x10`, then 16 are set:
+- **The table** (h89 `+0x0`, called once from h17 `+0x12c`): 30 longs at **h91 `+0x1f4`** (BSS). All 30 start as h90 `+0x10`, then 16 are set:
 
   | n | h90 | file | steps / ticks | | n | h90 | file | steps / ticks |
   |---|---|---|---|---|---|---|---|---|
@@ -784,8 +779,8 @@ expanded by `+0x9bc`). Period, volume and length come per step from the script; 
   its commands, h80 `+0x4e4` takes **one** message; a `RAWKEY` (`0x400`, key down or up) or `MOUSEBUTTONS` (8) ends the
   sound there (the current step's Delay always runs out; one-step sounds can't be cut).
 - The FINISH request (h91 `+0x2cc`, set by `+0x820`) has `io_Flags` 1 = `IOF_QUICK` only, no `ADIOF_SYNCCYCLE`
-  (`0x20`), so the channel stops at once, not "at the end of its current waveform cycle" as the title-tune notes say
-  `[~]` (no tick changes; the renderer still finishes at the wrap).
+  (`0x20`), so the channel stops at once, not at the end of its waveform cycle `[~]` (no tick changes; the renderer
+  still finishes at the wrap).
 - **Callers of `+0xee`** (the number is the `moveq #n` before the call): h26 `+0xe4a` 22; h32 `+0x4e` 21, `+0x5ce` 23
   (defeat), `+0x692` 20, victory `+0x6f4` 22, `+0x724` 25, `+0x798` 1, `+0x860` 21, `+0x8a8` 24, `+0x8ee` 22; h38
   `+0x466` 12, `+0xcd2` 15; h41 `+0x320` 19, `+0xb50` 29, `+0x1862` 28, `+0x1968` 16, `+0x1a02` 26; h44 `+0x398` 2; h53
@@ -941,12 +936,11 @@ under it: `parity/shots/p1-remaster-town-transport-flash.png`; the remaster's na
   screens. Each step costs its `Delay` plus **3.7 ms per channel it sends** (the player writes, FINISHes and `WaitIO`s each
   sent channel: `07 fe` scripts send 2, `07 fc` 3), each call 7.5 ms more (`sound_effects.channel_overhead_seconds` /
   `call_overhead_seconds`; `step_overhead_seconds` 0). Fitted on 25 (3.43), 21 (0.79) and 1 (0.155); checked on 3, 8, 10,
-  16, 17, 18, 22, 23, 31 within a frame (table in the capture). s130's 7 ms a step + 75 ms a call put one-step sounds
-  0.07 s long. The film's sound and picture clocks differ by 0.2 %, so holds are taken between picture events.
+  16, 17, 18, 22, 23, 31 within a frame (table in the capture). The film's sound and picture clocks differ by 0.2 %, so holds are taken between picture events.
 - **Remaster (s128):** pack `sound_effects` with `format` `amiga-dosound` (`AmigaDosoundEffects`): file
   `unpacked/PHANT/game`, per number the script's file offset (27: the offset 6 times = joined as `+0x158` does);
-  `SoundEffectPlayer.Play(AmigaDosoundEffects, n)` renders with `AmigaDosoundRenderer` (the title tune's). Wired: the
-  victory screen only (`ending_scene.sounds`).
+  `SoundEffectPlayer.Play(AmigaDosoundEffects, n)` renders with `AmigaDosoundRenderer` (the title tune's). Wired first
+  for the victory screen (`ending_scene.sounds`), then the fight, map, town and defeat cues above.
 
 ## The map screen's requester 23 (s139, static) `[C]`
 
@@ -971,9 +965,8 @@ h4 `+0xc` the terrain class, h13 `+0x7c2` the highest score, members are h13 `+4
 A DEAD watcher gets no box (status 0 skips `+0x168`). The menus ("BLACK KNIGHTS" after sound 27, "YOU SPOT|SLEEPING
 MONSTERS![ATTACK|LEAVE]", the HEARS menu) are other requesters (h65 `+0x168`, h86 `+0x32a`), built s154 as Amiga
 requesters. h86's answer 1 is the **second** button (HEARS: 1 = FIGHT, `bne` to RUN's roll at `+0x4d6`; SLEEPING: 1 =
-LEAVE → no fight, else ATTACK → `H` = 2, `F` = 0). (s138's capture note read `+0x91` as "%s IS ON WATCH / AND HEARS THE
-MONSTERS" and `h4 +0xe` as an unnamed watch chance; both are corrected here: `+0x91` is the heard-without-menu box, and the
-night watch's chance is DOS's LISTEN roll.)
+LEAVE → no fight, else ATTACK → `H` = 2, `F` = 0). `+0x91` is the heard-without-menu box; the night watch's chance is
+DOS's LISTEN roll.
 - **Box and timing:** requester 23 as in the fight ("The combat screen": Left 33, Top 67, 255 × 47, rows at 80 / 88 / 96,
   each line centred in 40 cells from x 41, z6font), ⌊(h3 + 60 · rows) / 60⌋ whole seconds, keys and clicks swallowed,
   closed early when the clock reaches a multiple of 8 s. The boxes of one step follow each other with only the rolls (and,
@@ -987,11 +980,10 @@ night watch's chance is DOS's LISTEN roll.)
 heard line on its two rows, `core.encounter.and_hears_the_monsters`), `MapMessageLayout`, `P1MapMessageRun` (the boxes of
 a step's log, the HEARS menu's title skipped while the menu waits), Game1 (`Game1.MapMessage.cs`): under AMIGA SCREENS a
 wilderness step or menu answer plays its boxes over the map, swallows keys and clicks, and opens the fight's screen (sound
-17, black, set-up) after the last one; the remaster's message line leaves the boxed texts out. The text is Core's (DOS's)
-except where the Amiga's differs: s139 kept DOS's "[original text]", "[original text]", "BLACK KNIGHTS SEE
-YOU AND FLEE !" (by analogy with D-079); **s157 (user): the box prints the Amiga's** "[original text]", "MONSTERS
-SURPRISE YOU!", "[original text]" (h75 `+0xc0` / `+0xd3` / `+0x47`, read from the program file `game`),
-pack `map_message.texts` (Core's id → the Amiga's string id `p1field.box.*`; Core's text still picks the box and stays in
+17, black, set-up) after the last one; the remaster's message line leaves the boxed texts out. **The box prints the
+Amiga's text (user s157)** where it differs from Core's (DOS's "[original text]", "[original text]", "BLACK
+KNIGHTS SEE YOU AND FLEE !"): "[original text]", "[original text]", "[original text]" (h75
+`+0xc0` / `+0xd3` / `+0x47`, read from the program file `game`), pack `map_message.texts` (Core's id → the Amiga's string id `p1field.box.*`; Core's text still picks the box and stays in
 the log and on the DOS path). Preview: `./play.sh --test-level 15 --p1-combat 6
 --p1-map-boxes` [`--p1-surprise`]; shots `parity/shots/p1-remaster-map-box-night-encounter.png`, `-on-watch-hears.png`,
 `-you-surprise-them.png` (1 px = 1 Amiga px; the remaster's map layout with its sidebar under the box). s141: statically
@@ -1002,11 +994,11 @@ the step h59 writes the new position (`+0xda`) and redraws the fog and the party
 at `+0x253`). Filmed on a step: the sprite on the new cell one frame, **gone** the frame before the box, the box (two
 rows 1.87 s), one black frame, the map, the sprite back one frame later. h80 `+0x546` (the show of every requester-23
 box) frees the party's hardware sprite (`+0x54e`: h78 `+0x12` ≠ −1 → h77 `+0x106c` WaitTOF, FreeSprite, h78 `+0x12` :=
-−1) and gets it back after (`+0x702` → h56 `+0x8e2`), so **no party sprite under any map box** (s141's "sprite on its
-cell" under "[original text]" was the red pointer; that film shows the sprite gone too, also under the HEARS menu).
-Built s143: `P1MapMessageRun.PartySpriteShown`, the remaster draws no overworld party sprite while a box is up. Left:
-nothing: text pages as boxes built s153 (below), the menus hide the sprite too (s153, "Overworld / dungeon map graphics", Party).
-**s144 (static, for the text-page boxes, not built):** the Amiga `OUT1.DAT` pages at `+0x253` are 39 characters
+−1) and gets it back after (`+0x702` → h56 `+0x8e2`), so **no party sprite under any map box**, nor under the HEARS menu
+(the "sprite" in `capture_s141_map_boxes.md` was the red pointer). Built s143: `P1MapMessageRun.PartySpriteShown`, the
+remaster draws no overworld party sprite while a box is up. Text pages as boxes: built s153 (below); the menus hide the
+sprite too (s153, "Overworld / dungeon map graphics", Party).
+**s144 (static, for the text-page boxes):** the Amiga `OUT1.DAT` pages at `+0x253` are 39 characters
 padded with blanks and a NUL (`"         [original text]            "`), so h65 `+0x1f4`'s centring adds
 ⌊(40 − 39) / 2⌋ = 0 and the page's own leading blanks place the text: x 41 + 6 · 9 = 95 and 41 + 6 · 4 = 65 for
 "[original text]", as shot `p1-amiga-map-40` shows (95 / 65). Core's pages (`overworld.json`
@@ -1017,7 +1009,7 @@ same whole seconds and clock cut as every requester-23 box. DOS's and the Amiga'
 region, and every page a tile-6 feature names ends in a NUL at byte 39 and is not blank (s153 scan of OUT1–19). Data:
 `text_pages[].raw` (the page up to its NUL, `extract_maps.py`), `OverworldRegion.RawTextPages`,
 `OverworldMoveResult.LocationTextRows` (the pages as stored, one per page). Core logs the trimmed lines as before and
-marks them `LogWindowKind.Box` with those rows (`GameSession.MapWindow`, renamed from `DungeonWindow`, now noted on the
+marks them `LogWindowKind.Box` with those rows (`GameSession.MapWindow`, noted on the
 overworld too; `LogWindow.Rows` / `MapWindow.Rows` carry the side channel). `P1MapMessageRun.ForStep` passes the
 overworld's windows; `Plan` makes a Box window one requester-23 box of its raw rows (centred by full length, so ink at
 x 95 / 65 for the s143 path page; one row in the middle row, two / three from the top) and keeps the logged lines and
@@ -1026,7 +1018,7 @@ Shot `parity/shots/p1-remaster-map-box-text-page.png` (compare `p1-amiga-map-40`
 
 **D-058's flashes (user s140: "do whatever shows it but doesn't slow things down"):** the remaster's "A DAY ENCOUNTER"
 (every wilderness fight that is not a night one: rolled, fixed and tile-class fights) and the dungeon's "AN ENCOUNTER"
-have no Amiga box and are **no box** since s140 (s139 boxed the day one, adding ~1 s before the fight). They print on the
+have no Amiga box and get **no box** (s140; a box added ~1 s before the fight). They print on the
 combat screen's line (y 185, z6font, line pen; `CombatPresenter.P1Banner`) from the fight's start, over sound 17's black and
 the set-up too, and stay until the fight's first line prints or its first run ends: no wait is added. The night fight's
 "[original text]" stays the Amiga's box (`+0x6c`) and puts nothing on the line. In a surprise opening with the Sound
@@ -1107,10 +1099,10 @@ from `DungeonScriptResult.Moves`, a jammed lock's step back); the boxes logged b
 (`Box.PartyAt`) and the dungeon map draws the party there (and reveals around it) until the box closes. In the dungeon the
 lines between two boxes split the run into parts (`WaitLines`, `Next`): the remaster shows them in its text panel and
 waits for a key or a click (requester 21's EXIT), then the next box. Preview: `./play.sh --test-level 15 --p1-dungeon 2
-6 28`, step south, BRIBE THEM (the map-only layout F2 puts the dungeon at the Amiga's (10, 16)). Left:
-- ~~requester 21 itself is not drawn~~ built s144 ("Requester 21 on the map" below): the MESS window (timed) and the
-  report (OK) are drawn, in the log's order, before, between and after the boxes;
-- the uncut length of a MESS window: filmed s158 (5.93 s for two rows, the static 6 s); SMOKE / SPELL with a report, stairs and a jammed lock not filmed `[~]`.
+6 28`, step south, BRIBE THEM (the map-only layout F2 puts the dungeon at the Amiga's (10, 16)). Requester 21 itself:
+built s144 ("Requester 21 on the map" below): the MESS window (timed) and the report (OK) are drawn, in the log's order,
+before, between and after the boxes. The uncut MESS window: filmed s158 (5.93 s for two rows, the static 6 s). Not
+filmed `[~]`: SMOKE / SPELL with a report, stairs and a jammed lock.
 
 **Filmed s143 (DNG1 on FS-UAE, `capture_s143_dungeon_boxes.md`) `[C]`:** "THAT IS A WALL", "%s PICKS THE LOCK" (party
 drawn on the door first), "%s FAILS" (trap), "MONSTERS APPEAR" (after op 11): requester 23 over the map, the party glyph
@@ -1165,8 +1157,7 @@ fight's FIGHT at (42, 114) on the s132 shots).
   and Height 110 are put back (ReqText stays 0 until the next report sets it). Rows are the records as stored, not
   centred (the gas text's second row starts with two blanks, shot `-44`). With a count in 2…20 (a menu) `+0x1440`
   `Request`s requester 21 as the same text window (no wait) and puts the buttons in **requester 25** under it (s153,
-  below): the event menu. (s144's "12-character cells, 3 or 11 a row" read the label width as a row count: the labels
-  are 11 characters, or 3 when the count byte is above 7, each in a 12-byte cell; the buttons sit 3 a row.) A first record whose byte is below 40 sets the count to 3 (`+0x13c4`, the menu branch); no
+  below): the event menu. A first record whose byte is below 40 sets the count to 3 (`+0x13c4`, the menu branch); no
   message start the game shows has one (`mess1…10` scanned s144: every byte < 40 is a later record or a blank one) `[?]`.
 - **The event menu (s153, static) `[C]`:** h41 `+0x1440`: `Request(requester 21)`; label width w = 3 when the count
   byte is above 7, else 11; for each of the count − 1 buttons the next w characters of the text stream (reading the next
@@ -1205,10 +1196,9 @@ fight's FIGHT at (42, 114) on the s132 shots).
 - **The fight's Party health (s154, static) `[C]`:** h44 `+0x1478`: h45 `+0x107` "HEALTH REPORT:" through h71 `+0x112e`,
   then per party slot (h4 `+0`, an elemental included) `sprintf(h45 +0x116 "%-10.9s%c HP%4d/%-4dA:%-3.2dMP%4d/%-3d ",
   name, "D S"[status] (h45 `+0x104`), HP, HP max, @250 / 75 + 1, MP, MP max)` into slots 101 + k, h86 `+0(0x15)` at
-  `+0x1570`, in the combat palette. **s158 live (correction):** the window shows at Top 45, as the map's
-  (`p1-amiga-combat-party-health-before-orders`): h71 `+0x102` sets Top 23 only while the orders requester is up and
-  `+0x2a0` puts 45 back, and with the orders up the Party Options picks do nothing (filmed); s154 had read Top 23. Pack
-  `fight_top` 45. DOS (DS `0xbdb1`) "%-10.9s%c HP%4d/%-4dA:%d MP%3d/%d": the Amiga has no blank before MP and pads
+  `+0x1570`, in the combat palette, at **Top 45** as the map's (s158 live, `p1-amiga-combat-party-health-before-orders`):
+  h71 `+0x102` sets Top 23 only while the orders requester is up and `+0x2a0` puts 45 back, and with the orders up the
+  Party Options picks do nothing (filmed). Pack `fight_top` 45. DOS (DS `0xbdb1`) "%-10.9s%c HP%4d/%-4dA:%d MP%3d/%d": the Amiga has no blank before MP and pads
   A to 3 cells. `%-3.2d`'s precision is dropped (no leading zero): the program's printf (h167) uses a precision only for
   `%s` and floats (s156, static `[C]`; the s128 shot showed the same for the orders rows' `%-4.3d`).
 - **Film (s143)** fits: the gold window y 21…70 (two rows: 22 + 49 − 1 = 70), 3.57 s (6 s cut by the clock), the gas
@@ -1220,18 +1210,18 @@ fight's FIGHT at (42, 114) on the s132 shots).
 **Built s144:** Core marks the runs of a step's log the original shows in their own window (`LogWindow`, `LogWindowKind`
 Text / Report; `DungeonMoveResult.Windows` for a trap's MESS a + 4 and "IN THE TRAP:" report and a description cell's
 text, `DungeonScriptResult.Windows` for ops 1–4's "REPORT:", `ScriptHost.NoteMessage` for op 11 / 19 and an event's own
-text; `GameSession.DungeonWindow` / `DungeonWindowsSince`, renamed s153 to `MapWindow` / `MapWindowsSince`): DOS's log is unchanged. Pack `map_message.window` (the numbers
+text; `GameSession.MapWindow` / `MapWindowsSince`): DOS's log is unchanged. Pack `map_message.window` (the numbers
 above, `ok_label` = UI string `p1field.ok`), `MapMessageWindow` (`TextBox`, `TextRowY`, `TextSeconds`, `ReportBox` /
 `OkFor`: a report longer than seven rows grows the window downward, no line dropped). `P1MapMessageRun.Plan(windows:)`:
 a MESS window is a timed step of the run like a box (`Box.Window`, 2(n + 1) s through `CombatFieldMessage.ClockCut`), a
 report ends its part and waits (`Waits`, `WaitLines`; also after the last box), the run may hold windows and no box;
 lines in no window and no box stay on the message line. `UiOverlays.DrawP1MapTextWindow` / `DrawP1MapReport`. The
-remaster lets **a key or a click** close the report (the Amiga: a click on OK or a row only; keys kept, user decision s154). Order now as filmed:
+remaster lets **a key or a click** close the report (the Amiga: a click on OK or a row only; keys kept, user decision s154). Order as filmed:
 trap FAILS box → MESS window → report (OK) → map; gold TAKE → op 11's MESS window → MONSTERS APPEAR → the fight; BRIBE:
 SPELL box → report (OK) → MOVED box. Tests: Core `DungeonWindowTests`, Client `P1MapWindowTests`. Shots (`parity/shots/`,
 the 1920-px window halved): `p1-remaster-dungeon-mess-window-gold`, `-mess-window-gas`, `-in-the-trap-report-window`
-(compare `p1-amiga-dungeon-46`, `-44`, `-45`). Left: ~~the event menu's MESS window with its buttons~~ built s153;
-~~a click on a MESS row closing it early~~ built s153; both filmed s158 (`capture_s158_filming.md`).
+(compare `p1-amiga-dungeon-46`, `-44`, `-45`). The event menu's MESS window with its buttons and a click on a MESS row
+closing it early: built s153 (below), filmed s158 (`capture_s158_filming.md`).
 
 **Built s153:** (1) the event menu: pack `map_message.window.menu` (requester 25 above: `left`, `width`, `fill_pen`,
 `row_height`, `height_base`, `per_row`, the ten stored `buttons`, `button_size`, pens, `label`), `MapMessageMenu`
@@ -1260,21 +1250,20 @@ line (DOS's band text, unchanged) as a Report whose `Rows` are the title and mem
 sprite off). The map's Health and the fight's Party health are the remaster's own dialogs (`HealthDialog`, the combat
 presenter's info box), not Core log lines, so Core marks nothing for them: under AMIGA SCREENS the Client draws the map's
 Health as requester 21 (`P1MapReports.MapHealth`, the Amiga's rows above; the sprite off) and the fight's Party health
-as requester 21 moved to the pack's `fight_top` 23 (`MapMessageWindow.MovedTo`, `P1MapReports.FightHealth`) in the
+as requester 21 at the pack's `fight_top` (45 since s158; `MapMessageWindow.MovedTo`, `P1MapReports.FightHealth`) in the
 combat palette. A key or a click closes either (the Amiga: a click on OK or a row; keys kept, user decision s154).
 (2) Titles: pack `map_message.window.titles` maps a Core title (DOS's text) to the Amiga's (UI strings `p1map.title.*`:
 "  SWIMMING:", "   REPORT:", "  IN THE INN", "A MAGICAL POOL", "IN THE TRAP:"; `health_title` "HEALTH REPORT:",
 `health_row`), drawn by `DrawP1MapReport` (`P1MapReports.Report`); the DOS path keeps Core's text. The Amiga's "  IN THE
 INN" has no colon where DOS has "IN THE INN:": an Amiga / DOS text difference, not a manual one. The member rows stay
 Core's (DOS's) text, but the pool's Amiga row "%-10.9s IS CHANGED" (a blank more than Core's "{0,-10}IS CHANGED") is
-printed on the Amiga path since s156 (`row_texts`); the inn's rows are equal. (3) The report title's topaz 8 was never loaded before s154: `FontSources.Named` needs the
-font file, and the window gave the id only, so every report title (s144 on) was drawn in the remaster's 5×7; now
-`MapMessageWindow.TitleFontFile`. Tests: Core `OverworldReportWindowTests`, Client `P1ReportWindowTests`. Shots (the
+printed on the Amiga path since s156 (`row_texts`); the inn's rows are equal. (3) The report title is topaz 8 through
+`MapMessageWindow.TitleFontFile` (`FontSources.Named` needs the font file, not the id; titles shot before s154 show 5×7). Tests: Core `OverworldReportWindowTests`, Client `P1ReportWindowTests`. Shots (the
 1920-px window halved): `p1-remaster-map-health-report-window`, `p1-remaster-combat-party-health-requester21`,
 `p1-remaster-combat-show-names-requester23`, `p1-remaster-town-leaving-pelnor` (sampled to 320 × 200: the LEAVING
 line pixel-equal to `p1-amiga-town-leaving-pelnor-live`). **Filmed s158** (`capture_s158_filming.md`): the
 inn's "  IN THE INN" report, the map's HEALTH REPORT (box (33, 45, 255, 110), OK (42, 136, 235, 9) as built), the fight's
-Party health (Top 45, not 23: corrected), requester 25's band, a row click ending a MESS window, the uncut window length.
+Party health (Top 45), requester 25's band, a row click ending a MESS window, the uncut window length.
 **The magical pool, filmed s163** (`working/capture_s163_filming.md`, OUT1 (14, 16) patched to 111) `[C]`: the step
 tone only (no sound of its own), the sprite off, then requester 21 with "A MAGICAL POOL" and one "%-10.9s IS CHANGED" row
 per member; it **waits for OK** (frame and OK pixel-equal to the Health report's), as built. The title at x 106, rows
@@ -1366,8 +1355,7 @@ pixel-equal over each requester, the sheet but its status word; the rune rule; t
 prompt kind). Shots `parity/shots/p1-remaster-map-requester-hears.png`, `-black-knights`, `-sleeping`, `-town`,
 `-dungeon`, `-styx` (dev switch), `-ocean` (a real blocked step north of the start), `p1-remaster-town-inspect-sheet.png`
 (the remaster's layout, 1 px = 5 window px).
-~~Left: the map's Inspect sheet, Guild › New's rolled sheet, the dungeon's and the town's h86 questions~~ built s156
-(below). With the map-only layout off the requesters sit over the remaster's sidebar, as the s139 boxes do `[~]`.
+The map's Inspect sheet, Guild › New's rolled sheet, the dungeon's and the town's h86 questions: built s156 (below). With the map-only layout off the requesters sit over the remaster's sidebar, as the s139 boxes do `[~]`.
 
 ## Requesters, s156 (static, `[C]` unless marked)
 
@@ -1448,10 +1436,10 @@ Read with a hunk loader (HUNK_HEADER / CODE / DATA / BSS / RELOC32) and capstone
   choices are that message's (`GameSession.ApplySnapshot`).
 - **The pool's rows** on the Amiga path print h72 `+0xb4` "%-10.9s IS CHANGED" (`map_message.window.row_texts`,
   `P1MapReports.Row`).
-- **The boxes' texts (not changed, a question for the user):** on the Amiga path the requesters (s154) and report titles
-  print the Amiga's text, the s139 / s140 requester-23 boxes Core's (DOS's). They differ in four: h75 `+0xc0` "YOU
-  SURPRISE THEM!", `+0xd3` "[original text]", `+0x47` "[original text]" (DOS: a blank before "!") and
-  h42 `+0x5d` "THAT IS A WALL" (DOS "[original text]"). The manual names none. `[U]`
+- **The boxes' texts (decided user s157: the Amiga's, pack `map_message.texts`):** the requester-23 boxes differ from
+  Core's (DOS's) in four: h75 `+0xc0` "[original text]", `+0xd3` "[original text]", `+0x47` "BLACK KNIGHTS SEE
+  YOU AND FLEE!" (DOS: a blank before "!") and h42 `+0x5d` "THAT IS A WALL" (DOS "[original text]"). The manual names
+  none.
 - Shots (Client on Xvfb, 1920 × 1032 windows): `parity/shots/p1-remaster-map-overworld-frame.png`,
   `-map-about-phantasie.png`, `-map-inspect-sheet.png`, `-map-sheet-skills.png`, `-map-sheet-equipment.png`,
   `-map-sheet-potions.png`, `p1-remaster-guild-new-purge-keep.png`, `p1-remaster-dungeon-requester-exit.png`,
@@ -1502,8 +1490,8 @@ Static RE of `game` (hunk-relative offsets; hunk 69 = graphics data at file `0x1
   `map_layout.party_hidden_under_prompts`, `MapPartySprite`: under AMIGA SCREENS the overworld draws no party sprite
   while any question is up (every remaster question over the map is one of those h86 menus); shots
   `parity/shots/p1-remaster-map-inn-prompt-no-sprite.png`, `-inn-sprite-back.png` (HEARS itself not filmed in the
-  remaster: the same prompt path). Left: ~~STYX / OCEAN are OK requesters on the Amiga, the remaster prints them on the
-  message line~~ built s154 ("Requesters 0, 22 and 14": their OK requester, the sprite off under it); the remaster's own dialogs over the map (cast, inspect, use
+  remaster: the same prompt path). STYX / OCEAN: built s154 as OK requesters ("Requesters 0, 22 and 14", the sprite off
+  under it); the remaster's own dialogs over the map (cast, inspect, use
   potion, health, time lag) keep the sprite: their Amiga counterparts (menu-strip picks, h62 `+0x12` / `+0x508`
   choosers through h86 `+0`) not mapped one by one `[~]`.
 - **Seen on FS-UAE (s128)**, master ADF, six guild members added in Pelnor, OUT1 just outside Pelnor
@@ -1567,8 +1555,7 @@ Static RE of `game` (hunk-relative offsets; hunk 69 = graphics data at file `0x1
   y 168, so x 10–174 / y 16–167 (33 × 38 cells) shows the grey (live s158). Then the compass, and LoadRGB4 of the map
   palette (`+0xedc`). **Built s162:** pack `map_layout.dungeon_unseen_colour` `#888888`, drawn under the glyphs on both
   of the remaster's layouts (`Game1.DrawDungeonGlyphs`); the compass's place checked: every pixel of `compass.png` at
-  (214, 68) equals the live entry shot (`P1MapBarTests.DungeonCompass_MatchesTheLiveShot`; s158's "about 10 px off" was
-  the remaster's 2.5× window shot read at 3×).
+  (214, 68) equals the live entry shot (`P1MapBarTests.DungeonCompass_MatchesTheLiveShot`).
 - **vs DOS:** terrain equals the DOS grid except OUT2 (11,8) and OUT12 (11,14) (Amiga water patch, DOS mountain /
   forest; Core runs DOS). **User s53: keep the DOS terrain, patch the picture** — the extractor fills each lake polygon
   with the DOS class pattern; it also applies `map-patches.json` (APPLETON's OUT13 (17,19) → town icon, D-060). Initial fog differs in OUT9/10/11/13/14. Glyph-per-cell rule: DOS OV2 `0x21df` is used;
@@ -1597,7 +1584,7 @@ Hunk 78 (DATA, file 0x20860) holds two TextAttrs and the NewScreen:
   glyph as fallback); preview sheets `extracted/ui/fonts/*.png`.
 - **Checked on the s132 FS-UAE shots, every pixel of each text's cells:** z6font: "QUICKNESS I" / "MONSTER EVAL." (`-07`
   rows at (59, 91 + 8k)), the scroll gadgets' `^` / `@`, an orders row and "F I G H T" (`-04`), the line "DRAGONSON MISSES"
-  (`-09`), the six order buttons (`-05`; THRUST / ATTACK were a column left before s134) and "THRUST AT RANK" with its
+  (`-09`), the six order buttons (`-05`) and "THRUST AT RANK" with its
   digits (`-06`); topaz 8: "Info" / "Party Options" / "Speed" at pen x 12 / 67 / 195, row 1 (`-01`, `-02`), "Beg mercy" … "Party
   health" at (69, 13 + 10k) (`-02`), "*Normal" at (189, 23) (`-03`). Topaz glyphs carry blank columns, so the pack's
   `title_x` / `item_x` are pen x, 1–3 px left of the ink.
@@ -1611,7 +1598,6 @@ Hunk 78 (DATA, file 0x20860) holds two TextAttrs and the NewScreen:
   no such screen), the overworld's "HEARS MONSTERS" requester (`-00`) and the victory screen's "WELL DONE…" line
   (`p1-amiga-victory-07`). Town name and messages drawn in z6font since s135. Not drawn in the Amiga fonts yet: the
   remaster's own screens (town bar, Guild, shops: no Amiga counterpart drawn).
-  Requesters 14 / 21 / 22's topaz titles never seen filled `[?]` (answered s153, below).
 - **s153, who fills the topaz ReqTexts (static, then FS-UAE).** The IText text pointers are all 0 in the file; h86
   `+0x55a` (boot) points them at the text slots (pointer table h84 `+0xd4a`, slot k at `+0xd4a + 4k`): IText i ← slot i for
   i < 5 and slot i + 1 for 5 ≤ i < 0x98, then ITexts 172–183 ← slots 112–123, 186–192 ← 101–107, 193–197 ← 158–162,
@@ -1626,8 +1612,8 @@ Hunk 78 (DATA, file 0x20860) holds two TextAttrs and the NewScreen:
     blank slot (no title), buttons PURGE / KEEP, and puts the name slot and SPELLS / SKILLS back afterwards. **Seen s153**
     (Guild › Inspect › VILMAR, `parity/shots/p1-amiga-guild-inspect-sheet.png`, file row = screen row + 5): "VILMAR" in
     topaz 8 pixel-equal at (46, 37), `#00AAEE` (the struct pens are remapped at run time through h69 `+0x19c` / `+0x1ac`, h77 `+0x112e` / `+0x1230`); "LEVEL  1 FIGHTER DWARF OK" z6font at
-    (46, 50), `#00EE00`. The remaster's Guild / Inspect are its own screens (no Amiga sheet drawn) `[~]`. **Built s154:** the town / Guild
-    Inspect's sheet as requester 14 ("Requesters 0, 22 and 14"); its sub-pages and New's PURGE / KEEP variant not.
+    (46, 50), `#00EE00`. **Built s154 / s156:** the town / Guild Inspect's sheet as requester 14, its sub-pages and New's
+    PURGE / KEEP variant ("Requesters 0, 22 and 14", "Requesters, s156").
   - **Requester 22 = the Black Knights** (Left 46, Top 70, 227 × 60, backfill 0): ReqText IText 194 ← slot 159 h84
     `+0xfc6` **"[original text]"**, a fixed string (no run-time fill), topaz 8, struct pen 12, at (49, 19); gadgets ids
     2–4 (64 × 9 at (11, 42), (83, 42), (155, 42)), ITexts 195–197 "RUN" / "FIGHT" / "SURRENDER" (z6font, pen 0 on 15, at
@@ -1638,8 +1624,7 @@ Hunk 78 (DATA, file 0x20860) holds two TextAttrs and the NewScreen:
     Knights): `parity/shots/p1-amiga-black-knights.png` (file row = screen row + 5), title topaz 8 pixel-equal at (95,
     89), `#44EE22`; RUN / FIGHT / SURRENDER z6font black at (80, 114), (146, 114), (206, 114), buttons `#EEEEEE` with
     two-px `#EE0000` borders. The Amiga's text has no space before "!!!" (DOS menu `0xf`: "[original text]", Core's
-    `core.encounter.black_knights`): an Amiga / DOS text difference, not a manual one. The remaster shows the menu in its
-    own prompt panel (as HEARS / SLEEPING MONSTERS), not as requester 22 `[~]`. **Built s154:** requester 22 with the Amiga's text ("Requesters 0, 22 and 14").
+    `core.encounter.black_knights`): an Amiga / DOS text difference, not a manual one. **Built s154:** requester 22 with the Amiga's text ("Requesters 0, 22 and 14").
 - **Built s153:** pack `ending_scene.font` = `amiga-z6font-6` (`EndingSceneLayout.Font`); the Client's victory screen
   draws I's speech in it (`VictoryScreenView.SpeechFont` / `SpeechLine`), centred on 320 at TopEdge 192 (h80 `+0x84a` on
   the window's RastPort): line 1 pixel-equal to `p1-amiga-victory-07` at (49, 192) (`P1AmigaFontTests`), also in the
@@ -1652,7 +1637,7 @@ Hunk 78 (DATA, file 0x20860) holds two TextAttrs and the NewScreen:
   |---|---|---|
   | Combat field: line, orders, spells, ON WHOM, buttons, requester 23 | z6font (window RastPort, h84 ITexts) | z6font (s134 / s135) `[C]` |
   | Combat menu bar and menus | topaz 8 (NewScreen.Font, h81 `+0x36` / `+0x4a`) | topaz 8 (s134) `[C]` |
-  | Combat Party Options › Party health | requester 21, title IText 184 "HEALTH REPORT:" (h45 `+0x107` via h71 `+0x112e`) topaz 8, rows `%-10.9s%c HP%4d/%-4dA:%-3.2dMP%4d/%-3d` z6font, OK | requester 21 at Top 45 (s158 live; s154 read 23), topaz title, z6font rows `[C]` |
+  | Combat Party Options › Party health | requester 21, title IText 184 "HEALTH REPORT:" (h45 `+0x107` via h71 `+0x112e`) topaz 8, rows `%-10.9s%c HP%4d/%-4dA:%-3.2dMP%4d/%-3d` z6font, OK | requester 21 at Top 45 (s158 live), topaz title, z6font rows `[C]` |
   | Combat › Show names | requester 23, `RANK %1d : %1d  %s(S)` rows from the top, not centred, z6font, ⌊(h3 + 360) / 60⌋ s (h44 `+0x138c`, traced s154) | requester 23 the same way (s154) `[C]` |
   | Map Options › Health | requester 21, title "HEALTH REPORT:" topaz 8, rows `" %-10.9s%-6.5sHP%4d/%-4dMP%4d/%-3d "` z6font, OK (h50 `+0x420`) | requester 21 the same way (s154) `[C]` |
   | Town name and town messages, line at 185 | z6font (h80 `+0x818`) | z6font (s135) `[C]`; the key help keeps 5×7 |
@@ -1672,8 +1657,7 @@ Hunk 78 (DATA, file 0x20860) holds two TextAttrs and the NewScreen:
   `#888888` on rows 1–8, "Info" x 13, "Options" x 67, "Speed" x 148 (ink starts); held: titles `#EEEEEE`, the lit title's
   white box Info x 3–57, Options x 58–137, Speed x 138–199; items Info: "About Phantasie"; Options: Inspect, Health, Cast
   Spell, Use potions, Look (ghosted outdoors); Speed: Fast, Normal (ticked), Slow (shots `p1-amiga-map-menu-info` /
-  `-options` / `-speed`). ~~Not drawn by the remaster~~ user s155: "Move the remaster's message line to wherever it sits
-  on the Amiga" (built s155, below).
+  `-options` / `-speed`). Built s155 (below, "The map's message line").
 - **s155, the map's menu bar (static) `[C]`:** the map's input wait h80 `+0xb48` (the fight's is `+0xbfe`) prints the
   bar as the IntuiText h81 `+0x4a` (FrontPen 13, BackPen 0, JAM2, TopEdge 1, ITextFont topaz 8 = TextAttr h78 `+0x22`):
   `" Info"` at LeftEdge 4 and `" Options   Speed      "` (h81 `+0x4ce` / `+0x4d4`) at 59, so the titles' pen x are 12 /
@@ -1743,9 +1727,8 @@ speech, pen 5), h53 `+0xba8` (the fight's line, pen 3, 185) and **h41 `+0x10d8`*
   WALL--" sits 6 px right of the Amiga's x 40 `[~]`); a line longer than the 53 cells or with several lines wraps at a
   word and stacks upward one font height (6) a row, the last at 192 (nothing is dropped); a dialog's own key help (the
   remaster's, not the map's command list) goes on the row above the message, or on the line itself when there is no
-  message, in the bar's pen 13 (a remaster choice). The full-screen overworld showed no key help before (DrawMapHud) and
-  still shows none outside dialogs. The dungeon's map-only screen is black under it (pen 0; the remaster's backdrop was
-  `#0A0A0E`). The layout with the party sidebar keeps the remaster's bands. Tests `P1MapBarTests` (titles, items, boxes and
+  message, in the bar's pen 13 (a remaster choice). The full-screen overworld shows no key help outside dialogs
+  (DrawMapHud). The dungeon's map-only screen is black under it (pen 0). The layout with the party sidebar keeps the remaster's bands. Tests `P1MapBarTests` (titles, items, boxes and
   the ghosted Look pixel for pixel on the ashots; the line's rows). Shots: `parity/shots/p1-remaster-map-menu-bar.png`,
   `-menu-bar-options.png` (Look ghosted), `-menu-bar-dungeon-options.png`, `p1-remaster-map-message-line.png`,
   `-message-line-dungeon.png`, `-message-line-dungeon-help.png` (a menu's help on the empty line),

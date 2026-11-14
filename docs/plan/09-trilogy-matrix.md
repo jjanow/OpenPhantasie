@@ -1,8 +1,8 @@
 # Phase 9 T0 — Trilogy sourcing, platforms, features, transfer
 
-Cold file for `09-trilogy.md` T0 (s69, 2026-10-25). Sources: the manuals in `docs/manuals/` (index: `docs/manuals/README.md`)
-and the disk images in `reverse-engineering/<platform>/original-images/<game>/` (each platform's `SOURCES.txt` lists origin,
-version, clean/cracked and sha256). Phantasie I's existing images moved into `phantasie1/` subfolders in the same session.
+Cold file for `09-trilogy.md` T0. Sources: the manuals in `docs/manuals/` (index: `docs/manuals/README.md`) and the disk
+images in `reverse-engineering/<platform>/original-images/<game>/` (each platform's `SOURCES.txt` lists origin, version,
+clean/cracked and sha256).
 
 ## 1. Platform matrix
 
@@ -26,22 +26,23 @@ Which platforms each game shipped on (Wikipedia platform lists, checked against 
 
 Notes:
 - Japanese ports are separate code bases by Star Craft / Bothtec. They can be a rules or art source where that makes
-  sense (the s69 "reference only" rule was dropped in s70); for IV they are the only source.
-- **Phantasie IV** (sourced s71, T6.0): Japan-only, designed by Wood and coded by Star Craft. All four platforms are in the
-  repo (`<platform>/original-images/phantasie4/`):
+  sense; for IV they are the only source.
+- **Phantasie IV** (T6.0): Japan-only, designed by Wood and coded by Star Craft. All four platforms are in the repo
+  (`<platform>/original-images/phantasie4/`):
   - PC-88: Sep 1990, 3×2D
   - PC-98: 14 Sep 1990, 2×2HD, runs on MS-DOS 3.05
   - MSX2: 30 Jan 1991, 2×2DD. TOSEC has the disk labels swapped. The 2008 DJANGO English patch is stored as pre-patched
     images in `patch-2008/`
   - **X68000: 28 Mar 1991, the last release, so it is IV's rules source (user, s71).** The date rests on MobyGames and
     en.wikipedia only. 2 disk dumps exist; one database says 3 floppies `[?]`
-  
-  **The PC-98 manual was found s81** (MOCAGH: manual, reference card / supplement, spell list, owner's and registration
-  cards; Suruga-ya lists the full box as 2 disks, manual, 補足マニュアル supplement, 呪文一覧表 spell list, owner's card).
-  It is IV's written source of truth; the MSX Magazine articles, the postcard ad and the item catalogue are secondary
-  (all in `docs/manuals/phantasie4/`; guides, walkthroughs and interviews: `phantasie4-secondary-sources.md`). Design:
-  Wood designed IV on paper and never played it; Star Craft did everything else (Wood / Sato interviews, RPG Codex). Parentage and transfer: `09-trilogy-iv-parentage.md`. en.wikipedia also lists an X68000
-  Phantasie III (1989-08), but no dump was found. file-hunter has English MSX2 builds of I and II, which are not in the repo.
+
+  **The PC-98 manual** (MOCAGH: manual, reference card / supplement, spell list, owner's and registration cards;
+  Suruga-ya lists the full box as 2 disks, manual, 補足マニュアル supplement, 呪文一覧表 spell list, owner's card) is IV's
+  written source of truth. The MSX Magazine articles, the postcard ad and the item catalogue are secondary (all in
+  `docs/manuals/phantasie4/`; guides, walkthroughs and interviews: `phantasie4-secondary-sources.md`). Wood designed IV on
+  paper and never played it; Star Craft did everything else (Wood / Sato interviews, RPG Codex). Parentage and transfer:
+  `09-trilogy-iv-parentage.md`. en.wikipedia also lists an X68000 Phantasie III (1989-08), but no dump was found.
+  file-hunter has English MSX2 builds of I and II, which are not in the repo.
 - Phantasie II has no DOS or Amiga release. **Rules source: Atari ST** (user, s71: the last-released of the Apple II / C64 /
   ST options; ST also supplies II's art). Release dates:
   - Apple II: Mar 1986 (the disk says "VERSION 1.0 2/5/86")
@@ -49,14 +50,14 @@ Notes:
   - **Atari ST: Feb 1987** (program files dated Dec 1986)
   - Later releases that were not among the options: Atari 8-bit (Dec 1987) and the JP ports (PC-88 and PC-98 Mar 1987,
     FM-7/X1 Apr 1987, MSX2 1988)
-  
+
   Both ST sets are played copies: TOSEC `.st` (save data from 1987-04-22) and the v1.0 Pasti set (saves dated 1995-10-06,
-  7 Guild characters; s75). Program and data files are byte-identical; the Pasti set is the one extracted (T3). Neither has
-  fresh default saves, so starting state comes from the `.INT` files or a new game. The C64 "v1.0/v1.2"
-  labels rest only on archive item names `[?]`.
+  7 Guild characters). Program and data files are byte-identical; the Pasti set is the one extracted (T3). Neither has
+  fresh default saves, so starting state comes from the `.INT` files or a new game. The C64 "v1.0/v1.2" labels rest only
+  on archive item names `[?]`.
 - Not found anywhere: the English Atari ST Phantasie I v1.0 two-disk original; a clean (uncracked) Apple II Phantasie III.
 - Phantasie I DOS Bonus Edition v1.1 (WizardWorks 1991, also the Memorial Set's I) is 1987's program repacked
-  (`PHANTASI.EXE`, LZEXE over EXEPACK): diffed s168 (`dos/bonus-edition.md`), it fixes none of the DOS faults in
+  (`PHANTASI.EXE`, LZEXE over EXEPACK). The diff (`dos/bonus-edition.md`) shows it fixes none of the DOS faults in
   `DIFFERENCES.md` (saves are no longer hidden files, the manual page lines changed). The importer reads it as 1987.
 
 ## 2. Feature matrix
@@ -107,7 +108,7 @@ II Updated Rules", repeated in the readme). III has a full rulebook of its own.
 
 **For the user's two example features:** rock throwing is a **Phantasie II** feature that III replaced with bows; body-part
 injury is a **Phantasie III** feature. As cross-game options (T1.6, T5), I monsters would need body-area data and II/III
-characters a Toss Rock skill. That monster-data question was resolved in s75 (`09-trilogy.md` T5 "Cross-game modules").
+characters a Toss Rock skill. The monster-data question is resolved in `09-trilogy.md` T5 "Cross-game modules".
 
 ## 3. Transfer rules
 
@@ -126,7 +127,7 @@ DOS and Amiga III import Phantasie I characters only (`reverse-engineering/dos/p
 | Spells | lost except divine (#55+); Wizards keep #5, Priests #1 | lost except divine (#57+) and "their normal beginning spell by class" |
 | Not stated | attributes, HP, MP, age, skills, status, bank gold, Guild number, runes | same, plus Fire Bow skill, social class, Toss Rock skill, II's amulets and orb, body areas |
 
-**III → IV** (s71 from IV's interface text and magazines; IV's manual p. 8, found s81, agrees): only III characters can be
+**III → IV** (IV's manual p. 8; the interface text and magazines agree): only III characters can be
 transferred, and they go into IV's **Hall of Glory** as possible ancestors for new characters, not into the party. At most
 8 can be transferred, and biography lines are generated from deeds in III. Detail and remaster options:
 `09-trilogy-iv-parentage.md`.
@@ -146,15 +147,8 @@ Exact amounts (how much gold and XP survive) are in the code, not the manuals. T
 
 ## 5. Open questions (no guesses)
 
-The full lists are in the two comparison files (section 3 of each). The ones that mattered for the plan, as the manuals
-leave them; the code has since answered most (`03b-phantasie2-re.md` and `reverse-engineering/dos/phantasie3/FORMAT.md`
-section 7, "Manual questions answered"; endgames in each game's `endgame.md`, Toss Rock in `toss-rock.md`, autosave
-D2-016 / D3-028). Still open: the Amiga III gold cap and Apple-only details (II's Demo option).
-- Transfer: amounts of gold/XP kept; which "beginning spell" (III L1 casters have two); divine-spell numbering (#55, #57,
-  #58); what happens to stats, skills, age, social class, Fire Bow, Toss Rock; which platforms support it at all.
-- Body areas: 4 (Inspect) vs 6 (melee section); per-location HP?; hit-location odds; Gone vs Broken limits; whether the inn
-  cures Breaks.
-- Rock tossing numbers and key (clashes with Redo = 7 on the Apple key table).
-- Autosave: rulebook (on leaving town) vs ST/Amiga cards (File→Save only); Amiga gold cap.
-- Social class: three names for a stated four; gold per class.
-- II's and III's endgames are not described in the manuals.
+The lists, as the manuals leave them, are section 3 of `09-trilogy-manual-p2.md` and `09-trilogy-manual-p3.md` (transfer
+amounts, spells and platforms; body areas; Toss Rock numbers and key; autosave; social class; endgames). The code has
+answered most: `03b-phantasie2-re.md` and `reverse-engineering/dos/phantasie3/FORMAT.md` section 7 ("Manual questions
+answered"), endgames in each game's `endgame.md`, Toss Rock in `toss-rock.md`, autosave D2-016 / D3-028. Still open:
+III Q11 (the Amiga gold cap), III Q14 (where Rename sits) and II Q16 (the Apple Demo option).

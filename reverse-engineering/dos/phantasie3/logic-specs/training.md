@@ -1,19 +1,19 @@
 # Phantasie III — training (level-up, HP, skills)
 
-Phase 09 T4 3c.6 (s81, static; nothing run in DOSBox). Source of truth: the III manual (Guild ▸ Training PDF 5 / pr.5,
+Phase 09 T4 3c.6 (static). Source of truth: the III manual (Guild ▸ Training PDF 5 / pr.5,
 Skills PDF 4 / pr.3, Social Class PDF 5 / pr.4, Hit Point chart PDF 8 / pr.11, CHA PDF 4 / pr.3). Code: DOS `MAIN.EXE`
-(addresses `../FORMAT.md` §1; functions `../FUNCTIONS.md`). Tags: `[C]` read from code / data bytes, `[~]` probable,
+(addresses `../FORMAT.md` section 1; functions `../FUNCTIONS.md`). Tags: `[C]` read from code / data bytes, `[~]` probable,
 `[?]` not decoded. Manual ↔ code conflicts go to `DIFFERENCES-III.md`; they are not decided here.
 
-Record fields below are offsets in the 262-B character record (`../FORMAT.md` §5); training works on the work copy
+Record fields below are offsets in the 262-B character record (`../FORMAT.md` section 5); training works on the work copy
 `FAR:0x9de8` (the party record is copied there and back with `rep movsw`).
 
 ## 1. Who may train `[C]`
 
 Guild ▸ Train Member (root `0xad01…0xad35`, inside `guild_menu` `0xac21`): needs a non-empty party and `FAR:0xfc9a`
 clear (the party-state flag: 1 party dead, 2 after the Astral Plane, 3 after the gods' reward; arriving in a town,
-root `0xa911`, clears it, so in town it is always 0). The picked member is refused with "This
-character is unable to do this." (string 417) when
+root `0xa911`, clears it, so in town it is always 0). The picked member is refused with "This character is unable
+to do this." (string 417) when
 
 - status (`+0x2c`) is **Dead (0) or Out (3)**, or
 - race (`+0xa8`) is **17 Undead**, or
@@ -46,10 +46,10 @@ short = need − XP (+0x102)
   1214395, 2185911, 3934640, 7082353, 12748236, 22946825 `[C]` bytes. So need = (1.8^L − 0.8) · 1000 · 100 / s — the
   same curve as DOS I (`reverse-engineering/dos/logic-specs/town-menus.md`, "(F − 0.8) · 1000 / s") with the class
   score scaled by 100. Unlike I there is no "XP 0 → level-1 value" special case.
-- The Wizard row reads `+0x14`, which the sheet labels LCK (`../FORMAT.md` §5) — read as written `[C]`; a typo for a
+- The Wizard row reads `+0x14`, which the sheet labels LCK (`../FORMAT.md` section 5) — read as written `[C]`; a typo for a
   different stat would be a guess.
 - **Score** (`+0x82`) lowers the requirement: from 200 it halves, from 250 it is a sixth. Score comes from quest bits
-  and the endgame titles (`endgame.md` §2): a Darklord's score is held at 200–249, a Superhero's at ≥ 250.
+  and the endgame titles (`endgame.md` section 2): a Darklord's score is held at 200–249, a Superhero's at ≥ 250.
 - `short > 0` → " must gain" / *short* / "more experience points" / "to go to the next level." / "Continue your
   adventuring." No training.
 - The manual says the XP needed "depends on his race, attributes, and class" (PDF 6 / pr.7). The code has no race term;
@@ -89,7 +89,7 @@ if roll <= HP max (+0x20): roll = HP max + 1
 gain = roll − HP max
 HP max = HP current (+0x22) = roll          # training also refills HP
 print "Hit Points increase by" gain
-then 3 skill trainings (§5), counter shown as "[original text]"
+then 3 skill trainings (section 5), counter shown as "[original text]"
 ```
 
 HP dice per class and level (DS:`0xa78 + 22·class + (level − 1)`) `[C]`:
@@ -108,8 +108,8 @@ HP dice per class and level (DS:`0xa78 + 22·class + (level − 1)`) `[C]`:
 - **Constitution plays no part** `[C]`: neither training nor creation (ovl2 `0x227d`: `dice(level 1) × (rnd(2) + 1)`,
   2–3 per die) reads CON. The direct and record-field reads of CON found by search are: the Swimming seed (root
   `0xa1f2`), the sheet, the I → III transfer, the elemental records, Resurrection (−rnd(2)), two dungeon events (−1)
-  and a cap at 22 (root `0x8612`); none feeds HP. The manual: "The number of hit points an adventurer has is based on his Level, Class, and
-  Constitution" (PDF 8 / pr.11) and CON is "a modifier on the number of Hit Points" (PDF 4 / pr.3) — **D3-022**.
+  and a cap at 22 (root `0x8612`); none feeds HP. The manual: "The number of hit points an adventurer has is based
+  on his Level, Class, and Constitution" (PDF 8 / pr.11) and CON is "a modifier on the number of Hit Points" (PDF 4 / pr.3) — **D3-022**.
 - HP max is re-rolled from scratch each level (as DOS I); a low roll still gives +1.
 - Current HP is set to the new maximum. The manual tells the party to go "into the Inn to rest up their Hit Points to
   their new maximum" (PDF 5 / pr.5) — advice, not a rule; noted only.
@@ -117,17 +117,17 @@ HP dice per class and level (DS:`0xa78 + 22·class + (level − 1)`) `[C]`:
   `+0xfe` are creation (class · 256), the transfer (+ old ÷ 35), the bank and Drop Member (ovl2 `0x3c92`: the dropped
   character takes party gold ÷ party size). The manual: social class "determines how much gold he gets to start and
   how much he gets for going up a level" (PDF 5 / pr.4; App. II PDF 14 / pr.23) — **D3-023**.
-- Magic is not touched: the magic ceiling `+0x1a` follows the new level at the next inn stay (`../FORMAT.md` §5).
+- Magic is not touched: the magic ceiling `+0x1a` follows the new level at the next inn stay (`../FORMAT.md` section 5).
   New spells come from Learn Spells (ovl2 `0x1a6c`, not specced here).
 
 ## 5. Skill training `[C]` (ovl2 `0x16d0`, `training_skills`, called three times)
 
-Each call first re-seeds the skill bonuses from the current attributes and level (root `0xa1f2`, `../FORMAT.md` §5:
+Each call first re-seeds the skill bonuses from the current attributes and level (root `0xa1f2`, `../FORMAT.md` section 5:
 2·attr + 30, Fire Bow 2·Level + 4·DEX + STR + 10, +30 Thief, +15 Elf), then shows all nine skills with Now / After
 and lets the player pick one (highlight-bar menu; an Esc / out-of-range answer leaves the skills unchanged but still
-uses up the pick `[~]`). Remaster (s92): the Guild's training dialog asks the three picks after AGREE
+uses up the pick `[~]`). Remaster: the Guild's training dialog asks the three picks after AGREE
 (`GameSession.TrainingSkillRows` shows Now / After, picks applied in order, Esc = a used-up pick). **Screen order**
-`[C]` s97 static (ovl2 `0x18b0…0x19b7`): row i = name table `DS:0x1438`[i] with its Now / After, and the menu answer i
+`[C]` static (ovl2 `0x18b0…0x19b7`): row i = name table `DS:0x1438`[i] with its Now / After, and the menu answer i
 picks row i: Attack, Parry, Swimming, Listen, Find Trap, Disarm Trap, Find Item, Pick Lock, Fire Bow. Built
 (`P3Training.ScreenOrder`, used by the rows and the Client's digits).
 
@@ -145,8 +145,7 @@ chosen skill := after                       # only the chosen one changes
 - **Diminishing return** (the manual's "advantage gained is decreased each time"): repeated picks move the skill half
   way towards the fixed point `C + 2·(seed − 49)` (Fire Bow: `2·(seed − 49)`), so each repeat gains half the last.
 - Creation (root `0x9ea0`, called by ovl2 `0x227d`) sets every skill to the same formula with `now = 0`:
-  `C/2 + seed − 49` (min 1), Fire Bow `seed − 49`. (FUNCTIONS.md's label "training_skill_gain" for `0x9ea0` is this
-  initial setter.)
+  `C/2 + seed − 49` (min 1), Fire Bow `seed − 49` (`initial_skills` in `../FUNCTIONS.md`).
 - Skill caps: 250 here; the manual's Accuracy text names 250 for Fire Bow too.
 
 Class tables `C_k[class][L]` = byte at `DS:base + 15·class + L` (L 1–15) `[C]`. For a Wizard at L 15 the index runs

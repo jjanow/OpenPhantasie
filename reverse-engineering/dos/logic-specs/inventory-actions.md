@@ -23,7 +23,7 @@ save); the screen itself is a presentation option.
 | DEAD members' items are pooled and DEAD members can be given items | OV1 `0x2ab3` / give `0x2e03` (no status test) [C] |
 | Carried slots keep holes (a drunk potion empties its slot in place); the sack keeps holes (a kept item fills the first empty slot) | `CarriedItems` [C] s58; `LootSack` [D✓] s65 |
 
-**Per game (s171 / s173).** The table above is I's (and II's: the ST's gate `0xc366` computes I's formulas,
+**Per game.** The table above is I's (and II's: the ST's gate `0xc366` computes I's formulas,
 `atari-st/phantasie2/FORMAT.md` section 5). Each rule is an `ICampaign` hook whose default is I's: `CanUseItem` (the gate),
 `ItemPoints` (an item's points), `ReadyBestEquipment` (the best-gear pick), `GearStatsOf` (the gear line and Compare
 numbers) and `AfterArmoryBuy` (what the Armory wears). III overrides all five from its own code: the table gate ovl2
@@ -46,7 +46,7 @@ Each game's `rules.json` lists its worn-item slots (`equipment_slots`): a slot i
 Core maps a slot id onto the character record with one accessor (`WornItems`): `shield`/`armor`/`weapon` →
 `WornShield`/`WornArmor`/`WornWeapon`; III's `bow` → `WornBow` (T4). The action code itself never tests item-id ranges; it asks the layout.
 
-Usability is each game's own gate (`ICampaign.CanUseItem`, asked through `GameSession.CanUseItem` / `CanWear`; s171):
+Usability is each game's own gate (`ICampaign.CanUseItem`, asked through `GameSession.CanUseItem` / `CanWear`):
 I's `ItemRules.IsUsable` (id formulas, [C]); II the same formulas, which II's `items.json` holds `[~]` (checked live only
 for the transfer starter kit); III its tables (`P3TownEntryPayout.CanUse`, ovl2 `0x39b5` [C]: `min_str` against STR for
 shields and armour, STR + DEX for bows 41–60, 2·STR + DEX for melee weapons; equals III PDF 11–12). The detail box
@@ -118,7 +118,7 @@ armor soak, weapon damage (A + B, `Combat.PrepFor`'s `WeaponDamageEff`) and defe
 
 `UNUSABLE`, `CAN'T CARRY MORE` and `THE SACK IS FULL` are the DOS words (Armory, D)ISTRIBUTE).
 
-## 6. The Client screen (presentation option `GameSettings.InventoryScreen`, built Wave 2)
+## 6. The Client screen (presentation option `GameSettings.InventoryScreen`)
 
 Off (default) = the original screens: `V` shows the old item overlay, D)ISTRIBUTE unchanged (Xvfb screenshots
 pixel-identical to main). On = `V` opens `InventoryScreen` (`src/OpenPhantasie.Client/InventoryScreen.cs`, drawn by

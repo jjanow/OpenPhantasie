@@ -9,17 +9,17 @@ facilities. Static interiors + names: `TWNS.INT`; mutable per-town state
 Top-level menu strings (`PHANTASI.COM`): `Guild, Armory, Bank, Mystic, Inn`
 (+ `Exit`). Facility sub-menus come from `OV1.OVR`.
 
-**Town screen [C] (s51; DOSBox s49).** A highlight bar on screen rows 0..8 — label table `PHANTASI.COM 0x5e6e` in the
+**Town screen [C] (DOSBox s49).** A highlight bar on screen rows 0..8 — label table `PHANTASI.COM 0x5e6e` in the
 order **Option Bank Mystic Exit Armory Inn Guild** (inverse-video highlight, arrows + RETURN) — over the town picture,
 with the town name centred on rows 191..199. The picture is **`PELNOR.IBM`**: a raw CGA 320×200 2 bpp screen
 (16384 B; even rows at `0x0000`, odd rows at `0x2000`, 80 B/row; palette 1 high intensity), art on rows 9..190, the bar and
 name rows blank. OV1 names only this file (`pelnor.ibm`), so every town shows the same picture `[~]` (other towns not
 seen live). Extract: `tools/scripts/extract_dos_town_picture.py` → `dos/extracted/ui/town.png`. Option → Cast spell / Use
 item / Show party / Save game / Auto save / Sound / Printout / Exit (§Temple). Highlight on the first visit `[~]`
-(the Client starts on Option). **D-066 (user s53): both** — the bar plus the manual's letters (A Armory, B Bank, M Mystic,
-N Inn, G Guild, L leave town; C cast, U use item, I inspect, D distribute, S save). **Guild keys (user s53):** the manual's
+(the Client starts on Option). **D-066 (user): both** — the bar plus the manual's letters (A Armory, B Bank, M Mystic,
+N Inn, G Guild, L leave town; C cast, U use item, I inspect, D distribute, S save). **Guild keys (user):** the manual's
 Guild menu (p.4) — L list, P purge, N new, R rename, A add; party options S spells, T train, D drop; E exit. Train and Learn
-are Guild options (as in DOS), no longer on the town bar.
+are Guild options (as in DOS), not on the town bar.
 
 ## Guild [X] — see also `character-creation.md`
 Anchors: "guild.dat" `0x5bdf`, "INPUT NAME:" `0x5c08`, "[original text]"
@@ -42,15 +42,15 @@ Anchors: "guild.dat" `0x5bdf`, "INPUT NAME:" `0x5c08`, "[original text]"
   slot is empty to DOS (`0x0C59`) — and the matching party slot, then asks again until cancelled.
 - **Rename [C] (s50, `0x22f6`):** "[original text]" by Guild number; if the member is in the party, the party copy is
   synced to the roster before INPUT NAME and back after — **party members can be renamed** in DOS. **Remaster (D-065,
-  user s53): the manual** (p.4: "Characters cannot be renamed while they are members of a party") — `GameSession.TryRename`
+  user): the manual** (p.4: "Characters cannot be renamed while they are members of a party") — `GameSession.TryRename`
   refuses a party member; allowing it is a later QoL option.
 - **Training** ("[original text]" `0x5c22`): XP threshold + gold (only gold is spent; XP is cumulative) to gain
   a level. `OV1 0x1160..0x148d` rejects if status==0 or level≥15. [C] Only DEAD is refused — a SLEEPing member trains
-  (`0x119b` `cmp [bx+0x18], 0`); manual silent on status, Core matches since s49.
+  (`0x119b` `cmp [bx+0x18], 0`); manual silent on status, Core matches.
   **XP threshold and gold cost — whole chain [C] (s39 static decode, reproduces all 13 live captures).**
   Six stat/multiplier combinations, selected by class **[C] (s11, static)**: the
   `jmp cs:[bx+0x669a]` table at OV1 `0x12ca` sits at file **`0x12be`** (this code's
-  CS delta is `0x53dc`, not `0x3c26` — the reason earlier passes found it "empty"):
+  CS delta is `0x53dc`, not `0x3c26`):
   `0x11ea, 0x120e, 0x1233, 0x1258, 0x1279, 0x129a`, index = class `@220` (read at `0x11e3`).
   | Class | Handler | Stat sum | Mult (inline double, OV1 file offset, bit pattern) |
   |---|---|---|---|
@@ -65,7 +65,7 @@ Anchors: "guild.dat" `0x5bdf`, "INPUT NAME:" `0x5c08`, "[original text]"
 
   **FPU-emulator helpers [C] (s39).** Software float library in `PHANTASI.COM` with two 64-bit-mantissa registers,
   "acc" (`[0x3156]`) and "second" (`[0x3158]`). OV1 near target T → unpacked COM image offset **T − `0xac24`**
-  (`re_common.unpack_phantasi_com()`; the older "COM file = T − `0xa934`" was a packed-file window delta):
+  (`re_common.unpack_phantasi_com()`; T − `0xa934` is the packed-file window delta, not the image offset):
   | T | op | T | op |
   |---|---|---|---|
   | `f6ce` | acc = (double) int AX | `f734` | acc = (double) long DX:AX |
@@ -105,11 +105,11 @@ Anchors: "guild.dat" `0x5bdf`, "INPUT NAME:" `0x5c08`, "[original text]"
   - **Live data check (s5 + s35, 13 points, all level 1):** XP 40 → WIZARD 957, PRIEST 1091, THIEF 399, FIGHTER 475/1229/549;
     XP 0 → MONK 282, RANGER 319; XP 141 → MONK 1273, RANGER 1458; XP 181 → PRIEST 950, FIGHTER 334/1088 — the chain
     reproduces every one (Core `TownMenusTests.TrainingXpShortfall_MatchesAllLiveCaptures`).
-  - **Correction (s35 claim):** Thief 439 / Ranger 1599 come from the **`+1e−5`** term (and the float store of `s`),
+  - Thief 439 / Ranger 1599 come from the **`+1e−5`** term (and the float store of `s`),
     not from the stored-double ulps. A scratch sweep over stat sums 3..66 × 6 classes × levels 1–14 × (XP 0 / XP > 0)
     gives the same `floor(X)` with decimal and with stored constants (10752 cases, 0 differences). Core uses the stored
     bit patterns anyway.
-  - **Correction (gold base):** the pre-s39 reading `base = required XP` was wrong — the long fed into the gold tail is
+  - **Gold base:** the long fed into the gold tail is
     `(long)pow(level, 2.2)` = 1, 4, 11, 21, 34, 51, 72, 97, 125, 158, 195, 236, 282, 332 for levels 1–14. XP never enters
     the price. Manual agrees in outline ("A character's charisma affects the price of training"). **[D✓] s41:** 9 live
     "It will cost N gold" values (13/54/148, 150/600, 54, 337, 433/1734 — levels 1–3, CHA 3–17, Pelnor) and 4 level-2..4
@@ -165,31 +165,21 @@ levelUp(L, m):
   "[original text]" (`0x5c3e`) is **Training's** text, not Learn's. The fail chance is ≈ INT/21. The
   manual instead numbers the spells after "POSSIBLE SPELLS:" (empty = nothing to learn) — `DIFFERENCES.md` D-074, decided: manual (built).
   Core: `TownMenus.SpellLearnCount` / `SpellLearnRoll` / `LearnSpell`; Client `LearnSpellDialog`.
-- New characters cannot train/learn or leave the Guild until added to a party.
-  [X]
-- Session 7 additionally identified two more dispatch bodies while searching
-  for Temple: OV1+`0xbac` = **New Member** creation (zero-inits the whole
-  282-byte record, rolls stats, assigns the next guild id) and OV1+`0x1490` =
-  **Inspect**/list-member display (formats Level, an unidentified `+2` field,
-  and Class for printing — no state mutation). Neither changes any existing
-  `[C]`/`[X]` facts; recorded only so a future session doesn't re-disassemble
-  them while chasing something else.
+- New characters cannot train/learn or leave the Guild until added to a party. [X]
+- OV1+`0xbac` (New Member, above) zero-inits the whole 282-byte record, rolls stats and assigns the next guild id.
+  OV1+`0x1490` is Learn spells (above); an older static pass read it as an Inspect/list-member display (Level, a `+2`
+  field, Class, no state change).
 
 ## Armory [X]
 Anchors: "WHO WILL SHOP?" `0x5ca2`, "[original text]" `0x5cb1`,
 "UNUSABLE" `0x5ce5`, list header "NAME CLASS WPN ARM SHL #" `0x5dfb`.
-**Handler entry confirmed at OV1 file offset `0x1bcc`** (session 7, same
-direct-call dispatch identification as Bank/Mystic/Inn above) — its body reads
-inventory slots `[+0xde]`, calls the already-documented `FUN_0000_1d5b` price
-routine, and checks/deducts the party purse (`0x63f6`), matching this
-section's existing (previously Ghidra-only) notes exactly. No new facts about
-the pricing itself; this just ties the known formula to a concrete top-level
-dispatch address.
+**Handler entry: OV1 file offset `0x1bcc`** (a direct-call target of the facility dispatch, like Bank/Mystic/Inn). It
+reads inventory slots `[+0xde]`, calls the price routine `FUN_0000_1d5b` and checks/deducts the party purse (`0x63f6`).
 - **Buy only — the Armory has no sell [C] (s58 DOSBox, `capture_s58_2026-10-25.md` §3 (D), shot `ar4`).** Picking a
   shopper at "WHO WILL SHOP?" goes straight to the buy list ("<name> is shopping / Cash -> n", items with GP/PTS); Esc
   returns to "WHO WILL SHOP?". The manual's Armory menu (PDF p.11) is L)IST, C)ONTINUE, B)UY, A)NOTHER SHOPPER,
-  E)XIT ARMORY — no sell either. Selling is only the Inn's D)ISTRIBUTE AND SELL ITEMS (§Distribute, SELL row, D-068).
-  The remaster's old Armory sell dialog was removed in s58. Stock is per-town and persists in `TWNS.DAT`; every
+  E)XIT ARMORY — no sell either. Selling is only the Inn's D)ISTRIBUTE AND SELL ITEMS (§Distribute, SELL row, D-068),
+  which takes the item from the pooled hand-out list, not from a member's slot. The remaster has no Armory sell. Stock is per-town and persists in `TWNS.DAT`; every
   town entry churns it (§Armory restock below). Items a class/STR can't use show as **UNUSABLE**.
 - **The list starts at id 1 [C] (s41):** the lister (OV1 `0x3e2d`) and the pick → id mapper (`0x3ee8`) both begin at
   stock slot 1, so slot 0 (NOTHING) is never shown or sold even when non-zero (PHANTASIA's restock list is all zeros,
@@ -205,8 +195,6 @@ dispatch address.
   first 0 word and the purchase is written there (`0x1cef`). The "9 items" test counts non-zero slots, so an empty slot
   left by a drunk potion (`magic-spells.md` §Potion use) is free space and is refilled before any later slot.
   Core: `CarriedItems.IsFull` / `CarriedItems.Put` (Buy, and the town-entry round-robin hand-out).
-- **No Armory sell layout to check (s58):** the old "Sell layout `[?]`" item is moot — DOS has no Armory sell (above).
-  The Inn Distribute SELL row takes the item from the pooled hand-out list, not from a member's slot.
 - **Town Exit with no party [C] (s30):** OV1 `0x3250` — if party size `[0x648e]` = 0, print "You must assemble a
   group." and stay in town. An all-dead party may leave.
 - **Buy price is the full list price** from `data-tables.md`; there is no CHA
@@ -262,12 +250,9 @@ repeat 4:
 Anchors: "GOLD CARRIED %u" `0x5dd8`, "[original text]" `0x5de8`,
 menu "Withdraw / Deposit".
 
-**Handler entry confirmed at OV1 file offset `0x2919`** — one of the top-level
-facility dispatch's direct `call` targets (guarded the same way as the
-already-known Mystic/Inn calls: `cmp [0x648e],0; je ...; call 0x2919`).
-Identified by disassembling the handler body (same capstone/`CS_MODE_16`
-technique as session 6's Mystic pass) and matching it against the money-flow
-shape, not from the (unrecoverable, runtime-populated) jump table itself:
+**Handler entry: OV1 file offset `0x2919`**, a direct `call` target of the facility dispatch (guarded like Mystic/Inn:
+`cmp [0x648e],0; je ...; call 0x2919`). Found by disassembling the body (capstone `CS_MODE_16`) and matching the
+money flow; the runtime-populated jump table can't be recovered statically:
 
 ```
 push word ptr [bx+0x5cb6]     ; member's record +0x106 (disk @262)
@@ -281,11 +266,8 @@ mov word ptr [0x63f6], ax       ; party purse += amount (low word only — see
                                  ; Q1/Q2 32-bit-gold note below in Remaster note)
 ```
 
-**This resolves the previously-open "GUILD bank-balance field is still
-unpinned" question**: record offset `+0x106` (disk `@262`) *is* the
-bank-balance field the deposit/withdraw UI operates on — it is the same field
-Armory's per-member "share of carried gold" language referred to (one field,
-two facilities reading/writing it). [C]
+Record offset `+0x106` (disk `@262`) is the bank-balance field the deposit/withdraw UI works on, the same field as the
+Armory notes' per-member "share of carried gold" (one field, two facilities). [C]
 
 - **Whole handler decoded [C] (s39, static).** Menu choice from COM `0x08d3` (`0x2932` → `0x29fc`):
   ```
@@ -314,8 +296,8 @@ two facilities reading/writing it). [C]
       purse = 0; xpPool = 0
   ```
   So **Deposit is not an amount entry**: it is the share split, exactly as the manual describes ("split the party's gold
-  among the individual members … how many shares each party member gets (1, 2, or 3)"). Core's old amount deposit was
-  removed s40 (D-049, user: manual); `TownMenus.DepositShares(party, shares)` (s39) implements the DOS/manual split for gold
+  among the individual members … how many shares each party member gets (1, 2, or 3)"). Core has no amount deposit
+  (D-049, user: manual); `TownMenus.DepositShares(party, shares)` implements the DOS/manual split for gold
   (the XP pool lives in Core's `LootSack` and is paid on town entry, D-037). Withdraw = Core's `Withdraw` (amount ≤ balance).
 - **Withdraw amount entry [C] (s58, static; DOSBox check pending).** `0x35df` prints "[original text] %5u" and calls
   the field editor `0x3629` with the member's balance `@262` as the starting value, so the 5-digit field opens **filled
@@ -346,30 +328,23 @@ two facilities reading/writing it). [C]
   3. **Share split** drops `purse mod S` gold (and XP remainder) — Q2.
   Manual says the cap is **65,000** (carry and per account) — DOS clamps at **65,535**. **D-048 decided (user s40):
   manual.** Core: `Party.AddGold` / `Character.AddBankGold` clamp at 65,000 at every add site (Withdraw, sale, payout,
-  Deposit, share split, sack gold) and lose the excess as DOS does (manual silent on the excess). Q1 FIX (no cap) undone;
-  lifting the cap returns later as a QoL toggle (PLAN P3).
+  Deposit, share split, sack gold) and lose the excess as DOS does (manual silent on the excess). Lifting the cap is a
+  later QoL toggle (PLAN P3).
 
 ## Mystic [C]
 Gives the party an overall **SCORE** (a strength rating) and readiness hints
 ("novice adventurers", "[original text] …" `0x5edb`–`0x5f35`) that
 gauge whether the party is ready for a given area. Pass 4 (live DOSBox-X
-capture): mystic printed **score 2** / "novice adventurers" and wrote
-**`GUILD` record `@70 = 2`** on every party member (mirrored, same pattern as
-party gold).
+capture): **score 2** / "novice adventurers", and **`GUILD` record `@70 = 2`** written on every party member.
 
-**Formula fully resolved from a direct capstone (`CS_MODE_16`) disassembly of
-`OV1.OVR` file offset `0x20bb..0x225a`** — this is the *handler body*, not the
-dispatcher `FUN_0000_1e72` that jumps to it via the runtime table at
-`OV1+0x746b`; Ghidra drops the handler as an "unreachable block" purely
-because nothing in its static call graph reaches it (same as the
-`CS:0x669a` training table and the OV2 monster table), but the bytes
-disassemble cleanly with no ambiguity — every instruction below is
-byte-verified, not inferred:
+**Formula: capstone (`CS_MODE_16`) disassembly of the handler body, `OV1.OVR` file `0x20bb..0x225a`**, byte-verified.
+The dispatcher `FUN_0000_1e72` reaches it through the runtime table at `OV1+0x746b`, so Ghidra drops it as an
+"unreachable block" (as with the `CS:0x669a` training table and the OV2 monster table):
 
 ```
 base = 0
-for each party member with status == 1 (OK)         // record +0x18 = GUILD @24 (PLAN H3, s10:
-                                                     //  0x2100 cmp [bx+0x18],1; DEAD/SLEEP skipped;
+for each party member with status == 1 (OK)         // record +0x18 = GUILD @24
+                                                     //  (0x2100 cmp [bx+0x18],1; DEAD/SLEEP skipped;
                                                      //  UNDEAD is a race w/ status OK, so it counts)
     base += member.Level                              // record +0x58 = GUILD @88
     (and only these members' items feed heldIds / the rune check below)
@@ -378,8 +353,7 @@ heldIds = union of the counted members' carried-inventory ids (record +0xde,
           up to 9 slots/member — same field the INN "Distribute" handler
           mirrors from SACK.DAT)
 runeFlags: for k in 0..3, if member word +0x48+2k != 0 → flag k (GUILD @72..@78);
-          all four set → extra argument to the tier-message selection at 0x21cd [S]
-          (not modelled in Core yet; rune layout tracked under PLAN P0.1)
+          all four set → extra argument to the tier-message selection at 0x21cd (below)
 for id in 141..150 (inclusive, checked as 140 < id < 151):
     if id in heldIds: base += 18                       // one of ten flags, index = id-141
 if 150 (WAND) in heldIds: base += 66                    // extra, on top of its own +18
@@ -387,17 +361,13 @@ if 150 (WAND) in heldIds: base += 66                    // extra, on top of its 
 score = floor((base + 1) / 3)
 ```
 
-**IDs 141..150 are the RING A..RING I / WAND collectibles** — cross-checked
-directly against `extracted/items.json` indices 141-150 (`RING A`…`RING I` at
-141-149, `WAND` at 150). Nine rings + the wand are Phantasie I's signature
-quest items; the Mystic score rewards the party for having collected them,
-with the wand specifically double-counted (once as a capability flag, once
-again for its own +66). [C] — both the byte offsets and the item-id
-cross-reference are static facts, no live capture needed.
+**IDs 141..150 are the RING A..RING I / WAND quest items** (`extracted/items.json`: `RING A`…`RING I` at 141-149,
+`WAND` at 150). The wand counts twice (+18 as one of the ten, +66 extra). [C] (static)
 
 Also disassembled but **not part of the numeric SCORE**: the four rune words at record `+0x48..+0x4e` (`@72..@78`, OR'd
 across the counted members) give one boolean, "all four set", passed to the message call `0x3327` with the score and the
-tier. It only changes tier 4's last line (below). It does not affect `base`, `score` or the stored `@70`.
+tier. It only changes tier 4's last line (below). It does not affect `base`, `score` or the stored `@70`. Core:
+`Phantasie1Campaign.HasTheTestRunes`.
 
 Readiness tiers **[C] + [D✓] (s49)**: `tier = (score>9)+(score>20)+(score>39)+(score>59)+(score>83)+(score>99)`
 (OV1 `0x21d7..0x2221`); `0x3327(score, tier, allFourRunes)` prints "[original text]" / "into his crystal ball and
@@ -407,9 +377,8 @@ speaks:" / "Your score is %d. You are" / `table[tier]`, the table being 7 words 
 at tier 4 with all four rune words `+0x48..+0x4e` (`@72..@78`) set on counted members **"[original text]"**.
 All 7 tiers and the runes line seen live (`capture_s49_2026-10-23.md` §2). The Mystic charges nothing.
 
-The routine writes the computed score to every active party record's `+0x46`
-(disk `@70`) **only when it exceeds the record's current value** — a
-monotonic ratchet, never decreases. [C] Implemented in `TownMenus.ConsultMystic`.
+The routine writes the score to every active party record's `+0x46` (disk `@70`) **only when it exceeds the current
+value** (never decreases). [C] Implemented in `TownMenus.ConsultMystic`.
 
 ## Inn
 Manual [X]: restores every member's **HP and MP to max**; town inns are **free**
@@ -448,7 +417,7 @@ then menu 0x0d; choice 1 -> Distribute (OV1 0x2ab3)
 Strings `"IN THE INN:"` / `"%-10.9s[original text]"` / `"%-10.9sIS RESTING"` /
 `"[original text]"` + `"SORRY"` (OV2 string imm = file + `0x433d`).
 **Trigger [C] (s36):** stepping onto overworld **tile 41** (step returns 9 → OV2 state table `0xae` entry 9 → call at
-`0x4d`, the only caller). 12 tiles 41 on the map. (Earlier notes put the inn in tile class 11 — that is the pool.)
+`0x4d`, the only caller). 12 tiles 41 on the map. Tile class 11 is the pool, not the inn.
 ```
 menu 0x16 ("AN INN. ENTER?" YES/NO, [D✓] s45); choice != 0 → leave
 if party gold [0x63f6] <= 255: "[original text]" / "SORRY"; leave       # unsigned compare
@@ -469,10 +438,10 @@ time += 1000 (0x6528);  [0x64fe] = 1 (dead flag [C]: never read — overworld-mo
 - Needs party gold `> 255`; charges **256** (`sub [0x63f6],0x100`). Manual: "250 GPs
   (plus tax)" → `DIFFERENCES.md` D-005 (not a conflict).
 - Members with status DEAD are skipped entirely (no HP/MP refill, unlike the town Inn) → `DIFFERENCES.md` **D-047
-  (DECIDED s37: manual)**: the remaster refills DEAD members too (no line, no MP roll, status unchanged).
+  (DECIDED: manual)**: the remaster refills DEAD members too (no line, no MP roll, status unchanged).
 - Same MAGIC roll as the town Inn, but `roll = rand()/328` (0..99, OV2 helper `0x655b`) and it succeeds when
   `roll <= gap·20` (town Inn: `<`). **At gap 0 (MP max already at the class/level maximum) roll 0 still succeeds:
-  1 % per stay to go one above the manual's "Maximum Magic Points" table** → `DIFFERENCES.md` **D-046 (DECIDED s37: manual)**: the remaster uses `<`, never past the table.
+  1 % per stay to go one above the manual's "Maximum Magic Points" table** → `DIFFERENCES.md` **D-046 (DECIDED: manual)**: the remaster uses `<`, never past the table.
   Once over, the gap is negative and it can't rise again.
 - Advances the time counter by **1000** (`call 0x6528(1000)`). That is 3.9 displayed days (`DAY OUT` = time >> 8) and
   on its own ages nobody (`1000 >> 8 = 3`, `3 / 7 = 0`). **Remaster (D-008, user):** the stay lasts two weeks:
@@ -515,7 +484,7 @@ Item line (`0x1875`, `"%-10s:%3d %c%s"`): name, points and kind letter from `0x1
 with the characters who can use each one"; nothing for non-equipment.
 **Manual (p.12):** items listed best to worst, first magical; "type the number of the character who will get that item or
 type 7 to sell it". DOS = a highlight menu with SELL and SACK rows (C-64 addendum: highlight menus); SACK is extra.
-**Remaster (s53, user: "distribute everything just like the actual game"):** `ItemDistribution` (Core) + `DistributeDialog`
+**Remaster (user: "distribute everything just like the actual game"):** `ItemDistribution` (Core) + `DistributeDialog`
 (Client): the DOS pool, order, targets and selector; keys = arrows + Enter on the DOS menu, digits 1–6 pick a member and
 7 sells (manual). The sack holds 90 (D-018). Sold gold goes to the carried purse (D-048 cap).
 
@@ -527,13 +496,13 @@ shares (a DEAD member 0/1/2/3). Share = floor(total / Σ shares); each member's 
 into `@266`, dead members included; remainders are dropped and the purse is zeroed. Manual agrees in outline (PDF p.15).
 **Remaster (D-037, user):** keeps Core's `TownMenus.Distribute` — equal split among living members, gold to the carried
 purse, remainder to the first survivor — run on town entry (`GameSession.EnterTown`, before aging as DOS `0x1992`; I and
-II, s207). Found items wait for the town's Distribute.
+II). Found items wait for the town's Distribute.
 
 ## Aging — on town entry, not at the Inn [C] (s11, OV1 `0x1954`)
 Called when the party arrives in a town (OV1 `0x1e56`) and from `0x277a`, with the
 town id. Time accumulates in the word `[0x63f2]` while travelling: every accepted wilderness step adds 60 or
 `(tile/10 + 1)·75`, the wilderness inn adds 1000, nothing else adds (OV2 `0x6528`, which wraps mod 65536 — its
-saturation test is dead code; `overworld-movement.md` §Travel time, s36). 256 units = one `DAY OUT` day. Strings `"%s has aged"`,
+saturation test is dead code; `overworld-movement.md` §Travel time). 256 units = one `DAY OUT` day. Strings `"%s has aged"`,
 `"%s has died"`.
 
 ```
@@ -569,9 +538,9 @@ argument order is not decoded, hence `[~]`.
   re-read)**: `0x2835` compares `@254` with the Guild's town; equal → `je 0x2845`, different → the `0x3b08` gate first
   (COM menu 9: "Not in the town / [original text] / to get here", YES = 0 / NO = 1 — labels 46..50 of the DS `0x64c`
   table; NO → back to the list, nothing written). Both paths then run `0x2845..0x2851`: `@254` := town, `@264` += 4,
-  `@218` := 1, copy roster → party slot. The older "+4 only from another town" reading was wrong. The prompt's "2 months" (= 4 units) suggests the
+  `@218` := 1, copy roster → party slot. The prompt's "2 months" (= 4 units) suggests the
   cost was meant for travel only, so the same-town `+4` reads as a DOS quirk (`quirks-and-bugs.md` Q8); manual silent.
-  **Remaster (D-067, user s53):** only an Add from another town ages (+4); a same-town Add ages nobody. DOS fixtures agree with the DOS rule:
+  **Remaster (D-067, user):** only an Add from another town ages (+4); a same-town Add ages nobody. DOS fixtures agree with the DOS rule:
   `roster-full-22-s9` → `s41-start` every re-added member gains +5 (+4 Add, +1 town entry) standing in Pelnor, the two
   not re-added (thiefo, gobbo) gain 0. `[~]` The slot scan (`0x27ef..0x2814`) stops at an empty slot **or** one whose
   `@92` equals the pick, so re-adding a member already in the party seems to re-copy the roster record over the party
@@ -579,11 +548,13 @@ argument order is not decoded, hence `[~]`.
 - **Units:** `(time >> 8)` is displayed days (`DAY OUT`), `/ 7` makes weeks, but one `@264` unit is two weeks
   (AGE = `@264 / 26`). So in DOS each 7 travel days age the party **14 days**. Internal to DOS; the manual gives no
   travel-time rate, so not a conflict.
-- **Remaster status (s36):** Core `Aging.ApplyTownEntry` implements the decline/death pass with the D-003
+- **Remaster status:** Core `Aging.ApplyTownEntry` implements the decline/death pass with the D-003
   lifespans (age-clock units, no `>>8`) **and the travel-time step** (`GameSession.TravelTime`, accrued per
-  wilderness step by `TravelClock`, added to every party member — DEAD too — then reset). **Not yet:** the summon-slot
-  drop's 6→5 side effect. Guild→Add `+4` / `@254` / `@218` in Core since s49 (`GuildHall.TryAddToParty`,
-  `AddNeedsMoveConfirm`; the Guild's town = current town, else Pelnor). Gold split: Core keeps its equal split (D-037). DOS-save characters get the D-003 band on import (user, s17).
+  wilderness step by `TravelClock`, added to every party member — DEAD too — then reset). Summon-slot drop **[C]+[D✓]
+  s49**: with an elemental in slot 7, DOS lowers `[0x648e]` before the aging loop (OV1 `0x19dc`, loop bound `0x19eb`),
+  so the last adventurer skips aging on that visit; the `@254` write (`0x1b44`) covers all 7 slots. Core matches.
+  Guild→Add `+4` / `@254` / `@218`: `GuildHall.TryAddToParty`, `AddNeedsMoveConfirm` (the Guild's town = current town,
+  else Pelnor). Gold split: Core keeps its equal split (D-037). DOS-save characters get the D-003 band on import (user).
 - Lifespan `@252 = @10 × race factor` (`save-file-format.md` `@252`). In displayed
   years (`@10` = 8..13): decline from ≈59–98 / dies at ≈88–137 for HUMAN, PIXIE;
   ≈147–226 / 206–324 for DWARF, HALFLING, GNOME; ≈1053–1703 / 1506–2441 for ELF;
@@ -591,94 +562,36 @@ argument order is not decoded, hence `[~]`.
   humans ~80, others 40–50 → `DIFFERENCES.md` D-003.
 
 ## Temple — no such town service in DOS [C] (session 9)
-**There is no Temple facility in a DOS Phantasie I town.** The town menu-bar
-label table is shared by every town (`PHANTASI.COM` `0x5e6e`: Option, Bank,
-Mystic, Exit, Armory, + Inn, Guild — confirmed on screen in Pelnor), the
-Option submenu is Cast spell / Use item / Show party / Save game / Auto save /
-Sound / Printout / Exit, and no game binary contains the string "Temple".
-The earlier "Cost scales with level/CHA" line was an unsourced assumption
-(probably carried over from later Phantasie games) — withdrawn.
+**There is no Temple facility in a DOS Phantasie I town.** The town menu-bar label table is shared by every town
+(`PHANTASI.COM` `0x5e6e`: Option, Bank, Mystic, Exit, Armory, + Inn, Guild — confirmed on screen in Pelnor), the
+Option submenu is Cast spell / Use item / Show party / Save game / Auto save / Sound / Printout / Exit, and no game
+binary contains the string "Temple". A Temple cost rule ("scales with level/CHA", stub `level*50/CHA`) was never
+sourced.
 
-Where the word does appear: **overworld map locations** — "[original text]
-TEMPLE HERE" (`OUT1/2/3.DAT`), "[original text]"
-(`OUT7.DAT`). Their behaviour is unmapped (PLAN P0.3).
+Where the word does appear: **overworld map locations** — "[original text]" (`OUT1/2/3.DAT`), "THERE IS A
+LARGE FORTIFIED TEMPLE HERE" (`OUT7.DAT`); their behaviour is in `overworld-movement.md` (small temple = new-game /
+party-defeat wake cell; large temple = dungeon entrance).
 
-**In-town resurrection is a spell**, cast via Option → Cast spell: OV1 loads
-"WHO WILL CAST A SPELL?" @`0x257b`, "[original text] HEAL?" @`0x2625`,
-"%s IS RESURRECTED" @`0x2732` (string pointers = file offset + `0x5ff7`).
-Costs/side effects are a magic question (PLAN P0.6), not a shop price. **s13: decoded `[C]`** — see
-`magic-spells.md` §Town casting (OV1 `0x254e`; RESURRECTION `0x2693`: 50 + 5·Δlevel %, HP max, no CON loss).
-The "%s [original text]" / "RESURRECTED" / "DESTROYED" strings
-(`0x5b23`–`0x5b5c`) sit beside the Astral Plane / Great Demon text. s10: they
-are three sibling routines — `0x113` turns undead (race @256 := 15, status OK,
-HP max, level := 20), `0x18e` resurrects (revive helper `0x16b`: status OK,
-HP max) and `0x1ef` destroys (logs the roster link at `0x6472`, then calls
-`0x1bae` — removal, not a stored status). Caller/trigger untraced (PLAN P0.6/P0.8).
+**In-town resurrection is a spell**, cast via Option → Cast spell: OV1 loads "WHO WILL CAST A SPELL?" @`0x257b`,
+"[original text] HEAL?" @`0x2625`, "%s IS RESURRECTED" @`0x2732` (string pointers = file offset + `0x5ff7`).
+Decoded `[C]` in `magic-spells.md` §Town casting (OV1 `0x254e`; RESURRECTION `0x2693`: 50 + 5·Δlevel %, HP max, no CON
+loss). The "%s [original text]" / "RESURRECTED" / "DESTROYED" strings (`0x5b23`–`0x5b5c`) sit beside the Astral
+Plane / Great Demon text: three sibling routines, `0x113` turns undead (race @256 := 15, status OK, HP max, level :=
+20), `0x18e` resurrects (revive helper `0x16b`: status OK, HP max) and `0x1ef` destroys (logs the roster link at
+`0x6472`, then calls `0x1bae` — removal, not a stored status). Callers and full effects: `endgame.md` §4.
 
-**`0x2786` is Guild → Add member**, not Temple: it loads "[original text]
-ADD?" @`0x27b1` and "There is no room" @`0x2822` (both via the `+0x5ff7`
-string-pointer base). That explains session 7's finding that its selection
-filter accepts any occupied slot. Its `+0xda = 1`, `+0xfe = param`,
-`+0x108 += 4` writes are therefore Add-member effects (meanings `[?]`).
+**`0x2786` is Guild → Add member**, not Temple: it loads "[original text] ADD?" @`0x27b1` and "There is no room"
+@`0x2822` (both via the `+0x5ff7` string-pointer base). `+0xda` (`@218`) is the **in-party flag**, not a status — Add
+sets it to 1 (`mov word ptr [si+0xda], 1` at OV1 file `0x2853`, the only word-store of 1 to `[reg+0xDA]` in OV1),
+Drop (`0x225c`) to 0. The status word is `+0x18` (`@24`: 0 DEAD / 1 OK / 2 SLEEP), level is `+0x58` (`@88`). Add also
+sets `+0xfe` (`@254`) := the current town and `+0x108` (`@264`, age clock) += 4 (§Aging). See `save-file-format.md`.
 
-> **Session 10 (PLAN H3):** `+0xda` (`@218`) is the **in-party flag**, not a status — Add sets it to 1, Drop
-> (`0x225c`) to 0. The real status word is `+0x18` (`@24`: 0 DEAD / 1 OK / 2 SLEEP), and level is `+0x58`
-> (`@88`). `+0xfe` (`@254`) is set to the current town on Add. Wherever the notes below say "status `+0xda`",
-> read "in-party flag". See `save-file-format.md`.
-
-*Session 7's notes below are kept for history; their Temple identification is
-superseded.*
-
-**Session 7 static pass (before more DOSBox time): entry point still not
-positively identified — do not re-walk this exact path.** Following session
-6's Mystic technique (handler bodies disassemble fine even when the
-dispatcher's jump table is runtime-populated and unrecoverable), a broadened
-search for **any** write of `1` to a record's status field `+0xda` (the
-earlier "BLOCKED" verdict only ever grepped for the `BX`-based encoding) found
-exactly one hit in all of OV1: file offset `0x2853`,
-`mov word ptr [si+0xda], 1` (`SI`-based — the earlier search's blind spot),
-inside a function at OV1+`0x2786`. That function is one of the direct-call
-dispatch targets in the same top-level facility switch as Bank/Armory/Mystic/
-Inn (guarded by `cmp [0x62a8],0`, paired with a structurally identical
-sibling call at OV1+`0xbac`, which session 7 separately identified as **Guild
-→ New Member** creation — full record zero-init + stat rolls, not Temple).
-
-`0x2786`'s body: prompts a member selection (via the documented
-`0x3766`/`0x37c0` helpers) over a scan range of 25 or 22 slots depending on a
-flag at `0x618e`; compares the member's record `+0xfe` against a passed-in
-parameter, optionally shows a Y/N gate (`0x3b08`, a bare keypress test — no
-arithmetic in it), then on confirm: sets `+0xfe = param`, **`+0x108 += 4`**
-(this is the same field the handoff already identifies as the **age
-counter**, so this reads as "resurrection ages the character by 4"), and
-finally sets status `+0xda = 1`. **No read of CHA (`+0x8`), no read of level
-(`+0x58`), and no deduction from the party purse (`0x63f6`) anywhere in this
-function** — if this is Temple, resurrection has **no gold cost** in the
-original game, and the `level*50/CHA` stub was never anything but a guess (the
-doc already marked it `[?]`; this isn't a contradiction of a fact, just the
-first real data point).
-
-**Why this isn't stamped `[C]`:** the bounded follow-up check (does the
-member-selection predicate restrict to dead/undead members, or the gated
-prompt string read as resurrection-specific text) came back **negative** —
-`0x37c0`'s filter, when called with flag=0 (the value `0x2786` actually
-passes), includes *any* occupied slot with non-zero status, i.e. **both
-living and dead/undead members**, not dead-only. That's consistent with a
-general roster-maintenance operation (e.g. reassigning some other per-member
-id via `+0xfe`) as much as with Temple. The string literals this function
-loads (`0xbd88`, `0xbda1`, `0xc0a1`) are runtime CS-relative pointers outside
-the on-disk file's mapped range under the `OV1_BASE=0x3c26` convention — the
-same class of address the existing "temple strings not statically locatable"
-note already describes — so they can't be read to settle it either.
-
-**Net result:** the "no `MOV [BX+0xda],1` found → BLOCKED" verdict is
-overturned (the write exists, just `SI`-based) — but the write's owning
-function's *identity* as Temple specifically is still unconfirmed. Cost
-formula remains `[?]` (stub `level*50/CHA` unchanged in code). Do not re-run
-the `+0xda`-write grep — it was exhaustive and complete for word-stores to
-`[reg+0xDA]`. If DOSBox time is spent on Temple, the fastest confirmation is
-simply checking whether resurrecting a character changes their age counter
-(`+0x108`/disk `@264`) by 4 and leaves gold untouched — that would confirm
-`0x2786` post hoc without needing to trace the dispatch further.
+Older static notes on `0x2786` (when it was thought to be Temple), still valid as facts: it is a direct-call target of
+the facility switch guarded by `cmp [0x62a8],0`, beside a structurally identical call to OV1+`0xbac` (New Member). Its
+member pick uses `0x3766`/`0x37c0` over 25 or 22 slots depending on a flag at `0x618e`; `0x37c0` with flag 0 (what
+`0x2786` passes) accepts any occupied slot with non-zero status, living or dead. Its optional Y/N gate `0x3b08` does no arithmetic. It reads no CHA (`+0x8`), no level
+(`+0x58`) and never touches the purse (`0x63f6`). Its string literals (`0xbd88`, `0xbda1`, `0xc0a1`) are runtime
+CS-relative pointers outside the file's mapped range under the `OV1_BASE=0x3c26` convention.
 
 ## Inputs / outputs
 - **Inputs**: party, per-character records (`GUILD.DAT`), town id + `TWNS.DAT`
@@ -695,18 +608,17 @@ money bug found is deferred to `quirks-and-bugs.md`.
 M4 Core wiring (`TownMenus` / `GuildHall` / `LootSack` / `TownState`):
 - Bank, Armory (buy only; list buy formula [C]), Inn rest + distribute, Temple (non-DOS — see §Temple),
   Mystic, Guild add/drop/purge/rename — implemented and unit-tested.
-- Q1: gold capped at the manual's 65,000, excess lost (D-048, s40). Q2: distribute remainder to first survivor (FIX). Bank Deposit = the share split only (`DepositShares`, gold, 65,000 clamp; D-049 manual, s40) — the amount deposit is gone.
-- Training XP threshold + gold cost implemented [C] (s39: full float chain incl. XP-0 reset, stored doubles, gold = pow(level, 2.2) base).
-- Mystic SCORE formula implemented [C] (see above); tier text mapping [C]+[D✓] s49 — Core prints the DOS lines (s49).
-- Still stubbed with `[?]`: aging,
-  binary `SACK.DAT` codec (layout known s35; semantic pool used instead). The spell-learning fee
-  is implemented from its confirmed OV1 formula. Armory buying uses the
-  documented full list price; no discount is pending.
+- Q1: gold capped at the manual's 65,000, excess lost (D-048). Q2: distribute remainder to first survivor (FIX). Bank
+  Deposit = the share split only (`DepositShares`, gold, 65,000 clamp; D-049 manual).
+- Training XP threshold + gold cost [C] (full float chain incl. XP-0 reset, stored doubles, gold = pow(level, 2.2) base).
+- Mystic SCORE formula and tier lines [C]+[D✓] — Core prints the DOS lines.
+- Aging on town entry (§Aging), spell-learning fee (confirmed OV1 formula), Armory full list price.
+- `SACK.DAT`: `SackCodec` (Data) reads/writes the 60 slots; play uses the semantic `LootSack` pool (D-037).
 
 ## Leaving town — "LEAVING %s" [C] (s154)
 OV1 `0x1e15` (the town loop's wrapper, state 1) returns 2 (overworld) after `0x1e72` and **`0x483e`**: clear row 24
 (`0xb9d1(0, 24, 39, 24)`), print `"LEAVING %s"` (OV1 string `0xc284`) at column 11, row 24 with the town record's name
 (`[0x6368] + 0x117`, TWNS.DAT), then, when `[0x3092]` (Auto save) is set, save (`0x4562`). No wait: the line stays on row
-24 as the overworld opens. Remaster (s154, I, AMIGA SCREENS off): the Client notes "LEAVING <TOWN>" after Exit
+24 as the overworld opens. Remaster (I, AMIGA SCREENS off): the Client notes "LEAVING <TOWN>" after Exit
 (`game.dos_leaving_x`), so the message line opens on it; the auto-save runs before it (DOS: after) and the column-11
 place is the message line's `[~]`.

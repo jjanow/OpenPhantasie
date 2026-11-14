@@ -5,7 +5,7 @@ files (`../extracted/dungeons.json`, regen `tools/scripts/extract_maps.py`); the
 overlay opens them by name via the `DNG%-d` format string. The live 2500-byte
 level buffer can be kept in a one-slot save (`DNG.SAV` = id + map-screen image,
 `DNGX.SAV` = the buffer) when the party leaves — §Leaving and re-entering
-(s36) and `save-file-format.md`.
+and `save-file-format.md`.
 
 ## Level file format [C]
 - 10 level files, ~1922–1984 bytes each. [C]
@@ -14,9 +14,7 @@ level buffer can be kept in a one-slot save (`DNG.SAV` = id + map-screen image,
   - `FUN_0000_20c3`: `cell = buf[y * 0x21 + x]`
   - `FUN_0000_1f05`: bounds `0 ≤ x < 0x21`, `0 ≤ y < 0x26`; requires `cell != 0`
   - Overworld dungeon-1 entrance `dest=(20,0)` lands on `0xd7` (exit/stairs)
-- Earlier “≈1740 B grid” note was an upper bound that also covered **side
-  tables** packed after the map (stairs/event metadata near `buf+0x4f2` /
-  `+0x4f6`). Treat **1254** as the map; bytes after that are side data +
+- Bytes after the 1254-byte map are **side tables** (stairs/exit/event metadata near `buf+0x4f2` / `+0x4f6`) and
   embedded text (`"A STRANGE PURPLE GAS…"`, `"ENDING SEQUENCE"`). [C]
 - Longer scripted narration lives in encrypted `MESS1..MESS10` — see
   `message-and-text.md`. [C]
@@ -29,7 +27,7 @@ level buffer can be kept in a one-slot save (`DNG.SAV` = id + map-screen image,
 | `0x01`, `0x07` | Floor | Plain walkable |
 | `0x02`–`0x06` | Trap | Trap kind = the byte (`0x2f8e`, §Traps) |
 | `0x08`–`0x11` | Wandering encounter | Fight on `rand0_99 ≤ [0x1a5a]`, else message `b + 3` (§Fight cells) |
-| `0x12`–`0x7f` | Description (Core: `ScriptLow`) | `0x298b`: MESS message `byte − 0x11` every step, no last-message check (§Description cells, s41) |
+| `0x12`–`0x7f` | Description (Core: `ScriptLow`) | `0x298b`: MESS message `byte − 0x11` every step, no last-message check (§Description cells) |
 | `0x80`–`0x89` | Combat | Forced fight, monster `buf[0x468 + cell]` = `buf[0x4e8 + (cell − 0x80)]` (§Fight cells) |
 | `0x8a` | Other | A cleared forced-fight cell (`0x2a26`); nothing happens |
 | `0x8b`–`0xb8` | Message | `FUN_0000_23c0` / MESS (`id = byte - 0x76`) |
@@ -113,21 +111,20 @@ cells 0x8b..0xb8 (message, 0x22c8):
 ```
 - **Chance `[0x1a5a]`**: 7 on every dungeon entry (state 13, `0x82`). Every encounter build (`0x3316`) does −1, then
   sets it to 1 if it is below 5 (7 → 6 → 5 → 1 → 1 …). A BEG adds 1 (`0x3c0b`). Its only reader is `0x225c`. A raw sweep
-  (s39) finds `5a 1a` only at OV2 `0x84`, `0x225e`, `0x3318`, `0x331b`, `0x3324` and `0x3c0d`, and never in OV1 or the
+  finds `5a 1a` only at OV2 `0x84`, `0x225e`, `0x3318`, `0x331b`, `0x3324` and `0x3c0d`, and never in OV1 or the
   unpacked COM.
 - **`[0x64fa]`** is set to 1 on every step (`0x1f88`). That is its only writer, and it sits right before the only `0x2249`
   call (`0x1f97`). So in play the message branch always runs `[C]` (raw `fa 64`: OV2 `0x1f8a`, `0x226d`, `0x22d0` only).
 - **`0x23c0(id)`** shows MESS message `id` (via `0x2418`) unless `id == [0x64f4]`, the last message shown. It remembers
-  `id` only when the message was found. `[0x64f4] := 0` on entry (`0x1dc6`) and after a script **teleport, ops 12/13** (`0x27fa`;
-  s49 fix — the old note said ops 14/15, but `0x27fa` sits in the `0x27b0` teleport body). So in a
+  `id` only when the message was found. `[0x64f4] := 0` on entry (`0x1dc6`) and after a script **teleport, ops 12/13** (`0x27fa`,
+  inside the `0x27b0` teleport body). So in a
   room of wandering cells the description shows again only after some other message has been shown.
 - Data check:
   - DNG1 (T 0) wandering cells 8, 9, 12 and 15 give monsters 0..3, 1..4, 4..7 and 7..10 (from SKELETON on). The s35
     DOSBox run met SKELETON in DNG1.
   - DNG9 `0x80` gives monster 76 = BLACK KNIGHT.
   - The wandering formula adds T once, while the lock ambush (below) adds 12·T. That is a code fact, not a provable error.
-- **No message is printed** for a wandering or forced fight in `0x2249`. The old Core stub printed "MONSTERS APPEAR",
-  which is the text of script op 17.
+- **No message is printed** for a wandering or forced fight in `0x2249` ("MONSTERS APPEAR" is script op 17's text).
 - Wandering cells are never rewritten, so they keep firing, also in a restored dungeon.
 - **[D✓] s45 DOSBox** (layout B, cell b = 15, 10 entries, `capture_s45_2026-10-16.md` §1): 31 fights / 488 steps; per-phase
   rate 7.2 / 8.9 / 5.1 / 2.4 % vs 8 / 7 / 6 / 2 % (all inside 1 σ); 31/31 opened with PARTY OPTIONS; monsters only COYOTE /
@@ -138,22 +135,21 @@ cells 0x8b..0xb8 (message, 0x22c8):
   - `0x80..0x89` → `0x8a`.
   - `0xb9..0xc7` → `0xb9`.
   - `0xc8..0xd6` → `0xc8`.
-  - Both bases are door kind 1, an open door (§Locks). **[C]** (was `[~]`).
-- Raw `b4 74` (s39): set to 1 at build `0x335a`; cleared at `0x3c46` (BEG), `0x3d14` (GREET), `0x3d74` (FLEE) and
-  `0x3f93` (TELEPORTATION); read at `0x3fa1`. CHARM does not touch it.
+  - Both bases are door kind 1, an open door (§Locks). **[C]**
+- Raw `b4 74`: set to 1 at build `0x335a`; cleared at `0x3c46` (BEG), `0x3d14` (GREET), `0x3d74` (FLEE) and
+  `0x3f93` (TELEPORTATION); read only at `0x3fa1`. CHARM does not touch it. `0x2a26` has one caller (`0x3fa6`, gated on
+  `[0x64e8] = 3` and `[0x74b4] ≠ 0`). `ba 74` (treasure allowed) has the same five end writers, plus the treasure roll's
+  own writes (`0x4124/0x416a/0x41c2`), which do not touch `[0x74b4]`.
 - After BEG / FLEE the post-combat hook `0x6255` steps back (`0x29a9`).
 
-**Core (s39):**
+**Core:**
 - `DungeonEncounters`: chance, wandering roll, forced table, `ClearFightCell`.
 - `DungeonState.WanderingChance` / `LastMessageId`, and `DungeonMoveResult.MonsterId` / `Surprise`.
 - The session builds the fight with those flags and lowers the chance on each build. After the fight it clears the cell
   or steps back (`GameSession.DungeonCells.cs`).
-- **CHARM (s49, [C] DOS side):** DOS CHARM (`0x767..0x7a2`) never ends a fight: on success it only adds 15 to Σreaction
-  `[0x750c]` and clears `[0x74b6]`. It writes neither `[0x74b4]` nor `[0x74ac]`, so a DOS fight with CHARM in it ends by one
-  of the usual routes and the cell follows that route. Raw sweeps: `b4 74` is written only at `0x335a` (1), `0x3c46` BEG,
-  `0x3d14` GREET, `0x3d74` FLEE, `0x3f93` TELEPORTATION and read only at `0x3fa1`; `0x2a26` has one caller (`0x3fa6`,
-  gated on `[0x64e8] = 3` and `[0x74b4] ≠ 0`). `ba 74` (treasure allowed) has the same five end writers, plus the
-  treasure roll's own writes (`0x4124/0x416a/0x41c2`), which do not touch `[0x74b4]`.
+- **CHARM ([C] DOS side):** DOS CHARM (`0x767..0x7a2`) never ends a fight: on success it only adds 15 to Σreaction
+  `[0x750c]` and clears `[0x74b6]`. It writes neither `[0x74b4]` nor `[0x74ac]` (raw sweep above), so a DOS fight with
+  CHARM in it ends by one of the usual routes and the cell follows that route.
   The remaster's CHARM end is D-022 (not D-021, which is FEAR), "like a successful GREETINGS". GREETINGS zeroes `[0x74b4]`
   (`0x3d12`) and leaves `[0x74ac]`, so the cell is **not** cleared and the party does **not** step back. Core does exactly
   that (`SpellEnd.Charmed` → `TreasureForfeited`). Consequence: a CHARMed forced-fight cell (`0x80..0x89`) or lock ambush
@@ -175,10 +171,10 @@ id := b − 0x11                 # 0x2996
 - **Never rewritten.** Nothing in `0x298b` writes the cell. It does not write `[0x64f2]` either (the wandering / message
   branches do, `0x2269` / `0x22cc`; the teleport ops 12/13 clear it at `0x27f4`). `[0x64f2]` has no reader in OV2, OV1 or the unpacked COM.
 - **Empty slot** (`0x2418` returns 0): `0x2a95` jumps to `0x2cfd`, returns 1, shows nothing.
-- **Data (s41 scan of DNG1..10):** 62 cells (DNG8 and DNG9 have none), every one on the first record of a plain message (room descriptions,
+- **Data (scan of DNG1..10):** 62 cells (DNG8 and DNG9 have none), every one on the first record of a plain message (room descriptions,
   wall writing, DNG7 bleeb hints, DNG4 tavern talk). None points at an empty slot, a continuation record or a menu.
   So the dropped menu choice never matters `[~]`.
-- **Core (s41):** `DungeonTraversal.ShowDescription` (the full message as `Log`, no `LastMessageId` change).
+- **Core:** `DungeonTraversal.ShowDescription` (the full message as `Log`, no `LastMessageId` change).
 - Manual: no rule about these cells (it only says messages appear as the party explores). No conflict.
 
 ## Traps — OV2 `0x2f8e(a, x, y)` [C] (s39)
@@ -192,7 +188,7 @@ if spotter:
     menu 0x1f "%s SPOTS A TRAP. DISARM IT ?" (0x31f5)   NO (1) → step back 0x29a9, return 3   # the trap stays
     m := 0x5a0a("[original text]", mode 1)         # lists only status OK (1) members; none / Esc → −1
     m == −1 → step back, return 3
-    # Remaster (D-052, user s40, manual): "%s SPOTS A TRAP" + D)ISARM OR L)EAVE; L = NO. OK-only disarmers kept (manual silent).
+    # Remaster (D-052, user: manual): "%s SPOTS A TRAP" + D)ISARM OR L)EAVE; L = NO. OK-only disarmers kept (manual silent).
     if rand0_99 > @38 (disarm trap): sound 0x1d, "%s FAILS" → spring
     else: "%s SUCCEEDS"; cell(x, y) := 7; return 3
 spring (0x306f):
@@ -210,7 +206,7 @@ spring (0x306f):
 - Manual (PDF p.14): "DISARM TRAP is an option available when traps are spotted. If you want the trap disarmed, you will be asked
   who will do it." PDF p.13 shows "THIEF SPOTS A TRAP / D)ISARM OR L)EAVE". DOS asks YES/NO, then WHO. Only the labels
   differ, and LEAVE = NO (step back). No rule conflict.
-- **Core (s39):**
+- **Core:**
   - `DungeonTraps`: `FindSpotter`, `DisarmSucceeds`, `CanDisarm`, `Spring`.
   - `DungeonTraversal` returns `SpotterIndex` and waits; `ResolveSpottedTrap` answers.
   - Session: `DungeonTrapPrompt` / `AnswerDungeonTrap(int?)`.
@@ -241,7 +237,7 @@ di 2..13 — ambush:
   members' skill levels") does not say whether a failed door can be tried again. No conflict stated; noted for the user.
 - A won ambush clears the cell to its open base (`0x2a26`). BEG / FLEE leave it, so the ambush is there again next time.
 - s35 DOSBox fixture: DNG1 (19,37) `0xCB` (bank 15, kind 4) became `0xC8` after the fight. This matches. The fight was 7 DRIP SLIME (`capture_s35_2026-10-11.md` §8) = monster 2 = `12·0 + 4 − 2`, and it opened with no PARTY OPTIONS, i.e. H rolled 0 (party surprised, ≈ 49 % when nobody heard): consistent with the formula and the 0-based convention.
-- **Core (s39):**
+- **Core:**
   - `DungeonLocks`: `Decode`, `Classify` → `DungeonDoorKind`, `FindPicker`, `FindListener`, `AmbushMonster`.
   - The traversal returns `ListenerIndex` and waits; `ResolveHeardMonsters` answers.
   - Session: `DungeonLockPrompt` / `AnswerDungeonLock(bool goBack)`.
@@ -267,8 +263,7 @@ remaster PRESERVES this (1:1). A "no re-duplication" fix would be a P3 QoL toggl
 ## Leaving and re-entering — the one-slot dungeon save [C] (s36 static; s35 DOSBox for the YES path)
 
 Menu ids below are the ids the code passes. The COM menu table entry for id `n` is at DS `0x20 + 16·n` (title label
-word 3, first option word 4; labels DS `0x64c`) — one entry later than the "DS `0x10 + 16·id`" note in
-`combat-resolution.md`, which is corrected there.
+word 3, first option word 4; labels DS `0x64c`).
 
 | menu | title | options (0-based return) |
 |---|---|---|
@@ -291,10 +286,10 @@ return 2                                 # overworld
 ```
 Exit records `[C data]`: for all ten levels, region `buf[0x4f2]`, x = 25 − `buf[0x4f4]`, y = `buf[0x4f3]` is exactly the
 OUT feature that enters that dungeon (DNG1 `1, 8, 16` → OUT1 (9,8); DNG9 `2, 7, 4` → OUT2 (21,7); DNG10 → OUT19 (20,10)).
-DNG7's second exit `0xd8` at (16,26) uses record 1 = OUT8 (12,5). **[C] s58:** the exit handler (OV2 `0x2d46`) keeps the raw byte in `[0x63e4]` and puts the live x = 25 − raw in `[0x751a]`
+DNG7's second exit `0xd8` at (16,26) uses record 1 = OUT8 (12,5). **[C]** The exit handler (OV2 `0x2d46`) keeps the raw byte in `[0x63e4]` and puts the live x = 25 − raw in `[0x751a]`
 (cell index, feature lookup and every step use `[0x751a]`); the mirrored `[0x63e4]` is never read before the next fresh write
 (town exit OV1 `0x3317`, defeat `0x46a`, next step OV2 `0x5f67`) — a latent DOS bug with no effect. Core lands on (25 − raw, y).
-**DNGX tail [C] s58:** DNGn is read (2500-byte limit, OV2 `0x1e66`) into a buffer that is not cleared, so bytes past the file
+**DNGX tail [C]:** DNGn is read (2500-byte limit, OV2 `0x1e66`) into a buffer that is not cleared, so bytes past the file
 length keep the previous dungeon's data; no shipped script reads past each file's length (highest byte 1651–1929, DNG6 1827 of
 1922). Core zero-fills the tail — only a byte-exact DNGX.SAV export can differ, never gameplay.
 
@@ -334,9 +329,9 @@ never cleared, so random fights continue in a restored dungeon.
 
 Manual p.14: "LEAVING THE DUNGEON is done through the same door used when the party entered. On leaving, you will be
 asked if you want to save its current status. Hit Y or N." — the prompt matches DOS. "The same door used when the party
-entered" does not quite: DNG7's `0xd8` exit leads to OUT8 (12,5), where no entrance exists (**D-038 DECIDED s37: DOS** — a manual error; Core reads the exit records). The "Playing Hint" that follows (monsters
+entered" does not quite: DNG7's `0xd8` exit leads to OUT8 (12,5), where no entrance exists (**D-038 DECIDED: DOS** — a manual error; Core reads the exit records). The "Playing Hint" that follows (monsters
 "prepared for you… new locks installed and new monsters recruited… if you return soon after you left the monsters you
-killed might still be dead") describes a time-based partial reset that the DOS code does not have: **D-027 DECIDED s37: DOS one-slot rule, except a NO purges a slot holding the same dungeon** (no
+killed might still be dead") describes a time-based partial reset that the DOS code does not have: **D-027 DECIDED: DOS one-slot rule, except a NO purges a slot holding the same dungeon** (no
 older save of it can come back; a slot of another dungeon is kept).
 
 ## What waits for a key on a dungeon step [C] (s154) — the DOS path's paging
@@ -350,7 +345,7 @@ From the call scan in `message-and-text.md` (Text boxes, key waits): one step ca
 A trap: MESS a + 4 (waits) → "IN THE TRAP:" (waits) → defeat or the map. The wand's DESTROY: the banner (waits) → REPORT
 (waits) → REPORT (waits). Op 17 → MONSTERS APPEAR (waits) → the fight. Nothing on a step is timed.
 Core marks 3 and 4 (`LogWindowKind.Text` / `.Report`, `DungeonMoveResult.Windows`, `GameSession.MapWindowsSince`);
-2 is found by text (`dos-screens.json` `map_boxes.dungeon_keys`). Built s154: `P1DosMapPages` (Client), see
+2 is found by text (`dos-screens.json` `map_boxes.dungeon_keys`). Built: `P1DosMapPages` (Client), see
 `message-and-text.md` Remaster.
 
 ## Static audit vs Core — s49 (P0.4 [S])
@@ -362,23 +357,23 @@ Capstone pass over the OV2 handlers (file offsets). Op table `0x28f2` re-read: 0
 | Handler | Status | Core |
 |---|---|---|
 | Dispatcher `0x2249` (ranges, return states) | [C] | matches `DungeonLevel.Classify` / `DispatchFeature` |
-| Message cells / wandering text `0x23c0` | [C] | **s49:** shows only the first 40-char record on row 24 (`0x2418(id, 0x29)` → `0x2d03`; a record equal to `" "` blanks the line). No length trim, no continuation, no menu. DNG1..10 scan: every id sent here is one record and its 40 chars equal the trimmed text, so nothing differs. Core now logs one line. |
+| Message cells / wandering text `0x23c0` | [C] | Shows only the first 40-char record on row 24 (`0x2418(id, 0x29)` → `0x2d03`; a record equal to `" "` blanks the line). No length trim, no continuation, no menu. DNG1..10 scan: every id sent here is one record and its 40 chars equal the trimmed text, so nothing differs. Core logs one line. |
 | Description cells `0x298b` | [C] (s41) | matches |
 | Event record `0x24b2..0x252c` | [C] | matches (`[0x64f6] := r0 & 0x7f`, write-only) |
 | Ops 1–4 damage `0x25b7` | [C] | matches (`rand·a / (10·@10)`, floor 1, "REPORT:", `%-10.9sDIES` / `TAKES %-3d DAMAGE` / name) |
 | Op 5 fight `0x26f4` | [C] | matches (`H = rand ≤ 90`, `F = 1`) |
-| Op 6 give `0x2725` / `0x2599` | [C] + [D✓] s58 | **s58 fix:** DOS asks "YOU FIND %s. KEEP IT?" at the op (modal `0x421d`) and runs the later ops after the answer — DNG9 wand: -TAKE IT- → "YOU FIND WAND. KEEP IT?" → YES → "[original text]" (`capture_s58_2026-10-25.md` §2.5). The item goes to the found-item list (SACK.DAT held 150 after the next save). Core used to queue the offer and finish the script first; now `DungeonScript.Run` stops at op 6 (`DungeonScriptEnd.OfferItem` + a `DungeonScriptResume`), the session asks KEEP IT? and `AnswerTreasure` resumes the script (`DungeonScript.Resume`). The resume point is saved with the dungeon (`DungeonSnapshot.ScriptResume`), so a save taken at the prompt resumes the same ops after a load. A step away drops it, like an unanswered event menu. |
+| Op 6 give `0x2725` / `0x2599` | [C] + [D✓] s58 | DOS asks "YOU FIND %s. KEEP IT?" at the op (modal `0x421d`) and runs the later ops after the answer — DNG9 wand: -TAKE IT- → "YOU FIND WAND. KEEP IT?" → YES → "[original text]" (`capture_s58_2026-10-25.md` §2.5). The item goes to the found-item list (SACK.DAT held 150 after the next save). Core matches: `DungeonScript.Run` stops at op 6 (`DungeonScriptEnd.OfferItem` + a `DungeonScriptResume`), the session asks KEEP IT? and `AnswerTreasure` resumes the script (`DungeonScript.Resume`). The resume point is saved with the dungeon (`DungeonSnapshot.ScriptResume`), so a save taken at the prompt resumes the same ops after a load. A step away drops it, like an unanswered event menu. |
 | Ops 7/8 gold | [C] | matches. `a·256` uses `xchg/cwd`, so `a ≥ 0x80` would sign-extend `[~]`; no op 7/8 in DNG1..10 has `a ≥ 0x80` (max 30) |
 | Ops 9/10, 11, 17, 18, 19 | [C] | match |
-| **Ops 12/13 teleport `0x27a0/0x27b0`** | [C] | **s49 fix:** after the move the body blanks the message line (`0x2d03(" ")`) and sets `[0x64f2]`, `[0x64f4] := 0` (`0x27f4/0x27fa`). Core had put the `[0x64f4]` reset on ops 14/15; it now resets on 12/13. |
-| Ops 14/15 SET-CELL `0x2807/0x2817` | [C] | 14: sound `0x1a` + "[original text]"; then `0x2a02(a, b, c)`. **No** `[0x64f4]` reset (s49). |
+| **Ops 12/13 teleport `0x27a0/0x27b0`** | [C] | After the move the body blanks the message line (`0x2d03(" ")`) and sets `[0x64f2]`, `[0x64f4] := 0` (`0x27f4/0x27fa`). Core resets `[0x64f4]` on 12/13 too. |
+| Ops 14/15 SET-CELL `0x2807/0x2817` | [C] | 14: sound `0x1a` + "[original text]"; then `0x2a02(a, b, c)`. **No** `[0x64f4]` reset. |
 | Op 16 trap `0x282d` | [C] | matches (returns `0x2f8e`'s state) |
 | End check `0x293d` | [C] | matches |
-| Traps `0x2f8e` (spot, disarm, spring `0x306f..0x31f5`) | [C] re-read | matches (report strings are `%-10.9sAVOIDS THE TRAP`, `%-10.9sTAKES %-3dDAMAGE` (no space), `%-10.9sDIES`). **s154:** Core's I text now pads too (`{1,-3}`; s156: the name `{0,-10:.9}` = cut at 9, then padded: `GameText`'s string precision, for imported names over `GuildHall.MaxNameLength`): ids `core.dungeon.x_avoids_the_trap` / `trap_x_takes_x_damage` / `trap_x_dies`, ops 1–4 `core.script.report_x_takes_x_damage` / `report_x_dies` (`%-10.9sTAKES %-3d DAMAGE`), swimming `x_swims` / `x_sinks_and_takes_x_damage` / `swim_x_dies` (OV2 `0x7f69..0x7f82`). II's and III's tables keep their unpadded text (their originals not checked) |
+| Traps `0x2f8e` (spot, disarm, spring `0x306f..0x31f5`) | [C] re-read | matches (report strings are `%-10.9sAVOIDS THE TRAP`, `%-10.9sTAKES %-3dDAMAGE` (no space), `%-10.9sDIES`). Core's I text pads the same way (`{1,-3}`; the name `{0,-10:.9}` = cut at 9, then padded: `GameText`'s string precision, for imported names over `GuildHall.MaxNameLength`): ids `core.dungeon.x_avoids_the_trap` / `trap_x_takes_x_damage` / `trap_x_dies`, ops 1–4 `core.script.report_x_takes_x_damage` / `report_x_dies` (`%-10.9sTAKES %-3d DAMAGE`), swimming `x_swims` / `x_sinks_and_takes_x_damage` / `swim_x_dies` (OV2 `0x7f69..0x7f82`). II's and III's tables keep their unpadded text (their originals not checked) |
 | Locks `0x2e03` | [C] + [D✓] s43 | not re-read |
-| Stairs text `0x2951` | [C] + [D✓] s154 | prints `[original text] %-2d TO %-2d` in the centred band (`0xda83`, waits for a key; `message-and-text.md` Text boxes) and returns 3: **no level change** (cells `0xda/0xdb` in DNG5, `0xda` in DNG8). **s49:** Core text now uses the `%-2d` padding. |
-| Exit `0x2d46` | [C] (s36) + [D✓] s58 | DOS prints nothing of its own: "[original text]" → YES → "[original text]" → YES or NO → straight to the overworld on the door; the old message line stays on row 24 under the prompts (`capture_s58_2026-10-25.md` §4, §7). **s58 fix:** the remaster-only lines "Leaving the dungeon." (exit step) and "Exited dungeon." (after the answer) are gone. |
-| Scripted-event step | [C] | **s49 fix:** Core used to note the level's first embedded text ("[original text]" in DNG1, "ENDING SEQUENCE" elsewhere) on every live event cell. DOS prints only `0x2a95(r0 & 0x7f)`; the stray line is gone. |
+| Stairs text `0x2951` | [C] + [D✓] s154 | prints `[original text] %-2d TO %-2d` in the centred band (`0xda83`, waits for a key; `message-and-text.md` Text boxes) and returns 3: **no level change** (cells `0xda/0xdb` in DNG5, `0xda` in DNG8). Core text uses the `%-2d` padding. |
+| Exit `0x2d46` | [C] (s36) + [D✓] s58 | DOS prints nothing of its own: "[original text]" → YES → "[original text]" → YES or NO → straight to the overworld on the door; the old message line stays on row 24 under the prompts (`capture_s58_2026-10-25.md` §4, §7). The remaster adds no lines of its own either. |
+| Scripted-event step | [C] | DOS prints only `0x2a95(r0 & 0x7f)`, never the level's first embedded text ("[original text]" in DNG1, "ENDING SEQUENCE" elsewhere); Core matches. |
 | End of fight `0x2a26` (only caller `0x3fa6`) | [C] | matches `ClearFightCell` |
 
 **Every `0x2a95` / `0x23c0` caller** (call scan): `0x2a95` ← `0x2500` (event message), `0x2799` (op 11), `0x28ea`
@@ -387,16 +382,15 @@ Capstone pass over the OV2 handlers (file offsets). Op table `0x28f2` re-read: 0
 continuation is ever asked for" guard is complete. DNG1 message 7 is record 7 = prefix 1 (an option byte) after message 6
 (length 80): the second line of the purple-gas text. It could be reached only by a kind-3 trap in DNG1 (`a + 4 = 7`), and
 DNG1 has only kind-2 traps and no op 16. The "THE PARTY" / "MEMBERS CHO" menu is what `0x2a95(7)` *would* draw: a correct
-emulation of an unreachable slot, not an extractor bug (s49: extractor rerun, `dungeons.json` unchanged).
+emulation of an unreachable slot, not an extractor bug (extractor rerun: `dungeons.json` unchanged).
 
 **[D✓] s56 DOSBox** (`working/capture_s56_2026-10-25.md`; DNGX.SAV patched so the events sit south of the DNG1 entrance):
 op 6 gives are asked one by one mid-script in script order ("YOU FIND SM AXE. KEEP IT?" …), nothing in between; a revisit
 shows the chest menu again but the spent gives offer nothing (one-shot, declined items included) — Core's pending-treasure
 order and one-shot ops give the same result. Ops 1–4 "REPORT:" lines `%-10.9s` + `TAKES %-3d DAMAGE`, a 0 roll prints the
 name alone. Trap: MESS a+4 first (waits for a key), then "IN THE TRAP:" with `TAKES %-3dDAMAGE` / `AVOIDS THE TRAP`;
-NO to "DISARM IT ?" steps back silently. Stairs `0xda`: "[original text] 1  TO 2", same level. All match Core.
-(s154: "no wait" was wrong: the stairs line is a `0xda83` band that waits for a key, DOSBox-X s154 and the code;
-`message-and-text.md` Text boxes.)
+NO to "DISARM IT ?" steps back silently. Stairs `0xda`: "[original text] 1  TO 2", same level, in a `0xda83` band
+that waits for a key (DOSBox-X s154 and the code; `message-and-text.md` Text boxes). All match Core.
 
 **[D✓] s58 DOSBox** (`capture_s58_2026-10-25.md` §4, §5; patched sets `working/snapshots/s58-dng1-ev8/`, `s58-dng7-ev19/`):
 - **Four-option spill, DNG7 ev19** (moved to (15,1)): the box "[original text] / THE SAME COLOR
@@ -413,8 +407,8 @@ NO to "DISARM IT ?" steps back silently. Stairs `0xda`: "[original text] 1  TO 2
   message through). Not separated by this run: whether a message cell **always** prints, even without a teleport in
   between `[~]` — the s49 static reading says a repeat of the last message id is skipped; a live check needs two
   same-message cells in a row with no teleport.
-- **Remaster text:** the entry and exit paths have no remaster lines any more ("Entered dungeon…", "Leaving the dungeon." / "Exited dungeon." removed
-  s58, Exit row above).
+- **Remaster text:** the entry and exit paths print no remaster-only lines (no "Entered dungeon…", "Leaving the
+  dungeon." or "Exited dungeon."; Exit row above).
 
 **Live checks still open `[D+]`** (state needed):
 - One-shot 4-byte op quirk, second visit: DNG8 ev3 (10,20) and ev5 (18,18), visited twice in one load.
@@ -423,15 +417,13 @@ NO to "DISARM IT ?" steps back silently. Stairs `0xda`: "[original text] 1  TO 2
 
 ## Inputs / outputs
 - **Inputs**: current level grid (`DNG*`), party position/facing, party skills
-  (pick lock, spot/disarm trap, find item, listen), RNG, `DNG.SAV` flags.
+  (pick lock, spot/disarm trap, find item, listen), RNG, the one-slot save (`DNG.SAV` + `DNGX.SAV`).
 - **Outputs**: movement + reveal, event resolution (damage, gold, teleport,
-  combat entry), persistent flags (opened doors, taken loot) to `DNG.SAV`.
+  combat entry), rewrites of the live level buffer (opened doors, cleared fights, spent events), saved to `DNGX.SAV`
+  on a YES at the exit.
 
 ## Remaster note
-M5 Core wiring: `DungeonLevel` (33×38) + `DungeonTraversal` with feature
-dispatch. s39: fight cells, traps and locks follow the DOS rules above (no
-approximate tables left; `DungeonRules.cs`, `GameSession.DungeonCells.cs`). s36: the
-`ClearedEventKeys` stand-in is replaced by the live 2500-byte buffer + a one-slot
-`DungeonSaveSlot` (codec `DungeonSaveCodec` in `OpenPhantasie.Data`); re-entry loads
-the slot on an id match; a NO purges a same-dungeon slot (D-027). Exits land on the exit record's tile (D-038). No dungeon-tile art in the
-Phase 4 manifest yet — Client rendering waits on assets; Core is headless-tested.
+Core: `DungeonLevel` (33×38) + `DungeonTraversal` with feature dispatch; fight cells, traps and locks follow the DOS
+rules above (`DungeonRules.cs`, `GameSession.DungeonCells.cs`). State is the live 2500-byte buffer + a one-slot
+`DungeonSaveSlot` (codec `DungeonSaveCodec` in `OpenPhantasie.Data`); re-entry loads the slot on an id match; a NO
+purges a same-dungeon slot (D-027). Exits land on the exit record's tile (D-038).

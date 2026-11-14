@@ -1,14 +1,14 @@
 # Phantasie IV (X68000) — function map (3d.4)
 
 `P4.X` keeps its full symbol table (705 text symbols), so every function already has its C name; this file records
-what the names **do**. **s82: all 705 text symbols are listed** (§1 s79–s81 readings, §2 s82, §3 the XC runtime);
-gameplay functions were read, UI / graphics plumbing is grouped and partly named from its callees (`[~]`). Addresses are P4.X image addresses
-(file offset − 0x40). Full list of names: `extracted/p4x-symbols.json`. Tags as in `FORMAT.md`.
+what the names **do**. All 705 text symbols are listed (section 1 the first readings, section 2 the rest, section 3 the XC
+runtime). Gameplay functions were read; UI / graphics plumbing is grouped and partly named from its callees (`[~]`).
+Addresses are P4.X image addresses (file offset − 0x40). Full list of names: `extracted/p4x-symbols.json`. Tags as in `FORMAT.md`.
 
 **How to reproduce the decompile:** `tools/scripts/x68k_p4_ghidra_prep.py OUTDIR`, then Ghidra headless with
 `tools/scripts/GhidraP4Setup.java` (command in the prep script's docstring; one Ghidra at a time, `MAXMEM=4G` under
 `flock /tmp/claude-1000/ghidra.lock`). Integer FPACK calls are rewritten to 68020 multiply/divide so array strides show;
-float code stays as `trap(0xe)` and is read in the disassembly (operand order: `FORMAT.md` §6).
+float code stays as `trap(0xe)` and is read in the disassembly (operand order: `FORMAT.md` section 6).
 
 ## 1. Game functions read (s79)
 
@@ -67,16 +67,16 @@ float code stays as `trap(0xe)` and is read in the disassembly (operand order: `
 | `0xc320` | `_calpow(rec, level)` | level-up (returns at once for level 30): gold += social^social × level × 30 (cap 65 535), skill bonuses, skills, HP (TABL 0x000), magic level (TABL 0x14A), learnable spells (TABL 0x6EA), level |
 | `0xbbb0` / `0xbdb8` | `_calsk` / `_calbon` | skill value from TABL 0x1C2 / ability bonus (0 below 10, else 2 × value − 20) |
 | `0x3c30` | `_trang` | guild training: experience needed = 1350 × (1.8^L − 0.8) / class-ability ratio; cost = L^2.2 × (20 − Cha)^2 × `_ctab`[map] / 100, cap 25 000, from party gold; then `_calpow` (`logic-specs/training.md`) `[C]` |
-| `0x34b0` | `_mage` | Magic Training Hall: quota L × Int^1.177 / 90 × (class + 1, Fighter −2); price trunc(9000 × `_ctab` / 100) / Cha / Int × L / (9 − class); age +2/26 yr per try; success rand(100) < 5 × Int (`logic-specs/training.md` §5) `[C]` |
+| `0x34b0` | `_mage` | Magic Training Hall: quota L × Int^1.177 / 90 × (class + 1, Fighter −2); price trunc(9000 × `_ctab` / 100) / Cha / Int × L / (9 − class); age +2/26 yr per try; success rand(100) < 5 × Int (`logic-specs/training.md` section 5) `[C]` |
 | `0x97be` | `_cal_user(ch, item)` | item usable by Str/Dex requirement |
 | `0x23e54` / `0x23c06` | `_baserate` / `_movlost` | combat movement incl. armour % and Shoes of Speed |
 | `0xa236` | `_sell` | sell: price / 4 + 1, shop stock +1 |
 | `0xdcfa` / `0xddd4` | `_igen` / `_igen8` | random shop item / restock 8 |
 | `0x20d54` | `_enc_mons` | load encounter groups from `datm`, counts, HP, gold, XP, follow-up groups |
-| `0x845c` | `_page1(rec)` | character sheet page 1 (field names for §6.2) |
+| `0x845c` | `_page1(rec)` | character sheet page 1 (field names for section 6.2) |
 | `0x8344` | `_dsp_uni` | "<name> a <social> <race> <class>" ancestor line |
 
-### Towns (s81, spec: `logic-specs/towns.md`)
+### Towns (spec: `logic-specs/towns.md`)
 
 | Addr | Name | Role |
 |---|---|---|
@@ -107,7 +107,7 @@ float code stays as `trap(0xe)` and is read in the disassembly (operand order: `
 | `0xcb1a` | `_trans` | swap-disk prompts, `_p3disk`, `_mtrans` |
 | `0xcab4` | `_p3disk` | III player disk check: sector 0x120 has "Pendragon" at byte 230 |
 | `0x11680` | `_mtrans` | read 21 III records (15 sectors from 0x20), choose, copy into free Hall slots |
-| `0x1141e` | `_mcopy(rec, slot)` | III record → Hall record (field map `FORMAT.md` §6.3) |
+| `0x1141e` | `_mcopy(rec, slot)` | III record → Hall record (field map `FORMAT.md` section 6.3) |
 | `0x112c6` | `_cntdown` | "N more can be transferred" / "No more can be transferred." |
 | `0x121ba` / `0x12012` / `0x11f68` | `_rdiskv` / `_rwdisk` / `_rfd256` | raw 256-byte-sector floppy read via IOCS `B_READ` |
 
@@ -122,7 +122,7 @@ float code stays as `trap(0xe)` and is read in the disassembly (operand order: `
 
 ## 2. Functions read in s82 (combat, dungeon events, skills, outdoor, items, endings, pictures, UI)
 
-Specs: `logic-specs/combat.md`, `events.md`, `skills.md`, `outdoor.md`, `items.md`, `ending.md`; pictures `FORMAT.md` §6.9.
+Specs: `logic-specs/combat.md`, `events.md`, `skills.md`, `outdoor.md`, `items.md`, `ending.md`; pictures `FORMAT.md` section 6.9.
 Rows whose role comes only from the name and the callees are marked `[~]` in the last table.
 
 ### Combat (`logic-specs/combat.md`)
@@ -173,7 +173,7 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | Addr | Name | Role |
 |---|---|---|
 | `0x1a1f2` | `_event(x, y, dir)` | runs the first matching trigger entry of `_evbuf`, then `_rndenc` |
-| `0x195b0` | `_exe_ev` | event bytecode interpreter, opcodes 0x00–0x3A (`logic-specs/events.md` §4) |
+| `0x195b0` | `_exe_ev` | event bytecode interpreter, opcodes 0x00–0x3A (`logic-specs/events.md` section 4) |
 | `0x18474` / `0x184c4` | `_evadr` / `_evval` | little-endian u16 operand: base + offset / plain value |
 | `0x1850e` | `_evj(op)` | jumps 1–6 (always, true, false, cmp > 0, cmp = 0, cmp < 0) and 7 (call) |
 | `0x185d6` | `_eprint(text)` | message box print, `$` = new line, 18 full-width characters per line |
@@ -223,7 +223,7 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | `0x24774` / `0x24664` | `_esub02` / `_findit` | post-fight treasure (45 % in dungeons, `_emlevel` + 18 % outdoors) / offer an item for the pack |
 | `0x153a2` | `_ocast` | cast outside combat (outdoors 5, dungeon 6, town 7) |
 
-### Pictures (`FORMAT.md` §6.9)
+### Pictures (`FORMAT.md` section 6.9)
 
 | Addr | Name | Role |
 |---|---|---|
@@ -233,7 +233,7 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | `0x31fac` | `_scst_stacs(x, y, w, h)` | new picture slot that saves a screen rectangle (palette from `_GPALET`, `_scsvs1`) |
 | `0x325d4` / `0x326b6` / `0x32760` | `_scst_display` / `_scst_displays` / `_scst_displays2` | set the slot palette, copy the slot to the screen (`_scdisp1` / `_scdisp2` / `_scdisd2`) |
 | `0x3280a` / `0x32846` / `0x32896` | `_scst_clr` / `_scst_all_clr` / `_scst_ck_f` | free the top slot / free all slots / find a slot by id |
-| `0x3a8b0` | `_scsvb1(dst, src, len)` | PKH run-length unpacker (`FORMAT.md` §6.9) |
+| `0x3a8b0` | `_scsvb1(dst, src, len)` | PKH run-length unpacker (`FORMAT.md` section 6.9) |
 | `0x3a720` | `_scsvs1` | GVRAM rectangle → store |
 | `0x3a770` / `0x3a7c0` / `0x3a82a` | `_scdisp1` / `_scdisp2` / `_scdisd2` | store → GVRAM rectangle (`_scth` scroll offset) |
 | `0x31f6c` / `0x31f2c` | `_cv_pword` / `_cv_pxword` | read an unaligned BE word / longword `[~]` |
@@ -249,7 +249,7 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | `0x263d6` | `_bo1pix(square)` | draw a combat-field object (`_obpix`) or background (`_bkpix`) at square % 7, square / 7 |
 | `0x290c8` | `_itmpix(n)` | map a sprite frame number by facing (`__xdir`) for n > 6 `[~]` |
 
-### Program frame, system menu, sound (s82)
+### Program frame, system menu, sound
 
 | Addr | Name | Role |
 |---|---|---|
@@ -271,7 +271,7 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | `0x3605e`–`0x36110` | `_bsetr`, `_sdbeep`, `_sdnoi`, `_sdwlk`, `_sdatk`, `_sddam`, `_sdmag` | `_voice` 1, 2, 3, 4 / 5 by turns (`_wlkflg` `0x4A35C`), 6, 7, 8; `_noise` = `_voice(0)`; `_bsetr` and `_sdatk` have no caller (FORMAT.md 6.13, every call site) |
 | `0x3b4fa`–`0x3b62e` | `_m_alloc`, `_m_assign`, `_m_vget`, `_m_vset`, `_m_tempo`, `_m_trk`, `_m_free`, `_m_play`, `_m_stat`, `_m_stop`, `_m_cont` | OPM music driver (`OPMDRV.X`) calls |
 
-### Party, roster and character screens (s82)
+### Party, roster and character screens
 
 | Addr | Name | Role |
 |---|---|---|
@@ -301,20 +301,20 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | `0x30e7c` / `0x309e4` | `_noyes` / `_numin` | YES/NO box / number entry |
 | `0x31098` / `0x3110e` / `0x311ea` / `0x31246` | `_setwho` / `_getwho` / `_amark` / `_bmark` | member buttons, pick a member, highlight / flash a member's status box |
 
-### Creation menus (s82; logic in §1)
+### Creation menus (logic in section 1)
 
 | Addr | Name | Role |
 |---|---|---|
 | `0x118ca` / `0x11abc` / `0x119f8` / `0x13902` / `0x13cd6` | `_makemenu` / `_make1menu` / `_make3menu` / `_moptbmenu` / `_make5menu` | windows for creation, First / Second ancestor, Hall pick lists, "Create Descendant" |
 
-### Items, scrolls, endings, Hall (s82)
+### Items, scrolls, endings, Hall
 
 | Addr | Name | Role |
 |---|---|---|
-| `0xfeb0` | `_use` | Use Item screen (`logic-specs/items.md` §1) |
+| `0xfeb0` | `_use` | Use Item screen (`logic-specs/items.md` section 1) |
 | `0xec4a` | `_spoile(member)` | 10 % "This potion has gone bad!", 1–8 damage |
 | `0xec2e` | `_udam` | wrapper of `_ddamage` |
-| `0xedc4` / `0xecd2` / `0xeef0` / `0xf8c6` | `_use_hp` / `_use_mp` / `_use_op` / `_use_mi` | healing / magic / special potions, magic items (`items.md` §3–§5) |
+| `0xedc4` / `0xecd2` / `0xeef0` / `0xf8c6` | `_use_hp` / `_use_mp` / `_use_op` / `_use_mi` | healing / magic / special potions, magic items (`items.md` sections 3–5) |
 | `0xfad0` / `0xfcb2` | `_use_sc` / `_use_box` | read a scroll (`scr` file, `SCBACK.PKH`) / open The Box (story) |
 | `0xfdea` | `_setuse` | Use Item window |
 | `0x2ddba` / `0x2da08` / `0x2dcf4` | `_ident` / `_ident_mi` / `_setident` | Item Appraisal: per item kind a description ("Hit points … will be restored somewhat", "It teaches a spell", …) |
@@ -323,7 +323,7 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | `0xd6d2` / `0xd4b0` | `_hprof` / `_hprofmenu` | Hall of Glory person profile screen (`HALL_A/B.PKH`, `_dsp_hinfo`, `_hpix`) |
 | `0xbf48` / `0xbdf2` | `_sklupmenu` / `_sklpr` | level-up skill raise screen "Training Menu — Skill Now → After" (`logic-specs/skills.md`) |
 
-### Town and dungeon frames (s82)
+### Town and dungeon frames
 
 | Addr | Name | Role |
 |---|---|---|
@@ -331,16 +331,16 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | `0x611c` / `0x6154` / `0x61b4` / `0x61f4` / `0x6348` | `_clrret` / `_clrbtd` / `_clrtdraw` / `_mkicon` / `_bvs2` | button-table resets, clear the town picture, command-icon window, member-button lookup |
 | `0x17970` / `0x17a10` / `0x17a30` / `0x17a50` | `_dcset` / `_dcast` / `_dprof` / `_dsetup` | dungeon message window / cast (`_ocast`) / profile / command icons |
 | `0x16c16` / `0x16d10` / `0x16d44` | `_idcopy` / `_nw` / `_ww` | copy the 9 × 9 cells around the party (`_pibuf`) / cell fields |
-| `0x16d7a` / `0x171ce` / `0x175bc` | `_calim` / `_idraw` / `_ianim` | build / draw / animate the location-map view from `_pibuf`: a 9 × 9 overhead view with standing walls (tiles `_fpix`, `_ypix`, `_tpix`, `_mpix`; `FORMAT.md` §6.9, s108) |
+| `0x16d7a` / `0x171ce` / `0x175bc` | `_calim` / `_idraw` / `_ianim` | build / draw / animate the location-map view from `_pibuf`: a 9 × 9 overhead view with standing walls (tiles `_fpix`, `_ypix`, `_tpix`, `_mpix`; `FORMAT.md` section 6.9) |
 
-### Windows, text, input, graphics primitives (s82, roles from names and callees, `[~]` unless stated)
+### Windows, text, input, graphics primitives (roles from names and callees, `[~]` unless stated)
 
 | Range | Functions | Role |
 |---|---|---|
 | `0x32c68`–`0x34742` | `_wloc`, `_wprint`, `_wprcen`, `_whole`, `_wbox`, `_wfbox`, `_wxbox`, `_wind_clr`, `_windinit`, `_wcls`, `_wwind`, `_wttl`, `_wactive`, `_wopen`, `_wopen68`, `_wclose`, `_wputc`, `_wkprint`, `_wlocpr`, `_wkprcen`, `_wdout`, `_wdoutc`, `_wlocdc`, `_wdouti`, `_wlocdi`, `_wdoutl`, `_wdoutf`, `_wgetc`, `_wscan`, `_wiscan` | window system: open/close/clear windows with titles, print text (ANK and kanji), centred text, numbers (char / int / long / float), boxes, text and number input |
-| `0x2e144`–`0x2e6c8` | `_setpage`, `_font`, `_hole`, `_box`, `_fbyte`, `_fsize`, `_fprint`, `_kfput`, `_kfprint` | graphics page select, font attributes (`_font(font, style, fg, bg)`, FORMAT.md §6.12), frames, ANK / kanji glyph output |
-| `0x39c86`–`0x3a57c` | `_wfnt`, `_flen`, `_wkfnt`, `_wfopt`, `_fstl` | font renderers (ANK from P4.X's three glyph tables with the `_wfopt` styles bold / italic / outline / shadow, Shift-JIS kanji via the CG ROM `trap`), string length; FORMAT.md §6.12 (s135) |
-| `0x2e6c8`–`0x2e98e`, `0x303b4` | `_clanim`, `_setanim`, `_anima`, `_animdoor` | picture animation (random frame changes from the `*_AN` / `*ANI` sheets, counted in `_anima` calls = input-loop passes; the open door + a 3 × 30 000 busy wait); tables and timing `FORMAT.md` §6.10 (s109) `[C]` |
+| `0x2e144`–`0x2e6c8` | `_setpage`, `_font`, `_hole`, `_box`, `_fbyte`, `_fsize`, `_fprint`, `_kfput`, `_kfprint` | graphics page select, font attributes (`_font(font, style, fg, bg)`, FORMAT.md section 6.12), frames, ANK / kanji glyph output |
+| `0x39c86`–`0x3a57c` | `_wfnt`, `_flen`, `_wkfnt`, `_wfopt`, `_fstl` | font renderers (ANK from P4.X's three glyph tables with the `_wfopt` styles bold / italic / outline / shadow, Shift-JIS kanji via the CG ROM `trap`), string length; FORMAT.md section 6.12 |
+| `0x2e6c8`–`0x2e98e`, `0x303b4` | `_clanim`, `_setanim`, `_anima`, `_animdoor` | picture animation (random frame changes from the `*_AN` / `*ANI` sheets, counted in `_anima` calls = input-loop passes; the open door + a 3 × 30 000 busy wait); tables and timing `FORMAT.md` section 6.10 `[C]` |
 | `0x2e98e`–`0x2f90e` | `_clsc`, `_scinit`, `_scinit68`, `_scclose`, `_scprsub`, `_scupcopy`, `_scupz`, `_scup`, `_scdown`, `_scupb`, `_rprint`, `_dconv`, `_xprintf`, `_scgetc` | scrolling message window with `printf`-style output (`_dconv`: fixed-width decimal) and scroll-back |
 | `0x2f9b6`–`0x30020` | `_clrbtn`, `_setbtn`, `_seticon`, `_getbtn`, `_inbtn`, `_xbtn`, `_onbtn`, `_kbn` | clickable buttons / icons (`_button` table, 256 × 32 B) and their keyboard shortcuts |
 | `0x30020`–`0x302e0`, `0x349b2` | `_blocmc`, `_pushmc`, `_popmc`, `_inkey3`, `_mouseup`, `_while_mbtn`, `_mgetc`, `_mgetc2`, `_inkey2` | input: mouse cursor save/restore, wait for key or mouse button (runs animations while waiting) |
@@ -351,11 +351,11 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | `0x30462` / `0x3070a` | `_abs` / `_expi` | float helpers (`trap #14` FPACK) |
 | `0x31b3c` / `0x31b9e` | `_xrndwrite` / `_xsperead` | write / read a record at an offset (`_lseek`) |
 
-### Combat screen, field and auto mode; outdoor frame; system (s82, roles from code read in passing or from names + callees `[~]`)
+### Combat screen, field and auto mode; outdoor frame; system (roles from code read in passing or from names + callees `[~]`)
 
 | Addr | Name | Role |
 |---|---|---|
-| `0x227b0` | `_encount` | fight driver: `_enc_mons`, field (`_e_terrain`, `_opn_field`), round loop `_enc_opt` / `_enc_patk` / `_enc_matk` / `_reset_act`, `_enc_end` `[C]` (`combat.md` §1) |
+| `0x227b0` | `_encount` | fight driver: `_enc_mons`, field (`_e_terrain`, `_opn_field`), round loop `_enc_opt` / `_enc_patk` / `_enc_matk` / `_reset_act`, `_enc_end` `[C]` (`combat.md` section 1) |
 | `0x223b4` / `0x22678` / `0x20b08` | `_enc_init` / `_reset_act` / `_enc_char` | "Encount!" window and monster info / clear the acted flags / `_set1` for every member |
 | `0x20b40` / `0x24d4c` | `_minfo` / `_echkdisp` | monster picture and name box / combat status display |
 | `0x2032c` / `0x20474` / `0x202de` | `_msg` / `_say` / `_bwait` | combat message window / speech line / message delay (`contr` 2) |
@@ -365,7 +365,7 @@ Rows whose role comes only from the name and the callees are marked `[~]` in the
 | `0x268d8`–`0x26cb0`, `0x26d9c`, `0x26ff4` | `_e_on_desert`, `_e_on_hill`, `_e_on_forrest`, `_e_on_grass`, `_e_on_mist`, `_e_on_nether`, `_init_terr`, `_init_edge` | field layout per terrain (`_e_terrain` picks one) and exit squares |
 | `0x22950` / `0x1dcba` | `_b_decmvcnt` / `_e_drmvcnt` | MV counter decrement / display |
 | `0x22b48` / `0x23012` / `0x23172` / `0x231ce` | `_bf_checker` / `_bv_checker` / `_b_sqchecker` / `_b_sqchkinit` | square occupancy / line-of-reach / reachable-square marks |
-| `0x22d06` / `0x22f88` | `_b_face` / `_b_range` | turn a combatant to face (`p4mon.pix` frame by facing, table `0x44278`; `FORMAT.md` §6.9, s108) / distance between two squares |
+| `0x22d06` / `0x22f88` | `_b_face` / `_b_range` | turn a combatant to face (`p4mon.pix` frame by facing, table `0x44278`; `FORMAT.md` section 6.9) / distance between two squares |
 | `0x233b6` / `0x234aa` / `0x2352a` / `0x27368` | `_center` / `_faraway` / `_b_friend` / `_b_getnear` | auto-mode movement helpers: toward the centre, away from enemies, toward a friend, nearest enemy |
 | `0x1ed38` / `0x2998c` / `0x2bbee` | `_faropp` / `_chr_here` / `_mon_here` | farthest opponent / member on a square / monster on a square |
 | `0x1edc4` / `0x1edde` | `_csf` / `_msf` | member / monster spell-effect flag lookups |
@@ -413,6 +413,6 @@ the role `[C]`:
 `__CDADD` 45, `$FEE3` `__CUMUL` 32, `$FEE6` `__CLTOD` 30, `$FEE7` `__CDTOL` 26, `$FEE4` `__CUDIV` 20, `$FEEC` `__CDCMP`
 15, `$FEE9` `__CFTOL` 13, `$FEEE` `__CDSUB` 7, `$FE01` `__LDIV` 7, `$FE02` `__LMOD` 4, `$FE10` `__STOL` 4, `$FEF8`
 `__CDTST` 3, `$FE00` `__LMUL` 3, `$FE0C` 2, `$FE42` 2, `$FEE5` `__CUMOD` 1, `$FE24` `__ECVT` 1, `$FE25` `__FCVT` 1
-(names `[~]` from the FLOAT2 numbering; `__CL*`/`__CU*`/`__CD*` take their operands on the stack). `FORMAT.md` §3 said
-`$FE00` was the most common; with instruction-start decoding it is `$FEE0`. The 36 `$FFFF` and other `$FFxx` words in
+(names `[~]` from the FLOAT2 numbering; `__CL*`/`__CU*`/`__CD*` take their operands on the stack). With
+instruction-start decoding `$FEE0` is the most common (not `$FE00`). The 36 `$FFFF` and other `$FFxx` words in
 `_wfinit` and `_timezone` are data, not calls.

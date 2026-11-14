@@ -62,7 +62,7 @@ Tool: `tools/scripts/msx2_p4_dis.py` (directory, strings, kana search, Z80 linea
 - **Class list** (seg `1001` `0x41F9`): Thief, Monk, Ranger, Fighter, Priest, Wizard, S. Warrior, Gargoyle, Sage, Lord.
 - **Social classes** (seg `1006` `0x258D`): Peasant, Laborer, Craftsman, Noble, Super Hero, Dark Lord, Black Lord,
   Royalty, Outcast, Lord (0–9, the X68000 order).
-- **Hall record (27 B, seg `8200`)**: the X68000 28-byte record (`../../x68000/phantasie4/FORMAT.md` §6.3) without its
+- **Hall record (27 B, seg `8200`)**: the X68000 28-byte record (`../../x68000/phantasie4/FORMAT.md` section 6.3) without its
   unused last byte. The shipped three are **byte-identical** to X68000 `FAME` bytes 0–26: Lord Wood (Human Ranger, L16,
   Royalty, 18/17/16/16/17, deeds 0), Filmon (Human Sage, L19, Noble, 12/21/14/13/15), Nikademus (race 33 `  ?`, Lord,
   L19, Black Lord) in slot 2. The creation code uses +0E (social) and +18 (descendants, +1 while < 100) as on X68000.

@@ -4,7 +4,7 @@ Phase 09 T3, task 3b.7. II's new combat option "7) Toss Rock" (manual p.27) and 
 Everything not listed here (round order, orders, monster turn, damage application, death, re-rank, rewards) is
 Phantasie I's: `reverse-engineering/dos/logic-specs/combat-resolution.md`. Tags as in `docs/plan/RE-REFERENCE.md`:
 `[C]` read in `PHANT.PRG`, `[C] live` also seen in Hatari, `[~]` probable, `[?]` open. Addresses are image addresses
-(`../FORMAT.md` §1). Live check: `../parity/toss-training-live.md`.
+(`../FORMAT.md` section 1). Live check: `../parity/toss-training-live.md`.
 
 Code: chooser `combat_choose_action 0x0f298` (case 6 at `0x0f74a`), rank prompt `pick_rank 0x0f14c`, resolution
 block `0x0772e…0x079aa` inside `combat_round 0x07610`, damage `0x099e0` (I: `h38:0x0cf6` / DOS `0x1597`), skill growth
@@ -15,7 +15,7 @@ block `0x0772e…0x079aa` inside `combat_round 0x07610`, damage `0x099e0` (I: `h
 - **Any party member whose status is OK**, any class, any race, any weapon. No item, no ammunition: unlimited rocks.
   Members asleep or dead get no orders (I's rule).
 - **Any rank.** Choosing TOSS always asks "TOSS AT RANK" with one button per rank (unlike melee, where only a THIEF is
-  asked and everyone else hits rank 1). Live: a WIZARD got the prompt with 3 ranks, and (s83) with a **single rank** the
+  asked and everyone else hits rank 1). Live: a WIZARD got the prompt with 3 ranks, and with a **single rank** the
   prompt still shows, one button "1" (`../parity/shots/p2-toss-one-rank.png`).
 - **Order encoding:** the packed action is **−rank** (1-based; −1 … −n). Any negative order is TOSS.
 - **Repeat:** an unchanged order is repeated the next round (I's rule, `combat-resolution.md` §Action chooser) and
@@ -47,7 +47,7 @@ apply damage through I's party→monster routine: at least 1 HP; "<monster> TAKE
 - `rnd` = `rand() / 327` (`0x0fd40`), **0 … 100**; 100 is rare (68 of 32,768 values). The slot formula runs in the
   program's Motorola FFP, in this order: `ftoi(fmul(fdiv(fadd(itof(i), fmul(itof(rnd), 0.02)), itof(N + 2)), itof(L + 1)))`
   (`0x77bc..0x784e`). For N 1..7, rnd 0..100, L + 1 ≤ 15, **58 of 42,420 cases land one slot lower** than exact
-  arithmetic (s83, the program's own FFP routines run in a 68000 emulator, `tools/scripts/st_p2_ffp_oracle.py`).
+  arithmetic (the program's own FFP routines run in a 68000 emulator, `tools/scripts/st_p2_ffp_oracle.py`).
 - **RNG order:** one `rnd` per slot try, then the hit roll, then the 12-roll, then the `@28` roll.
 - **Hit chance** = P(rnd ≤ TOSS): TOSS 0 → 327/32,768 ≈ 1 %; TOSS s < 100 → 327·(s + 1)/32,768 ≈ (s + 1) %;
   TOSS ≥ 100 → always (when a target is found). No monster defense, no swings, no QUICKNESS, no level term.
@@ -61,7 +61,7 @@ apply damage through I's party→monster routine: at least 1 HP; "<monster> TAKE
   transferred character has the `@28` of its last town exit (new: 0) until it leaves town `[~]`.
 - **Target spread:** each thrower aims at its own share of the group (front members low slots, rear members high
   ones), with a random shift of up to 2 party places. The formula never picks past the last slot.
-- Rock tossing gives **no skill gain on use**; TOSS grows only at level-up (§3).
+- Rock tossing gives **no skill gain on use**; TOSS grows only at level-up (section 3).
 
 ## 3. The TOSS skill (`@42`) and its bonus (`@62`) `[C] live`
 
@@ -78,9 +78,9 @@ at creation and at every level-up (level_up(L), L = level before the gain; creat
 - `coef[…][6]` is `TWNS.INT` skill-coefficient column 6: **0 everywhere except MONK at L = 9 (14)**.
 - **Starting value** (new character, TOSS 0): `max(0, 4·DEX + STR − 39 + race bonus)`; e.g. HUMAN DEX 18 STR 10 → 43.
 - Long run at fixed stats: TOSS climbs toward ≈ 2·(@62 − 49).
-- A **transferred** character arrives with TOSS 0 and `@62` 0 (I never set them, `transfer.md` §2) and gets the
+- A **transferred** character arrives with TOSS 0 and `@62` 0 (I never set them, `transfer.md` section 2) and gets the
   formula at its first training. Live: level 0 → 1, TOSS 0 → 77 (GNOME DEX 17 STR 18).
-- Checked against the shipped played roster (7 of 7 characters' TOSS and `@62` reproduce) and live (§5).
+- Checked against the shipped played roster (7 of 7 characters' TOSS and `@62` reproduce) and live (section 5).
 - Shown on the character sheet as `TOSS %3u` (`0x03a50`) and in the printout (`0x17b44`).
 
 ## 4. Versus the manual
@@ -98,14 +98,12 @@ skill, damage within the formula's range, a toss at an emptied rank missing.
 
 ## 6. Open
 
-- Answered s83: the rank prompt with a single rank (live), the slot model (below), the field ids (below).
 - What monsters with armor ≥ 12 take (only the `@28` part, then the 1-point floor): not seen live `[~]`.
-- Field ids `[C]` (s83): the field map `0x12078` reaches `@42` / `@62` through ids 32 / 33, but no shipped DNG script
+- Field ids `[C]`: the field map `0x12078` reaches `@42` / `@62` through ids 32 / 33, but no shipped DNG script
   sets or tests them (all eight levels decoded, `../parity/p2-dungeon-events.txt`).
-- Slot model `[C]` (s83): every monster death runs `0xb16e` (called from the damage routine at `0x9b20`), which moves the
+- Slot model `[C]`: every monster death runs `0xb16e` (called from the damage routine at `0x9b20`), which moves the
   living monsters of each rank to the front and recounts, as I's `0x1694`. So the slots are the living monsters: a living
   rank costs one slot draw, an emptied rank three, then the toss misses. Core's model.
-- What monsters with armor ≥ 12 take (only the `@28` part, then the 1-point floor): not seen live `[~]`.
 
 ## 7. Core (s79)
 
@@ -120,14 +118,13 @@ II's campaign builds its sessions.
   5000 + rank, not the ST's −rank: I's round loop skips every order ≤ 4, and the Client's repeat reads < 10 as PARRY. The
   block is clear of I's melee (10–99), casts (105+) and HEALING (1000–4999).
 - **Repeat:** the Client's `CombatText.RepeatFor` keeps TOSS and clamps its rank to the living ranks; the rank prompt
-  shows whenever at least one rank lives (single rank: seen live s83).
-- **Resolution:** §2 as written. RNG order: slot tries, hit, rock, `@28`; `rnd` = `Next(0, 32768) / 327`. The slot
-  formula runs in the ST's FFP (`MotorolaFfp`, ported bit for bit from `PHANT.PRG` and pinned on all 42,420 cases, s83).
-  The slots are the rank's **living** monsters in order (`0xb16e` compacts on every death), so a rank emptied earlier in
-  the round misses after 3 tries, as seen live.
+  shows whenever at least one rank lives (single rank: seen live).
+- **Resolution:** section 2 as written. RNG order: slot tries, hit, rock, `@28`; `rnd` = `Next(0, 32768) / 327`. The slot
+  formula runs in the ST's FFP (`MotorolaFfp`, ported bit for bit from `PHANT.PRG` and pinned on all 42,420 cases).
+  The slots are the rank's living monsters (section 6 slot model).
   Damage goes through the shared monster-damage step as `DamageSource.PartyRock` (1-point floor, death, XP).
 - **TOSS skill:** `Character.TossRock` / `TossRockBonus` (`@42` / `@62`), written to the remaster save only when not 0
   and never to I's DOS record. Creation (`level_up(0)`) and every level-up grow it while the module is on
   (`FeatureModuleSet.TossRock` → `LevelUp.Apply`), so I characters get it too when I plays with rocks.
 - **Text:** `core.combat.x_throws_a_rock` and `combattext.toss` in `shared/strings/en.json` (the module runs in any game).
-- Nothing open in Core (s83: the field ids are unused by the shipped scripts, §6).
+- Nothing open in Core (the field ids are unused by the shipped scripts, section 6).

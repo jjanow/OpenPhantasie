@@ -9,9 +9,9 @@ Opcodes decoded so far (RPN, operands pushed first) `[~]` = inferred from patter
 - `90 vv` / `94 hh ll` push var · `d0 vv` / `d4 hh ll` store var
 - `b4 hh ll` call DEF FN (arg on stack) · `b8 nn` builtin `0xb4+nn` (00 SGN, 01 INT, 07 RND, 0e PEEK)
 - `01` + · `02` − · `03` × · `04` / `[~]` · `06` AND · `07` OR · `50` POKE (addr, value)
-- compares (true = −1, false = 0; left operand pushed first) **[C] s58, RTL-64 traced + emulated**: `2a >` · `2b =` ·
+- compares (true = −1, false = 0; left operand pushed first) **[C], RTL-64 traced + emulated (below)**: `2a >` · `2b =` ·
   `2c >=` · `2d <` · `2e <>` · `2f <=`; `06` AND · `07` OR (bitwise); `4f nn` = IF: true → body (`4f+2`), false → `4f+nn`.
-- `48 hh ll` jump · `4a hh ll` gosub · `42` FOR · `47` NEXT. **Target address (s16) [C]:** big-endian, bit-inverted:
+- `48 hh ll` jump · `4a hh ll` gosub · `42` FOR · `47` NEXT. **Target address [C]:** big-endian, bit-inverted:
   memory = `~(hh·256+ll) & 0xffff`; file offset = memory − `0x7ff` (all modules load at `$0801`). Checked on
   TOWNR (resurrect FOR `0x3bab`, its NEXT `0x3c22`, heal `0x339d`), OUTDOORS, DUNGEON1.
 - `a1 nn` / `e1 nn` array read/write `[~]` · `8a len text` print string · `4c` statement end `[~]`
@@ -23,8 +23,8 @@ Findings:
   status := 1, HP := max. **No CON write** — same as DOS.
 - Inn MP raise (TOWNR `0x35f0`): `RND·100 < 20·(P9 − P10)` — same as DOS.
 - **CON loss happens at death** (OUTDOORS `0x2f20`, `0x2fd0`, `0x628a`; DUNGEON1 `0x2eb5`, `0x2fa4`), next to
-  "STIRBT". Literal decode: `CON − SGN(CON) − (CON<1)·(LUCK≥11)`, and in `0x2fd0`/`0x2fa4` a variant applied twice.
-  Under the confirmed opcodes it reads `CON − SGN(CON) − (CON>1)·(P6<11)` = DOS OV2 `0x12cf` exactly [C] (−1, −2 if
+  "STIRBT". It reads `CON − SGN(CON) − (CON>1)·(P6<11)` (in `0x2fd0`/`0x2fa4` applied twice) = DOS OV2 `0x12cf`
+  exactly [C] (−1, −2 if
   CON>1 and the 6th stat < 11; DOS tests seed `@10` < 11).
 
 ## Opcode semantics — resolved s58 [C]: reading B
@@ -34,7 +34,7 @@ The file's `$d800/$d801` operands (and `$91` at `$a092`) are placeholders; init 
 table `$aa0d` / hi table `$ab06` (`$d800` is colour RAM / charset). Handlers: `2a..2f` → `$adfc/$ae52/$ae56/$ae5a/$ae5e/$ae62`
 (mask 1..6 in `$12`, shared body `$adfe`, result `rol(cmp+1) & mask` → −1/0); `06` → `$ad95` AND, `07` → `$adb1` OR;
 `4f` → `$b588` (nonzero → `+2`, zero → `+nn`). Emulated with py65 on integer operands: truth tables and operand order
-match B; reading A (s14) is wrong. Not traced: the `$a6e5` alternative patch (writes `$d8xx` operands); float compares
+match B (the s14 reading A is wrong). Not traced: the `$a6e5` alternative patch (writes `$d8xx` operands); float compares
 (`$bdc1`) not run — the `88` 5-byte float format above may be wrong `[~]`.
 
 ## Town Option → cast spell (TOWNR `0x31b6`, s16)
@@ -77,4 +77,4 @@ Any other known spell: MP spent, nothing happens. Same flow as DOS OV1 `0x254e`.
 - Town = **DOS town** in shape (no floor, 0 possible ~1 in `c`). DOS town's rare top value `c` doesn't exist on the
   C64: that part is DOS's RNG scaling. So the town/combat split is in **both** ports → likely inherited from the
   original, not a DOS-port slip (`DIFFERENCES.md` D-010 evidence).
-- Hint for DOS P0.6 (wilderness/dungeon cast, undecoded): on the C64 wilderness has no floor and dungeon has one.
+- Wilderness / dungeon cast: on the C64 the wilderness has no floor and the dungeon has one.

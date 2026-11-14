@@ -15,10 +15,8 @@ exercise. They are *not* line-by-line transliterations of 8086 assembly.
    hitchhikerprod community walkthroughs. Used to *cross-check* values found in
    the binary, never as a primary source.
 
-Dynamic verification under DOSBox (plan §3.2) was **partial** — guild /
-inventory / XP / prices / skills / mystic score verified by save diffs +
-screenshots; combat formulas are static-[C]. Remaining open items are listed
-below and carried into Phases 5–6.
+Dynamic verification ran under DOSBox for guild, inventory, XP, prices, skills, mystic score, training and the main
+combat paths (save diffs, screenshots, the `../working/capture_*.md` logs). Claims not yet seen live are tagged below.
 
 ## Confidence legend
 
@@ -31,23 +29,22 @@ Every non-obvious claim is tagged:
 
 ## Open / deferred → Phase 5–6
 
-Do not drop these when implementing. Full tracking:
-`docs/plan/03-…md` (Descoped), `05-…md` (open fields), `06-…md` (by milestone).
+Status of the items that were open when the specs were written. Current open work is tracked in `PLAN.md`.
 
 | Item | Spec | Status |
 |---|---|---|
 | `DNGX.SAV` / `DNG.SAV` field-level maps | `save-file-format.md`, `dungeon-representation.md` | **[?]** descoped — `ClearedEventKeys` stand-in |
 | Dungeon wall/feature byte legend + W×H | `dungeon-representation.md` | **[C]** 33×38 (1254 B); FUN_2249 legend |
-| Non-zero `SACK.DAT` fixture / exact layout | `save-file-format.md` | **[C]** s35: 60 × u16 item ids (`SACK.s35.dat`); semantic `LootSack` kept (D-037) |
-| `spells_known` packing; potions/runes/ring counters | `save-file-format.md` | **spells_known [C]** `@0x60` u16[55]; potions/runes/ring still **[?]** (fixtures zero + indirect renderer; only `scroll(s)` pinned = `@28`) |
-| `@28` scroll_count vs weapon_hit | `save-file-format.md`, `combat-resolution.md` | **retracted (s19)**: wrong OV2 base. `@28` = weapon damage A (writer `[C]` s28: town Exit OV1 `0x3249`); weapon hit = attack `@30`; scroll count is counted from the carried items |
-| Status `@24`; level `@88`; in-party `@218`; `@92` ordinal; `@256` displayed race; `@260` party-order stamp | `save-file-format.md` | **[C]** status 0 DEAD/1 OK/2 SLEEP, level, in-party flag, race 15 = UNDEAD — code + DOSBox (s10, PLAN H3); `@260`=`2×@92+10` static (not the `@264` age clock); wired + round-trip tested |
-| MP fields `@14`/`@16`/`@18`; `@94`, `@252`, `@254`, `@258`, `@264` | `save-file-format.md` | **[C]** (s11) `@14` = MP ceiling (manual table; was "combat rating"), `@16` MP max / `@18` MP cur (were swapped), `@94` cast-since-rest, `@252` lifespan, `@254` current town, `@258` has-aged, `@264` age clock (AGE = `/26`). Codec swap pending (PLAN P1.1) |
+| `SACK.DAT` layout | `save-file-format.md` | **[C]** 60 × u16 item ids (fixture `SACK.s35.dat`); semantic `LootSack` kept (D-037) |
+| `spells_known`; potion/scroll/ring/treasure counts | `save-file-format.md` | **[C]** `spells_known` `@0x60` u16[55]; the counts are derived from the nine carried item ids, not stored |
+| `@28` | `save-file-format.md`, `combat-resolution.md` | **[C]** weapon damage A (writer: town Exit OV1 `0x3249`). Weapon hit = attack `@30`. Not a scroll count (an old reading with the wrong OV2 base) |
+| Status `@24`; level `@88`; in-party `@218`; `@92` ordinal; `@256` displayed race; `@260` party-order stamp | `save-file-format.md` | **[C]** status 0 DEAD/1 OK/2 SLEEP, level, in-party flag, race 15 = UNDEAD (code + DOSBox); `@260` = `2×@92+10` static (not the `@264` age clock); codec round-trip tested |
+| MP fields `@14`/`@16`/`@18`; `@94`, `@252`, `@254`, `@258`, `@264` | `save-file-format.md` | **[C]** `@14` MP ceiling (manual table), `@16` MP max, `@18` MP cur, `@94` cast-since-rest, `@252` lifespan, `@254` current town, `@258` has-aged, `@264` age clock (AGE = `/26`) |
 | Q4 strong-race duplicate guard | `quirks-and-bugs.md`, `character-creation.md` | **[C]** OV1 `0x0C28` RANDOM path — **PRESERVE** |
-| XP width if >65535 | `save-file-format.md` | **[C remaster]** `long` + GUILD s32 @266..269 |
+| XP width if >65535 | `save-file-format.md` | **[C remaster]** `long` + GUILD @266..269 |
 | Per-spell MP cost | `magic-spells.md` | **[C]** `(index%4)+1` |
-| Spell effect coefficients | `magic-spells.md` | **[C]** FIREFLASH…FLAMEBOLT; **[~]** HEALING RNG + specials; potions **[C]** |
-| Town service curves | `town-menus.md` | Armory price **[C]**: full list price, no CHA discount. No Temple town service exists in DOS (session 9). s11 **[C]**: all six training class formulas (dispatch table OV1 `0x12be`), Inn rest + MP raise, wilderness inn, aging on town entry, level-up gains (OV1 `0x9ee`). Remaining **[?]**: training XP/gold float chain above level 1. Manual conflicts D-003…D-007 pending. |
+| Spell effect coefficients | `magic-spells.md` | **[C]** FIREFLASH…FLAMEBOLT, HEALING (RNG 0..99), specials (a few details `[~]`, `combat-resolution.md`), potions |
+| Town service curves | `town-menus.md` | **[C]** Armory pays full list price (no CHA discount); all six training class formulas (dispatch OV1 `0x12be`) and the training XP/gold float chain; Inn rest + MP raise; wilderness inn; aging on town entry; level-up gains (OV1 `0x9ee`). No Temple in DOS. Manual conflicts D-003…D-007 decided (`DIFFERENCES.md`) |
 
 ## The game's file/executable layout
 
@@ -69,14 +66,14 @@ Do not drop these when implementing. Full tracking:
 
 ## Spec index
 
-| Doc | Subsystem (plan §3.1) |
+| Doc | Subsystem |
 |---|---|
 | `00-function-map.md` | Static-analysis pass: subsystem → address map, anchors |
 | `character-creation.md` | Character creation / stat generation |
 | `save-file-format.md` | Save file format (GUILD.DAT + party/dungeon saves) |
 | `overworld-movement.md` | Overworld movement / map representation |
 | `map-tile-graphics.md` | Overworld `PAT` tiles + dungeon map glyphs (format, selection, palette) |
-| `town-menus.md` | Town menus (armory, bank, mystic, inn, guild; no temple — see §Temple) |
+| `town-menus.md` | Town menus (armory, bank, mystic, inn, guild; no temple: see section Temple) |
 | `dungeon-representation.md` | Dungeon representation + movement + scripted events |
 | `combat-resolution.md` | Combat resolution (turn order, to-hit, damage) |
 | `endgame.md` | Quest chain (runes, rings, DNG event-script interpreter), Black Lord win → Zeus, party defeat → Astral Plane / Great Demon fates (P0.8) |

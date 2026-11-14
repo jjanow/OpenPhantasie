@@ -2,7 +2,7 @@
 
 Covers the **Bonus Edition Ver 1.0 9/21/90** (the GOG / Steam Memorial Set's I,
 `original-images/phantasie1/memorial-set-gog/GAME/PH1/`) and **Ver 1.1 11/12/90**
-(`original-images/phantasie1/bonus-v1.1-1991-wizardworks/*.ima`). Read s168.
+(`original-images/phantasie1/bonus-v1.1-1991-wizardworks/*.ima`).
 
 ## Ver 1.0 vs Ver 1.1
 

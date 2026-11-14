@@ -11,9 +11,12 @@ belongs in the spec (`reverse-engineering/atari-st/phantasie2/FORMAT.md`, later 
 **Status:** `PENDING` = raised, no decision yet · `DECIDED: <side>` + `built` / `not built` · `NOT A CONFLICT` =
 checked, the two agree or the manual is silent.
 
+**Options:** every `p2.*` rule option is locked per save. Its `manual` value is in the Original (manual) and Remaster
+presets, its `st` value in the Original (Atari ST) preset; an entry names its presets only where they differ.
+
 **Evidence level:** D2-001…004 are confirmed **live** in Hatari + EmuTOS (s76, `reverse-engineering/atari-st/phantasie2/
 parity/transfer-live.md`: the converted roster matches the decoded byte table byte for byte). D2-005 onward are static, except D2-007, D2-008 and D2-014, also seen live
-(s78, `parity/terrain-live.md`), D2-020 (s80, Guild menu) and D2-041 (s82, `parity/encounters-endgame-live.md` §6).
+(s78, `parity/terrain-live.md`), D2-020 (s80, Guild menu) and D2-041 (s82, `parity/encounters-endgame-live.md` section 6).
 
 | ID | Topic | Status |
 |---|---|---|
@@ -30,7 +33,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 | D2-011 | Rulebook quiz (copy protection) hangs the game after two wrong answers | DECIDED: not included, as I's D-036 · not built |
 | D2-012 | Training: FIGHTER and PRIEST need about a third more XP than in I | NOT A CONFLICT (manual gives no formula) · built |
 | D2-013 | Training repeats I's D-050 (cost hidden while XP is short) and D-007 (HP dice vs the chart) | DECIDED: manual, as I (options `p2.training-cost`, `p2.hit-dice`) · built |
-| D2-014 | Terrain pictures: orange-wave lava and blue-dot mist vs the ST's blue/red swirl and grey dots | NOT A CONFLICT (ST art) · built (drawn s82) |
+| D2-014 | Terrain pictures: orange-wave lava and blue-dot mist vs the ST's blue/red swirl and grey dots | NOT A CONFLICT (ST art) · built |
 | D2-015 | Mortality text: a "high-level wizard" resurrects, but no wizard can learn RESURRECTION | DECIDED: manual, wizard level 13 (option `p2.wizard-resurrection`) · built |
 | D2-016 | Autosave on leaving town: always (Apple text) vs opt-in "Auto save" menu item on the ST | NOT A CONFLICT (option `p2.autosave`) · built |
 | D2-017 | DIVINE I can't be gained in II; it only arrives by transfer from I | NOT A CONFLICT |
@@ -55,7 +58,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 | D2-049 | Apple II vs ST: creation cells (2 agree with the manual / D2-009, 2 ST-only skill cells) and 9 map / 2 dungeon cells | DECIDED |
 | D2-050 | Apple II vs ST: text (names, scroll and message wording, menus); the Apple has no spell names | DECIDED |
 | D2-051 | Guild elementals: the manual's "will only serve a party of six adventurers" vs the ST's Add with any party size (SUMMON still needs six) | DECIDED (user s173: SUMMON's six-member gate is enough; the ST's Add stays as II's `game`) |
-| D2-052 | Apple II new game: the manual's "just as if you had bought a new game" vs the Apple's BACKUP, which keeps the lifted fog (and leaves the dungeon saves) | DECIDED (s209): manual; importer restores the start fog (a), built s210 |
+| D2-052 | Apple II new game: the manual's "just as if you had bought a new game" vs the Apple's BACKUP, which keeps the lifted fog (and leaves the dungeon saves) | DECIDED (user s209): manual; importer restores the start fog (a) · built |
 | D2-053 | Apple II v1.0: a dungeon gold event (ops 7–10) can run the winning ending or re-run the event (`X` reused) against the manual's quest; v2.1 and the ST don't | **DECIDED** (user s212): the manual's quest (the ST / v2.1 behaviour Core plays); nothing built |
 
 ---
@@ -67,12 +70,12 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 - **ST:** the transfer in `UTILIT2.PRG` (converter `0x0edc`, mode 2) empties item slots 4–9 and overwrites slots 1–3 and
   the worn items with SM SHIELD (4), MACE (49) and LEATHER (23) for every character. No item is carried over, the wand
   (I item 150) included. In II, item 150 is `---ORB---` and 149 is `FLMN WAND`, so even a copied id would not be the wand.
-- **Later games:** Apple III turns the flag into a wand bit and tests it in dungeon scripts ("YOU DO NOT HAVE THE WAND, STUPID"); DOS III drops it → `DIFFERENCES-III.md` D3-001. T5's II → III transfer must carry the flag.
+- **Later games:** Apple III turns the flag into a wand bit and tests it in dungeon scripts ("YOU DO NOT HAVE THE WAND, STUPID"); DOS III drops it → `DIFFERENCES-III.md` D3-001. The II → III transfer (T5) must carry the flag.
 - **Decision:** (user s76: "see how the other versions handle this") NOT A CONFLICT. No version of II has a wand item, and every version (ST, Apple, C64, Atari 8-bit, PC-88, PC-98) clears all items. II represents the wand as a **flag**: a character whose Phantasie I score (ST word @70) is over 99 shows "- WAND OF NIK -" (`PHANT.PRG 0x3a16`) and the Mystic adds "heroes of Gelnor" (`0xd7e4`). The transfer copies that score unchanged, so the wand survives as the manual says. In II it does nothing else `[~]` (Apple labels it "WAND OF NIK(USELESS NOW)").
 - **Remaster:** the converter keeps the I score; "has the wand" = score > 99. No option.
 - **Side effects:** the free starter kit (shield, mace, leather) is not in the manual either; it is part of the same
-  rule. Phantasie III's manual also has the wand surviving a transfer (into III), which may matter for T5 party transfer.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/FORMAT.md` §6.
+  rule. Phantasie III's manual also has the wand surviving a transfer into III (see Later games above).
+- **Spec:** `reverse-engineering/atari-st/phantasie2/FORMAT.md` section 6.
 
 ## D2-002 — I → II transfer: Rangers keep HEALING I, Monks keep FIREFLASH I
 
@@ -82,9 +85,9 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   (#5) for **Monks and Wizards** (class bytes 2/4 and 1/5). #55–#60 are kept. The flags are set whether or not the
   character knew the spell in I.
 - **Decision:** (user s76) the ST rule is fine unless the manual contradicts it. p.27 read strictly does ("all spells except" the divine ones, with only Wizards and Priests named), so the manual wins by default. Every decoded version (Apple, C64, Atari 8-bit, PC-88, PC-98, Apple III) does what the ST does, so the ST rule is the original design.
-- **Remaster:** rules option, manual default (Manual and Remaster presets: only Wizards #5, Priests #1); the Original (ST) preset gives Rangers HEALING I and Monks FIREFLASH I.
+- **Remaster:** rules option `p2.transfer-spells`: `manual` (only Wizards #5, Priests #1) · `st` (Rangers also HEALING I, Monks also FIREFLASH I).
 - **Side effects:** none beyond the two classes (in I, Rangers and Monks learn these spells at level 1 anyway).
-- **Spec:** `FORMAT.md` §6.
+- **Spec:** `FORMAT.md` section 6.
 
 ## D2-003 — I → II transfer: bank gold becomes a flat amount
 
@@ -93,10 +96,10 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   the most anyone keeps is 1,892 GP. So a character with less than 100 GP **gains** gold, and one with 100–199 GP keeps
   half or more. Above ~200 GP the manual's "majority" holds.
 - **Decision:** (user s76) the ST formula, "weird but fine". Apple, C64, PC-88 and PC-98 use the same formula; Atari 8-bit has a bug that gives everyone one flat amount (≈868 GP `[~]`).
-- **Remaster:** rules option: the ST formula in every preset. Second value `no-gain` (the formula, but never more than the character had) closer to the manual's "pay the majority": kept as a player-selectable value, in no preset (user s77).
+- **Remaster:** rules option `p2.transfer-gold`: the ST formula in every preset. Second value `no-gain` (the formula, but never more than the character had) closer to the manual's "pay the majority": kept as a player-selectable value, in no preset (user s77).
 - **Side effects:** the shared sack / carried gold is not in the Guild record; the transfer writes II's `SACK.DAT` from a
   template, so found gold is lost too `[~]`.
-- **Spec:** `FORMAT.md` §6.
+- **Spec:** `FORMAT.md` section 6.
 
 ## D2-004 — Divine spell numbers
 
@@ -106,10 +109,10 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   (#55, #56, #59, #60 empty). So "#58+" leaves out DIVINE II; "#55 and above" covers both, and the transfer code keeps
   exactly #55–#60.
 - **Decision:** (user s76) p.27: divine spells are #55 and above (both DIVINE I #58 and DIVINE II #57 survive), which is also what the ST transfer keeps. Facts from `PHANT.PRG`: DIVINE I works only in a dungeon (a deity's advice); DIVINE II only in wilderness region 26 (a forced fight, 25 % one of Pluto's dragons).
-- **Remaster:** rules option: #55+ in every preset; `p14` (#58+) as the alternative.
+- **Remaster:** rules option `p2.transfer-divine`: #55+ in every preset; `p14` (#58+) as the alternative.
 - **Side effects:** I's DOS table has DIVINE I at #58 and nothing at #57, so "#58+" is right for I; the p.14 text is shared
   I/II text.
-- **Spec:** `FORMAT.md` §3, §6.
+- **Spec:** `FORMAT.md` sections 3, 6.
 
 ## D2-005 — Towns: 11 towns and "start in Pelnor"
 
@@ -119,7 +122,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   no map cell. Town 1 = PIPPACOTT (the transfer's and probably a new game's start `[~]`).
 - **Decision:** (user s77) NOT A CONFLICT: the text is I's, shared in the combined rulebook; II's towns are undocumented.
 - **Remaster:** II's code: 10 reachable towns, start in PIPPACOTT; STARVILLE and OLYMPIA stay unreachable (built).
-- **Spec:** `FORMAT.md` §9.
+- **Spec:** `FORMAT.md` section 9.
 
 ## D2-006 — 16 map sections vs 17 regions
 
@@ -127,7 +130,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 - **ST:** `MAPS.INT` = 17 × 520 B starting grids (regions 1, 2, 3, 5, 6, 7, 8, 11, 12, 17, 18, 22, 26, 27, 28, 30, 31).
 - **Decision:** (user s77) NOT A CONFLICT: the 16-sections text is I's (shared rulebook; same reasoning as I's D-071).
 - **Remaster:** loads all 17 regions, as the ST (built).
-- **Spec:** `FORMAT.md` §9.
+- **Spec:** `FORMAT.md` section 9.
 
 ## D2-007 — Lava damage
 
@@ -135,8 +138,8 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 - **ST:** every living member takes 1 + ⌊r·d/10⌋ on every lava step (r 0–100, d = the cell's last digit). A digit-0
   lava cell does nothing; lava has no encounters. Probably consistent if d = 0 cells are the "almost" `[~]`.
 - **Decision:** (user s77) NOT A CONFLICT: the digit-0 cells are the "almost".
-- **Remaster:** the ST formula as is: `rules.json` `terrain` class 8 `lava`, `Lava.Resolve` (built s79; `terrain.md` §10).
-- **Spec:** `logic-specs/00-function-map.md` §5.3, `FORMAT.md` §9.
+- **Remaster:** the ST formula as is: `rules.json` `terrain` class 8 `lava`, `Lava.Resolve` (`terrain.md` section 10).
+- **Spec:** `logic-specs/00-function-map.md` section 5.3, `FORMAT.md` section 9.
 
 ## D2-008 — Mist and Dark Voids
 
@@ -160,9 +163,9 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   - **Regions:** mist in OUT17, 18, 22, 26, 27 and 28; voids in OUT17, 18, 22, 26, 27, 28 and 31.
   - **Caveats:** no game text names either class. The ST dots are grey, not the manual's blue (see D2-014).
 - **Decision:** (user s79) NOT A CONFLICT: the manual's "difficult" / "dangerous" gives no numbers; the ST rules apply.
-- **Remaster:** II's terrain rules as the ST (`terrain.md` §5–§7): cost 60, no damage, one undead/insect fight per trip.
-  Built s79: `rules.json` `terrain` classes 7 and 11 `terrain_fight`, played by `OverworldTraversal` (`terrain.md` §10).
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` §3, §5–§7; `FORMAT.md` §9.3.
+- **Remaster:** II's terrain rules as the ST (`terrain.md` sections 5–7): cost 60, no damage, one undead/insect fight per trip;
+  `rules.json` `terrain` classes 7 and 11 `terrain_fight`, played by `OverworldTraversal` (`terrain.md` section 10).
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` section 3, sections 5–7; `FORMAT.md` section 9.3.
 
 ## D2-009 — Creation tables repeat D-001 and D-006
 
@@ -171,7 +174,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   DEX) and D-006 (Monk SLEEP at level 7).
 - **Decision:** same manual text, same code, so I's decisions (manual) carry over. Change here if II should differ.
 - **Remaster:** `GameData/phantasie2/creation-tables.json` carries I's decided values (HALFLING DEX 12 / 20, MONK spell 41
-  not at level 7), applied by `tools/scripts/build_p2_gamedata.py` (s78). The raw ST values stay in `extracted/`.
+  not at level 7), applied by `tools/scripts/build_p2_gamedata.py`. The raw ST values stay in `extracted/`.
 
 ## D2-010 — Magical pools are gone
 
@@ -179,7 +182,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 - **ST:** I's pool terrain class became a special-encounter terrain; I's pool effect ("%s IS CHANGED") has no II code.
 - **Decision:** (user s77) NOT A CONFLICT: the pools are I's island; II has none.
 - **Remaster:** no pools in II, as the ST. Idea for later: pools in II as a cross-game feature option (T5).
-- **Spec:** `00-function-map.md` §5.3.
+- **Spec:** `00-function-map.md` section 5.3.
 
 ## D2-011 — Rulebook quiz
 
@@ -188,7 +191,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   answers put the game into an endless loop.
 - **Decision:** copy protection, as I's D-036 (user s35: not included); the same decision applies.
 - **Remaster:** nothing.
-- **Spec:** `00-function-map.md` §5.5.
+- **Spec:** `00-function-map.md` section 5.5.
 
 ## D2-012 — Training XP for FIGHTER and PRIEST
 
@@ -197,8 +200,8 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   (STR + INT)/18.1): about a third more XP at equal stats. At level 0 the level factor is 1.0.
 - **Live (s78):** FIGHTER STR 22 DEX 15 level 1 → "You need 549" (I's formula: 435), `parity/toss-training-live.md`.
 - **Decision:** NOT A CONFLICT (a number the manual doesn't state; II's own numbers apply).
-- **Remaster:** II's rules profile takes the ST numbers (`rules.json` `training`, `TrainingRules`; built s79, `training.md` §4).
-- **Spec:** `00-function-map.md` §5.1.
+- **Remaster:** II's rules profile takes the ST numbers (`rules.json` `training`, `TrainingRules`; `training.md` section 4).
+- **Spec:** `00-function-map.md` section 5.1.
 
 ## D2-013 — Training repeats I's D-050 and D-007
 
@@ -208,12 +211,11 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   no cost (`confirm_cost 0x017e4`; live s78). Level-up re-rolls `(hp_factor · (CON + 5)) >> 4` d3 and keeps the old
   maximum + 1 on a lower roll (`level_up 0x0c71a`, as I's DOS/Amiga), so HP stays below the chart, as in I.
 - **Decision:** (user s79) manual, as in I: D-050 (show the cost too) and D-007 (the chart HP formula).
-- **Remaster:** II's training uses I's decided rules. Built s79 (`training.md` §4) as two rules options:
+- **Remaster:** II's training uses I's decided rules (`training.md` section 4), as two rules options:
   - `p2.training-cost`: `manual` shows the cost with "You need N"; `st` hides it.
   - `p2.hit-dice`: `manual` is `factor·(CON + 5)/15`; `st` is `>> 4`.
-  - Both are `manual` in the Original (manual) and Remaster presets and `st` in Original (Atari ST).
-  - II's own level-up deltas (`training.md` §2: spell marks, HP tie) are data, not options.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/training.md` §1, §3.
+  - II's own level-up deltas (`training.md` section 2: spell marks, HP tie) are data, not options.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/training.md` sections 1, 3.
 
 ## D2-014 — How lava and mist look
 
@@ -226,20 +228,19 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 - **Decision:** (user s79) NOT A CONFLICT: the manual's colours describe another platform; the ST patterns are shown.
 - **Remaster:** II's graphics pack is the ST's (`GameData/phantasie2/graphics/atari-st.json`, the default and only II
   pack; the same file as the extract's `pack.json`). Its region pictures are the ST's own polygon fills, and the ST
-  fill patterns resolve as `overworld.pattern.N` (pattern = cell class: 7 dark voids, 8 lava, 11 mist). Built s81 (pack
-  wired); s82 the Client draws II's overworld with the ST pictures, every dungeon / castle icon and the ST's water /
-  lava colour cycle. The ST has no on-screen legend, so by default the remaster shows none. s171 QoL: the II tab's
-  presentation switch **TERRAIN KEY** (`GameSettings.TerrainKey`, off by default = the ST) draws the rulebook's key
+  fill patterns resolve as `overworld.pattern.N` (pattern = cell class: 7 dark voids, 8 lava, 11 mist). The Client draws
+  II's overworld with the ST pictures, every dungeon / castle icon and the ST's water / lava colour cycle. The ST has no
+  on-screen legend, so by default the remaster shows none. QoL: the II tab's presentation switch **TERRAIN KEY** (`GameSettings.TerrainKey`, off by default = the ST) draws the rulebook's key
   beside the wilderness map: the manual's names (Party, Town/Inn, Dungeon, Path, Desert, Grassland/Forest,
   Mountains/Hills, River/Lake, and p.27's Molten Lava, Mist, Dark Voids; `p2.terrain_key.*` in II's `en.json`), each with
   the ST's own pattern or map icon (`GameData/phantasie2/terrain-key.json`). It shows the ST's colours, not the
   manual's, so lava is the swirl and mist the grey dots, as on the map. The class readings behind the rows are
   `terrain.md` section 5's (mist 11 and dark voids 7 `[~]`; grassland 0, forest 1 and desert 9 are visual readings
   carried over from I `[~]`). The key shares the sidebar with the party: the party keeps its first row of cards, and
-  both scroll what does not fit (`parity/shots/s171-p2-terrain-key.png`). s172 (user: layout accepted): by the wheel,
+  both scroll what does not fit (`parity/shots/s171-p2-terrain-key.png`; layout accepted by the user s172): by the wheel,
   the bar, `[` / `]` (cards) and `,` / `.` (key), or the pad's right stick (cards; with the right trigger held, the key)
   (`parity/shots/s172-p2-sidebar-scrolled-by-key.png`).
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` §5.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` section 5.
 
 ## D2-015 — Mortality text: "a high-level wizard using a RESURRECT spell"
 
@@ -253,10 +254,10 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 - **Decision:** (user s79) manual: wizards can learn RESURRECTION, at level 13 (as the ranger; the manual says only "high-level").
 - **Remaster:** II's class/level table gets WIZARD slot 43 = 13 (`creation-tables.json`, set by
   `tools/scripts/build_p2_gamedata.py`). The ST's 0 is in its `dos_tables`, played by the rules option
-  `p2.wizard-resurrection` = `st` (Original (Atari ST) preset; `manual` in the other two). Built s79.
+  `p2.wizard-resurrection` = `st`.
 - **Side effects:** text only if the code wins; if the manual's sentence were followed, wizards would need a spell-table
   entry the manual's own tables don't have.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/magic-divine.md` §5 (manual Q14).
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/magic-divine.md` section 5 (manual Q14).
 
 ## D2-016 — Autosave when leaving a town
 
@@ -269,11 +270,11 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   written on leaving.
 - **Decision:** (user s79) NOT A CONFLICT: the ST matches its own section (opt-in "Auto save", off at start).
 - **Remaster:** II gets the ST's Auto save toggle, the same Town options item I already has (Client
-  `ClientSettings.AutoSave`, off at start). Built s79 as the rules option `p2.autosave`:
+  `ClientSettings.AutoSave`, off at start), with the rules option `p2.autosave`:
   - `toggle` (the ST, every preset) lets the toggle decide.
   - `always` (the Apple text) saves on every town exit; a player choice in no preset.
   - The Client's `LeaveTown` reads `GameOptions.AutoSaveAlways`.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/endgame.md` §11 (manual Q15).
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/endgame.md` section 11 (manual Q15).
 
 ## D2-017 — DIVINE I cannot be gained in Phantasie II
 
@@ -287,7 +288,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   `p2.transfer-divine`, D2-004).
 - **Side effects:** a II-only party never has DIVINE I, so it never gets the dungeon hints. If the remaster added a II
   source, it would be new content.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/magic-divine.md` §3.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/magic-divine.md` section 3.
 
 ## D2-018 — How Phantasie II is won
 
@@ -301,7 +302,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
     lead-in to III). Nikademus is never met, and the game continues afterwards.
 - **Decision:** (user s79) NOT A CONFLICT: story framing, as I's Black Lord.
 - **Remaster:** II's endgame as the ST (`endgame.md`) (built: `Phantasie2Campaign.ResolveEnding`).
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/endgame.md` §0, §6–7.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/endgame.md` sections 0, 6–7.
 
 ## D2-019 — Gold cap repeats D-048
 
@@ -313,11 +314,10 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   - The bank `@262` is clamped when found gold is split on town entry (`0x0bef8`).
   - The gold entry box (`0x01272`) refuses amounts over 65,535.
   - This is DOS I's behaviour (D-048). Static, not run.
-- **Decision (user s80):** manual, as I (65,000); the ST's 65,535 as a rules option. I's was the same (option `p1.gold-cap`).
-- **Remaster:** `GameData/phantasie2/rules.json` plays the manual's 65,000. Built s81 as the rules option `p2.gold-cap`:
-  `manual` (Original (manual) and Remaster) or `st` (Original (Atari ST); the 16-bit clamp 65,535 for the purse, every
-  account and the found gold, `GoldCapRule.Dos`). I's QoL `lifted` value is not offered for II (no decision).
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` §8.
+- **Decision (user s80):** manual, as I's D-048 (65,000); the ST's 65,535 as a rules option.
+- **Remaster:** `GameData/phantasie2/rules.json` plays the manual's 65,000. Rules option `p2.gold-cap`: `manual` or
+  `st` (the 16-bit clamp 65,535 for the purse, every account and the found gold, `GoldCapRule.Dos`). I's QoL `lifted` value is not offered for II (no decision).
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` section 8.
 
 ## D2-020 — Guild size repeats D-002
 
@@ -329,15 +329,14 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   - DOS I behaves the same (D-002).
   - Seen live (s80): "New member" is greyed with 22 occupied slots and enabled with 21
     (`parity/shots/p2-guild-menu-22-full.png`, `p2-guild-menu-21.png`).
-- **Decision (user s80):** manual, as I (21); the ST's 22 as a rules option. I's was the same (option `p1.guild-size`).
+- **Decision (user s80):** manual, as I's D-002 (21); the ST's 22 as a rules option.
 - **Remaster:** `rules.json` keeps `guild_max_characters` 21; `guild_by_platform.atari-st` records slots 22,
-  max_characters 22. Built s81 as the rules option `p2.guild-size`: `manual` 21 (Original (manual) and Remaster) or `st`
-  22 (Original (Atari ST)), read from `guild_by_platform` under `rules.json` `original_platform` = `atari-st`. The
+  max_characters 22. Rules option `p2.guild-size`: `manual` 21 or `st` 22, read from `guild_by_platform` under `rules.json` `original_platform` = `atari-st`. The
   every-game QoL `guild-limit` = `none` still overrides both.
-- **Side effect (s128, I → II transfer):** the transfer converts the ST's 22 slots, so under `manual` (21) the Guild
-  can hold 22 and N)EW is refused until a purge. **Decided (user s129): keep it** — all 22 come across, N)EW stays
-  refused until a purge, as a DOS save import into I behaves (D-002).
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` §8.
+- **Side effect (I → II transfer):** the transfer converts the ST's 22 slots, so under `manual` (21) the Guild can
+  hold 22. **Decided (user s129): keep it** — all 22 come across, N)EW stays refused until a purge, as a DOS save import
+  into I behaves (D-002).
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` section 8.
 
 ## D2-021 — Lifespans repeat D-003
 
@@ -349,12 +348,12 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   - Town entry (`town_aging 0x0bba6`): past 7/10 of `@252` the character "has aged" once (stats ×4/5); past `@252` the
     character "has died" (stats zeroed).
   - So a human dies at age about 88–137, as in DOS.
-- **Decision (user s80):** manual, as I (bands ±10 %); the ST factors as a rules option. I's was the same (option `p1.lifespans`).
+- **Decision (user s80):** manual, as I's D-003 (bands ±10 %); the ST factors as a rules option.
 - **Remaster:** `GameData/phantasie2/creation-tables.json` has I's `lifespan_bands` (manual ±10 %) and the ST factors in
-  `dos_tables.lifespan_factors` (DOS I's). Built s81 as the rules option `p2.lifespans`: `manual` (Original (manual) and
-  Remaster) or `st` (Original (Atari ST); `@252 = @10 × factor`, aged and died checked as `@264 >> 8`).
+  `dos_tables.lifespan_factors` (DOS I's). Rules option `p2.lifespans`: `manual` or `st` (`@252 = @10 × factor`, aged
+  and died checked as `@264 >> 8`).
 - **Side effects:** II adds race 15 UNDEAD (transfer / elementals only). Under the manual's text it is one of "the others".
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` §8.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` section 8.
 
 ## D2-022 — DISPELL UNDEAD repeats D-024
 
@@ -367,24 +366,22 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 - **Decision (user s80):** manual, as I (a data flag, `monster-traits.json`), and PLUTO'S UNDEAD SNAKE (72) **is** undead;
   the ST's XP-divisible-by-7 test as a rules option.
 - **Remaster:** `GameData/phantasie2/monster-traits.json`: `undead` = I's nine + PLUTO'S UNDEAD SNAKE (72);
-  `never_flees` empty. Built s81 as the rules option `p2.dispell-undead`: `manual` (the flag; Original (manual) and
-  Remaster) or `st` (XP divisible by 7; Original (Atari ST)).
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` §6.
+  `never_flees` empty. Rules option `p2.dispell-undead`: `manual` (the flag) or `st` (XP divisible by 7).
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` section 6.
 
 ## D2-023 — FEAR repeats D-021
 
 - **Manual:** FEAR "frightens the monsters into running away in terror" (shared spell text, I's).
 - **ST:** on r < 5·(caster level − L) + 50 the encounter level drops by 6 (combat case `0x8326`). Nothing runs, as in DOS.
-  - L is the **average** group level on the ST (`encounters.md` §3), so the roll succeeds more often against
+  - L is the **average** group level on the ST (`encounters.md` section 3), so the roll succeeds more often against
     several groups than in DOS.
-- **Decision (user s80):** manual, as I (monsters run); the ST's level drop as a rules option. I's was the same (`never_flees` for I's Black Lord). II has no Black
-  Lord. Follow-up (user s81): Pluto (79), PLUTO'S ICE DRAGON (78) and Pluto's eight minions (17, 43, 72–77) stand fast
-  (`monster-traits.json` `never_flees`, as I's Black Lord); option `p2.fear-bosses` = `flee` lets them run.
-- **Remaster:** built s81 as the rules option `p2.fear`: `manual` (the monsters run; Original (manual) and Remaster) or
-  `st` (level drop only; Original (Atari ST)). II's `monster-traits.json` `never_flees` lists Pluto, the Ice Dragon
-  and the eight minions (the s81 follow-up above), so under `manual` they stand fast; `p2.fear-bosses` = `flee` lets them run.
-  The ST's averaged L (above) belongs to II's encounter builder.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` §6.
+- **Decision (user s80):** manual, as I's D-021 (monsters run); the ST's level drop as a rules option. Follow-up (user
+  s81): Pluto (79), PLUTO'S ICE DRAGON (78) and Pluto's eight minions (17, 43, 72–77) stand fast, as I's Black Lord
+  (II has no Black Lord).
+- **Remaster:** rules option `p2.fear`: `manual` (the monsters run) or `st` (level drop only). II's
+  `monster-traits.json` `never_flees` lists Pluto, the Ice Dragon and the eight minions, so under `manual` they stand
+  fast; option `p2.fear-bosses` = `flee` lets them run. The ST's averaged L (above) belongs to II's encounter builder.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/encounters.md` section 6.
 
 ## D2-030 — TRANSPORTATION only reaches towns on the same plane
 
@@ -395,10 +392,10 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   - from a Netherworld town it offers one town only: BLACK MOOR ↔ DEATHPORT, DEMONIAC ↔ DARK ABYSS.
   - So the spell never crosses between Ferronrah and the Netherworld. Phantasie I lists every other town.
 - **Decision (user s81):** manual: TRANSPORTATION lists every other town, across Ferronrah and the Netherworld. The ST's same-plane lists (`transport_destinations`) as a `p2.*` rules option.
-- **Remaster:** built (s81). TRANSPORTATION lists towns 1–10 but the current one (`Phantasie2Campaign.TransportTowns`); `p2.transport-list` = `st` (Original preset) uses the current town's `transport_destinations` from `towns.json`.
+- **Remaster:** TRANSPORTATION lists towns 1–10 but the current one (`Phantasie2Campaign.TransportTowns`); `p2.transport-list` = `st` uses the current town's `transport_destinations` from `towns.json`.
 - **Side effects:** with the manual's reading, one cast would carry a party into or out of the Netherworld, skipping the
   vortex routes and the one-way town exits (BLACK MOOR → OUT6, DEMONIAC → OUT18).
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/towns.md` §4.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/towns.md` section 4.
 
 ## D2-031 — Town Inn does not restore DEAD members
 
@@ -408,9 +405,9 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   RESTING IN PEACE" and keeps the HP / MP it had. SLEEP members are refilled. Phantasie I's town Inn refills everyone,
   DEAD too (status unchanged). The wilderness inn skips DEAD members in both games (I's D-047).
 - **Decision (user s81):** manual: the town Inn refills HP / MP for every member, DEAD too (status unchanged), as I's town Inn. The ST's "IS RESTING IN PEACE" skip as a `p2.*` rules option.
-- **Remaster:** built (s81). The town Inn refills every member; `p2.inn-dead` = `st` (Original preset) leaves DEAD members' HP / MP as they were (`TownMenus.Rest skipDead`).
+- **Remaster:** the town Inn refills every member; `p2.inn-dead` = `st` leaves DEAD members' HP / MP as they were (`TownMenus.Rest skipDead`).
 - **Side effects:** only a dead member's stored HP / MP, which matter once the member is resurrected.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/towns.md` §5.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/towns.md` section 5.
 
 ## D2-032 — Inns repeat I's D-004 and D-046
 
@@ -420,9 +417,9 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   on `roll ≤ gap·20`, so at gap 0 a member has a 1 % chance per stay to go one past the table (I's D-046; `0xf864`). The
   town Inn uses `<`, as I.
 - **Decision (user s81):** manual, as I: a town Inn stay takes about two weeks (aging); the wilderness inn never raises MP past the table. The ST behaviour as `p2.*` rules options (mirroring `p1.town-inn-time`, `p1.inn-magic-cap`).
-- **Remaster:** built (s81). The town Inn takes two weeks (`p2.town-inn-time`, `st` = no time) and the wilderness inn stops at the table (`p2.inn-magic-cap`, `st` = the `≤` roll); same code as I's options (`GameOptions.TownInnNoTime` / `InnMagicPastTable`).
+- **Remaster:** the town Inn takes two weeks (`p2.town-inn-time`, `st` = no time) and the wilderness inn stops at the table (`p2.inn-magic-cap`, `st` = the `≤` roll); same code as I's options (`GameOptions.TownInnNoTime` / `InnMagicPastTable`).
 - **Side effects:** as I's D-004 / D-046.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/towns.md` §2, §5.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/towns.md` sections 2, 5.
 
 ## D2-040 — Path travel time (I's D-055 again)
 
@@ -431,12 +428,12 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   (P1 p.25), which D-055 follows. The **Atari ST** section ("The wilderness terrain will appear as follows", CB p.24 /
   PDF 15) shows only the pictures, with no text. No other part of the rulebook gives travel times.
 - **ST:** a step costs `(class + 1)·75` for classes 0–3 and 60 for every other class (`PHANT.PRG` `0x612c` → `0xef62`,
-  `terrain.md` §2 step 4, live). So the path (class 6) costs 60, the same as water, lava, mist and dark voids. It is
+  `terrain.md` section 2 step 4, live). So the path (class 6) costs 60, the same as water, lava, mist and dark voids. It is
   cheaper than land (75–300) but not cheaper than every other terrain. This is the same code as DOS I (D-055).
 - **Decision (user s81):** manual, as I (D-055): the path costs 30, less than every other terrain. The ST's 60 as `p2.path-time`.
-- **Remaster:** built (s81). `GameData/phantasie2/travel-time.json` charges the path 30; `p2.path-time` = `st` (Original preset) plays the ST table (path 60, `TravelTimeRules.Dos`).
+- **Remaster:** `GameData/phantasie2/travel-time.json` charges the path 30; `p2.path-time` = `st` plays the ST table (path 60, `TravelTimeRules.Dos`).
 - **Side effects:** none beyond travel time (aging on town entry). Mist (D2-008) shares the 60.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` §2, §10.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` sections 2, 10.
 
 ## D2-041 — Dungeon re-entry repeats I's D-027
 
@@ -448,14 +445,14 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   matches, with no time test; otherwise the level loads from its file, fully reset. NO writes nothing, so an older save of
   the same dungeon comes back. Seen with the DNG8 Ice Dragon: after ATTACK the dragon's cell is a plain message cell; a
   YES save keeps it gone, a later NO still loads that save, and only a slot holding another dungeon (or none) brings the
-  dragon back (`endgame.md` §6).
+  dragon back (`endgame.md` section 6).
 - **Decision (user s82):** as I's D-027: the ST slot rule, except that NO forgets a slot of the same dungeon; the plain
   ST behaviour as an option.
 - **Remaster:** shared `DungeonSaveSlot` / `GameSession.AnswerDungeonExit`; option `p2.dungeon-map-no` = `st` keeps the
   slot through a NO. Test `D2041_*`.
 - **Side effects:** the ATTACK soft-lock on the Ice Dragon lasts while the slot holds DNG8 (ST: also through a NO; remaster:
   a NO clears it). Every other one-shot dungeon event follows the same rule.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/endgame.md` §6; I: `dungeon-representation.md` §Leaving
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/endgame.md` section 6; I: `dungeon-representation.md` section Leaving
   and re-entering.
 
 ## D2-042 — Wilderness inn stay length (I's D-008 again)
@@ -464,33 +461,33 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   weeks" (Inns, PDF p.7), and a town Inn "stay lasts about two weeks" (PDF p.6).
 - **ST:** as DOS I. A stay at a wilderness inn (tile 41) adds 1000 to the travel-time word (`PHANT.PRG 0xfa38` →
   `0xef62`, the same adder as a step), which ages the party only through the next town entry (`@264 += time / 1792`,
-  `towns.md` §2); on DOS I that is 3.9 days of the day counter (II's day divisor not read `[~]`). It does not age anyone
+  `towns.md` section 2); on DOS I that is 3.9 days of the day counter (II's day divisor not read `[~]`). It does not age anyone
   by two weeks.
 - **Decision (user s84):** as I's D-008: the manual's two-week stay by default; the ST's +1000 travel time, no aging, as
   the rules option `p2.wild-inn-time` = `st`.
-- **Remaster:** today plays the manual reading, as I's D-008 decision does: `WildernessInn.Stay` ages every member two
-  weeks and adds no travel time. Built s85: `p2.wild-inn-time` = `st` adds 1000 (`phantasie2/travel-time.json`
+- **Remaster:** `WildernessInn.Stay` ages every member two weeks and adds no travel time, as I's D-008;
+  `p2.wild-inn-time` = `st` adds 1000 (`phantasie2/travel-time.json`
   `wilderness_inn_dos`) and ages nobody (`GameOptions.WildernessInnTravelTime`, shared with `p1.wild-inn-time`). Test `D2042_*`.
 - **Side effects:** as I's D-008 (the day counter doesn't move for a stay under the manual reading).
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/towns.md` §2.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/towns.md` section 2.
 
 ## D2-043 — End-of-combat XP and gold (I's D-053 again)
 
 - **Manual:** the combined rulebook keeps I's text: "[original text] AND GOLD are displayed at the end of combat - the
   number of experience points … divided among individual party members when they enter a town" (PDF p.7).
-- **ST:** as DOS I. Live s83 (`parity/encounters-endgame-live.md` §8): killing the Ice Dragon (XP 300,000) with six living
+- **ST:** as DOS I. Live s83 (`parity/encounters-endgame-live.md` section 8): killing the Ice Dragon (XP 300,000) with six living
   members showed **"[original text] 50000 XP AND 0 GP"**, the per-survivor share at the end of combat. The pooling and
   remainder rule are DOS I's `[C]` (s95, `0xa32e..0xa484`): n = non-DEAD members, shown `10·⌊XP/10n⌋` XP and
   `⌊gold/n⌋` GP, the town pools `0x25eb2` (XP in tens) / `0x25eb4` (gold) grow by those shares × n, capped 65535, so the
   remainders are lost; the town-entry split `0xbda6` is D2-045's D-037 row.
 - **Decision (user s84):** as I's D-053: the manual's totals, divided on town entry, by default; the ST's per-survivor
   shares as the rules option `p2.combat-shares` = `st`.
-- **Remaster:** today plays the manual reading through I's shared code (`p1.combat-shares` at its `manual` default:
-  "{xp} [original text] AND {gold} GOLD", the whole amount into the sack, split on town entry).
-  Built s85: `p2.combat-shares` = `st` runs I's DOS share code (`GameOptions.SurvivorShares`,
+- **Remaster:** the manual reading through I's shared code (`p1.combat-shares` at its `manual` default:
+  "{xp} [original text] AND {gold} GOLD", the whole amount into the sack, split on town entry);
+  `p2.combat-shares` = `st` runs I's DOS share code (`GameOptions.SurvivorShares`,
   shared with `p1.combat-shares`; ST pooling / remainders as DOS I `[C]`). Test `D2043_*`.
 - **Side effects:** as I's D-053 (no per-fight remainder loss; BEG FOR MERCY takes the whole purse).
-- **Spec:** `reverse-engineering/atari-st/phantasie2/parity/encounters-endgame-live.md` §8; I: `combat-resolution.md` §Outputs.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/parity/encounters-endgame-live.md` section 8; I: `combat-resolution.md` section Outputs.
 
 ## D2-044 — DIVINE I's fifth deity (an ST fault)
 
@@ -500,17 +497,17 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   (`0x1fd12`). With r₁ = r₂ = 100 (about 1 in 232,000 casts; `rand / 327` reaches 100) the index is 4. The fifth longword
   is the unrelocated text "WHO " (`0x57484f20`); `%s` then reads address `0x484f20` on the 68000's 24-bit bus, past 4 MB
   of ST memory, which should end in a bus error (the program crashes) `[~]` (static; not run live).
-- **Decision:** DECIDED (user, s92): index 4 shows **ZEUS** (not a manual conflict: an ST bug on a reachable roll).
+- **Decision (user s92):** index 4 shows **ZEUS** (not a manual conflict: an ST bug on a reachable roll).
 - **Remaster:** index 4 is shown as ZEUS, the last name, followed by the level's advice as for any deity
   (`Phantasie2Campaign.CastDivineI`). Test `DivineI_*`.
 - **Side effects:** none; the deity name is cosmetic and the advice (message 105) is the same for every deity.
-- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/magic-divine.md` §3.
+- **Spec:** `reverse-engineering/atari-st/phantasie2/logic-specs/magic-divine.md` section 3.
 
 ## D2-045 — I's other rule decisions, audited for II (the ST repeats DOS)
 
 - **Manual:** the combined rulebook keeps I's text for every rule below (II's own changes are only on p.27).
-- **ST:** the s92 audit read each rule's ST code (static, `PHANT.PRG`); s95 read the rest and settled D-020, D-030,
-  D-031 and D-059. On 29 of the 31 rules the ST does what DOS I does, so each of I's decided conflicts is a conflict in
+- **ST:** each rule's ST code read statically (`PHANT.PRG`, s92 + s95); every row is checked. On 29 of the 31 rules
+  the ST does what DOS I does, so each of I's decided conflicts is a conflict in
   II too (D-015 and D-033 are the exceptions):
 
   | I's entry | Option | ST evidence | ST = DOS? |
@@ -547,18 +544,18 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
   | D-037 town-entry payout | `p1.payout-remainder` | town entry `0xbda6`: a "Shares for:" dialog (`0x2db2`) per member, S = Σ shares (0 → 1); XP per share `min(65535, 10·[0x25eb2]/S)`, gold per share `[0x25eb4]/S`; each member `@262 += share·xp` (capped 65535), bank `@266 += share·gold`; both pools cleared, remainders lost. The fight payout `0xa34c..0xa484` pools `gold/n·n` and `XP/(10n)·n` (tens, cap 65535) as DOS | yes `[C]` (s95) |
   | D-054 Armory restock | `p1.armory-restock` | town entry `0xc0a8`: 18 × `stock[rand/274] := 0` (ids 0..119: weapons, armor, shields, potions), then 4 × `stock[list[rand/(32767/[0x25eaa])]] := 1` (list at town `+0xb6`); skipped on the start / load entry (`0x25ea6`) | yes `[C]` (s95) |
 
-  s95 checked the last rows; nothing is left unchecked. `p1.stash-access` is QoL. Already covered elsewhere:
+  `p1.stash-access` is QoL. Already covered elsewhere:
   D-001 / D-006 (D2-009), D-002 (D2-020), D-003 (D2-021), D-004 / D-046 (D2-032), D-007 / D-050 (D2-013), D-008 (D2-042),
   D-021 (D2-023), D-024 (D2-022), D-027 (D2-041), D-036 (D2-011), D-048 (D2-019), D-051 (D2-010), D-053 (D2-043), D-055
   (D2-040).
-- **Decision:** DECIDED (user, s92): **I's decisions hold for II**, for every row above, D-033 included (the remaster's
-  "six non-DEAD members" rule, not the ST's party-size test) and the rows s95 checked.
+- **Decision (user s92):** **I's decisions hold for II**, for every row above, D-033 included (the remaster's
+  "six non-DEAD members" rule, not the ST's party-size test).
 - **Remaster:** unchanged: a II save has no `p1.*` value, so the shared code takes I's decided side. No `p2.*` options
   for the ST side (not asked for).
 - **Side effects:** II's "Original (Atari ST)" preset does not reproduce these ST behaviours; the ST evidence stays here.
   Two rows are not DOS: D-015, where the ST already does what I's decision does (that preset is authentic there), and
   D-033, where neither DOS nor the remaster matches the ST.
-- **Spec:** the addresses above (`PHANT.PRG` image addresses, `reverse-engineering/atari-st/phantasie2/FORMAT.md` §1).
+- **Spec:** the addresses above (`PHANT.PRG` image addresses, `reverse-engineering/atari-st/phantasie2/FORMAT.md` section 1).
 
 ## Apple II entries (s158)
 
@@ -566,7 +563,7 @@ The importer builds II from the Apple II version (user s158, `docs/plan/10-impor
 compare the Apple II v1.0 (2/5/86) data with the ST data today's GameData holds; "Manual" is the same combined
 rulebook. Evidence: static, `reverse-engineering/apple2/phantasie2/FORMAT.md` (section 5) and
 `tools/scripts/diff_a2_p2_vs_st.py`. An ST build plays the ST data; an Apple-only import is built as each entry's
-"Remaster" line says (s160: the importer's `P2Apple2` pipeline with the shipped `GameData/phantasie2/apple2-import.json`
+"Remaster" line says (the importer's `P2Apple2` pipeline with the shipped `GameData/phantasie2/apple2-import.json`
 and `strings/fallback.en.json`).
 
 ## D2-046 — The wilderness is turned a quarter between the Apple II and the ST
@@ -579,7 +576,7 @@ and `strings/fallback.en.json`).
 - **ST:** today's GameData: the ST's compass, scroll words and OUT28 entrance table.
 - **Decision:** (user s159) keep the ST's world whatever the source copy: ST compass, keys and OUT28 table. An Apple
   import's scroll text has its compass words swapped to the ST orientation at import (D2-050).
-- **Remaster:** ST orientation (built). Apple-only import (s160): OUT28's eight entrances take the ST's destinations
+- **Remaster:** ST orientation (built). Apple-only import: OUT28's eight entrances take the ST's destinations
   (`apple2-import.json` `st_cells`); the compass words of SCROLLL1-20 are swapped at import (NORTH → EAST, EAST → SOUTH,
   SOUTH → WEST, WEST → NORTH, all at once, at the start of a word: SOUTH-ERN, NORTHERN), each boxed line keeping its
   width. After the swap the scrolls' 21 compass words equal the ST's in order (test). Dungeon messages and wilderness
@@ -593,7 +590,7 @@ and `strings/fallback.en.json`).
   modifier −10 / 0 and treasure 0, 0 / 0, 135; PLUTO'S WYVERN (74) damage 40 / 35; PLUTO'S GIANT WYVERN (76) attack
   power 350 / 300; PLUTO'S DRAGON-DEMON (77) attack power 800 / 400. Every other number of the 80 monsters agrees.
 - **Decision:** (user s159) ST values for every source copy; an Apple import takes the ST's five numbers.
-- **Remaster:** ST values (built). Apple-only import (s160): the five numbers set to the ST's from `apple2-import.json`.
+- **Remaster:** ST values (built). Apple-only import: the five numbers set to the ST's from `apple2-import.json`.
 
 ## D2-048 — Town data
 
@@ -602,7 +599,7 @@ and `strings/fallback.en.json`).
   stock 5 × item 127 SCROLL E / 5 × item 126 SCROLL D. Everything else in the ten towns agrees (stock, restock pool,
   exits, names; the ST's two unused towns are not on the Apple).
 - **Decision:** (user s159) ST values for every source copy (DEMONIAC 150, SCROLL D in IPSWICH and FERRON).
-- **Remaster:** ST values (built). Apple-only import (s160): DEMONIAC's factor and the four stock cells set to the ST's from
+- **Remaster:** ST values (built). Apple-only import: DEMONIAC's factor and the four stock cells set to the ST's from
   `apple2-import.json`.
 
 ## D2-049 — Creation-table cells, map and dungeon cells
@@ -616,9 +613,9 @@ and `strings/fallback.en.json`).
   skill 8 = 4; tiles 101, 21, 72, 85; DNG5 cell 0 (wall), DNG8 cell 0x85 (forced fight).
 - **Decision:** (user s159) ST cells for every source copy (the two skill cells, the 9 map and 2 dungeon cells); D2-009's
   cells need nothing (the Apple agrees with that decision).
-- **Remaster:** ST values (D2-009: the manual's). Apple-only import (s160): the two skill cells, the 9 map cells (a fogged
+- **Remaster:** ST values (D2-009: the manual's). Apple-only import: the two skill cells, the 9 map cells (a fogged
   cell keeps its fog) and the 2 dungeon bytes set to the ST's from `apple2-import.json`; every number of the Apple build
-  now equals the ST build's. s169: OUT1's feature record 14 at (25, 0) (Apple dest_y 0, ST 32) takes the ST's value too
+  equals the ST build's. OUT1's feature record 14 at (25, 0) (Apple dest_y 0, ST 32) takes the ST's value too
   (`apple2-import.json`, keyed by the record's index); it is unused either way: record 13 sits on the same blocked cell
   (tile 100) and the lookup finds it first.
 
@@ -630,8 +627,7 @@ and `strings/fallback.en.json`).
   places (beside D2-046): DNG1 msg 40 "AN UNGRATEFUL SPRITE" / ST "AN EVIL GHOST"; DNG6 msgs 45, 53, 62, 77 and DNG7
   msgs 50, 77, 79, 85 have other menu choices (e.g. DNG6 53: HOLD BREATH / BREAK THE GATE / STUFF UP THE GAS SOURCE /
   PRAY TO YOUR GODS vs the ST's HOLD / RUN AWAY / SHUT OFF), plus spelling (DETENTION / DETENSION, HERE / HEAR …). The
-  Apple has **no spell names** (spells are numbers 1–60). String tables (corrected s160; s158 said "none of the ST's
-  `strings/en.json` lines except Pluto's speech"): of the 330 ids whose text the ST gives (shared 53, I's table 195,
+  Apple has **no spell names** (spells are numbers 1–60). String tables: of the 330 ids whose text the ST gives (shared 53, I's table 195,
   II's 82), the Apple's programs hold 217 verbatim (most of I's engine lines, e.g. [original text], {0} TAKES AN
   AMULET); 95 more it prints in its own wording (the Mystic's ranks, Pluto's speech in `SCROLLL0`, the whole Filmon
   ending in `WIN`, LIZARD MAN, DROP WHO, ...); 18 it lacks (VALUE, MG WEAPON, IN PEACE, nine spell words, PLUTO'S
@@ -641,29 +637,55 @@ and `strings/fallback.en.json`).
   words in its scrolls swapped to the ST orientation (D2-046); spell names come from the manual's spell list; lines the
   Apple lacks show the remaster's own wording instead of "...". An ST import keeps the ST text. Menu wording that differs changes which choice is which only if the
   event scripts differ, and they do not (level bytes 0–1739 agree): the labels differ, the outcomes do not `[~]`.
-- **Remaster:** ST text (built). Apple-only import (s160): names, scrolls and dungeon text are the Apple's (scroll compass
+- **Remaster:** ST text (built). Apple-only import: names, scrolls and dungeon text are the Apple's (scroll compass
   turned, D2-046). Spell names: the manual's list (CB p.12: HEALING 1 ... SUMMONS ELEMENTAL, MONSTER EVALUATION ...,
-  `apple2-import.json`); the two divine spells, which the manual does not name, take the ST's names DIVINE II (#57) /
-  DIVINE I (#58) (user s170). s169 search: no Apple file holds a spell name (both 4am sides and the Memorial Set pair, with
-  the high bit stripped: no DIVINE but DNG3's "[original text]", no FIREFLASH, VISION, EVALUATION);
-  the Apple asks "WHICH SPELL?" by number and refuses #57 / #58 by number (OUTDOORS2 lines 6950-6970). The manual says
-  only "DIVINE SPELLS (#58+)" (CB p.14) and "divine spells (#55 and above)". The ST's spell table names them: slot
-  56 (#57) DIVINE II, slot 57 (#58) DIVINE I (`reverse-engineering/atari-st/phantasie2/FORMAT.md` section 3); the Apple
-  import takes those two (user s170: "Take the ST names for the Divine spells"). String tables: the 217 verbatim ids and the 95 in the Apple's own wording come from the
+  `apple2-import.json`). The two divine spells, which the manual names only as "DIVINE SPELLS (#58+)" (CB p.14) and
+  "divine spells (#55 and above)", take the ST's spell-table names DIVINE II (#57, slot 56) / DIVINE I (#58, slot 57)
+  (`reverse-engineering/atari-st/phantasie2/FORMAT.md` section 3; user s170: "Take the ST names for the Divine spells").
+  No Apple file holds a spell name (s169 search of both 4am sides and the Memorial Set pair, high bit stripped: no DIVINE
+  but DNG3's "[original text]", no FIREFLASH, VISION, EVALUATION); the Apple asks "WHICH SPELL?" by
+  number and refuses #57 / #58 by number (OUTDOORS2 lines 6950-6970). String tables: the 217 verbatim ids and the 95 in the Apple's own wording come from the
   player's Apple programs (`p2-apple2` alternatives in `en.sources.json`, the own-wording ones from
   `tools/scripts/p2_apple2_own_wording.json`, applied to II only and only while II's tables are the Apple's, so I keeps
   DOS I's lines and an ST import keeps the ST's); the 18 it lacks take the remaster's wording
   (`GameData/phantasie2/strings/fallback.en.json`), laid under every imported file so a DOS I or ST import still wins.
-  The Filmon ending keeps the ST's line ids with the Apple's 40-column lines (the counts match). s169: the Apple's
+  The Filmon ending keeps the ST's line ids with the Apple's 40-column lines (the counts match). The Apple's
   party size is in, as the Apple prints it: WIN line 3116 `PRINT "...THESE "PO + 1" BRAVE ADVEN-"` with `PO = PEEK(SA +
   1203)`, the party's last index (DEAD members count), so the own-wording line is "WE ARE ALL DOOMED. THESE {0} BRAVE
   ADVEN-" and Core fills {0} with the party's member count (the ST's line has no number and ignores it). A summoned
-  elemental at the ceremony is not counted (the Apple has no elementals; s170). Seen in the Client (s169, Xvfb,
+  elemental at the ceremony is not counted (the Apple has no elementals). Seen in the Client (s169, Xvfb,
   Apple-only import): the 18-character MONSTER EVALUATION fits whole in the wilderness cast window
   (`parity/shots/s169-p2-apple2-field-cast-monster-evaluation.png`). It is never in a fight's spell window: it is a
   wilderness / dungeon spell (`N/WD`), the remaster's II fight list holds the combat-castable spells (D-063's
   `p1.combat-spell-list` is I's option only), and the Apple's fight takes `CAST SPELL #` 1-51 only (OUTDOORS2 and DUNGON2
   line 1310), so #52 can't be cast in an Apple fight either.
+
+## D2-051 — Guild Add / Drop / Purge with an elemental (Atari ST)
+
+- **Manual:** "[original text] (#48) calls up Earth, Fire, or Water (one spell summons one elemental) to fight for the
+  party. The elemental will only serve a party of six adventurers. What's more, elementals must be added to your party
+  while you are at the adventurer's Guild in one of the towns." (combined rulebook, Magic, PDF 9); Guild: "The last three
+  characters - FIRE, WATER, and EARTH - are the elementals that spellcasters may call into combat, using the SUMMON
+  ELEMENTAL spell." (PDF 5). Silent on Drop / Purge with an elemental.
+- **Code (ST `PHANT.PRG`, static `[C]` s172, not seen live; `logic-specs/towns.md` section 10):** Guild Add `0xd442`
+  lists the three elementals whenever none is loaded and loads the pick with **no member count** (an empty party too);
+  characters can still be added beside it. Drop `0xd57c` lists the seven party records (the elemental too) and clears only
+  the picked one, so dropping characters never unloads it, not even the last. Purge `0xd68a` lists the 22 character
+  records (never the elementals) and clears party records 0-5 only, so the elemental stays. [original text] `0x83e2`
+  still needs a party of six (D2-045 / D-033: the remaster's six non-DEAD).
+- **Reading:** the manual's sentence can mean an Add rule (I's DOS refuses the Add below six, OV1 `0x2786`, and the
+  remaster's I follows it) or only a SUMMON rule. The ST enforces it at SUMMON, not at Add, so an ST party can carry an
+  elemental it cannot summon.
+- **Remaster (user s172: "make II's `game` follow" the ST):** `phantasie2/rules.json` `elementals`
+  (`min_members` 0, `blocks_add` false, `drop_keeps` + `keeps_alone` true, `drops_elemental` true, `purge` = `keeps`,
+  `summon_min_members` 6). The every-game options `elemental-load` / `-drop` / `-purge` can still put I's or III's rule in
+  II. An elemental left alone in the party stays until the Drop list drops it; the remaster's town Exit still refuses a
+  party with no character (`GameSession.LeaveTown`); what the ST does there is `[?]`.
+- **Side effects:** an II party may hold an elemental with fewer than six characters; the night watch reads it only with
+  six (`NightEncounter.Watcher`, `encounters.md` section 4) and SUMMON needs six, so it only rides along.
+- **Decision (user s173):** "not an issue if SUMMON gates it behind 6 party members. it's fine as is." The manual's
+  sentence is read as a SUMMON rule; Add stays the ST's (any party size).
+- **Status:** DECIDED.
 
 ## D2-052 — Apple II "start a new game": the fog stays lifted
 
@@ -681,44 +703,17 @@ and `strings/fallback.en.json`).
   a new game". No Y/N prompt on the ST (not a rule conflict: the ST's manual section gives none).
 - **Decision:** (user s209) manual: a new game and a reset start with the shipped fog. Fix (a) of `16-reset-game.md`
   section 3: the Apple-only II import gets the "restore the maps?" choice, the start fog stored as a per-region open /
-  fogged list in `apple2-import.json`. Built s210.
+  fogged list in `apple2-import.json`.
 - **Remaster:** RESET GAME (`docs/plan/16-reset-game.md`) follows the manual and the ST: the world is rebuilt from
   GameData, whose II grids are `MAPS.INT`'s on an ST import. An Apple-only import of a played copy (the importer tells it
-  by the Memorial Set's sha1s) asks, as a played DOS I copy does (s205): RESTORE THE MAPS / KEEP THEM AS PLAYED (Client
+  by the Memorial Set's sha1s) asks, as a played DOS I copy does: RESTORE THE MAPS / KEEP THEM AS PLAYED (Client
   import screen; CLI `--restore-maps` / `--keep-maps` or a terminal prompt; the choice is kept in `import.json`
   `maps_restored`). Restore gives every region the shipped start fog from `apple2-import.json` `start_fog` (OUT1 / OUT2
   open, the other 15 fogged in every cell: the ST's `MAPS.INT`, equal to the Memorial Set's unplayed Apple disk;
   `tools/scripts/derive_a2_p2_start_fog.py`), so a new game and a reset start fogged as the manual says. Keep imports
-  the lifted fog as before (and a new game and a reset keep it). No rules option: the choice is made at import.
+  the lifted fog (and a new game and a reset keep it). No rules option: the choice is made at import.
 - **Side effects:** only an Apple-only import is concerned (with the ST copy in the same scan its tables win and nothing
   is asked). The Apple's `DNGSAV` / `DNGCHK` are never read by the importer, so the dungeons start as shipped either way.
-
-## D2-051 — Guild Add / Drop / Purge with an elemental (Atari ST)
-
-- **Manual:** "[original text] (#48) calls up Earth, Fire, or Water (one spell summons one elemental) to fight for the
-  party. The elemental will only serve a party of six adventurers. What's more, elementals must be added to your party
-  while you are at the adventurer's Guild in one of the towns." (combined rulebook, Magic, PDF 9); Guild: "The last three
-  characters - FIRE, WATER, and EARTH - are the elementals that spellcasters may call into combat, using the SUMMON
-  ELEMENTAL spell." (PDF 5). Silent on Drop / Purge with an elemental.
-- **Code (ST `PHANT.PRG`, static `[C]` s172, not seen live; `logic-specs/towns.md` section 10):** Guild Add `0xd442`
-  lists the three elementals whenever none is loaded and loads the pick with **no member count** (an empty party too);
-  characters can still be added beside it. Drop `0xd57c` lists the seven party records (the elemental too) and clears only
-  the picked one, so dropping characters never unloads it, not even the last. Purge `0xd68a` lists the 22 character
-  records (never the elementals) and clears party records 0-5 only, so the elemental stays. [original text] `0x83e2`
-  still needs a party of six (D2-045 / D-033: the remaster's six non-DEAD).
-- **Reading:** the manual's sentence can mean an Add rule (I's DOS refuses the Add below six, OV1 `0x2786`, and the
-  remaster's I follows it) or only a SUMMON rule. The ST enforces it at SUMMON, not at Add, so an ST party can carry an
-  elemental it cannot summon. Not decided as a conflict: reported to the user (s172).
-- **Remaster (built s172, user: "make II's `game` follow" the ST):** `phantasie2/rules.json` `elementals`
-  (`min_members` 0, `blocks_add` false, `drop_keeps` + `keeps_alone` true, `drops_elemental` true, `purge` = `keeps`,
-  `summon_min_members` 6). The every-game options `elemental-load` / `-drop` / `-purge` can still put I's or III's rule in
-  II. An elemental left alone in the party stays until the Drop list drops it; the remaster's town Exit still refuses a
-  party with no character (`GameSession.LeaveTown`); what the ST does there is `[?]`.
-- **Side effects:** an II party may hold an elemental with fewer than six characters; the night watch reads it only with
-  six (`NightEncounter.Watcher`, `encounters.md` section 4) and SUMMON needs six, so it only rides along.
-- **Decision (user s173):** "not an issue if SUMMON gates it behind 6 party members. it's fine as is." The manual's
-  sentence is read as a SUMMON rule; Add stays the ST's (any party size).
-- **Status:** DECIDED.
 
 ## D2-053 — Apple II v1.0: a dungeon gold event can run the winning ending (fixed in v2.1)
 
@@ -734,5 +729,5 @@ and `strings/fallback.en.json`).
 - **Apple II v2.1 8/19/86 and the ST:** v2.1 uses `Z` there (SSI's fix; every other rules file is v1.0's). The ST's
   `dungeon_event` keeps the gold ops apart from op 23 (ENDING), as Core's `Phantasie2DungeonScript` does.
 - **Remaster:** the ST / v2.1 behaviour whatever the source copy (Core plays the ST's dungeon script; the Apple import
-  reads no program logic, only data, which is the same in both versions). Nothing to build. Found s211, entered s212.
+  reads no program logic, only data, which is the same in both versions). Nothing to build.
 - **Status:** DECIDED (user s212): the manual's quest, i.e. the ST / v2.1 behaviour already built; no option for v1.0's bug.

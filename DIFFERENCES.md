@@ -6,6 +6,10 @@ goes to the user, who decides (`AGENTS.md`). This file is the user's end-of-proj
 **Manual · DOS · Decision · Remaster · Side effects** (plus the spec). History of how a finding was made belongs in the
 spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its ID in their name (e.g. `…_D046`).
 
+**Options:** every `p1.*` rule option is locked per save (PLAN P3.2). The value that matches the decision is in the
+Original (manual) preset (the default) and the Remaster preset; the DOS value is in the Original (DOS) preset. An entry
+names its presets only where they differ from this.
+
 **Status:** `PENDING` = raised, no decision yet (remaster unchanged) · `DECIDED: <side>` + `built` / `not built` ·
 `NOT A CONFLICT` = checked, the two agree or the manual is silent. IDs D-039…D-045 were never assigned.
 
@@ -42,7 +46,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 | D-029 | FIREFLASH damage scales with INT | DECIDED: manual ranges scaled by INT · built; option `p1.fireflash-damage` |
 | D-030 | A failed monster run wakes SLEEP'd monsters | DECIDED: sleepers stay asleep · built; option `p1.failed-run` |
 | D-031 | Wilderness treasure isn't automatic | DECIDED: manual + SCROLL 17 fix · built; option `p1.wild-treasure` |
-| D-032 | Summoned elemental fights with zero stats | DECIDED: fix the bug · built |
+| D-032 | Summoned elemental fights with zero stats | DECIDED: fix the bug · built; option `p1.elemental-prep` |
 | D-033 | When [original text] works (5 vs 6 members) | DECIDED: manual · built; options `p1.summon-party`, `p1.monster-spell-target` |
 | D-034 | Surprised fights skip PARTY OPTIONS in round 1 | NOT A CONFLICT (DOS rule) |
 | D-035 | Town Cast spell offers combat spells | DECIDED: manual · built; option `p1.cast-list` |
@@ -55,38 +59,38 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 | D-049 | Bank Deposit = share split | DECIDED: manual · built |
 | D-050 | Training hides the cost while XP is short | DECIDED: manual · built |
 | D-051 | Magical pool raises stats with no cap | DECIDED: manual · built; option `p1.pool-cap` |
-| D-052 | Trap menu labels / who may disarm | DECIDED: manual labels · built; Amiga I requester 0 too (s156) |
+| D-052 | Trap menu labels / who may disarm | DECIDED: manual labels · built; Amiga I requester 0 too |
 | D-053 | End-of-combat display: per-survivor share vs totals | DECIDED: manual · built; option `p1.combat-shares` |
-| D-054 | Armory restock also wipes armor and shields | DECIDED: manual · built s56, sold-out refill s57; option `p1.armory-restock` |
-| D-055 | Path not faster than every terrain | DECIDED: manual · built s56 (cost 30); option `p1.path-time` |
-| D-056 | MONSTER EVALUATION ignores real monsters | DECIDED: manual · built (pool avg, 10 % ±1, s57); option `p1.monster-eval` |
-| D-057 | VISION reveals a small square, not "hundreds of miles" | DECIDED: manual · built s56 (whole region); option `p1.vision` |
-| D-058 | No "AN ENCOUNTER" flash before a fight | DECIDED: manual (day/night wording) · built; I Amiga screens: no-wait line (s140) · built |
+| D-054 | Armory restock also wipes armor and shields | DECIDED: manual · built (sold-out refill); option `p1.armory-restock` |
+| D-055 | Path not faster than every terrain | DECIDED: manual · built (cost 30); option `p1.path-time` |
+| D-056 | MONSTER EVALUATION ignores real monsters | DECIDED: manual · built (pool avg, 10 % ±1); option `p1.monster-eval` |
+| D-057 | VISION reveals a small square, not "hundreds of miles" | DECIDED: manual · built (whole region); option `p1.vision` |
+| D-058 | No "AN ENCOUNTER" flash before a fight | DECIDED: manual (day/night wording) · built; I Amiga screens: no-wait line · built |
 | D-059 | FIREFLASH hits the back rank | DECIDED: manual (front rank) · built; option `p1.fireflash-target` |
 | D-060 | APPLETON's town record sits on an inn tile | DECIDED: manual (town tile; inn moved) · built |
 | D-061 | USE ITEM can't show an item's properties | DECIDED: manual (descriptions) · built |
-| D-062 | TRANSPORTATION lists 12 towns incl. the current one | DECIDED: manual · built · confirmed s57; option `p1.transport-list` |
-| D-063 | Non-combat spell picked in combat | DECIDED: manual · built · reading confirmed s57; option `p1.combat-spell-list` |
+| D-062 | TRANSPORTATION lists 12 towns incl. the current one | DECIDED: manual · built; option `p1.transport-list` |
+| D-063 | Non-combat spell picked in combat | DECIDED: manual · built; option `p1.combat-spell-list` |
 | D-064 | Character sheet wording | DECIDED: manual · built |
 | D-065 | Renaming a party member | DECIDED: manual · built; option `p1.rename-party` |
 | D-066 | Town menu: letter keys vs highlight bar | NOT A CONFLICT — both · built |
 | D-067 | Guild Add ages a member already in this town (Q8) | DECIDED: no aging · built; option `p1.add-aging` |
 | D-068 | Distribute: "type 7 to sell" vs SELL/SACK menu | NOT A CONFLICT — both · built |
-| D-069 | Continue saved game: pick a character vs load every flagged record | DECIDED: manual (s57) · built s58; option `p1.continue` |
-| D-070 | Inn MAGIC INCREASES: any cast vs combat casts only | DECIDED — manual · built; option `p1.cast-flag` |
+| D-069 | Continue saved game: pick a character vs load every flagged record | DECIDED: manual · built; option `p1.continue` |
+| D-070 | Inn MAGIC INCREASES: any cast vs combat casts only | DECIDED: manual · built; option `p1.cast-flag` |
 | D-071 | Map of Gelnor: 16 sections vs 18 region files | NOT A CONFLICT |
 | D-072 | YES/NO prompts: "answer Y or N" vs highlight only | NOT A CONFLICT — both (as D-066) · built |
-| D-073 | Melee speed: T)IME LAG 0–9 + sound vs Options → Speed fast/normal/slow | DECIDED: manual (s62) · built; QoL switch: in the Options tab |
-| D-074 | Guild S)PELLS list: spell numbers after "POSSIBLE SPELLS:" vs names under "Available spells:" | DECIDED: manual (s64) · built |
-| D-075 | New member: full sheet + SPACE after naming vs straight back to the Guild menu | DECIDED: manual (s66) · built |
-| D-076 | Wilderness keys: C/H/I/U/T + 3/N/E/S/W vs arrows + Return menu only | DECIDED: manual (s66) · built (+ numpad, QoL diagonals) |
-| D-077 | Wilderness screen: party pictures + command list beside the map vs the map alone | DECIDED: manual (s66) · built (QoL status lines) |
-| D-078 | Combat orders: "remain unchanged until you change it" vs reset to PARRY on leaving town / after a defeat | DECIDED: manual (s66) · built; option `p1.orders-reset` |
-| D-079 | Amiga field: a monster's "%s CASTS A SPELL" vs the Amiga's blank line with sound 9 | DECIDED: keep the text, add sound 9, no wait (user s138) · built |
-| D-080 | Amiga map boxes: four texts differ from DOS ("[original text]" etc. with no blank before "!", "THAT IS A WALL") | DECIDED: Amiga text in the Amiga boxes (user s157) · built |
-| D-081 | Amiga POTIONS view: the Amiga's ring letters run into "…ND OF NIKADEMUS" (no end marker) | DECIDED: an Amiga bug, fixed: clean rows (user s157) · built |
-| D-082 | Amiga-only import: item names "HEAL POT1".."HEAL POT9" and "SROLL 19" vs the manual's Healing 1..9 / SCROLL n | DECIDED: Amiga's HEAL POT1..9, typo SROLL 19 → SCROLL 19 (s202), built |
-| D-083 | Amiga-only import: the fire elemental named "FIRE  ELE" vs the manual's FIRE (DOS "FIRE ELEM") | DECIDED: typo fixed to DOS's FIRE ELEM (s202), built |
+| D-073 | Melee speed: T)IME LAG 0–9 + sound vs Options → Speed fast/normal/slow | DECIDED: manual · built; QoL switch: in the Options tab |
+| D-074 | Guild S)PELLS list: spell numbers after "POSSIBLE SPELLS:" vs names under "Available spells:" | DECIDED: manual · built |
+| D-075 | New member: full sheet + SPACE after naming vs straight back to the Guild menu | DECIDED: manual · built |
+| D-076 | Wilderness keys: C/H/I/U/T + 3/N/E/S/W vs arrows + Return menu only | DECIDED: manual · built (+ numpad, QoL diagonals) |
+| D-077 | Wilderness screen: party pictures + command list beside the map vs the map alone | DECIDED: manual · built (QoL status lines) |
+| D-078 | Combat orders: "remain unchanged until you change it" vs reset to PARRY on leaving town / after a defeat | DECIDED: manual · built; option `p1.orders-reset` |
+| D-079 | Amiga field: a monster's "%s CASTS A SPELL" vs the Amiga's blank line with sound 9 | DECIDED: keep the text, add sound 9, no wait · built |
+| D-080 | Amiga map boxes: four texts differ from DOS ("[original text]" etc. with no blank before "!", "THAT IS A WALL") | DECIDED: Amiga text in the Amiga boxes · built |
+| D-081 | Amiga POTIONS view: the Amiga's ring letters run into "…ND OF NIKADEMUS" (no end marker) | DECIDED: an Amiga bug, fixed: clean rows · built |
+| D-082 | Amiga-only import: item names "HEAL POT1".."HEAL POT9" and "SROLL 19" vs the manual's Healing 1..9 / SCROLL n | DECIDED: Amiga's HEAL POT1..9, typo SROLL 19 → SCROLL 19 · built |
+| D-083 | Amiga-only import: the fire elemental named "FIRE  ELE" vs the manual's FIRE (DOS "FIRE ELEM") | DECIDED: typo fixed to DOS's FIRE ELEM · built |
 
 ---
 
@@ -98,8 +102,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user, 2026-10-10):** manual.
 - **Remaster:** Halfling DEX modifier 12 in `creation-tables.json` (max 20).
 - **Side effects:** the formula has no separate cap, so **every** Halfling DEX roll is 1 higher than DOS, minimum included.
-- **Spec:** `character-creation.md` §Attributes.
-- **Option `p1.halfling-dex`** (P3.2, s78, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (TWNS.INT's Halfling DEX modifier 11, ceiling 19; Original (DOS) preset). The DOS cell lives in `creation-tables.json` `dos_tables` and is applied per save (`CharacterCreationTables.ForRules`); it also sets the magical pool's Halfling DEX maximum (19).
+- **Spec:** `character-creation.md` section Attributes.
+- **Option `p1.halfling-dex`:** `manual` · `dos` (TWNS.INT's Halfling DEX modifier 11, ceiling 19). The DOS cell lives in `creation-tables.json` `dos_tables` and is applied per save (`CharacterCreationTables.ForRules`); it also sets the magical pool's Halfling DEX maximum (19).
 
 ## D-002 — Guild roster size
 
@@ -110,9 +114,9 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Remaster:** `Character.GuildMaxCharacters = 21`; `GuildHall.TryEnroll` refuses a 22nd with "Guild roster is full."
 - **Side effects:** the save format keeps 22 slots (`Character.GuildSlotCount`), so a DOS save with 22 loads all 22; the
   guild creates no more until one is purged. DOS refuses silently, the remaster says why.
-- **Note (s65):** the manual's Guild page also says "As many as 37 characters can be generated" (its sample list numbers the
+- **Note:** the manual's Guild page also says "As many as 37 characters can be generated" (its sample list numbers the
   elementals 38–40); the decision above follows the "maximum of 21" sentence.
-- **Option `p1.guild-size`** (P3.2, s78, locked per save): `manual` (21; Original (manual) and Remaster presets) · `dos` (Guild N)EW fills all 22 records, from `rules.json` `guild_by_platform.dos`; Original (DOS) preset). The save format keeps 22 slots either way. The DOS-import warning "x characters, the Guild holds 21" still reads the profile's 21.
+- **Option `p1.guild-size`:** `manual` (21) · `dos` (Guild N)EW fills all 22 records, from `rules.json` `guild_by_platform.dos`). The save format keeps 22 slots either way. The DOS-import warning "x characters, the Guild holds 21" still reads the profile's 21.
 
 ## D-003 — Race lifespans
 
@@ -146,8 +150,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Side effects:** Pixies and Halflings become short-lived. A DOS character can be past its new lifespan on import and die
   or decline on its next town entry. DOS export writes `lifespan / 256` to `@252` (lossy); `@264` is a u16, so an elf
   older than AGE 2520 is clamped and listed on export (P1.4).
-- **Spec:** `town-menus.md` §Aging; `save-file-format.md` `@252`.
-- **Option `p1.lifespans`** (P3.2, s78, locked per save): `manual` (the bands above; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): a new character gets DOS's `@252 = @10 · factor` (integer math, multiply first; `creation-tables.json` `dos_tables.lifespan_factors`), kept as `@252 · 256` age-clock units, and town-entry aging compares `@264 >> 8` with `@252` as DOS. A DOS import keeps its `@252` (instead of the s17 band), so export writes it back unchanged. Starting age, decline and death timing are DOS's either way.
+- **Spec:** `town-menus.md` section Aging; `save-file-format.md` `@252`.
+- **Option `p1.lifespans`:** `manual` (the bands above) · `dos`: a new character gets DOS's `@252 = @10 · factor` (integer math, multiply first; `creation-tables.json` `dos_tables.lifespan_factors`), kept as `@252 · 256` age-clock units, and town-entry aging compares `@264 >> 8` with `@252` as DOS. A DOS import keeps its `@252` (instead of the recomputed band), so export writes it back unchanged. Starting age, decline and death timing are DOS's either way.
 
 ## D-004 — Town Inn stay doesn't advance time
 
@@ -157,8 +161,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Remaster:** `TownMenus.Rest` adds 1 to every member's age clock `@264` (= two weeks). Still free.
 - **Side effects:** characters age by resting; the "has aged" / "has died" check still runs on the next town entry.
   Inn-spamming for MP-max raises now costs lifespan.
-- **Spec:** `town-menus.md` §Town Inn rest.
-- **Option `p1.town-inn-time`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `town-menus.md` section Town Inn rest.
+- **Option `p1.town-inn-time`:** `manual` · `dos`.
 
 ## D-005 — Wilderness inn price
 
@@ -173,8 +177,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user, 2026-10-10):** manual — Monks never get SLEEP.
 - **Remaster:** `creation-tables.json` `spell_levels` Monk 7 = 13, 48.
 - **Side effects:** a DOS Monk that already knows SLEEP keeps it on import (imports load as-is, P1.4).
-- **Spec:** `town-menus.md` §Level-up gains.
-- **Option `p1.monk-sleep`** (P3.2, s78, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (TWNS.INT's Monk level 7 = 13, 42, 48: Monks can learn SLEEP; Original (DOS) preset). The DOS cell lives in `creation-tables.json` `dos_tables`.
+- **Spec:** `town-menus.md` section Level-up gains.
+- **Option `p1.monk-sleep`:** `manual` · `dos` (TWNS.INT's Monk level 7 = 13, 42, 48: Monks can learn SLEEP). The DOS cell lives in `creation-tables.json` `dos_tables`.
 
 ## D-007 — Level-up HP averages vs the manual's chart
 
@@ -186,8 +190,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   +1 floor and cap 255 stay DOS. Lands within ~1 HP of every chart cell.
 - **Side effects:** the formula is shared with character creation, so new characters also start with more HP
   (+2 on average at CON 10; about 1/15 more at any CON).
-- **Spec:** `town-menus.md` §Level-up gains.
-- **Option `p1.hit-dice`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `town-menus.md` section Level-up gains.
+- **Option `p1.hit-dice`:** `manual` · `dos`.
 
 ## D-008 — Wilderness inn stay length
 
@@ -198,8 +202,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   Price 256 (D-005); MP raise and HP/MP restore as DOS, except D-046 / D-047.
 - **Side effects:** a stay always ages the party (applied at the next town entry). The day counter (`DAY OUT`) doesn't
   move for a stay (DOS: +3 days).
-- **Spec:** `town-menus.md` §Wilderness inn, §Aging.
-- **Option `p1.wild-inn-time`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `town-menus.md` section Wilderness inn, section Aging.
+- **Option `p1.wild-inn-time`:** `manual` · `dos`.
 
 ## D-009 — CON loss: at death (DOS) vs at resurrection (manual)
 
@@ -209,12 +213,12 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   and swimming deaths) does `CON −= (CON>0 ? 1 : 0) + (CON>1 && @10 < 11 ? 1 : 0)` — seeds 8–10 lose 2, 11–13 lose 1, no
   floor. RESURRECTION (`50 + 5·(caster lvl − target lvl)` % success) doesn't touch CON; a CON-0 corpse can't be raised.
   The C64 also puts the loss at death.
-- **Decision (user s14, replacing a s13 "manual" call):** DOS — CON lost at death.
+- **Decision (user s14):** DOS — CON lost at death.
 - **Remaster:** `CombatResolver.DeathConLoss` via `ApplyPartyDamage` (traps too). RESURRECTION: DOS roll, first dead member
   with CON ≠ 0, HP := max, 4 MP spent even on failure, no CON change.
 - **Side effects:** a character who dies and is never raised still loses CON (shows while dead; matters for the
   UNDEAD/DESTROYED fates). CON 0 = permanently dead. The writer for aging deaths isn't found `[~]`.
-- **Spec:** `magic-spells.md` §Town casting.
+- **Spec:** `magic-spells.md` section Town casting.
 
 ## D-010 — Town HEALING range
 
@@ -225,8 +229,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user, 2026-10-10; kept s16 after the C64 check):** manual ranges everywhere.
 - **Remaster:** `Magic.HealingAmount`, shared by every cast location.
 - **Side effects:** town heals are never 0 and never reach DOS-town's top value.
-- **Spec:** `magic-spells.md` §Town casting; C64: `reverse-engineering/c64/bytecode-notes.md` §HEALING.
-- **Option `p1.town-healing`** (P3.2, s78, locked per save): `manual` (the manual's ranges everywhere; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): a town HEALING draws a DOS word and heals `rand / (32767/c)`, no floor (0–10 / 0–28 / 0–58 / 0–100; `Magic.TownHealingAmountDos`). Combat and field HEALING keep the 1–9… ranges, as in DOS.
+- **Spec:** `magic-spells.md` section Town casting; C64: `reverse-engineering/c64/bytecode-notes.md` section HEALING.
+- **Option `p1.town-healing`:** `manual` (the manual's ranges everywhere) · `dos`: a town HEALING draws a DOS word and heals `rand / (32767/c)`, no floor (0–10 / 0–28 / 0–58 / 0–100; `Magic.TownHealingAmountDos`). Combat and field HEALING keep the 1–9… ranges, as in DOS.
 
 ## D-011 — ATTACK / SLASH need enough attack skill
 
@@ -238,8 +242,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Remaster:** `CombatAction.SlashSwings` / `SlashFor`; the Client offers THRUST / ATTACK / SLASH.
 - **Side effects:** per-swing hit chance is `@250/swings − defense`, so a weak character who picks SLASH does worse than with
   THRUST (the DOS gate protected against that). A HEALTH REPORT `A:` figure, if shown, reads 2 below 150 (DOS 1–2).
-- **Spec:** `combat-resolution.md` §Action chooser.
-- **Option `p1.attack-gate`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Action chooser.
+- **Option `p1.attack-gate`:** `manual` · `dos`.
 - **Amiga (s136, h71 `+0x608` / `+0x656`):** the same gate (record `+0xfa` = `@250`: ATTACK below 75 → THRUST, SLASH below
   150 → the ATTACK check), so it sides with DOS; seen live s132 (an ATTACK pick came back THRUST).
 
@@ -250,8 +254,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s20):** manual — fighters only.
 - **Remaster:** `CombatAction.CanLunge` / `LungeFor`: a non-fighter's LUNGE becomes a rank-1 THRUST.
 - **Side effects:** tiny — thieves keep their any-rank THRUST/ATTACK/SLASH; LUNGE vs rank-2 THRUST differs by < 0.2 HP.
-- **Spec:** `combat-resolution.md` §Action chooser.
-- **Option `p1.lunge`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Action chooser.
+- **Option `p1.lunge`:** `manual` · `dos`.
 
 ## D-013 — BINDING makes negative-defense monsters harder to hit
 
@@ -265,8 +269,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   `defense ≤ 0` → `defense − max(|defense|·(100−pct)/100, minimum)` (SKELETON −75 → −116, 0 → −11 with IV).
 - **Side effects:** BINDING becomes useful against weak monsters; ~20 defense-0 monsters gain an effect; defense 1–19 gets
   slightly more than DOS's cut. Not raised (user: close enough): DOS cuts make III *equal* I + II, not "more than".
-- **Spec:** `combat-resolution.md` §Monster record; `magic-spells.md`.
-- **Option `p1.binding`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Monster record; `magic-spells.md`.
+- **Option `p1.binding`:** `manual` · `dos`.
 
 ## D-014 — CONFUSION 4 doesn't fully stop monster specials
 
@@ -275,8 +279,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s23):** manual — IV sets the gate to 0.
 - **Remaster:** `Magic.ConfusionPercent` = 80 / 60 / 40 / 0.
 - **Side effects:** only top-gate monsters change (gates ≤ 19 already hit 0 in DOS).
-- **Spec:** `combat-resolution.md` §Turn order; `magic-spells.md`.
-- **Option `p1.confusion-iv`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Turn order; `magic-spells.md`.
+- **Option `p1.confusion-iv`:** `manual` · `dos`.
 
 ## D-015 — STUNNING BLOW puts a just-killed member to SLEEP
 
@@ -285,8 +289,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   counts as alive, can die again (more CON loss) and blocks the party-wipe check.
 - **Decision (user s26):** dead stays dead; only a survivor is stunned.
 - **Remaster:** `MonsterSpecials.ApplyRider` skips DEAD targets. No other side effects.
-- **Spec:** `combat-resolution.md` §Monster specials.
-- **Option `p1.stunning-blow`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Monster specials.
+- **Option `p1.stunning-blow`:** `manual` · `dos`.
 
 ## D-016 — "[original text]" lowers weapon damage
 
@@ -295,8 +299,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s26):** make the effect match the message — lower armor.
 - **Remaster:** `MonsterSpecials` scales `CombatantPrep.ArmorEff` (`@246`) with the same formula and rolls.
 - **Side effects:** the party is easier to damage instead of hitting softer; PROTECTION (not STRENGTH) now cancels it.
-- **Spec:** `combat-resolution.md` §Monster specials.
-- **Option `p1.armor-reduced`** (P3.2, s76, locked per save): `armor` (the decision above; Original (manual) and Remaster presets) · `weapon` (the DOS side; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Monster specials.
+- **Option `p1.armor-reduced`:** `armor` (the decision above) · `weapon` (the DOS side).
 
 ## D-017 — BEG FOR MERCY can fail
 
@@ -304,18 +308,18 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **DOS (OV2 `0x3bea`):** works only if `rand0_99 < Σreaction + 90` (~60–88 %); on a miss "[original text]".
 - **Decision (user s27):** manual — always works.
 - **Remaster:** `PartyOptions.Choose(BegMercy)` draws no roll.
-- **Spec:** `combat-resolution.md` §Party options.
-- **Option `p1.beg-mercy`** (P3.2, s78, locked per save): `manual` (always works, no roll; Original (manual) and Remaster presets) · `dos` (`rand0_99 < Σreaction + 90`, else "[original text]" and orders, like a refused THREATEN; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Party options.
+- **Option `p1.beg-mercy`:** `manual` (always works, no roll) · `dos` (`rand0_99 < Σreaction + 90`, else "[original text]" and orders, like a refused THREATEN).
 
 ## D-018 — Found-item capacity
 
 - **Manual:** "The party can carry up to 90 items they find."
 - **DOS:** the found-item list has **60** slots; BEG clears slots 0, 2, …, 48, leaving holes.
-- **Decision (user s27):** manual — 90. The s74 inventory screen uses this sack as the party stash, cap unchanged.
+- **Decision (user s27):** manual — 90. The inventory screen uses this sack as the party stash.
 - **Remaster:** `LootSack.MaxItems = 90`; the slots keep DOS's holes ([D✓] s65), so BEG empties slots 0, 2, …, 48 in place.
 - **Side effects:** a sack over 60 items blocks DOS export with a message (P1.4).
-- **Spec:** `combat-resolution.md` §Party options.
-- **Option `p1.sack-size`** (P3.2, s78, locked per save): `manual` (90; Original (manual) and Remaster presets) · `dos` (DOS's 60 slots, `LootSack.Capacity`; Original (DOS) preset). The sack keeps DOS's holes either way (s65), so BEG empties slots 0, 2, …, 48 in place; the inventory screen's SACK header shows the save's capacity.
+- **Spec:** `combat-resolution.md` section Party options.
+- **Option `p1.sack-size`:** `manual` (90) · `dos` (DOS's 60 slots, `LootSack.Capacity`). The holes stay either way; the inventory screen's SACK header shows the save's capacity.
 
 ## D-019 — Monsters that run away still pay all their gold
 
@@ -324,7 +328,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   pay full gold (plus kill XP).
 - **Decision (user s32):** DOS — full gold.
 - **Remaster:** `PartyOptions.MonstersRan` pays `RewardGold`; the same for every "MONSTERS RUN" end (morale, DISPELL, FEAR).
-- **Spec:** `combat-resolution.md` §Party options.
+- **Spec:** `combat-resolution.md` section Party options.
 
 ## D-020 — SLEEP lasts only the rest of the round; resist ignores the caster
 
@@ -338,8 +342,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   - Sleepers can be hit by melee and spells and stay asleep when damaged.
 - **Remaster:** `SpellCaster` SLEEP + `CasterHitsGroup`; `MonsterStatusFlags.Asleep` (saved in combat snapshots).
 - **Side effects:** RNG draw order differs from DOS.
-- **Spec:** `combat-resolution.md` §Status effects.
-- **Option `p1.sleep`** (P3.2, s78, locked per save): `manual` (the rule above; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): OV2 `0x1501`, per living monster in rank order one discarded draw then `r`; `r ≥ L²` → "%s IS SLEPT" and done for the rest of the round only (no lasting asleep state, no caster roll; `L ≥ 10` never works).
+- **Spec:** `combat-resolution.md` section Status effects.
+- **Option `p1.sleep`:** `manual` · `dos`: OV2 `0x1501`, per living monster in rank order one discarded draw then `r`; `r ≥ L²` → "%s IS SLEPT" and done for the rest of the round only (no lasting asleep state, no caster roll; `L ≥ 10` never works).
 
 ## D-021 — FEAR doesn't make monsters run
 
@@ -350,8 +354,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   Runners stop for the whole round. The Black Lord (`never_flees`) doesn't run, so FEAR + DISSOLVE still works on him.
 - **Remaster:** `CombatSpells.Fear`; `Monster.NeverFlees`.
 - **Side effects:** FEAR becomes a reliable way to collect full gold + kill XP without killing everything.
-- **Spec:** `combat-resolution.md` §Combat spell effects.
-- **Option `p1.fear`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Combat spell effects.
+- **Option `p1.fear`:** `manual` · `dos`.
 
 ## D-022 — CHARM doesn't stop the fight
 
@@ -360,8 +364,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s32):** manual — same roll; on success the fight ends at once like GREETINGS (kill XP kept, no gold, no treasure).
 - **Remaster:** `CombatSpells.Charm` → `SpellCombatEnd.Charmed`.
 - **Side effects:** the +15 reaction effect is gone; a CHARMed forced fight (fight cell / lock ambush) returns on the next step onto that cell.
-- **Spec:** `combat-resolution.md` §Combat spell effects.
-- **Option `p1.charm`** (P3.2, s78, locked per save): `manual` (the rule above; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): same roll and "[original text]"; Σreaction += 15 (stacks) and GREETINGS works again after a hit; the fight goes on.
+- **Spec:** `combat-resolution.md` section Combat spell effects.
+- **Option `p1.charm`:** `manual` · `dos`: same roll and "[original text]"; Σreaction += 15 (stacks) and GREETINGS works again after a hit; the fight goes on.
 
 ## D-023 — TELEPORTATION can fail and the round still plays out
 
@@ -369,8 +373,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **DOS (OV2 `0x7b8`):** succeeds on `rand < 3·lvl + 50`; the escape happens at the next round top, so everyone after the caster still acts.
 - **Decision (user s32):** manual — always works, at once. Kill XP kept, no gold, treasure forfeited (as DOS).
 - **Remaster:** `CombatSpells.Teleport`; `SpellCombatEndExtensions.EndsAtOnce`.
-- **Spec:** `combat-resolution.md` §Combat spell effects.
-- **Option `p1.teleport`** (P3.2, s78, locked per save): `manual` (the rule above; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): works on `rand < 3·lvl + 50`, no message either way; the round plays out (monsters still act, the party can still be wiped) and combat ends at the next round top (`SpellCombatEnd.TeleportedAtRoundTop`) with kill XP, no gold, no treasure and no fight-cell clear, as DOS's `[0x74b0] = 1`.
+- **Spec:** `combat-resolution.md` section Combat spell effects.
+- **Option `p1.teleport`:** `manual` · `dos`: works on `rand < 3·lvl + 50`, no message either way; the round plays out (monsters still act, the party can still be wiped) and combat ends at the next round top (`SpellCombatEnd.TeleportedAtRoundTop`) with kill XP, no gold, no treasure and no fight-cell clear, as DOS's `[0x74b0] = 1`.
 
 ## D-024 — DISPELL UNDEAD also hits demons and BANTIR
 
@@ -379,8 +383,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s32):** manual — `undead` is a data flag (`monster-traits.json`): SKELETON, ZOMBIE, GHOUL, LARGE SKELETON,
   WIGHT, WRAITH, VAMPIRE, GHOST, SPIRIT.
 - **Remaster:** `Monster.Undead` → `CombatSpells.IsUndead`. Rolls and outcomes unchanged.
-- **Spec:** `combat-resolution.md` §Combat spell effects.
-- **Option `p1.dispell-undead`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Combat spell effects.
+- **Option `p1.dispell-undead`:** `manual` · `dos`.
 
 ## D-025 — Party defeat: the Great Demon decides each member's fate
 
@@ -411,8 +415,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Remaster:** `DungeonSaveSlot`: YES overwrites, re-entry loads on id match, NO purges a same-dungeon slot. Defeat, the win
   and prompt-less exits touch nothing.
 - **Side effects:** NO always means "next entry is the original level".
-- **Spec:** `endgame.md` §Q6; `dungeon-representation.md` §Leaving and re-entering.
-- **Option `p1.dungeon-map-no`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `endgame.md` section Q6; `dungeon-representation.md` section Leaving and re-entering.
+- **Option `p1.dungeon-map-no`:** `manual` · `dos`.
 
 ## D-028 — Spell success ignores the caster's level
 
@@ -424,8 +428,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Side effects:** SLEEP (D-020) uses the same roll. Example rates DOS → remaster: level-1 Wizard vs TROLL 51 % → 35 %;
   level 15 vs HIGH DEMON 71 % → 77 %. Against the **Black Lord** (L21) the level term is always ≤ −12, so these spells get
   weaker on the final boss (level 15: 46 % → 34 %). FEAR + DISSOLVE doesn't use this roll.
-- **Spec:** `combat-resolution.md` §To-hit.
-- **Option `p1.spell-level`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section To-hit.
+- **Option `p1.spell-level`:** `manual` · `dos`.
 
 ## D-029 — FIREFLASH damage scales with INT
 
@@ -439,16 +443,16 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   7 / 21 / 43 / 72, INT 16 at 9 / 26 / 53 / 89.
 - **Remaster:** `Magic.FireflashDamage`, `FireflashFullInt = 18`.
 - **Side effects:** top damage is above DOS at every INT. Target choice → D-059.
-- **Spec:** `magic-spells.md` §Effect coefficients.
-- **Option `p1.fireflash-damage`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `magic-spells.md` section Effect coefficients.
+- **Option `p1.fireflash-damage`:** `manual` · `dos`.
 
 ## D-030 — A failed monster run wakes SLEEP'd monsters
 
 - **Manual:** silent; under D-020 sleepers wake only on the 15 % roll.
 - **DOS (OV2 `0x3e19`):** a failed monster run marks every living monster awake, sleepers included.
 - **Decision (user s34):** sleepers stay asleep. **Remaster:** `MonstersLoseRound` leaves `Asleep` alone.
-- **Spec:** `combat-resolution.md` §Party options.
-- **Option `p1.failed-run`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section Party options.
+- **Option `p1.failed-run`:** `manual` · `dos`.
 
 ## D-031 — Wilderness treasure isn't automatic
 
@@ -459,8 +463,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Remaster:** `TreasureDrop` + the KEEP IT? prompt (`GameSession.TreasurePrompt`). SCROLL 17 drops only in the Fortress;
   those FIRE ELEMENTAL drops give nothing.
 - **Side effects:** monsters that run in the wilderness leave their items too; wilderness items are 2.5–5× as common as DOS.
-- **Spec:** `combat-resolution.md` §Outputs / rewards.
-- **Option `p1.wild-treasure`** (P3.2, s78, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): a wilderness win or surrender drops treasure only on `rand0_99 ≤ 2·L + 20`, and the SCROLL 17 guard tests the unshifted id, so FIRE ELEMENTAL drops SCROLL 17 anywhere 20 % of the time. What that scroll does outside the Fortress is still `[?]` (P0.8).
+- **Spec:** `combat-resolution.md` section Outputs / rewards.
+- **Option `p1.wild-treasure`:** `manual` · `dos`: a wilderness win or surrender drops treasure only on `rand0_99 ≤ 2·L + 20`, and the SCROLL 17 guard tests the unshifted id, so FIRE ELEMENTAL drops SCROLL 17 anywhere 20 % of the time. What that scroll does outside the Fortress is still `[?]` (P0.8).
 
 ## D-032 — A summoned elemental fights with zero stats
 
@@ -468,12 +472,11 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **DOS (OV2 `0x3263`):** combat prep stops at the party size at fight start (6), so slot 7 keeps zero attack, damage and armor (a bug).
 - **Decision (user s34):** "If it's broken, fix it."
 - **Remaster:** `ElementalPrepRule.Prepared` (default): the elemental gets its record's values (FIRE 200/40/7, WATER 150/30/14, EARTH 100/20/21).
-  T5.0 (s73): rules option `p1.elemental-prep` ("SUMMONED ELEMENTAL"): FULL STATS in the Original (manual) and Remaster
-  presets, ZERO STATS (DOS) in Original (DOS); locked per save.
+- **Option `p1.elemental-prep`** ("SUMMONED ELEMENTAL"): FULL STATS · ZERO STATS (DOS).
 - **Side effects:** [original text] becomes a real combat spell. Because prep now covers slot 7, buffs cast on the elemental
   (QUICKNESS/STRENGTH/PROTECTION) are rebuilt each fight like the party's; in DOS they lasted the whole trip, since prep never
   touched slot 7 (static s58: writers of `@246/@248/@250` = buff spells OV2 `0x4b3..0x5c5`, prep, Guild copy `0x27e1`).
-- **Spec:** `combat-resolution.md` §[original text].
+- **Spec:** `combat-resolution.md` section [original text].
 
 ## D-033 — When [original text] works
 
@@ -481,16 +484,16 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **DOS (OV2 `0x8cc`):** tests a word that is "last living index" after orders but "living count" after a monster turn, so a
   pass-3/5 cast works with **5** members and fails with 6.
 - **Decision (user s34):** manual — six non-DEAD members (sleepers count), every pass. **Remaster:** `CombatSpells.SummonElemental`.
-- **Spec:** `combat-resolution.md` §[original text].
-- **Option `p1.summon-party`** (P3.2, s78, locked per save): `manual` (six non-DEAD members, every pass; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): DOS's living list `[0x64a2]` and word `[0x6490]` (`Party.DosLiving`, kept for the session and saved, updated whatever the options): the `== 5` test (six non-DEAD after the orders phase, five once a monster has taken a turn; RESURRECTION only adds 1, so it keeps the meaning), the list entry written one place too far after a monster turn (entry 5 stays stale), and the second summon of an elemental already fighting (seven members, one DEAD: only the word and list change). A `manual` summon writes nothing to the list; the next rebuild (monster turn, orders phase) lists the elemental.
-- **Option `p1.monster-spell-target`** (user s172: a toggle of its own, split from `p1.summon-party`; locked per save; Original (DOS) preset `dos`, Original (manual) and Remaster `manual`, as D-033's decision): who the single-target monster specials 1–4 (OV2 `0x1731`) hit. `manual`: any non-DEAD member, `rand·count/100` (no manual rule on targets). `dos`: `list[rand·[0x6490]/100]` as they stand: before any monster turn in a round with orders the word is the last index, so the last listed member can't be the target; a round entered by a failed Flee (or a surprise opening) has no orders phase, so the word keeps last round's count; a stale DEAD entry (only after a `p1.summon-party` `dos` summon in a count phase, or its second summon) wastes the spell. So the stale-entry effects need both options on `dos`. `[?]` only the start-up values (BSS memory; Core starts empty, word 0; an entry never written gives no target).
+- **Spec:** `combat-resolution.md` section [original text].
+- **Option `p1.summon-party`:** `manual` (six non-DEAD members, every pass) · `dos`: DOS's living list `[0x64a2]` and word `[0x6490]` (`Party.DosLiving`, kept for the session and saved, updated whatever the options): the `== 5` test (six non-DEAD after the orders phase, five once a monster has taken a turn; RESURRECTION only adds 1, so it keeps the meaning), the list entry written one place too far after a monster turn (entry 5 stays stale), and the second summon of an elemental already fighting (seven members, one DEAD: only the word and list change). A `manual` summon writes nothing to the list; the next rebuild (monster turn, orders phase) lists the elemental.
+- **Option `p1.monster-spell-target`** (user s172: a toggle of its own, apart from `p1.summon-party`): who the single-target monster specials 1–4 (OV2 `0x1731`) hit. `manual`: any non-DEAD member, `rand·count/100` (no manual rule on targets). `dos`: `list[rand·[0x6490]/100]` as they stand: before any monster turn in a round with orders the word is the last index, so the last listed member can't be the target; a round entered by a failed Flee (or a surprise opening) has no orders phase, so the word keeps last round's count; a stale DEAD entry (only after a `p1.summon-party` `dos` summon in a count phase, or its second summon) wastes the spell. So the stale-entry effects need both options on `dos`. `[?]` only the start-up values (BSS memory; Core starts empty, word 0; an entry never written gives no target).
 
 ## D-034 — Surprised fights skip PARTY OPTIONS in round 1
 
 - **Manual:** describes AN ENCOUNTER → PARTY OPTIONS; never mentions surprise.
 - **DOS (OV2 `0x33ab`):** PARTY OPTIONS only in a normal opening; surprised / surprising / stalled openings go straight to round 1.
 - **Decision (user s34):** NOT A CONFLICT — the manual describes the normal case. **Remaster:** DOS rule (`Surprise`).
-- **Spec:** `combat-resolution.md` §Surprise.
+- **Spec:** `combat-resolution.md` section Surprise.
 
 ## D-035 — Town Cast spell offers combat spells (MP spent, no effect)
 
@@ -501,8 +504,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   (`IsCastableAt`: MONSTER EVAL. wilderness/dungeon, VISION wilderness, TRANSPORTATION town; E spells everywhere). The
   Client lists only castable spells. `spells.json` MONSTER EVAL. category corrected to `N/WD`.
 - **Side effects:** VISION can't be cast in dungeons.
-- **Evidence:** `reverse-engineering/dos/working/capture_s35_2026-10-11.md` §6.
-- **Option `p1.cast-list`** (P3.2, s78, locked per save): `manual` (the rule above; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): out-of-combat Cast lists every known spell (`SpellCaster.OutOfCombatChoices`) and refuses none; the MP is spent first and only DOS's switch cases do anything (`HasDosOutOfCombatEffect`, [C]: town OV1 `0x254e` HEALING, RESURRECTION, TRANSPORTATION; wilderness / dungeon OV2 `0x4790` HEALING, RESURRECTION, MONSTER EVAL., VISION in the wilderness). Any other spell, combat spells included, spends its MP for nothing, with no message.
+- **Evidence:** `reverse-engineering/dos/working/capture_s35_2026-10-11.md` section 6.
+- **Option `p1.cast-list`:** `manual` · `dos`: out-of-combat Cast lists every known spell (`SpellCaster.OutOfCombatChoices`) and refuses none; the MP is spent first and only DOS's switch cases do anything (`HasDosOutOfCombatEffect`, [C]: town OV1 `0x254e` HEALING, RESURRECTION, TRANSPORTATION; wilderness / dungeon OV2 `0x4790` HEALING, RESURRECTION, MONSTER EVAL., VISION in the wilderness). Any other spell, combat spells included, spends its MP for nothing, with no message.
 
 ## D-036 — Copy-protection quiz in dungeon 1
 
@@ -519,9 +522,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Core:** equal split among living members, gold to the party purse, remainder to the first survivor.
 - **Decision (user s35):** keep Core's payout.
 - **Side effects:** no share prompt or bank deposit on entry (Bank Deposit does the share split, D-049). The split runs on
-  town entry, as the manual, DOS, the ST II and the Amiga I do (`GameSession.EnterTown`, I and II, s207; until s207 it ran
-  only from the town's Distribute). Found items still wait for Distribute; with nobody living the pool waits too.
-- **Option `p1.payout-remainder`** (P3.2, s76, locked per save): `first-survivor` (Core's payout; Original (manual) and Remaster presets) · `dropped` (the remainders are lost, as DOS; Original (DOS) preset). Q2 only. The DOS save export's automatic payout of the fight XP/gold follows it too (s77); its split of the carried purse into the banks keeps the remainder with the first member either way.
+  town entry, as the manual, DOS, the ST II and the Amiga I do (`GameSession.EnterTown`, I and II). Found items still wait for Distribute; with nobody living the pool waits too.
+- **Option `p1.payout-remainder`:** `first-survivor` (Core's payout) · `dropped` (the remainders are lost, as DOS). Q2 only. The DOS save export's automatic payout of the fight XP/gold follows it too; its split of the carried purse into the banks keeps the remainder with the first member either way.
 
 ## D-038 — Leaving a dungeon only through the door you came in by
 
@@ -539,8 +541,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   stays go to table + 1. The town Inn uses `<`.
 - **Decision (user s37):** manual. **Remaster:** `WildernessInn.Stay` uses `<`, never past the table.
 - **Side effects:** odds below the cap drop by 1 % (gap 1: 20 % instead of 21 %).
-- **Spec:** `town-menus.md` §Wilderness inn.
-- **Option `p1.inn-magic-cap`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `town-menus.md` section Wilderness inn.
+- **Option `p1.inn-magic-cap`:** `manual` · `dos`.
 
 ## D-047 — Wilderness inn skips DEAD members
 
@@ -549,29 +551,28 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s37):** manual. **Remaster:** `WildernessInn.Stay` refills a DEAD member's HP/MP (still DEAD, no line
   shown, no MP-max roll); under D-008 the dead member still ages.
 - **Side effects:** only the dead member's stored HP/MP.
-- **Spec:** `town-menus.md` §Wilderness inn.
-- **Option `p1.wild-inn-dead`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `town-menus.md` section Wilderness inn.
+- **Option `p1.wild-inn-dead`:** `manual` · `dos`.
 
 ## D-048 — Gold cap
 
 - **Manual (p.10):** the party carries up to 65,000 GP; one bank account holds up to 65,000 GP.
 - **DOS:** clamps at **65,535** and the excess is lost (Withdraw takes the full amount from the account first).
-- **Decision (user s40):** manual — 65,000. Lifting the cap = later QoL option (P3).
+- **Decision (user s40):** manual — 65,000.
 - **Remaster:** `Party.GoldCap` / `Party.BankGoldCap` = 65,000, applied wherever gold is added (Withdraw, Armory sale,
   town-entry payout, Deposit, combat gold into the sack). Gaps filled from DOS: the excess is lost silently; Withdraw takes the
   full amount from the account first.
-- **Option `p1.gold-cap` (P3, locked per save):** `manual` 65,000 (Original (manual) preset, the default) · `dos`
+- **Option `p1.gold-cap`:** `manual` 65,000 (Original (manual) preset, the default) · `dos`
   65,535 (Original (DOS) preset) · `lifted` = no practical cap, 2,147,483,647 (`int.MaxValue`; Remaster preset). It sets the
   purse, every bank account and the found-gold sack together. Under `lifted` the Withdraw amount field takes any amount up
   to the balance (DOS's field, and the other two values, stop at 65535).
 - **Side effects:** found gold (`LootSack.Gold`) is capped separately from the purse, so out of town the two can hold up to
   twice the cap together until they merge in town. The DNG script gold op keeps its 16-bit clamp under every value. A DOS
   import over the cap is kept and listed as a rule break (checked against the running save's cap: 65,000, 65,535 under
-  `dos`, never under `lifted`; s77);
-  an add can't raise it further. **DOS export** under `dos` / `lifted`: the automatic split into the banks stops at 65,535
+  `dos`, never under `lifted`); an add can't raise it further. **DOS export** under `dos` / `lifted`: the automatic split into the banks stops at 65,535
   (the excess of a share is lost and listed), and a balance already above 65,535 is written as 65,535 and listed (the u16
   clamp) — the file stays valid; the live game keeps its gold.
-- **Spec:** `town-menus.md` §Bank; `quirks-and-bugs.md` Q1.
+- **Spec:** `town-menus.md` section Bank; `quirks-and-bugs.md` Q1.
 
 ## D-049 — What Bank Deposit does
 
@@ -581,7 +582,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   "Shares for: NAME" per member and lists each account's deposit. Amount deposit removed.
 - **Gaps filled from DOS (manual silent):** a DEAD member may get 0–3 shares; the remainder is dropped; with no gold nothing is
   asked. Gold only (XP is paid on town entry, D-037). Each account capped at 65,000 (D-048).
-- **Spec:** `town-menus.md` §Bank.
+- **Spec:** `town-menus.md` section Bank.
 
 ## D-050 — Training screen hides the cost while XP is short
 
@@ -597,8 +598,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s40):** manual. **Remaster:** `MagicalPool.Apply` stops at the race maximum (`raceMod + 8`).
 - **Gaps filled (manual silent):** a member already at the maximum still uses the pool and "IS CHANGED" (keeps DNG5's
   three-pool check reachable); an undead member uses its birth race's maximum; a value already above the max (DOS import) is kept.
-- **Spec:** `overworld-movement.md` §Magical pool.
-- **Option `p1.pool-cap`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `overworld-movement.md` section Magical pool.
+- **Option `p1.pool-cap`:** `manual` · `dos`.
 
 ## D-052 — Trap menu labels and who may disarm
 
@@ -607,11 +608,10 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s40):** manual labels. **Remaster:** "%s SPOTS A TRAP" with **D)ISARM** / **L)EAVE** (letter keys);
   "[original text]" (DOS wording).
 - **Gap filled from DOS (manual silent):** only status-OK members can disarm.
-- **Amiga I (s156):** the Amiga asks "%s [original text] IT?[YES|NO]" in requester 0 (h41 `+0x11c`). Its buttons
+- **Amiga I:** the Amiga asks "%s [original text] IT?[YES|NO]" in requester 0 (h41 `+0x11c`). Its buttons
   are font text, so (as D-064's Amiga note) the manual's labels apply there too: the remaster's requester 0 shows the
-  Amiga's three lines with the buttons DISARM / LEAVE (D / L, or a click).
-  The user kept this (no veto, s157).
-- **Spec:** `dungeon-representation.md` §Traps.
+  Amiga's three lines with the buttons DISARM / LEAVE (D / L, or a click). Kept by the user (s157).
+- **Spec:** `dungeon-representation.md` section Traps.
 
 ## D-053 — End-of-combat XP/gold display and when shares are cut
 
@@ -620,26 +620,25 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s42):** manual. **Remaster:** `GameSession.DepositEncounterTotals` puts the whole XP and gold in the loot sack
   and shows "{xp} [original text] AND {gold} GOLD" (remaster wording); the town-entry split (D-037) divides it.
 - **Side effects:** no per-fight remainder loss (up to 10n−1 XP and n−1 GP more per fight than DOS); pool still capped at 655,350.
-  BEG FOR MERCY (s65 DOSBox): DOS keeps the purse's remainder after dividing it among the survivors (556 GP, 6 survivors → 4
+  BEG FOR MERCY (DOSBox s65): DOS keeps the purse's remainder after dividing it among the survivors (556 GP, 6 survivors → 4
   left); with no per-fight split the remaster's BEG takes all the gold, as the manual's "surrenders its gold" says.
-- **Spec:** `combat-resolution.md` §Outputs.
-- **Option `p1.combat-shares`** (P3.2, s78, locked per save): `manual` (totals, no remainder loss; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): the end of combat shows `⌊XP/(10n)⌋·10` XP and `⌊gold/n⌋` GP, "[original text]", and pools only `n` shares (`GameSession.SurvivorShares`); after BEG the shown gold is `−⌊purse/n⌋` and `purse mod n` stays, as found gold. DOS's purse `[0x63f6]` is one word holding found and bank-withdrawn gold; Core's found gold is the faithful home for the leftover: DOS-mode fight gold goes there too, the found-gold screen shows `[0x63f6]`, a party defeat zeroes `[0x63f6]` as Core zeroes found gold, and town entry pays found gold into the carried purse.
+- **Spec:** `combat-resolution.md` section Outputs.
+- **Option `p1.combat-shares`:** `manual` (totals, no remainder loss) · `dos`: the end of combat shows `⌊XP/(10n)⌋·10` XP and `⌊gold/n⌋` GP, "[original text]", and pools only `n` shares (`GameSession.SurvivorShares`); after BEG the shown gold is `−⌊purse/n⌋` and `purse mod n` stays, as found gold. DOS's purse `[0x63f6]` is one word holding found and bank-withdrawn gold; Core's found gold is the faithful home for the leftover: DOS-mode fight gold goes there too, the found-gold screen shows `[0x63f6]`, a party defeat zeroes `[0x63f6]` as Core zeroes found gold, and town entry pays found gold into the carried purse.
 
 ## D-054 — Armory restock: which items can disappear between visits
 
 - **Manual (p.10):** rings, scrolls and other treasures stay; "Combat weapons and potions, however, may appear and disappear."
 - **DOS (OV1 `0x8e1`, at town entry):** 18 random wipes over ids 0..119 — weapons **and armor and shields**, plus HEALING/MAGIC
   potions — then 4 restocks (set to 1) from the town's item list. (The s35 capture saw Pelnor SM SHIELD 5 → 0.)
-- **Decision (user s42):** manual — only weapons and potions change; armor and shields stay. A restock toggle may become a P3 option.
-- **Remaster:** built s56 — `ArmoryRestock.Apply` draws the same 18 + 4 random numbers as DOS. Wipes only hit weapon ids
+- **Decision (user s42):** manual — only weapons and potions change; armor and shields stay.
+- **Remaster:** `ArmoryRestock.Apply` draws the same 18 + 4 random numbers as DOS. Wipes only hit weapon ids
   (41..100) and HEALING/MAGIC potions. A restock draw on armor or a shield sets it to 1 only when it is sold out, and never
   lowers a stack (user s57).
-- **Option `p1.armory-restock` (P3, locked per save):** `manual` (the rule above; Original (manual) preset, the default, and
-  Remaster) · `dos` (armor and shields are wiped and cut to 1 too, `ArmoryRestock.Apply(dosRule: true)`; Original (DOS)
-  preset). Both draw the same random numbers.
-- **Side effects:** fixed s57: armor and shields that were bought out used to never come back. Now they return through the
-  town's restock list, like weapons do. Armor that isn't on the list stays gone once sold out, the same as in DOS.
-- **Spec:** `town-menus.md` §Armory restock.
+- **Option `p1.armory-restock`:** `manual` (the rule above) · `dos` (armor and shields are wiped and cut to 1 too,
+  `ArmoryRestock.Apply(dosRule: true)`). Both draw the same random numbers.
+- **Side effects:** armor and shields that were bought out return through the town's restock list, like weapons. Armor
+  that isn't on the list stays gone once sold out, as in DOS.
+- **Spec:** `town-menus.md` section Armory restock.
 
 ## D-055 — Path travel time
 
@@ -648,9 +647,9 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   (75 / 150 / 225 / 300) but **equal to** water, bridge (tile 74 `[~]`) and classes 8/9. DOS gives the "variety" encounter
   mix to class 0; class 6 gets humanoid / animal / magic users (not raised separately).
 - **Decision (user s42):** manual — path is faster than every other terrain.
-- **Remaster:** built s56 — `travel-time.json` charges class 6 **30** per step (confirmed by the user s57; it is data). `TravelTimeRules.Dos` keeps 60.
-- **Spec:** `overworld-movement.md` §Terrain classes.
-- **Option `p1.path-time`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Remaster:** `travel-time.json` charges class 6 **30** per step (user s57; it is data). `TravelTimeRules.Dos` keeps 60.
+- **Spec:** `overworld-movement.md` section Terrain classes.
+- **Option `p1.path-time`:** `manual` · `dos`.
 
 ## D-056 — MONSTER EVALUATION
 
@@ -658,23 +657,22 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   inaccurate results…"
 - **DOS (OV2 `0x4860`):** no roll, no look at real monsters — wilderness `L = min(2·(tile%10 + 1), 12)`, dungeon `L = 2·tier + 2`.
 - **Decision (user s42):** manual — reads nearby monsters, sometimes wrong.
-- **Remaster:** built s56 — `SpellCaster.ManualMonsterEvalLevel`: the rounded average level of the monsters that can be met
+- **Remaster:** `SpellCaster.ManualMonsterEvalLevel`: the rounded average level of the monsters that can be met
   where the party stands (wilderness: the cell's 12-monster block `12·T`; dungeon: the level's wandering range `T..T+12`);
-  **10 %** of casts read off by ±1 (never below 1; user s57, was 20 % ±1–2). The DOS formula stays as
+  **10 %** of casts read off by ±1 (never below 1; user s57). The DOS formula stays as
   `MonsterEvalLevel`.
 - **Spec:** `magic-spells.md`.
-- **Option `p1.monster-eval`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Option `p1.monster-eval`:** `manual` · `dos`.
 
 ## D-057 — VISION
 
 - **Manual (p.16):** VISION sees "in all directions for hundreds of miles", useful for "mapping vast unknown areas".
 - **DOS (OV2 `0x48b3`):** wilderness only; reveals a square of radius `(MP_left·100 + 500)/400` (1–3 cells) inside the current 26×20 region, once.
 - **Decision (user s42):** manual — a very large area.
-- **Remaster:** built s56 — the whole current 26×20 region is revealed (`SpellCaster.VisionManualRadius`); it does not reach
-  into neighbouring regions; in a dungeon it still cannot be cast (D-035). Confirmed by the user s57. DOS radius kept as
-  `VisionRadius`.
+- **Remaster:** the whole current 26×20 region is revealed (`SpellCaster.VisionManualRadius`, user s57); it does not reach
+  into neighbouring regions; in a dungeon it still cannot be cast (D-035). DOS radius kept as `VisionRadius`.
 - **Spec:** `magic-spells.md`.
-- **Option `p1.vision`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Option `p1.vision`:** `manual` · `dos`.
 
 ## D-058 — No "AN ENCOUNTER" message before a fight
 
@@ -685,15 +683,15 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   ENCOUNTER"; every other wilderness fight → "A DAY ENCOUNTER"; dungeon fights → "AN ENCOUNTER". Script text such as
   "MONSTERS APPEAR" still comes first.
 - **I under AMIGA SCREENS:** the Amiga shows "[original text]" in requester 23 over the map (h74 `+0x6c`); it has no day
-  or dungeon flash, nor any box before fixed / tile-class fights. s139 boxed the day flash like the night one, which added
-  ~1 s before the fight.
+  or dungeon flash, nor any box before fixed / tile-class fights. Boxing the day flash like the night one added ~1 s
+  before the fight.
 - **Decision (user s140, final):** "Do whatever shows it but doesn't slow things down."
-- **Remaster (built s140):** the night flash stays the Amiga's box. "A DAY ENCOUNTER" (rolled, fixed and tile-class
+- **Remaster:** the night flash stays the Amiga's box. "A DAY ENCOUNTER" (rolled, fixed and tile-class
   wilderness fights) and the dungeon's "AN ENCOUNTER" are no box: they print on the combat screen's line (y 185, z6font)
   from the fight's start, over sound 17's black and the set-up, and stay until the fight's first line prints or its first
   run ends. No wait is added. Side effect: in a surprise opening with the Sound switch off (no black) it shows only during
   the set-up, a fraction of a second `[~]`. Amiga `FORMAT.md` "The map screen's requester 23" (D-058's flashes).
-- **Spec:** `combat-resolution.md` §Surprise.
+- **Spec:** `combat-resolution.md` section Surprise.
 
 ## D-059 — FIREFLASH target
 
@@ -704,8 +702,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   numbers: not built (Amiga `FORMAT.md` "The combat screen").
 - **Decision (user s53):** manual — a monster in the front rank (first rank with a living monster), picked evenly; target before damage.
 - **Remaster:** `SpellCaster.PickFireflashTarget`. D-029 (damage) unaffected.
-- **Spec:** `combat-resolution.md` §FIREFLASH target.
-- **Option `p1.fireflash-target`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `combat-resolution.md` section FIREFLASH target.
+- **Option `p1.fireflash-target`:** `manual` · `dos`.
 
 ## D-060 — APPLETON can't be entered from the wilderness
 
@@ -725,37 +723,33 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (user s53):** manual — potions and scrolls as DOS; every other item shows a detailed description (damage / armor
   value, strength needed, sale value, plus remaster-written lore).
 - **Remaster:** `ItemRules.Describe` + `item-descriptions.json`; town Option → Use item.
-- **Spec:** `endgame.md` §6.1.
+- **Spec:** `endgame.md` section 6.1.
 
 ## D-062 — TRANSPORTATION destinations
 
 - **Manual:** "transports the party from one town to another" (p.20); "the 11 initial towns" (p.8).
 - **DOS (COM `0x16a2`):** a cursor list of all 12 town records, the current town included; the 12th (OLYMPIA) prints blank.
-- **Decision (user s53):** manual — the current town is not offered. The blank 12th entry stays: the manual doesn't limit the
+- **Decision (user s53, confirmed s57):** manual — the current town is not offered. The blank 12th entry stays: the manual doesn't limit the
   list to 11, and it is the only route to Olympus and PHANTASIA.
 - **Remaster:** `GameSession.TransportDestinations`; the Client list skips the current town.
-- **Confirmed (user s57):** current town left out, blank OLYMPIA kept as in DOS.
-- **Spec:** `endgame.md` §2.4.
-- **Option `p1.transport-list`** (P3.2, s78, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (all 12 towns, the current one included; Original (DOS) preset). Picking the current town runs the full town entry (aging, Armory restock), as DOS's `0x1954(pick)` (`endgame.md` §2.4).
+- **Spec:** `endgame.md` section 2.4.
+- **Option `p1.transport-list`:** `manual` · `dos` (all 12 towns, the current one included). Picking the current town runs the full town entry (aging, Armory restock), as DOS's `0x1954(pick)` (`endgame.md` section 2.4).
 
 ## D-063 — Non-combat spell picked in combat
 
 - **Manual:** the spell table marks MONSTER EVAL., VISION and TRANSPORTATION **N** (non-combat); it doesn't say what happens if one is tried.
 - **DOS ([C], COM `0x139c`, OV2 `0x6d75`):** the combat picker lists every known spell; casting one of these prints "%s CASTS
   A SPELL", spends the MP, and does nothing.
-- **Decision (user s53: DOS only where the manual is silent):** the N category means they can't be cast in combat.
+- **Decision (user s53, confirmed s57; DOS only where the manual is silent):** the N category means they can't be cast in combat.
 - **Remaster:** the combat picker lists only combat and everywhere spells; a typed non-combat number becomes PARRY, no MP spent.
-- **Confirmed (user s57):** **N** means not castable in combat.
 - **Spec:** `combat-resolution.md`.
-- **Option `p1.combat-spell-list`** (P3.2, s78, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): the combat picker lists every known spell (`SpellCaster.IsCombatCastable`); MONSTER EVAL., VISION or TRANSPORTATION cast in combat prints "%s CASTS A SPELL", spends the MP and does nothing.
-- **III (s128):** III's own (screens-off) spell list also follows this option, but DOS III (`0xfc41`) and the Amiga
-  refuse a non-combat or unaffordable pick with a message and Thrust (R1), never "spends the MP and does nothing". So the
-  `dos` description is wrong for III. **Decided (user s129):** the manual holds in every game; where a game's DOS
-  version differs, that game gets its own option for the DOS behaviour. III: own option (manual = only combat and
-  everywhere spells listed; DOS = every spell listed, a non-combat or unaffordable pick refused with DOS III's message
-  and a Thrust, no MP spent). **Built s130:** option `p3.combat-spell-list` (`manual` / `dos`, Original (DOS) preset =
-  `dos`), used by III's own list and the Amiga spell window alike; a typed or picked non-combat spell is refused with
-  DOS III's message and a Thrust under both values (`P3CombatModule.CastRefusal`). I's `p1.combat-spell-list` is I's only.
+- **Option `p1.combat-spell-list`:** `manual` · `dos`: the combat picker lists every known spell (`SpellCaster.IsCombatCastable`); MONSTER EVAL., VISION or TRANSPORTATION cast in combat prints "%s CASTS A SPELL", spends the MP and does nothing.
+- **III:** DOS III (`0xfc41`) and the Amiga refuse a non-combat or unaffordable pick with a message and Thrust (R1),
+  never "spends the MP and does nothing". **Decided (user s129):** the manual holds in every game; where a game's DOS
+  version differs, that game gets its own option. III's option `p3.combat-spell-list` (`manual` = only combat and
+  everywhere spells listed; `dos` = every spell listed, Original (DOS) preset) drives III's own list and the Amiga spell
+  window alike; a typed or picked non-combat spell is refused with DOS III's message and a Thrust under both values, no
+  MP spent (`P3CombatModule.CastRefusal`). I's `p1.combat-spell-list` is I's only.
 
 ## D-064 — Character sheet wording
 
@@ -771,13 +765,13 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 
 - **Manual (p.4):** "Characters cannot be renamed while they are members of a party."
 - **DOS (OV1 `0x22f6`):** renames party members too.
-- **Decision (user s53):** manual. Allowing it = later QoL option (P3).
+- **Decision (user s53):** manual.
 - **Remaster:** `GameSession.TryRename` refuses party members (parked D-069 parties too); the Client R)ENAME lists only
   non-party members.
-- **Option `p1.rename-party` (P3, locked per save):** `refused` (Original (manual) preset, the default) · `allowed` (DOS:
+- **Option `p1.rename-party`:** `refused` (Original (manual) preset, the default) · `allowed` (DOS:
   party members are renamed too, and R)ENAME lists them; Original (DOS) and Remaster presets). One rule,
   `GameSession.CanRename`, for both Core and the Client list. INPUT NAME's rules (9 characters, unique) apply either way.
-- **Spec:** `town-menus.md` §Guild.
+- **Spec:** `town-menus.md` section Guild.
 
 ## D-066 — Town menu: letter keys vs highlight bar
 
@@ -796,8 +790,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   ages the member 2 months (`@264 += 4`), same town too.
 - **Decision (user s53):** no aging for a member already in this town; a member from another town still gets the prompt and the 2 months.
 - **Remaster:** `GuildHall.TryAddToParty`.
-- **Spec:** `town-menus.md` §Aging; `quirks-and-bugs.md` Q8.
-- **Option `p1.add-aging`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `town-menus.md` section Aging; `quirks-and-bugs.md` Q8.
+- **Option `p1.add-aging`:** `manual` · `dos`.
 
 ## D-068 — Distribute: "type 7 to sell" vs a SELL / SACK menu
 
@@ -807,7 +801,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Decision (s53):** NOT A CONFLICT — highlight menus per the C-64 addendum; SACK kept (manual silent). User: "distribute
   everything just like the actual game".
 - **Remaster:** the DOS screen with both the menu and the manual's 1–6 / 7 keys (`ItemDistribution`, `DistributeDialog`).
-- **Spec:** `town-menus.md` §Distribute.
+- **Spec:** `town-menus.md` section Distribute.
 
 ## D-069 — Continue saved game: pick a character vs load every flagged record
 
@@ -816,11 +810,11 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   character's town with the party he or she is a member of.
 - **DOS (static, s56; OV1 `0x1e15(2)` → `0x425c` → `0x7dd(2)`):** the load loop `0x866..0x89d` takes every roster record with
   `@218 ≠ 0`, in roster order, into the party (never reads `@260`/`@92`); the town is `@254` of the first one. With nobody
-  flagged it opens Pelnor with an empty party (`0x7e7`). **[D✓] s56 DOSBox** (`capture_s56` §9): "continue saved game" asks
+  flagged it opens Pelnor with an empty party (`0x7e7`). **[D✓] s56 DOSBox** (`capture_s56` section 9): "continue saved game" asks
   nothing and lands on the town bar; moving the `@218` flag from wizardo to thiefo loaded thiefo at its roster position.
   `@218` is a single flag, so a DOS save holds one party only.
-- **Decision (user s57):** manual — several parties can be out at once, and Continue asks for a Guild number. Built s58.
-- **Remaster (s58):** Load (F9) = [original text]: it asks "GUILD NUMBER OF THE CHARACTER?" (1..22, as L)IST MEMBERS
+- **Decision (user s57):** manual — several parties can be out at once, and Continue asks for a Guild number.
+- **Remaster:** Load (F9) = [original text]: it asks "GUILD NUMBER OF THE CHARACTER?" (1..22, as L)IST MEMBERS
   numbers them; `ContinueDialog`) and `GameSession.Continue` calls up that character's party where it was saved. The
   JSON save keeps the active party plus the shared world (roster, towns, region bytes, dungeon slot) on its top level and
   every other party as a parked entry (`SessionSnapshot.OtherParties`, party-local state only: members, purse, sack,
@@ -833,15 +827,15 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   DOS-save import (F7) still follows the DOS loop and makes one party with none parked (`DosSaveConverter.Import`).
 - **Side effects:** DOS export writes the parked parties' members with `@218` = 0 (copies only), because DOS would load
   every flagged record into one party; a note names them and says their purse and sack are not in the DOS files.
-  Without parked parties the export is unchanged. Saves from before s58 load as a single active party (no migration).
-- **QoL option (s74, PLAN P3, user's 2nd QoL priority):** Options → game tab → CONTINUE FROM A LIST
+  Without parked parties the export is unchanged. Older single-party saves load as one active party (no migration).
+- **QoL option:** Options → game tab → CONTINUE FROM A LIST
   (`GameSettings.ContinueFromList`, a presentation switch in `settings.json`, not a locked rule: no save is loaded when
   Continue asks). On: Continue lists the save's parties (`SeveralParties.Parties`: active first, then parked; leader + the
   others' count + town / WILDERNESS / DUNGEON n, the selected party's names below) to pick with Up/Down + Return; the
   last row, BY GUILD NUMBER, asks the manual's question (the only way to call up a character in no party). A save with no
   party asks the question directly. **Off (default) = the manual's question**, unchanged.
-- **Spec:** `save-file-format.md` §Remaster codecs.
-- **Option `p1.continue`** (P3.2, s78, locked per save): `manual` (the question above; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): Continue reads the file's locked rules and, under `dos`, asks nothing and loads the saved party (`GameSession.ContinueSavedParty`). The remaster still restores where it was saved, and a file with nobody in the party opens with an empty party. A save made under `dos` never parks a party, since the Guild number is the only way to start a second one.
+- **Spec:** `save-file-format.md` section Remaster codecs.
+- **Option `p1.continue`:** `manual` · `dos`: Continue reads the file's locked rules and, under `dos`, asks nothing and loads the saved party (`GameSession.ContinueSavedParty`). The remaster still restores where it was saved, and a file with nobody in the party opens with an empty party. A save made under `dos` never parks a party, since the Guild number is the only way to start a second one.
 
 ## D-070 — Inn MAGIC INCREASES: any cast vs combat casts only
 
@@ -855,8 +849,8 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   (`SpellCaster.CastOutOfCombat` — town, wilderness, dungeon). Refused casts (wrong place, no MP) don't set it.
 - **Side effects:** out-of-combat HEALING / VISION / MONSTER EVAL. / TRANSPORTATION etc. now feed the Inn roll, so MP max can
   grow faster than in DOS. No other rule reads `@94`; a DOS save export writes the flag as the remaster has it.
-- **Spec:** `magic-spells.md` (cast flag), `town-menus.md` §Inn.
-- **Option `p1.cast-flag`** (P3.2, s76, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (the DOS side above; Original (DOS) preset).
+- **Spec:** `magic-spells.md` (cast flag), `town-menus.md` section Inn.
+- **Option `p1.cast-flag`:** `manual` · `dos`.
 
 ## D-071 — Map of Gelnor: 16 sections vs 18 region files
 
@@ -872,7 +866,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 
 - **Manual:** "Answer Y or N" at A TOWN / [original text], at an exit and at SAVE THE DUNGEON MAP (main rules); the C-64
   addendum says to highlight YES or NO.
-- **DOS (static s58: menu loop COM `0x05e3` takes only arrows, Return, Esc; DOSBox s58 `capture_s58` §B):** Y / N do nothing;
+- **DOS (static s58: menu loop COM `0x05e3` takes only arrows, Return, Esc; DOSBox s58 `capture_s58` section B):** Y / N do nothing;
   each prompt keeps its own highlight (per menu id, DS `0x24+16·id`).
 - **Decision:** NOT A CONFLICT — **both**, following the user's D-066 rule for the town menu: the DOS highlight (with DOS's
   per-prompt cursor) plus the manual's Y/N keys.
@@ -888,20 +882,19 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   `0x13` **fast / normal / slow / exit**, first highlight *normal* (`message-and-text.md`). No 0–9 scale; sound is a **±Sound** toggle in the
   field Options menu `0x14` (s67) and a town Option, not a question. What each step delays is undecoded `[?]`. Neither version skips showing the fight.
 - **Decision:** **manual** (user s62). Lag 0 should be as close to instantaneous as possible, scaling up from there; the
-  sound question is included. Moving it from a wilderness command into the game options is a P3 QoL item.
+  sound question is included.
 - **Remaster:** wilderness **T** → "TIME LAG (0-9)?" then "SOUND? (Y/N)" (`TimeLagDialog`); Esc changes nothing. The pause
   before each combat round is `15 · lag²` ms (0 → none: the round shows as soon as orders are in; 5 ≈ 375 ms; 9 ≈ 1.2 s) —
   remaster curve, the manual gives no times. Default 5 (manual silent; DOS starts on *normal*). Orders are still asked every
-  round. Sound is the same flag as the town Option's Sound. DOS's fast/normal/slow menu is not built. Removed: the F key
-  (Normal/Fast/Instant) and Instant (fights resolved unseen); the wilderness T shortcut to town 1 (remaster-only) is gone.
-  Holding **Shift** still fast-forwards a fight (Phase 7 QoL, remaster-only).
+  round. Sound is the same flag as the town Option's Sound. DOS's fast/normal/slow menu is not built. No F key
+  speed (Normal/Fast/Instant), no Instant mode (fights resolved unseen), no wilderness T shortcut to town 1. Holding **Shift** still fast-forwards a fight (Phase 7 QoL, remaster-only).
 - **QoL switch (P3):** the game tab's **TIME LAG AND SOUND** row: `T COMMAND` (off, the default = the manual's T above) or
   `IN OPTIONS` — then TIME LAG (0–9) and SOUND are rows of the Options tab (also from the Esc menu → Options, in game), and
   T is no command (left out of the wilderness / dungeon command list). A presentation switch in `settings.json`
   (`games.p1.timeLagInOptions`), not a per-save rule: melee speed and sound don't change the game, so no preset sets it.
   The lag and sound values are the same either way.
-- **Side effects:** Instant hid whole fights — a lone L1 party could die in DNG1 with no visible fight (s62 report). The
-  defeat box now shows the fight's report whenever a fight wipes the party (any lag, or Shift).
+- **Side effects:** the defeat box shows the fight's report whenever a fight wipes the party (any lag, or Shift), so a
+  wipe is never unseen.
 - **Spec:** `message-and-text.md` (menu `0x13`).
 
 ## D-074 — Guild S)PELLS list: spell numbers vs spell names
@@ -918,7 +911,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   heading with no rows. The rules behind it are DOS (manual silent): learn cap, ≈ INT/21 fail roll with the fee and two weeks
   still taken, one pick per opening, a dead member can't learn, "[original text]", "You've learned" / "You've failed".
 - **Side effects:** none beyond the list's look; the fee, cap and roll are the same either way.
-- **Spec:** `town-menus.md` §Learn spells.
+- **Spec:** `town-menus.md` section Learn spells.
 
 ## D-075 — New member: sheet after naming
 
@@ -928,7 +921,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   straight back to the Guild menu, with no extra sheet and no SPACE pause.
 - **Decision:** manual (user, s66).
 - **Remaster:** the manual's form — after the name is accepted the full sheet shows with "PRESS SPACE"
-  (`GuildNewDialog`, Step.Sheet; built before the decision, unchanged).
+  (`GuildNewDialog`, Step.Sheet).
 - **Side effects:** presentation only; the roll, the name rules and the enrolment are the same either way.
 - **Spec:** `character-creation.md`.
 
@@ -944,7 +937,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   **I** inspect, **U** use potion, **T** time lag (now also in a dungeon), **L** look (dungeon only, s67: `DungeonSight.Look`). Arrows, D-pad and numpad 8 / 2 / 4 / 6 move as
   well; WASD is gone (A does nothing), Q/E turning starts unbound. Bindings stay remappable. I and U act only on the
   wilderness / dungeon map — in town they keep the town bar's I)NFO / U)SE ITEM.
-- **QoL "Diagonal moves" (Options → I tab, T5.0; default ON as the user asked; OFF = the manual's four directions):** numpad 7 / 9 /
+- **QoL "Diagonal moves" (Options → I tab; default ON as the user asked; OFF = the manual's four directions):** numpad 7 / 9 /
   1 / 3 (Home / PgUp / End / PgDn with Num Lock off). A diagonal is **two ordinary steps** — north/south first, then
   east/west; if the first is blocked the other order is tried; the second step runs only after a plain move (not after
   an encounter, a prompt, a sign, a swim…). So a diagonal costs two steps of time and gets two encounter / swim / trap
@@ -962,10 +955,9 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   (portrait cards) and the command list (C)AST H)EALTH I)NSPECT U)SE POTION T)IME LAG, 3/N E S W MOVE) beside it, and
   the message line under it. The map there is a **13×16-cell window that scrolls with the party**, not the whole 26×20
   section: the whole section at the Amiga cell size does not fit beside the pictures. **F2** switches to the Amiga
-  map-only screen (whole section; setting `MapOnly`, default off — renamed from `fullScreenMap` so old settings start on
-  the manual's screen).
-- **QoL "Status lines" (Options → I tab, T5.0; default OFF = manual):** the top status line (mode, gold, party, region, position,
-  DAY OUT / dungeon level, facing, position) and the key help line. A dialog's own help line shows either way.
+  map-only screen (whole section; setting `MapOnly`, default off).
+- **QoL "Status lines" (Options → I tab; default OFF = manual):** the top status line (mode, gold, party, region, position,
+  DAY OUT / dungeon level, facing) and the key help line. A dialog's own help line shows either way.
 - **Side effects:** presentation only.
 - **Spec:** `overworld-movement.md`.
 
@@ -977,11 +969,11 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   a failed FLEE and a surprise opening, but every member is reset to PARRY when the party leaves town (OV1 `0xd0`) and after
   a party defeat (`0x84`).
 - **Decision:** manual (user, s66).
-- **Remaster:** orders persist across rounds and encounters (both agree; built s65); no reset on leaving town or after a
+- **Remaster:** orders persist across rounds and encounters (both agree); no reset on leaving town or after a
   defeat (the manual). A party slot whose member changed starts on PARRY (remaster).
 - **Side effects:** none beyond which order the first fight of a trip starts with.
-- **Spec:** `combat-resolution.md` §Orders.
-- **Option `p1.orders-reset`** (P3.2, s78, locked per save): `manual` (the decision above; Original (manual) and Remaster presets) · `dos` (Original (DOS) preset): every member's repeat order goes back to PARRY when the party leaves town (OV1 `0xd0`) and after a party defeat (`0x84`). Core counts the resets (`GameSession.OrdersResets`, not saved); the Client's combat presenter, which keeps the orders, clears them when the count changes.
+- **Spec:** `combat-resolution.md` section Orders.
+- **Option `p1.orders-reset`:** `manual` · `dos`: every member's repeat order goes back to PARRY when the party leaves town (OV1 `0xd0`) and after a party defeat (`0x84`). Core counts the resets (`GameSession.OrdersResets`, not saved); the Client's combat presenter, which keeps the orders, clears them when the count changes.
 
 ## D-079 — Amiga combat field: a monster's cast line
 
@@ -1004,8 +996,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Manual:** silent.
 - **DOS:** "[original text]", "[original text]", "[original text]", "[original text]".
 - **Amiga (h75 `+0xc0` / `+0xd3` / `+0x47`, h42 `+0x5d`):** no blank before "!", and "THAT IS A WALL".
-- **Decision:** the Amiga's text in the Amiga's boxes (user s157). These four had been kept as DOS text by analogy with
-  D-079; D-079 itself (the monster's cast line) is unchanged.
+- **Decision:** the Amiga's text in the Amiga's boxes (user s157). D-079 (the monster's cast line) is unaffected.
 - **Remaster:** pack `map_message.texts` (Core's id → `p1field.box.*`), AMIGA SCREENS only. Core's log, the message
   line and AMIGA SCREENS off keep DOS's text.
 - **Side effects:** none (the box's text only; sounds and timing unchanged).
@@ -1019,7 +1010,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
   text, so from the first POTIONS view on the rings row reads "RINGS: " + the letters + "ND OF NIKADEMUS" and the wand
   row loses its first six characters (static, not filmed `[~]`).
 - **Decision:** an Amiga bug; fix it, keep the rows clean (user s157).
-- **Remaster:** requester 11 prints "RINGS: " + the letters and "[original text]" in full (as built s156).
+- **Remaster:** requester 11 prints "RINGS: " + the letters and "[original text]" in full.
 - **Side effects:** none.
 - **Spec:** `reverse-engineering/amiga/FORMAT.md` (the sheet's requesters).
 
@@ -1030,7 +1021,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **DOS:** `HEALING 1` … `HEALING10`, `SCROLL 1` … `SCROLL 20` (agrees with the manual).
 - **Amiga (game h12 item names, `reverse-engineering/amiga/GAME-TABLES.md` section 6):** items 101-109 `HEAL POT1` …
   `HEAL POT9` (110 `HEALING10`), item 139 `SROLL 19` (a typo).
-- **Decision:** DECIDED (user s202): keep the Amiga's own wording `HEAL POT1` … `HEAL POT9`, fix only the typo
+- **Decision (user s202):** keep the Amiga's own wording `HEAL POT1` … `HEAL POT9`, fix only the typo
   `SROLL 19` → `SCROLL 19`. Only an import made from the Amiga disk alone shows these (with DOS I imported, DOS's
   names are used).
 - **Remaster:** an Amiga-only import uses the Amiga's names (the Amiga's text is used where the import takes the
@@ -1044,7 +1035,7 @@ spec or `docs/plan/SESSION-LOG.md`, not here. Tests that pin an entry carry its 
 - **Manual:** the three elementals are FIRE, WATER and EARTH (character creation, the roster's last three).
 - **DOS:** `FIRE ELEM`, `WATER ELEM`, `EARTH ELEM` (TWNS.INT's records 22-24).
 - **Amiga (twns.int 12424):** `FIRE  ELE` (two blanks, the M cut off); WATER / EARTH as DOS.
-- **Decision:** DECIDED (user s202): fix the typo to DOS's `FIRE ELEM`. Only an Amiga-only import shows it.
+- **Decision (user s202):** fix the typo to DOS's `FIRE ELEM`. Only an Amiga-only import shows it.
 - **Remaster:** an Amiga-only import names it `FIRE ELEM` (elemental 0 and its twns.int label, `name_fixes` in
   `phantasie1/amiga-import.json`).
 - **Side effects:** none (the summon finds the record by number).

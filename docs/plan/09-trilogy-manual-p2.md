@@ -1,7 +1,7 @@
 # Phantasie II vs Phantasie I: rules comparison from the SSI manuals
 
-> Cold file (s69, Phase 09 T0). Full manual-to-manual comparison behind `09-trilogy-matrix.md`; every claim carries a page
-> citation. Built from the manuals' text layers and page renders; check the cited page before building a rule on it.
+Cold file (Phase 09 T0): the full manual-to-manual comparison behind `09-trilogy-matrix.md`. Every claim carries a page
+citation, taken from the manuals' text layers and page renders; check the cited page before building a rule on it.
 
 ## Sources and citation keys
 
@@ -17,13 +17,13 @@
 
 **The key fact.** CB says that "The following pages (3 - 16) describe the general rules, player hints, and characteristics of PHANTASIE and PHANTASIE II" (CB p.3 / PDF 4). Its Updated Rules page says "PHANTASIE II utilizes the same rules as PHANTASIE I with the following changes" (CB p.27 / PDF 16; RM PDF 2 has the same sentence).
 
-I spot-checked the general rules in CB pp.3–16 against P1 pp.2–19, and they are the P1 text almost word for word. Values checked:
+CB pp.3–16 are the P1 pp.2–19 text almost word for word (spot-checked). Values checked:
 - Guild cap of 37, party of 6, 65,000 GP, 256 GP starting gold
 - 9 items per character, 90 found items, 250 GP inns, luck 8–13, lifespans
 - 80 monster types, 11 towns, 16 map sections
 - Attack options, the HP and magic-point tables, spells by class, the spell list, equipment and potion tables
 
-So the manuals document **only a small set of II changes**. Every "no change stated" row below means CB's shared general rules apply unchanged; it does not mean confirmed identical in the game code.
+So the manuals document **only a small set of II changes**. "No change stated" below means CB's shared rules apply; it does not mean the game code is confirmed identical.
 
 ---
 
@@ -50,7 +50,7 @@ So the manuals document **only a small set of II changes**. Every "no change sta
 | **Death, resurrection, aging** | Death at 0 HP; revived by "a high-level **priest** using a RESURRECT spell" (P1 p.13 / PDF 17); Resurrection #44 lowers CON by 1–2 (P1 p.15 / PDF 19); lifespans (P1 p.6 / PDF 11) | Same, except the Mortality text says "a high-level **wizard** using a RESURRECT spell" (CB p.10 / PDF 7). The spell tables still give #44 to priests and rangers only (CB p.14 / PDF 9). | **Wording changed**: priest → wizard. Probably a misprint (inferred). |
 | **Quest and endgame** | Black Knights and Nikademus; scrolls, rings, wand (P1 p.1 / PDF 6; p.19 / PDF 23) | Free Ferronrah from Nikademus (CB p.2 / PDF 3); amulets and an enchanted orb (CB p.27). The wand of Nikademus survives a transfer (CB p.27). No endgame is described. | Changed (story only) |
 | **Interface and commands** | Apple keys; C64 menus with joystick (P1 p.3–8; P1 PDF 2–3) | Same keys. Apple initial menu adds "3 Demo (in PHANTASIE II only)" (CB p.17 / PDF 11). Toss Rock is option 7 (CB p.27). Mac section: "all of the spells are referred to by name, not by number" (CB p.26 / PDF 15). | **Added**: Demo and Toss Rock. The Mac note belongs to the combined book, not to II specifically. |
-| **Save and disk handling** | Save in town by Guild number; on leaving a dungeon, prompt to save its state; utilities on the back side, keys 1–5 (P1 p.7 / PDF 12; p.9 / PDF 14; p.19 / PDF 23) | Same, plus: "When you leave a town, your characters are automatically saved onto the game disk" (Apple, CB p.19 / PDF 12). Mac has "Auto Save" (CB p.26). "The PHANTASIE II disk is not copy protected" (CB p.19; RM PDF 2), and "Both PHANTASIE I and PHANTASIE II are not copy protected" (C64, CB p.24 / PDF 14). Adds a P1→P2 transfer utility (see §2). | **Added**: transfer utility and the copy-protection note. Autosave is first stated here; P1 is silent. |
+| **Save and disk handling** | Save in town by Guild number; on leaving a dungeon, prompt to save its state; utilities on the back side, keys 1–5 (P1 p.7 / PDF 12; p.9 / PDF 14; p.19 / PDF 23) | Same, plus: "When you leave a town, your characters are automatically saved onto the game disk" (Apple, CB p.19 / PDF 12). Mac has "Auto Save" (CB p.26). "The PHANTASIE II disk is not copy protected" (CB p.19; RM PDF 2), and "Both PHANTASIE I and PHANTASIE II are not copy protected" (C64, CB p.24 / PDF 14). Adds a P1→P2 transfer utility (section 2). | **Added**: transfer utility and the copy-protection note. Autosave is first stated here; P1 is silent. |
 | **Caps and limits** | 37 Guild members on Apple, 21 on C64 (P1 p.4 / PDF 9; P1 PDF 2); party of 6; 65,000 GP carried and 65,000 per bank account (P1 p.5 / PDF 10); levels in tables go to 15 | Same values (CB p.5 / PDF 5; C64 21 on CB p.20 / PDF 12; 65,000 on CB p.6 / PDF 5) | No change stated |
 
 ### Differences between CB and ALT
@@ -80,7 +80,7 @@ The manuals give two versions of the procedure.
 
 > "…may use them in PHANTASIE II by selecting the Utilities function of the game and choosing "Transfer characters from Phantasie I to Phantasie II." Warning: This process will have the following adverse effects: …"
 
-"pay all items" and "pay the majority of their money" are what the page says. I checked the scanned image (RM PDF 2; SCAN PDF 30), so this is not an OCR error.
+"pay all items" and "pay the majority of their money" are what the page says (checked on the scans, RM PDF 2 and SCAN PDF 30; not an OCR error).
 
 | Aspect | What the manual says |
 |---|---|
@@ -99,8 +99,8 @@ The manuals give two versions of the procedure.
 
 ## 3. Open questions the manuals leave unclear (not guessed)
 
-The list stays as the manuals leave it. The Atari ST code answers Q1–15: `03b-phantasie2-re.md` "Manual questions
-answered" (conflicts in `DIFFERENCES-II.md`). Only Q16 (the Apple "Demo" option; the ST has none) is unanswered.
+The questions as the manuals leave them. The Atari ST code answers Q1–15: `03b-phantasie2-re.md` "Manual questions
+answered" (conflicts in `DIFFERENCES-II.md`). Only Q16 (the Apple "Demo" option; the ST has none) is open.
 
 1. Does "pay" mean the items and gold are removed outright, or exchanged for something? Exactly how much gold is kept?
 2. How much experience is kept? What does "level 0 but enough experience to improve" mean in numbers, and how many levels can be retrained?
@@ -111,10 +111,8 @@ answered" (conflicts in `DIFFERENCES-II.md`). Only Q16 (the Apple "Demo" option;
 7. Does the erase wipe every II character and the dungeon state? Can the transfer be run more than once?
 8. What does the wand of Nikademus do in II?
 9. Toss Rock: what is its key, given that option 7 is still listed as Redo on Apple (CB p.19)? What damage does a rock do, does it need STR/DEX, what is the skill's starting value, how does it grow, which classes or races are good at it, and does it show on the Inspect screen?
-10. Lava damage amount and frequency; Mist's movement cost; what makes Dark Voids "dangerous". **Answered**
-    (`reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` section 7): lava 1 + ⌊r·T/10⌋ to every living member on
-    every step (up to 11/21/31/51), digit-0 cells harmless; mist and voids cost 60 a step (the cheapest) and share one
-    ≈ 9 % once-per-trip undead/insect fight, no damage (D2-008, NOT A CONFLICT).
+10. Lava damage amount and frequency; Mist's movement cost; what makes Dark Voids "dangerous". **Answered:**
+    `reverse-engineering/atari-st/phantasie2/logic-specs/terrain.md` section 7 (D2-007, D2-008).
 11. II's towns: how many, their names, the starting town, map size or sections, and whether the C64 21-character Guild cap still applies. The shared text still says Pelnar and 11 towns of Gelnor (CB p.4). ST says "Start this turn in Pelnar" (CB p.24). **Answered (ST):** `03b-phantasie2-re.md` Q11, `reverse-engineering/atari-st/phantasie2/logic-specs/towns.md`.
 12. Exact scroll count ("approximately 15"); how many amulets; the orb's role; II's win condition.
 13. II's monster roster; the shared text is unchanged from I (80 types, Gelnor).
@@ -127,4 +125,4 @@ answered" (conflicts in `DIFFERENCES-II.md`). Only Q16 (the Apple "Demo" option;
 ## 4. Rock throwing and body-part injuries
 
 - **Throwing rocks is a Phantasie II feature.** It is the "7) Toss Rock" combat option: any rank, unlimited rocks, its own Toss Rock skill (CB p.27 / PDF 16; RM PDF 2; SCAN PDF 30). The Phantasie I manual (P1) has nothing about it.
-- **Body-part injuries are not in the Phantasie I or II manuals.** CB and RM mention only hit points. They appear in **Phantasie III**: "Body Parts: the state of the adventurer's Head, Torso, Arms, and Legs is listed. Each area can be Okay, Injured, Broken, or Gone" (P3 `phantasie3-manual.pdf` PDF 7). Further rules there cover injured areas, a broken arm or leg preventing bow use, and losing the Head or Torso (P3 PDF 9). The Australian P3 printing has the same text (`phantasie3-manual-australia.pdf` PDF 7, 9).
+- **Body-part injuries are not in the Phantasie I or II manuals.** CB and RM mention only hit points. They appear in **Phantasie III**: "Body Parts: the state of the adventurer's Head, Torso, Arms, and Legs is listed. Each area can be Okay, Injured, Broken, or Gone" (P3 PDF 7; rules on P3 PDF 9; the Australian printing has the same text, `phantasie3-manual-australia.pdf` PDF 7, 9). Full rules: `09-trilogy-manual-p3.md` section 4.

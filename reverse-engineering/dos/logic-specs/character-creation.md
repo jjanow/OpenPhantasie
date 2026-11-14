@@ -17,12 +17,12 @@ Capstone + fixture cross-check). Data enums: `data-tables.md`. Tables live in
    monster-races via RANDOM), then class
    (`THIEF, MONK, RANGER, FIGHTER, PRIEST, WIZARD`).
 3. Program rolls the six attributes (bounded per race — table below), rolls
-   starting gold, and shows the sheet (D-075, user s66: manual — the full sheet + SPACE after the name; DOS goes straight
+   starting gold, and shows the sheet (D-075, user: manual — the full sheet + SPACE after the name; DOS goes straight
    back to the Guild menu). Name must be **unique** in the roster
    ("[original text]"); on accept it is written to `GUILD.DAT`.
 4. New chars are stuck in the Guild until added to a party (cannot train or
    leave town first). [X]
-5. Roster is **22 slots × 282 bytes** on disk, and DOS lets all 22 be filled (DOSBox, session 9; the 23rd
+5. Roster is **22 slots × 282 bytes** on disk, and DOS lets all 22 be filled (DOSBox; the 23rd
    New member silently does nothing). The manual says max **21** — the remaster follows the manual
    (`DIFFERENCES.md` D-002). See `save-file-format.md`.
 
@@ -84,9 +84,9 @@ Not race- or class-modified.
 ## Derived / starting state [C]
 
 ### MP ceiling + MAGIC
-From `TWNS.INT` `@0x1c2` (class × 15 + level); level-1. **s11:** this is the manual's
-"Maximum Magic Points" table, stored in `@14` (was labelled "combat rating" — see
-`save-file-format.md` `@14`); MAGIC goes to `@16` max and `@18` current.
+From `TWNS.INT` `@0x1c2` (class × 15 + level); level-1. This is the manual's
+"Maximum Magic Points" table, stored in `@14` (`save-file-format.md` `@14`); MAGIC goes to `@16` max and
+`@18` current.
 
 | Class | MP ceiling | MAGIC = `(3×ceiling)>>2` |
 |---|---|---|
@@ -136,4 +136,4 @@ Slots `@42`/`@46` exist in the loop but stay unused (coeff 0).
 
 ## Quirks to watch
 - DOS **does** have the duplicate strong-race guard for RANDOM (see above). [C]
-- Starting age **[C]** (s15, `OV1` `0x0f04..0x0f4f`): `@264 = 260 + trunc(@252 · 256 · (0.1 + rand/1310720))` — 10 years + 10–12.5 % of the lifespan; AGE = `@264 / 26`. Remaster lifespans: `DIFFERENCES.md` D-003.
+- Starting age **[C]** (`OV1` `0x0f04..0x0f4f`): `@264 = 260 + trunc(@252 · 256 · (0.1 + rand/1310720))` — 10 years + 10–12.5 % of the lifespan; AGE = `@264 / 26`. Remaster lifespans: `DIFFERENCES.md` D-003.

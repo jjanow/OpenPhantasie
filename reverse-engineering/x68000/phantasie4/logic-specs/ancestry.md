@@ -1,20 +1,19 @@
 # Phantasie IV — character creation, ancestry and inheritance (spec, 3d.6)
 
 Source: X68000 `P4.X` (Ver.1.02), static RE with the program's own symbol table. Function names and addresses:
-`../FORMAT.md` §6 and `../FUNCTIONS.md`. Record layouts: `../FORMAT.md` §6.2 (character), §6.3 (Hall). Tables:
-`../extracted/creation-tables.json` (`tools/scripts/extract_x68k_p4_creation.py`). MSX2 cross-check of §3, §4 and §6:
-§12. Tags: `[C]` read directly from the
-code (or code + data agree), `[~]` likely, `[?]` open. Rules are written as plain rules, not as a transcript of the code.
+`../FORMAT.md` section 6 and `../FUNCTIONS.md`. Record layouts: `../FORMAT.md` section 6.2 (character), section 6.3 (Hall). Tables:
+`../extracted/creation-tables.json` (`tools/scripts/extract_x68k_p4_creation.py`). MSX2 cross-check of sections 3, 4 and 6:
+section 12. Tags: `[C]` read directly from the code (or code + data agree), `[~]` likely, `[?]` open. Rules are written as plain rules, not as a transcript of the code.
 
 Conventions: `rand(n)` is the game's generator (`_rand`, a 31-bit shift register) and returns **1..n**; `rand(0)` = 1.
-"Abilities" = the five rolled ones (Str, Int, Dex, Con, Cha); Luck is separate (§7). `trunc` = toward zero.
+"Abilities" = the five rolled ones (Str, Int, Dex, Con, Cha); Luck is separate (section 7). `trunc` = toward zero.
 
 ## 1. The creation menu `[C]` (`_make`, `_makemenu`)
 
 1. Creation needs a free guild slot (10 slots); otherwise an error message and back.
 2. The game asks "Create the new character as the descendant of a mixed race? (Yes / No / E: Finish)".
-   - **No** → plain character (§2). The record's two ancestor references stay "none" (shown "Unknown").
-   - **Yes** → descendant (§3).
+   - **No** → plain character (section 2). The record's two ancestor references stay "none" (shown "Unknown").
+   - **Yes** → descendant (section 3).
    - **E** → leave creation.
 
 ## 2. Plain character `[C]` (`_make2` → `_mkcha`)
@@ -32,8 +31,8 @@ Conventions: `rand(n)` is the game's generator (`_rand`, a 31-bit shift register
      Dwarf Gnome, Gnomeling = the six; Half Ogre, Half Orc = Thief, Fighter, Priest, Wizard; Kobold-Dwarf = Thief,
      Ranger, Fighter, Priest; Gnome-Goblin = Thief, Fighter, Priest; Sprixie, Trollgre, Gnoll-Orc, Koblin, Lizataur =
      Thief, Fighter.
-4. **Abilities:** rolled with the fixed exponent 0.6 (§5.3).
-5. Confirm, then name (8 characters), then the record is built (§7).
+4. **Abilities:** rolled with the fixed exponent 0.6 (section 5.3).
+5. Confirm, then name (8 characters), then the record is built (section 7).
 
 ## 3. Descendant: the two ancestors `[C]` (`_make1`, `_make5`)
 
@@ -41,7 +40,7 @@ Conventions: `rand(n)` is the game's generator (`_rand`, a 31-bit shift register
 
 The player chooses "N: Decide anew" or "H: A person from the Hall".
 
-- **N:** exactly like a plain character's race/class/ability choice (§2), except Random Creature offers the 8-race list
+- **N:** exactly like a plain character's race/class/ability choice (section 2), except Random Creature offers the 8-race list
   or, at 25%, only **Ogre, Troll** (`_rrace` lists 3/4). Abilities are rolled with exponent 0.6.
 - **H:** pick a Hall person; ancestor 1 = that person's race, class and five abilities as stored in the Hall; their move
   base is recomputed from race + class. The Hall slot is remembered ("the chosen Hall person").
@@ -57,14 +56,14 @@ again from ancestor 1. `[C]`
 
 1. Let `A` = ancestor 1's race. Roll `r = rand(100)`.
 2. If `r > threshold` (S: 50%, D: 75%): collect every race `x` in 0..14 (the 15 races of I) for which `combine(A, x)`
-   (§4) exists; pick one of them uniformly. Ancestor 2's race = `x`, the descendant's race = `combine(A, x)`.
+   (section 4) exists; pick one of them uniformly. Ancestor 2's race = `x`, the descendant's race = `combine(A, x)`.
    If no `x` exists, fall through to step 3.
 3. Otherwise ancestor 2 is the same race as `A`, and the descendant's race = `A` (no table lookup; so same-race works for
    every race, also those that `combine` would reject).
 4. Message: the game shows ancestor 2's race. It prefixes "Sorry, the ancestor you found was …" when the result is not
    what the player asked for: for S when ancestor 2 is a different race; for D when it is the same race.
 5. Ancestor 2 is then a **new person** of that race: the player chooses its class (class menu of that race) and its
-   abilities are rolled with exponent 0.6 (§5.3). It is stored as a "new" ancestor (§7.4).
+   abilities are rolled with exponent 0.6 (section 5.3). It is stored as a "new" ancestor (section 7.4).
 
 **H** (`_moptb`): the player picks a Hall person `P`. The descendant's race = `combine(A, P.race)`. "Not possible" if any of:
 - `combine(A, P.race)` does not exist (this includes same-race pairs above race 4, e.g. Orc + Orc, and any pair with
@@ -74,7 +73,7 @@ again from ancestor 1. `[C]`
 Otherwise ancestor 2 = `P`'s stored race, class and abilities (a Hall ancestor).
 
 **The descendant** (`_set2work(…, descendant race, 1)`): the player picks the class (class menu of the descendant's race),
-the abilities are inherited (§5), confirm, then social class (§6), name, and the record (§7). If the player declines at
+the abilities are inherited (section 5), confirm, then social class (section 6), name, and the record (section 7). If the player declines at
 the confirmation, nothing is created and the creation menu returns.
 
 ## 4. Mixed races: `combine(a, b)` `[C]` (`_combi`)
@@ -106,7 +105,7 @@ Any other pair: key = `((max(a,b) << 4) & 0xF0) | (min(a,b) & 0x0F)`, looked up 
 No other pair has a result. **Original quirk `[C]`:** the key keeps only the low 4 bits of the larger race number, so a
 race ≥ 16 would alias onto a listed pair (Dwarf Gnome 22 + Pixie → Sprixie; Gnomeling 23 + Human → Half Ogre; Trollgre
 26 + Dwarf → Kobold-Dwarf). It cannot happen in the shipped game: a new ancestor 1 is one of races 0–14 (the ancestor
-lists of §3.1), the S/D roll only tries races 0–14, and Hall persons come from III (races 0–14) or are the shipped three
+lists of section 3.1), the S/D roll only tries races 0–14, and Hall persons come from III (races 0–14) or are the shipped three
 (Human, Human, `  ?`). A port can use the plain table `[~]`.
 
 ## 5. Abilities
@@ -141,34 +140,34 @@ For the descendant, for each of the five abilities:
    |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
    | k | 0.892 | 1.0 | 1.126 | 1.268 | 1.433 | 1.627 | 1.859 | 2.141 | 2.492 | 2.943 | 3.543 | 4.38 | 5.635 |
 
-4. Roll the ability with §5.1 for the descendant's race and class and this `k`.
+4. Roll the ability with section 5.1 for the descendant's race and class and this `k`.
 
-**avg below 5.0 `[C]` (CPU check, s82):** the lookup loop runs out (27 steps, 18.0 down to 5.0) without returning a
+**avg below 5.0 `[C]` (CPU check):** the lookup loop runs out (27 steps, 18.0 down to 5.0) without returning a
 table value, and the function returns what is left in d0:d1: the loop counter 27 and the low half of the last stepped
-value, i.e. the double `0x0000001B_00000000` ≈ 5.7 × 10⁻³¹³ (a denormal; the earlier estimate ≈ 6e-322 was off). Run with
+value, i.e. the double `0x0000001B_00000000` ≈ 5.7 × 10⁻³¹³ (a denormal). Run with
 the real P4.X and FLOAT2 code (`tools/scripts/x68k_p4_cpu_harness.py ancestry`): `_get_modifer` returns exactly that
 for avg 4.5, 4.0, 3.0, 0.0 and −3.0, and 400 real `_mdice` calls (Human Fighter Strength, real `_rand`/`_frand`/`_mexp`)
 give 18 every time, against 5–18 at avg 5.0 and 9–18 at avg 13.5. So a pair of very weak ancestors gives maximum
-abilities (each die 6, roll 21 before the 18 cap). MSX2 not checked. D4-056 (user s84): a bug; the remaster uses the
+abilities (each die 6, roll 21 before the 18 cap). MSX2 not checked. D4-056 (user ruling): a bug; the remaster uses the
 table's last exponent (k = 5.635, weak dice) below 5.0, the run-off as option `p4.weak-ancestors` = `x68000`.
 
 **Hall persons of class Sage/Lord `[C]`:** `TABL` has no class row for classes 8–9, so step 1 subtracts bytes of the
 next table: Sage (Filmon) −6, −6, −7, −7, −8; Lord −8, −9, −10, −11, −12. Filmon's raw values are therefore 6, 15, 7,
 6, 7, and he passes on far weaker abilities than his stored 12/21/14/13/15 suggest. (Nikademus can never be used.)
 
-**Check against the one published sample** (MSX Magazine 1991-03; parentage doc §1): Lord Wood (Human Ranger
+**Check against the one published sample** (MSX Magazine 1991-03; parentage doc section 1): Lord Wood (Human Ranger
 18/17/16/16/17) + Orc Fighter 19/12/14/12/6 → Half Orc Fighter. Raw: Wood 18/16/16/16/16; the Orc 16/16/14/12/11.
 avg 17/16/15/14/13.5 → k 0.141/0.227/0.322/0.43/0.491. Expected roll ≈ 18/17/16/15/14 before modifiers, and the
 published 19/17/18/14/13 lies inside each ability's possible range (Str: 18 cap, +1 Half Orc = 19). Consistent `[C]`.
 
 ### 5.3 New persons (plain characters and "new" ancestors) `[C]` (`_newattr`)
 
-§5.1 with `k = 0.6` for every ability (expected die 3.75, expected roll ≈ 14 before modifiers).
+section 5.1 with `k = 0.6` for every ability (expected die 3.75, expected roll ≈ 14 before modifiers).
 
 ### 5.4 The creation screen's sixth value `[C]`
 
 The creation screens print six values under the ability names; the sixth (labelled "Luck") is the combat move base
-`move_race[race] + move_class[class]` (`_moverate`), not Luck. Real Luck is rolled later (§7).
+`move_race[race] + move_class[class]` (`_moverate`), not Luck. Real Luck is rolled later (section 7).
 
 ## 6. Social class `[C]` (`_get_social`, `_mkdetail`)
 
@@ -180,13 +179,13 @@ The creation screens print six values under the ability names; the sixth (labell
 3. "New" ancestors get their own social class from step 1 by their race (stored in `_anc`, shown on the character
    sheet); it does not affect the descendant.
 4. Social class also sets the gold a character earns at each level-up (social^social × level × 30; Noble 810 per
-   level, Royalty the 65 535 cap): `training.md` §4. The training cost itself has no social-class term.
+   level, Royalty the 65 535 cap): `training.md` section 4. The training cost itself has no social-class term.
 
 ## 7. The new record (`_mkdetail`) `[C]` unless tagged
 
 1. Name, race, class, five abilities and move base from the creation buffer; condition Okay; level 1.
 2. Ancestor references: none / Hall (slot) / new (index = guild slot × 2 + n, with social, race, class stored).
-3. Social class (§6). **Gold** = social × 256.
+3. Social class (section 6). **Gold** = social × 256.
 4. **Hall ancestors:** each one's descendant count +1 (stays ≤ 99). **Divine Aid:** the descendant knows spell 62
    (Divine Aid) iff the (last) Hall ancestor has a Phantasie I, II or III result ≥ 100 ("completed") (`_chkwon`).
 5. **Origin** from the map where the character is made (`_cmapn`): `2 + [m=2] + 2·[m=9] + 4·[m>13] + 3·[m=13] − 2·[m=8]`
@@ -194,7 +193,7 @@ The creation screens print six values under the ability names; the sixth (labell
 6. **Flier flag** (+B8) for Pixie, Sprite, Gargoyle, Sprixie `[~]`.
 7. **Starting spells:** Monk Fire Flash 1 + Accuracy; Ranger Healing 1 + Fire Flash 1; Priest Healing 1 + Awaken;
    Wizard Fire Flash 1 + *Speed 1; Gargoyle *Speed 1. Everyone except Shadow Warriors carries Darts.
-8. Level-up routine at level 0 (`_calpow`): skills, magic level, hit points (TABL, `../FORMAT.md` §6.6), level = 1.
+8. Level-up routine at level 0 (`_calpow`): skills, magic level, hit points (TABL, `../FORMAT.md` section 6.6), level = 1.
 9. **Luck** = rand(6) + 8 = 9..14. **MP** max = current = trunc(0.75 × magic level).
 10. **Aging factor** (+20) = Luck, then ÷ 2.5 for races ≥ 7, × 2.5 for Dwarf/Halfling/Gnome, × 19 for Elf, × 1
     otherwise; trunc, cap 255. **Original bug `[C]`:** the race tested is the race of **guild slot 0**, not of the new
@@ -234,14 +233,13 @@ Only the latest game played counts. The per-game rows "Phantasie I / II / III" s
 blank by the same thresholds (imports only).
 
 **Status line:** Dead / Alive from byte +1A. For Lord Wood (slot 0) it is recomputed on display: Alive, unless some
-imported person (slots 3–10) has class byte 4 → Dead. What class 4 means in III's numbering (the byte is copied from III's
-record unchanged) is `[?]`; in IV's class table 4 is Priest.
+imported person (slots 3–10) has class byte 4 → Dead (the byte is copied from III's record unchanged; section 8.2 item 5).
 
 ### 8.1 Feeding the lines from the shared model (`Character.Deeds`, for T6.3)
 
 The Hall stores no deed list, only the three per-game results and the social class. A remaster character can produce
-them from `Character.Deeds` like this (proposal; s149 built p1 / p2 for the I / II option, section 8.4, with `Deed.Slew` and
-the new `Deed.Destroyed`; p3 and the social row stay proposals, III's transfer copies III's own scores, section 8.2):
+them from `Character.Deeds` like this (p1 / p2 are built for the I / II option, section 8.4, with `Deed.Slew` and
+`Deed.Destroyed`; p3 and the social row stay proposals, as III's transfer copies III's own scores, section 8.2):
 
 | IV field | From the shared model |
 |---|---|
@@ -260,7 +258,7 @@ record in that game. Characters with no record give index 10, "Nothing of note".
 Read from the decompile of `_hall` `0xdacc`, `_htran` `0xccfe`, `_trans` `0xcb1a`, `_p3disk` `0xcab4`, `_mtrans`
 `0x11680`, `_show_gm` `0x10ef8`, `_mark2`, `_cntdown`, `_mcopy`, `_hpix` `0xca5c`, `_dsp_hinfo`.
 
-1. **`_htran`:** "Phantasie III's / character data? / Transfer" (`0x41a06`, `0x41a13`, `0x41a1f`; English reordered s148 as
+1. **`_htran`:** "Phantasie III's / character data? / Transfer" (`0x41a06`, `0x41a13`, `0x41a1f`; English reordered as
    "Transfer Phantasie III's / character data?") with O: Okay / C: Cansel. C → back to the Hall.
 2. **`_trans`:** a loop: the disk prompt (one drive: "Insert III's player disk in drive 1", `0x41822`; two: "Swap the disk
    in drive 1 for III's player disk", `0x417f6`; then "When ready, press the space bar") with Q: Abort / SPACE: Start.
@@ -288,7 +286,7 @@ Read from the decompile of `_hall` `0xdacc`, `_htran` `0xccfe`, `_trans` `0xcb1a
    (+0C) is 4 — III's and IV's Priest. Read as written; it looks like a slip for the social byte (DOS III's Darklord is
    4, "Lord Wood killed") `[?]`.
 
-**Remaster (s148, `P4Hall`, `P4TownLoop.HallTransfer`):** the source is the remaster's III save (`savegame-p3.json`,
+**Remaster (`P4Hall`, `P4TownLoop.HallTransfer`):** the source is the remaster's III save (`savegame-p3.json`,
 its top-level roster, every character listed, letters A–Z); no disk prompts: with no III save the Hall says so
 (`core.p4.hall_no_iii_save`) and returns. Marks show as "*"; the list's O / X are two lines after the characters (no
 mark-clearing stray key). The imports live in the IV save (`P4Party.HallImports`, slots 3–10); every Hall reader
@@ -305,7 +303,7 @@ mark-clearing stray key). The imports live in the IV save (`P4Party.HallImports`
 | results | `P3.Phantasie1Score`, `P3.Phantasie2Score`, `Score` (III's score: 200 Darklord / 250 Superhero), each capped at 255 `[~]` |
 | alive | `Status` ≠ Dead |
 
-The imports' figures on the Hall stage (`_hpix`): built s151 (FORMAT.md section 6.9 "Hall stage": record race + 84,
+The imports' figures on the Hall stage (`_hpix`): built (FORMAT.md section 6.9 "Hall stage": record race + 84,
 frame 0, slots 3–5 at (151 + 48 p, 209), slots 6–10 at (23 + 48 (p − 3), 259) from HALL_A's top-left).
 
 ### 8.3 Remaster option: a III character joins IV's Guild (s149) `[~]` unless tagged
@@ -367,19 +365,19 @@ Priest also makes Lord Wood "Dead" on his sheet by the kept code test (section 8
 1. **Nikademus as an ancestor:** magazine B says a descendant of Nikademus can be made and is very strong; fan page D says
    choosing him fails ("just a joke"). The code agrees with **D**: every path with Nikademus ends in "Not possible"
    (he is ancestor-1-blocked explicitly and his `  ?` race combines with nothing). The "Sorry, the ancestor you found
-   was …" message is **not** a Nikademus joke; it is the S/D race-roll message (§3.2 step 4). **MSX2 (the magazine's
-   platform) does the same `[C]`** (§12): the same two explicit slot-2 checks and the same `combine` table. So magazine B
+   was …" message is **not** a Nikademus joke; it is the S/D race-roll message (section 3.2 step 4). **MSX2 (the magazine's
+   platform) does the same `[C]`** (section 12): the same two explicit slot-2 checks and the same `combine` table. So magazine B
    contradicts both codes.
 2. **"Lord Wood or Filmon as ancestor → noble birth, levelling costs no money"** (magazine C, 1991-07):
-   - *Noble birth:* no such rule, on X68000 or MSX2 `[C]` (§12). Hall ancestors change the social class only for Super
+   - *Noble birth:* no such rule, on X68000 or MSX2 `[C]` (section 12). Hall ancestors change the social class only for Super
      Hero / Dark Lord persons (imports from III). Lord Wood is Royalty and Filmon Noble in the Hall, but neither is passed
-     on; the descendant's social class is the random roll of §6.
-   - *Levelling costs no money:* the training cost has no social-class or ancestry term (`training.md` §3, both
-     platforms `[C]`). But each level-up pays the character social^social × level × 30 gold (`training.md` §4), which
+     on; the descendant's social class is the random roll of section 6.
+   - *Levelling costs no money:* the training cost has no social-class or ancestry term (`training.md` section 3, both
+     platforms `[C]`). But each level-up pays the character social^social × level × 30 gold (`training.md` section 4), which
      for a Noble roughly covers the next training and for Royalty always exceeds it (65 535 cap vs a 25 000 maximum
      cost). So "levelling costs no money" is true **for a noble-born character** in both codes `[~]` (interpretation);
      what neither code does is make a Lord Wood / Filmon descendant noble-born.
-3. **Inheritance "to some extent" + random part** (C, D): agrees (§5.2).
+3. **Inheritance "to some extent" + random part** (C, D): agrees (section 5.2).
 
 ## 10. The creation screens (s106) `[C]`
 
@@ -397,32 +395,32 @@ Strings are `p4x.<address>` in `GameData/phantasie4/strings/`.
 **Plain character (`_make2` → `_mkcha`)** in the "Create Character" window (`0x42bd5`):
 1. Race menu: "Race (RACE) / choose" (`0x42b7c`…); 1–5 the base races, 6 Random Creature (`0x42bc0`), 7 Back (`0x42bd0`).
    Back → the question again (nothing rolled).
-2. Random Creature: `_rrace` (§2 item 2) rolls rand(100) and shows the list numbered from 1; a pick is the race.
-3. Class menu: "Class (CLASS) / choose" (`0x42b9d`…), only the race's classes (§2 item 3), numbered from 1; no Back.
-4. The five abilities are rolled (§5.3) and the sheet is shown: Name (`?` while empty), Race, Class, the five abilities
-   and the sixth value under "Luck" = the move base (§5.4).
+2. Random Creature: `_rrace` (section 2 item 2) rolls rand(100) and shows the list numbered from 1; a pick is the race.
+3. Class menu: "Class (CLASS) / choose" (`0x42b9d`…), only the race's classes (section 2 item 3), numbered from 1; no Back.
+4. The five abilities are rolled (section 5.3) and the sheet is shown: Name (`?` while empty), Race, Class, the five abilities
+   and the sixth value under "Luck" = the move base (section 5.4).
 5. Okay / Cansel (`0x40192`, `0x401b2`; "Cansel" is the original's spelling). Cansel → back to the question; nothing is
    kept, so choosing again is the re-roll (manual p. 9: "choose again as often as you like").
-6. Okay → "Choose a name" window (`0x42c1c`), prompt `:`, up to 8 characters; then `_mkdetail` (§7), the sheet with the
+6. Okay → "Choose a name" window (`0x42c1c`), prompt `:`, up to 8 characters; then `_mkdetail` (section 7), the sheet with the
    skills (`_dsp_skill`), wait for SPACE; back to the question.
 
 **Descendant (`_make1`)**, windows "First ancestor" (`0x42a0b`) and "Second ancestor" (`0x42a14`):
 1. "How will you / set this / ancestor?" (`0x429c8`, `0x429d3`, `0x429e2`) with **SPACE**, **N: Decide anew** (`0x42988`),
    **H: A person from the Hall** (`0x429a8`). SPACE → back to the question.
-2. N → `_mkcha` in the First ancestor window (Random Creature lists 3 / 4, §3.1). Back or Cansel → step 1.
+2. N → `_mkcha` in the First ancestor window (Random Creature lists 3 / 4, section 3.1). Back or Cansel → step 1.
 3. H → "Which person / in the Hall?" (`0x429f1`, `0x429fc`): the used Hall slots listed A, B, C… (name and the first three
    letters of the race; the button's value is the Hall slot); a pick shows that person's sheet; Okay / Cansel. `_make3`
    returns `_confirm`'s result (d0 at its `rts`), so Cansel → step 1.
 4. Ancestor 1 is kept (`_push_work(0)`). `_make5`: the "Create Descendant" window (`0x42d26`), "Choose this ancestor's /
    race" (`0x42cd4`, `0x42ce5`) with **SPACE**, **S: Same race**, **D: Different race**, **H: Race of a Hall person**
    (`0x42c5a`…). SPACE → step 1 (ancestor 1 is chosen again).
-5. S / D (`_mopta`): rand(100), and rand(n) when the race has partners (§3.2), are rolled **before** the Nikademus test;
+5. S / D (`_mopta`): rand(100), and rand(n) when the race has partners (section 3.2), are rolled **before** the Nikademus test;
    Nikademus (code) → "Not possible" (`0x42cf2`), wait, step 1. Otherwise the result is shown in the Second ancestor
    window: either "Race: <race>" or, when not what was asked, "Sorry, the ancestor / you found was / <race> / ." (`0x42cfd`,
    `0x42d10`, `0x42d1f`); wait for SPACE; then the class menu of that race (no Back) and the new ancestor's abilities.
-6. H (`_moptb`): the Hall list as in step 3 ("Which person / in the Hall?", `0x42cba`, `0x42cc5`); a refused pair (§3.2) →
+6. H (`_moptb`): the Hall list as in step 3 ("Which person / in the Hall?", `0x42cba`, `0x42cc5`); a refused pair (section 3.2) →
    "Not possible", step 1.
-7. The descendant: the class menu of the descendant's race, the inherited abilities (§5.2), the sheet, Okay / Cansel.
+7. The descendant: the class menu of the descendant's race, the inherited abilities (section 5.2), the sheet, Okay / Cansel.
    Cansel → back to the question (both ancestors are dropped).
 8. Okay → `_set_anc_social`: for ancestor 1, then 2, a "new" ancestor gets kind 2, index guild slot × 2 + n, and a social
    class rolled by its race (`_get_social`, one draw each, before the name); a Hall ancestor keeps kind 1 and its slot.
@@ -430,19 +428,19 @@ Strings are `p4x.<address>` in `GameData/phantasie4/strings/`.
 
 **Random draws in order:** Random Creature list roll; ability dice (15); for a descendant: ancestor 1 (list roll, 15
 dice), the S / D race roll(s), ancestor 2's 15 dice, the descendant's 15 dice, the new ancestors' social rolls; then
-`_mkdetail`'s social, HP, Luck and age rolls (§7).
+`_mkdetail`'s social, HP, Luck and age rolls (section 7).
 
-**Aging factor (§7 item 10):** the race tested is guild slot 0's. `_mkpos` takes the first free slot, so slot 0 is always
+**Aging factor (section 7 item 10):** the race tested is guild slot 0's. `_mkpos` takes the first free slot, so slot 0 is always
 filled by the time `_mkdetail` reads it (the new character itself when it is slot 0).
 
 ## 11. Open `[?]`
 
 - The meaning of record bytes +09 (Score), +28, +2A–2E, +36's exact use, and the III class numbering behind Lord Wood's
-  status (§8).
-- avg < 5.0 behaviour (§5.2): checked at CPU level (s82), max abilities confirmed; MSX2 not checked.
-- Monster HP per-monster formula (`../FORMAT.md` §6.4 note): checked at CPU level (s82); X68000 and MSX2 differ.
-- Emulator check of §9 on either platform (all static so far).
-- No recovered save has ancestors, so §3–§5 are checked against the code and the magazine sample only.
+  status (section 8).
+- avg < 5.0 behaviour (section 5.2): checked at CPU level, max abilities confirmed; MSX2 not checked.
+- Monster HP per-monster formula (`../FORMAT.md` section 6.4 note): checked at CPU level; X68000 and MSX2 differ.
+- Emulator check of section 9 on either platform (all static so far).
+- No recovered save has ancestors, so sections 3–5 are checked against the code and the magazine sample only.
 
 ## 12. MSX2 cross-check (s80) `[C]`
 
@@ -461,7 +459,7 @@ Read in the MSX2 player disk's code (segment `1001`, load base `0x0100`; disk la
 - **`combine`** (`0x171E`): the same 5×5 table (`0x16EC`) and the same nine packed keys (`0x65 0x70 0x97 0xB8 0xA1 0xCA
   0xB0 0xC4 0xED` → races 24–32) with the same 4-bit key quirk. Race 33 forms no key, so Nikademus as ancestor 2 is
   also Not possible.
-- **Social class** (`0x1A5A` = §6 step 1, same thresholds; `_mkdetail` `0x1C11`–`0x1CF3`): per Hall ancestor, descendants
+- **Social class** (`0x1A5A` = section 6 step 1, same thresholds; `_mkdetail` `0x1C11`–`0x1CF3`): per Hall ancestor, descendants
   +1 (while < 100), Hall social 4 (Super Hero) → descendant 7 (Royalty), 5 (Dark Lord) → 8 (Outcast); nothing for
   Royalty (Lord Wood) or Noble (Filmon). The social-class name table (segment `1006`) has the X68000 order.
 - **Training and level-up gold** (segment `100C`): same as X68000, `training.md`.
@@ -469,7 +467,7 @@ Read in the MSX2 player disk's code (segment `1001`, load base `0x0100`; disk la
 No second MSX2 code build is known: the TOSEC `[a]` player disk differs only in sectors 284–311, which hold the save
 set (directory ids `8000`–`8010`).
 
-Result: on both §9 items the MSX2 version behaves exactly like X68000. The magazine claims do not describe a
+Result: on both section 9 items the MSX2 version behaves exactly like X68000. The magazine claims do not describe a
 platform difference.
 
 ## 13. Lineage in I–III (remaster option, s149)
@@ -518,9 +516,9 @@ Each ancestor is either **new** or a **person** from the list (IV's N / H for an
 
 1. A **new** ancestor is the **target game's own plain roll** (its Guild New's five attribute draws, with the save's
    creation tables) for the descendant's race and **class** (IV lets the player pick the new ancestor's class; the
-   remaster gives it the descendant's) `[~]`. Ancestor 1 is rolled before ancestor 2. s149 first built IV's `_newattr`
-   here; it was changed the same session because IV's roll runs above I's (point 5), which made "new + new" in I about
-   +3 per ability over a plain roll, so the plain roll would never be worth picking.
+   remaster gives it the descendant's) `[~]`. Ancestor 1 is rolled before ancestor 2. Not IV's `_newattr`: IV's roll
+   runs above I's (point 5), so "new + new" in I came out about +3 per ability over a plain roll and the plain roll would
+   never be worth picking.
 2. The five abilities are IV's `_cmbattr` exactly (section 5.2, `P4Creation.Inherit`, the same code IV runs): each
    ancestor's stored value minus IV's class and race modifiers for that ancestor, the average, the exponent table, three
    dice `6·u^k` + 3, IV's class modifier capped at 18, IV's race modifier floored at 3. A Hall person of class Sage
@@ -537,10 +535,10 @@ Each ancestor is either **new** or a **person** from the list (IV's N / H for an
    D-001's Halfling DEX); III `3 + class + race − 17 … 18 + class + race − 17`, at most race + 8, at least 3
    (`Phantasie3Campaign.ClampAttribute`).
 5. Scale `[~]` (a side effect for the user to know): IV's plain roll (k = 0.6, raw mean ≈ 14) runs above I's (raw mean
-   11.5) and a little above III's (13.5); that is why a new ancestor uses the game's own roll (point 1). Measured before
-   that change (300 Human Fighters, sum of the five): I plain 57.0, descendant of two plain I characters 60.5, two IV-new
+   11.5) and a little above III's (13.5); that is why a new ancestor uses the game's own roll (point 1). Measured with IV's
+   `_newattr` for new ancestors (300 Human Fighters, sum of the five): I plain 57.0, descendant of two plain I characters 60.5, two IV-new
    ancestors 73.3; III plain 66.6, two plain III characters 71.1, two IV-new ancestors 72.7. With the game's own roll a
-   "new + new" descendant is a descendant of two plain characters of that game: measured after the change
+   "new + new" descendant is a descendant of two plain characters of that game: measured with the game's own roll
    (`NewPlusNew_StaysNearTheGamesPlainRoll`, 300 Human Fighters) the five-sum is +4.2 over a plain roll in I and +4.7 in
    III (about +0.9 per ability, from `_cmbattr`'s dice).
 

@@ -2,9 +2,7 @@
 
 > **Closed (historical).** Its three large open items moved to Phase 8 P3.2. Open QoL items and live state: `PLAN.md`.
 
-**Goal:** only start this after Phase 6's M8 parity pass is done. Each item
-below is scoped to touch `OpenPhantasie.Client` (and occasionally add optional
-Core hooks) without disturbing verified game logic.
+**Goal:** after M8 parity. Items touch `OpenPhantasie.Client` (sometimes optional Core hooks), never verified game logic.
 
 ## High value, low risk (do first)
 - [x] **Save anywhere** — original likely restricts saving to town/inn; decouple
@@ -40,23 +38,17 @@ Core hooks) without disturbing verified game logic.
   - Combat footer uses `CombatMath.PartyMeleeHitChance` / damage preview.
 
 ## Larger scope (evaluate later, may warrant their own Core hooks)
-- ~~Difficulty modifiers~~ — **dropped (s80)**: no Phantasie manual (I/II/III) and no DOS
-  code has a difficulty setting (no table, no menu), and the user doesn't want features the
-  originals lack added on spec.
+- **Difficulty modifiers: dropped (s80).** No Phantasie manual (I/II/III) and no DOS code has a difficulty setting
+  (no table, no menu), and the user doesn't want features the originals lack added on spec.
 - [x] **Colorblind-friendly palette option** — alternate palette mapping for the
-  extracted Amiga assets; needs a second palette pass through Phase 4's
-  conversion pipeline. **Deferred** (asset pipeline work).
+  extracted Amiga assets.
   - Built in P3 (s79) without an asset pass: `GameSettings.ColorblindPalette` (per game, off = original) remaps the
     finished frame by exact colour (`GameData/shared/colorblind.json`, red-green, Okabe-Ito targets) at present time.
-- [ ] **Party import/export between I and II/III** — only relevant once the
-  II/III extension work happens — now `09-trilogy.md` T5.
-  **Deferred** until sequel data exists.
+- [ ] **Party import/export between I and II/III** — moved to `09-trilogy.md` T5 (built; leftovers in `PLAN.md`).
 
 ## Explicitly out of scope unless you decide otherwise later
-- Full audio remaster/original chiptune reuse — not discussed yet; if wanted,
-  add an "Amiga audio extraction" phase modeled on Phase 4 (the `8SVX` IFF
-  chunk format mentioned in Phase 4.2 is the Amiga's native sample format, so
-  the same disk-image pipeline would apply).
+- Full audio remaster / original chiptune reuse (out of scope here; the series later got the originals' title tunes
+  and sound effects, see `PLAN.md`). Amiga samples are `8SVX` IFF, so Phase 4's pipeline would apply.
 - Multiplayer/networked play — original is single-player; would be a
   substantial Core-level addition, not a QOL item.
 

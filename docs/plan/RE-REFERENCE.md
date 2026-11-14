@@ -56,7 +56,7 @@ party size `[CS:0x648e]` · monster runtime table `DS:0x1a6c` stride `0x39`.
 - **No sound on the speakers:** route audio to a PulseAudio null sink (`PULSE_SINK=<sink>`, plus `ALSOFT_DRIVERS=pulse`
   for OpenAL programs) or turn it off; start metacity with `CANBERRA_DRIVER=null`. Check `pactl list sink-inputs`
   afterwards. Per tool: the Client script and `fsuae_run.sh` handle it; Hatari's `start.sh` passes `--sound off`;
-  DOSBox-X's `start.sh` turns all of this off and runs on its own null sink (s156). `[mixer] nosound=true` alone is **not enough** (s156: a FluidSynth
+  DOSBox-X's `start.sh` turns all of this off and runs on its own null sink. `[mixer] nosound=true` alone is **not enough** (a FluidSynth
   MIDI stream still opened on the real sink): add `[midi] mpu401=none` + `mididevice=none`, `[speaker] pcspeaker=false` +
   `tandy=off`, `[sblaster] sbtype=none`, `[gus] gus=false`, start it with `PULSE_SINK=<a null sink of your own>` and check
   `pactl list sink-inputs` (the DOSBox-X pid must be on your sink or absent); for XEiJ see its section.
@@ -102,11 +102,11 @@ Use `tools/scripts/client_xvfb.sh` (required by `AGENTS.md`):
   animations), `audio :N out.wav SECONDS` (records the sink; run it in the background, then press keys), `stop :N`
   (also unloads the sink).
 - A key that "does nothing" is usually a screen that doesn't take it (e.g. IV shop lists have no Space-back).
-- III fight recipe: `--test-party --test-level 10 --test-game 3` (Amiga look, s194): by pad (vpad below) B leaves the
+- III fight recipe: `--test-party --test-level 10 --test-game 3` (Amiga look): by pad (vpad below) B leaves the
   Guild for the street, Start pulls Options down, D-pad down ×4 and A take Exit, A outdoors starts a fight, A opens
   its Options, A takes Fight: the orders screen. No key pressed, so the help stays in the pad's words. Parry all and
   cast a weak spell (Fireflash I) so the monsters outlive the round and its flash shows (a last-round flash is never drawn).
-- Pad testing (s181; the user owns no pad): `tools/scripts/vpad.py <fifo>` makes a virtual Xbox 360 pad through
+- Pad testing (the user owns no pad): `tools/scripts/vpad.py <fifo>` makes a virtual Xbox 360 pad through
   `/dev/uinput` (writable for this user; SDL maps it with no setup). Start it before the Client, send `press A`,
   `dpad down`, `trig LT 255`, `axis RY 30000`… into the FIFO, then `quit` (the device is system-wide).
 
@@ -166,7 +166,7 @@ of each PRG.
   distance and lands within ~15 px: check a shot before clicking small targets) misses menu items at this zoom (at 2×
   it fell short onto the ghosted Spells / Training rows; likely cause `[~]`).
 - **I's own windows:** after a requester (e.g. "NOT IN THE TOWN / IT TAKES 2 MONTH TO GET HERE", YES) the next pick needs
-  two clicks ~0.4 s apart (the first only re-activates the window). s158: from START THIS TURN IN PELNOR one click on
+  two clicks ~0.4 s apart (the first only re-activates the window). From START THIS TURN IN PELNOR one click on
   the Guild's door at screen (288, 112) enters it; Add / Exit Guild are menu picks; coordinates, walks and debugger
   patches (defeat counter, HP / status, a dungeon cell) in `reverse-engineering/amiga/working/capture_s158_filming.md`.
   Copy `df0.adf` only after a save's write has finished (an early copy was a broken disk). The overworld moves by a double click on the next
@@ -184,7 +184,7 @@ of each PRG.
   `gamesave.dat` + 8518 = the 36-B block `0x24564` (centre x / y, view x / y, party x / y, …;
   `reverse-engineering/amiga/phantasie3/FORMAT.md` section 4); patch only the changed 488-B chunk (`adf_patch_file.py`
   stops on gamesave's second chunk, which another file repeats).
-- **I (s163):** `adf_patch_file.py` fails on `OUT1.DAT`: its first block is also on the disk under `backup/` (blocks
+- **I, patching:** `adf_patch_file.py` fails on `OUT1.DAT`: its first block is also on the disk under `backup/` (blocks
   916 and 954), so patch both by hand (`capture_s163_filming.md`). STYX without walking there: the debugger nop
   `W 23240 4e 71`.
 - **Tracing calls with the UAE debugger (III sounds):** `"console_debugger = 1"`; F12+D or a breakpoint enters the
@@ -276,11 +276,11 @@ For what the X68000 binaries can't tell statically (CPU-bound timing, screen lay
 - archive.org `atari-520-st-schematics-jan-feb-1985` (520ST C070112 rev. B) and `SAMSComputerfactsCSCS12Atari520ST`:
   the 520ST's YM2149 output (no low-pass capacitor; atari-st `FORMAT.md` 7.1). `Atari_Mega_ST_Schematic_1986_Atari` is
   the Mega ST (other designators).
-- s163: archive.org `Atari_1040ST_Schematic_Rev_C_C070787_Dec_26_1986` (1040STF / STFM C070787 rev. C, Dec 1986;
+- archive.org `Atari_1040ST_Schematic_Rev_C_C070787_Dec_26_1986` (1040STF / STFM C070787 rev. C, Dec 1986;
   plain PDF, render sheet 1 at 600 dpi): the STF's YM2149 output stage, R8 / C10 (atari-st `FORMAT.md` 7.1). Also on
   archive.org: `Atari_1040STf_Schematic_1986_Atari`, `Atari_1040STe_Schematic_1986_Atari`, `atari520st1040stservicemanual`
   (not needed). The elektrotanya.com copy sits behind a captcha.
-- s163: archive.org `OutsideX680001993` (*Outside X68000*, 1993): file `Outside_X68000_schematic` is the book's
+- archive.org `OutsideX680001993` (*Outside X68000*, 1993): file `Outside_X68000_schematic` is the book's
   schematic appendix (the `.pdf` gave HTTP 500; `_jp2.zip` works, scan NNNN = djvu page NNNN + 1): CZ-600CE (first
   X68000) メイン (1) / (2), サブ, コントロール (scan 0003: the sound section, x68000 `FORMAT.md` 6.11.3), then the
   CZ-634C main / control sheets and the option boards. No Sharp CZ-600C service manual is on archive.org.

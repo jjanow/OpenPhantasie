@@ -1,6 +1,6 @@
 # Phantasie II (Apple II, SSI v1.0 2/5/86): disk and data formats
 
-s158. The importer builds II from the Apple II version, the Memorial Set's II (user s158, `docs/plan/10-importer.md`
+The importer builds II from the Apple II version, the Memorial Set's II (user ruling, `docs/plan/10-importer.md`
 section 6, decision 2). This file covers the containers, where each table lives, and how each maps to II's GameData
 (which is built from the Atari ST today, `reverse-engineering/atari-st/phantasie2/FORMAT.md`). Graphics:
 `GRAPHICS.md` next to this file. Tags: `[C]` read in the code or data, `[~]` probable, `[?]` not known.
@@ -26,7 +26,7 @@ Tools (all `python3 -I`, run from the repo root):
   space padded), 24 type (`A` Applesoft, `B` binary, `T` text), 25 sector count, 26–27 load address, 28–29 length,
   30–31 first logical sector. Files are contiguous. A deleted entry starts with 0x80 (side A has a stale `TWN210`).
   Track 1 sectors 11–12 hold RWTS code, not entries.
-- **RDOS 3.3** (v2.1 8/19/86 and III; "RDOS 3.3 COPYRIGHT 1986"), a **16-sector** DOS `[C]` (s211). In a DOS-order
+- **RDOS 3.3** (v2.1 8/19/86 and III; "RDOS 3.3 COPYRIGHT 1986"), a **16-sector** DOS `[C]`. In a DOS-order
   `.dsk` (as `WozImage` writes a 16-sector disk) logical sector n is track n // 16, slot
   `[0,14,13,12,11,10,9,8,7,6,5,4,3,2,1,15][n % 16]` (ProDOS order within a track). Catalog = logical sectors 16–31
   (track 1), the same 32-byte entries; its first entry is `RDOS 3.3 COPYRIGHT 1986` (sectors 0–31). A 13-sector read
@@ -34,10 +34,10 @@ Tools (all `python3 -I`, run from the repo root):
   that first entry says RDOS 3.3, and only then fall back to the 13-sector orders.
 - **Crack patches** (4am notes): side A `T0E,S07` = logical sector 189 = the first sector of `SSI.INIT2`, plus boot /
   RWTS sectors on track 0 of both sides. So `SSI.INIT2` differs from the original and is not a key file; every other
-  file equals the original `[C]` (s169, from the decoded `.woz`, below). The Memorial Set's II (s166) is a cracked
+  file equals the original `[C]` (from the decoded `.woz`, below). The Memorial Set's II is a cracked
   `.dsk` pair in DOS 3.3 sector order (another crack: track 0 / RDOS differ), unplayed:
   `reverse-engineering/apple2/original-images/SOURCES.txt`.
-- **The `.woz` originals** (s169, `src/OpenPhantasie.Importer/Containers/WozImage.cs`) `[C]`. II's two sides are
+- **The `.woz` originals** (`src/OpenPhantasie.Importer/Containers/WozImage.cs`) `[C]`. II's two sides are
   WOZ 1 (Applesauce 1.0.5), I's two (`phantasie1/woz-original/`) WOZ 2 (Applesauce 1.88.4, INFO boot-sector format
   3 = both 13- and 16-sector). Track t is the bit stream at `TMAP[4t]` (WOZ 1: 6656-byte records in `TRKS`, bit count
   u16 at +6648; WOZ 2: `TRKS` entry t = first 512-byte block, block count, bit count). Every track 0–34 is a plain
@@ -51,7 +51,7 @@ Tools (all `python3 -I`, run from the repo root):
     the low 3 bits, 154–409 the top 5. Bytes 5g..5g+4 (g = 0–50) take their top bits from value 154 + 51k + 50 − g
     (k = 0–4); with A = value 103 + g, B = 52 + g, C = 1 + g their low bits are A >> 2, B >> 2, C >> 2 for k = 0–2,
     then bit 1 (k = 3) and bit 0 (k = 4) of A, B, C (A highest). Byte 255 = value 409 over value 0's low 3 bits.
-  - **Track 0 sector 12 has no 5-and-3 data field on any of the four disks** (s170: mastered that way, not a
+  - **Track 0 sector 12 has no 5-and-3 data field on any of the four disks** (mastered that way, not a
     reader miss, a bit slip or a wrap). The slot after its address field holds the **16-sector boot sector** instead,
     so the disk also boots on a 16-sector (P5A) ROM. Bit offsets in track 0's stream (every `D5 AA` mark there listed;
     the sector spacing is the usual ~3920 bits):
@@ -70,12 +70,12 @@ Tools (all `python3 -I`, run from the repo root):
     `362cf27b277f6ea39c97b98bfe56e5f7a2edadb8`): `01`, then a loader that copies itself from $0800 to $0200 and reads
     the 13-sector track with its own code (it compares `D5`, `AA`, `B5` / `AD` and counts `LDY #$9A`, the 154 low-bit
     values of 5-and-3). `WozImage`'s 5-and-3 read of sector 12 meets the 6-and-2 field (II) or no data mark within its
-    window (I) and fails; RDOS's RWTS presumably does too (its search window not traced). Logical sector 12 lies inside the
-    `RDOS 2.1` file (sectors 0–25: the DOS tracks 0–1), which nothing reads; the reader leaves it zero (so does the 4am
+    window (I) and fails; RDOS's RWTS presumably does too (its search window not traced). Logical sector 12 lies inside
+    the `RDOS 2.1` file (sectors 0–25: the DOS tracks 0–1), which nothing reads; the reader leaves it zero (so does the 4am
     `.dsk`). Every other sector of tracks 0–34 decodes with good checksums; the reader reads each track twice round, so
     a sector across the bit stream's end is found too (II side A's sector 2 data field starts at 51980 of 52208).
     Whatever SSI's protection check reads does not stop the files being read.
-  - **16-sector disks** (s170): `WozImage` also reads 6-and-2 (`D5 AA 96` address with `DE AA` epilogue, `D5 AA AD`
+  - **16-sector disks**: `WozImage` also reads 6-and-2 (`D5 AA 96` address with `DE AA` epilogue, `D5 AA AD`
     data, 342 + 1 values, `DE AA`; values 86–341 are bytes 0–255's top 6 bits, value i % 86 holds byte i's low 2 bits,
     swapped, at bit 2 * (i / 86)). The disk's format is the one that decodes more sectors over the whole disk, so the
     SSI disks' single (bad-checksum) boot sector keeps them 13-sector. A 16-sector disk comes out as a DOS-order `.dsk`
@@ -108,7 +108,7 @@ CR-ended string whose address is POKEd at 803 / 804, `CALL 816` draws the visibl
 ## 3. Tables and their GameData mapping
 
 `extract_a2_p2_tables.py` writes each table in the ST GameData field names where a field means the same; Apple-only
-fields go under `a2`. Diff summary of the reference dump (s158): section 5.
+fields go under `a2`. Diff summary of the reference dump: section 5.
 
 ### 3.1 Monsters: `MN20`–`MN29` (side A and B, identical) `[C]`
 
@@ -178,11 +178,11 @@ Regions 1, 2, 3, 5, 6, 7, 8, 11, 12, 17, 18, 22, 26, 27, 28, 30, 31 (the ST's se
   pages, 20+ = 3), so text-cell args differ (OUT6, 18, 26, 28, 30) while the text agrees.
 - **Play rewrites the file** (OUTDOORS2 7700–7710 `STORE W$,2050,756` on leaving), changing only the fog. The shipped
   size is 768 B: only OUT26 and OUT30 still have it in the reference dump, and both are fully fogged as on the ST;
-  the shipped fog of the other 15 is on the Memorial Set's unplayed disk (s166). There `OUTT2` is 756 B (stored back
+  the shipped fog of the other 15 is on the Memorial Set's unplayed disk. There `OUTT2` is 756 B (stored back
   before shipping) and `OUTT1` / `OUTT2` are open, the other 15 fully fogged: the ST's start fog cell for cell `[C]`
-  (s167, `MemorialSet_StartFogIsTheSts`). So 756 B does not mean played; the importer tells a played copy by the
+  (`MemorialSet_StartFogIsTheSts`). So 756 B does not mean played; the importer tells a played copy by the
   Memorial disks' sha1s (profile `mutable_files`).
-- **Start fog for a played copy** (D2-052, s210): per region, all open (OUT1, OUT2) or all fogged (the other 15), in
+- **Start fog for a played copy** (D2-052): per region, all open (OUT1, OUT2) or all fogged (the other 15), in
   `MAPS.INT` and the Memorial `OUTTn` alike; `tools/scripts/derive_a2_p2_start_fog.py` reads both and writes / checks
   `apple2-import.json` `start_fog`, which the importer applies when the player restores a played copy's maps.
 
@@ -226,9 +226,9 @@ and 248 ($0478 / $04F8, RDOS 3.3's RWTS retry counters).
 `extracted/key-files.json` has the sha1 of each file the extract reads (side A: PHANTASIE II, TOWN2, OUTDOORS2, ITEM,
 TINFO, TF2, SHAPES, ICE DRAGON, INFO; side B: DUNGON2, DNG1, DNG8, SCROLLL0). Played files (`OUTT`, `TWN2n`, `CHAR2`)
 are not key files; with `DNGSAV` / `DNGCHK` they are the profile's `mutable_files`, hashed from the Memorial Set's
-unplayed disks (s167). Version string: INTRO2 192–193 "VERSION 1.0  2/5/86".
+unplayed disks. Version string: INTRO2 192–193 "VERSION 1.0  2/5/86".
 
-**v2.1 8/19/86** (s212, profile `p2-apple2-2.1`, the A2CAN original pair under RDOS 3.3) `[C]`: of the files the
+**v2.1 8/19/86** (profile `p2-apple2-2.1`, the A2CAN original pair under RDOS 3.3) `[C]`: of the files the
 importer reads, `PHANTASIE II` (side A), `TOWN2`, `ITEM`, `TINFO`, `TF2`, `SHAPES`, `ICE DRAGON`, `INFO`, `MN20`–`MN29`
 and `DNG1`–`DNG8` have v1.0's sha1. Different: `OUTDOORS2` (18650 B: new line 100 `& RECALL "MAP"`, 4811 / 4815, linked
 for $0801), `DUNGON2` (same size: `Z` for `X` in 8350–8370, linked for $0801), `SCROLLL0`–`20` (screen-hole bytes 120 /
@@ -252,5 +252,5 @@ Memorial import (`P2Apple2V21Tests`).
 `diff_a2_p2_vs_st.py` summary: monsters 1274 / 1280 numbers equal; items 180 / 180 factors; creation 1541 / 1545
 cells; towns 1845 / 1850 numbers; wilderness 8831 / 8840 cells (fog excluded), features equal except the text args and
 OUT28's entrances; dungeon levels 13918 / 13920 bytes. Every number difference is in `DIFFERENCES-II.md` D2-046 to
-D2-050 (decided s159: an Apple-only import takes the ST's numbers and keeps the Apple's text; built s160). Text: names, scroll and message wording (D2-050). The message comparison is noisy because the ST
-GameData's continuation records hold fragments; read its rows as pointers, not as a list of real differences.
+D2-050 (decided: an Apple-only import takes the ST's numbers and keeps the Apple's text; built). Text: names, scroll
+and message wording (D2-050). The message comparison is noisy because the ST GameData's continuation records hold fragments; read its rows as pointers, not as a list of real differences.

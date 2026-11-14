@@ -1,8 +1,8 @@
 # Phantasie III — wilderness maps, planes, terrain, places, River Styx, Astral Plane
 
-Phase 09 T4 3c.6 (s81, static; nothing run in DOSBox). Source of truth: the III manual (Wilderness PDF 7 / pr.9,
+Phase 09 T4 3c.6 (static). Source of truth: the III manual (Wilderness PDF 7 / pr.9,
 Terrain key PDF 13 / pr.21, map sections PDF 15 / pr.24, scrolls PDF 12 / pr.18–19). Code: DOS `MAIN.EXE` (ovl3 =
-wilderness; addresses `../FORMAT.md` §1). File formats: `../FORMAT.md` §9. Tags: `[C]` code / data bytes, `[~]`
+wilderness; addresses `../FORMAT.md` section 1). File formats: `../FORMAT.md` section 9. Tags: `[C]` code / data bytes, `[~]`
 probable, `[?]` not decoded. No manual ↔ code conflict raised here (the manual is silent on most of it).
 
 ## 1. State `[C]`
@@ -15,7 +15,7 @@ probable, `[?]` not decoded. No manual ↔ code conflict raised here (the manual
 | `FAR:0x9f8`, `0x487e`, `0x97ec`, `0x9814` | copies of x / y (previous step, position to return to) `[~]` |
 | `FAR:0x97c8` / `0x27f3:0x0cce` | map width / last row index |
 | `FAR:0x488a` | far pointer to the current map bytes (tile ids, row-major: `map[y · width + x]`) |
-| `0x27f3:0x0cbc`, `FAR:0xdd84` | place type / number found at the party's square (§4) |
+| `0x27f3:0x0cbc`, `FAR:0xdd84` | place type / number found at the party's square (section 4) |
 | `FAR:0xdd98` | current town (1–14 Scandor, 15 Light, 16 Dark, 17 Death) |
 | `FAR:0xe596` | in a town; `FAR:0x487c` = in the wilderness loop |
 
@@ -32,11 +32,11 @@ When the plane differs from the loaded one:
 
 The plane is chosen by the town the party is in (root `0x1e18`): town 15 → Light, 16 → Dark, 17 → Netherworld, 1–14
 → Scandor. So the planes are reached through their towns (Light / Dark / Death; creation in town 15 / 16 / 17 gives
-origin Light / Darkness / Netherworld, `../FORMAT.md` §5.1); how a party gets from Scandor to town 15–17 is a dungeon
+origin Light / Darkness / Netherworld, `../FORMAT.md` section 5.1); how a party gets from Scandor to town 15–17 is a dungeon
 exit: exit destinations 29 / 31 / 41 put the party on the Light / Dark / Netherworld plane at the start square above
 (dungeon 3, the crystal building: Light and Dark, once its lever is set; dungeon 11, the Castle of Dark: the
-Netherworld; corrected s82, the s81 text used the wrong record ↔ dungeon map; `dungeon-events.md` §1, §7) `[C]`. Every
-other exit leaves the party on its dungeon square. A dead party is sent to plane 0 (§6). The manual's "alternate
+Netherworld; `dungeon-events.md` section 1, section 7) `[C]`. Every
+other exit leaves the party on its dungeon square. A dead party is sent to plane 0 (section 6). The manual's "alternate
 planes of good and evil" (PDF 7 / pr.8) = Light / Dark; "Other planes, dimensions, have their own labels" (PDF 15 /
 pr.24) agrees (the planes are separate small maps).
 
@@ -46,7 +46,7 @@ The tile id under the party gives the terrain (name = master string 54 + t, show
 
 | Tile ids | t | Name |
 |---|---|---|
-| 0–25 | 10 | Water (swim test, §5) |
+| 0–25 | 10 | Water (swim test, section 5) |
 | 26–38 | 19 | (no name: town tiles `[~]`) |
 | 39–46 | 20 | (no name: dungeon tiles `[~]`) |
 | 47–54 | 21 | "A Tavern" (inn tiles `[~]`) |
@@ -63,16 +63,16 @@ The tile id under the party gives the terrain (name = master string 54 + t, show
 
 On the **Netherworld** plane these override: 61–77 → 17 Black Path, 78–82 → 16 Mist, 83–87 → 18 Steam, 88–241 → 8
 Lava. Standing on Lava after a move hurts the party (root `0x2426(13, 1, 3)`, the same routine as Water): each living
-member rolls r = 1…13 and takes 0 when his LCK ≥ r, else 27 − r (14…26) `[C]` (s208, section 5 "The party damage
+member rolls r = 1…13 and takes 0 when his LCK ≥ r, else 27 − r (14…26) `[C]` (section 5 "The party damage
 routine"). On any plane other than Scandor a blocked square shows "The River Styx". Names 5 / 7 / 12
-("Netherworld", "Ocean") are not produced by this table; "Ocean" is the blocked text on Scandor (§5).
+("Netherworld", "Ocean") are not produced by this table; "Ocean" is the blocked text on Scandor (section 5).
 
 ## 3a. Time and aging per step `[C]` (s88)
 
-The party's "days out" counter (`FAR:0x9e2`, u32, saved; `../FORMAT.md` §8) counts **thirds of a day**: the Party
+The party's "days out" counter (`FAR:0x9e2`, u32, saved; `../FORMAT.md` section 8) counts **thirds of a day**: the Party
 Status screen prints it ÷ 3 (root `0x1c6d`). Root `0x14a9` adds, by the terrain word `FAR:0xb61a`:
 
-| Terrain t (§3) | Added | Time |
+| Terrain t (section 3) | Added | Time |
 |---|---|---|
 | 1 Forest | 2 | ⅔ day |
 | 2 Hills, 3 Mountains | 3 | 1 day |
@@ -88,7 +88,7 @@ Status screen prints it ÷ 3 (root `0x1c6d`). Root `0x14a9` adds, by the terrain
   Leaving the town (ovl3 `0x88`) sets days out to 0, so the remainder under 14 days is dropped each trip. A new or
   disbanded party also zeroes it (root `0xa861`). The town inn adds 1 unit per stay (ovl2 `0x3577`).
 - So one wilderness step costs no age by itself; a trip ages the party ⌊days / 14⌋ units on return. The manual gives no
-  step time. Built s91 (`P3TravelTime`, kept in the session's travel-time word as thirds of a day).
+  step time. Built (`P3TravelTime`, kept in the session's travel-time word as thirds of a day).
 
 ## 4. Places `[C]` (ovl3 `0xa22`, `place_at_party`)
 
@@ -96,9 +96,10 @@ Places are **hard-coded coordinates** in the code, not map data. Type 1 town (na
 (string 33 + n, = `DNGS.DAT` record n − 1), 3 independent inn (string 45 + n; 250 gold, ovl3 `0x8cc`), 4 map edge.
 
 - **Map edge** (y = 0, y = last row, x = 0 or x = width − 1): type 4, number 12 (Scandor) / 15 (planes), blocked.
-  (ovl3 `0xa38…0xa71`: y against 0 and the rows word `FAR:0xcce`, x against 0 and the column count `FAR:0x97c8` − 1; the counts: Scandor 50 × 74, Netherworld 31 × 15, Light / Dark
-  9 × 8, `MAIN.EXE` file offsets `0x152b…0x1672`, Scandor's 74 rows also at start-up `0x1c472`, s125.)
-  **Amiga differs** (s125, `../../../amiga/phantasie3/FORMAT.md` §4, §8.7): its test `0x9c92` compares x with the
+  (ovl3 `0xa38…0xa71`: y against 0 and the rows word `FAR:0xcce`, x against 0 and the column count `FAR:0x97c8` − 1;
+  the counts: Scandor 50 × 74, Netherworld 31 × 15, Light / Dark 9 × 8, `MAIN.EXE` file offsets `0x152b…0x1672`,
+  Scandor's 74 rows also at start-up `0x1c472`.)
+  **Amiga differs** (`../../../amiga/phantasie3/FORMAT.md` section 4, section 8.7): its test `0x9c92` compares x with the
   count itself, so the last column (Scandor 49, Netherworld 30, Light / Dark 8) can be entered there; rows as DOS. The
   remaster keeps DOS's edge (DOS wins on numbers).
 - **Netherworld:** (7, 3) town 17 "Death"; (6, 10) dungeon 9 "A dark fortress".
@@ -127,11 +128,11 @@ Places are **hard-coded coordinates** in the code, not map data. Type 1 town (na
 | | | (2, 65) | inn 8 The Deadly Inn |
 
   The Pendragon archives (dungeon 5, (25, 39)) lie two squares south of Pendragon (24, 37), as the manual's "Pendragon
-  Archives south of town" (PDF 3 / pr.1) says. 25 sections of 10 × 15 squares give the manual's 5 × 5 map sections A–E / I–V
-  (PDF 15 / pr.24) `[~]`.
+  Archives south of town" (PDF 3 / pr.1) says. 25 sections of 10 × 15 squares give the manual's 5 × 5 map sections A–E /
+  I–V (PDF 15 / pr.24) `[~]`.
 - Stepping on a place square asks "<name>" / "Will you enter?" (ovl3 `0x6c8`). Town: leaves the wilderness loop and
   sets the in-town flag. Dungeon: ovl4 `0x62d` (dungeon entry / saved map). Inn: needs 250 gold in the treasury
-  ("The party cannot afford the stay here."), runs the inn (`body-areas.md` §4, wilderness inn) and then takes 250.
+  ("The party cannot afford the stay here."), runs the inn (`body-areas.md` section 4, wilderness inn) and then takes 250.
 
 ## 5. Blocked squares: Ocean and River Styx `[C]` (ovl3 `0x92c`)
 
@@ -144,10 +145,10 @@ No random encounters start on Water, Lava or the River Styx (terrain 10 / 8 / 15
 `0x1f9…0x213`) `[C]` — the manual's "no encounters on water" agrees.
 
 Water (tiles 0–25), when entered on foot: root `0x2426(0, 1, 1)` (ovl3 `0x596`) makes each member roll Swim: 0 damage
-("swims.") when Swim ≥ `rnd(100) − 1` (0…99), else 1…5 ("sinks for n damage.") `[C]` (s208, below); the manual's swim
+("swims.") when Swim ≥ `rnd(100) − 1` (0…99), else 1…5 ("sinks for n damage.") `[C]` (below); the manual's swim
 rule (PDF 4 / pr.3, PDF 7 / pr.9).
 
-**The party damage routine** (root `0x2426(die, add, kind)`, s208 `[C]` static; report root `0x2623`). `rnd(n)` is root
+**The party damage routine** (root `0x2426(die, add, kind)`, `[C]` static; report root `0x2623`). `rnd(n)` is root
 `0x2c31`: `rand() % n + 1`, with n < 1 taken as 1. For each of the 6 party slots, a member with HP (`+0x22`) > 0 gets:
 
 ```
@@ -171,8 +172,8 @@ character is dead the party goes to the Astral Plane (section 6). The callers:
 | ovl4 `0x1544`, event ops 1–4 | (a1, 1, 2) | 1…a1 |
 | ovl4 `0x16c8`, event op 16 | (a1, 1, 0) | 1…a1 |
 
-The Amiga's `0x1d24a` rolls `rnd % die + add` (s165) and its lava the same LCK test: **DOS and Amiga agree** on every
-caller. The manual gives no trap, lava or swim damage figures: not a conflict. Remaster (s208): `Phantasie3Campaign
+The Amiga's `0x1d24a` rolls `rnd % die + add` and its lava the same LCK test: **DOS and Amiga agree** on every
+caller. The manual gives no trap, lava or swim damage figures: not a conflict. Remaster: `Phantasie3Campaign
 .DamageParty(die, add, kind)` follows this (the trap with add 0, lava's LCK test); Core's III swim is not checked
 against the kind-1 line here `[~]`.
 
@@ -193,11 +194,11 @@ When the whole party dies (`FAR:0xfc9a` = 1) the game does **not** end ("Game ov
    party gold is kept `[C]`.
 
 This is where DOS III's "Undead at level 20" comes from (also used by the I → III transfer, D3-007). Undead cannot
-train or learn spells (`training.md` §1). The manual says nothing about a wiped party; not a conflict.
+train or learn spells (`training.md` section 1). The manual says nothing about a wiped party; not a conflict.
 
 ## 7. Scrolls `[C]` (root `0xeb`, `read_scroll`)
 
-Using a scroll item (ids 121–140, town only) shows text from `SCROLLS.DAT` (19 records × 1050 B, `../FORMAT.md` §9.4):
+Using a scroll item (ids 121–140, town only) shows text from `SCROLLS.DAT` (19 records × 1050 B, `../FORMAT.md` section 9.4):
 
 | Item | Name | Records shown |
 |---|---|---|
@@ -217,5 +218,6 @@ Record = `item − 121`, minus one more above item 126; item 123 → 4; items 12
 records. The duplicate III / VII items are partial copies of a three-page scroll, as read; whether 124's start at
 record 3 is intended `[~]`. Text records are NUL-terminated within their 1050 bytes.
 
-**Built (s95):** Use Item (town only) shows the item's records from `scrolls.json` `item_records` as pages, an empty line
-between them; Scroll IV shows the Amiga picture `D/s6` (s97, pack `scroll.picture.126`), or names it when no pack is present.
+**Built:** Use Item (town only) shows the item's records from `scrolls.json` `item_records` as pages, an empty line
+between them; Scroll IV shows the Amiga picture `D/s6` (pack `scroll.picture.126`), or names it when no pack is
+present.

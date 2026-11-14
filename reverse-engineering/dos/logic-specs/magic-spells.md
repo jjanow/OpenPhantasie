@@ -1,13 +1,9 @@
 # Magic / Spell System
 
 Spell **names/order** are confirmed from `PHANTASI.COM` @ `0x6e8a` (55 entries,
-see `data-tables.md`). Categories + effects below are manual-confirmed [X];
-combat effect messages are confirmed in `OV2.OVR` [C]. Per-spell **magic-point
-cost** is **[C]** (computed, not tabled). Heal scaling for HEALING I–IV is
-**[C]** (s18: RNG 0..99). Other spell damage/buff
-coefficients remain **[~]** for specials. Potion restore formulas below are **[C]**.
-Tiered combat-spell coefficients (FIREFLASH…FLAMEBOLT) are **[C]** from OV2
-static decode (see tables below).
+see `data-tables.md`). Categories are manual-confirmed [X]; combat effect messages are in `OV2.OVR` [C]. **[C]**:
+per-spell MP cost (computed, not tabled), HEALING I–IV scaling (RNG 0..99), the tiered coefficients
+(FIREFLASH…FLAMEBOLT, OV2 static decode), the specials and the potion formulas.
 
 ## Core mechanics [X]
 - Casting consumes the caster's **magic points**; a spell costs **1–4 MP**.
@@ -44,12 +40,12 @@ magic_cur -= di
 The same expression is used for the pre-cast affordability check at `0x6e31`
 (`cost = (index+1) - (index/4)*4`, algebraically identical). Applies to **all**
 55 spells, including non-tiered specials (e.g. CHARM=1, SLEEP=2, …). The index is the **DOS slot**
-(pointer table DS `0x174d`, 60 slots): DIVINE I is slot **57**, so it costs `57 % 4 + 1` = **2** MP, not 3 (§DIVINE I, s41).
+(pointer table DS `0x174d`, 60 slots): DIVINE I is slot **57**, so it costs `57 % 4 + 1` = **2** MP, not 3 (section DIVINE I).
 
 ## HEALING effect scaling [C]
 
 After MP deduct, combat HEALING I–IV (1-based indices 1–4) runs at `OV2` `0x027d`, inside the combat cast
-routine `0x00e4` (s18; older notes pointed at `0x47fb`, which is the wilderness/dungeon cast — see below).
+routine `0x00e4` (`0x47fb` is the wilderness/dungeon cast, below).
 With `tier = spell_index + 1` (so 1..4):
 
 ```
@@ -75,40 +71,40 @@ Static decode of the cast switch (params are decimal / hex as in decomp):
 
 | Line | cast_id | 0-based idx | Param / effect |
 |---|---|---|---|
-| FIREFLASH I–IV | 1–4 | 4–7 | damage scale `9, 0x1d, 0x3a, 100`; dmg = `rng·param·INT/2000 + 1` (single target), **INT = caster `@2`** (`0x339`, s33; was written without INT) |
-| QUICKNESS I–IV | 5–8 | 8–11 | `%` weapon-hit `10, 0x19, 0x2d, 0x46`; `hit_eff = min(255, @30*(100+p)/100)` (attack skill `@30`, OV2 `0x0498` reads `+0x1e` from base `0x5bb0`; s41 fix, was `@28` from the old `0x5bb2` base); cancels SLOWED |
+| FIREFLASH I–IV | 1–4 | 4–7 | damage scale `9, 0x1d, 0x3a, 100`; dmg = `rng·param·INT/2000 + 1` (single target), **INT = caster `@2`** (`0x339`) |
+| QUICKNESS I–IV | 5–8 | 8–11 | `%` weapon-hit `10, 0x19, 0x2d, 0x46`; `hit_eff = min(255, @30*(100+p)/100)` (attack skill `@30`, OV2 `0x0498` reads `+0x1e` from base `0x5bb0`); cancels SLOWED |
 | STRENGTH I–IV | 9–12 | 12–15 | flat dmg `2, 4, 7, 0xb`; `dmg_eff = min(255, A+B+flat)`; cancels WEAKNESS |
 | PROTECTION I–IV | 13–16 | 16–19 | flat armor `1, 3, 6, 10`; `armor_eff = min(255, base+flat)` |
-| CONFUSION I–IV | 17–20 | 20–23 | scale `%` `0x50, 0x3c, 0x28, 5` via `FUN_0000_1382` mode 1 → special-ability gate `+0x1e` (s22, was "CV"); D-014: remaster IV = 0 % (manual). Modes 1–3 (CONFUSION/WEAKNESS/BINDING) roll **once per group** and scale the shared group record (s25) |
+| CONFUSION I–IV | 17–20 | 20–23 | scale `%` `0x50, 0x3c, 0x28, 5` via `FUN_0000_1382` mode 1 → special-ability gate `+0x1e`; D-014: remaster IV = 0 % (manual). Modes 1–3 (CONFUSION/WEAKNESS/BINDING) roll **once per group** and scale the shared group record |
 | WEAKNESS I–IV | 21–24 | 24–27 | scale `%` `0x50, 0x3c, 0x28, 0x14` mode 3 (attack power) |
 | BINDING I–IV | 25–28 | 28–31 | scale `%` `0x55, 0x46, 0x37, 0x2d` mode 2 (defense, signed — negative defense moves toward 0; D-013: remaster `Magic.BoundDefense` — DOS scale for positive, negative pushed down, min cut 3/6/9/11) |
 | MINDBLAST I–IV | 29–32 | 32–35 | dmg scale `5, 0xb, 0x29, 0x51` mode 4 — `(rng*param)/100`, no armor |
 | FLAMEBOLT I–IV | 33–36 | 36–39 | dmg scale `7, 0xf, 0x1f, 0x42` mode 5 — armor-resisted |
 
-**FIREFLASH caster term [C] (s33)** — OV2 `0x321..0x35d`: `rand` (0..99) × param (16-bit `imul` → 32-bit), × caster
+**FIREFLASH caster term [C]** — OV2 `0x321..0x35d`: `rand` (0..99) × param (16-bit `imul` → 32-bit), × caster
 `[c·0x11a + 0x5bb2]` = **`@2` INT** (sign-extended, 32×32 multiply), ÷ 2000 via `0xf8d1`, `+ 1`. So the maximum is
 `99·param·INT/2000 + 1`: INT 18 gives 1–9 / 1–26 / 1–52 / 1–90; INT 20 gives 1–9 / 1–29 / 1–58 / 1–100.
 **Manual (PDF p.19, printed 15):** "Fireflash 1 — 1-10 points damage … 2 — 1-30 … 3 — 1-60 … 4 — 1-100", fixed, with no INT
 term (PDF p.8: INT is "the mental prowess necessary for learning and casting spells"; race INT maxima 13–19). **Conflict
-D-029 — decided (user, s34): manual ranges, scaled by INT. Remaster design, not DOS:**
+D-029 — decided (user): manual ranges, scaled by INT. Remaster design, not DOS:**
 `damage = 1 + rand · (max − 1) · min(INT, 18) / (99 · 18)`, `max` = 10 / 30 / 60 / 100 — INT 18 (Human ceiling) gives the
 manual range exactly, INT 19 is capped there, lower INT shrinks the top (INT 13: 7 / 21 / 43 / 72). Core:
-`Magic.FireflashDamage(roll, tier, INT)`; the s33 no-INT bug is gone.
+`Magic.FireflashDamage(roll, tier, INT)`.
 
-**Caster operands across combat spells [C] (s33):** CONFUSION / WEAKNESS / BINDING resist = caster **`@16` MP max** vs group
-CV (`combat-resolution.md` §To-hit, `0x13b5`; the old "caster CV `@14`" was the same address read with base `0x5bb2`; remaster D-028 adds `2·(caster level − group level)`, s34);
+**Caster operands across combat spells [C]:** CONFUSION / WEAKNESS / BINDING resist = caster **`@16` MP max** vs group
+CV (`combat-resolution.md` §To-hit, `0x13b5`; remaster D-028 adds `2·(caster level − group level)`);
 FIREFLASH damage × **INT `@2`** (remaster: D-029 formula above); CHARM, TELEPORTATION, FEAR, DISPELL UNDEAD use **level `@88`**; MINDBLAST, FLAMEBOLT,
 DISSOLVE, DOS SLEEP, HEALING have no caster term. Remaster SLEEP (D-020) shares the `@16` roll.
 
-Specials (CHARM…AWAKEN, cast_id 37–47): decoded **[C]** (s31) — jump table OV2 `0x9d1`, per-handler rules in
-`combat-resolution.md` §Combat spell effects (DOS undead = XP mod 7, remaster = `monster-traits.json` list, D-024; [original text] [C] s33, §[original text] there).
+Specials (CHARM…AWAKEN, cast_id 37–47): decoded **[C]** — jump table OV2 `0x9d1`, per-handler rules in
+`combat-resolution.md` §Combat spell effects (DOS undead = XP mod 7, remaster = `monster-traits.json` list, D-024; [original text] [C], §[original text] there).
 
 ## Town casting: Option → Cast spell [C] (session 13)
 
 Static decode (capstone) of OV1 `0x254e`, the town Option → Cast spell loop. Strings via the OV1 base
 `file + 0x5ff7`: "WHO WILL CAST A SPELL?" (`0x5d4e`), "[original text] HEAL?" (`0x5d65`),
 "%s IS RESURRECTED" (`0x5d7f`). This covers **town** casting only. The OV2 RESURRECTION routine (combat +
-wilderness/dungeon) and the wilderness/dungeon HEALING are in §OV2 RESURRECTION below (s18).
+wilderness/dungeon) and the wilderness/dungeon HEALING are in §OV2 RESURRECTION below.
 
 ```
 loop:
@@ -127,9 +123,8 @@ loop:
 
 **Spell picker** (COM `0x1602`): lists the caster's spell-flag words at `@96` (`+0x60`) equal to **1**
 (known). It refuses a spell whose cost `(idx % 4) + 1` exceeds MP cur `@18`. **No category filter was found**
-in the list routine (`0x168c`). If that holds, a known combat spell can be picked in town, its MP is spent, and
-nothing happens. The manual says town Cast spell offers only non-combat and everywhere spells. **[~]**, not raised
-as a conflict yet: confirm in DOSBox with a caster who knows a combat spell.
+in the list routine (`0x168c`): a known combat spell can be picked in town, its MP is spent, and nothing happens
+(seen in DOSBox; manual conflict D-035, section Categories).
 
 ### Town HEALING (OV1 `0x261a`) [C]
 
@@ -146,7 +141,7 @@ target.hp_cur (@22) = min(target.hp_cur + heal, target.hp_max (@20))
 - Combat HEALING (OV2, above) uses `(c * rng) / 100` with floor 1, i.e. **1–9 / 1–27 / 1–57 / 1–99**, which
   matches the manual exactly. Town casting gives 0–10 / 0–28 / 0–58 / 0–100. Manual vs DOS-town → `DIFFERENCES.md` **D-010**
   (decided: manual; the remaster uses the combat formula everywhere).
-- C64 cross-check (s16): C64 town HEALING is `INT(RND·c)` (0 … c−1, no floor) and combat has floor 1, the same split
+- C64 cross-check: C64 town HEALING is `INT(RND·c)` (0 … c−1, no floor) and combat has floor 1, the same split
   as DOS (`reverse-engineering/c64/bytecode-notes.md` §HEALING).
 
 ### Town RESURRECTION (OV1 `0x2693`) [C]
@@ -171,16 +166,16 @@ for i in 0 .. party_size-1 ([0x648e]), in party order:
 - **Success chance** = `clamp(50 + 5·Δlevel, 0, 101) / 101` (Δ = caster − target level). Equal levels: 50/101 ≈ 49.5 %.
   Δ ≥ +11: always. Δ ≤ −10: never.
 - **No CON change, no age change, no gold.** The manual's CON loss of 1–2 happens **at death** in DOS (OV2 `0x12cf`,
-  `combat-resolution.md` §Death), not here → `DIFFERENCES.md` **D-009** (decided s14: DOS rule, loss at death).
+  `combat-resolution.md` §Death), not here → `DIFFERENCES.md` **D-009** (decided: DOS rule, loss at death).
   Corpses with CON 0 are skipped, so they can't be raised.
-- HP is set to **max** (Core matches since s18; it used max/2 before).
-- C64 cross-check (s16): town, wilderness and dungeon resurrection on the C64 use the same rule (auto-target in party
+- HP is set to **max** (Core matches).
+- C64 cross-check: town, wilderness and dungeon resurrection on the C64 use the same rule (auto-target in party
   order, `50 + 5·Δlevel` %, HP max, no CON change); only the roll granularity differs (`/100` vs DOS `/101`).
   `reverse-engineering/c64/bytecode-notes.md` §RESURRECTION.
 - Cost 4 MP (`43 % 4 + 1`), the same as the manual's level-4 listing.
 - OV1 `0x7bf(a, b, n)` = copy `n` bytes **from `a` to `b`**: it builds far pointers with DS (COM `0x36ba`) and
   calls the `rep movsw` copier (COM `0x5055`: `lds si` = arg 1 → `les di` = arg 2). This settles the copy
-  direction for every `0x7bf` caller (PLAN P0.1 town-entry item: read each caller's argument order).
+  direction for every `0x7bf` caller.
 
 ### OV2 RESURRECTION (`0x113b`) and wilderness/dungeon HEALING [C] (session 18)
 
@@ -196,12 +191,12 @@ for i in 0 .. party_size-1 ([0x648e]), in party order:
     if rng0_99 (0x655b) >= 50 + 5 * (caster.level (@88) − t.level (@88)): continue
     t.status = OK
     t.hp_cur (@22) = t.hp_max (@20)
-    [0x74fa + 2i] = 4 ; [0x5b96 + 2i] = 4 ; call 0x43ae ; [0x6490] += 1     ; [C] s41, see below
+    [0x74fa + 2i] = 4 ; [0x5b96 + 2i] = 4 ; call 0x43ae ; [0x6490] += 1     ; [C], see below
     print "%s IS RESURRECTED"; redraw (path depends on [0x64fc] == 5)
     return                                   ; at most one per cast
 ```
 
-- **Side writes [C] (s41):** `[0x74fa+2i] = 4` is the raised member's combat order = 4 "no action" (the round loop
+- **Side writes [C]:** `[0x74fa+2i] = 4` is the raised member's combat order = 4 "no action" (the round loop
   skips orders ≤ 4, `0x1b1`), so it does nothing for the rest of the round; `[0x5b96+2i] = 4` is its previous-order
   mirror, so next round's default order is PARRY (< 10, `combat-resolution.md` §Action encoding). `0x43ae` rebuilds
   the non-DEAD member list `[0x64a2]` (special targets) and returns count − 1, which is dropped; `[0x6490]` only gets
@@ -214,12 +209,12 @@ for i in 0 .. party_size-1 ([0x648e]), in party order:
   The only difference is the roll: OV2 uses `rand/328` (0..99, chance `(50+5Δ)/100`), town `rand/327` (0..100,
   chance `/101`). The C64's `/100` matches OV2. No `@92` empty-slot check here.
 - **Wilderness/dungeon HEALING** (`0x47fb`, in `0x4790`): asks "ON WHOM:" (picker at `0x5a0a`), then
-  `heal = ((6·tier²+4) · rng0_99) / 100`, applied via `0x4930(member, hp + heal)`. **s41 correction [C]:** `0x4930`
+  `heal = ((6·tier²+4) · rng0_99) / 100`, applied via `0x4930(member, hp + heal)`. **[C]:** `0x4930`
   adds 1 when the new value equals the current HP (`0x4941..0x4946`), then clamps to HP max — so a 0 roll heals 1:
-  the field range is **1–9 / 1–27 / 1–57 / 1–99**, the manual's, like combat. (s18 wrote "no floor"; only the town
-  routine `0x261a` lacks the floor.) Manual ranges apply in the remaster everywhere (D-010).
-- Combat `0x07b8` (`rng0_99 < 3·caster level + 50` → `[0x74b0] = 1`) is **TELEPORTATION** (s31, `combat-resolution.md` §Combat spell effects).
-- **Core (s18):** `SpellCaster.TryResurrect` shared by combat, `CastLocation.Field` and `CastLocation.Town`
+  the field range is **1–9 / 1–27 / 1–57 / 1–99**, the manual's, like combat. Only the town routine `0x261a` lacks the
+  floor. Manual ranges apply in the remaster everywhere (D-010).
+- Combat `0x07b8` (`rng0_99 < 3·caster level + 50` → `[0x74b0] = 1`) is **TELEPORTATION** (`combat-resolution.md` §Combat spell effects).
+- **Core:** `SpellCaster.TryResurrect` shared by combat, `CastLocation.Field` and `CastLocation.Town`
   (town roll `NextDosWord()/327`).
 
 ### Wilderness/dungeon cast dispatch (OV2 `0x4790`) [C] (s41)
@@ -257,7 +252,7 @@ monsters. Although it occasionally yields inaccurate results, it is a good spell
 dungeon and at regular intervals in the wilderness." DOS gives an area estimate, never random and never from the
 actual monsters met. **D-056 (decided: manual):** Core casts `SpellCaster.ManualMonsterEvalLevel`, which is the rounded
 average level of the monsters that can be met at the party's spot, and is off by ±1 on 10 % of casts (never below 1;
-values set by the user in s57). The DOS formula stays as `MonsterEvalLevel`.
+values set by the user). The DOS formula stays as `MonsterEvalLevel`.
 
 **VISION (`0x48b3`) [C]** — wilderness only; in a dungeon the MP is spent and nothing happens:
 
@@ -266,7 +261,7 @@ if [0x64e8] == 2:
     r = (caster.@18 · 100 + 500) / 400        # @18 = MP cur AFTER the 1 MP cost; = (MP + 5) / 4, integer
     [0x750a] = r
     0x566b(x = [0x751a], y = [0x751c], &[0x750a])
-    save the screen to the back buffer (0xb954 = COM 0x0d30; 0xb914 is the restore, s67)
+    save the screen to the back buffer (0xb954 = COM 0x0d30; 0xb914 is the restore)
 ```
 
 `0x566b` is the same reveal every wilderness step uses (radius word `[0x750a]`, normally 1): for every cell of the
@@ -278,7 +273,7 @@ own cell and cells already drawn (byte array DS `0xd0be`, cleared on region load
 `OUT*.DAT`, so the reveal persists.
 **Manual (PDF p.20, printed 16):** "VISION (#53) gives the spellcaster the ability to see in all directions for
 hundreds of miles. It is particularly useful for mapping vast unknown areas." DOS reveals a square of radius
-`(MP+5)/4` cells inside the current region only. **D-057 (decided: manual, s57):** Core reveals the whole current 26×20 region
+`(MP+5)/4` cells inside the current region only. **D-057 (decided: manual):** Core reveals the whole current 26×20 region
 (`VisionManualRadius`) and nothing in the neighbouring regions. The DOS radius stays as `VisionRadius`.
 
 ### DIVINE I (DOS slot 57) [C] (s41)
@@ -304,8 +299,8 @@ and runs **town entry** `0x1954`, which also applies aging (`town-menus.md` §Ag
 ## Categories
 `E`=Everywhere · `C/A`=Combat-Active · `C/P`=Combat-Passive ·
 `N/W`=Non-combat Wilderness · `N/T`=Non-combat Town · `N/WD`=Non-combat
-Wilderness/Dungeon (manual spelling; older notes had `N/WO`). **Manual:** `CAST SPELL` outside combat only
-offers non-combat spells for that place + everywhere spells. **DOS (s35 DOSBox):** the town picker lists every
+Wilderness/Dungeon (manual spelling). **Manual:** `CAST SPELL` outside combat only
+offers non-combat spells for that place + everywhere spells. **DOS (DOSBox, s35):** the town picker lists every
 known spell, and a combat spell picked there spends its MP and does nothing. **Remaster (D-035, user: manual):**
 `SpellCaster.IsCombatOnly` + `IsCastableAt` refuse wrong-place spells before any MP is spent.
 
@@ -323,21 +318,21 @@ known spell, and a combat spell picked there spends its MP and does nothing. **R
 | 28–31 | BINDING I–IV | C/A | Impedes movement → targets easier to hit; great vs. flyers. Progressive. |
 | 32–35 | MINDBLAST I–IV | C/A | Psychic damage. |
 | 36–39 | FLAMEBOLT I–IV | C/A | Fire damage (stronger line). |
-| 40 | CHARM | C/A | "[original text]" — DOS: Σreaction +15, GREETINGS allowed again; fight goes on (s31). Remaster (D-022): ends the fight at once like GREETINGS. |
-| 41 | SLEEP | C/A | "%s IS SLEPT" — per monster if `rand ≥ L²`; DOS: out for the rest of the round only (s31). Remaster (D-020): per-group CV roll, lasting asleep. |
-| 42 | TELEPORTATION | C/A | `rand < 3·lvl + 50` → combat ends at the next round top; no gold/treasure, kill XP kept (s31). Remaster (D-023): always works, ends at once. |
+| 40 | CHARM | C/A | "[original text]" — DOS: Σreaction +15, GREETINGS allowed again; fight goes on. Remaster (D-022): ends the fight at once like GREETINGS. |
+| 41 | SLEEP | C/A | "%s IS SLEPT" — per monster if `rand ≥ L²`; DOS: out for the rest of the round only. Remaster (D-020): per-group CV roll, lasting asleep. |
+| 42 | TELEPORTATION | C/A | `rand < 3·lvl + 50` → combat ends at the next round top; no gold/treasure, kill XP kept. Remaster (D-023): always works, ends at once. |
 | 43 | RESURRECTION | E | "%s IS RESURRECTED" — revive a dead member. |
-| 44 | NINJA II | C/P | Caster: weapon hit eff 255, dmg eff 25, armor eff 10 (s31). |
-| 45 | FEAR | C/A | Manual: monsters run. DOS: encounter level `L` −6, no message (s31). Remaster (D-021): `L` −6 then MONSTERS RUN (not the Black Lord). |
-| 46 | DISSOLVE | C/A | `rand ≤ 110 − 10·L` → "[original text]", combat over, gold 0, XP + front group (living − 1)·XP (s31). |
-| 47 | [original text] | C/P | No roll, no message, 4 MP always. Works if an elemental (FIRE/WATER/EARTH, `TWNS.INT` templates, Guild #23–25) was loaded into party slot 7 at the Guild (Add, only with 6 members, one at a time) and the party has 6 non-DEAD members (DOS: 5 if a monster already acted this round). Joins as member 7, no action that round, then player-controlled; no XP share; back to slot 7 at combat end; leaves at town entry / Drop / Purge / defeat. DOS never preps its combat fields (0 → can't hit) — possible manual conflict (s33, `combat-resolution.md` §[original text]). |
-| 48 | DISPELL UNDEAD | C/A | Front group, if undead (DOS: XP mod 7 = 0; remaster: data list, D-024): dissolves (adds XP) or runs (s31). |
-| 49 | NINJA I | C/P | Caster: weapon hit eff 200, dmg eff 20, armor eff 8 (s31). |
-| 50 | AWAKEN | C/A | Every non-DEAD member → OK; "PARTY AWAKENS" (s31). |
-| 51 | MONSTER EVAL. | N/WD | "[original text] n": wilderness `2·(T+1)` (max 12), dungeon `2·tier+2`; no roll (s41). |
-| 52 | VISION | N/W | Un-fogs a square of radius `(MP left + 5)/4` around the party, current region only; dungeon: nothing (s41). |
+| 44 | NINJA II | C/P | Caster: weapon hit eff 255, dmg eff 25, armor eff 10 |
+| 45 | FEAR | C/A | Manual: monsters run. DOS: encounter level `L` −6, no message. Remaster (D-021): `L` −6 then MONSTERS RUN (not the Black Lord). |
+| 46 | DISSOLVE | C/A | `rand ≤ 110 − 10·L` → "[original text]", combat over, gold 0, XP + front group (living − 1)·XP |
+| 47 | [original text] | C/P | No roll, no message, 4 MP always. Works if an elemental (FIRE/WATER/EARTH, `TWNS.INT` templates, Guild #23–25) was loaded into party slot 7 at the Guild (Add, only with 6 members, one at a time) and the party has 6 non-DEAD members (DOS: 5 if a monster already acted this round). Joins as member 7, no action that round, then player-controlled; no XP share; back to slot 7 at combat end; leaves at town entry / Drop / Purge / defeat. DOS never preps its combat fields (0 → can't hit) — possible manual conflict (`combat-resolution.md` §[original text]). |
+| 48 | DISPELL UNDEAD | C/A | Front group, if undead (DOS: XP mod 7 = 0; remaster: data list, D-024): dissolves (adds XP) or runs |
+| 49 | NINJA I | C/P | Caster: weapon hit eff 200, dmg eff 20, armor eff 8 |
+| 50 | AWAKEN | C/A | Every non-DEAD member → OK; "PARTY AWAKENS" |
+| 51 | MONSTER EVAL. | N/WD | "[original text] n": wilderness `2·(T+1)` (max 12), dungeon `2·tier+2`; no roll |
+| 52 | VISION | N/W | Un-fogs a square of radius `(MP left + 5)/4` around the party, current region only; dungeon: nothing |
 | 53 | TRANSPORTATION | N/T | Fast-travel between towns. |
-| 54 | DIVINE I | (endgame) | DOS slot 57 (`@210`), 2 MP, no effect anywhere (s41). Granted after the final boss ("learn to use it properly in Phantasie II"). |
+| 54 | DIVINE I | (endgame) | DOS slot 57 (`@210`), 2 MP, no effect anywhere. Granted after the final boss ("learn to use it properly in Phantasie II"). |
 
 > Note: the game's internal index (above) differs from the manual's printed
 > numbering (1–53). The binary order is authoritative for `OpenPhantasie.Data`.
@@ -360,11 +355,11 @@ else:
 
 So **MAGIC n** restores **`3n` MP** (n = 1..10). **HEALING n** restores **`n²` HP**.
 
-**The used slot is emptied in place [C] (s58 static).** The field path (OV2 `0x446b`) and the town USE ITEM path
+**The used slot is emptied in place [C] (static).** The field path (OV2 `0x446b`) and the town USE ITEM path
 (OV1 `0x31ac`) both do `mov word [bx+0x5c8e],0`: the potion's carried slot `@222 + 2k` becomes 0 and the later slots
 do **not** move up. The gap stays until an Armory buy fills it (first empty slot, `town-menus.md` §Armory) or Distribute
 compacts every slot. There is no potion order in combat, so these are the only two paths. Manual: silent.
-**Core (s58):** `Magic.UsePotion` → `CarriedItems.ClearSlot` (slot := 0; trailing empty slots are dropped from the list,
+**Core:** `Magic.UsePotion` → `CarriedItems.ClearSlot` (slot := 0; trailing empty slots are dropped from the list,
 which writes the same nine words).
 
 ## Inputs / outputs (for the cast routine)
@@ -373,7 +368,7 @@ which writes the same nine words).
 - **Outputs**: MP deducted (`(index%4)+1`); effect applied (damage roll, status
   flag on party/monster group, HP restore, summon, map reveal, travel); combat
   message emitted.
-- **Still open**: passive-cancel edge cases when monsters cast WEAKNESS/SLOW on the party; (DIVINE I in the combat chooser [D✓] s65.) (HEALING range [C] s18; specials [C] s31/s33; MONSTER EVAL./VISION/DIVINE I [C] s41.)
+- **Still open**: passive-cancel edge cases when monsters cast WEAKNESS/SLOW on the party.
 
 ## Remaster note
 Model spells data-driven: each spell = `{index, name, category, mpCost,

@@ -5,8 +5,8 @@ plain ASCII and were extracted verbatim; see `../extracted/names.json`
 (regenerate with `tools/scripts/extract_names.py`). Numeric stat fields are
 documented here as far as they are decoded.
 
-**Addresses (H5, s24):** `PHANTASI.COM` is EXEPACK-packed (§Monsters, `docs/plan/RE-REFERENCE.md`). Every
-script now reads the **unpacked** image through the game's DS pointer tables; the DS addresses
+**Addresses:** `PHANTASI.COM` is EXEPACK-packed (section Monsters, `docs/plan/RE-REFERENCE.md`). Every
+script reads the **unpacked** image through the game's DS pointer tables; the DS addresses
 below are canonical. The raw-file offsets kept in headings (`0x6d4f`, `0x66ff`, …) and the old
 `file = ptr + 0x56c5 / 0x56d3` deltas only work because the string tables sit inside long literal
 runs. Proof that this fails outside them: the raw read of item 180 returned `DIAMOND En\x0b²`.
@@ -50,7 +50,7 @@ Kobold −STR/+DEX/+CON) — exact modifier values are **[C]**: `TWNS.INT` `@0x9
 Name **pointer table** at DS `0x174d` (60 × `u16`; raw file `0x6e12`, `ptr + 0x56C5`
 only inside this literal run). Slots 0–53 + 57 resolve the 55 spell names; slots
 54–56 and 58–59 point to empty strings. **DIVINE I is DOS slot 57**, but remaster index 54
-(`names.json` and `spells.json` record `dos_slot: 57`): it costs 2 MP and its known flag is `@210` (s41, `magic-spells.md` §DIVINE I). Strings themselves begin at
+(`names.json` and `spells.json` record `dos_slot: 57`): it costs 2 MP and its known flag is `@210` (`magic-spells.md` section DIVINE I). Strings themselves begin at
 `0x6e8a`. There is **no** interleaved cost byte in this table.
 
 Index order (0-based) as stored:
@@ -105,7 +105,7 @@ slots and extended inventory fields.
 | — | `0x66ff`… | NUL-terminated name strings |
 
 File offsets = DS + `0x56d3`, valid only inside this literal run. `extract_items.py`
-reads the unpacked image (H5, s24). Only id 180's name changed, from packed junk to `DIAMOND E`. The block after
+reads the unpacked image. The block after
 `scrolls.dtx` that looked like “XP thresholds” **is** this `V[]` table (cheap
 items have `V=0`; clothing/stick are free-tier, not table breaks).
 
@@ -147,7 +147,7 @@ damage plug-in; see `combat-resolution.md`]
 
 | Op | Formula | Code |
 |---|---|---|
-| Sell to Armory (Inn Distribute SELL row only; the Armory itself has no sell, s58) | `V² / 8` | `OV1` sell path @ `0x2e72` |
+| Sell to Armory (Inn Distribute SELL row only; the Armory itself has no sell) | `V² / 8` | `OV1` sell path @ `0x2e72` |
 | Buy price | `floor(V² * town_price_index / 500) + 1` | `OV1` `FUN_0000_1d5b` |
 
 `town_price_index` = `u16` at `TWNS.DAT` town record `+0x10f` (stride **291**;
@@ -172,10 +172,9 @@ total             177 GP
 
 The three `GUILD @262` (bank) values each changed `256 → 197`, which is not a
 per-purchase deduction: the save-time share split put the leftover purse back
-into the banks (s35): `(3 × 256 − 177) / 3 = 197`. Thus the observed
+into the banks: `(3 × 256 − 177) / 3 = 197`. Thus the observed
 per-record delta is `177 / 3 = 59`. Stock changes and carried-item writes
-prove these are the same purchases; the earlier “different state” explanation
-was false. `@262` must not be used as the party transaction ledger.
+prove these are the same purchases. `@262` must not be used as the party transaction ledger.
 
 ### Potions [X] (Schultz)
 
@@ -185,10 +184,9 @@ was false. `@262` must not be used as the party transaction ledger.
 ## Monsters [C] — 80 × 0x39 records at DS:`0x1a6c` of the **unpacked** `PHANTASI.COM` (s22)
 
 `PHANTASI.COM` is a COM loader around an **EXEPACK**-packed EXE (MZ header at file `0xf0`, image at `0x2f0`,
-EXEPACK header `RB` at `0x86a0`; DS = SS = `0xc9f`). The bytes at file `0x7131` that older extracts parsed
-as variable-length monster records are EXEPACK tokens (`b2` = copy run, `b0` = fill run, decoded backwards):
-the old `unknown_A` was a copy count, `combat_rating` a fill count and the "attack blocks" record fragments.
-That parse is **withdrawn**. `tools/scripts/re_common.unpack_phantasi_com()` rebuilds the image;
+EXEPACK header `RB` at `0x86a0`; DS = SS = `0xc9f`). The bytes at file `0x7131` are EXEPACK tokens
+(`b2` = copy run, `b0` = fill run, decoded backwards), not monster records: the old extracts' `unknown_A` was a copy
+count, `combat_rating` a fill count and the "attack blocks" record fragments. `tools/scripts/re_common.unpack_phantasi_com()` rebuilds the image;
 `extract_monsters.py` reads the table, and it equals the live DOSBox capture `monster_runtime_table.bin`
 byte for byte. Output: `extracted/monsters.json` (shipped copy in `GameData/phantasie1/`).
 

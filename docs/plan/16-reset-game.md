@@ -40,7 +40,7 @@ Tags: `[C]` checked in the code, `[~]` probable, `[?]` unknown.
 - **II, Apple II** (`BACKUP` 46–49, 500–550; Apple `FORMAT.md` 3.5) `[C]`: "STARTING NEW GAME WILL ERASE OLD CHARACTERS
   OKAY? (Y/N)", then `CHAR2` zeroed (8225..14514) and the ten towns rewritten from `TF2`. `OUTTn` (fog) is **not**
   restored, and `DNGSAV` / `DNGCHK` are not touched (whether that leaves a dungeon unreset is `[?]`: `DNGSAV`'s role is
-  not traced). That differs from the manual and the ST: `D2-052` (PENDING). The remaster follows the manual and the ST.
+  not traced). That differs from the manual and the ST (`D2-052`); the remaster follows the manual and the ST.
 - **III / IV**: no such command found `[?]`.
 
 ## 2. Decisions (user s204)
@@ -81,14 +81,14 @@ the result is written back over the same file. A save that can't be read is refu
   it is party storage (Distribute / Trade put items back with **P**, `towns.md`). Story flags reset, so a story item
   kept in the pack or on a member outlives its flags `[~]`.
 - **Both:** the Hall (IV's `HallDescendants` / `HallImports`) is copied over unchanged.
-- **II's world** (s208): the new game is built from GameData, whose II grids are `MAPS.INT`'s (the ST importer reads
+- **II's world:** the new game is built from GameData, whose II grids are `MAPS.INT`'s (the ST importer reads
   the grids from `MAPS.INT`, never from the played `OUTn.DAT`; `P2StSource.Region`). So a reset gives exactly UTILIT2's
   result: every region as shipped (OUT1 / OUT2 open, the rest fogged), towns from the template, no dungeon save, an empty
   sack (test `II_Reset_RestoresTheShippedWorld`, Purge and Keep). No II fog rule is needed in Core.
-  - **An Apple-only import of a played Apple copy** (the 4am dump: 15 `OUTTn` stored back with fog lifted; s158
-    "import as is, say what was lost"): its GameData grids carry the play, so a new game *and* a reset would keep the
-    lifted fog. **User s209 (D2-052): way (a), built s210.** The importer's "restore the maps?" choice (s205,
-    `ImportRunner.CanRestoreMaps`) covers II's Apple pipeline too: RESTORE THE MAPS gives the imported grids the shipped
+  - **An Apple-only import of a played Apple copy** (the 4am dump: 15 `OUTTn` stored back with fog lifted; imported as
+    is, s158): its GameData grids carry the play, so a new game *and* a reset would keep the lifted fog. **User s209
+    (D2-052): way (a).** The importer's "restore the maps?" choice (`ImportRunner.CanRestoreMaps`) covers II's Apple
+    pipeline too: RESTORE THE MAPS gives the imported grids the shipped
     start fog, a per-region open / fogged list in `apple2-import.json` (`start_fog`: OUT1 / OUT2 open, the other 15
     fogged in every cell). The list is the ST's `MAPS.INT` pattern, which the Memorial Set's unplayed Apple disk equals
     cell for cell (s167); `tools/scripts/derive_a2_p2_start_fog.py` derives it from both and `--check`s the file. So a new
@@ -108,7 +108,7 @@ the result is written back over the same file. A save that can't be read is refu
   no save gives "THIS GAME HAS NO SAVE TO RESET."
 - **Confirmation** (`ResetGameScreen`): "CAUTION !!!" and "ALL DATA IN SAVE n WILL BE RESET" (DOS I's lines), then KEEP
   THE CHARACTERS / ERASE THE CHARACTERS (K / E), then "RESET THE WORLD AND … THE CHARACTERS?" with NO first, YES (Y / N).
-  Esc steps back: YES / NO → Keep / Erase → the slot picker when it came first (s205), else the main menu. The outcome
+  Esc steps back: YES / NO → Keep / Erase → the slot picker when it came first, else the main menu. The outcome
   line stays until a key; then the main menu.
 - Keys, mouse (hover / click a row) and pad (D-pad, A choose, B back).
 
@@ -119,9 +119,10 @@ Code: `GameSession.Reset.cs` (Core: `AdoptResetRoster`, `KeptRoster`, `ApplyDosR
 `GameDataLocator.TablesVersion`, `ResetGameScreen.cs`, `Game1.Reset.cs`, `SaveSlotMode.Reset`, the Options row. Strings
 `reset.*`, `options.reset_game*` (four lines that match DOS text have reworded fallbacks in I's `fallback.en.json`).
 Tests: `GameResetTests` (Core: the cell rule, pristine data unchanged and OUT1 left alone, Purge, Keep with the treasury
-off / on, the XP pool, no party, II / III Keep round trip and load, the file rewrite, IV Keep / Purge / file reload; s208: II's world as UTILIT2 leaves it, Purge and Keep), `ResetGameScreenTests` (Client: the steps, keys, pad, clicks, fit, the
-Options row from the main menu only, the picker's Reset mode), `SaveSlotRoutingTests` (Client, s205: the RESET GAME
-row's route: the picker, "no save", the old / unreadable refusals, the one save's confirmation).
+off / on, the XP pool, no party, II / III Keep round trip and load, the file rewrite, IV Keep / Purge / file reload, II's
+world as UTILIT2 leaves it, Purge and Keep), `ResetGameScreenTests` (Client: the steps, keys, pad, clicks, fit, the
+Options row from the main menu only, the picker's Reset mode), `SaveSlotRoutingTests` (Client: the RESET GAME row's
+route: the picker, "no save", the old / unreadable refusals, the one save's confirmation).
 
-Live (s205, `parity/s205-reset-live.md`): II, III and IV Keep / Erase on Xvfb, the picker's Reset mode (IV), the no-save
-line (III); Esc on Keep / Erase now steps back to the picker. Left: see `PLAN.md` P3 "Reset the game".
+Live: I Keep on Xvfb (s204); II, III and IV Keep / Erase (s205, `parity/s205-reset-live.md`), the picker's Reset mode (IV), the no-save
+line (III); Esc on Keep / Erase steps back to the picker. Left: see `PLAN.md` P3 "Reset the game".

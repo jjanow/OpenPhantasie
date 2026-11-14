@@ -7,9 +7,9 @@ Everything else points at Phantasie I's specs:
 - `overworld-movement.md` §Encounters, §Night encounter and §Day encounter;
 - `dungeon-representation.md` §Fight cells and §Locks.
 
-Tags: `[C]` read in `PHANT.PRG` (static, image addresses, `FORMAT.md` §1), `[~]` probable, `[?]` open, **(live s82)** seen in
+Tags: `[C]` read in `PHANT.PRG` (static, image addresses, `FORMAT.md` section 1), `[~]` probable, `[?]` open, **(live)** seen in
 Hatari (`../parity/encounters-endgame-live.md`: DNG2 wandering cells, averaged L / reaction, FEAR, the night watch at
-r = 100, the minion swap). The Guild fill (§8) was seen live in s80. Each section names the Amiga I `game` function it was
+r = 100, the minion swap; the Guild fill, section 8). Each section names the Amiga I `game` function it was
 compared with (`hN:0xOFF`, `00-function-map.md`).
 
 Conventions:
@@ -19,10 +19,10 @@ Conventions:
   - Every range that DOS gives for `rand0_99` gains one rare top value on the ST. These are listed where they matter.
   - Core needs a 0..100 source for II.
 - Monster ids are **0-based** unless marked 1-based. The game passes the first monster 1-based in `0x2832c` (DOS `[0x64e6]`).
-- `T` = the terrain digit (tile % 10, `0x25f30`) on the overworld, and the level's tier byte in a dungeon (§5).
+- `T` = the terrain digit (tile % 10, `0x25f30`) on the overworld, and the level's tier byte in a dungeon (section 5).
 - `F` = `0x25cdc`, `H` = `0x25e9a` (DOS `[0x649e]` / `[0x64a0]`, `combat-resolution.md` §Surprise).
 - Monster tables, 16 B per group (`16g + 2i`): HP `0x25bfa` (DOS `0x74c4`) and **state `0x25e6a`** (DOS `0x64b0`: 1
-  asleep, 2 done this round, 3 ready) `[C]` s95 static. Build `0xac38` := 3 − H; acting (`0x8a34`, `0x8d7c`), a kill
+  asleep, 2 done this round, 3 ready) `[C]` static. Build `0xac38` := 3 − H; acting (`0x8a34`, `0x8d7c`), a kill
   (`0x9ac2`), SLEEP (`0x9138`), waking (`0x8e34`, `r < 15` on state 1) and a failed monster run (`0xa0ec`) write 2;
   the round-top compaction `compact_monsters 0xb16e` with `0x25f3a` = 1 makes every state > 1 a 3 and keeps 1. As DOS,
   so SLEEP lasts the round only and a failed run wakes surprise sleepers (`DIFFERENCES-II.md` D2-045: D-020, D-030).
@@ -38,11 +38,11 @@ Conventions:
 | 5 | BLACK KNIGHT size factor 4 in DNG9 | yes | gone |
 | 6 | Group fit test (Σ size + 3 < 135) | sprite table word 0 (`sprite_width`) | the sprite **height** (the size table's word 1) |
 | 7 | Random range | `rand0_99` | 0..100 (see Conventions) |
-| — | Pluto's minions | — | new: `encounter_start` swaps a minion already killed for a plain monster (`endgame.md` §3.1) |
+| — | Pluto's minions | — | new: `encounter_start` swaps a minion already killed for a plain monster (`endgame.md` section 3.1) |
 
 Everything else in the builder and the encounter rolls is I's rule, unchanged: the counts, the HP roll, the companion
 pick, the next-group roll, treasure, gold and the wake state. So are the night watch, the sleeping-monster and listener
-menus, the surprise flags, the lock ambush, the forced-fight cells and the 6 % roll. §2–§6 give the addresses.
+menus, the surprise flags, the lock ambush, the forced-fight cells and the 6 % roll. section 2–section 6 give the addresses.
 
 ## 2. Encounter start (`encounter_start 0x09bf4` ↔ I `h44:0x0000`) `[C]`
 
@@ -50,14 +50,14 @@ Main-loop mode 11. In order:
 
 1. **Wandering chance.** `0x1fefc` −1; if the result is below 5 it becomes 1 (`0x9c1e..0x9c38`). It is set to 7 on
    every dungeon entry (`0x106d2`) and raised by 1 by a successful BEG (`0x9e4a`). This is I's `[0x1a5a]`, and the
-   sequence is 7 → 6 → 5 → 1 → 1 … as in I (live s82: 7 on DNG2 entry, −1 per encounter start, also on the overworld;
+   sequence is 7 → 6 → 5 → 1 → 1 … as in I (live: 7 on DNG2 entry, −1 per encounter start, also on the overworld;
    the minion swap's restart takes it 7 → 5).
 2. Clears `0x25b1e` (XP pool) and `0x24ebc` (gold pool) and sets the build flags (`0x25b1a`, `0x25f3a`, `0x25f9a` = 1).
-3. `build_monster_groups(0x2832c)` (§3).
+3. `build_monster_groups(0x2832c)` (section 3).
 4. **Minion check (new).** If group 0's reaction modifier (+0x2a) is below −10, k = −10 − modifier. If any party member
    has `@286 + 2(k − 1)` = 1, the game prints "AN ENCOUNTER" and sets the id to 1-based ⌊r·36/100⌋. It sets F, H := 1, 1
-   and returns 11, so the fight is rebuilt. Otherwise it prints "[original text]". Full rules: `endgame.md` §3.1.
-   - When r < 3 the id is 1-based 0. The builder turns it into 0-based 0, SKELETON (§3 step 1) `[C]` (live s82: three
+   and returns 11, so the fight is rebuilt. Otherwise it prints "[original text]". Full rules: `endgame.md` section 3.1.
+   - When r < 3 the id is 1-based 0. The builder turns it into 0-based 0, SKELETON (section 3 step 1) `[C]` (live: three
      SKELETON groups after a killed UNDEAD SNAKE).
 5. `0xb16e` → `0x25b1c`; party-member prep `0xafb6` when in a dungeon (location 3); all 7 party action words := 4.
 6. Returns 5 when F = 0 or H = 0 (the opening round of §Surprise), else calls `0xfd82` (draws the groups) and returns 4.
@@ -65,7 +65,7 @@ Main-loop mode 11. In order:
 ## 3. The builder (`build_monster_groups 0x0a72e` ↔ I `h44:0x0998`, DOS OV2 `0x34aa`) `[C]`
 
 Same steps and the same RNG draw order as `combat-resolution.md` §Monster record & encounter build. The record is the
-58-byte one (`FORMAT.md` §4); the group copies are at `0x25d9a + 58·g`.
+58-byte one (`FORMAT.md` section 4); the group copies are at `0x25d9a + 58·g`.
 
 ```
 m := first id (1-based) − 1;  if m < 0 or m > 79: m := 0                     # 0xa742..0xa756
@@ -91,7 +91,7 @@ L := L / groups;  reaction := reaction / groups   (signed, truncated)         # 
   (Amiga `h44:0x0c44`) has no counterpart.
 - **The group fit uses the sprite height** `[C]`.
   - The size table at `0x2112e` holds (u16 width, u16 height) per monster. The `MSTR*.PAT` offsets prove the order:
-    offset[i+1] = offset[i] + ⌈w/16⌉·8·h, SKELETON 32 × 34 → 544 B (`FORMAT.md` §10.3).
+    offset[i+1] = offset[i] + ⌈w/16⌉·8·h, SKELETON 32 × 34 → 544 B (`FORMAT.md` section 10.3).
   - The builder copies word 1 (the height) into the group's +0x35. The fit test reads +0x35 (`0xab36`).
   - Group sprites are stacked vertically on the ST combat screen. Combat draws each group with (w, h) through `0xfd82` → `0x18288`.
   - Amiga I does the same (`h44:0x0d4c`, +0x35 + 3 < 135).
@@ -101,7 +101,7 @@ L := L / groups;  reaction := reaction / groups   (signed, truncated)         # 
   - An 80-high sprite takes 83, so after it only a group of height ≤ 48 still fits (83 + 51 = 134).
   - Two 80-high groups never fit: the second is dropped, with no count, gold, L or companion.
   - 80-high sprites: ids 42, 68, 72 and 74–79. DRAGON KING (66) is 79 high, STORM GIANT (67) 77 and ORANGE DRAGON (54) 73.
-- **`L` and the reaction sum are averaged** `[C]` (live s82: six builds read from RAM, e.g. GOBLIN 4 / −5 + KOBOLD 1 / 0 ×2
+- **`L` and the reaction sum are averaged** `[C]` (live: six builds read from RAM, e.g. GOBLIN 4 / −5 + KOBOLD 1 / 0 ×2
   → L 2, reaction −1; the division truncates toward zero, −7/3 = −2).
   - Every combat reader of `0x25b86` / `0x25c2a` sees the averaged values. Checked: FEAR's roll and its `L −= 6`
     (`0x8326..0x8354`), DISSOLVE's `r ≤ 110 − 10·L` (`0x835e`), and BEG's `r < reaction + 90` (`0x9e34`). The other
@@ -120,20 +120,20 @@ and alerts when the slot is empty. It is not part of the rules. Amiga I's builde
 ## 4. Overworld (`night_watch_encounter 0xfe38` ↔ I `h74:0x0000`, DOS OV2 `0x70ed`) `[C]`
 
 **Step roll** (`0x6464`): a step on a random-encounter tile fights on **r < 6**, i.e. 6/101 ≈ 5.9 % (DOS 6 %). Lava, water,
-towns, dungeons, text cells and the class-7 / 11 fight terrain return before the roll (`FORMAT.md` §9.3, `terrain.md`).
+towns, dungeons, text cells and the class-7 / 11 fight terrain return before the roll (`FORMAT.md` section 9.3, `terrain.md`).
 
 **Night** (r < 35, 35/101). As DOS §Night encounter:
 - offset r′ := ⌊r·5/100⌋, redrawn while r′ is 2 or 3. So r′ ∈ {0, 1, 4} and **5 when r = 100**. Monster = 12·T + r′.
 - Watch slot w = ⌊r·party/100⌋. A non-DEAD watcher hears the monsters on r < LISTEN `@40`. Otherwise the party sleeps
   (OK → SLEEP) and the watcher wakes up.
-- **r = 100** gives w = party size, the record past the last member (live s82, roll forced with a breakpoint). With six
+- **r = 100** gives w = party size, the record past the last member (live, roll forced with a breakpoint). With six
   members that is record 6, which `build_monster_groups` sets to status 1 at every build (`0xa7ba`); it has no name and
   LISTEN 0. So after the run's first fight: nobody hears, all six sleep, and the box shows **" IS ON WATCH"** with a blank
-  name. Before any fight of the run (record 6 status 0) no line `[~]`. **Fewer members** (live s83, three, before the
+  name. Before any fight of the run (record 6 status 0) no line `[~]`. **Fewer members** (live, three, before the
   run's first fight): the record past them has status 0 (DEAD), so no listen roll, no "IS ON WATCH" line, and every OK
   member sleeps. That record always reads DEAD: the records past a party are zero when it loads from the Guild, and the
   defeat compaction `0xc14a` clears the status (and `@92`) of every record it vacates `[C]`.
-- **With a Guild elemental** (s92, static `[C]`, not seen live): outside a fight the party size stays 6 and the elemental
+- **With a Guild elemental** (static `[C]`, not seen live): outside a fight the party size stays 6 and the elemental
   is record 6; only the fight start makes it 7, when record 6 holds one (`0x83e2`: size 6, `0x258ee` (record 6's name
   word) and `0x25932` (record 6 + 68) both non-zero → size 7; `0xa298` sets it back to 6). So the night watch never sees
   a size of 7, and r = 100 gives w = 6: **the elemental itself is on watch**, with its status, its LISTEN (the listen roll
@@ -165,14 +165,14 @@ none:       r ≥ 6T + 20 → F,H := 1,1;  else q := r:  q ≥ 50 → "[original
 - **Which monsters.** The overworld random roll only runs on tiles of classes 0–3, 6 and 9 (class 4 has no random roll).
   - On the 17 `MAPS.INT` grids those tiles have T = 0–4 only (tile census of the initial grids), so random fights draw from ids 0–59.
   - With the r = 100 edges the maximum is 60 (12·4 + 12, or 2 + 2·5 + 48).
-  - **So beasts V / VI (74, 75) never come from random encounters**: they need DIVINE II (`magic-divine.md` §2).
+  - **So beasts V / VI (74, 75) never come from random encounters**: they need DIVINE II (`magic-divine.md` section 2).
   - Minion 1 (17, PLUTO'S GIANT CONST.) comes from T = 1 tiles: offset 5, i.e. the r < 25 branch with r′ 30–39, or
     PAIR = 2 with coin 1.
-  - Minion 2 (43, PLUTO'S WINGED DEVIL) comes from T = 3 tiles (offset 7) and from DNG4 wandering cells (§5).
+  - Minion 2 (43, PLUTO'S WINGED DEVIL) comes from T = 3 tiles (offset 7) and from DNG4 wandering cells (section 5).
 - **Fixed fights.**
   - Feature T = 7 fights the feature arg (0-based; `0x62de`, as DOS).
-  - The class-7 / 11 fight terrain gives 12·T + ⌊r/34⌋ (0..2) on r ≤ 8, once per trip (`terrain.md` §3).
-  - DIVINE II: `magic-divine.md` §2.
+  - The class-7 / 11 fight terrain gives 12·T + ⌊r/34⌋ (0..2) on r ≤ 8, once per trip (`terrain.md` section 3).
+  - DIVINE II: `magic-divine.md` section 2.
 
 ## 5. Dungeon (`0x10b60` ↔ I `h41:0x07f8`, DOS OV2 `0x2249`) `[C]`
 
@@ -196,7 +196,7 @@ cells 0xb9..0xd6, locks / ambush:  as DOS, ambush m := 12·T + di − 2         
 - **Script fights** (`dungeon_event 0x11ab6`):
   - The op at `0x11d1c` fights arg + 1 with H := (r ≤ 90), F := 1. This is DOS op 5.
   - The op at `0x11ecc` prints "MONSTERS APPEAR" and fights arg + 1 with F, H := 1, 0. This is DOS op 17.
-  - Arg 0 (1-based ≤ 1) gives no fight on both. The rest of the interpreter: `endgame.md` §5.
+  - Arg 0 (1-based ≤ 1) gives no fight on both. The rest of the interpreter: `endgame.md` section 5.
 
 Wandering cells per level (initial `DNG1–8`, 0-based ids; "+n" is the r ≥ 99 id):
 
@@ -211,11 +211,11 @@ Wandering cells per level (initial `DNG1–8`, 0-based ids; "+n" is the r ≥ 99
 | DNG7 | 5 | 9 → 61–63 (+64) HIGH DEVIL…VORPAL BEETLE; 11 → 63–65 (+66); 16 → 68–70 (+71) CLOUD GIANT…WIZARD |
 | DNG8 | 5 | 8 → 60–62 (+63) HIGH DEMON…KILLER CRUD |
 
-**Live s82 (DNG2):** 26 sampled fights (chance poked to 100): b = 14 → 18 ×6, 19 ×2, 20; b = 15 → 19, 20 ×5, 21 ×3;
+**Live (DNG2):** 26 sampled fights (chance poked to 100): b = 14 → 18 ×6, 19 ×2, 20; b = 15 → 19, 20 ×5, 21 ×3;
 b = 16 → 20 ×4, 21, 22 ×2 and once 23 (the r ≥ 99 id). Every id fits `⌊r/33⌋ + 12·T + b − 8`.
 
 PLUTO'S WINGED DEVIL (43, minion 2) is a regular wandering monster on DNG4 cells 13 and 15. Its group's reaction
-modifier makes it a minion fight (`endgame.md` §3.1).
+modifier makes it a minion fight (`endgame.md` section 3.1).
 
 ## 6. Monster traits in combat `[C]`
 
@@ -226,7 +226,7 @@ modifier makes it a minion fight (`endgame.md` §3.1).
   - It misses PLUTO'S UNDEAD SNAKE (72, XP not a multiple of 7).
   - Manual vs code: `DIFFERENCES-II.md` D2-022.
 - **FEAR** (slot 45, case `0x8326`): on r < 5·(caster level − L) + 50, L −= 6. No monster runs. This is DOS's rule
-  (D-021); L is the averaged one (§3). `DIFFERENCES-II.md` D2-023. Live s82: on PANTHER ×2 L 3 → −3, on GOBLIN + KOBOLD ×2
+  (D-021); L is the averaged one (section 3). `DIFFERENCES-II.md` D2-023. Live: on PANTHER ×2 L 3 → −3, on GOBLIN + KOBOLD ×2
   L 2 → −4, no monster ran (caster level 15, so no success rate could be measured).
 - The case mapping is checked through the neighbouring cases: `0x835e` = DISSOLVE (46), `0x83e2` = [original text]
   (47, party size 6 → 7), `0x84fc` = NINJA I (49: quickness 200, damage 20, protection 8).
@@ -254,10 +254,10 @@ modifier makes it a minion fight (`endgame.md` §3.1).
 
 ## 7. Data produced
 
-`GameData/phantasie2/monsters.json` (`build_p2_gamedata.py`) now carries `sprite_width` / `sprite_height` from
-`extracted/graphics/extraction-index.json` (= table `0x2112e`, live-checked sprites, `FORMAT.md` §10.3). OpenPhantasie.Data
+`GameData/phantasie2/monsters.json` (`build_p2_gamedata.py`) carries `sprite_width` / `sprite_height` from
+`extracted/graphics/extraction-index.json` (= table `0x2112e`, live-checked sprites, `FORMAT.md` section 10.3). OpenPhantasie.Data
 loads `sprite_height` as `MonsterDefinition.SpriteHeight`. A Core II builder must fit groups on `SpriteHeight`, not
-`SpriteWidth` (§3).
+`SpriteWidth` (section 3).
 
 ## 8. Rules-profile values read from the code `[C]` static
 
@@ -277,7 +277,7 @@ the Guild fill was run live (below).
   - `guild_menu 0x00352` disables "New member" (`PHANT.RSC` tree 2, object 19) unless `0x0ebf6` finds a slot of 22
     with `@92` = 0. The menu helper is `0x02308(tree, item, disable)` → `0x190a6` with state 8 (DISABLED).
   - `create_character 0x0c93a` takes the first such slot. So N)EW fills all 22.
-  - **Live (Hatari + EmuTOS, s80):** a roster with 22 occupied slots (`parity/make_p2_full_guild.py 22`) shows "New
+  - **Live (Hatari + EmuTOS):** a roster with 22 occupied slots (`parity/make_p2_full_guild.py 22`) shows "New
     member" greyed in the Guild options menu (`parity/shots/p2-guild-menu-22-full.png`). With 21 occupied it is
     enabled (`p2-guild-menu-21.png`). Method: `boot_p2.sh <dir> continue`, Guild door (305,160), hover the "Guild
     options" title.
@@ -289,16 +289,13 @@ the Guild fill was run live (below).
     - if it is above `@252`: "has died", status DEAD and stats ×0;
     - else, once (`@258`): "has aged", stats ×4/5.
   - As DOS (`save-file-format.md` @252/@258).
-- **Divine spell costs**: `magic-divine.md` §1, (slot % 4) + 1: DIVINE II 1 MP, DIVINE I 2 MP.
+- **Divine spell costs**: `magic-divine.md` section 1, (slot % 4) + 1: DIVINE II 1 MP, DIVINE I 2 MP.
 
 ## 9. Open
 
-- Answered live (s82, `../parity/encounters-endgame-live.md`): the DNG2 wandering ids (§5), averaged L and reaction (§3),
-  FEAR on a multi-group fight (§6) and the night watch at r = 100 (§4).
-- Answered s83 (live + static): the r = 100 watcher for parties of fewer than six (no line, everyone sleeps).
-- `[~]` The r = 100 watcher before the run's first fight with six members (§4). With the elemental: decoded s92 (§4),
+- `[~]` The r = 100 watcher before the run's first fight with six members (section 4). With the elemental: decoded (section 4),
   not seen live.
-- `[~]` The other readers of the averaged L / reaction (turn order, morale, THREATEN, GREET) were not traced one by one (§3).
+- `[~]` The other readers of the averaged L / reaction (turn order, morale, THREATEN, GREET) were not traced one by one (section 3).
 
 ## 10. Core (s81)
 
@@ -307,12 +304,12 @@ the Guild fill was run live (below).
   draw is gone, not just the branch), no wandering override, first id clamped to 0..79. Read by `EncounterBuilder.Build`,
   `NightEncounter.TryRoll`, `WildernessEncounter.RollDay` / `Answer` and `DungeonEncounters.RollWandering` (through
   `DungeonTraversal.Encounters`). `wilderness-encounters.json` holds the PAIR table `0x1fefe`.
-- Night watch at r = 100 (§4, live s82): nobody hears and everyone sleeps; with six members `NightEncounter.ApplyAfterPrep`
-  prints the blank-name " IS ON WATCH" line, other sizes print nothing (s82; fewer than six live s83).
-- Minion swap (§2 step 4) and the amulet: `Phantasie2Campaign.ReplaceEncounter` / `AfterCombatSurvived` (group 0 found by
+- Night watch at r = 100 (section 4, live): nobody hears and everyone sleeps; with six members `NightEncounter.ApplyAfterPrep`
+  prints the blank-name " IS ON WATCH" line, other sizes print nothing.
+- Minion swap (section 2 step 4) and the amulet: `Phantasie2Campaign.ReplaceEncounter` / `AfterCombatSurvived` (group 0 found by
   `RankIndex`, since the round-end re-rank reorders the groups). The swap rebuilds through a fresh encounter start, so the
   wandering chance drops twice, as the ST's return to state 11 does.
-- Swimming rolls II's `rand / 327` since s83 (`Swimming.Resolve(…, TerrainRoll.Rand327)`, `terrain.md` §10). Since s92 the
+- Swimming rolls II's `rand / 327` (`Swimming.Resolve(…, TerrainRoll.Rand327)`, `terrain.md` section 10). The
   lock, pick, listen and trap rolls do too `[C]`: the ST's `trap_disarm 0x10db0` (spot `r ≤ @36`, last success; disarm
   `r ≤ @38`; avoid `22·r < 10·DEX·(a + 3)`; damage `5·r·(a − 1)/100`) and `door_lock 0x111d6` (pick `r < @44`, listen
   `r < @40`, both last success over non-Dead members; the two ambush flags `r ≤ 50` at `0x11354…0x113b2`) are I's tests

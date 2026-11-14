@@ -13,17 +13,9 @@ src/
 └── OpenPhantasie.Client/     # MonoGame front end. Depends on Core + Data.
 ```
 
-Rationale: `OpenPhantasie.Core` being renderer-agnostic is what makes it possible
-to unit-test combat resolution, movement rules, etc. against the Phase 3
-logic-specs without spinning up a game window — and it's what makes swapping
-in Phantasie II/III data later a `OpenPhantasie.Data` + delta-rules problem
-instead of touching rendering code.
-
-"Custom engine" (per your earlier choice) means: **your** game logic, rules,
-and architecture are fully custom and owned by you — MonoGame is only the
-windowing/input/blit/audio layer underneath `OpenPhantasie.Client`, the same role
-SDL or a raw framebuffer would play. You're not adopting an off-the-shelf
-game engine's opinions about scene graphs, ECS, etc.
+A renderer-agnostic Core can be unit-tested against the logic-specs without a window, and makes II/III/IV a
+`OpenPhantasie.Data` + delta-rules problem. The engine is custom: MonoGame is only the windowing / input / blit / audio
+layer under `OpenPhantasie.Client` (no off-the-shelf scene graph or ECS).
 
 ## `OpenPhantasie.Core` — key types (starting point, will grow with Phase 3 findings)
 ```csharp
@@ -43,9 +35,7 @@ public interface ICombatResolver
 public interface IRandomSource { int Next(int minInclusive, int maxExclusive); }
 ```
 
-Each Phase 3 logic-spec doc maps to one or more classes/interfaces here —
-literally translate the pseudocode into methods, with unit tests asserting
-the documented formulas (e.g. to-hit% calculation) as you go.
+Each logic-spec maps to one or more classes here, with unit tests asserting its documented formulas.
 
 ## `OpenPhantasie.Data` — schema-first, data-driven
 ```csharp
@@ -63,16 +53,11 @@ public class GameDataRepository
 }
 ```
 
-Keep the JSON files themselves under `src/OpenPhantasie.Data/GameData/phantasie1/`
-— when Phantasie II data eventually gets extracted, it becomes a sibling
-`phantasie2/` folder, not a code change.
+JSON lives under `src/OpenPhantasie.Data/GameData/phantasie1/`; each later game is a sibling folder (`phantasie2/` …).
 
 ## `OpenPhantasie.Client` — MonoGame shell
-Thin: input handling, sprite batching, screen/state management (title →
-overworld → town → dungeon → combat), calling into `OpenPhantasie.Core` for all
-actual game logic. If you're disciplined about this boundary, the QOL work in
-Phase 7 (auto-map, save-anywhere, speed toggles) mostly lives here without
-touching Core at all.
+Thin: input, sprite batching, screen/state management (title → overworld → town → dungeon → combat); all game
+logic is in `OpenPhantasie.Core`. Phase 7 QoL (auto-map, save anywhere, speed toggles) mostly lives here.
 
 ## Solution setup
 ```bash
@@ -90,19 +75,19 @@ dotnet add tests/OpenPhantasie.Core.Tests reference src/OpenPhantasie.Core
 
 ## Phase 3 open fields to model (carry-forward)
 
-Phase 3 left these marked open/descoped. Schemas and importers should leave
-explicit TODOs / `[?]` comments rather than inventing values:
+Open / descoped at the end of Phase 3 (schemas left `[?]` / TODO comments, no invented values). Later state per row:
+`06-implementation-roadmap.md`'s carry-forward table and the specs named.
 
 | Item | Where it bites | Spec |
 |---|---|---|
 | `DNGX.SAV` / `DNG.SAV` field-level maps | Party position, dungeon persistence flags | `save-file-format.md`, `dungeon-representation.md` |
 | Non-zero `SACK.DAT` layout (fixture still all-zero) | Post-combat loot pool → Inn distribute | `save-file-format.md`, `combat-resolution.md` |
 | `spells_known` bit packing | Character record mid-block | `save-file-format.md`, `magic-spells.md` |
-| `@28` scroll_count vs weapon_hit dual-use | Sheet vs combat prep | `save-file-format.md`, `combat-resolution.md` |
+| `@28` scroll_count vs weapon_hit dual-use (retracted s19: `@28` = damage A) | Sheet vs combat prep | `save-file-format.md`, `combat-resolution.md` |
 | Experience width >65535 (s16 vs s32) | Long campaigns / importer | `save-file-format.md` |
 | Per-spell MP costs | `SpellDefinition.MagicPointCost` | **[C]** `(index%4)+1` — see `magic-spells.md` |
 | Non-HEALING effect coefficients / HEALING RNG | `SpellDefinition` notes | **[~]/[?]** — `magic-spells.md` |
-| Dungeon wall/feature byte legend + W×H | `Grid<Cell>` feature ids | grid ≈1740 B **[I]**; legend **[?]** |
+| Dungeon wall/feature byte legend + W×H | `Grid<Cell>` feature ids | grid ≈1740 B **[I]**; legend **[?]** (later **[C]**: 33×38 = first 1254 B, legend in `dungeon-representation.md`) |
 
 Confirmed Phase 3 baselines to lean on: `GUILD` 282×22 (incl. skills + `@70`
 score + worn `@82/@84/@86`), `TWNS` stock/prices, combat to-hit/damage, potion

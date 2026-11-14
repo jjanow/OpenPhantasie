@@ -1,6 +1,7 @@
 # Phantasie II (Apple II, v2/5/86): graphics
 
-s158. Images: `../original-images/phantasie2/4am-crack/` (side A holds every art file). Disk and file system:
+Images: `../original-images/phantasie2/4am-crack/` (side A holds every art file; `SHAPES` and `ICE DRAGON` equal the
+`.woz` originals', FORMAT.md section 1) [C]. Disk and file system:
 `FORMAT.md`. Scripts: `tools/scripts/extract_a2_p2_graphics.py` (PNGs + `extracted/graphics/extraction-index.json`),
 `tools/scripts/build_a2_p2_asset_manifest.py` (the Client pack `src/OpenPhantasie.Data/GameData/phantasie2/graphics/apple2.json`).
 Tags: [C] read from the files / BASIC, [~] probable, [?] not known.
@@ -100,7 +101,7 @@ depends on Applesoft speed [?]; the pack shows only the last screen, until a key
   dungeon glyphs 4 × 4.
 - Font: `remaster-5x7` (the ROM font is not on the disks). Screen: the remaster's 320 × 200 layout, Apple pixels 1:1.
 - Not in the pack: town / ending / defeat pictures (the Apple has none, or draws them in BASIC), sounds, the ST's
-  combat line timings. The Client draws its plain screens for those (checked live s158 on Xvfb: Guild, town bar,
+  combat line timings. The Client draws its plain screens for those (checked live on Xvfb: Guild, town bar,
   overworld from Apple tiles, combat with Apple monsters and party figures).
 - `index.json`: `default_order` = atari-st, then apple2: the ST stays the default; with only the Apple II files
   imported, the Apple pack is the default (test `Phantasie2AppleIIPackTests`).
@@ -112,4 +113,3 @@ depends on Applesoft speed [?]; the pack shows only the last screen, until a key
 - [~] Replaying CEMETARY2 / WIN's drawings (shapes at ROT 8–56) would need ROT support in the rasterizer (Applesoft
   rotates by 64ths of a turn, only multiples of 16 exact).
 - [~] The colour model is an emulator-style approximation; the original monitor look varies.
-- SHAPES and ICE DRAGON equal the `.woz` originals' (s169, FORMAT.md section 1: only `SSI.INIT2` and RDOS differ) [C].

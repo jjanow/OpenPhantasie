@@ -3,18 +3,13 @@
 > **Historical overview** of the phase plan. Live state and open items: `PLAN.md`; ground rules: `AGENTS.md`.
 
 ## Goal
-Reverse-engineer the DOS release of Phantasie I to produce a faithful behavioral
-spec, reimplement it as a clean C# / .NET engine, use extracted Amiga graphics
-for visuals, and layer in QOL features — architected so Phantasie II, III and IV
-can be added without a rewrite. The project now covers all four games in one
-interface (Phase 9).
+Reverse-engineer the DOS release of Phantasie I into a faithful behavioral spec, reimplement it as a clean C# / .NET
+engine with extracted Amiga graphics, then add QoL features, built so II, III and IV can be added without a rewrite.
+The project now covers all four games in one interface (Phase 9).
 
 ## Why this document set is split up
-Each numbered file below is a self-contained work package. Feed them into
-Claude Code **one at a time, in order**, as separate sessions/prompts. Don't
-paste the whole plan at once — each file has enough context on its own
-(inputs, outputs, tools, done-criteria) for Claude Code to execute that phase
-without needing the others loaded.
+Each numbered file is a self-contained work package (inputs, outputs, tools, done-criteria), so a session loads only the
+one it works on. Which cold file to read for what: `PLAN.md`'s header table.
 
 ## Phase list
 
@@ -31,24 +26,14 @@ without needing the others loaded.
 | 8 | `08-parity-closeout.md` | DOS 1:1 parity closeout + inventory QoL (equip/unequip without party re-equip) |
 | 9 | `09-trilogy.md` | Phantasie I–IV in one game: cross-game options, party transfer, per-game platform graphics |
 | 9 (detail) | `09-trilogy-matrix.md`, `09-trilogy-manual-p2.md` / `-p3.md`, `09-trilogy-iv-parentage.md`, `09-startup-options.md` | Rules / platform matrix, manual citations, IV's ancestors, main menu and Options |
-| 10 | `10-importer.md` | First-run importer design (on hold) |
+| 10 | `10-importer.md` | First-run importer (active since s158) |
+| 11–16 | `11-guild-treasury.md` … `16-reset-game.md` | Later QoL / series designs (list in `PLAN.md`'s header table) |
 
 Repo layout: see `README.md`. Live status: `PLAN.md`. RE conventions and tooling: `RE-REFERENCE.md`.
 
 ## Ground rules for the whole project
-- **Behavioral spec before code.** Phase 3's output is documentation, not C#.
-  Nobody transpiles 8086 assembly into C# line-by-line — we extract *what the
-  code does* into readable rules, then implement those rules idiomatically.
-- **Data-driven, not hardcoded.** Monster stats, items, spells, dungeon layouts
-  live in JSON/data files loaded by `OpenPhantasie.Data`, not baked into C# logic.
-  This is what makes II/III additions later a data + delta-rules problem
-  instead of a rewrite.
-- **Core has zero rendering dependencies.** `OpenPhantasie.Core` must run and be
-  testable headless (unit tests over combat resolution, movement, etc.) with
-  no MonoGame reference. `OpenPhantasie.Client` is a thin shell over it.
-- **Every phase has a done-criteria.** Don't move to the next numbered file
-  until the current one's checklist is satisfied — that's what keeps each
-  Claude Code session's context small and focused.
+The live list is in `AGENTS.md` (spec before code, data-driven, Core without rendering dependencies, manual as source of
+truth). Each phase also had done-criteria that had to pass before the next numbered file started.
 
 ## Status
 Phases 1–7 are closed; Phase 8 (1:1 DOS parity) is signed off and its QoL package (P3) is open. Phase 9 (the series)

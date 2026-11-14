@@ -2,9 +2,9 @@
 
 Phase 09 T3, task 3b.7 (`docs/plan/03b-phantasie2-re.md`). This covers **only II's changes**. Everything else in magic
 follows I's spec, `reverse-engineering/dos/logic-specs/magic-spells.md`. Addresses are `PHANT.PRG` image addresses
-(`../FORMAT.md` §1). Party record `i` = image `0x25162 + 318·i` (`@n` = byte offset n, as in `GUILD.DAT`). `r` =
+(`../FORMAT.md` section 1). Party record `i` = image `0x25162 + 318·i` (`@n` = byte offset n, as in `GUILD.DAT`). `r` =
 `rnd100 0xfd40` = `rand() / 327` (0..100). Tags: `[C]` read in the code, `[~]` probable, `[?]` open.
-Source: s78 static reading (objdump + Ghidra 12 headless decompiles). Spell behaviour is not checked live (see §6).
+Source: static reading (objdump + Ghidra 12 headless decompiles). Spell behaviour is not checked live (see section 6).
 
 Manual (combined I/II rulebook): "DIVINE SPELLS (#58+) may only be acquired in the course of the game for special
 purposes" (p.14); the I → II transfer keeps "divine spells (#55 and above)" (p.27). The numbering question is D2-004
@@ -31,11 +31,11 @@ purposes" (p.14); the I → II transfer keeps "divine spells (#55 and above)" (p
    Draw order (Core must replay it). Each rᵢ is a separate `rnd100` call:
    1. r₁ and r₂: the forced-encounter monster id `0x2832c` (**1-based**) := ⌊r₁·r₂·0.0072⌋, i.e. 0–72: `ftoi(fmul(itof(r₁·r₂),
       0xebedfa39))`, the integer product first. In the program's FFP this equals the exact floor for every pair of draws
-      (s83, checked by running its own routines, `tools/scripts/st_p2_ffp_oracle.py`).
+      (checked by running its own routines, `tools/scripts/st_p2_ffp_oracle.py`).
    2. r₃: if r₃ < 25 (about 25 %), then
    3. r₄: the id is overwritten with `ftoi(fadd(fmul(itof(r₄), 0.02), 75.0))` (`0x7246..0x7282`; FFP `0x96000047` = 75,
       `0xa3d70a3b` ≈ 0.02). The FFP multiply rounds: 50·0.02 is exactly 1 and 100·0.02 exactly 2. So **r₄ 0–49 → 75,
-      50–99 → 76, r₄ = 100 → 77** `[C]` (s83, the program's own routines run in a 68000 emulator).
+      50–99 → 76, r₄ = 100 → 77** `[C]` (the program's own routines run in a 68000 emulator).
    4. id 0 → 1. The function returns state 11 (encounter start).
    The base id from step 1 is always computed, even when step 3 overwrites it.
 3. Anywhere else (another region, a dungeon, a town): nothing happens, and the MP stays spent.
@@ -51,11 +51,12 @@ purposes" (p.14); the I → II transfer keeps "divine spells (#55 and above)" (p
     because a product of two independent draws is weighted toward small values.
 - **Region 26** is the Astral Plane `[~]`. Its text cells read "[original text] [original text]"
   (`overworld.json` region 26). Scroll N says vortices link the Netherworld levels through the astral plane.
-- Beasts V and VI are Pluto's minions 5 and 6 (`endgame.md` §3).
+- Beasts V and VI are Pluto's minions 5 and 6 (`endgame.md` section 3).
   - No fixed overworld fight, dungeon script or dungeon fight cell uses them (all 17 regions and 8 levels checked).
-  - So **DIVINE II is their only source** found `[~]`. The random-encounter builder `0xfe38` was not fully bounded:
-    its third branch adds `2·table[…]` from data+`0x1c66` (`0x1fefe`), which is not decoded `[?]`.
-  - Without DIVINE II a party cannot get amulets 5 and 6, so it can never reach SCORE 100 and win (`endgame.md` §2).
+  - Random fights cannot produce them either `[C]`: the builder `0xfe38`'s third branch reads the PAIR table
+    `2·table[…]` at data+`0x1c66` (`0x1fefe`, decoded in `encounters.md` section 4), and random-roll tiles have terrain digit
+    ≤ 4 on every grid, so random fights stay within ids 0–59, 60 at the r = 100 edges. So **DIVINE II is their only source**.
+  - Without DIVINE II a party cannot get amulets 5 and 6, so it can never reach SCORE 100 and win (`endgame.md` section 2).
 - **In combat**: castable, the MP is spent, nothing happens. The combat round (`0x7610`) has no case past AWAKEN
   (action code 100 + n, switch cases 141–151 = spells 41–51) `[C]`.
 
@@ -67,24 +68,24 @@ message 105 is "TRY TO VISIT THE ENTIRE HATCHERY".
 - Op 18 writes only to **non-DEAD** members present (`0x11f0c`).
 - The record is one-shot and the op is one-shot (bit 6), so it works **once per load of DNG3** (the DNGX.SAV rules,
   as in I's `dungeon-representation.md`).
-- No other script, item or level-up writes slot 56 (all eight DNG files decoded, s78).
+- No other script, item or level-up writes slot 56 (all eight DNG files decoded).
 
 ## 3. DIVINE I (#58, slot 57) `[C]`
 
 **Effect** (`0x72a4`):
 - Only at location 3 (a dungeon). The deity is chosen as `["DEMIGOD", "ATHENA", "APOLLO", "ZEUS"][⌊r₁·r₂·0.0004⌋]`.
   r₁ and r₂ are two separate `rnd100` draws; the index is `ftoi(fmul(itof(r₁·r₂), 0xd1b71735))`, which equals the exact
-  floor for every pair (s83, the program's own routines). Zeus needs r₁·r₂ ≥ 7500, which is rare (both draws roughly
+  floor for every pair (the program's own routines). Zeus needs r₁·r₂ ≥ 7500, which is rare (both draws roughly
   75+). **r₁ = r₂ = 100** (about 1 in 232,000 casts) gives **index 4**, past the 4-entry table (`0x1fd12`): the program
   reads the next bytes ("WHO …") as a string pointer (`0x57484f20`), an ST fault `[C]`. That longword is not in the
   relocation list, so `%s` reads `0x484f20` (24-bit bus), past 4 MB of ST memory: a bus error, the program crashes `[~]`
-  (s92, static; not run live). What the remaster shows is **D2-044** (decided s92: ZEUS).
+  (static; not run live). What the remaster shows is **D2-044** (decided: ZEUS).
 - It prints "`%s` [original text]" in a box (`0x11444`), then **dungeon message 105 of the current level**
   (`0x116aa(105)`).
 - Then the spell ends (`0x25f7c` := 0). Outside a dungeon nothing happens and the MP stays spent. In combat: as DIVINE II,
   no effect, MP spent.
 - The advice is the level's fixed hint (MESS*n* record 105, `dungeons.json`). The deity name is cosmetic.
-- **Core (s92):** `Phantasie2Campaign.CastDivineI` (the `CastFieldSpell` hook): 2 MP first, then in a dungeon the two
+- **Core:** `Phantasie2Campaign.CastDivineI` (the `CastFieldSpell` hook): 2 MP first, then in a dungeon the two
   `rand / 327` draws, the deity by the ST's FFP (`DivineIDeity`, exact floor checked for every pair), the advice line and
   the current level's message 105. Combat: the shared caster (no effect, MP spent).
 
@@ -100,12 +101,12 @@ message 105 is "TRY TO VISIT THE ENTIRE HATCHERY".
 | 8 | "PRESS THE NUMBERS OF THE BEASTS AND [original text] BUT IT MAY TAKE YOU A WHILE." |
 
 **How it is gained.** Not in II `[C]`.
-- No DNG script sets field 118, the Guild cannot teach it (§1), and nothing else writes slot 57.
-- The only way to have it is to win **Phantasie I**: Zeus grants DIVINE I (`dos/logic-specs/endgame.md` §3, "You will
-  learn later how to use it properly in Phantasie II"). The I → II transfer then keeps slots 54–59 (`transfer.md` §3).
+- No DNG script sets field 118, the Guild cannot teach it (section 1), and nothing else writes slot 57.
+- The only way to have it is to win **Phantasie I**: Zeus grants DIVINE I (`dos/logic-specs/endgame.md` section 3, "You will
+  learn later how to use it properly in Phantasie II"). The I → II transfer then keeps slots 54–59 (`transfer.md` section 3).
 - So in II, DIVINE I is the "Gelnor hero" spell, and what it does is the advice above. Manual p.14 says divine spells
   "may only be acquired in the course of the game". Whether a II-only party should be able to gain DIVINE I is for the
-  user: **D2-017** (NOT A CONFLICT, s79).
+  user: **D2-017** (NOT A CONFLICT).
 - In I, DIVINE I has no effect anywhere (`magic-spells.md` §DIVINE I).
 
 ## 4. Other spell changes vs I
@@ -125,8 +126,8 @@ message 105 is "TRY TO VISIT THE ENTIRE HATCHERY".
 - **Q14 (resurrect wording)** `[C]`: no wizard can ever have RESURRECTION (#44). The class table gives slot 43 to the PRIEST
   at level 9 and the RANGER at level 13; the WIZARD row is 0. That table is the one I uses (byte-identical) and the one the
   manual prints on p.14. So CB p.10's "a high-level **wizard** using a RESURRECT spell" disagrees with the code and with the
-  manual's own spell tables. I's manual says priest. Raised as **D2-015** (decided s79: manual, wizards learn it at level 13).
-  Core (s79): II's `creation-tables.json` gives WIZARD slot 43 level 13; the ST's 0 is `dos_tables`, played by the rules
+  manual's own spell tables. I's manual says priest. Raised as **D2-015** (decided: manual, wizards learn it at level 13).
+  Core: II's `creation-tables.json` gives WIZARD slot 43 level 13; the ST's 0 is `dos_tables`, played by the rules
   option `p2.wizard-resurrection` = `st` (Original (Atari ST) preset).
 - **Q4 / D2-004** (decided) gets two facts from this spec: DIVINE II is gained only in DNG3 and summons in region 26 only;
   DIVINE I is gained only in Phantasie I and gives dungeon advice.
@@ -141,9 +142,6 @@ fight with PLUTO'S WYVERN or SNAKE-DRAGON about a quarter of the time).
 
 ## 7. Open
 
-- Answered s83: the DIVINE I index is the exact floor (index 4, past the table, at r₁ = r₂ = 100); the DIVINE II beast
-  split is 75 / 76 / 77 (§2). Core (s83): DIVINE II's two draws go through `MotorolaFfp`
-  (`Phantasie2Campaign.DivineIiBaseMonster` / `DivineIiBeastMonster`). DIVINE I is not built in II's Core yet (a transferred
-  character can bring it; the ST gives the advice box in a dungeon).
-- ~~Whether random encounters can also produce beasts V/VI~~: no `[C]`. Random-roll tiles have terrain digit ≤ 4 on
-  every grid, so random fights stay within ids 0–60 (`encounters.md` §4).
+- Nothing open in the rules. Core: DIVINE II's two draws go through `MotorolaFfp`
+  (`Phantasie2Campaign.DivineIiBaseMonster` / `DivineIiBeastMonster`); DIVINE I as in section 3.
+- Open: the live check (section 6), and the per-level constant tables not diffed against I (section 4).

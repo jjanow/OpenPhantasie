@@ -51,10 +51,7 @@ dotnet new install MonoGame.Templates.CSharp
 ```
 
 ## Claude Code
-Install per Anthropic's current docs (this changes over time — check
-https://docs.claude.com for the latest CLI install instructions rather than
-relying on stale steps here). Confirm it runs from both the terminal and the
-VS Code extension against this repo before starting Phase 3.
+Installed per Anthropic's current docs; confirmed in the terminal and the VS Code extension before Phase 3.
 
 ## Verification checklist
 - [x] Ghidra available via snap (`ghidra` / `ghidra.analyzeHeadless`);
@@ -73,5 +70,4 @@ VS Code extension against this repo before starting Phase 3.
       running in this session (v2.1.196)
 
 ## Done-criteria for Phase 2
-All boxes above checked. Don't start Phase 3 until Ghidra and DOSBox are both
-confirmed working against your actual Phase 1 files, not just installed.
+All boxes above checked, with Ghidra and DOSBox confirmed against the Phase 1 files.

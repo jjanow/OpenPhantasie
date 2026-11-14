@@ -1,8 +1,7 @@
 # Behavioral Quirks & Bugs — with preserve/fix decisions
 
-Per plan §3.3, each entry records the behavior, its status, and a **preserve vs.
-fix** recommendation for the remaster (final call made per-quirk during Phase 6,
-not now). Confidence tags as in `README.md`.
+Each entry records the behavior, its status, and a **preserve vs. fix** call for the remaster.
+Confidence tags as in `README.md`.
 
 ## Q1 — Gold silently truncated at the 16-bit cap [X]
 **Behavior:** bank balances and the carried party pool are 16-bit; anything over
@@ -11,23 +10,21 @@ Scorpia flagged the money-handling in Phantasie II, and Phantasie I shares it).
 The Atari **ST** re-release later raised the cap to 1,000,000,000, i.e. SSI
 themselves treated it as a fix-worthy limitation.
 **Impact:** late-game gold vanishes with no warning.
-**Recommendation:** **FIX** — use 32/64-bit gold in `OpenPhantasie.Core`; optionally
-surface an authentic-mode toggle. Low risk to balance (money is trivial by then).
-**M8 status:** ~~APPLIED~~ **undone s40 (D-048, user: manual)** — gold is capped at the manual's **65,000** (purse and
-each account) and the excess is lost. Lifting the cap is a later QoL toggle (PLAN P3).
-**DOS sites [C] (s39):** clamp helper COM `0x2e5d` (OV1 near `0xd791`; 32-bit → `min(x, 0xffff)`). Bank Withdraw (OV1
+**Decision (D-048, user: manual):** gold is capped at the manual's **65,000** (purse and each account) and the excess is
+lost. Option `p1.gold-cap`: `dos` = DOS's 65,535 cap, `lifted` = no cap (see the deviations section).
+**DOS sites [C]:** clamp helper COM `0x2e5d` (OV1 near `0xd791`; 32-bit → `min(x, 0xffff)`). Bank Withdraw (OV1
 `0x29c4..0x29e6`) subtracts the full amount from `@262` and then clamps the purse → the excess is destroyed; the share
 split (OV1 `0x1780`) clamps each `@262`. Manual's cap is 65,000, DOS's 65,535 — see `town-menus.md` §Bank.
 
 ## Q2 — Gold lost to round-down on share distribution [X]
-**Behavior:** when the XP/gold pool is split into shares on town entry (s35: not at the Inn; shares 1/2/3 per member),
+**Behavior:** when the XP/gold pool is split into shares on town entry (not at the Inn; shares 1/2/3 per member),
 each share is rounded down; the remainder is lost ("you'll lose some gold in
 rounding down"). Same for XP shares.
 **Impact:** minor, systematic leakage of gold/XP.
 **Recommendation:** **FIX (carry remainder)** — distribute the remainder to one
 member (or the pool) instead of discarding. Preserve-authentic optional.
-**M8 status:** **APPLIED** — `TownMenus.Distribute` gives XP/gold remainder to
-the first living survivor. **User (s35, D-037):** keep it as is.
+**Status:** **APPLIED** — `TownMenus.Distribute` gives XP/gold remainder to
+the first living survivor. **User (D-037):** keep it as is.
 
 ## Q3 — "Create → pool → purge" starting-gold exploit [X]
 **Behavior:** create characters (each gets **256 GP** in the bank), withdraw &
@@ -74,7 +71,7 @@ persistence + dungeon reset interact before deciding (`dungeon-representation.md
 ## Q6 — "Bug that prevents winning" (Apple II rumor) [C static, s31]
 **Behavior:** the walkthrough mentions hearsay of an Apple II version bug that
 blocks completion; no specifics, and it's platform-specific.
-**DOS (s31, `endgame.md` §6):** no unwinnable defect found. The win test (BLACK LORD killed → state 7) is sound,
+**DOS (`endgame.md` section 6):** no unwinnable defect found. The win test (BLACK LORD killed → state 7) is sound,
 and the rune chain is complete. There are three **soft-locks** from one-shot dungeon events: Zeus spent before
 qualifying, gems taken instead of destroyed, Black Lord fight escaped. Each lasts until DNG9/DNG10 is reloaded
 from the original file. Single-slot `DNG.SAV` / `DNGX.SAV`; the writer is untraced.
@@ -87,14 +84,14 @@ Past 70 % of the lifespan `@252` a character loses 1/5 of every attribute once
 Full rule: `town-menus.md` §Aging. Lifespans differ from the manual → `DIFFERENCES.md` D-003.
 **Quirk:** the travel-time counter is reset on every town entry after `(time>>8)/7`
 is added, so trips under 1792 time units age nobody — town-hopping slows aging.
-**Recommendation:** **PRESERVE**; put the race lifespan factors in data (Core impl, PLAN P1.2) so D-003 can be applied either way.
+**Recommendation:** **PRESERVE**; the race lifespan factors are data, so D-003 can be applied either way.
 
 ## Q8 — Guild → Add ages every member it adds, same town too [C] (s49)
 **Behavior:** OV1 `0x2835..0x2851` asks "Not in the town / [original text] / to get here" (COM menu 9) only for a
 member whose `@254` is another town, but adds 4 to `@264` (= 2 months) on **every** confirmed Add — the same-town path
 jumps past the prompt straight to the `+4`. Fixtures: re-added members gain +4 standing in Pelnor (`town-menus.md` §Aging).
 **Impact:** each party reshuffle ages every re-added member 2 months; negligible against lifespans of decades.
-**Decision (D-067, user s53):** **FIX** — manual silent, user: don't age a same-town Add. An Add from another town keeps
+**Decision (D-067, user):** **FIX** — manual silent, user: don't age a same-town Add. An Add from another town keeps
 the gate and the +4. Core: `GuildHall.TryAddToParty`. Listed below as an intentional deviation.
 
 ## Intentional deviations from DOS (P1.3, s49)
@@ -104,16 +101,13 @@ over DOS are not deviations; they are listed in `DIFFERENCES.md` (status table),
 
 | Id | Behaviour | DOS | Remaster | Why / where |
 |---|---|---|---|---|
-| Q2 | Town-entry payout remainder | share split (1/2/3 per member), remainders dropped (OV1 `0x167d`) | equal split among the living, XP and gold remainders to the first survivor (`TownMenus.Distribute`) | **FIX** — kept by the user as part of Core's payout (D-037, s35) |
-| Q8 | Guild Add in the member's own town | `@264 += 4` on every Add (OV1 `0x284c`) | +4 only for an Add from another town (`GuildHall.TryAddToParty`) | **FIX** — manual silent, user s53 (D-067) |
+| Q2 | Town-entry payout remainder | share split (1/2/3 per member), remainders dropped (OV1 `0x167d`) | equal split among the living, XP and gold remainders to the first survivor (`TownMenus.Distribute`) | **FIX** — kept by the user as part of Core's payout (D-037) |
+| Q8 | Guild Add in the member's own town | `@264 += 4` on every Add (OV1 `0x284c`) | +4 only for an Add from another town (`GuildHall.TryAddToParty`) | **FIX** — manual silent, user (D-067) |
 
-Not a deviation any more: **Q1** (32-bit gold) was undone in s40 — gold is capped at the manual's 65,000 and the excess is
-lost (D-048). Rules options (P3, locked per save): `p1.gold-cap` = `dos` plays Q1 as DOS (65,535, the excess lost) and
+**Q1** is not a deviation: gold follows the manual's 65,000 cap (D-048). Rules options (P3, locked per save): `p1.gold-cap` = `dos` plays Q1 as DOS (65,535, the excess lost) and
 `lifted` lifts the cap; `p1.payout-remainder` = `dropped` plays Q2 as DOS (the payout remainders are lost; Original (DOS)
 preset), `first-survivor` is the fix above.
 
 ## Notes for later
-- Re-scan `OV1.OVR`/`OV2.OVR` deposit/withdraw/distribute paths once the
-  character record offsets are pinned (`save-file-format.md`) to confirm Q1/Q2
-  at the instruction level and catch any sign-handling bugs in the 16-bit gold
-  math (a classic source of "negative gold" glitches).
+- The Q1/Q2 sites are pinned (above). Not yet checked: sign-handling bugs in the 16-bit gold math of
+  `OV1.OVR`/`OV2.OVR` deposit/withdraw/distribute (a classic source of "negative gold" glitches).

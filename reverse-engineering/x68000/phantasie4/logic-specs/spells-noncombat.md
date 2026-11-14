@@ -3,14 +3,14 @@
 Source: X68000 `P4.X`, static reading of `_pmagic3` (`0x2D3EC`), `_cast_47` (`0x2D0C6`), `_cast_50` (`0x2D2B2`),
 `_ident` (`0x2DDBA`) / `_ident_mi` (`0x2DA08`); callers `_ocast` (`0x153A2`, outdoors) / `_dcast` (dungeon) / `_tcast`
 (town). Which spells each place offers: `_getmagic(member, place)` (place 5 outdoors, 6 dungeon, 7 town), decoded
-below. Combat spells: `combat.md` §9. Written source: manual pp. 30, 35, 48–55 and the spell list. Tags: `[C]` code,
+below. Combat spells: `combat.md` section 9. Written source: manual pp. 30, 35, 48–55 and the spell list. Tags: `[C]` code,
 `[~]` likely, `[?]` open. Spell numbers = `_magic` index + 1; the rank r of a spell is the byte table at `0x44C59`
 (Healing 1–4 → r 1–4).
 
 | Spell | Effect outside combat `[C]` |
 |---|---|
-| 1–4 Healing r | target: HP += rand(6 r² + 4) − 1 (**0**–9 / 27 / 57 / 99), capped at HP max; wounds `_heal(target, r)` (`items.md` §3); "%s's wounds healed somewhat." |
-| 13 Levitation | `_par`+15 = 1, "The party floated up into the air." (duration and effect: `outdoor.md` §6, D4-039) |
+| 1–4 Healing r | target: HP += rand(6 r² + 4) − 1 (**0**–9 / 27 / 57 / 99), capped at HP max; wounds `_heal(target, r)` (`items.md` section 3); "%s's wounds healed somewhat." |
+| 13 Levitation | `_par`+15 = 1, "The party floated up into the air." (duration and effect: `outdoor.md` section 6, D4-039) |
 | 15 Identify | the Item Appraisal screen: one chosen item's description (`_ident_mi`, by item kind). **Always succeeds** (no roll) |
 | 40 Resurrection | target must be Dead (condition 0), else "Nothing changed."; succeeds if rand(100) < 50 + 5 × (caster level − target level): condition 1, wounds cleared, HP unchanged; else "Nothing changed." (MP cost: charged by the caller, not read here `[?]`) |
 | 47 Transportation | only when the caster's current town (+1B) is in a group: towns 1–12 → group 0 (towns 1–12), 14 → group 1 (1–12, 17, 18), 17 / 18 → group 2 (14, 17, 18, 21), 21 → group 3 (17, 18) (`_twnt` `0x44EE2`); the player picks a town from the group by letter and confirms; the party is moved to that town. Otherwise "Transport! …Nothing changed." |
@@ -21,9 +21,9 @@ below. Combat spells: `combat.md` §9. Written source: manual pp. 30, 35, 48–5
 
 Against the manual:
 - Identify (p. 54: 「但し、いつでも識別出来るとは限りません。」 "but it does not always succeed") vs always
-  succeeds → `DIFFERENCES-IV.md` D4-053 (decided: manual, 50 % + 5 % per caster level, user s84).
+  succeeds → `DIFFERENCES-IV.md` D4-053 (decided: manual, 50 % + 5 % per caster level, user ruling).
 - Monster Evaluation (p. 55: 「時々、間違った報告をすることもあります」 "sometimes reports wrongly") vs never wrong → D4-054
-  (decided: manual, off by 1 on (50 − 5 × level, min 10) % of casts, user s84).
+  (decided: manual, off by 1 on (50 − 5 × level, min 10) % of casts, user ruling).
 - Healing restores 0–N here and in combat (manual 1–N): listed under D4-051.
 - Resurrection "sometimes fails; may take 3–4 tries": matches (level-based chance).
 - Magic Bag: matches. Transportation "choose the destination town by number": the game uses letters (A, B, …) — wording.
@@ -32,8 +32,8 @@ Against the manual:
 
 `_getmagic(member, place)` lists one page of spell numbers from a byte table (`0x44AC8`: {first, last} per page into
 the list at `0x44AE2`). Places 5–7 have one page; every spell of the page gets its letter (A, B, … by page place), but its
-name and button only if its state is 1 (known) and its MP cost ≤ the member's current MP (s151: the letter is drawn
-before the test, so the letters keep their places with gaps; FORMAT.md 6.9 "Lists in window 34"). "SPACE: Quit" returns 100. The page cannot change for places 5–7 (s110): the
+name and button only if its state is 1 (known) and its MP cost ≤ the member's current MP (the letter is drawn
+before the test, so the letters keep their places with gaps; FORMAT.md 6.9 "Lists in window 34"). "SPACE: Quit" returns 100. The page cannot change for places 5–7: the
 loop moves to page place + `_bvs(key)` on any key that is neither SPACE nor a letter, but `_spelltop` clears every button
 (`_clrbtn`, `_clrbtd` sets `_btd` to −1) and registers only SPACE (`_btd`[5]) and the listed letters (`_btd`[6 + i]),
 and `_mgetc` returns only registered buttons (`_inkey3` looks the key up in the button table, else waits) `[C]`.
@@ -43,8 +43,8 @@ and `_mgetc` returns only registered buttons (`_inkey3` looks the key up in the 
 | 5 outdoors (`_ocast(5)`) | Healing 1–4, Levitation (13), Resurrection (40), Identify (15), Monster Evaluation (49), Magic Bag (50) |
 | 6 dungeon (`_dcast`) | the same + Divine Aid (63) |
 | 7 town (`_tcast`) | Healing 1–4, Levitation, Resurrection, Identify, Transportation (47), Magic Bag, Super Transport (65) |
-| 8 Magic Training Hall | five pages of 13 in number order; state 2 (open) only, no MP test (`training.md` §5) |
-| 0 / other (combat) | five category pages: Non-combat, Combat (received), Combat × 3 (lists at `0x44AE2` + 0 … 58; s152: their spells, the head lines and the remaster build in FORMAT.md 6.9 "Combat spell list") |
+| 8 Magic Training Hall | five pages of 13 in number order; state 2 (open) only, no MP test (`training.md` section 5) |
+| 0 / other (combat) | five category pages: Non-combat, Combat (received), Combat × 3 (lists at `0x44AE2` + 0 … 58; their spells, the head lines and the remaster build in FORMAT.md 6.9 "Combat spell list") |
 
 **`_ocast(place)` `[C]`:** pick the caster (SPACE leaves), then the spell; for Healing 1–4 and Resurrection the player
 also picks the target member (SPACE leaves). "<caster> cast the spell." then the effect (`_pmagic3`), then MP −= the

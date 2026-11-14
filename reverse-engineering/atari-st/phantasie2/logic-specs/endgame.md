@@ -4,41 +4,41 @@ Phase 09 T3, task 3b.7 (`docs/plan/03b-phantasie2-re.md`). This covers **only II
 `reverse-engineering/dos/logic-specs/endgame.md`, is the reference for everything marked "as I".
 
 Conventions:
-- Addresses are `PHANT.PRG` image addresses (`../FORMAT.md` §1).
-- Party record `i` = `0x25162 + 318·i`, and `@n` = byte offset n of the 318-byte record (`GUILD.DAT` layout, `FORMAT.md` §5).
+- Addresses are `PHANT.PRG` image addresses (`../FORMAT.md` section 1).
+- Party record `i` = `0x25162 + 318·i`, and `@n` = byte offset n of the 318-byte record (`GUILD.DAT` layout, `FORMAT.md` section 5).
 - The found-item list ("sack", 60 words, `SACK.DAT`) is at `0x25eb8`.
 - `r` = `rnd100 0xfd40` (0..100).
 - Monster ids are **0-based** unless written "1-based" (the forced-encounter word `0x2832c` is 1-based).
 - Tags: `[C]` read in the code or data, `[~]` probable, `[?]` open.
 
-Method: s78 static reading (objdump with fixups, Ghidra 12 headless decompiles of the functions named below, and a decoder
+Method: static reading (objdump with fixups, Ghidra 12 headless decompiles of the functions named below, and a decoder
 for the II dungeon interpreter over `extracted/dungeons/dungeons.json`: `../parity/decode_p2_events.py`, output
-`../parity/p2-dungeon-events.txt`). Live status: §10. s80 ran Mystic → DNG8 feeding → Filmon ending → wand use in Hatari
-(`../parity/endgame-live.md`); sections marked "(live s80)" were seen there. s82 ran a minion fight with its amulet, the
-dragon's ATTACK and two party defeats (`../parity/encounters-endgame-live.md`, marked "(live s82)").
+`../parity/p2-dungeon-events.txt`). Live checks (section 10): "(live s80)" = the Mystic → DNG8 feeding → Filmon ending → wand
+run (`../parity/endgame-live.md`); "(live s82)" / "(live s83)" = the minion, dragon ATTACK and defeat runs
+(`../parity/encounters-endgame-live.md`).
 
 ## 0. Summary
 
 - **Win** = feed the orb to Pluto's Ice Dragon in DNG8. The script op that does it is the only producer of main-loop
-  mode 7 (§6).
+  mode 7 (section 6).
 - The dragon only lets a party approach once a member's **SCORE `@282` ≥ 100**. Only the Mystic writes that score: 20 for
-  carrying the orb plus 10 per "beast rune" (§2).
+  carrying the orb plus 10 per "beast rune" (section 2).
 - A beast rune is earned by killing one of **Pluto's 8 minions** (each drops its amulet) and then **EXAMINE**-ing that
-  amulet in town (§3).
+  amulet in town (section 3).
 - **Ending** = Filmon the Sage's ceremony. Each surviving member gets a one-use **wand of Filmon** (item 149), then the
-  game goes on in town 1 (§7). There is no game-over screen, as in I.
+  game goes on in town 1 (section 7). There is no game-over screen, as in I.
 - **Lose** = I's party defeat (Astral Plane, Great Demon, the same fate odds). Survivors now wake at a different place
-  (§8).
-- **Origin `@284`** only affects text (§9).
+  (section 8).
+- **Origin `@284`** only affects text (section 9).
 
 ## 1. Record fields II adds `[C]`
 
 | Field | Meaning | Written by | Read by |
 |---|---|---|---|
 | `@282` SCORE | quest progress: 0 → ≤ 100 (Mystic) → 200 (orb destroyed) → 250 (wand of Filmon used) | creation := 0 (`0xcbda`); Mystic raise (`0xd934`); DNG8 script SET 200; wand use 250 (`0xe2ae`) | Mystic rank (`> 150`); DNG1 oracle and DNG8 dragon TESTs (script field 8); wand-use gate (`== 200`); sheet `SCORE %7u` |
-| `@284` ORIGIN | 0 GELNOR, 1 FERRONRAH, 2 NETHERWORLD | creation (§9); transfer := 0 | text only (§9) |
-| `@286 + 2(k−1)`, k = 1..8 | **minion k killed** while this member was in the party | combat victory (§3.1) | encounter start (§3.1); amulet EXAMINE (§3.2) |
-| `@302 + 2(k−1)` | **beast rune k** (sheet "BEAST RUNES: 1 2 … 8") | amulet EXAMINE (§3.2) | Mystic (§2); sheet / party line / printout |
+| `@284` ORIGIN | 0 GELNOR, 1 FERRONRAH, 2 NETHERWORLD | creation (section 9); transfer := 0 | text only (section 9) |
+| `@286 + 2(k−1)`, k = 1..8 | **minion k killed** while this member was in the party | combat victory (section 3.1) | encounter start (section 3.1); amulet EXAMINE (section 3.2) |
+| `@302 + 2(k−1)` | **beast rune k** (sheet "BEAST RUNES: 1 2 … 8") | amulet EXAMINE (section 3.2) | Mystic (section 2); sheet / party line / printout |
 
 - Creation clears both arrays (`0xcc00..0xcc22`). With them, all 36 new bytes (282–317) have a known use.
 - The dungeon field-id map `0x12078` gives scripts access to `@282` (field 8) and to I's fields.
@@ -64,7 +64,7 @@ for every party member (any status): SCORE @282 := max(@282, s)
 Rank texts (`0x1f342`): 0 "[original text].", 1 "… [original text]", 2 "… not ready to destroy the
 orb.", 3 "… [original text]", 4 "**You need** [original text]", 5 "… heroes of Ferronrah.".
 
-- s = 100 needs the orb carried **and** all 8 runes. That is the only way to reach the dragon's SCORE ≥ 100 gate (§6),
+- s = 100 needs the orb carried **and** all 8 runes. That is the only way to reach the dragon's SCORE ≥ 100 gate (section 6),
   because no script raises `@282` below 200.
 - The Mystic only **raises** SCORE, and it writes s to every party member, dead ones included. So one visit with s = 100
   qualifies the whole party.
@@ -78,13 +78,13 @@ orb.", 3 "… [original text]", 4 "**You need** [original text]", 5 "… heroes 
 
 | k | Monster (0-based) | Beast (scroll K) | Where it is met |
 |---|---|---|---|
-| 1 | 17 PLUTO'S GIANT CONST. | I | random encounters on terrain digit 1 (`0xfe38`: 0-based 12T + ⌊r/10⌋ + 2 or a PAIR pick, `encounters.md` §4) `[C]` |
-| 2 | 43 PLUTO'S WINGED DEVIL | II | random encounters on terrain digit 3, and DNG4 wandering cells 13 / 15 (`encounters.md` §4–5) `[C]` |
+| 1 | 17 PLUTO'S GIANT CONST. | I | random encounters on terrain digit 1 (`0xfe38`: 0-based 12T + ⌊r/10⌋ + 2 or a PAIR pick, `encounters.md` section 4) `[C]` |
+| 2 | 43 PLUTO'S WINGED DEVIL | II | random encounters on terrain digit 3, and DNG4 wandering cells 13 / 15 (`encounters.md` section 4–5) `[C]` |
 | 3 | 72 PLUTO'S UNDEAD SNAKE | III | fixed fight OUT2 (20,10) (tile 97, arg 72) |
 | 4 | 73 PLUTO'S DEMON-FLY | IV | fixed fight OUT5 (3,10) (tile 97, arg 73) |
-| 5 | 74 PLUTO'S WYVERN | V | DIVINE II in region 26 (`magic-divine.md` §2) |
+| 5 | 74 PLUTO'S WYVERN | V | DIVINE II in region 26 (`magic-divine.md` section 2) |
 | 6 | 75 PLUTO'S SNAKE-DRAGON | VI | DIVINE II in region 26 |
-| 7 | 76 PLUTO'S GIANT WYVERN | VII | DNG7 event 17 at (3,12), one-shot ambush; also DIVINE II when its beast draw r₄ = 100 (FFP, s83) |
+| 7 | 76 PLUTO'S GIANT WYVERN | VII | DNG7 event 17 at (3,12), one-shot ambush; also DIVINE II when its beast draw r₄ = 100 (FFP) |
 | 8 | 77 PLUTO'S DRAGON-DEMON | VIII | DNG8 forced-fight cells `0x85` at (6,33), (10,36) |
 
   - PLUTO'S ICE DRAGON (78, beast IX) and PLUTO (79) have modifier −10, so they are not minions and drop no amulet.
@@ -95,12 +95,12 @@ orb.", 3 "… [original text]", 4 "**You need** [original text]", 5 "… heroes 
     ⌊r·36/100⌋ (an ordinary 0–36 id), surprise flags 1/1, and the encounter restarts (state 11). So **each minion is fought
     only until it has been killed once** with a given member present.
   - Otherwise it prints "[original text]" and the fight runs normally.
-  - r < 3 gives 1-based id 0, which the builder turns into SKELETON (0-based 0; `0xa742..0xa756`, `encounters.md` §3) `[C]`
+  - r < 3 gives 1-based id 0, which the builder turns into SKELETON (0-based 0; `0xa742..0xa756`, `encounters.md` section 3) `[C]`
     (live s82: three SKELETON groups; another swap gave 1-based 7 = VIPER; F, H = 1, 1).
 - **Victory.** The minion counts as killed only if group 0's live count word `0x25cd0` = −1, i.e. the whole group died.
   - **A DISSOLVE win does not count** (live s82): "[original text]" (`0x835e`) ends the fight with `0x2832e` = 2
     and leaves the count words alone, so no flag and no amulet. DISPELL UNDEAD's dissolve / run uses the same exit
-    (`0x8378`, `0x84f0`). A FEAR win does not exist on the ST: FEAR makes no monster run (`encounters.md` §6).
+    (`0x8378`, `0x84f0`). A FEAR win does not exist on the ST: FEAR makes no monster run (`encounters.md` section 6).
   Then, after "[original text] … XP AND … GP":
   1. One box: "[original text]" above "`<first non-DEAD member>` TAKES AN AMULET" (`0xa272(0x21619, buf)`;
      live s82: "GLADE TAKES AN AMULET").
@@ -137,7 +137,7 @@ orb.", 3 "… [original text]", 4 "**You need** [original text]", 5 "… heroes 
 
 ## 5. The II dungeon interpreter (`dungeon_event 0x11ab6`) — what changed vs I `[C]`
 
-I's format and most ops are kept (`dos/logic-specs/endgame.md` §2.1). The II changes the quest depends on:
+I's format and most ops are kept (`dos/logic-specs/endgame.md` section 2.1). The II changes the quest depends on:
 
 | Change | I (DOS OV2 `0x24b2`) | II |
 |---|---|---|
@@ -147,9 +147,9 @@ I's format and most ops are kept (`dos/logic-specs/endgame.md` §2.1). The II ch
 | op 20 | no-op | **JUMP** to script a |
 | op 21 | no-op | **RANDJUMP**: if r < a, jump to script b (4-byte op) |
 | op 22 | no-op | **GOTO EVENT** a: restart with event record a (its message and menu) |
-| op 23 | no-op | **ENDING**: return state 7 (§6) |
+| op 23 | no-op | **ENDING**: return state 7 (section 6) |
 | spent 4-byte one-shot op | becomes a 2-byte no-op (I's stale-byte quirk) | becomes `0xc0`/`0`; `0xc0` skips 4 bytes (`0x12028`), so **I's quirk is gone** |
-| field ids | — | adds 8 = SCORE `@282` (§1) |
+| field ids | — | adds 8 = SCORE `@282` (section 1) |
 
 Ops 1–17 are as I: damage, fight, give, gold, message, move, set cell, trap, ambush. The other II levels' content (DNG1–8)
 is level data, not endgame, and is not specced here.
@@ -187,7 +187,7 @@ DRAGON CAVE". The dragon is event 1 at (32,33) (repeatable): "[original text] �
 - The real gate is SCORE ≥ 100. Once a Mystic visit has written 100, the party can win **without carrying the orb**
   (sold or dropped after the visit).
 - The orb stays in the inventory after the win.
-- A member who was DEAD at the feeding keeps SCORE 100 (no wand-use gate, §7).
+- A member who was DEAD at the feeding keeps SCORE 100 (no wand-use gate, section 7).
 
 **Producers of state 7** `[C]`: only op 23. Of the eight levels, only DNG8 event 3 option 2 contains it. This replaces I's
 "Black Lord killed" test (I's `0x49` check is not in II's `combat_victory`).
@@ -206,8 +206,8 @@ Mode 7 removes the VBL colour cycling (`0x137e6`), frees the dungeon buffers (`0
    - the name;
    - a random word from `magnificent, mighty, courageous, powerful, bold, daring, gallant, avesome [sic], valiant, superb`
      (`rand() / 0xce4`, 0–9);
-   - the ORIGIN name (§9).
-   Each title is followed by the crowd cheering (crowd frames 0/1 swapped 10 times, 330 ms apart) and sound 32 (§7.1).
+   - the ORIGIN name (section 9).
+   Each title is followed by the crowd cheering (crowd frames 0/1 swapped 10 times, 330 ms apart) and sound 32 (section 7.1).
 4. "[original text] [original text] can only be used once."
 5. **Rewards and save.**
    1. Find the first free sack slot (capped at 54).
@@ -246,22 +246,22 @@ Mode 7 removes the VBL colour cycling (`0x137e6`), frees the dungeon buffers (`0
     SCROLL H, and fights a KING COBRA.
 - **Pluto's castle** (DNG7, OUT28): event 3 lets the party in only if some member has race `@256` ≥ 15 (UNDEAD) ("YOU ARE
   ALLOWED TO ENTER UNDEAD SERVANTS OF PLUTO"; scroll H).
-- In II the UNDEAD state is reached through the Great Demon (§8) or by transfer.
+- In II the UNDEAD state is reached through the Great Demon (section 8) or by transfer.
 
 ### 7.1 The ceremony screen, step by step (s128, static `[C]`; checked against the s80 shots `[C]` live)
 
 `0x12f2a` in order (all waits named; "line" = `0x12a16`, see below):
 1. `[0x1fefa]` (the Speed menu: fast 5 / normal 10 / slow 1000, FORMAT.md 7.2) saved and set to 20, restored at the
-   end `[C]` (s135): of its readers only the sound wait `0xb8f2` is reachable from here, so every sound waits for the one
+   end `[C]`: of its readers only the sound wait `0xb8f2` is reachable from here, so every sound waits for the one
    before it to end whatever Speed was chosen (the ceremony's own waits are fixed: 3000, 2000, 330 ms, 10 Vsyncs).
 2. **Intro page.** Logbase kept; the screen cleared (`0x19af6`); text style `0x2c0c` (VDI pen 3, italic, height 6 =
    the 8×8 font, left / top alignment; it also fills the screen black). The ten lines `0x231fc` by `v_gtext` at
-   (2, 50 + 10i), i = 0…9; the mouse on; `0xae1a`: GEM form 18 (the OK button; s158 read from OUT.RSC tree 18 `[C]`:
+   (2, 50 + 10i), i = 0…9; the mouse on; `0xae1a`: GEM form 18 (the OK button; read from OUT.RSC tree 18 `[C]`:
    a G_BOX root 9 × 3 cells = 72 × 24 px, OUTLINED, and a G_BOXTEXT "OK" at cell (2, 1), 5 × 1 cells, SELECTABLE /
    DEFAULT / EXIT, centred, border 1 px outside, `te_font` 5 = the small font; so (247, 175)…(318, 198) and the button
    262…303 × 182…191 with its border, as the remaster draws it from the s80 shots) at the bottom right (319 − w, 199 − h),
    `form_do` until OK. The palette is the one the dungeon left: VDI 3 = register 2 of `map` (`#249100`; live shot
-   `p2-endgame-filmon-1.png` (34,136,0) = `0x140`) and the button in register 15 (red) `[C]` live. s162: the whole page
+   `p2-endgame-filmon-1.png` (34,136,0) = `0x140`) and the button in register 15 (red) `[C]` live. The whole page
    is `map` (DNG8's map view sets it, `0x5cea`; the colour cycle runs on the overworld only, FORMAT.md 10.1, and mode 7
    removes it), and the page shows only registers 0 (the fill), 2 and 15 `[C]`.
 3. The mouse off; `final2.pic` opened for 2 bytes (existence check); the screen cleared; `0x19abc`: when `[0x23f76]`
@@ -273,7 +273,7 @@ Mode 7 removes the VBL colour cycling (`0x137e6`), frees the dungeon buffers (`0
    **door spot** (the figure stands in Filmon's doorway).
 5. **Fade-in:** register k = 0…15 := `combat[k]` (XBIOS 7 Setcolor), then 10 Vsync (XBIOS 37) after each.
 6. Line "F i l m o n    s p e a k s :", line "[original text]", then `evnt_timer(2000)` (2 s, no key).
-7. **Per record d7 = 0 … n − 1** (n = OK members, so the same quirk as the titles, §7 step 3):
+7. **Per record d7 = 0 … n − 1** (n = OK members, so the same quirk as the titles, section 7 step 3):
    1. `0x12e78(d7, 6)`: d7's idle portrait (`PARTY1`, race `@256`) on the door spot.
    2. Line: the title (`0x1298e`, "%s - the %s from %s").
    3. `0x12e78(d7 + 10, 6)`: the alternate pose (`PARTY2`) on the door spot.
@@ -286,7 +286,7 @@ Mode 7 removes the VBL colour cycling (`0x137e6`), frees the dungeon buffers (`0
 8. The door spot cleared to pen 0 (`0x19b28`: `vro_cpyfm` mode 0 on (150, 75, 32, 32)). Lines "F i l m o n    s p e a k
    s :", `0x23238` "[original text]", `0x2323c` "[original text]", `0x23240` "can only
    be used once ." (the copies at `0x23228`…`0x23230`, one with "greaat", are never used `[C]`).
-9. Rewards and save (§7 step 5), then line " " (the bottom line blanked, 3 s or a key).
+9. Rewards and save (section 7 step 5), then line " " (the bottom line blanked, 3 s or a key).
 10. `guild.dat`, `sack.dat` written; `mstr2.pat` reloaded; town / region := 1.
 11. **Closing page:** `0x2c0c` (screen black, italic, left / top), VDI pen 4 (register 4, `#FFB600` in `combat`; live
     (238,170,0) = `0x750`), the 21 lines `0x23244` by `v_gtext` at (2, 4 + 8i) (8 = the character height
@@ -295,7 +295,7 @@ Mode 7 removes the VBL colour cycling (`0x137e6`), frees the dungeon buffers (`0
 
 - **Line** (`0x12a16(text)`): rect (0, 190, 320, 10) cleared, then `v_justified(160, 192, text, 310, word on, char on)`:
   the text centred on x 160 and stretched to 310 px (x 5 … 315); then `0x16cbe(3000)`: `evnt_multi` timer 3000 ms,
-  ended early by a key or a click. The line stays until the next one. **Spacing** (s160, read from EmuTOS 1.4
+  ended early by a key or a click. The line stays until the next one. **Spacing** (read from EmuTOS 1.4
   `vdi/vdi_text.c` `vdi_v_justified` / `output_text`, integer arithmetic `[C]` against the shot): natural width w (8 px a
   character), s spaces, n characters, max 310; each space gets (310 − w) / s more, capped at ± max_cell_width / 2 = 4
   (the cap drops the remainder, else the first (310 − w) mod s spaces get 1 more); then w' = w + that; each character
@@ -303,34 +303,36 @@ Mode 7 removes the VBL colour cycling (`0x137e6`), frees the dungeon buffers (`0
   it closes up); the text starts at 160 − 310 / 2 = 5. The s80 title shot ("KLEPTO - the bold from Ferronrah": 54 px
   extra, +4 per space, 34 over 31 gaps = 1 and 3 more) puts every glyph where this says: x 5, 15, 25, 35, 44, 53, 75 …
   (`P2StFontTests`).
-- **Fonts** (s160, user s159): TOS's 8×8 is not on the disks; the remaster draws EmuTOS's 8×8 system font
+- **Fonts** (user ruling): TOS's 8×8 is not on the disks; the remaster draws EmuTOS's 8×8 system font
   (`GameData/phantasie2/graphics/fonts/emutos-st-8x8.json`, GPL-2.0+, `tools/scripts/emutos_st_font.py`), the pages in
   its VDI italic (F_SKEW: skew mask 0x5555 rotated once per row from the bottom, rows 0…7 4, 3, 3, 2, 2, 1, 1, 0 px
   right; `emutos-st-8x8-italic.json`). Top-aligned skewed `v_gtext` starts the cell left_offset + right_offset = 4 px left
   of its x (`vdi_text.c`, vertical alignment 5): pack `font_dx` −4. Both pages match the s80 shots pixel for pixel
-  (`p2-endgame-filmon-1.png`, `p2-endgame-closing.png`; the closing page also on a s160 Xvfb shot of the Client).
-- **Sounds:** sound 32 once per presented member, and (s135) the OK form's click after each page: `0xae1a` ends with
+  (`p2-endgame-filmon-1.png`, `p2-endgame-closing.png`; the closing page also on an Xvfb shot of the Client).
+- **Sounds:** sound 32 once per presented member, and the OK form's click after each page: `0xae1a` ends with
   `0xb7e6` = Dosound(`0x21ab0`) (channel A on the triangle envelope, 7 ticks; `0xb7e6` has 24 callers, `0xae1a` is one). The I Amiga ending's sounds are not in II.
-- **Remaster (s128):** Core `Phantasie2Campaign.ResolveEnding` puts the screen in `GameSession.PendingVictoryScene`
+- **Remaster:** Core `Phantasie2Campaign.ResolveEnding` puts the screen in `GameSession.PendingVictoryScene`
   (`VictoryScene` with `IntroPage`, `HeaderLines`, `Titles`, `SpeechLines` = the wand lines and the blank line,
   `ClosingPage`); with the ST pack's `ending_scene` the Client runs I's `VictoryScreen` with II's steps (door spot,
-  crowd, pages); without one the prompt box shows every line and waits for a key. s135: sound 32 plays with each cheer
-  (pack `sound_effects` format `atari-st-dosound` = PHANT.PRG's table, `ending_scene.crowd.sound` 32; Sound switch on)
-  and the click when OK closes a page (pack number 33 = `0x21ab0`, the pages' `sound`), neither waited for. s163: the
-  next sound 32 waits for the last (step 7.4's `0xb8f2`), the other pose on the door spot meanwhile
-  (`VictoryScreen` CheerWait, the sound's length from the pack's script); seen live on Xvfb (s163, keys every ~0.75 s:
-  before the change one 32 started 3.85 s after the last, inside its 4.14 s; `P2VictoryScreenTests.CheerSound_TheNext32WaitsForTheLast_WhenKeysCutTheTitles`). s136 live (Xvfb, the Client's own null sink, `--test-party --test-game 2 --p2-victory`): the click
-  after Return on the intro page (0.5 s burst) and sound 32 at each cheer (14.5 s, 21 s, 27.5 s, each a ~4 s swell
-  and fade in the recording) are heard; the s135 "not heard" does not come back (the code path is unchanged).
-  s160: the pages in EmuTOS's 8×8 italic, the bottom lines in its plain 8×8 with `v_justified`'s own spacing (above);
-  s162: the OK button's label in EmuTOS's 6×6 small font (`te_font` 5: `GameData/phantasie2/graphics/fonts/
+  crowd, pages); without one the prompt box shows every line and waits for a key.
+  - Sounds: sound 32 with each cheer (pack `sound_effects` format `atari-st-dosound` = PHANT.PRG's table,
+    `ending_scene.crowd.sound` 32; Sound switch on) and the click when OK closes a page (pack number 33 = `0x21ab0`, the
+    pages' `sound`), not waited for. The next sound 32 waits for the last (step 7.4's `0xb8f2`), the other pose on the
+    door spot meanwhile (`VictoryScreen` CheerWait, the sound's length from the pack's script;
+    `P2VictoryScreenTests.CheerSound_TheNext32WaitsForTheLast_WhenKeysCutTheTitles`; before this fix, with keys every
+    ~0.75 s, one 32 started 3.85 s after the last, inside its 4.14 s).
+  - Heard live on Xvfb (the Client's own null sink, `--test-party --test-game 2 --p2-victory`): the click after Return
+    on the intro page (0.5 s burst) and sound 32 at each cheer (14.5 s, 21 s, 27.5 s, each a ~4 s swell and fade in the
+    recording).
+  - Fonts: the pages in EmuTOS's 8×8 italic, the bottom lines in its plain 8×8 with `v_justified`'s own spacing (above);
+    the OK button's label in EmuTOS's 6×6 small font (`te_font` 5: `GameData/phantasie2/graphics/fonts/
   emutos-st-6x6.json`, GPL-2.0+, `emutos_st_font.py`; the pages' `button_font`), centred in the G_BOXTEXT inside the
   1-px border with its cell's top centred in the 8-px row: the O at (277, 184) and the K at (283, 184) as the s80
   shot, pixel for pixel (`P2StFontTests`).
 
 ## 8. Lose: party defeat (mode 6 → `0xfe18` → `0x12678`; screens `0x12bea`) `[C]` (live s82)
 
-As I (`dos/logic-specs/endgame.md` §4):
+As I (`dos/logic-specs/endgame.md` section 4):
 - "[original text]" → "[original text]" → "[original text]" (live
   s82: typed on the `DECOR.PIC` temple, one ghost per member, the door opens, the demon's face appears, then one
   "`%s` YOU HAVE BEEN `%s`" line per member).
@@ -350,28 +352,28 @@ Changes vs I:
 - The fate loop runs `d7 = 0 … [0x2831c]` inclusive, and main-loop mode 6 has just turned the party count into the
   **last index** (`subqw #1, 0x2831c` at `0x74d2`, undone at `0x74e4`). So it judges exactly the members; its "6 → 5" cut
   drops a 7th slot (the elemental), as I removes slot 7 `[C]` (live s83, three members: three fate lines, one free-slot
-  entry). s82's reading "one record past the party" was wrong.
+  entry).
 - The lines (live s83): "GLADE YOU HAVE BEEN RESURRECTED", "YOSHI YOU HAVE BEEN [original text]", "FOREST YOU HAVE BEEN
   DESTROYED", in party order; a revived member's ghost becomes its portrait.
 - With no survivor: return 1 → the town loop of town 1, **PIPPACOTT** (live s82).
 - A defeat counter `0x231fa` (per program run) draws an extra picture block (`0x15fa4`, 48×40 at (139,39)) on the **5th**
   defeat only (`0x12de4`: increment, then `== 5`; live s82, counter poked to 4): as the door opens a sign **"Sorry, we've
   run out of Demons"** shows behind it for a moment, then the Great Demon appears anyway (its face covers the sign) and
-  judges as usual. Cosmetic. Built s83: `PartyDefeatResult.DemonsRanOut`, the prompt page `DefeatDemonSign`, and the
-  Client's DECOR scene for II (§13); the remaster counts defeats per session, not per program run `[~]` (on the ST a load
+  judges as usual. Cosmetic. Built: `PartyDefeatResult.DemonsRanOut`, the prompt page `DefeatDemonSign`, and the
+  Client's DECOR scene for II (section 13); the remaster counts defeats per session, not per program run `[~]` (on the ST a load
   in the same run keeps counting).
-- **Sounds (s140, FORMAT.md 7.4) `[C]` static:** `0x12694` saves the Speed word and sets 20 (restored `0x127ae`), so each
+- **Sounds (FORMAT.md 7.4) `[C]` static:** `0x12694` saves the Speed word and sets 20 (restored `0x127ae`), so each
   sound waits for the one before. `0x12bea`: line 1 (`0x12a16`: the bottom line, then 3000 ms or a key), the ghost row,
   **23** (`0x12d5e`), the astral line (3000 ms), **22** (`0x12d86`) then the door's 90 steps of 4 VBL, (5th defeat: the
   sign, 3000 ms), 3000 ms, **20** (`0x12e36`), the face, the demon's line; the fate loop plays **21** (`0x126d2`) before
-  every member's fate, DESTROYED included. Wired s140 (pack `field_sounds.defeat_scene`, Client `P2DefeatSounds`): 22 as
-  the door starts, 20 with the face, 21 with each fate line. Traced live s141 (`parity/capture_s141_sounds.md`): 23 3060
+  every member's fate, DESTROYED included. Wired (pack `field_sounds.defeat_scene`, Client `P2DefeatSounds`): 22 as
+  the door starts, 20 with the face, 21 with each fate line. Traced live (`parity/capture_s141_sounds.md`): 23 3060
   ms after line 1, 22 3090 ms after the astral line, the door 6.87 s (413 VBL at 60 Hz, drawing included), 20 3010 ms
   after it, each fate line within 15 ms of its 21's start, both waiting for the running sound; the remaster plays 23
-  3000 ms after the defeat page shows (s141).
-- **The page goes on by itself (s165, FORMAT.md 7.4) `[C]`:** line 1's hold is `0x16cbe(3000)`: the timer, any key or a
+  3000 ms after the defeat page shows.
+- **The page goes on by itself (FORMAT.md 7.4) `[C]`:** line 1's hold is `0x16cbe(3000)`: the timer, any key or a
   click ends it (keys pressed before are drained, `0x16d56`); nothing waits for a key. The remaster leaves the DEFEATED
-  page as the hold ends (or on any key or click), with the ghost row and 23; seen live on Xvfb s165. The astral line's
+  page as the hold ends (or on any key or click), with the ghost row and 23; seen live on Xvfb. The astral line's
   own 3000 ms before the door is not modelled `[~]`.
 - Scroll M ("Departed Souls") describes this judgement in-world. The manual says nothing about it (as for I).
 
@@ -383,9 +385,9 @@ Changes vs I:
   - Towns 7–10: BLACK MOOR, DEATHPORT, DEMONIAC, DARK ABYSS → Netherworld.
   - This fits the scrolls' geography (the impling hatchery "west of Black Moor", the imp caves "east of Deathport" are
     on "the first level of the Netherworld").
-- **Transfer from I**: 0 = GELNOR (`transfer.md` §2).
+- **Transfer from I**: 0 = GELNOR (`transfer.md` section 2).
 - **Readers**: the character sheet `ORIGIN: %s` (`0x3a9c`), the party line (`0x31ce`), the printout (`0x17572`) and the
-  ending title (§7). **No rule reads it** `[C]`: every `@284` reference in the program was checked. The encounter/victory
+  ending title (section 7). **No rule reads it** `[C]`: every `@284` reference in the program was checked. The encounter/victory
   code reads `@284 + 2k` only with k ≥ 1, i.e. the minion flags.
 - The Netherworld is not a coded "plane" flag. It is the set of map regions past the vortices; origin is a label.
 
@@ -393,7 +395,7 @@ Changes vs I:
 
 - **Done (s78, Hatari + EmuTOS, `../parity/shots/p2-autosave-off.png`, `p2-autosave-on.png`)**: the Town options menu has
   **Auto save**, unchecked on a fresh start. Choosing it adds the check mark (the `0x1f6ea` toggle `0x28ac` → `menu_icheck`
-  object 22). That answers Q15 (§11).
+  object 22). That answers Q15 (section 11).
 - **Done (s80, `../parity/endgame-live.md`)**: the chain from an edited roster (all minion flags, runes 1–6, AMULET 7/8
   and the orb carried, one DEAD member) through EXAMINE (runes 7–8 to every party member, the dead one too), the Mystic
   ("Your score is 100. You are [original text]" + "heroes of Gelnor also"; SCORE 100 on every member), DNG8
@@ -407,17 +409,17 @@ Changes vs I:
   ICE DRAGON fight, the soft-lock survives a saved map and a later NO, and ends when DNG8 loads from its file. Two
   defeats: survivors (resurrected L15 / L3, an UNDEAD L1) at OUT18 (18,14) with the sack kept; no survivors → PIPPACOTT; the
   5th defeat's "Sorry, we've run out of Demons" sign.
-- **Done (s83, `../parity/encounters-endgame-live.md` §8–§9)**: killing the Ice Dragon (wins nothing); the fate lines of
+- **Done (s83, `../parity/encounters-endgame-live.md` section 8–section 9)**: killing the Ice Dragon (wins nothing); the fate lines of
   a defeat with survivors (three members: one line each, nothing for the record past the party).
 - **Not done live**: GOLD / MEMBER at the feeding, the DNG1 oracle.
 
 ## 11. Manual
 
 Sources: CB p.2 story, p.10, p.14, p.27; the readme; the ST section pp.24–25.
-- **p.27** "amulets and an enchanted orb are the important artifacts": agrees (§3, §4).
+- **p.27** "amulets and an enchanted orb are the important artifacts": agrees (section 3, section 4).
 - **Story** "I shall free Ferronrah from Nikademus's evil power": the code's win is destroying the orb that carries
-  Nikademus's curse (§6, §7: "the curse of Nikademus will slowly fade"). Nikademus is never met. This looks like story
-  framing, as I's note in `dos/logic-specs/endgame.md` §5. **D2-018**: NOT A CONFLICT (s79).
+  Nikademus's curse (section 6, section 7: "the curse of Nikademus will slowly fade"). Nikademus is never met. This looks like story
+  framing, as I's note in `dos/logic-specs/endgame.md` section 5. **D2-018**: NOT A CONFLICT.
 - The manual says nothing about minions, beast runes, SCORE, the dragon, Filmon's ending or the defeat sequence. Manual
   silent → the code stands.
 - **Q15 (autosave)** `[C]` static + live:
@@ -427,50 +429,47 @@ Sources: CB p.2 story, p.10, p.14, p.27; the readme; the ST section pp.24–25.
   - This is exactly the ST section of the rulebook ("You may also click on Auto Save to save the game each time you leave
     town", CB p.25 left column).
   - CB p.19's "automatically saved" is the **Apple** section. The suggestion is no conflict for the ST, plus a T5
-    option for the other platforms' always-on behaviour. **D2-016**: NOT A CONFLICT (s79).
-- **Q14** (resurrect wording): `magic-divine.md` §5 → D2-015.
-- **DIVINE I** (manual p.14, "acquired in the course of the game") can't be gained in II: `magic-divine.md` §3 → D2-017.
+    option for the other platforms' always-on behaviour. **D2-016**: NOT A CONFLICT.
+- **Q14** (resurrect wording): `magic-divine.md` section 5 → D2-015.
+- **DIVINE I** (manual p.14, "acquired in the course of the game") can't be gained in II: `magic-divine.md` section 3 → D2-017.
 
 ## 12. Open `[?]`
 
-- Answered live s82: the 1-based id 0 swap (SKELETON), DISSOLVE / FEAR wins (no amulet; FEAR wins impossible), the
-  no-survivor town (PIPPACOTT), the 5th-defeat picture, the ATTACK soft-lock through `DNGX.SAV`.
-- Exact sources of minions 1 and 2 (random-encounter tables, data `0x1fefe`); see `magic-divine.md` §7.
-- Answered s83: the fate loop judges exactly the members (mode 6 passes the last index).
+- Nothing open in the rules (minion 1 / 2 sources: section 3.1 and `encounters.md` section 4, PAIR table data `0x1fefe`). Not seen live: section 10.
 
 ## 13. Core (s81)
 
 `Phantasie2Campaign` (Core) plays this file:
-- the Mystic (§2) and the minions and amulets (§3; EXAMINE / WEAR / LEAVE go through `GameSession.ItemUseOptions` /
+- the Mystic (section 2) and the minions and amulets (section 3; EXAMINE / WEAR / LEAVE go through `GameSession.ItemUseOptions` /
   `UseCampaignItem`);
-- the interpreter (§5, `Phantasie2DungeonScript`), re-read from the disassembly: the one-shot rewrite at
+- the interpreter (section 5, `Phantasie2DungeonScript`), re-read from the disassembly: the one-shot rewrite at
   `0x11ba4..0x11c00`, the field map at `0x12078`, and JUMP / RANDJUMP keep the continue rule. A GOTO EVENT onto a menu
   event waits for the player's answer;
-- the ending (§7; text from the `PHANT.PRG` tables, in `phantasie2/strings/en.json`), the wand bump, DIVINE II
-  (`magic-divine.md` §2), and the defeat (§8: wake at OUT18 (18,14), "[original text]").
+- the ending (section 7; text from the `PHANT.PRG` tables, in `phantasie2/strings/en.json`), the wand bump, DIVINE II
+  (`magic-divine.md` section 2), and the defeat (section 8: wake at OUT18 (18,14), "[original text]").
 
 The character's II bytes are `Character.Phantasie2` (`QuestScore`, `Origin`, `MinionKilled`, `BeastRunes`), saved in the
 remaster JSON. One thing is assumed `[~]`: II's death step is I's (D-009; `0x09894` not traced). The wall texts are I's
-pair, read from `OUT.RSC` trees 15 / 17 (s83 [C]). Tests: `Phantasie2CampaignTests` (the DNG8 chain on the real data, and the s80 live values for
+pair, read from `OUT.RSC` trees 15 / 17 `[C]`. Tests: `Phantasie2CampaignTests` (the DNG8 chain on the real data, and the s80 live values for
 the wand).
 
-s82 (from the live checks): the minion box prints KILLED before TAKES; a DISSOLVE win drops no amulet (pinned); the defeat
+From the live checks: the minion box prints KILLED before TAKES; a DISSOLVE win drops no amulet (pinned); the defeat
 keeps the found items (`PartyDefeat.Resolve(keepFoundItems: true)`, II only); the ATTACK rewrite and its saved-map
 persistence are pinned through `DungeonSaveSlot`. The remaster's NO-purges-the-slot rule is I's D-027 decision applied to II
-(D2-041, decided s82).
+(D2-041, decided).
 
-s83: the defeat counter (`GameSession.PartyDefeatsThisRun`, not saved) and `PartyDefeatResult.DemonsRanOut` (II, exactly
+The defeat counter (`GameSession.PartyDefeatsThisRun`, not saved) and `PartyDefeatResult.DemonsRanOut` (II, exactly
 the 5th); `SessionPrompts` shows the `DefeatDemonSign` page ("[original text]") between the banner
 and the judgement on that defeat only. The Client draws II's DECOR scene behind the three defeat pages (closed door, the
 sign, the demon's face; `UiOverlays.DrawDefeatScene`, pictures `decor.door` / `decor.sorry-sign` / `decor.demon-face` in
-the ST pack). s98 (user: never crop scenes): the scene is the whole ST screen 1:1 over the remaster's status, help and
+the ST pack). User ruling, never crop scenes: the scene is the whole ST screen 1:1 over the remaster's status, help and
 message lines — all 155 DECOR rows (stairs and the guards' platform included), the portrait row at y 158 and the page's
 text one line at a time on the bottom line (`DefeatScenePager`: Return shows the next line, on the last one it answers;
 while the door sinks Return waits for the judgement; a dim `>` at the line's end marks a page that takes Return; each
 slot of the row turns from ghost to its fate as that member's line shows, as the ST's fate loop redraws it); no box covers the picture (`../parity/shots/remaster-p2-defeat-banner.png`,
-`remaster-p2-defeat-scene.png`, `remaster-p2-defeat-fates.png`). s95 (static reads,
-`../FORMAT.md` §10.3/§10.4): the door sinks into the floor while the first page after the banner shows (90 steps of 4
-VBLs, 6 s at 60 Hz (the US release on a US ST, decided s109; PAL 50 Hz: 7.2 s); the sign right after it, the face 3 s later; until the face shows, the outcome
+`remaster-p2-defeat-scene.png`, `remaster-p2-defeat-fates.png`). Timing (static reads,
+`../FORMAT.md` section 10.3/section 10.4): the door sinks into the floor while the first page after the banner shows (90 steps of 4
+VBLs, 6 s at 60 Hz (the US release on a US ST, decided; PAL 50 Hz: 7.2 s); the sign right after it, the face 3 s later; until the face shows, the outcome
 page holds only the Astral Plane line, as the ST prints the speech and the fates after it), and the portrait row (ghost portraits `portrait.ghost`,
 then each fate: cleared / race portrait / UNDEAD portrait) at the ST's y 158 (`DefeatScene`, `DefeatSceneClock`, `SessionPrompts.ShownDefeat`). In combat a member who dies carries the
 ST's mark `portrait.death-mark` on its portrait for 500 ms (`CombatPresenter.HasDeathMark`); the ST then drops the dead

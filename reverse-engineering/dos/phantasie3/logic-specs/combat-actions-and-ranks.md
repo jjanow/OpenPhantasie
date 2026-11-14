@@ -1,7 +1,7 @@
 # Phantasie III — combat actions, Aim, party ranks, melee to-hit
 
-Phase 09 T4 3c.6 (s79, static; s81: §3 running sum, §4 defence / D3-019 / group fields verified live in DOSBox-X). Cross-game module: III's party ranks (Front / Middle / Back)
-and the Aim and Fire options are new against I. Manual: III PDF 8–9 / pr.10–12, PDF 15 / pr.24. Code: DOS `MAIN.EXE`
+Phase 09 T4 3c.6. Static unless marked live (section 3 running sum, section 4 defence / D3-019 / group fields: live s81, DOSBox-X).
+Cross-game module: III's party ranks (Front / Middle / Back) and the Aim and Fire options are new against I. Manual: III PDF 8–9 / pr.10–12, PDF 15 / pr.24. Code: DOS `MAIN.EXE`
 (`../FORMAT.md`, `../FUNCTIONS.md`). Tags as in `body-areas.md`. Bows: `bows.md`. Injuries: `body-areas.md`.
 Conflicts (not decided here): `DIFFERENCES-III.md` D3-010 … D3-013, D3-018, D3-019.
 
@@ -33,12 +33,12 @@ First, for every choice: **Right Arm Broken or Gone → Parry** (`0xb550`).
 | Lunge | rank 2 exists **and class Fighter or Thief** → Lunge (R2); else Thrust | "only for fighters"; non-fighter → Thrust ✗ **D3-011** |
 | Slash | Attack % ≥ 150 → Slash (R1), or a Thief picks rank 1/2 when rank 2 exists; Attack % < 150 → **Thrust** | "If … not high enough … to Slash he will Attack instead" ✗ **D3-010** |
 | Thrust | Thief with rank 2 present picks rank 1/2; others Thrust (R1) | ✓ |
-| Fire Bow | `bows.md` §3 | |
+| Fire Bow | `bows.md` section 3 | |
 | Parry | Parries | ✓ |
 | Aim Blow | always Aims Blow (R1); **no Attack % minimum** | "If … not high enough attack percentage to Aim … he will Thrust" ✗ **D3-013** |
-| Cast Spell | needs a known spell (`+0x56` > 0) and magic ≥ the spell's cost (byte table seg `[0x6962]`:`0xbe0`); #52, #54 and #57 "cannot be cast in combat" (codes 0x34, 0x36, > 0x38); Fireflash #5–8 pick a rank when rank 2 exists; Healing #1–4 and Resurrection #44 pick a party member. **Every refusal is a message and Thrust (R1)** (s128, below) | `[C]` checks; "everywhere or combat spells" ✓ (the refused ids are the manual's N spells; #53 Vision is not in III's table); what follows a refusal is manual-silent |
+| Cast Spell | needs a known spell (`+0x56` > 0) and magic ≥ the spell's cost (byte table seg `[0x6962]`:`0xbe0`); #52, #54 and #57 "cannot be cast in combat" (codes 0x34, 0x36, > 0x38); Fireflash #5–8 pick a rank when rank 2 exists; Healing #1–4 and Resurrection #44 pick a party member. **Every refusal is a message and Thrust (R1)** (below) | `[C]` checks; "everywhere or combat spells" ✓ (the refused ids are the manual's N spells; #53 Vision is not in III's table); what follows a refusal is manual-silent |
 
-**Cast refusals (s128, static, root `0xfc41` `0xfe4c`…`0xfffd`)** `[C]`: each shows its message (`0x17dc`, a message
+**Cast refusals (static, root `0xfc41` `0xfe4c`…`0xfffd`)** `[C]`: each shows its message (`0x17dc`, a message
 box) and stores action 3 = **Thrust (R1)** (`0xff55`; no rank question, also for a Thief). In order:
 "[original text]" (S443, spell count `+0x56` ≤ 0, `0xffef`); "[original text]" (S484,
 magic `+0x1e` ≤ 0, `0xffdf`, before the list opens); the list (`0x834:0xd99` = root `0x90d9` "Select <name>'s spell:"
@@ -47,13 +47,13 @@ pick) → Thrust with no message; the picked id 52, 54 or > 56 → "[original te
 cost (`0xbe0` byte) > magic → S484 (`0xfee9`); Healing #1–4: the target picker (string 33 "Who shall be healed in
 combat?") gives no pick → Thrust; a target whose status (`+0x2c`) is 0 (Dead) → "[original text]" (S421,
 `0xff7c`; only Dead is tested despite the text); Resurrection #44: a target whose status is > 0 (not Dead) → "This
-character is not dead." (S437, `0xffc6`). The Amiga does the same (`0x19430`…, Amiga `FORMAT.md` §8.4). Core (s128):
+character is not dead." (S437, `0xffc6`). The Amiga does the same (`0x19430`…, Amiga `FORMAT.md` section 8.4). Core:
 `P3CombatModule.CastRefusal` / `TryChoose` (the id, cost and Healing-target refusals; the list never offers an unknown
-spell); before s128 Core fell back to I's Parry roll (OV2 `0x6f2b`). The two refusals before the list: s134,
+spell; no fallback to I's Parry roll, OV2 `0x6f2b`); the two refusals before the list:
 `P3CombatModule.CastRefusalBeforeList` (both III order screens).
 
-From the party menu (not at round start, `combat-round.md` §1) `0x10be4` re-checks: Right Arm ≥ Broken → Parry; a Fire Bow action with any limb ≥ Broken
-→ Thrust. In the attack itself (`0xc03b`) a Down character's Fire Bow becomes Thrust and Right Arm ≥ Broken → Parry.
+From the party menu (not at round start, `combat-round.md` section 1) `0x10be4` re-checks: Right Arm ≥ Broken → Parry; a
+Fire Bow action with any limb ≥ Broken → Thrust. In the attack itself (`0xc03b`) a Down character's Fire Bow becomes Thrust and Right Arm ≥ Broken → Parry.
 
 **Live s82** (DOSBox-X, `../screens-s82/`): the round's choices are kept in `FAR:0x228 + 2·member` (copied to record
 `+0x6e` by root `0xd4ff` later) and the combat list prints the stored code. Fighter, Attack % 100: Slash → "Thrusts (R1)"
@@ -65,7 +65,7 @@ question, Thief Thrust → "[original text]" (D3-012). Array after the choices: 
 
 `character_attack` (root `0xc03b`), skipped for Asleep, Out, Dead and Parry:
 
-| Action | Swings n | Damage modifier | Location row (`body-areas.md` §1) |
+| Action | Swings n | Damage modifier | Location row (`body-areas.md` section 1) |
 |---|---|---|---|
 | Attack (R1/R2) | 2 | 0 | 2 |
 | Slash | Attack % / 75 + 1 (3 at 150–224, 4 at 225–299, …) | −1 | 2 |
@@ -77,7 +77,7 @@ question, Thief Thrust → "[original text]" (D3-012). Array after the choices: 
 mod = modifier above
 repeat n times:
     target = random living member (0x b4ec: random start among 5 slots, first living)
-    chance = Attack% / n − monster_defence (group word +0x28) [~ field meaning]
+    chance = Attack% / n − monster_defence (group word +0x28 = CREATURE.DAT byte 18, section 5)
     if attacker status == Down: chance −= 40
     chance += 30 · (rank − average rank)
     if target rank == 2: chance −= 15
@@ -121,12 +121,12 @@ hit if rnd(100) <= chance: damage_character(rnd(group word +0x24), location row 
 `defence[char]` (root `0xd730`) = `points[shield] / 2 − 5 · points[armour] + Parry / 4 + 2 · DEX` `[C]`, **verified
 live s81**: the armour term has the **wrong sign** for protection (more armour → easier to hit) — **D3-018**. `0xd730` (called
 from root `0x10725` behind a flag; the values are there from the first round) writes it to the word table
-`FAR:0x488e + 2·slot`; `0xd81d` (write) and `0xb809` (read) are the only instructions with that displacement. Live values: armour 0 / 22 / 40 / 30 / 22 / 35 with a
-4-point shield gave 46 / 1 / −7 / −18 / 19 / 16, and with no armour and a 20-point shield 54 / 19 / 56 / 40 / 37 / 54,
+`FAR:0x488e + 2·slot`; `0xd81d` (write) and `0xb809` (read) are the only instructions with that displacement. Live
+values: armour 0 / 22 / 40 / 30 / 22 / 35 with a 4-point shield gave 46 / 1 / −7 / −18 / 19 / 16, and with no armour and a 20-point shield 54 / 19 / 56 / 40 / 37 / 54,
 each equal to the formula. The monster's chance has **no lower clamp** (unlike the character side's `max(1, …)`):
 against Wild Cats (attack 40), defence 46 gives −6, so that character is never hit.
 **D3-019 (Down target → 100) verified live s81** for monster attacks: 14 of 14 attacks on an all-Down party hit.
-The character → monster direction (§3) **verified live s110**: Thrusts at 31 % hit Okay Skeletons 4 times in 18,
+The character → monster direction (section 3) **verified live s110**: Thrusts at 31 % hit Okay Skeletons 4 times in 18,
 Down Skeletons 18 of 18 and unconscious ones 12 of 12, with plain `1 + rnd(4)` damage (`DIFFERENCES-III.md` D3-019).
 **Out targets (s82):** with defence 56 against attack-40 cats, three Out members took 10 hits in five rounds while the
 three Okay members took none. Armour
@@ -137,9 +137,9 @@ Special touches: type 0x22 puts the target to sleep ("is stunned!"), 0x23 drains
 
 ## 5. Open
 
-- ~~Group-record fields~~ **confirmed live s81** `[C]`: group records at `FAR:0xe5b0` (R1) and `FAR:0xe63a` (R2),
-  `+0` monster id, `+0x22` attack = `CREATURE.DAT` byte 15 × 10, `+0x24` damage = byte 16, `+0x28` defence = byte 18
-  (Wild Cat 40 / 7 / −22, Orc 40 / 8 / −27, Kobold 50 / 8 / −40).
-- Monster ranks and how groups are chosen as R1 / R2 (`FAR:0xe5b0` / `0xe63a` groups) `[~]`.
-- Monster spell and breath resolution, fleeing, surrender, reputation `[?]`.
+- Group-record fields, **confirmed live s81** `[C]` (not open; full map `encounters.md` section 1): group records at
+  `FAR:0xe5b0` (R1) and `FAR:0xe63a` (R2), `+0` monster id, `+0x22` attack = `CREATURE.DAT` byte 15 × 10, `+0x24`
+  damage = byte 16, `+0x28` defence = byte 18 (Wild Cat 40 / 7 / −22, Orc 40 / 8 / −27, Kobold 50 / 8 / −40).
+- Group building and rank swaps: `encounters.md` section 1, `combat-round.md` section 5; monster specials and breath:
+  `combat-round.md` section 3; fleeing, surrender, reputation: `encounters.md` section 3–5.
 - The skill-use call `0x14f0` made on every swing (training credit?) `[?]`.

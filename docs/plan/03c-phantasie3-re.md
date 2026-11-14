@@ -38,8 +38,8 @@ Phase 09 T4. The III counterpart of `03-dos-disassembly-and-logic-extraction.md`
       #1, Monk/Wizard #5), social-class roll and gold (`FORMAT.md` section 5.1). I → III transfer: adds instead of
       erasing, no spells, social class Noble, Undead at level 20, transferred characters start at level 1 (D3-016); built
       as Core `Phantasie3Campaign.AdmitTransferred` / `GameSession.TransferIntoPhantasieIII`. Left: the Amiga converter.
-- [x] **3c.5 Function map:** `reverse-engineering/dos/phantasie3/FUNCTIONS.md` from `tools/scripts/fmap_p3.py`
-      — root 251 game functions (128 labelled by strings / tables / record fields / hand labels, 123 unlabelled) + 95
+- [x] **3c.5 Function map:** `reverse-engineering/dos/phantasie3/FUNCTIONS.md` from `tools/scripts/fmap_p3.py`:
+      root 251 game functions (128 labelled by strings / tables / record fields / hand labels, 123 unlabelled) + 95
       MS C runtime; ovl1 3/1, ovl2 28/1, ovl3 5/8, ovl4 9/18 (labelled / unlabelled); 47 paired with Amiga
       `PhantasieIII` functions by shared strings (only 68 of 786 Amiga functions reference text directly).
 - [~] **3c.6 Logic specs** in `reverse-engineering/dos/phantasie3/logic-specs/` (open points are the `[~]` / `[?]` tags
@@ -91,7 +91,7 @@ Phase 09 T4. The III counterpart of `03-dos-disassembly-and-logic-extraction.md`
       altar's Torso fault, the wizard's Divine Aid sale and a gold sign-extension, the record letters `DNPA`, exits
       ignoring x, y).
 - [x] **T4 campaign:** `Phantasie3Campaign` built on these specs (`09-trilogy.md` T4).
-- [x] **DOS CGA pictures (s160).** All five DOS picture files decoded (`reverse-engineering/dos/phantasie3/FORMAT.md`
+- [x] **DOS CGA pictures.** All five DOS picture files decoded (`reverse-engineering/dos/phantasie3/FORMAT.md`
       section 10), extractor `tools/scripts/extract_dos_p3_graphics.py`, pack `GameData/phantasie3/graphics/dos-cga.json`
       (never the default; drawn when no Amiga pack is imported), importer `P3Dos/P3CgaArt.cs` (`10-importer.md` 7.7).
 - [~] **4c Graphics (Amiga).** Formats in `reverse-engineering/amiga/phantasie3/FORMAT.md`, extractor
@@ -106,7 +106,7 @@ Phase 09 T4. The III counterpart of `03-dos-disassembly-and-logic-extraction.md`
         borrows the Wild Dog's, Mud Elemental the party elemental's); DOS drops the second group for giant pictures as
         the Amiga does;
       - party portraits (race table `0x239a0`, filed by the remaster's race id, drawn whole on taller cards; combat
-        keeps portraits, user s99); elemental portrait = picture 22; body-area figure (roster `0x93e0` → `0x9694`,
+        keeps portraits, user ruling); elemental portrait = picture 22; body-area figure (roster `0x93e0` → `0x9694`,
         section 2.1) on the wilderness / dungeon party cards; text-scroll parchment (`0x1e2c2`, section 2.2); Scroll IV
         = `D/s6`; town picture, title, towns 16–17 in the dim palette `0x23050` (black name, odd-gap names half a cell
         left); dialog buttons; YES / NO are never drawn by the Amiga (its keep questions are OK / CANCEL windows 1 and
@@ -119,11 +119,11 @@ Phase 09 T4. The III counterpart of `03-dos-disassembly-and-logic-extraction.md`
       - the flash as a combat spell effect (section 2.4.1: `0x1833e` / `0x17e16` flash flags, speed word 6 = 21 VBLs a
         flash, combat palette = heros.cmp's; Core `CombatResult.Hits`, Client `CombatFieldRun`, pack `combat_flash`),
         played mid-round per target;
+      - `w3`: five 48×48 open-door pieces flashed for 15 ticks on going into a town building (`0xacc8`; pack
+        `town_screen.doors`, Amiga FORMAT section 3);
       - sound effects (section 7.2: `0xb126(n)` = driver start `0x1f52` with streams n, n + 1, n + 2 of table
         `0x23e1a`; pack `sound_effects`); `D/m0` / `m1` = three-voice music (the title tune / the reward scene; driver
-        and streams in section 7.1, both played);
-      - not drawn: `w3` (five 48×48 open-door pieces flashed for 15 ticks on going into a town building, `0xacc8`: the
-        remaster has one shared town screen).
+        and streams in section 7.1, both played).
       Amiga screens (combat field, orders screen, windows, menus) are in Amiga `FORMAT.md` section 8. 13 Scandor cells
       differ in terrain between DOS and Amiga (Amiga FORMAT section 4; the remaster plays DOS's grid). Emulator: FS-UAE
       with Kickstart 1.3 boots III to its start menu (`tools/scripts/fsuae_run.sh`, `RE-REFERENCE.md`).

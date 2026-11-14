@@ -46,11 +46,11 @@ exiting if you need `GUILD.DAT` / `TWNS.DAT` flushed.
 | Inventory / soak / weapon runtime fields | **[C]** worn slots `@82` shield / `@84` armor / `@86` weapon (sheet-matched); carried list separate |
 | `TWNS.DAT` | **[C]** 12×291; `stock[item_id]`; price_index `@0x10f` |
 | Armory buy prices | **[C]** `V²×town_idx/500+1` — Pelnor screenshot: DAGGER 11, MACE 37, MAGIC 1 44, SCROLL 8 121 (exact match) |
-| `SACK.DAT` | **[~]** structure known (120 B loot pool → Inn distribute); still zero in fixtures — optional if convenient |
+| `SACK.DAT` | **[~]** structure known (120 B loot pool → Inn distribute); zero in Phase 3 fixtures (first non-zero: `SACK.s35.dat`, s35) |
 | `score` | **[C]** `@70` — mystic “score is 2” → all party members `@70=2` |
 | skill order 34/36/40 | **[C]** `find_item` / `spot_trap` / `listen` (thiefo sheet) |
 | `DNGX.SAV` / `DNG.SAV` field-level maps | **descoped** → Phase 5–6 (structure notes in `save-file-format.md` / `dungeon-representation.md` are enough) |
-| `spells_known` bit packing, `@28` dual-use, XP>65535 width | **descoped** → Phase 5–6 |
+| `spells_known` bit packing, `@28` dual-use, XP>65535 width | **descoped** → Phase 5–6 (later: `spells_known` `[C]` `@0x60`; `@28` = damage A, no dual-use, s19) |
 
 ### Combat — current status ([C] in `combat-resolution.md`)
 ```
@@ -62,7 +62,9 @@ coef   = isqrt(roll)                 # 0..9
 # monster→party: (coef * mon_dmg) / 15 - armor_soak
 # party→monster: includes weapon_dmg, action penalty (action*100)/67
 ```
-Party CV ≈ char `@14`; monster CV = u16 after on-disk `B2 00` marker.
+Phase 3 notes (since corrected): party CV ≈ `@14` (no CV field exists; `@14` = MP ceiling, defense = `@12`, s11 / s19);
+monster CV = u16 after a `B2 00` marker (that was packed COM data; real table = unpacked DS:`0x1a6c`, s22). Current
+rules: `combat-resolution.md`.
 
 ### Data extracts present
 | File | Script |
@@ -94,7 +96,7 @@ Party CV ≈ char `@14`; monster CV = u16 after on-disk `B2 00` marker.
 - Armory price settled in Phase 8 P0.2: no CHA/other discount; the full 177-GP
   shared-purse charge settled as 59 GP from each of three persisted carried-gold shares.
 - `DNGX.SAV` / `DNG.SAV` bit→feature field maps (enough structure for remaster; polish with dungeon UI).
-- `spells_known` packing, `@28` scroll_count vs weapon_hit dual-use, XP width >65535.
+- `spells_known` packing, `@28` scroll_count vs weapon_hit dual-use (retracted s19), XP width >65535.
 - Per-spell MP costs are now **[C]** (`(index%4)+1` in OV2); remaining: non-HEALING
   effect coefficients + HEALING RNG range (potion restores are [C]).
 - Non-zero `SACK.DAT` capture (pool semantics already known from Inn/combat strings).

@@ -1,12 +1,13 @@
 # Phantasie IV — level-up training, level-up gold and magic training (spec, 3d.6)
 
 Source: X68000 `P4.X` (`_trang` `0x3c30`, `_calpow` `0xc320`), read in the disassembly with the FPACK operand order of
-`../FORMAT.md` §6. Cross-checked against the MSX2 code (segment `100C`, `../../../msx2/phantasie4/FORMAT.md` §6): same
+`../FORMAT.md` section 6. Cross-checked against the MSX2 code (segment `100C`, `../../../msx2/phantasie4/FORMAT.md` section 6): same
 constants, same ability choice per class, same town table, same gates, same `_calpow` gold rule `[C]`. Tags: `[C]`
-from the code, `[~]` likely, `[?]` open. Static reading only; nothing here was checked in an emulator.
+from the code, `[~]` likely, `[?]` open. Static reading only; nothing here was checked in an emulator. PC-98 `TABL` (disk 1) is byte-identical to the X68000
+file, so HP growth, magic level, skill growth and the learnable-spell schedule are the same on the manual's platform.
 
-Record offsets: `../FORMAT.md` §6.2 (+04 experience, +08 level, +09 "Score", +0A condition, +18 class, +1A social class,
-+26 personal gold, +2F–34 Str, Int, Dex, Con, Cha, Luck). Party gold = `_par` +1C (`../FORMAT.md` §6.7).
+Record offsets: `../FORMAT.md` section 6.2 (+04 experience, +08 level, +09 "Score", +0A condition, +18 class, +1A social class,
++26 personal gold, +2F–34 Str, Int, Dex, Con, Cha, Luck). Party gold = `_par` +1C (`../FORMAT.md` section 6.7).
 
 ## 1. Who may train `[C]`
 
@@ -15,8 +16,8 @@ At the guild's training hall the player picks a party member. Then:
 1. Condition must be Okay (1); otherwise "is in poor condition and cannot train".
 2. If record +09 ≥ 125 or level ≥ 31: "There is nothing more I can teach". (+09 is shown as "Score" on the character
    sheet; the manual (p. 29) defines Score as "a number giving an overall rating of what the character has achieved".
-   s82: only the ending writes it — ending score 125–225 + the party's average level — so after any ending the hall
-   teaches nothing more `[C]`, `ending.md` §2.)
+   Only the ending writes it — ending score 125–225 + the party's average level — so after any ending the hall
+   teaches nothing more `[C]`, `ending.md` section 2.)
 
 ## 2. Experience needed for the next level `[C]`
 
@@ -54,7 +55,7 @@ cost = trunc( L^2.2 × (20 − Cha)^2 × T[map] / 100 ),   capped at 25 000
 
 - `L` = current level, `Cha` = the trainee's Charisma.
 - `T[map]` (`_ctab`, indexed by the current map number `_cmapn`): maps 0–9 → 80, 10–12 → 100, 13–21 → 120. Which map
-  number is which town is `[~]` (`ancestry.md` §7 item 5).
+  number is which town is `[~]` (`ancestry.md` section 7 item 5).
 - The cost is paid from **party gold** (`_par` +1C). Not enough → "not enough gold". The player confirms first.
 - Properties of the formula: Charisma 20 trains for free, and the cost rises again above 20 (`(20 − Cha)^2`).
   Examples at T = 100: level 5, Cha 12 → 2 207; level 10, Cha 12 → 10 143; level 10, Cha 3 → capped 25 000.
@@ -83,33 +84,33 @@ personal gold (+26) = min(65 535, personal gold + bonus × L × 30)
 | 8 Outcast | 16 777 216 | 32-bit overflow `[~]` |
 
 - `L` is the level **before** the level-up (creation calls `_calpow(rec, 0)`, so a new character gets no bonus).
-- **Level 30 `[?]`:** §1 lets a level-30 character train (it blocks only level ≥ 31), the cost is charged before
+- **Level 30 `[?]`:** section 1 lets a level-30 character train (it blocks only level ≥ 31), the cost is charged before
   `_calpow`, and `_calpow` returns at once for L = 30 — so training at 30 would take the gold and change nothing. But
-  the experience check of §2 comes first, and `need` passes the signed 32-bit range at about level 24–26 (1350 × 1.8^25
+  the experience check of section 2 comes first, and `need` passes the signed 32-bit range at about level 24–26 (1350 × 1.8^25
   ≈ 3.3 × 10^9 before dividing by r ≈ 1.1–2.7). What the float→long conversion returns there is FLOAT2's `__CDTOL`
   behaviour on X68000 (not in P4.X) and seg `100C`'s own routine on MSX2, so the practical level cap and whether the
   two platforms agree at the top levels are open.
 - Social classes 6 and 9 (Black Lord, Lord) belong only to Hall persons. For 8 (Outcast) and 9 the product overflows
   32 bits; the comparison with 65 535 is signed, so a wrapped negative sum is written as its low 16 bits `[~]`
   (original quirk, not fixed).
-- +26 is the character's **bank account** (s81). It reaches party gold only through the bank: `_withdraw` moves
+- +26 is the character's **bank account**. It reaches party gold only through the bank: `_withdraw` moves
   account gold into party gold (cap 65 000), `_deposit` shares party gold out into the accounts (cap 65 000 each) `[C]`
-  (`towns.md` §5).
+  (`towns.md` section 5).
 
 **Effect `[~]`:** a Noble, Super Hero, Dark Lord or Royalty character earns at each level-up about as much as, or more
 than, the next training costs (Royalty gets the 65 535 cap every time). This is the only code path where social class
-makes levelling "cost no money". See `ancestry.md` §9 item 2 for how it relates to magazine C.
+makes levelling "cost no money". See `ancestry.md` section 9 item 2 for how it relates to magazine C.
 
 ### 4.1 The rest of `_calpow` and the training screen (s102) `[C]`
 
 Read in the disassembly (`0xC320`–`0xC966`) and checked against MSX2 `100C:0x0A3C`–`0x0EDD`. Order after the gold:
 
-1. Skill bonuses (`skills.md` §1), then the skills: creation (L = 0) computes all eleven; a level-up runs `_sklup` (three
-   picks, `skills.md` §3) — the picks come **before** the HP rolls, so they draw no random numbers.
+1. Skill bonuses (`skills.md` section 1), then the skills: creation (L = 0) computes all eleven; a level-up runs `_sklup` (three
+   picks, `skills.md` section 3) — the picks come **before** the HP rolls, so they draw no random numbers.
 2. HP: n = (TABL[class][min(L, 14)] × (Con + 5)) >> 4 (`__CUMUL`, `lsr.l #4` at `0xC724`); max HP = Σ n × rand(3),
    at least old max + 1, cap 255. Current HP is not touched here (`_trang` then calls `_healch`).
 3. Magic level +36 = TABL 0x14A[class][min(L, 14)] + (L − 14 when L ≥ 15), cap 255. **Max MP (+37) is not changed by a
-   level-up**: it grows only at the inn (§4.2).
+   level-up**: it grows only at the inn (section 4.2).
 4. Learnable spells: x = L + 1; if x ≥ 2: when x > 15, x = x mod 15 (`__CLMOD` at `0xC868`; MSX2 the same at
    `0x0E48`–`0x0E5A`); the three spell numbers of TABL 0x6EA row (class × 15 + x − 1) whose state is not 1 become 2. So
    from level 16 on the schedule starts again at row 1 (spells already known or open are unchanged), and at L = 29 the
@@ -129,7 +130,7 @@ stays open for the next member until Leave.
 ### 4.2 MP growth at the inn (resolves `towns.md` §11) `[C]`
 
 Record +72 is set to 1 by `_psetcast` (`0x1EDF8`), i.e. **every spell a member casts in combat**. The next inn stay
-(`_inn`, `towns.md` §4) clears it and, if rand(100) ≤ (magic level +36 − max MP +37) × 20, raises max MP by 1. So max MP
+(`_inn`, `towns.md` section 4) clears it and, if rand(100) ≤ (magic level +36 − max MP +37) × 20, raises max MP by 1. So max MP
 creeps up towards the magic level, one point per inn stay after a fight with casting.
 
 ## 5. Magic Training Hall (`_mage` `0x34b0`) `[C]`
@@ -142,19 +143,18 @@ number, `Int`, `Cha` = the trainee's.
    ```
    quota = L × Int^1.177 / 90 × (c + a)        a = −2 for Fighter (c = 3), else +1
    ```
-   If `known > quota` or `open = 0`: refused (s165, read: `0x3584`; +09 ≥ 125 at `0x35A8`, level +08 > 30 at
-   `0x35D4`) — "nothing more I can teach" when record +09 ≥ 125 or level ≥ 31, else "not
-   yet worthy to learn". (`c + a`: Thief 1, Monk 2, Ranger 3, Fighter 1, Priest 5, Wizard 6, Shadow Warrior 7,
-   Gargoyle 8.) Whether `known = quota` still allows one more is read from a float compare (`bgt`) `[~]`.
+   If `known > quota` or `open = 0`: refused (`0x3584`; +09 ≥ 125 at `0x35A8`, level +08 > 30 at `0x35D4`) —
+   "nothing more I can teach" when record +09 ≥ 125 or level ≥ 31, else "not yet worthy to learn". (`c + a`: Thief 1,
+   Monk 2, Ranger 3, Fighter 1, Priest 5, Wizard 6, Shadow Warrior 7, Gargoyle 8.) The gate is a double compare of
+   known against the quota (`__CDCMP` at `0x3574`, `bgt` → refused), so known = quota still passes `[C]`. The quota is
+   checked **once per visit**: inside, the loop only asks while open > 0, so a member who passes may buy every open
+   spell in one visit.
 2. **Price per spell (integer arithmetic, each division truncates):**
    ```
    price = trunc(9000 × T[map] / 100) / Cha / Int × L / (9 − c)
    ```
-   with the town factor `T` of §3. No social-class term. Paid from party gold.
-   **s102:** the gate is a double compare of known against the quota (`__CDCMP` at `0x3574`, `bgt` → refused), so
-   known = quota still passes `[C]`. The quota is checked **once per visit**: inside, the loop only asks while
-   open > 0, so a member who passes may buy every open spell in one visit.
-3. **Screen (s102) `[C]`:** "Any spell can be learned for N gold each, so, which spell will you learn?" and the spell
+   with the town factor `T` of section 3. No social-class term. Paid from party gold.
+3. **Screen `[C]`:** "Any spell can be learned for N gold each, so, which spell will you learn?" and the spell
    list `_getmagic(member, 8)`: five pages of 13 spells in number order (1–13, 14–26, 27–39, 40–52, 53–65), only spells
    in state 2 shown; page buttons 1–5, 6 Quit. Quit (100) leaves the member. Party gold < price: "You do not have
    enough gold." and the member is done. The price is computed once per visit.
@@ -163,16 +163,12 @@ number, `Int`, `Cha` = the trainee's.
 
 ## 6. Open `[?]`
 
-- (s102) The level wrap of §4.1 (D4-060) has not been seen in an emulator.
-
-- (Resolved s82: record +09 is written only by the ending, = ending score 125–225 + average level, so the 125 gate
-  ends training after any ending — `ending.md` §2.)
+- The level wrap of section 4.1 (D4-060) has not been seen in an emulator.
 - Map-number → town mapping for `T[map]`.
 - An emulator check of one training (cost and experience) on either platform.
-- **Test vector, PC-98 screenshot (Technopolis 1990-11 p. 12, Pendragon guild, s82):** the fee's first digit is blurred.
-  Read as **627** (as `phantasie4-secondary-sources.md` §2 has it), no level 1–30 / Charisma 0–25 / town factor 80, 100,
-  120 gives 627 with §3. Read as **827**, §3 gives it at factor 80 (Pendragon's shop prices in the same article are
+- **Test vector, PC-98 screenshot (Technopolis 1990-11 p. 12, Pendragon guild):** the fee's first digit is blurred.
+  Read as **627** (as `phantasie4-secondary-sources.md` section 2 has it), no level 1–30 / Charisma 0–25 / town factor 80, 100,
+  120 gives 627 with section 3. Read as **827**, section 3 gives it at factor 80 (Pendragon's shop prices in the same article are
   0.8 × base) for level 4, Charisma 13 or level 2, Charisma 5. The trainee's level and Charisma are not on screen, so
-  this neither confirms nor refutes §3 `[~]`.
-- PC-98 `TABL` (disk 1) is byte-identical to the X68000 file (s82), so HP growth, magic level, skill growth and the
-  learnable-spell schedule are the same on the manual's platform.- The experience overflow from about level 24–26 and the level-30 case (§4).
+  this neither confirms nor refutes section 3 `[~]`.
+- The experience overflow from about level 24–26 and the level-30 case (section 4).
