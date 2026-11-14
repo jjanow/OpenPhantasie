@@ -170,6 +170,50 @@ public class GameResetTests
         Assert.Contains(loaded.Roster.Occupied, c => c.Name == "ALPHA");
     }
 
+    /// <summary>
+    /// II's ST "START NEW GAME FROM SCRATCH" (UTILIT2.PRG 0xb2c, 16-reset-game.md section 1): every region's grid back from
+    /// MAPS.INT (OUT1 / OUT2 open, the other 15 all fogged), TWNS.DAT / GUILD.DAT / DNG*.SAV / SACK.DAT deleted. The
+    /// remaster's II grids are MAPS.INT's, so a reset in either mode gives that world whatever the save had lifted.
+    /// </summary>
+    [OriginalDataTheory]
+    [InlineData(ResetMode.Purge)]
+    [InlineData(ResetMode.Keep)]
+    public void II_Reset_RestoresTheShippedWorld(ResetMode mode)
+    {
+        var data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P2));
+        var s = GameSessionFactory.Create(data, new SeededDosRandomSource(7));
+        s.StartNewGame(GameOptions.ForPreset(GameId.P2));
+        var fresh = SaveAndRead(s.CaptureSnapshot());
+        s.OpenGuild();
+        var a = s.CreateAndEnroll("ALPHA", Race.Human, CharacterClass.Fighter);
+        Assert.True(s.TryAddToParty(a, out _));
+        s.LeaveGuild();
+        Assert.True(s.Sack.TryAdd(1));
+        var town = s.Towns.Values.First();
+        town.Stock[1] += 3;
+        var save = SaveAndRead(s.CaptureSnapshot());
+        foreach (var tiles in save.Wilderness!.RegionTiles!.Values)
+            for (var i = 0; i < tiles.Length; i++)
+                tiles[i] = (byte)OverworldRegion.Normalize(tiles[i]); // the whole world explored
+
+        var reset = SaveAndRead(GameReset.ResetSession(save, data, mode, dosFog: false));
+
+        var world = reset.Wilderness!.RegionTiles!;
+        Assert.Equal(17, world.Count);
+        foreach (var (id, tiles) in fresh.Wilderness!.RegionTiles!)
+        {
+            Assert.Equal(tiles, world[id]);
+            // MAPS.INT's pattern [C]: regions 1 and 2 have no fog, the others are fogged in every cell.
+            Assert.All(world[id], b => Assert.Equal(id is 1 or 2, b < OverworldRegion.FogOffset));
+        }
+        var resetTown = Assert.Single(reset.Towns, t => t.Id == town.Id);
+        Assert.Equal(fresh.Towns.Single(t => t.Id == town.Id).Stock, resetTown.Stock);
+        Assert.NotEqual(fresh.Sack.ItemIds, save.Sack.ItemIds);
+        Assert.Equal(fresh.Sack.ItemIds, reset.Sack.ItemIds);
+        Assert.Null(reset.DungeonSave);
+        Assert.Equal(mode == ResetMode.Keep ? 1 : 0, reset.RosterSlots.OfType<Character>().Count(c => c.Name == "ALPHA"));
+    }
+
     // ---- IV -------------------------------------------------------------------------------------------------------------
 
     private static P4CampaignSnapshot PlayedIV(GameOptions o, out P4Party fresh)

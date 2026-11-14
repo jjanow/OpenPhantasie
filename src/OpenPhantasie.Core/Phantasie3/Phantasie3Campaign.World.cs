@@ -76,7 +76,7 @@ public sealed partial class Phantasie3Campaign
         {
             kind = OverworldMoveKind.Lava;
             session.Note(GameText.S("core.p3.lava_burns"));
-            if (DamageParty(session, 13, P3DamageReportKind.Escape)) // root 0x2426(13, 1, 3) / Amiga 0xa676: rnd(13) each [~]
+            if (DamageParty(session, 13, P3DamageReportKind.Escape, lava: true)) // root 0x2426(13, 1, 3) / Amiga 0xa676
                 session.CampaignAccess.PartyDefeatPending = true;
         }
 
@@ -117,8 +117,15 @@ public sealed partial class Phantasie3Campaign
         session.Note(prompt.Text);
     }
 
-    /// <summary>Every member with HP &gt; 0 takes <c>rnd(die)</c>; true when nobody is left alive.</summary>
-    internal static bool DamageParty(GameSession session, int die, P3DamageReportKind kind = P3DamageReportKind.Trap)
+    /// <summary>
+    /// The party damage routine (root <c>0x2426(die, add, kind)</c>, <c>planes.md</c> section 5, s208 <c>[C]</c> static; Amiga
+    /// <c>0x1d24a</c> the same): every member with HP &gt; 0 rolls <c>d = rnd(die) + add − 1</c> (<c>rnd</c> = 1…n, n &lt; 1
+    /// taken as 1), so a sprung trap (<paramref name="add"/> 0) does 0…die − 1 and the event ops (add 1) 1…die.
+    /// <paramref name="lava"/> (kind 3): d = 0 when the member's LCK ≥ the roll, else 27 − roll. A 0 gets the kind's unhurt
+    /// line. True when nobody is left alive.
+    /// </summary>
+    public static bool DamageParty(GameSession session, int die, P3DamageReportKind kind = P3DamageReportKind.Trap,
+        int add = 1, bool lava = false)
     {
         session.PlaySound(P3Sounds.Loss); // the Damage Report window plays 42 whatever the die (Amiga 0x1d516)
         var lead = session.LastMessage;
@@ -127,19 +134,20 @@ public sealed partial class Phantasie3Campaign
         var rows = new List<P3DamageReportRow>();
         foreach (var m in session.Party.Members)
         {
-            // s165: every member has a row in the report (Amiga 0x1d4ea): one already at 0 HP "is dead."; a die of 0
-            // hurts nobody [~] and each living member gets the kind's unhurt line.
+            // s165: every member has a row in the report (Amiga 0x1d4ea): one already at 0 HP "is dead."
             if (m.HpCur <= 0 || m.Status == CharacterStatus.Dead)
             {
                 rows.Add(new P3DamageReportRow(m.Name, P3DamageOutcome.AlreadyDead, 0));
                 continue;
             }
-            if (die <= 0)
+            var d = Math.Max(0, P3Dice.Rnd(rng, die) + add - 1);
+            if (lava)
+                d = m.Stats.Luck >= d ? 0 : 27 - d; // ovl3 0x547 → 0x2426 kind 3: LCK (+0x14) against the roll
+            if (d == 0)
             {
-                rows.Add(new P3DamageReportRow(m.Name, P3DamageOutcome.Unhurt, 0));
+                rows.Add(new P3DamageReportRow(m.Name, P3DamageOutcome.Unhurt, 0)); // "avoids the trap." / "escapes unscathed."
                 continue;
             }
-            var d = P3Dice.Rnd(rng, die);
             session.Note(GameText.F("core.p3.damage_report_x_x", m.Name, d));
             if (m.HpCur <= d)
             {
@@ -155,8 +163,6 @@ public sealed partial class Phantasie3Campaign
             }
         }
         session.Report(new P3DamageReport(kind, rows, session.LogSince(mark), lead));
-        if (die <= 0)
-            return false;
         return session.Party.Members.Count > 0 && session.Party.Members.All(m => m.Status == CharacterStatus.Dead);
     }
 

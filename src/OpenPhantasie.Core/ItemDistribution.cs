@@ -155,4 +155,36 @@ public sealed class ItemDistribution
             : "";
         return $"{(name.Length > 10 ? name[..10] : name),-10}:{points,3} {kind} {users}".TrimEnd();
     }
+
+    /// <summary>
+    /// III's header for <see cref="UsableLine"/>: "Distributing:     Pts: Usable?" (DOS ovl2 <c>0x061f</c>, <c>DS:0x5aaa</c> at
+    /// (3, 3)) and the row of party numbers over the <c>Y</c> / <c>N</c> columns (<c>0x06be</c>, row 4).
+    /// </summary>
+    public static IReadOnlyList<string> UsableHeader(int members) =>
+    [
+        GameText.S("core.p3.handout_header"),
+        new string(' ', UsableColumn) + string.Join(' ', Enumerable.Range(1, members)),
+    ];
+
+    /// <summary>Text column of the first <c>Y</c> / <c>N</c> in <see cref="UsableLine"/> (DOS x 26, the header at x 3).</summary>
+    public const int UsableColumn = 23;
+
+    /// <summary>
+    /// III's item row (DOS ovl2 <c>0x061f</c>, s208 <c>[C]</c> static, <c>town.md</c> section 7): the name (17 wide), the
+    /// table points or <c>*</c> for ids ≥ 101 (no points), then a <c>Y</c> or <c>N</c> per member: ids ≥ 101 are <c>Y</c>
+    /// for all, equipment <c>N</c> when the game's gate (<paramref name="gear"/>; III's ovl2 <c>0x39b5</c> against the
+    /// requirement) refuses it. Lined up under <see cref="UsableHeader"/>.
+    /// </summary>
+    public static string UsableLine(int itemId, string name, Party party, GearRules gear)
+    {
+        ArgumentNullException.ThrowIfNull(party);
+        ArgumentNullException.ThrowIfNull(gear);
+        var equipment = itemId is >= 1 and <= 100;
+        var points = equipment ? gear.Points(itemId).ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : GameText.S("core.p3.handout_no_points");
+        var yes = GameText.S("core.p3.handout_usable");
+        var no = GameText.S("core.p3.handout_unusable");
+        var marks = party.Members.Select(m => !equipment || gear.CanUse(m, itemId) ? yes : no);
+        return $" {(name.Length > 17 ? name[..17] : name),-17} {points,-3} {string.Join(' ', marks)}".TrimEnd();
+    }
 }

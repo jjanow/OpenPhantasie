@@ -201,6 +201,20 @@ public interface ICampaign
     /// </summary>
     bool ArmoryListsPoints => false;
 
+    /// <summary>
+    /// s208: the Armory's refusal order. Default false: I's (DOS OV1 <c>0x1c16</c>: a shopper with 9 items is turned away
+    /// before the price). III true: DOS ovl2 <c>0x307d…0x30b4</c> (and the Amiga <c>0x10fa2</c>) test the price against the
+    /// gold first, so a full pack with too little gold says "cannot afford".
+    /// </summary>
+    bool ArmoryChecksGoldFirst => false;
+
+    /// <summary>
+    /// s208: the hand-out's item rows. Default false: I's line (points, kind letter, member digits). III true: DOS ovl2
+    /// <c>0x061f</c>'s "Distributing: Pts: Usable?" rows (the points or <c>*</c>, then <c>Y</c> / <c>N</c> per member;
+    /// <see cref="ItemDistribution.UsableLine"/>).
+    /// </summary>
+    bool HandOutUsableRows => false;
+
     // --- Optional hooks a game with its own world rules uses (T4, III; I and II use none) ---------------------------
 
     /// <summary>

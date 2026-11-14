@@ -55,6 +55,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 | D2-049 | Apple II vs ST: creation cells (2 agree with the manual / D2-009, 2 ST-only skill cells) and 9 map / 2 dungeon cells | DECIDED |
 | D2-050 | Apple II vs ST: text (names, scroll and message wording, menus); the Apple has no spell names | DECIDED |
 | D2-051 | Guild elementals: the manual's "will only serve a party of six adventurers" vs the ST's Add with any party size (SUMMON still needs six) | DECIDED (user s173: SUMMON's six-member gate is enough; the ST's Add stays as II's `game`) |
+| D2-052 | Apple II new game: the manual's "just as if you had bought a new game" vs the Apple's BACKUP, which keeps the lifted fog (and leaves the dungeon saves) | PENDING |
 
 ---
 
@@ -662,6 +663,26 @@ and `strings/fallback.en.json`).
   wilderness / dungeon spell (`N/WD`), the remaster's II fight list holds the combat-castable spells (D-063's
   `p1.combat-spell-list` is I's option only), and the Apple's fight takes `CAST SPELL #` 1-51 only (OUTDOORS2 and DUNGON2
   line 1310), so #52 can't be cast in an Apple fight either.
+
+## D2-052 — Apple II "start a new game": the fog stays lifted
+
+- **Manual** (Apple II section, UTILITY COMMANDS, BACKING UP CHARACTERS): "5 Starts a new game from scratch … If you choose
+  5 to start a new game, you will see this prompt: STARTING NEW GAME WILL ERASE OLD CHARACTERS OKAY? (Y/N). If you say
+  Y, your old characters will be erased and the dungeons reset-just as if you had bought a new game." The ST section
+  (UTILITY COMMANDS) lists only "• Start a new game from scratch … Select an option and follow the instructions on the
+  screen."
+- **Apple II** (`BACKUP` lines 46–49, 500–550, 440–450; `apple2/phantasie2/FORMAT.md` 3.5) `[C]` static: the prompt as
+  the manual quotes it, then `CHAR2` zeroed (8225..14514) and stored, and the ten towns stored from the `TF2` template.
+  Nothing else: the 17 `OUTTn` keep their fog as played (the Apple has no start-fog copy to restore from), and `DNGSAV`
+  / `DNGCHK` are not touched. Whether the dungeons then still play as reset is `[?]` (`DNGSAV`'s role not traced).
+- **ST** (`UTILIT2.PRG` `0xb2c`; `atari-st/phantasie2/FORMAT.md` 9.1) `[C]`: every region's grid back from `MAPS.INT`
+  (fog as shipped), `TWNS.DAT`, `GUILD.DAT`, `DNG.SAV`, `DNGX.SAV`, `SACK.DAT` deleted: the manual's "as if you had bought
+  a new game". No Y/N prompt on the ST (not a rule conflict: the ST's manual section gives none).
+- **Decision:** —
+- **Remaster:** RESET GAME (`docs/plan/16-reset-game.md`) follows the manual and the ST: the world is rebuilt from
+  GameData, whose II grids are `MAPS.INT`'s on an ST import. An Apple-only import of a played copy keeps its lifted fog
+  in GameData, so its reset does too until the importer restores the start fog (16-reset-game.md section 3, "Left").
+- **Side effects:** none until decided; only an Apple-only import is concerned.
 
 ## D2-051 — Guild Add / Drop / Purge with an elemental (Atari ST)
 

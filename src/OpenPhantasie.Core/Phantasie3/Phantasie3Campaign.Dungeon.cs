@@ -163,8 +163,9 @@ public sealed partial class Phantasie3Campaign
     }
 
     /// <summary>
-    /// "A trap!!!": every member with HP &gt; 0 takes <c>rnd(5t − 25)</c>, 12 when that is below 0 or above 25 (a die of 0
-    /// hurts nobody <c>[~]</c>); the square becomes 7. A wiped party goes to the Astral Plane.
+    /// "A trap!!!": every member with HP &gt; 0 takes <c>rnd(die) − 1</c> = 0…die − 1 (ovl4 <c>0x125b</c> calls root
+    /// <c>0x2426(die, 0, 0)</c>, s208 <c>[C]</c>; a 0 "avoids the trap."), die = 5t − 25, 12 when that is below 0 or above
+    /// 25 (die 0 hurts nobody); the square becomes 7. A wiped party goes to the Astral Plane.
     /// </summary>
     private static void SpringTrap(GameSession session, DungeonLevel level, byte cell, int x, int y)
     {
@@ -172,7 +173,7 @@ public sealed partial class Phantasie3Campaign
         var die = 5 * cell - 25;
         if (die is > 25 or < 0)
             die = 12;
-        if (DamageParty(session, die))
+        if (DamageParty(session, die, add: 0))
             session.CampaignAccess.PartyDefeatPending = true;
         level.Set(x, y, SpentTrapCell);
     }

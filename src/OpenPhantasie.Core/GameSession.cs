@@ -1275,7 +1275,7 @@ public sealed partial class GameSession
                     WearArrival(who, id); // QoL modern-inventory: worn only into an empty slot
                 else
                     Campaign.AfterArmoryBuy(this, who, id);
-            }));
+            }, goldBeforePack: Campaign.ArmoryChecksGoldFirst));
         // s137: III's Armory plays 36 with "He cannot carry anymore!" (0x111e0) and "The party cannot afford it!" (0x11386)
         if (Game == GameId.P3 && result.Kind == TownTransactionKind.Failed
             && (result.Message == TownMenus.NinthItemMessage || result.Message == GameText.S("core.armory.not_enough_gold")))

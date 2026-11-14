@@ -144,12 +144,24 @@ See `elementals.md`.
   start-up (ovl1 `0x5e0`; ovl1 `0x96c` is the only reference to "initarms.dat") into `0x27f3:0000` and saved / loaded
   with `gamesave.dat`.
 - **Buy** (armory ovl2 `0x2f2a`): price `⌊value · index / 100⌋` (root `0xf22`); stock −1 (ovl2 `0x313e`); at 0 the kind
-  leaves the list and row byte 0 (kinds) −1 (ovl2 `0x31fc`). "He cannot carry anymore!" at 9 items.
-- **What the buy wears** (s173, `[C]` static, not seen live): the Armory shops on a copy of the shopper's record
+  leaves the list and row byte 0 (kinds) −1 (ovl2 `0x31fc`). "[original text]" at 9 items.
+- **Refusal order** (s208, `[C]` static, ovl2 `0x307d…0x30b4`): the picked row's price (list column 2) is compared with the
+  party's u32 gold (`FAR:0x9de`) first: above it, "[original text]" (`DS:0x5f3d`, at `0x3221`); only then
+  the shopping copy's count (`FAR:0x9e0e` = `+0x26`) ≥ 9 gives "[original text]" (`DS:0x5f0b`). So a shopper
+  with 9 items and too little gold hears "cannot afford", as on the Amiga (`0x10fa2`). **Seen live s208** (DOSBox-X,
+  9 items poked into fighto's pack): 0 gold → "[original text]" (red, over the gold line), 5000 gold → "He
+  cannot carry anymore!" (`../screens-s208/s208_armory_9items_*.png`) `[C] live`. The picked row is always in stock
+  (sold-out kinds leave the list). I's DOS Armory checks the pack first (OV1 `0x1c16`). Remaster (s208): III checks the
+  gold first (`ICampaign.ArmoryChecksGoldFirst`, `TownMenus.Buy`'s `goldBeforePack`), and III's table now gives both
+  refusals in DOS III's words (`core.armory.not_enough_gold` / `core.armory.ninth_item`; I's "Not enough gold." / "He's just
+  bought ninth item." before); I and II keep I's order and lines.
+- **What the buy wears** (s173 `[C]` static, s208 live): the Armory shops on a copy of the shopper's record
   (`FAR:0x9de8`, copied in at `0x2f37`; the buy adds to the copy's count `+0x26` and items `+0x96`). On Exit
   (`0x3282…0x32ba`) it calls ready-best `0x37f1` on the record itself, then copies the shopping copy back over the
   record. So the bought items arrive carried and the worn slots stay as they were on entering the Armory: buying wears
-  nothing (the next ready-best is the town-entry payout or a hand-out give). The buy itself never calls the gate
+  nothing (the next ready-best is the town-entry payout or a hand-out give). **Seen live s208:** a Fighter (STR 14) wearing
+  Robes (id 22, 2 points) bought Leather (id 23, 3 points, requirement 6) and a Healing Potion 5 and left; the record then
+  held items [4, 22, 41, 64, 23, 105] with armour still 22 (save-state read) `[C] live`. The buy itself never calls the gate
   `0x39b5`; the list routine `0x32c8` does (`0x3319`). Remaster: no auto-wear for III (`ICampaign.AfterArmoryBuy`); its
   after-buy UNUSABLE line uses III's gate.
 - **The list rows** (ovl2 `0x32c8`, s174 `[C]` static, not seen live): the price list (root `0xf22`, 5 columns of
@@ -180,8 +192,36 @@ See `elementals.md`.
   `Y` / `N` per member, `*` on the current item, `0x06f5…0x08e3`; not read further `[?]`). Remaster (s174): III's member
   rows show SH AR BW WP (`ICampaign.HandOutWornColumns` = III's `rules.json` slot order, points by
   `GameSession.ItemPoints`), header `distribute.name_class_sh_ar_bw_wp`; I, II and IV keep WPN ARM SHL (the hook defaults to null). Not built `[~]`: the
-  remaster keeps its item-count column and SELL / SACK rows where DOS shows the status and "has 9 items."; the item rows
-  keep I's line (points, kind letter, member digits), so a III bow's kind letter is still `W`.
+  remaster keeps its item-count column and SELL / SACK rows where DOS shows the status and "has 9 items.".
+  **Seen live** (s143, `../screens-s143/s143_entry_item_handout.png`, `…_second.png`): "Player: Class:  SH AR BW WP
+  Status", a new Fighter's row "4 2 1 4 Okay", WP 13 after the Sword +4 was given, and the menu's last row "Esc = Sell
+  Item" `[C] live`.
+- **The hand-out's item rows** (s208, `[C]` static, ovl2 `0x061f…0x0bf7`; the s143 shots agree). Text calls are
+  `0x284:0x7a1(text, x, y, colour)` (CGA colours: 1 green, 2 red, 3 yellow) and `0x284:0xaee(number, x, y, colour)`:
+  - header "[original text]" (`DS:0x5aaa`) at (3, 3); the party numbers 1…n at (26 + 2(i − 1), 4)
+    (`0x06be`), one column per character (`FAR:0xb614`; no elemental);
+  - **row 5, the current item** (`0x0b4e…0x0bf7`): its name (`S150 + id`) at (4, 5) in colour 3; at (22, 5) its table
+    points (`DS:0x113c[id]`, colour 3) for ids < 101, or `*` (`DS:0x5b1b`) for ids ≥ 101 (potion, scroll, treasure);
+    then per character i at (26 + 2i, 5) **`Y` (colour 1) or `N` (colour 2)**: ids ≥ 101 are `Y` for all; else `N`
+    when `0x39b5(STR +0x0a, DEX +0x0e, id)` < the requirement `DS:0x11a2[id]`, else `Y` (`0x0768…0x07ae`). No class or
+    status test. The `*` is the Pts column's mark for an item without points, not a cursor (the s174 note was wrong);
+  - **rows 6…9, the items after it** (`0x07b0…0x099e`): `min(found − idx − 1, 4)` of them, same columns, the name and
+    points in colour 2 (the current item is the only yellow row); a shorter list blanks the row below (`0x07de`);
+  - "Disburse or Sell for" (`DS:0x5ac9`) at (12, 20) and the sale price (section 3) at (33, 20), redrawn when it changes;
+  - the menu (`DS:0x542`: x 2, y 12, 7 rows; item count = characters + 1, set at `0x0c4f`): one row per character
+    (`0x0c25`), then "  Esc = Sell Item" (`DS:0x5b76`). The "Sell" label at (4, 18) (`DS:0x5b01`) is drawn before the
+    menu clears its rows and is never seen;
+  - a pick on a character with 9 items does nothing (`0x0b09…0x0b37`: the index steps back, the same item is asked
+    again; the row already reads "has 9 items."). Otherwise the item is appended (`+0x96 + 2·count`, count + 1),
+    ready-best `0x37f1` runs for that character and its row is redrawn (`0x0de6`). Sell or Esc sells (section 3).
+  - After the last item: found count `0x9d8` = 0, the window closes, prices are rebuilt (root `0xf22`).
+  **Seen live s208** (`../screens-s208/s208_handout_*.png`, Options ▸ Distribute): Healing Potion 5 with `*` and `Y Y`
+  in yellow, the next four rows in red; with wizzo's STR poked to 2, Leather / Robes read `Y` (green) for the Fighter
+  and `N` (red) for him `[C] live`.
+  Remaster (s208): III's hand-out shows these item rows (`ICampaign.HandOutUsableRows`, `ItemDistribution.UsableLine`):
+  header "Distributing: Pts: Usable?" with the member numbers, each item's name, points or `*`, and a `Y` / `N` per
+  member; I and II keep I's line (points, kind letter, member digits). Kept the remaster's: the whole remaining list
+  (DOS shows the current item and the next 4) with `<====` on the current item (DOS: the yellow row) `[~]`.
 - **The describe line for a bow** (s174): DOS III has no item-description screen (I's U)SE line is the remaster's, D-061),
   so the label is the remaster's own wording: items of kind `bow` (`items.json`, III 41–60, the manual's "Bows" table, III PDF 11)
   print `core.item.bow_damage_x` "BOW: DAMAGE n POINTS" where I's id range 41–100 prints "WEAPON:" (`ItemRules.Describe`).

@@ -12,7 +12,7 @@ namespace OpenPhantasie.Importer.Pipelines.P3Dos;
 public static class P3Build
 {
     private const string Game = "p3";
-    private const string Source = "Phantasie III, DOS SSI 1988 (reverse-engineering/dos/phantasie3/extracted/, FORMAT.md)";
+    internal const string Source = "Phantasie III, DOS SSI 1988 (reverse-engineering/dos/phantasie3/extracted/, FORMAT.md)";
 
     private static readonly Dictionary<string, string> CoreClass = new()
     {

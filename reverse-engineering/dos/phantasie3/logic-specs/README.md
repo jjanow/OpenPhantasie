@@ -20,7 +20,7 @@ checks (3c.8: transfer level, D3-018 defence, D3-019 Down targets, damage runnin
 | Spells Arrow Flame / Accuracy, Divine Aid | `bows.md` §5, `dungeon-events.md` §6 | `[C]` |
 | Bank fee, Trade, Distribute, saving / autosave, Mystic, Drop | `town.md` | `[C]` (s81; D3-025…D3-028) |
 | Elementals as a 7th member | `elementals.md` | `[C]` (s81; no conflict) |
-| Planes, terrain, places, Ocean / River Styx, Astral Plane, scrolls | `planes.md` | `[C]` (s81; swim / lava damage `[~]`) |
+| Planes, terrain, places, Ocean / River Styx, Astral Plane, scrolls | `planes.md` | `[C]` (s81; swim / lava / trap damage s208) |
 | Endgame: score, final fights, Darklord / Superhero | `endgame.md` | `[C]` (s81; quest-bit writers s82 in `dungeon-events.md`) |
 | Dungeon event squares, the 27 event ops, quest / deed bits, Divine Aid, exits, record ↔ dungeon map | `dungeon-events.md` | `[C]` (s82, static; live checks in 3c.8) |
 | Data files WORLD / PLNS / INITARMS / SCROLLS / DNGS | `../FORMAT.md` §9 | layouts `[C]`; DNGS ops / exits in `dungeon-events.md` |

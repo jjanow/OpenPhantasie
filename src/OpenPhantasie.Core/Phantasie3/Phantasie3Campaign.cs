@@ -387,7 +387,7 @@ public sealed partial class Phantasie3Campaign : ICampaign
     }
 
     /// <summary>
-    /// The Armory wears nothing (ovl2 <c>0x2f2a</c>, s173 <c>[C]</c> static, not seen live): it shops on a copy of the record
+    /// The Armory wears nothing (ovl2 <c>0x2f2a</c>, s173 <c>[C]</c> static, s208 live): it shops on a copy of the record
     /// (<c>FAR:0x9de8</c>); on Exit it calls ready-best (<c>0x37f1</c>, at <c>0x3296</c>) on the record and then copies the
     /// shopping copy back over it, so the bought items arrive carried and the worn slots stay as they were.
     /// </summary>
@@ -405,6 +405,12 @@ public sealed partial class Phantasie3Campaign : ICampaign
 
     /// <summary>D3-073 (user s174: the manual over DOS's "N/A"): III's Armory list shows points or UNUSABLE.</summary>
     public bool ArmoryListsPoints => true;
+
+    /// <summary>DOS ovl2 <c>0x307d…0x30b4</c> (s208): "The party cannot afford it!" before "He cannot carry anymore!".</summary>
+    public bool ArmoryChecksGoldFirst => true;
+
+    /// <summary>DOS ovl2 <c>0x061f</c> (s208, <c>town.md</c> section 7): "Distributing: Pts: Usable?" item rows.</summary>
+    public bool HandOutUsableRows => true;
 
     public (bool May, string Reason)? CanTrain(GameSession session, Character member) =>
         P3Training.MayTrain(Trainee(member)) ? (true, "") : (false, GameText.S("core.p3.cannot_train"));

@@ -16,7 +16,32 @@ Tags: `[C]` checked in the code, `[~]` probable, `[?]` unknown.
   OLD CHARACTERS OKAY? (Y/N)": Y erases the characters and resets the dungeons, "just as if you had bought a new game".
   The manual and DOS agree on characters and dungeons. Towns: `0x4885` doesn't rewrite TWNS.DAT (whether `0x4a4b`'s
   write-back does is not traced `[~]`); the remaster follows the manual and resets them. No `DIFFERENCES.md` entry.
-- **II** (ST BACKUP UTILITY "new game", `UTILIT2.PRG`) not read `[?]`; **III / IV**: no such command found `[?]`.
+  II's manual (Apple section, BACKING UP CHARACTERS, key 5) has the same lines; the ST section only lists "• Start a new
+  game from scratch" and says to follow the instructions on the screen.
+- **II, Atari ST** (BACKUP UTILITY "START NEW GAME FROM SCRATCH", `UTILIT2.PRG`; image addresses, ST `FORMAT.md` 9.1)
+  `[C]` static, s78 live: at start-up the utility loads `MAPS.INT` (8840 B) and `TWNS.INT` from disk 1 (`0x146`..`0x16c`).
+  The menu (tree 0) dispatches through the table at `0x305a`; START NEW GAME (object 6) is `0x19e`, with **no
+  are-you-sure step** (the transfers have one, `0xd06`). It calls `0xb2c(2)`:
+  - "INSERT PHANTASIE 2 DATA DISK INTO DISK DRIVE" until `final2.pic` opens (`0x61c(1)`);
+  - for each of the 17 regions (1, 2, 3, 5, 6, 7, 8, 11, 12, 17, 18, 22, 26, 27, 28, 30, 31): read `OUTn.DAT` (3000 B),
+    copy the region's next 520-B block of `MAPS.INT` over bytes 0–519 (`0xcae`), write the 3000 B back. So **every grid
+    goes back to the shipped one**: OUT1 / OUT2 all open, the other 15 all fogged (what `MAPS.INT` holds `[C]`). The
+    played ST copies differ from `MAPS.INT` in fog only (FORMAT 9.1), and so do the Apple's (`OUTTn`, Apple FORMAT 3.6);
+  - GEMDOS Fdelete (65) on `TWNS.DAT`, `GUILD.DAT`, `DNG.SAV`, `DNGX.SAV`, `SACK.DAT`. With no `TWNS.DAT` / `GUILD.DAT`
+    the game takes `TWNS.INT`'s templates: stock as shipped, and a Guild with only the three template elementals (s78
+    live). No dungeon save, an empty sack;
+  - then back to the game (`0x1858` with `start.prg`, `[~]` AES `shel_write`).
+  Characters, towns, dungeons, sack and fog are all reset, which is the manual's "just as if you had bought a new game".
+  **The ST's I ↔ II transfers run the same reset** (`0xe38` I → II calls `0xb2c(2)` first, then writes `TWNS.DAT` from
+  `TWNS.INT` + 2446, a zeroed 120-B `SACK.DAT` and the converted `GUILD.DAT`; `0xd38` II → I does it on I's disk with
+  mode 1): a transfer is a world reset plus a new roster. The remaster's transfers already run on a just-started game
+  (`GameSession.TransferFromPhantasieI` / `…II`), so they match. This is also original evidence for Keep's sack and town
+  reset below.
+- **II, Apple II** (`BACKUP` 46–49, 500–550; Apple `FORMAT.md` 3.5) `[C]`: "STARTING NEW GAME WILL ERASE OLD CHARACTERS
+  OKAY? (Y/N)", then `CHAR2` zeroed (8225..14514) and the ten towns rewritten from `TF2`. `OUTTn` (fog) is **not**
+  restored, and `DNGSAV` / `DNGCHK` are not touched (whether that leaves a dungeon unreset is `[?]`: `DNGSAV`'s role is
+  not traced). That differs from the manual and the ST: `D2-052` (PENDING). The remaster follows the manual and the ST.
+- **III / IV**: no such command found `[?]`.
 
 ## 2. Decisions (user s204)
 
@@ -56,6 +81,17 @@ the result is written back over the same file. A save that can't be read is refu
   it is party storage (Distribute / Trade put items back with **P**, `towns.md`). Story flags reset, so a story item
   kept in the pack or on a member outlives its flags `[~]`.
 - **Both:** the Hall (IV's `HallDescendants` / `HallImports`) is copied over unchanged.
+- **II's world** (s208): the new game is built from GameData, whose II grids are `MAPS.INT`'s (the ST importer reads
+  the grids from `MAPS.INT`, never from the played `OUTn.DAT`; `P2StSource.Region`). So a reset gives exactly UTILIT2's
+  result: every region as shipped (OUT1 / OUT2 open, the rest fogged), towns from the template, no dungeon save, an empty
+  sack (test `II_Reset_RestoresTheShippedWorld`, Purge and Keep). No II fog rule is needed in Core.
+  - **Left `[?]`: an Apple-only import of a played Apple copy** (the 4am dump: 15 `OUTTn` stored back with fog lifted;
+    s158 "import as is, say what was lost"). Its GameData grids carry the play, so a new game *and* a reset keep the
+    lifted fog. The shipped fog is not in that copy; it is the ST's `MAPS.INT` pattern (the Memorial Set's unplayed
+    disk equals it cell for cell, s167). Two ways, for the user: (a) extend s205's "restore the maps?" import choice
+    (`ImportRunner.CanRestoreMaps`, I only today) to II's Apple pipeline, the start fog given as a per-region open /
+    fogged list in `apple2-import.json` (where D2-049's ST cells already live); new game and reset are then both right;
+    (b) keep the start fog beside the played grids for Reset only (a new game and a reset would then differ). Not built.
 - **I with DOS-sourced regions** (any data whose `overworld.json` is not the Amiga's own grids): after the build, DOS's
   rule is run on OUT2–4, 6–16, 18, 19: `b -= 120` if `b ≥ 120`; `b -= 1` if `b % 10 == 8`; `b += 120`. On pristine data
   this changes nothing (every such cell is fogged, no x8 ships). Amiga-only grids are from `maps.int` (never written) and
@@ -81,7 +117,7 @@ Code: `GameSession.Reset.cs` (Core: `AdoptResetRoster`, `KeptRoster`, `ApplyDosR
 `GameDataLocator.TablesVersion`, `ResetGameScreen.cs`, `Game1.Reset.cs`, `SaveSlotMode.Reset`, the Options row. Strings
 `reset.*`, `options.reset_game*` (four lines that match DOS text have reworded fallbacks in I's `fallback.en.json`).
 Tests: `GameResetTests` (Core: the cell rule, pristine data unchanged and OUT1 left alone, Purge, Keep with the treasury
-off / on, the XP pool, no party, II / III Keep round trip and load, the file rewrite, IV Keep / Purge / file reload), `ResetGameScreenTests` (Client: the steps, keys, pad, clicks, fit, the
+off / on, the XP pool, no party, II / III Keep round trip and load, the file rewrite, IV Keep / Purge / file reload; s208: II's world as UTILIT2 leaves it, Purge and Keep), `ResetGameScreenTests` (Client: the steps, keys, pad, clicks, fit, the
 Options row from the main menu only, the picker's Reset mode), `SaveSlotRoutingTests` (Client, s205: the RESET GAME
 row's route: the picker, "no save", the old / unreadable refusals, the one save's confirmation).
 

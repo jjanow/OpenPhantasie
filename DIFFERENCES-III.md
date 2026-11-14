@@ -59,6 +59,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-072 | I / II → III transfer XP: the manual's characters keep "enough remaining experience … to train up several levels"; DOS gives 100 XP per old level (one or two trainings for most) | DECIDED: DOS (user s148) · built (s147) |
 | D3-073 | Armory list: the manual lists an item the buyer cannot use "as Unusable" and shows the point value of equipment; DOS prints "N/A" in the Pt Val column, and also for the three requirement-0 items (Cloth +1, Robes +1, Self Bow) | DECIDED (user s174): manual · built s174 |
 | D3-074 | Town keys: the manual's town letters (I's A G M N B L / C U D I S, plus T Trade) or the Amiga bar's own (`?OS` / `+-ENPR·LT` / `ABIMX·CDGUV`: G Trade, I Inn, N New Member, L Learn, T Training) | DECIDED (user s180): Amiga under AMIGA SCREENS, manual in the DOS look; QoL COMMON TOWN KEYS for one set · built s180 |
+| D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | PENDING (s208) |
 
 ---
 
@@ -995,3 +996,22 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   (V View Party and X Exit do). D3-070 (outside the towns, manual E) is unchanged: it is a different screen's keys.
 - **Spec:** `reverse-engineering/amiga/phantasie3/FORMAT.md` section 8.5; `OpenPhantasie.Client.AmigaTownBar.ActionForKey`,
   `OpenPhantasie.Client.CommonTownKeySet`.
+
+## D3-075 — Fireflash damage: flat ranges or an INT-scaled roll
+
+- **Manual:** "Fireflash (#5-8): these spells shoot a blast of flame at one monster. The spell causes the following damage
+  according to the level of the spell: Fireflash 1 1-10 points of damage; Fireflash 2 1-30 points of damage;
+  Fireflash 3 1-60 points of damage; Fireflash 4 1-100 points of damage" (III PDF 11 / pr.14).
+- **Code:** DOS III (s208, `[C]` static: root `0xc3ef` → `0xb42e`) rolls `d = rnd((INT / 2 + 1) · t)` with t = 1 / 4 / 8 / 13
+  (`DS:0xc1a[5..8]`, INT = record `+0x0c`), then caps d at **10 / 30 / 60 / 99**. So the top damage depends on INT
+  (Fireflash I reaches 10 only at INT ≥ 18; II–IV reach their caps at INT ≥ 14; a caster with INT 9 does 1–5 / 1–20 /
+  1–40 / 1–65), and Fireflash IV never does 100. The target is one living monster of the rank the caster picked (a
+  random start slot, then the first living one after it). The Amiga (`0x186f6`, s138) does the same.
+- **Decision:** PENDING (s208).
+- **Remaster:** unchanged so far: Core's III Fireflash runs Phantasie I's (`SpellCaster.ApplyFireflash`, I's damage
+  formulas and target pick, with no rank from the order). Either side needs III's own Fireflash; following DOS also
+  needs the cast order to carry the picked rank (the order screens already ask it for Fireflash in DOS, not in the
+  remaster).
+- **Side effects:** monsters' Fireflash on the party (`combat-round.md` section 3, `rnd(t[s])` with 12 / 35 / 70 / 120) is
+  a separate table and not part of this entry.
+- **Spec:** `reverse-engineering/dos/phantasie3/logic-specs/combat-round.md` section 2 ("The party's Fireflash I–IV").

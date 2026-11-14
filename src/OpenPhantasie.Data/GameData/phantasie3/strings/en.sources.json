@@ -3478,6 +3478,72 @@
      ]
     ]
    }
+  ],
+  "core.p3.handout_header": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      103111,
+      30
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      52600,
+      30
+     ]
+    ]
+   }
+  ],
+  "core.armory.not_enough_gold": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      104221,
+      27
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      70857,
+      27
+     ]
+    ]
+   }
+  ],
+  "core.armory.ninth_item": [
+   {
+    "from": "p3-dos-1988",
+    "parts": [
+     [
+      "MAIN.EXE",
+      104172,
+      24
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "parts": [
+     [
+      "PhantasieIII",
+      70807,
+      24
+     ]
+    ]
+   }
   ]
  }
 }

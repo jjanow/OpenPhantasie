@@ -140,8 +140,10 @@ text "Option 6" on the dungeon side. It "should be the first thing you do".
 1. Alert "THIS WILL ERASE ANY CHARACTERS ON THE PHANTASIE 2 DISK. OKAY?" (YES / NO).
 2. "INSERT PHANTASIE 1 DATA DISK": I's own roster file (`guild.dat`) is read. Only the roster: nothing else of I's.
 3. "INSERT PHANTASIE 2 DATA DISK": II's `guild.dat` is written (§1–§5, II's own elementals), `twns.dat` from II's
-   template, `sack.dat` zeroed, `DNG.SAV` / `DNGX.SAV` deleted. `OUT*.DAT` are rewritten with unchanged contents, so
-   whether the region fog is reset by this path is `[~]` (a new game starts with regions 1 and 2 unfogged; FORMAT §9).
+   template, `sack.dat` zeroed, `DNG.SAV` / `DNGX.SAV` deleted. `OUT*.DAT` get their grids back from II's `MAPS.INT` (the new-game routine
+   `0xb2c(2)`, called first; s208 `[C]` static, FORMAT §9.1), so the fog is reset too: regions 1 and 2 open, the rest
+   fogged. (`MAPS.INT` is the buffer loaded at start-up; a II → I transfer earlier in the same run reloads it with I's
+   `maps.int`, so an I → II after it would copy I's grids `[~]`, not checked live.)
 4. The next `START.PRG` run starts in Pippacott with nobody in the party; the converted characters are free Guild
    members (`@218` is kept but ignored and cleared by the next save, `../parity/roster-live.md` §4.4).
 

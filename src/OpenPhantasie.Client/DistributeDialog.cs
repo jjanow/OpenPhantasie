@@ -65,9 +65,17 @@ public sealed class DistributeDialog : IModalDialog
         lines.Add(_note.Length > 0 ? _note : "---------------------------------");
         // Every item still to hand out (s99): the panel scrolls when the list runs past the screen.
         var pool = session.ItemDistribution?.Remaining ?? [];
+        string Name(int id) => data.Items.FirstOrDefault(it => it.Id == id)?.Name ?? $"#{id}";
+        if (session.Campaign.HandOutUsableRows) // III (s208): DOS ovl2 0x061f's "Distributing: Pts: Usable?" rows
+        {
+            var gear = session.Gear;
+            lines.AddRange(ItemDistribution.UsableHeader(party.Members.Count));
+            lines.AddRange(pool.Select((id, k) =>
+                ItemDistribution.UsableLine(id, Name(id), party, gear) + (k == 0 ? " <====" : "")));
+            return lines;
+        }
         lines.AddRange(pool.Select((id, k) =>
-            ItemDistribution.ItemLine(id, data.Items.FirstOrDefault(it => it.Id == id)?.Name ?? $"#{id}", party, session.Gear)
-            + (k == 0 ? " <====" : "")));
+            ItemDistribution.ItemLine(id, Name(id), party, session.Gear) + (k == 0 ? " <====" : "")));
         return lines;
     }
 

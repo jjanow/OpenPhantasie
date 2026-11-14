@@ -41,7 +41,7 @@ public sealed class P3Extract
         ("social_classes", 140, 146), ("body_states", 146, 150),
     ];
 
-    private static string ItemKind(int i) => i switch
+    internal static string ItemKind(int i) => i switch
     {
         0 => "none",
         <= 20 => "shield",
@@ -141,9 +141,12 @@ public sealed class P3Extract
         (36, "xp", "u16be", "[~] close to DOS I xp (Skeleton 77 = 77, Viper 731 vs 732); big-endian"),
     ];
 
-    public JsonObject Monsters()
+    public JsonObject Monsters() => MonstersFrom(_files.Read("CREATURE.DAT"),
+        "CREATURE.DAT, 80 x 38 B + 32 B pad (0x60); identical to Amiga monsinfo.dat");
+
+    /// <summary>The 80 x 38-B monster records (DOS <c>CREATURE.DAT</c> = Amiga <c>monsinfo.dat</c>, byte for byte).</summary>
+    internal static JsonObject MonstersFrom(byte[] raw, string source)
     {
-        var raw = _files.Read("CREATURE.DAT");
         var list = new JsonArray();
         for (var i = 0; i < 80; i++)
         {
@@ -164,7 +167,7 @@ public sealed class P3Extract
         }
         return new JsonObject
         {
-            ["_source"] = "CREATURE.DAT, 80 x 38 B + 32 B pad (0x60); identical to Amiga monsinfo.dat",
+            ["_source"] = source,
             ["_fields"] = Arr(MonFields.Select(f => (JsonNode)new JsonObject
                 { ["offset"] = f.Offset, ["name"] = f.Name, ["type"] = f.Type, ["note"] = f.Note })),
             ["_pad_hex"] = P3Exe.Hex(raw.AsSpan(80 * 38)),
@@ -221,11 +224,24 @@ public sealed class P3Extract
         var raw = _files.Read("DNGS.DAT");
         if (raw.Length != DngCount * DngSize)
             throw new InvalidDataException($"DNGS.DAT: {raw.Length} bytes, expected {DngCount * DngSize}");
+        return DungeonsFrom(r => raw.AsSpan(r * DngSize, DngSize).ToArray(), Letters, n => Strings[33 + n],
+            "DNGS.DAT 11 x 4224 B (FORMAT.md section 9.5; dungeon n = record LETTERS[n-1] - 'A'); field tags in tools/scripts/extract_dos_p3_dungeons.py");
+    }
+
+    /// <summary>
+    /// The 11 dungeon records of 4224 B: <paramref name="record"/>(r) = record r (letter 'A' + r); dungeon n reads
+    /// letter <paramref name="letters"/>[n - 1]; <paramref name="name"/>(n) = dungeon n's name.
+    /// </summary>
+    internal static JsonObject DungeonsFrom(Func<int, byte[]> record, string letters, Func<int, string> name, string source)
+    {
         var list = new JsonArray();
         for (var n = 0; n < DngCount; n++)
         {
-            var record = Letters[n] - 'A';
-            var rec = raw.AsSpan(record * DngSize, DngSize);
+            var recordIndex = letters[n] - 'A';
+            var bytes = record(recordIndex);
+            if (bytes.Length != DngSize)
+                throw new InvalidDataException($"dungeon record {letters[n]}: {bytes.Length} bytes, expected {DngSize}");
+            ReadOnlySpan<byte> rec = bytes;
             var cells = new JsonArray();
             for (var y = 0; y < DngH; y++)
                 cells.Add(Ints(rec.Slice(y * DngW, DngW).ToArray().Select(b => (int)b)));
@@ -249,7 +265,7 @@ public sealed class P3Extract
             var (slots, txt) = DungeonTexts(rec);
             list.Add(new JsonObject
             {
-                ["dungeon"] = n + 1, ["record"] = record, ["letter"] = Letters[n].ToString(), ["name"] = Strings[33 + n + 1],
+                ["dungeon"] = n + 1, ["record"] = recordIndex, ["letter"] = letters[n].ToString(), ["name"] = name(n + 1),
                 ["level"] = (int)rec[0x2D0], ["width"] = DngW, ["height"] = DngH, ["cells"] = cells,
                 ["forced_fights"] = Ints(rec.Slice(0x2D1, 10).ToArray().Select(b => (int)b)),
                 ["exits"] = exits,
@@ -261,7 +277,7 @@ public sealed class P3Extract
         }
         return new JsonObject
         {
-            ["_source"] = "DNGS.DAT 11 x 4224 B (FORMAT.md section 9.5; dungeon n = record LETTERS[n-1] - 'A'); field tags in tools/scripts/extract_dos_p3_dungeons.py",
+            ["_source"] = source,
             ["_cells"] = new JsonObject
             {
                 ["0"] = "floor", ["1"] = "wall [~]", ["7"] = "secret door [~]",

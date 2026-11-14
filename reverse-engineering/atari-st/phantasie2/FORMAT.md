@@ -150,7 +150,8 @@ Menu (`BACKUP.RSC`): TRANSFER CHARACTERS → FROM PHANTASIE 1 TO PHANTASIE 2 / F
 I → II is the routine at image `0x0e38`: it waits for the Phantasie I data disk (`final.pic`), reads its `guild.dat`
 (25 × 282, BE; the Amiga I size 7050), writes `twns.dat` (3504 B) and `sack.dat` (120 B) from II templates, calls the
 converter `0x0edc` with mode 2, and writes `guild.dat` (7950 B). II → I (`0x0d38`) does the reverse with mode 1 (it also
-copies I's `maps.int`/`twns.int` and writes a 7050-B guild).
+copies I's `maps.int`/`twns.int` and writes a 7050-B guild). Both first call the new-game routine `0xb2c` (§9.1): the grids go back to `MAPS.INT` and
+`TWNS.DAT`, `GUILD.DAT`, `DNG.SAV`, `DNGX.SAV`, `SACK.DAT` are deleted, so a transfer starts the target game anew (s208).
 
 **Checked live in Hatari (s76, `parity/transfer-live.md`): the converter's output matches the rules below byte for byte
 on three rosters.** The live run corrected three points of the first static reading (XP band, PRIEST constant, the
@@ -827,6 +828,8 @@ creation-tables, elementals). `r` below is PHANT.PRG `0xfd40` = `rand() / 327` (
 use `[C]` live (s78: after START NEW GAME FROM SCRATCH the Guild lists only the three template elementals,
 `parity/roster-live.md` §5); the readers at `0x273a`/`0x275a` (3504/7950 B) were not traced.
 **So the factory-fresh state is fully on disk 1** (`TWNS.INT` + `MAPS.INT`) plus the static files.
+
+Call path (s208, static): start-up loads `MAPS.INT` → `[0x3578]` and `TWNS.INT` → `[0x378c]` (`0x146`..`0x16c`) and zero-fills the 120-B sack buffer (`0xcd8`; only the transfers write it). The menu (tree 0, `BACKUP.RSC` "START NEW GAME FROM SCRATCH") dispatches objects 3..9 through the table at `0x305a`; object 6 = `0x19e`: `0xb2c(2)` with no are-you-sure step (only the transfers ask, `0xd06`), then `0x1858` with `start.prg` (back to the game; `[~]` AES `shel_write`). `0xb2c(2)` first shows tree 1 ("INSERT PHANTASIE 2 DATA DISK INTO DISK DRIVE") until `final2.pic` opens (`0x61c`); the region loop is `d7` = 1..31 with the skips that leave the 17 regions above; the 520-B copy is `0xcae`. The five Fdeletes run in both modes, so **the I ↔ II transfers (`0xe38` mode 2, `0xd38` mode 1) reset the world too** before writing `TWNS.DAT` (template + 2446, 3504 B), the zeroed `SACK.DAT` and the converted `GUILD.DAT` (§6). `MAPS.INT`'s fog pattern `[C]`: regions 1 and 2 have no fogged cell, the other 15 have every cell fogged.
 
 Played copies compared (Pasti 1995 vs TOSEC 1987; manual observation, not in an extractor: `MTOOLS_SKIP_CHECK=1 mcopy -n -i
 reverse-engineering/atari-st/original-images/phantasie2/tosec-st/phantasie2-v1.0-tosec-disk2.st "::*" <scratch dir>/`): all `OUT*.DAT` match byte for byte except the TOSEC `OUT6`/`OUT7`

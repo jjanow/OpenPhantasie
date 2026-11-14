@@ -62,8 +62,9 @@ The tile id under the party gives the terrain (name = master string 54 + t, show
 | anything else (55–60, 75–89, 210–213) | 4 | (empty name) |
 
 On the **Netherworld** plane these override: 61–77 → 17 Black Path, 78–82 → 16 Mist, 83–87 → 18 Steam, 88–241 → 8
-Lava. Standing on Lava after a move hurts the party (root `0x2426(13, 1, 3)`, the same routine as Water) `[C]` call,
-`[~]` damage size. On any plane other than Scandor a blocked square shows "The River Styx". Names 5 / 7 / 12
+Lava. Standing on Lava after a move hurts the party (root `0x2426(13, 1, 3)`, the same routine as Water): each living
+member rolls r = 1…13 and takes 0 when his LCK ≥ r, else 27 − r (14…26) `[C]` (s208, section 5 "The party damage
+routine"). On any plane other than Scandor a blocked square shows "The River Styx". Names 5 / 7 / 12
 ("Netherworld", "Ocean") are not produced by this table; "Ocean" is the blocked text on Scandor (§5).
 
 ## 3a. Time and aging per step `[C]` (s88)
@@ -142,9 +143,38 @@ the program). The manual names "rivers/lakes/seas" and "no encounters on water" 
 No random encounters start on Water, Lava or the River Styx (terrain 10 / 8 / 15 skip the encounter roll, ovl3
 `0x1f9…0x213`) `[C]` — the manual's "no encounters on water" agrees.
 
-Water (tiles 0–25), when entered on foot: root `0x2426(0, 1, …)` makes each member roll Swim ("swims." / "sinks for
-… damage" / "[original text]", strings 514–516) `[~]` (routine not traced in full); the manual's swim rule (PDF 4 /
-pr.3, PDF 7 / pr.9).
+Water (tiles 0–25), when entered on foot: root `0x2426(0, 1, 1)` (ovl3 `0x596`) makes each member roll Swim: 0 damage
+("swims.") when Swim ≥ `rnd(100) − 1` (0…99), else 1…5 ("sinks for n damage.") `[C]` (s208, below); the manual's swim
+rule (PDF 4 / pr.3, PDF 7 / pr.9).
+
+**The party damage routine** (root `0x2426(die, add, kind)`, s208 `[C]` static; report root `0x2623`). `rnd(n)` is root
+`0x2c31`: `rand() % n + 1`, with n < 1 taken as 1. For each of the 6 party slots, a member with HP (`+0x22`) > 0 gets:
+
+```
+kind 1 (water, report 14):  if Swim (+0x50) >= rnd(100) - 1: d = 0   else d = rnd(5) + add - 1
+kind 3 (lava,  report 16):  r = rnd(die) + add - 1;  d = 0 if LCK (+0x14) >= r else 27 - r
+kind 0 (report 12), kind 2 and anything else (report 16):  d = rnd(die) + add - 1
+if HP <= d: HP = 0, status (+0x2c) = 0 Dead          # the report prints "… [original text]"
+else:       HP -= d
+```
+
+A member already at HP ≤ 0 gets "is dead." and no roll. The report ("Damage Report", one row per slot from row 9) prints,
+after the name, for d = 0 the kind's own line (S500 + report: 12 "[original text]", 14 "swims.", 16 "escapes
+unscathed."), else S501 + report ("takes " / "sinks for " / "takes ") + d + " damage." or " [original text]". When every
+character is dead the party goes to the Astral Plane (section 6). The callers:
+
+| Caller | Arguments | Damage |
+|---|---|---|
+| ovl3 `0x547`, Lava (gated by `FAR:0xb634` = 0, `0xfc98` ≠ 0, `0xe594` = 0) | (13, 1, 3) | r = 1…13; 0 if LCK ≥ r, else 27 − r |
+| ovl3 `0x596`, Water (also gated by `0xdd92` = 0) | (0, 1, 1) | Swim roll, else 1…5 |
+| ovl4 `0x125b`, a sprung dungeon trap | (die, **0**, 0) | **0…die − 1**; die 0 (t = 5) → 0 for everyone |
+| ovl4 `0x1544`, event ops 1–4 | (a1, 1, 2) | 1…a1 |
+| ovl4 `0x16c8`, event op 16 | (a1, 1, 0) | 1…a1 |
+
+The Amiga's `0x1d24a` rolls `rnd % die + add` (s165) and its lava the same LCK test: **DOS and Amiga agree** on every
+caller. The manual gives no trap, lava or swim damage figures: not a conflict. Remaster (s208): `Phantasie3Campaign
+.DamageParty(die, add, kind)` follows this (the trap with add 0, lava's LCK test); Core's III swim is not checked
+against the kind-1 line here `[~]`.
 
 ## 6. Party death: the Astral Plane `[C]` (root `0x1e71`)
 

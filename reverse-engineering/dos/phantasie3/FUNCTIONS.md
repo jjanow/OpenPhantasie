@@ -216,7 +216,7 @@ Paired with an Amiga function by shared strings: **47**. Amiga `PhantasieIII`: 7
 | ovl2 | `0x297a` | 702 | bank | S419 "[original text]  Gol"; S489 "How much:"; rec 2 fields; S419/S489 |  |
 | ovl2 | `0x2c38` | 106 | str_withdraw_all_gold | S109 "[original text]"; S110 "[original text]" | `0x11812` (2) |
 | ovl2 | `0x2ca2` | 648 | mystic | S424 "The wise and timeworn sage pee"; S389/idx "Are you sure you want to quit?"; DS:0x5e56/lit "[original text]"; DS:0x5e6d/lit "[original text]"; +2 str; rec 4 fields (status,social); S424 | `0x120e1` (3) |
-| ovl2 | `0x2f2a` | 926 | armory | DS:0x5ed9/lit "Party's Gold:"; DS:0x5ee7/lit "Item:       Pt Val: Cost:"; DS:0x5f01/lit ""; DS:0x5f0b/lit "He cannot carry anymore!"; +3 str; rec 1 fields; "Party's Gold:" | `0x10fa2` (4) |
+| ovl2 | `0x2f2a` | 926 | armory | DS:0x5ed9/lit "Party's Gold:"; DS:0x5ee7/lit "Item:       Pt Val: Cost:"; DS:0x5f01/lit ""; DS:0x5f0b/lit "[original text]"; +3 str; rec 1 fields; "Party's Gold:" | `0x10fa2` (4) |
 | ovl2 | `0x32c8` | 437 |  | S150/idx "0"; rec 2 fields |  |
 | ovl2 | `0x347d` | 884 | inn | S111/idx "0"; DS:0x5f88/lit "Inn welcomes you."; DS:0x5f9b/lit "The party's health improves!"; DS:0x5fcf/lit "Magic increases!"; +2 str; rec 9 fields (hp,status,class); " Inn welcomes you." (logic-specs/body-areas.md) | `0x11bc2` (5) |
 | ovl2 | `0x37f1` | 452 | ready_best_equipment | tbl item_points,item_req; rec 8 fields (shield,armour,weapon,bow); worn slots +0x68/+0x6a/+0x86/+0x6c |  |

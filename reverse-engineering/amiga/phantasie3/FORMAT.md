@@ -519,7 +519,7 @@ address + `0x6038`: DATA starts at flat `0x21890` and file `0x278c8`; no relocat
 | 27 | 2 | event op 14 "[original text]" (s135: `0x1cc3e` writes 27 to the event word `0x240fa`, played at the op tail `0x1d1b6`) |
 | 30 | 1 | **no caller** (s135 `[C]`: every reference to `0xb126` is a `jsr` (none by `bsr`; s140: one `jsr %pc@`, 36 at `0xaaee`), each with a constant, the event word `0x240fa` (written only with 12, 42, 3, 9, 27) or the defeat's `%a5@(-24)`, which is 48 / 9 / 9 at the call: each loop pass sets `%a5@(-8)` to 21 (`0x1de34`), maybe then 22 / 23, and the local's other write, the name length at `0x1e00c`, comes after the call) |
 | 33 | none: all three pointers 0 = the driver's stop | `0x15990`, `0x19c66` (s157 `[C]` static: both in the fight's end of round: `0x15990` before "[original text]" (`0x1a676`), `0x19c66` before "[original text]" (the party's flight succeeding; "[original text]" plays nothing). s158 wired (`P3Sounds.Stop`): Core tags "[original text]" with 33 (the field run plays it as the line prints) and raises it with "[original text]"; it silences the running sound and a carried title tune, 7.1) |
-| 36 | 2 | `0x111e0` (s136: the Armory's "He cannot carry anymore!"), `0x11386` ("The party cannot afford it!"), both in `0x10fa2`; s140 `[C]` live: `0xaaee` in `0xaae2(text)`, window 1's confirm question (OK / CANCEL), called by `jsr %pc@(0xb126)` (the one PC-relative call, missed by the s135 sweep): "Are you sure you want to load an old game over this current one?" (`0xb1f6`), "… redistribute?" (`0xb36c`), "… purge this character permanently?" (`0xb55a`), "… save this game over your previously saved one?" (`0xbaa0`, heard live), "It will take this character two months to make the journey here." (`0xd24c`, asked only for a member whose town word `+0x88` differs from the guild's `0x240e6`; OK adds 4 to the age clock `+0x92` and moves him: DOS's `AddNeedsMoveConfirm` / `AddAgeCost`). s141 wired: `GameSession.AskConfirmQuestion` (`P3Sounds.ConfirmQuestion`) plays 36 when the Guild Add dialog asks its question; s158 File › Load / Save under the town bar; s160: before every one of III's load / save / redistribute / purge questions under every III layout (`P3ConfirmQuestion`, 8.9) |
+| 36 | 2 | `0x111e0` (s136: the Armory's "[original text]"), `0x11386` ("[original text]"), both in `0x10fa2`; s140 `[C]` live: `0xaaee` in `0xaae2(text)`, window 1's confirm question (OK / CANCEL), called by `jsr %pc@(0xb126)` (the one PC-relative call, missed by the s135 sweep): "Are you sure you want to load an old game over this current one?" (`0xb1f6`), "… redistribute?" (`0xb36c`), "… purge this character permanently?" (`0xb55a`), "… save this game over your previously saved one?" (`0xbaa0`, heard live), "It will take this character two months to make the journey here." (`0xd24c`, asked only for a member whose town word `+0x88` differs from the guild's `0x240e6`; OK adds 4 to the age clock `+0x92` and moves him: DOS's `AddNeedsMoveConfirm` / `AddAgeCost`). s141 wired: `GameSession.AskConfirmQuestion` (`P3Sounds.ConfirmQuestion`) plays 36 when the Guild Add dialog asks its question; s158 File › Load / Save under the town bar; s160: before every one of III's load / save / redistribute / purge questions under every III layout (`P3ConfirmQuestion`, 8.9) |
 | 39 | 2 | `0x18610` (s136: in `0x1833e`, a combat line ending " dies!"; callers `0x1665c`, `0x18270`, `0x182ac`, `0x18328`, `0x187ce`. s138 `[C]` static: `0x187ce` is in `0x186f6(group, spell, rank, member)`, the party's **Fireflash I-IV**: the cast routine's case for spells #5-8 (`0x168f2`, jump table `0x1705a`) calls it for order 7 (Cast at rank 1, group `0x24794`) or 16 (Cast at rank 2, group `0x2481e`) when that group has a living monster; it picks the monster with `0x187da`, rolls `rnd((INT / 2 + 1) · t[spell])` (the caster's INT, record +0x0c at `0x255a6`; magic +0x1e is `0x255b8`, table `0x2271a`), caps it at 10 / 30 / 60 / 99 by tier, at least 1, and calls `damage_monster` with the flash set. Built s137 `CombatEncounter.TagDies`: every monster kill in Core (melee, the party's Fireflash and the other spells through `CombatResolver.ApplyMonsterDamage`) tags its " dies!" line with 39; a member's death has none) |
 | 42 | 2 | `0x1092c` (s136: " The spell was not learned... "), `0x1d516` (s136: the **Damage Report** window `0x1d4ea`, shown by every party-damage call `0x1d24a`: a sprung trap `0x1c7b6`, ops 1–4 `0x1cb00`, op 16 `0x1cc78`, and `0xa676` / `0xa6b8`); the dungeon step's special doors 0xc7 / 0xd6 (s136: `0x1c4e0` writes 42 with result 4, message 4 "No one can pick the lock"; a locked door 0xc6 / 0xd5 nobody picks gives result 4 with no sound); event op 9 "[original text]" (s135: op 9 sets the message and falls into op 10, which writes 42 at `0x1cbf2`); ops 1–4 (`0x1cb06`) and op 10 on its own write 42 with no message, so the op tail does not play it and the word is left for the dungeon step's play at `0x1c246` (s136 `[C]`, below) |
 | 45 | 3 | `0x1dde6` (the defeat's demon appears) |
@@ -1323,17 +1323,125 @@ sound off, the master ADF's saved party, "Continue a previously saved game"). Sh
     party) (`p3-remaster-window22-overworld.png`); `e` dropped, `o` closed it.
 
 
-## Game tables for a standalone import: survey (s201) `[?]`
+## Game tables for a standalone import (s201 survey, s208 decoded) `[C]`
 
-Not built: an Amiga-only III import still needs DOS III's tables (`P3DosPipeline`). What a static comparison of the
-reference dump with DOS III's files (`reverse-engineering/dos/phantasie3/unpacked/ssi-1988/`) shows so far:
+Goal: an Amiga-only III owner imports the game tables too (today they come from DOS III, `P3DosPipeline`). s208 read
+every table DOS III's import takes from its Amiga counterpart, static (flat image of `extract_amiga_p3_common`;
+code sites are the `lea` / `cmpi` that index each table). Builder: `P3AmigaTables`
+(`src/OpenPhantasie.Importer/Pipelines/P3Amiga/`), same shapes as `P3Extract`, then the unchanged `P3Build`;
+**not called by any pipeline** (the user decides the differences below first). Test: `P3AmigaTablesTests` (the
+Amiga-built GameData against the committed DOS-built one; every differing cell listed).
 
-- `monsinfo.dat` = `CREATURE.DAT` and `inititem.dat` = `INITARMS.DAT`, byte for byte `[C]`.
-- `D/dnga.dat` … `D/dngk.dat` (4,352 B each): the first 4,224 bytes equal DOS's `DNGS.DAT` record for that dungeon
-  (11 × 4,224 B) byte for byte `[C]`; the last 128 bytes are not mapped `[?]`. `D/DNPA` … `DNPK` (4,224 B) differ from
-  them in 0-66 bytes (DNPJ equals it): presumably the dungeon map saves (DOS `DNP<c>`, 10-importer.md 3.3) of a played copy `[~]`; not to be read.
-  `D/DNGA` … `DNGK` (90 B) `[?]`.
-- `D/s1` … `D/s20`: the scrolls as plain text (25,472 B in all; DOS `SCROLLS.DAT` 19,950 B ciphered): layout `[?]`.
-- `D/pln1` … `pln4` (128, 128, 128, 512 B) vs DOS `PLNS.DAT` (658 B) `[?]`; `D/w0.cmp` … `w4.cmp` (the world, packed;
-  DOS `WORLD.DAT` 3,750 B) `[?]`.
-- Names, items, towns, rule tables, spells: in `PhantasieIII` (DOS: `MAIN.EXE`'s root module), not located `[?]`.
+**The s201 survey's open list, resolved:**
+- `D/w0` … `w4.cmp` are **pictures**, not the world (section 3: Pluto, Zeus, the defeat, the door pieces, the street).
+  The Scandor grid is `Graphics/phantasy.set` (section 4).
+- `D/DNGA` … `DNGK` (90 B) are the seen-cell bitmaps (section 5) and `D/DNPA` … `DNPK` (4,224 B, 0-66 bytes off
+  the factory records; DNPJ equal) the played maps (DOS `DNP<c>`, 10-importer.md 3.3): play state, never read.
+- `D/dng<a..k>.dat`: the first 4,224 B equal DOS `DNGS.DAT`'s record for that letter byte for byte; the last 128 B
+  are zero in all eleven (padding) `[C]`.
+- `D/pln<n>`: the plane change `0x1eb32` loads `D/PLN` + ('0' + plane) through the file table `0x23a62` entry 20:
+  `pln1` (Light, 81 B) = `PLNS.DAT` +0, `pln2` (Dark, 81 B) = +0x51, `pln4` (Netherworld, 496 B) = +0xa2, byte for byte;
+  the rest of each file is padding. Arrival (4, 1) / (7, 3) set there `[C]`. `pln3` is not a map: `0x1f87e` opens
+  `D/PLN3` only to check that the data disk is in (`Insert the Phantasie III Data Disk`).
+- `D/s1` … `s20`: scrolls, below.
+
+### Files
+
+| Amiga | DOS III | Layout | vs DOS |
+|---|---|---|---|
+| `monsinfo.dat` | `CREATURE.DAT` | 80 × 38 B + pad | byte for byte |
+| `inititem.dat` | `INITARMS.DAT` | 18 × 181 B + pad | byte for byte |
+| `D/dng<a..k>.dat` | `DNGS.DAT` records A..K | 4,224 B + 128 B of zeros | records byte for byte |
+| `Graphics/phantasy.set` +0x23 | `WORLD.DAT` | 50 × 75 | **54 cells differ** (section 4; Pendragon's square among them) |
+| `D/pln1`, `pln2`, `pln4` | `PLNS.DAT` +0, +0x51, +0xa2 | 9 × 9, 9 × 9, 31 × 16 | byte for byte |
+| `D/s1`..`s5`, `s7`..`s20` | `SCROLLS.DAT` records 0..18 | 1,050 B each (plain text, padded to 1,152); `D/s6` is Scroll IV's picture | text equal, record for record |
+
+### Scrolls `[C]` `0x1f6dc`
+
+Items 121..140 only: n = item − 120; n 2..4 become n = 2 with three pages; n 9 has three pages; n 6 draws the picture
+`D/s6` (`0x123c` / `0x1208`); page k reads 1,050 B of `D/S` + (n + k) (file table `0x23a62` entry 10, number written
+by `0x1d8a`) into `0x241f0` and shows it (`0x1e2c2`). As DOS records (file order): 121 → [0], 122 / 123 / 124 →
+[1, 2, 3], 125 → [4], 127 → [5], 128 → [6], 129 → [7, 8, 9], 130 → [8], 131 → [9], 132..140 → [10..18].
+**vs DOS** (planes.md section 7): DOS item 123 → [4], 124 → [3, 4, 5]; every other item the same.
+
+### Names: string-pointer tables in DATA `[C]`
+
+Each group is its own table of 4-B pointers (strings in CODE), indexed by the number the code holds:
+
+| Group | Table | Code | vs DOS |
+|---|---|---|---|
+| items 0..180 | `0x22a78` + 4 id | `0x8c74` area | 27 treasure names carry an article (`a Pearl`, `an Opal`, …: items 142, 145, 148, 149, 155..165, 167..178) |
+| spells 0..57 | `0x22d4c` + 4 n | | #13..16 `Flame Arrow I` / `P.Flame Arrow I` / `Flame Arrow II` / `P.Flame Arrow II` (DOS `Arrow Flame …`); #53 a placeholder name (DOS empty) |
+| towns 0..17 | `0x22f14` + 4 n | `0xa382` | equal |
+| dungeons 1..11 | `0x22f8c` + 4 n (one line, `0x80cc`); `0x22f5c` + 4 n (with line breaks, the place box `0xa39a`) | | dungeon 2 `Many men guard tent here` (DOS `… guard a tent here`; the boxed set has the `a`) |
+| inns 1..8 | `0x22fbc` + 4 n | `0x80f6`, `0xa3b2` | Crown, Jolly, Royal end in a space |
+| terrain 0..18 | `0x22fe0` + 4 t | `0xa728` | 19 names (DOS 22): 4 / 5 `BUILDING` / `DUNGEON` (DOS empty), 6 `Pathway` (DOS `Cobblestone Path`), `Bright mist`, `A bridge`, `Black path` (DOS capitals); no 19..21 (DOS empty, empty, `A Tavern`) |
+| races 0..17, classes 0..5 | `0x22e4c`, `0x22e94` | `0x206d6` | no padding spaces (the build strips DOS's) |
+| class short, social classes, body states, status, status short, skills, ranks | `0x22eac`, `0x22ec4`, `0x22edc`, `0x22eec`, `0x22f00`, `0x2302c`, `0x22a2c` | | equal |
+| origins 0..5 | `0x22e34` + 4 n | `0x13c62` | equal (DOS's group also holds towns 15..17 in front; the builder takes them from the town table) |
+| combat lines | `0x22a38`, 16 | `0x18bea` | `Moves to Back / Middle / Front` where DOS has three empty slots and no `Front / Middle / Back` in front (not used by the build) |
+
+Transfer maps I → III: `0x23f12` (class, 6 B, `0x206b6`) and `0x23f18` (race, 16 B, `0x206f4`) = DOS `DS:0x48` / `0x4e`.
+
+### Numbers `[C]`
+
+| Table | Amiga (index) | DOS | vs DOS |
+|---|---|---|---|
+| item points / requirement | `0x227a0` + id / `0x22805` + id (`0x8c74`, `0x8c9a`) | `DS:0x113c` / `0x11a2` | equal |
+| item value | `0x2286a` + 2 id, u16 (`0x8bc0`) | `DS:0xf92` | equal |
+| town price index | `0x229d4` + 2 town (`0x8bd6`) | `DS:0x10fc` | equal |
+| HP dice | `0x221dc` + 21 class + level − 1, level clamped at 21 (`0xe39c`, `0xe3d4`) | `DS:0xa78` + 22 class + level − 1 | **L1..15 equal; L16..21 keep rising** (Fighter 90 95 100 105 110 115, Thief +4 a level to 79, Priest to 89, Ranger +5 to 110, Monk +4 to 84, Wizard +3 to 58) where DOS repeats L15; no L22 (DOS 22 levels, the loader wants 22) |
+| magic ceiling | `0x2225a` + 15 class + level − 1, level ≤ 15 (`0x11d60`) | `DS:0xafb` + 15 class + level | equal |
+| skill tables ×8 | `0x2234e`, `0x223a8`, `0x22401`, `0x2245b`, `0x224b5`, `0x2250f`, `0x22569`, `0x225c3` + 15 class + level − 1 (`0xe6d0` … `0xe866`) | `DS:0xc53` … `0xec9` + 15 class + level | equal but one cell: the Parry table is one byte short on both (D3-032), so Wizard L15 reads the next table's first byte: DOS 0, Amiga 42 (Swim's Fighter L1) |
+| spell rows | `0x2261e`, 13 × 15 (`0x10b8e`) | `DS:0x1208` | equal |
+| training XP | `0x222fa` + 4 (level − 1), u32, levels 1..21 (`0xdfde`) | `DS:0xb88` + 4 level | levels 1..21 equal; no level-0 entry (DOS's is neighbouring data, unused) |
+| training gold | `0x222dc` + 2 (level − 1), u16 (`0xde92`) | `DS:0xb6c` + 2 level | levels 1..15 equal; **16..20 run into the XP curve on both**, so they differ by byte order: Amiga 0, 180, 0, 324, 0; DOS 180, 0, 324, 0, 583 |
+| hit location | `0x239b4`, 5 × 6 u16 (`0x1421c`) | `DS:0x12cc` | equal |
+| score weights | `0x23a50`, 8 u16 (`0x1e9e4`) | `DS:0x1c50` | equal |
+| Air elemental's spells | `0x23f48`, 31 u16 (copy loop `0x8f4c`) | `DS:0x1bb2`, 0-terminated | equal |
+| wilderness area levels | `0x220f6` s8 × 25 (`0x1aa78`) | `DS:0x9fe` | equal |
+| terrain monster offsets | `0x2210f` + t + rnd(4) − 1 (`0x1a9d6`; rnd 1..n, `0xaa7e`) = DOS-style index t + rnd(4) from `0x2210e` | `DS:0xa17` + t + rnd(4) | indices 1..15 equal (the real table); 0 never read; **16..25 (terrain 12+) read the next object**, a different one in each version (Amiga `0x2211e`'s bytes 12 8 11 10 …; DOS 0 18 18 …) |
+| dungeon letters | `0x23b3c` + 2 n, low byte (`0x1bbe6`) | `DS:0x1c84` | equal (J H E D A C B K I F G) |
+| dungeon entrance x | `0x23a38` + 2 (letter − 'A') (`0x1bd44`); dungeon 1 → x 5 (`0x1bd5a`) | `DS:0x1bb6` + 2 letter | equal |
+| elementals' stats | code constants `0x8ed8` … `0x90c6` | ovl constants (`P3Build.Elementals`) | Air 30 / 150 / 150 / 32, Mist 20 / 200 / 210 / 42, Mud 12 / 250 / 255 / 38: equal |
+
+### World `[C]`
+
+- **Places** (`0x9c6a`, DOS ovl3 `0xa22`): each fixed square is `cmpi.w #x,0x240c4; bne; cmpi.w #y,0x240c6; bne;
+  move.w #type,0x240be; move.w #number,0x240c0`. The scan finds the same 32 squares as DOS, in the same order, the
+  Netherworld's two first (`0x9cda`, under the plane test). Light / Dark (`0x9d5a`): (4, 1) is town 14 + plane;
+  (6, 7) on Light and (2, 7) on Dark dungeon 9 + plane, as DOS. Edges `0x9c6a` (section 4: the east column is one
+  further out than DOS's). **Start** (24, 37): `0x7602`, `0x2010e`.
+- **Pendragon's square** (24, 37) is **tile 25** on the Amiga map (DOS 29, a town tile); by the terrain test below it
+  is Water (10). One of the 54 differing cells.
+- **Terrain of a tile** `0xa4a6`: a run of range tests, each later one overriding: 0..25 → 10, 68..74 → 11, 61..67 → 14,
+  90..114 → 3, 115..154 → 2, 155..187 → 9, 188..205 → 0, 206..209 → 6, 214..224 → 6, 225..241 → 1, 222 → 13,
+  ≥ 242 → 15 (blocked); on the Netherworld then 61..77 → 17, 78..82 → 16, 83..87 → 18, 88..241 → 8 (`0xa5fa`). Same
+  as DOS but **no place ranges** (DOS 26..38 → 19, 39..46 → 20, 47..54 → 21) and **no default**: tiles 26..60 and
+  75..89 leave the local unset (never initialised) `[?]` (DOS: 4). No encounters on 10, 8, 15 (`0x7c24`).
+
+### Amiga ≠ DOS, for the user to decide (an Amiga-only import)
+
+Standing rule: between versions DOS wins on numbers; maps and content are the user's call. None of these is a
+manual ↔ code conflict: the III manual's HP chart (III PDF 8 / pr.11) stops at L15, and it gives no training
+costs and no terrain table.
+1. **HP dice L16..21** rise on the Amiga, flat on DOS; the Amiga has no L22.
+2. **Training gold L16..20** (both overruns): Amiga 0, 180, 0, 324, 0; DOS 180, 0, 324, 0, 583.
+3. **Parry, Wizard L15** (overrun, only for `p3.skill-tables = dos`, D3-032): Amiga 42, DOS 0.
+4. **Terrain monster offsets past the table** (terrain 12+): each version reads its own neighbour.
+5. **Scandor**: 54 cells (section 4), Pendragon's square tile 25.
+6. **Terrain of the place tiles**: no 19 / 20 / 21 and no default on the Amiga; its names `BUILDING` / `DUNGEON` /
+   `Pathway`, 19 names.
+7. **Scroll III pages**: items 123 and 124 show records 1..3 on the Amiga (DOS [4] and [3, 4, 5]).
+8. **Text**: the item articles, `Flame Arrow`, spell #53's placeholder, dungeon 2's name, the inns' trailing spaces,
+   terrain capitals. (D3-005 chose DOS's item names for the DOS-built tables.)
+
+### Left `[?]`
+
+- The decisions above; after them, a recipe for `p3-amiga-1.0` that writes the tables (DOS's still win when both are
+  imported, as I's `P1AmigaTables`). As built the files do not load (`Phantasie3Data`): `hp_dice` has 21 levels (the
+  loader wants 22), the curves' index 0 and `terrain.other` are null.
+- III's own UI lines (`strings/en.json` `core.p3.*`, 124 ids quoted from `MAIN.EXE`) have no Amiga alternatives in
+  `en.sources.json`: an Amiga-only import shows the fallback wording.
+- `P3Build`'s other hand-written constants (class kits, encounter numbers, the rule blocks) are DOS readings not all
+  re-read on the Amiga (the elementals' are, above).

@@ -115,7 +115,8 @@ public static class TownMenus
         IItemCatalog catalog,
         int itemId,
         ItemGate? canUse = null,
-        Action<Character, int>? afterBuy = null)
+        Action<Character, int>? afterBuy = null,
+        bool goldBeforePack = false)
     {
         ArgumentNullException.ThrowIfNull(party);
         ArgumentNullException.ThrowIfNull(shopper);
@@ -124,6 +125,10 @@ public static class TownMenus
 
         if (!party.Members.Contains(shopper))
             return Fail(GameText.S("core.guild.not_in_party"));
+        // III (ovl2 0x307d…0x30b4, s208 [C]): the price against the party's gold first, the 9-item pack after it.
+        if (goldBeforePack && itemId >= TownState.FirstListedItemId && town.GetStock(itemId) > 0
+            && catalog.Get(itemId) is { } priced && !party.CanSpend(ListBuyPrice(priced, town)))
+            return Fail(GameText.S("core.armory.not_enough_gold"));
         // [C] Armory OV1 0x1c16: a shopper already holding 9 items is turned away (0x3d14(1)); empty slots are free.
         if (CarriedItems.IsFull(shopper))
             return Fail(NinthItemMessage);

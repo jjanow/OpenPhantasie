@@ -167,6 +167,12 @@
     "core.p3.report_escapes_unscathed": "...",
     "core.p3.report_takes_x_damage": "... {0} ...",
     "core.p3.report_takes_x_damage_and_dies": "... {0} ...",
-    "core.p3.report_is_dead": "..."
+    "core.p3.report_is_dead": "...",
+    "core.p3.handout_header": "...",
+    "core.p3.handout_usable": "Y",
+    "core.p3.handout_unusable": "N",
+    "core.p3.handout_no_points": "*",
+    "core.armory.not_enough_gold": "...",
+    "core.armory.ninth_item": "..."
   }
 }

@@ -126,6 +126,33 @@ party_casts (0xbf9a): line = name + " casts " + master string (331 + spell); sou
   a non-healing cast (bow spells too: they go through `0xcaac`) after the last monster died earlier in the round prints
   nothing and spends no magic. Remaster: `P3CombatModule.CastGoesAhead` (any rank not wiped).
 
+**The party's Fireflash I–IV (#5–8)** (s208, `[C]` static; `0xcaac` → `0xc3cc` case 5–8 at `0xc3ef` → `0xb42e`):
+
+```
+rank = the caster's order: 7 Cast (R1) → group R1 (FAR:0xe5b0), 16 Cast (R2) → group R2 (FAR:0xe63a)
+if that group's living count (+0x02) == 0: nothing (no other rank is tried; the magic is already spent)
+target = 0xb4ec(group): k = rnd(5) − 1; up to 6 looks: the first slot k, k+1, … (wrapping at 5) with HP (+0x18 + 2k) > 0
+if no target: nothing
+d = rnd((INT / 2 + 1) · t[spell])       # INT = record +0x0c; t = DS:0xc1a: #5 1, #6 4, #7 8, #8 13; rnd = 1…n
+d = min(d, 10 / 30 / 60 / 99)           # by spell #5 / #6 / #7 / #8
+damage_monster(group, d, target, rank, 1, 1)
+```
+
+- **One monster** of the rank the caster picked (the order screen asks the rank when rank 2 exists,
+  `combat-actions-and-ranks.md` section 2). The pick is not uniform: a random start slot, then the first living
+  monster at or after it, so a monster after a run of dead slots is hit more often.
+- The roll grows with INT: the cap is reached at INT ≥ 18 (#5) and 14 (#6, #7, #8);
+  below that the top damage is (INT / 2 + 1) · t. At least 1.
+- **Amiga** `0x186f6(group, spell, rank, member)` (s138, `amiga/phantasie3/FORMAT.md` 7.2 sound 39): the same roll, caps
+  and rank — **DOS and Amiga agree**.
+- **Manual** (III PDF 11 / pr.14, "Fireflash (#5-8): these spells shoot a blast of flame at one monster. The spell causes the
+  following damage according to the level of the spell: Fireflash 1 1-10 points of damage, Fireflash 2 1-30 points of
+  damage, Fireflash 3 1-60 points of damage, Fireflash 4 1-100 points of damage"): flat ranges, no INT, and IV reaches
+  100. **D3-075, PENDING** (the user decides).
+- Remaster (s208): unchanged. Core's III Fireflash still runs I's `SpellCaster.ApplyFireflash` (I's damage and target:
+  the front rank, or I's DOS rearmost rank); III's cast order carries no rank (`P3CombatModule.TryChoose` packs casts
+  with I's packing, `ActionCode` never yields 16), so the picked rank cannot reach it yet `[?]` until D3-075 is decided.
+
 ## 3. Monster turn (root `0xd069`) `[C]`
 
 ```
