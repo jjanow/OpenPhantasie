@@ -213,9 +213,24 @@ public sealed class TownMenu
         }
     }
 
-    /// <summary>Manual p.3 / p.11 town keys (D-066).</summary>
+    /// <summary>
+    /// Manual p.3 / p.11 town keys (D-066). A letter that names a bar entry also moves the highlight there, as picking it
+    /// with the arrows would (s214: B / N opened the Bank / Inn list under the old highlight, e.g. under GUILD).
+    /// </summary>
     private TownChoice? PickLetter(Keys key)
     {
+        var barLabel = key switch
+        {
+            Keys.A => "Armory",
+            Keys.B => "Bank",
+            Keys.M => "Mystic",
+            Keys.N => "Inn",
+            Keys.G => "Guild",
+            Keys.L => "Exit",
+            _ => null,
+        };
+        if (barLabel is not null)
+            BarCursor = Array.IndexOf(BarLabels, barLabel);
         switch (key)
         {
             case Keys.A:

@@ -476,6 +476,29 @@ public partial class AmigaOrdersScreenTests
         Assert.Equal(CombatAction.CastSpell(SpellId.FireflashI + 1), s.Combat!.Prep[1].PackedAction);
     }
 
+    /// <summary>
+    /// s214: the remaster's own orders list (and the order prompt) name a III cast's spell with no rank mark, as DOS III's
+    /// combat list does for either rank (s212 live); without the III hook it stays "SPELL #n" + " AT RANK 2" (I, II).
+    /// </summary>
+    [OriginalDataFact]
+    public void OrdersList_IiiCast_ShowsTheSpellName_NoRankMark()
+    {
+        var (s, ui) = AtOrders(amiga: false, DosFireflash);
+        Teach(s, SpellId.FireflashI + 1);
+        ui.HandleKey(s, Keys.Enter); // the Fighter keeps his order
+        ui.HandleKey(s, Keys.D8); // Cast Spell
+        ui.HandleKey(s, Keys.D6); // #6 Fireflash II
+        ui.HandleKey(s, Keys.Enter);
+        ui.HandleKey(s, Keys.N); // rank Two
+        Assert.Equal(CombatAction.CastSpellAtRank(SpellId.FireflashI + 1, 1), ui.PackedOrder(1));
+
+        Assert.Equal(UiText.F("combattext.spell_x", SpellId.FireflashI + 2) + UiText.F("combattext.at_rank_x", 2),
+            ui.OrderLabelFor(s, 1)); // no hook: I's / II's wording
+        ui.SpellName = i => P3Data.GetSpell(i).Name;
+        Assert.Equal(P3Data.GetSpell(SpellId.FireflashI + 1).Name, ui.OrderLabelFor(s, 1));
+        Assert.Equal(UiText.S("combattext.parry"), ui.OrderLabelFor(s, 3)); // other orders as before
+    }
+
     [OriginalDataFact]
     public void Fireflash_DosOption_AmigaScreen_AsksInTheRankWindow()
     {

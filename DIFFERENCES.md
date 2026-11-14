@@ -103,6 +103,7 @@ names its presets only where they differ from this.
 - **Remaster:** Halfling DEX modifier 12 in `creation-tables.json` (max 20).
 - **Side effects:** the formula has no separate cap, so **every** Halfling DEX roll is 1 higher than DOS, minimum included.
 - **Spec:** `character-creation.md` section Attributes.
+- **C64 (s214):** the English C64's `TINFO` race table holds DOS's 11 too (`reverse-engineering/c64/phantasie1/FORMAT.md` section 3.3).
 - **Option `p1.halfling-dex`:** `manual` · `dos` (TWNS.INT's Halfling DEX modifier 11, ceiling 19). The DOS cell lives in `creation-tables.json` `dos_tables` and is applied per save (`CharacterCreationTables.ForRules`); it also sets the magical pool's Halfling DEX maximum (19).
 
 ## D-002 — Guild roster size
@@ -116,6 +117,8 @@ names its presets only where they differ from this.
   guild creates no more until one is purged. DOS refuses silently, the remaster says why.
 - **Note:** the manual's Guild page also says "As many as 37 characters can be generated" (its sample list numbers the
   elementals 38–40); the decision above follows the "maximum of 21" sentence.
+- **C64 (s214) `[~]`:** `CHAR2` holds 25 records with the elementals in records 21–23 (so 21 before them) and creation
+  numbers 38, 39, 40 for the elementals, as the manual's list (`reverse-engineering/c64/phantasie1/FORMAT.md` section 3.5).
 - **Option `p1.guild-size`:** `manual` (21) · `dos` (Guild N)EW fills all 22 records, from `rules.json` `guild_by_platform.dos`). The save format keeps 22 slots either way. The DOS-import warning "x characters, the Guild holds 21" still reads the profile's 21.
 
 ## D-003 — Race lifespans
@@ -178,6 +181,8 @@ names its presets only where they differ from this.
 - **Remaster:** `creation-tables.json` `spell_levels` Monk 7 = 13, 48.
 - **Side effects:** a DOS Monk that already knows SLEEP keeps it on import (imports load as-is, P1.4).
 - **Spec:** `town-menus.md` section Level-up gains.
+- **C64 (s214):** the English C64's `TINFO` spell-level table has 0 (never) in this cell, the manual's value; every other
+  cell equals DOS's (`reverse-engineering/c64/phantasie1/FORMAT.md` section 3.3).
 - **Option `p1.monk-sleep`:** `manual` · `dos` (TWNS.INT's Monk level 7 = 13, 42, 48: Monks can learn SLEEP). The DOS cell lives in `creation-tables.json` `dos_tables`.
 
 ## D-007 — Level-up HP averages vs the manual's chart

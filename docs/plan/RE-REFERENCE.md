@@ -135,8 +135,9 @@ Ran the rea MCP tools (Ghidra 12.1.2 backend) over the three DOS binaries:
 Images: `reverse-engineering/c64/original-images/phantasie1/de/Phantasie_I_1986_SSI_de_Side_{A,B}.d64` and `en/`
 (+ `SOURCES.txt`). The `de` set is the **German** release, a cracked copy: search German text (e.g.
 "AUFERSTANDEN"/"WIEDERBELEBT"), not the DOS English strings. 6502 code; capstone 5.0.9 has `CS_ARCH_MOS65XX`. Files:
-`tools/scripts/extract_c64_d64.py` (standard D64 layout, directory at track 18 sector 1). Load address = first 2 bytes
-of each PRG.
+`tools/scripts/extract_c64_d64.py` (standard D64 layout, directory at track 18 sector 1; `--out DIR IMAGES` for any
+D64 / G64, with REL record lengths). Load address = first 2 bytes of each PRG. G64 (C64PP): `tools/scripts/c64_g64.py`
+decodes to a D64. English I's files and tables: `reverse-engineering/c64/phantasie1/FORMAT.md`.
 
 ## Amiga full-system runs (FS-UAE)
 

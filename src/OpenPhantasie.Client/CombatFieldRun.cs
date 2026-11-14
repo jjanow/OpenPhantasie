@@ -109,11 +109,12 @@ public sealed class CombatFieldRun
     /// <paramref name="party"/> / <paramref name="monsters"/>: who stood on the field when the round began, so a
     /// "dies" line (<c>core.combat.x_dies</c> with the name) can be matched to its member, or to the next monster of that
     /// name that is dead after the round (<paramref name="deadAfter"/>). <paramref name="flashRun"/>: the round's spell
-    /// flashes (<see cref="CombatFlashRun.Plan"/>), each played before its hit's line.
+    /// flashes (<see cref="CombatFlashRun.Plan"/>), each played before its hit's line. <paramref name="lineTicks"/>: how
+    /// long each line stays (<see cref="LineTicks"/>; a party option's answer <c>0x1a676</c>: 40).
     /// </summary>
     public static CombatFieldRun Plan(IReadOnlyList<string> log, IReadOnlyList<CombatLineTag> tags, IReadOnlyList<string> after,
         IReadOnlyList<Character> party, IEnumerable<Character> deadBefore, IReadOnlyList<Monster> monsters,
-        Func<Monster, bool> deadAfter, AmigaCombatSpeed speed, CombatFlashRun? flashRun = null)
+        Func<Monster, bool> deadAfter, AmigaCombatSpeed speed, CombatFlashRun? flashRun = null, int lineTicks = LineTicks)
     {
         ArgumentNullException.ThrowIfNull(deadBefore);
         ArgumentNullException.ThrowIfNull(log);
@@ -164,7 +165,7 @@ public sealed class CombatFieldRun
             if (string.IsNullOrWhiteSpace(text))
                 continue;
             var attack = swing != CombatSwing.None ? TicksMs(AttackTicks, speed) : 0;
-            var line = new Line(text, monster is null, member, monster, swing, at, attack, TicksMs(LineTicks, speed), sound);
+            var line = new Line(text, monster is null, member, monster, swing, at, attack, TicksMs(lineTicks, speed), sound);
             lines.Add(line);
             var printed = line.StartMs + line.AttackMs;
             if (party.FirstOrDefault(m => !deadAtStart.Contains(m) && !deaths.Any(d => ReferenceEquals(d.Item2, m))

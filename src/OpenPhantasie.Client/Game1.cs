@@ -765,6 +765,9 @@ public partial class Game1 : Game
         _combatUi.AmigaOrders = () => _session is { Game: GameId.P3 } && CurrentGameSettings.OriginalScreens
                                       && assets?.BodyFigure is not null && assets.KeepWindows?.Rank is not null;
         _combatUi.AmigaFieldWindows = () => assets?.KeepWindows is { MonsterNames: not null, PartyHealth: not null };
+        // s214: III's orders list names a cast's spell (DOS's combat list); I and II keep "SPELL #n".
+        _combatUi.SpellName = i => _session is { Game: GameId.P3 } && _data is { } spells && i >= 0 && i < spells.Spells.Count
+            ? spells.GetSpell(i).Name : null;
         // s132: I's Amiga combat screen (the AMIGA SCREENS switch and a pack with its layout).
         _combatUi.P1Layout = assets?.Pack?.CombatField;
         _combatUi.AmigaP1Field = () => _session is { Game: GameId.P1 } && CurrentGameSettings.OriginalScreens

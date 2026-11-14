@@ -57,6 +57,21 @@ public class TownMenuTests
         Assert.Equal(TownPlace.Menu, menu.Place);
     }
 
+    [Theory]
+    [InlineData(Keys.B, "Bank")]
+    [InlineData(Keys.N, "Inn")]
+    [InlineData(Keys.A, "Armory")]
+    [InlineData(Keys.M, "Mystic")]
+    [InlineData(Keys.L, "Exit")]
+    public void LetterKeys_MoveTheHighlightToTheirEntry(Keys key, string label)
+    {
+        // s214 (Apple-only III on Xvfb): B opened the Bank list under the first-ever highlight, GUILD; the list is drawn
+        // under the highlighted label, so the letter moves the highlight as the arrows would.
+        var menu = new TownMenu();
+        menu.HandleKey(key);
+        Assert.Equal(label, TownMenu.BarLabels[menu.BarCursor]);
+    }
+
     [OriginalDataFact]
     public void Bank_ListsWithdrawDeposit_AndExitClosesIt()
     {

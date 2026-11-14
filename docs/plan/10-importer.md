@@ -230,7 +230,7 @@ come from, and I's 682 ids and the shared `p3*` / `p4` areas are not tagged.
 | I | DOS Bonus Edition Ver 1.1 11/12/90 (WizardWorks 1991 `.ima`) | every I table + DOS CGA pack, as 1987 (`PHANTASI.EXE` is LZEXE 0.90 over the same EXEPACK image; unpacked it is 1987's but one byte; every data file and every offset read is the same, `dos/bonus-edition.md`) | as 1987 (+ `re_common.unpack_phantasi`) | supported (`p1-dos-bonus-1991`, `P1DosBonusPipeline`: output equal to 1987's) |
 | I | Memorial Set DOS I (Steam app 2702050, GOG product 1919929332; DOSBox): the **Bonus Edition Ver 1.0 9/21/90**, every game file = Ver 1.1's (`dos/original-images/memorial-set-gog/README.md`) | as Bonus Ver 1.1 | as 1987 | supported (found as `p1-dos-bonus-1991`, unplayed) |
 | I | **Amiga v1.0 1987** (`.adf`, also `.zip`) | every I table (b, c) without DOS I (7.8: the Amiga's text, DOS's numbers) + Amiga pack: art, map pictures, title tune, sounds | `amiga_gfx_common`, `extract_amiga_graphics`, `extract_amiga_map_graphics`, `build_amiga_asset_manifest`, `extract_amiga_fonts` (topaz 8 needs the Kickstart 1.3 ROM) (disk unpack: amitools `xdftool`) | supported (tables too, `P1AmigaTables`, `reverse-engineering/amiga/GAME-TABLES.md`; DOS I's tables win when both are imported) |
-| I | C64 en / de (`.d64`) | files only | `extract_c64_d64.py` | recognised, no extractor |
+| I | C64 en / de (`.d64`); C64PP v1.0–v1.4 (`.g64`) | files only | `extract_c64_d64.py`, `c64_g64.py` (G64 → D64) | recognised (D64), no extractor. Formats and the `p1-c64` plan: `reverse-engineering/c64/phantasie1/FORMAT.md` (s214) |
 | I | Apple II, Atari ST (v2.0 en, v1.0 de), Atari 8-bit, MSX2, PC-88, PC-98, X1 | — | — | recognised by hash only |
 | II | **Atari ST v1.0** (Pasti `.stx`; TOSEC `.st` has byte-identical program and data files) | every II table + ST pack + title tune | `stx_to_st`, FAT12 unpack (mtools today), `st_prg`, `extract_st_phantasie2`, `extract_st_p2_maps` / `_dungeons` / `_scrolls` / `_towns`, `build_p2_gamedata`, `extract_st_p2_graphics`, `build_st_p2_asset_manifest` | supported |
 | II | **Apple II** v1.0 2/5/86 (4am `.dsk`, or the original `.woz` pair): the Memorial Set's II | reference extract: monsters, items, names, creation tables, towns, wilderness, dungeons + messages, scrolls; Apple II art pack | `a2_rdos`, `a2_applesoft`, `extract_a2_p2_tables`, `diff_a2_p2_vs_st`, `extract_a2_p2_graphics`, `build_a2_p2_asset_manifest` (`reverse-engineering/apple2/phantasie2/FORMAT.md`) | supported (C# port, `p2-apple2`, 7.2 / 7.5): the Apple's text, the ST's numbers (D2-046…050, user s159). No spell names on the Apple: the manual's list is shipped; divine #57 / #58, unnamed there, take the ST's names (D2-050, user s170, 7.5). The Memorial Set's disks (unplayed, shipped fog) are in DOS 3.3 sector order; the reader tries both orders and finds them (their save files are the profile's pristine sha1s) |
@@ -562,7 +562,7 @@ only its art pack, and only v2.1 is asked about restoring its maps.
 
 - **II Apple II v2.1:** not run in the Client yet (its tables equal v1.0's, so nothing new to see), and no unplayed
   v2.1 copy is known to confirm its derived pristine sha1s (3.3).
-- **Not seen in the Client on Xvfb `[~]`:** Amiga-only I (7.8), Apple-only III (7.10).
+- **Not seen in the Client on Xvfb `[~]`:** Amiga-only I (7.8).
 - **Open for the user:** Apple III's Scandor and plane grids (7.10).
 - **Other `[~]` / `[?]`:** IV disk 2 rewrites (3.3); the updater on Windows and macOS (8.4).
 - **I Bonus Edition** (the Memorial Set's I; `dos/bonus-edition.md`: `OV1.OVR` / `OV2.OVR` differ only in the
@@ -733,7 +733,8 @@ writes. `P3Apple2Pipeline` (recipe 2; 1 had no fallback wording) runs after `p3-
 - **With DOS III or the Amiga** (same run or earlier): their tables win; the Apple writes none and warns (the Amiga's
   `OwnsTables` also takes over the Apple's).
 - **Played copy:** none of the files read is rewritten by play (3.3); a [cr] copy imports the same.
-- Not seen in the Client on Xvfb `[~]` (the load-and-start test covers the loader, a new game in Pendragon and leaving town).
+- Played in the Client on Xvfb from a player's build (s214, `parity/s214-p3-apple2-live.md`): new game, Guild,
+  town, overworld, a dungeon, fights, save / load. Wording review: `p3-apple2-fallback-review.md`.
 
 ### 7.7 s160: the III CGA pack, the topaz offer, I's dungeon note
 

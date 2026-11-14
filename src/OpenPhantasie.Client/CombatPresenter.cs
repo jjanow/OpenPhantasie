@@ -700,6 +700,7 @@ public sealed partial class CombatPresenter
 
     private void EndField()
     {
+        _answerLines = null;
         P2Run = null;
         _p2Round = null;
         _p2Then = null;
@@ -782,6 +783,7 @@ public sealed partial class CombatPresenter
         ArgumentNullException.ThrowIfNull(session);
         _accumMs = 0;
         EndFlashes();
+        _answerLines = null; // a held answer of an earlier fight is over
         _log.Clear();
         LogScroll.Set(0, 1);
         MenuScroll.Set(0, 1);
@@ -855,8 +857,19 @@ public sealed partial class CombatPresenter
     public string OrderLabelFor(GameSession session, int index)
     {
         var ch = session.Party.Members[index];
-        return CombatText.OrderLabel(CombatText.RepeatFor(_lastPacked[index], ch.Class, LivingRanks(session)));
+        var order = CombatText.RepeatFor(_lastPacked[index], ch.Class, LivingRanks(session));
+        // III: a cast shows the spell's name with no rank mark, either rank (DOS's combat list, s212 live; the Amiga's
+        // orders screen 0x22d4c).
+        if (order.Choice == CombatChoice.Cast && SpellName?.Invoke(order.SpellIndex) is { Length: > 0 } name)
+            return name;
+        return CombatText.OrderLabel(order);
     }
+
+    /// <summary>
+    /// III: a spell's name by its index for the orders list (<see cref="OrderLabelFor"/>), null elsewhere: I and II keep
+    /// "SPELL #n" (and the rank mark).
+    /// </summary>
+    public Func<int, string?>? SpellName { get; set; }
 
     /// <summary>Members listed on the orders screen: status OK only (OV2 <c>0x6ab9</c>).</summary>
     public static bool IsOrderable(Character ch) =>
@@ -876,6 +889,17 @@ public sealed partial class CombatPresenter
         if (P1Banner is not null && P1Shown?.Text is { Length: > 0 })
             P1Banner = null; // D-058: the fight's first line takes the field's line
         FinishP1Tone(session);
+        if (_answerLines is { } answer) // III: a party option's answer stays, then the fight ends or goes on
+        {
+            var per = CombatFieldRun.TicksMs(AnswerTicks, FieldSpeed);
+            var shown = _clockMs - _answerStartMs;
+            if (!fastForward && shown < per * answer.Count)
+            {
+                LastLine = answer[Math.Min(answer.Count - 1, (int)(shown / per))];
+                return false;
+            }
+            return EndAnswerHold(session);
+        }
         if (!IsPresenting || (session.Mode != GameMode.Combat && FieldRun is null && P1Run is null && P2Run is null))
         {
             Phase = CombatPhase.Idle;
@@ -1168,6 +1192,8 @@ public sealed partial class CombatPresenter
     private void ChooseOption(GameSession session, PartyOption option)
     {
         var p1Snapshot = OnP1FieldOnly && session.Combat is { } before ? P1CombatFieldSnapshot.Of(session.Party, before) : null;
+        var fieldSnapshot = session.Game == GameId.P3 && AmigaField?.Invoke() == true && session.Combat is { } onField
+            ? CombatFieldSnapshot.Of(session.Party, onField) : null;
         var mark = _logMark;
         var result = session.ChoosePartyOption(option);
         var ends = result.Outcome == PartyOptionOutcome.CombatOver;
@@ -1178,7 +1204,69 @@ public sealed partial class CombatPresenter
         if (StartP1Interlude(session, p1Snapshot, mark, result.Outcome == PartyOptionOutcome.CombatOver,
                 s => AfterOption(s, result.Outcome)))
             return;
+        if (StartAnswerHold(session, fieldSnapshot, result))
+            return;
         AfterOption(session, result.Outcome);
+    }
+
+    /// <summary>
+    /// III's answer wait: ticks of 1/50 s each answer line stays (the Amiga's <c>0x1a676</c>: <c>0x1bacc(40)</c>, scaled
+    /// by Speed; DOS root <c>0x11376</c> waits <c>0x413(100)</c>, its length not timed `[~]`).
+    /// </summary>
+    public const int AnswerTicks = 40;
+
+    private IReadOnlyList<string>? _answerLines;
+    private double _answerStartMs;
+    private PartyOptionOutcome _answerOutcome;
+
+    /// <summary>True while a III party option's answer is held (<see cref="StartAnswerHold"/>).</summary>
+    public bool AnswerHeld => _answerLines is not null;
+
+    /// <summary>
+    /// III (<c>encounters.md</c> section 4, "How an answer is shown"): DOS and the Amiga print every Encounter-menu answer
+    /// ("Greetings...", "The monsters surrender!", "No Response..." ...) centred and wait before the fight ends or the round
+    /// goes on, with no key. Hold <paramref name="result"/>'s lines that long (<see cref="AnswerTicks"/> each at
+    /// <see cref="FieldSpeed"/>): on the Amiga field as field lines (<paramref name="snapshot"/>; row 24, not the
+    /// original's row 11 `[~]`), else as the combat line. False (nothing held) outside III or without a line.
+    /// </summary>
+    private bool StartAnswerHold(GameSession session, CombatFieldSnapshot? snapshot, PartyOptionResult result)
+    {
+        if (session.Game != GameId.P3)
+            return false;
+        var lines = result.Log.Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+        if (lines.Count == 0)
+            return false;
+        _answerLines = lines;
+        _answerOutcome = result.Outcome;
+        _answerStartMs = _clockMs;
+        if (snapshot is not null)
+        {
+            FieldSnapshot = snapshot;
+            FieldRun = CombatFieldRun.Plan(lines, [], [], snapshot.Party, snapshot.DeadBefore,
+                snapshot.Groups.SelectMany(g => g).ToList(), _ => false, FieldSpeed, lineTicks: AnswerTicks);
+            _fieldRound = null;
+            _fieldStartMs = _clockMs;
+            FieldRunSerial++;
+        }
+        Phase = CombatPhase.Resolving;
+        LastLine = lines[0];
+        return true;
+    }
+
+    /// <summary>The answer has been shown: the fight ends (true), or the orders / the lost round follow.</summary>
+    private bool EndAnswerHold(GameSession session)
+    {
+        var outcome = _answerOutcome;
+        EndField(); // drops the answer's field lines and the hold
+        if (_log.Count > 0)
+            LastLine = _log[^1];
+        if (outcome == PartyOptionOutcome.CombatOver)
+        {
+            Phase = CombatPhase.Idle;
+            return true;
+        }
+        AfterOption(session, outcome);
+        return !IsPresenting;
     }
 
     private void AfterOption(GameSession session, PartyOptionOutcome outcome)

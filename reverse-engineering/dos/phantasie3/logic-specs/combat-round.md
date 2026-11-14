@@ -165,6 +165,11 @@ damage_monster(group, d, target, rank, 1, 1)
   hit only `FAR:0xe63a` (10 of 10). With three monsters alive, the target slots split 34 / 13 / 10, which fits `0xb4ec`'s
   60 / 20 / 20. The combat list prints the spell name with no rank mark. The monster list at the screen's foot puts rank 2
   on its first line. Fireflash III (t = 8) was not cast live.
+- Remaster order line: the remaster's own orders list and order prompt (`CombatPresenter.OrderLabelFor`, the III hook
+  `SpellName`) print a cast as the spell's name with no rank mark, as DOS's list and the Amiga's orders screen do.
+- The flash on a monster (Amiga `0x1b814`, `combat_flash` in the pack) sits at the picture's top-left + (rnd mod 3) bytes
+  across and 6 + (rnd mod 22) pixels down, the same rule for either rank `[C]` static. A spark low on a short picture (a
+  Giant Bee, s212) is that rule, not a placement bug.
 
 ## 3. Monster turn (root `0xd069`) `[C]`
 

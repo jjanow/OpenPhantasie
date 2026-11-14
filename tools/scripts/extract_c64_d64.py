@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Extract every file from the Phantasie I C64 (German) D64 disk images.
+"""Extract every file from C64 D64 (or G64) disk images.
+
+Default (no arguments): the Phantasie I German D64s below. With arguments:
+    extract_c64_d64.py --out DIR IMAGE[.d64|.g64] ...
+writes DIR/<image stem>/<NAME>.<type> and DIR/manifest.json. G64 images are decoded to their 683 standard
+sectors first (`c64_g64.py`).
 
 Standard 35-track D64 layout: directory chain starts at track 18 sector 1,
 8 × 32-byte entries per sector; files are sector chains (byte 0/1 = next
@@ -15,7 +20,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import c64_g64  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 C64 = REPO / "reverse-engineering" / "c64"
@@ -77,16 +86,37 @@ def directory(img: bytes):
                 "closed": bool(ftype & 0x80),
                 "start": (e[3], e[4]),
                 "blocks": e[30] | e[31] << 8,
+                "record_length": e[23],
             }
         track, sector = blk[0], blk[1]
 
 
+def load_image(image: Path) -> bytes:
+    data = image.read_bytes()
+    if data[:8] == b"GCR-1541":
+        data, missing, _ = c64_g64.decode(data)
+        if missing:
+            print(f"{image.name}: {len(missing)} sectors not decoded: {missing}")
+    return data
+
+
+def safe_dir(stem: str) -> str:
+    return re.sub(r"[^A-Za-z0-9.+-]", "_", stem)
+
+
 def main() -> None:
+    args = sys.argv[1:]
+    out = OUT
+    if "--out" in args:
+        i = args.index("--out")
+        out = Path(args[i + 1])
+        del args[i:i + 2]
+    images = [Path(a) for a in args] or sorted(IMAGES.glob("*.d64"))
     manifest = {}
-    for image in sorted(IMAGES.glob("*.d64")):
-        img = image.read_bytes()
-        side = "side_" + image.stem.rsplit("_", 1)[-1].lower()
-        dest = OUT / side
+    for image in images:
+        img = load_image(image)
+        side = safe_dir(image.stem) if args else "side_" + image.stem.rsplit("_", 1)[-1].lower()
+        dest = out / side
         dest.mkdir(parents=True, exist_ok=True)
         disk = img[offset(18, 0):offset(18, 0) + 256]
         files = []
@@ -105,15 +135,19 @@ def main() -> None:
                 "blocks": ent["blocks"],
                 "size": len(data),
                 "sha256": hashlib.sha256(data).hexdigest(),
+                "sha1": hashlib.sha1(data).hexdigest(),
             }
+            if ent["type"] == "rel":
+                rec["record_length"] = ent["record_length"]
             if ent["type"] == "prg" and len(data) >= 2:
                 load = data[0] | data[1] << 8
                 rec["load"] = f"0x{load:04x}"
                 rec["end"] = f"0x{load + len(data) - 3:04x}"
             files.append(rec)
         manifest[image.name] = {"disk_name": petscii_name(disk[0x90:0xa0]), "files": files}
-        print(f"{image.name}: {len(files)} files -> {dest.relative_to(REPO)}")
-    (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
+        print(f"{image.name}: {len(files)} files -> {dest}")
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
 
 
 if __name__ == "__main__":

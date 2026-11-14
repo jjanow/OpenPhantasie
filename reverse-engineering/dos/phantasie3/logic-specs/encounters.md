@@ -72,6 +72,22 @@ Mercy / Flee the group copy +0x30, which Charm can raise).
 | **Beg for Mercy** (root `0x10e14`) | `rnd(100) < reaction + 60` and `id < 44` | "[original text]": party gold = 0, fight ends, no gold or treasure (XP see below). Found items are **not** touched | "No Response..." |
 | **Flee** (root `0x10f30`) | see below | "[original text]" | "[original text]", free-shots flag `FAR:0xb57c` = 1 |
 
+**How an answer is shown** (static, s214) `[C]`: every answer above (success or "No Response...") goes through one
+helper, DOS root `0x11376(text)` (called by Greet `0x112e9`, Surrender `0x10dcb`, Mercy `0x10e14`, Flee `0x10f30`):
+print the text centred on text row 11 (column (40 − length) / 2 − 1) and wait, between a save and a restore of the
+screen area (`0x6f6:0x322` / `0x6f6:0x457` on the same buffer; read from the call pattern, not decoded `[~]`). The wait
+is `0:0x413(100)`: a calibrated busy loop scaled by the speed word `0x9f2` (2 doubles it), then `0x2b80`, which by its
+loop drains the keyboard buffer `[~]`; no key is asked. Its length in seconds is `[~]` (the loop unit not timed). Only then does the option return:
+on a success the fight ends (outcome above) and the rewards follow, on a refusal the round goes on. The Amiga does the
+same for Greet (`0x1a5e4`, the line "They greet you!" `0x1a666`): its helper `0x1a676` prints the text centred on row 11
+(column (40 − length) / 2 − 1) and waits `0x1bacc(40)`, 40 ticks of 1/50 s scaled by Speed (Normal 0.8 s, Slow 1.6 s,
+Fast 0.2 s), no key.
+
+Remaster: `CombatPresenter` holds each III answer line (`AnswerTicks` = 40 at the game's COMBAT SPEED) before the fight
+ends or play goes on: on the Amiga field as a field line (row 24 in party blue, the place of the field's other lines,
+not row 11 `[~]`), on the remaster's own screens as the combat line (the map's line once the fight is over). Both looks
+use the Amiga's 40 ticks, since the unit of DOS's `0x413` wait is not timed `[~]`.
+
 ```
 flee():
     ok = false
