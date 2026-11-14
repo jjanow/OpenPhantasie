@@ -64,6 +64,26 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      543,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-apple2",
+    "parts": [
+     [
+      "TOWN3",
+      708,
+      4
+     ]
+    ]
    }
   ],
   "health.sleep": [
@@ -106,6 +126,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      569,
+      5
+     ]
+    ]
    }
   ],
   "health.okay": [
@@ -135,6 +165,16 @@
      [
       "PhantasieIII",
       21157,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-apple2",
+    "parts": [
+     [
+      "TOWN3",
+      794,
       4
      ]
     ]
@@ -189,6 +229,19 @@
      ],
      "{1,2}{2,11}{3,11}{4,6}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     "{0,10} ",
+     [
+      "TOWN2",
+      14530,
+      6
+     ],
+     "{1,2}{2,11}{3,11}{4,6}"
+    ]
    }
   ],
   "printout.spells": [
@@ -228,6 +281,16 @@
      [
       "OUTDOORS2",
       17692,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      17701,
       7
      ]
     ]
@@ -385,6 +448,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      447,
+      5
+     ]
+    ]
    }
   ],
   "distribute.monk": [
@@ -447,6 +520,26 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      453,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-apple2",
+    "parts": [
+     [
+      "TOWN3",
+      568,
+      4
+     ]
+    ]
    }
   ],
   "distribute.ranger": [
@@ -482,6 +575,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      458,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -531,6 +634,16 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      465,
+      7
+     ]
+    ]
    }
   ],
   "distribute.priest": [
@@ -573,6 +686,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      473,
+      6
+     ]
+    ]
    }
   ],
   "distribute.wizard": [
@@ -608,6 +731,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      480,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -684,6 +817,18 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      12506,
+      12
+     ],
+     "?"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -894,6 +1039,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2526,
+      5
+     ]
+    ]
    }
   ],
   "combattext.flee": [
@@ -984,6 +1139,17 @@
      ],
      " {0} : {1}  {2}(S)"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2225,
+      4
+     ],
+     " {0} : {1}  {2}(S)"
+    ]
    }
   ],
   "combattext.thrust": [
@@ -1023,6 +1189,16 @@
      [
       "OUTDOORS2",
       3049,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      3061,
       6
      ]
     ]
@@ -1068,6 +1244,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      1549,
+      6
+     ]
+    ]
    }
   ],
   "combattext.slash": [
@@ -1107,6 +1293,16 @@
      [
       "OUTDOORS2",
       3067,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      3079,
       5
      ]
     ]
@@ -1152,6 +1348,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      3086,
+      5
+     ]
+    ]
    }
   ],
   "combattext.parry": [
@@ -1194,6 +1400,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      3102,
+      5
+     ]
+    ]
    }
   ],
   "combattext.cast": [
@@ -1233,6 +1449,16 @@
      [
       "OUTDOORS2",
       3604,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      3616,
       4
      ]
     ]
@@ -1286,6 +1512,18 @@
      ],
      " {0}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     " ",
+     [
+      "OUTDOORS2",
+      4021,
+      7
+     ],
+     " {0}"
+    ]
    }
   ],
   "guild.transport_to_which_town": [
@@ -1321,6 +1559,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      10097,
+      24
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -1370,6 +1618,17 @@
      [
       "OUTDOORS2",
       16443,
+      4
+     ],
+     " {0}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      16452,
       4
      ],
      " {0}"
@@ -1442,6 +1701,18 @@
      ],
      "?"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      8784,
+      8
+     ],
+     "?"
+    ]
    }
   ],
   "guild.who_is_going_to_be_trained": [
@@ -1486,6 +1757,18 @@
      ],
      "?"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      6134,
+      18
+     ],
+     "?"
+    ]
    }
   ],
   "guild.who_will_learn": [
@@ -1521,6 +1804,18 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      7071,
+      21
+     ],
+     "?"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1583,6 +1878,17 @@
       12
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      6841,
+      12
+     ]
+    ]
    }
   ],
   "guild.x_gold": [
@@ -1632,6 +1938,18 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     "{0}",
+     [
+      "TOWN2",
+      6861,
+      12
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      "{0}",
@@ -1719,6 +2037,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      492,
+      5
+     ]
+    ]
    }
   ],
   "member.dwarf": [
@@ -1754,6 +2082,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      498,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -1803,6 +2141,16 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      508,
+      8
+     ]
+    ]
    }
   ],
   "member.gnome": [
@@ -1838,6 +2186,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      517,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -1909,6 +2267,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      447,
+      5
+     ]
+    ]
    }
   ],
   "member.monk": [
@@ -1971,6 +2339,26 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      453,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-apple2",
+    "parts": [
+     [
+      "TOWN3",
+      568,
+      4
+     ]
+    ]
    }
   ],
   "member.ranger": [
@@ -2006,6 +2394,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      458,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -2055,6 +2453,16 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      465,
+      7
+     ]
+    ]
    }
   ],
   "member.priest": [
@@ -2090,6 +2498,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      473,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -2139,6 +2557,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      480,
+      6
+     ]
+    ]
    }
   ],
   "member.strength_x": [
@@ -2177,6 +2605,17 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      14597,
+      8
+     ],
+     "{0,8}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -2231,6 +2670,17 @@
      ],
      "{0,4}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      14658,
+      12
+     ],
+     "{0,4}"
+    ]
    }
   ],
   "member.dexterity_x": [
@@ -2269,6 +2719,17 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      14717,
+      9
+     ],
+     "{0,7}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -2323,6 +2784,17 @@
      ],
      "{0,4}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      14771,
+      12
+     ],
+     "{0,4}"
+    ]
    }
   ],
   "member.charisma_x": [
@@ -2361,6 +2833,17 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      14834,
+      8
+     ],
+     "{0,8}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -2415,6 +2898,17 @@
      ],
      "{0,12}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      14909,
+      4
+     ],
+     "{0,12}"
+    ]
    }
   ],
   "member.whom_do_you_want_to_purge": [
@@ -2450,6 +2944,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9163,
+      25
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2540,6 +3045,18 @@
      ],
      " {3}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0,2} {1,-12} {2} ",
+     [
+      "OUTDOORS2",
+      16452,
+      4
+     ],
+     " {3}"
+    ]
    }
   ],
   "inspect.inspect_member": [
@@ -2594,6 +3111,16 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      14385,
+      7
+     ]
+    ]
    }
   ],
   "inspect.spells": [
@@ -2636,6 +3163,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      17701,
+      6
+     ]
+    ]
    }
   ],
   "inspect.equipment": [
@@ -2671,6 +3208,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      14968,
+      9
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -2720,6 +3267,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      17594,
+      6
+     ]
+    ]
    }
   ],
   "inspect.potions": [
@@ -2762,6 +3319,16 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      15387,
+      7
+     ]
+    ]
    }
   ],
   "inspect.whom_do_you_want_to_inspect": [
@@ -2797,6 +3364,18 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      14385,
+      11
+     ],
+     "?"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2852,6 +3431,17 @@
      ],
      "{0,21}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "DUNGON2",
+      16067,
+      7
+     ],
+     "{0,21}"
+    ]
    }
   ],
   "inspect.experience_points_x": [
@@ -2898,6 +3488,17 @@
      ],
      "{0,11}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      17182,
+      17
+     ],
+     "{0,11}"
+    ]
    }
   ],
   "inspect.gold_pieces_x": [
@@ -2940,6 +3541,17 @@
      [
       "OUTDOORS2",
       17237,
+      11
+     ],
+     "{0,17}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      17246,
       11
      ],
      "{0,17}"
@@ -3006,6 +3618,26 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      543,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-apple2",
+    "parts": [
+     [
+      "TOWN3",
+      708,
+      4
+     ]
+    ]
    }
   ],
   "inspect.okay": [
@@ -3035,6 +3667,16 @@
      [
       "PhantasieIII",
       21157,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-apple2",
+    "parts": [
+     [
+      "TOWN3",
+      794,
       4
      ]
     ]
@@ -3080,6 +3722,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      569,
+      5
+     ]
+    ]
    }
   ],
   "inspect.thief": [
@@ -3115,6 +3767,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      447,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -3184,6 +3846,26 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      453,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-apple2",
+    "parts": [
+     [
+      "TOWN3",
+      568,
+      4
+     ]
+    ]
    }
   ],
   "inspect.ranger": [
@@ -3219,6 +3901,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      458,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -3268,6 +3960,16 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      465,
+      7
+     ]
+    ]
    }
   ],
   "inspect.priest": [
@@ -3303,6 +4005,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      473,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -3352,6 +4064,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      480,
+      6
+     ]
+    ]
    }
   ],
   "inspect.human": [
@@ -3387,6 +4109,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      492,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -3436,6 +4168,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      498,
+      5
+     ]
+    ]
    }
   ],
   "inspect.halfling": [
@@ -3471,6 +4213,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      508,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -3520,6 +4272,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      517,
+      5
+     ]
+    ]
    }
   ],
   "inspect.pixie": [
@@ -3555,6 +4317,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      523,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -3604,6 +4376,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      529,
+      6
+     ]
+    ]
    }
   ],
   "inspect.ogre": [
@@ -3639,6 +4421,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      536,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -3688,6 +4480,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      541,
+      5
+     ]
+    ]
    }
   ],
   "inspect.troll": [
@@ -3723,6 +4525,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      547,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -3772,6 +4584,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      553,
+      6
+     ]
+    ]
    }
   ],
   "inspect.goblin": [
@@ -3807,6 +4629,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      564,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -3857,6 +4689,17 @@
       10
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      571,
+      10
+     ]
+    ]
    }
   ],
   "inspect.minotaur": [
@@ -3899,6 +4742,16 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      582,
+      8
+     ]
+    ]
    }
   ],
   "inspect.undead": [
@@ -3934,6 +4787,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      591,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -4011,6 +4874,17 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     " ",
+     [
+      "CHAR2",
+      6421,
+      4
+     ]
+    ]
    }
   ],
   "inspect.water": [
@@ -4054,6 +4928,17 @@
      [
       "OUTDOORS2",
       203,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     " ",
+     [
+      "OUTDOORS2",
+      215,
       5
      ]
     ]
@@ -4103,6 +4988,17 @@
      ],
      "{0,3} {1} {2} {3}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      16119,
+      5
+     ],
+     "{0,3} {1} {2} {3}"
+    ]
    }
   ],
   "inspect.strength_x_age_x": [
@@ -4141,6 +5037,17 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      14597,
+      8
+     ],
+     "{0,8} AGE{1,15}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -4219,6 +5126,23 @@
      ],
      "{1,4}/{2,-3}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      14658,
+      12
+     ],
+     "{0,4} ",
+     [
+      "OUTDOORS2",
+      17531,
+      10
+     ],
+     "{1,4}/{2,-3}"
+    ]
    }
   ],
   "inspect.dexterity_x_magic_x_x": [
@@ -4285,6 +5209,23 @@
      [
       "OUTDOORS2",
       470,
+      5
+     ],
+     "{1,9}/{2,-3}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      14717,
+      9
+     ],
+     "{0,7} ",
+     [
+      "OUTDOORS2",
+      482,
       5
      ],
      "{1,9}/{2,-3}"
@@ -4371,6 +5312,17 @@
      ],
      "{0,4}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      14771,
+      12
+     ],
+     "{0,4}"
+    ]
    }
   ],
   "inspect.charisma_x_exper_points_x": [
@@ -4409,6 +5361,17 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      14834,
+      8
+     ],
+     "{0,8} EXPER. POINTS{1,5}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -4487,6 +5450,23 @@
      ],
      "{1,13}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      14909,
+      4
+     ],
+     "{0,12} ",
+     [
+      "TOWN2",
+      9424,
+      5
+     ],
+     "{1,13}"
+    ]
    }
   ],
   "inspect.runes": [
@@ -4540,6 +5520,19 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     "{0,-13}",
+     [
+      "TOWN2",
+      2965,
+      3
+     ],
+     ":{1,-2}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      "{0,-13}",
@@ -4858,6 +5851,24 @@
      ],
      " {2}/{3} {4}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      2848,
+      4
+     ],
+     " {1} ",
+     [
+      "OUTDOORS2",
+      2510,
+      5
+     ],
+     " {2}/{3} {4}"
+    ]
    }
   ],
   "ui.x_gold_x_party_x_x_2": [
@@ -4932,6 +5943,24 @@
      ],
      " {2}/{3}   SCALE x{4}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0}   ",
+     [
+      "OUTDOORS2",
+      2848,
+      4
+     ],
+     " {1}   ",
+     [
+      "OUTDOORS2",
+      2510,
+      5
+     ],
+     " {2}/{3}   SCALE x{4}"
+    ]
    }
   ],
   "ui.x_x_party_x_x": [
@@ -4978,6 +6007,18 @@
      [
       "OUTDOORS2",
       2498,
+      5
+     ],
+     " {2}/{3} {4}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} {1} ",
+     [
+      "OUTDOORS2",
+      2510,
       5
      ],
      " {2}/{3} {4}"
@@ -5032,6 +6073,18 @@
      ],
      " {1}/{2} {3}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      2510,
+      5
+     ],
+     " {1}/{2} {3}"
+    ]
    }
   ],
   "ui.x_x_party_x_scale_x": [
@@ -5082,6 +6135,18 @@
      ],
      " {2}/{3}   SCALE x{4}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0}   {1}   ",
+     [
+      "OUTDOORS2",
+      2510,
+      5
+     ],
+     " {2}/{3}   SCALE x{4}"
+    ]
    }
   ],
   "ui.x_party_x_scale_x": [
@@ -5128,6 +6193,18 @@
      [
       "OUTDOORS2",
       2498,
+      5
+     ],
+     " {1}/{2}   SCALE x{3}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0}   ",
+     [
+      "OUTDOORS2",
+      2510,
       5
      ],
      " {1}/{2}   SCALE x{3}"
@@ -5239,6 +6316,17 @@
      ],
      " {0}_"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      15903,
+      12
+     ],
+     " {0}_"
+    ]
    }
   ],
   "inspect.shield": [
@@ -5278,6 +6366,16 @@
      [
       "OUTDOORS2",
       438,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      450,
       6
      ]
     ]
@@ -5323,6 +6421,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      457,
+      5
+     ]
+    ]
    }
   ],
   "inspect.weapon": [
@@ -5365,6 +6473,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      463,
+      6
+     ]
+    ]
    }
   ],
   "inspect.good_weapon": [
@@ -5404,6 +6522,16 @@
      [
       "OUTDOORS2",
       458,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      470,
       11
      ]
     ]
@@ -5481,6 +6609,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      495,
+      6
+     ]
+    ]
    }
   ],
   "inspect.scroll": [
@@ -5520,6 +6658,16 @@
      [
       "OUTDOORS2",
       490,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      502,
       6
      ]
     ]
@@ -5565,6 +6713,16 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      509,
+      8
+     ]
+    ]
    }
   ],
   "inspect.good_treasure": [
@@ -5607,6 +6765,16 @@
       13
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      518,
+      13
+     ]
+    ]
    }
   ],
   "inspect.spells_available": [
@@ -5642,6 +6810,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      7519,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -5833,6 +7012,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      3185,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -6823,6 +8013,16 @@
       12
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      14600,
+      12
+     ]
+    ]
    }
   ],
   "core.combat.x_experience_points_and_x_gold": [
@@ -6901,6 +8101,16 @@
       18
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      11437,
+      18
+     ]
+    ]
    }
   ],
   "core.aging.x_has_died": [
@@ -6937,6 +8147,18 @@
       9
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     "{0}",
+     [
+      "TOWN2",
+      1062,
+      9
+     ]
+    ]
    }
   ],
   "core.aging.x_has_aged": [
@@ -6964,6 +8186,18 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     "{0}",
+     [
+      "TOWN2",
+      996,
+      9
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      "{0}",
@@ -7019,6 +8253,17 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      4948,
+      7
+     ]
+    ]
    }
   ],
   "core.combat.x_misses": [
@@ -7062,6 +8307,17 @@
      [
       "OUTDOORS2",
       4798,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      4810,
       6
      ]
     ]
@@ -7111,6 +8367,17 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      5402,
+      4
+     ]
+    ]
    }
   ],
   "core.combat.monsters_killed": [
@@ -7150,6 +8417,16 @@
      [
       "OUTDOORS2",
       11345,
+      15
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      11357,
       15
      ]
     ]
@@ -7199,6 +8476,18 @@
      [
       "OUTDOORS2",
       11459,
+      6
+     ],
+     " {1} GP"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      11471,
       6
      ],
      " {1} GP"
@@ -7273,6 +8562,23 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      10378,
+      5
+     ],
+     " {1} ",
+     [
+      "OUTDOORS2",
+      10392,
+      6
+     ]
+    ]
    }
   ],
   "core.combat.x_dies": [
@@ -7319,6 +8625,17 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      10463,
+      4
+     ]
+    ]
    }
   ],
   "core.combat.monsters_are_charmed": [
@@ -7359,6 +8676,17 @@
      [
       "OUTDOORS2",
       8862,
+      16
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "OUTDOORS2",
+      8874,
       16
      ]
     ]
@@ -7404,6 +8732,16 @@
       12
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      9522,
+      12
+     ]
+    ]
    }
   ],
   "core.combat.monsters_start_dissolving": [
@@ -7443,6 +8781,16 @@
      [
       "OUTDOORS2",
       8932,
+      25
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      8944,
       25
      ]
     ]
@@ -7506,6 +8854,17 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     "{0,-10:.9}",
+     [
+      "DUNGON2",
+      14564,
+      15
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      "{0,-10:.9}",
      [
@@ -7584,6 +8943,23 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0,-10:.9}",
+     [
+      "OUTDOORS2",
+      10378,
+      5
+     ],
+     " {1,-3}",
+     [
+      "OUTDOORS2",
+      10392,
+      6
+     ]
+    ]
    }
   ],
   "core.dungeon.trap_x_dies": [
@@ -7630,6 +9006,17 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0,-10:.9}",
+     [
+      "OUTDOORS2",
+      10463,
+      4
+     ]
+    ]
    }
   ],
   "core.dungeon.swim_x_dies": [
@@ -7673,6 +9060,17 @@
      [
       "OUTDOORS2",
       10451,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0,-10:.9}",
+     [
+      "OUTDOORS2",
+      10463,
       4
      ]
     ]
@@ -7746,6 +9144,23 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0,-10:.9}",
+     [
+      "OUTDOORS2",
+      10378,
+      5
+     ],
+     " {1,-3} ",
+     [
+      "OUTDOORS2",
+      10392,
+      6
+     ]
+    ]
    }
   ],
   "core.script.report_x_dies": [
@@ -7789,6 +9204,17 @@
      [
       "OUTDOORS2",
       10451,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0,-10:.9}",
+     [
+      "OUTDOORS2",
+      10463,
       4
      ]
     ]
@@ -7857,6 +9283,17 @@
      [
       "OUTDOORS2",
       14057,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0,-10:.9}",
+     [
+      "OUTDOORS2",
+      14066,
       5
      ]
     ]
@@ -7937,6 +9374,30 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     "{0,-10:.9}",
+     [
+      "OUTDOORS2",
+      14017,
+      5
+     ],
+     " AND ",
+     [
+      "OUTDOORS2",
+      10378,
+      6
+     ],
+     "{1,-3}",
+     [
+      "OUTDOORS2",
+      10391,
+      7
+     ]
+    ]
    }
   ],
   "core.script.smoke_fills_the_air": [
@@ -7972,6 +9433,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "DUNGON2",
+      18311,
+      19
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "DUNGON2",
@@ -8021,6 +9492,16 @@
       15
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "DUNGON2",
+      18344,
+      15
+     ]
+    ]
    }
   ],
   "core.script.party_gets_some_gold": [
@@ -8056,6 +9537,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "DUNGON2",
+      18461,
+      24
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "DUNGON2",
@@ -8105,6 +9596,16 @@
       26
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "DUNGON2",
+      18559,
+      26
+     ]
+    ]
    }
   ],
   "core.script.the_party_is_moved": [
@@ -8140,6 +9641,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "DUNGON2",
+      18667,
+      18
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "DUNGON2",
@@ -8189,6 +9700,16 @@
       32
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "DUNGON2",
+      18734,
+      32
+     ]
+    ]
    }
   ],
   "core.script.monsters_appear": [
@@ -8224,6 +9745,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "DUNGON2",
+      18822,
+      15
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "DUNGON2",
@@ -8311,6 +9842,17 @@
      ],
      " {0,-2} TO {1,-2}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "DUNGON2",
+      17207,
+      17
+     ],
+     " {0,-2} TO {1,-2}"
+    ]
    }
   ],
   "core.dungeon.x_spots_a_trap": [
@@ -8349,6 +9891,17 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGON2",
+      14175,
+      12
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      "{0} ",
      [
@@ -8403,6 +9956,17 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGON2",
+      14409,
+      8
+     ]
+    ]
    }
   ],
   "core.dungeon.x_fails": [
@@ -8449,6 +10013,17 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGON2",
+      14369,
+      5
+     ]
+    ]
    }
   ],
   "core.dungeon.no_one_can_pick_the_lock": [
@@ -8484,6 +10059,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "DUNGON2",
+      17724,
+      24
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "DUNGON2",
@@ -8537,6 +10122,17 @@
       14
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGON2",
+      17667,
+      14
+     ]
+    ]
    }
   ],
   "core.dungeon.x_hears_monsters_go_back": [
@@ -8564,6 +10160,18 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     "{0}",
+     [
+      "DUNGON2",
+      17420,
+      25
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      "{0}",
@@ -8832,6 +10440,16 @@
       28
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "CEMETARY2",
+      535,
+      28
+     ]
+    ]
    }
   ],
   "core.defeat.arrived_at_astral_plane": [
@@ -8875,6 +10493,17 @@
       39
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "CEMETARY2",
+      928,
+      39
+     ]
+    ]
    }
   ],
   "core.defeat.great_demon_speaks": [
@@ -8910,6 +10539,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "CEMETARY2",
+      1019,
+      35
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -9101,6 +10741,17 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "SHIELD: PROTECTION {0} ",
+     [
+      "OUTDOORS2",
+      17193,
+      6
+     ]
+    ]
    }
   ],
   "core.item.armor_protection_x": [
@@ -9144,6 +10795,17 @@
      [
       "OUTDOORS2",
       17184,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "ARMOR: PROTECTION {0} ",
+     [
+      "OUTDOORS2",
+      17193,
       6
      ]
     ]
@@ -9193,6 +10855,17 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "WEAPON: DAMAGE {0} ",
+     [
+      "OUTDOORS2",
+      17193,
+      6
+     ]
+    ]
    }
   ],
   "core.item.healing_potion_x": [
@@ -9236,6 +10909,17 @@
      [
       "OUTDOORS2",
       17522,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "HEALING POTION: RESTORES {0} ",
+     [
+      "OUTDOORS2",
+      17531,
       10
      ]
     ]
@@ -9320,6 +11004,16 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      509,
+      8
+     ]
+    ]
    }
   ],
   "core.magic.not_enough_mp": [
@@ -9379,6 +11073,17 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      10252,
+      8
+     ]
+    ]
    }
   ],
   "core.combat.x_casts_a_spell": [
@@ -9425,6 +11130,17 @@
       13
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      5503,
+      13
+     ]
+    ]
    }
   ],
   "core.combat.armor_reduced": [
@@ -9464,6 +11180,16 @@
      [
       "OUTDOORS2",
       9757,
+      28
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      9769,
       28
      ]
     ]
@@ -9509,6 +11235,16 @@
       19
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      9833,
+      19
+     ]
+    ]
    }
   ],
   "core.combat.magic_drained": [
@@ -9551,6 +11287,16 @@
       16
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      6951,
+      16
+     ]
+    ]
    }
   ],
   "core.combat.a_stunning_blow": [
@@ -9590,6 +11336,16 @@
      [
       "OUTDOORS2",
       6878,
+      15
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      6890,
       15
      ]
     ]
@@ -9639,6 +11395,17 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      8617,
+      8
+     ]
+    ]
    }
   ],
   "core.encounter.a_night_encounter": [
@@ -9678,6 +11445,16 @@
      [
       "OUTDOORS2",
       14837,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      14846,
       17
      ]
     ]
@@ -9763,6 +11540,17 @@
       11
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      14884,
+      11
+     ]
+    ]
    }
   ],
   "core.encounter.and_hears_the_monsters": [
@@ -9803,6 +11591,17 @@
      [
       "OUTDOORS2",
       14907,
+      18
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "OUTDOORS2",
+      14916,
       18
      ]
     ]
@@ -9918,6 +11717,16 @@
       32
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2820,
+      32
+     ]
+    ]
    }
   ],
   "core.combat.monsters_surrender": [
@@ -9957,6 +11766,16 @@
      [
       "OUTDOORS2",
       2926,
+      18
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2938,
       18
      ]
     ]
@@ -10002,6 +11821,16 @@
       18
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      3006,
+      18
+     ]
+    ]
    }
   ],
   "core.combat.monsters_dont_respond": [
@@ -10041,6 +11870,16 @@
      [
       "OUTDOORS2",
       2755,
+      22
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2767,
       22
      ]
     ]
@@ -10115,6 +11954,18 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGON2",
+      14271,
+      16
+     ],
+     "?"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -10208,6 +12059,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2526,
+      5
+     ]
+    ]
    }
   ],
   "core.prompt.surrender": [
@@ -10250,6 +12111,16 @@
       9
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2541,
+      9
+     ]
+    ]
    }
   ],
   "core.prompt.attack": [
@@ -10289,6 +12160,16 @@
      [
       "OUTDOORS2",
       1537,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      1549,
       6
      ]
     ]
@@ -10372,6 +12253,17 @@
       13
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGON2",
+      12299,
+      13
+     ]
+    ]
    }
   ],
   "core.encounter.black_knights_flee": [
@@ -10441,6 +12333,17 @@
       18
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "OUTDOORS2",
+      14481,
+      18
+     ]
+    ]
    }
   ],
   "core.encounter.monsters_surprise_you": [
@@ -10471,6 +12374,17 @@
      [
       "OUTDOORS2",
       14547,
+      21
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "OUTDOORS2",
+      14556,
       21
      ]
     ]
@@ -10517,6 +12431,17 @@
      [
       "OUTDOORS2",
       14301,
+      14
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      14310,
       14
      ]
     ]
@@ -10615,6 +12540,16 @@
      [
       "OUTDOORS2",
       16939,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      16948,
       10
      ]
     ]
@@ -10746,6 +12681,16 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      2988,
+      8
+     ]
+    ]
    }
   ],
   "core.inn.in_peace": [
@@ -10820,6 +12765,16 @@
       15
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      17053,
+      15
+     ]
+    ]
    }
   ],
   "core.inn.x_is_resting_x": [
@@ -10866,6 +12821,18 @@
      [
       "OUTDOORS2",
       16939,
+      10
+     ],
+     " {1}"
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0,-10} ",
+     [
+      "OUTDOORS2",
+      16948,
       10
      ],
      " {1}"
@@ -10940,6 +12907,23 @@
      ],
      " {1} GP"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      11437,
+      18
+     ],
+     " {0} ",
+     [
+      "OUTDOORS2",
+      11471,
+      6
+     ],
+     " {1} GP"
+    ]
    }
   ],
   "core.mystic.tier_novice": [
@@ -10973,6 +12957,17 @@
       18
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9671,
+      18
+     ]
+    ]
    }
   ],
   "core.mystic.tier_experienced": [
@@ -10998,6 +12993,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9698,
+      23
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -11232,6 +13238,25 @@
      ],
      "."
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     " ",
+     [
+      "TOWN2",
+      6841,
+      13
+     ],
+     "{0}",
+     [
+      "TOWN2",
+      6861,
+      12
+     ],
+     "."
+    ]
    }
   ],
   "core.guild.you_are_trained": [
@@ -11306,6 +13331,18 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "CEMETARY2",
+      1230,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      "{0} ",
@@ -11398,6 +13435,17 @@
       9
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      5756,
+      9
+     ]
+    ]
    }
   ],
   "core.spell.quickness": [
@@ -11465,6 +13513,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "TOWN2",
+      14597,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "TOWN2",
@@ -11546,6 +13604,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      8883,
+      5
+     ]
+    ]
    }
   ],
   "core.spell.sleep": [
@@ -11585,6 +13653,16 @@
      [
       "OUTDOORS2",
       557,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      569,
       5
      ]
     ]
@@ -11790,6 +13868,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      4948,
+      6
+     ]
+    ]
    }
   ],
   "core.spell.ninja": [
@@ -11893,6 +13981,16 @@
      [
       "OUTDOORS2",
       9107,
+      13
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      9119,
       13
      ]
     ]

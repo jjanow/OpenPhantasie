@@ -1552,6 +1552,27 @@
    65
   ]
  },
+ "fireflash": {
+  "_note": "The party's Fireflash I-IV (#5-8), one value per spell (D3-075, logic-specs/combat-round.md section 2). manual_max: the manual's 1-10 / 1-30 / 1-60 / 1-100 (III PDF 11 / pr.14), p3.fireflash = manual. dos_factor: t in DOS's rnd((INT / 2 + 1) * t) (DS:0xc1a[5..8], root 0xb42e) [C]; dos_cap: the caps on that roll (code immediates, root 0xb48a-0xb4c8) [C]; p3.fireflash = dos. Live s212 (DOSBox-X): the roll's top, the factors and the cap 99 seen as decoded (parity/s212-p3-fireflash-live.md).",
+  "manual_max": [
+   10,
+   30,
+   60,
+   100
+  ],
+  "dos_factor": [
+   1,
+   4,
+   8,
+   13
+  ],
+  "dos_cap": [
+   10,
+   30,
+   60,
+   99
+  ]
+ },
  "social_classes": {
   "_note": "Creation (ovl2 0x227d) [C]: r = rnd(100) for races 0-4 (Human, Dwarven, Elven, Gnome, Halfling), rnd(75) for the others; r < 30 Peasant, < 60 Labourer, < 90 Craftsman, else Noble. Starting gold in the bank = class * gold_per_class (FORMAT.md section 5.1). 4 Darklord / 5 Superhero are endgame titles (D3-006). D3-023 (user s81: manual): each level-up also pays class * gold_per_class (DOS pays nothing: an option, not built here). rules.json starting_gold is 0 for this reason.",
   "roll_die_by_race_group": {

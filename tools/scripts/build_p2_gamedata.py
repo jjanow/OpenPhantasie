@@ -15,6 +15,7 @@ left out or null with a "[?]" note; nothing is guessed. Run from the repo root:
 import json
 import os
 import sys
+from pathlib import Path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SRC = os.path.join(ROOT, "reverse-engineering", "atari-st", "phantasie2", "extracted")
@@ -22,6 +23,7 @@ P1 = os.path.join(ROOT, "src", "OpenPhantasie.Data", "GameData", "phantasie1")
 OUT = os.path.join(ROOT, "src", "OpenPhantasie.Data", "GameData", "phantasie2")
 GAME = "p2"
 SOURCE = "Phantasie II, Atari ST v1.0 (reverse-engineering/atari-st/phantasie2/extracted/, FORMAT.md)"
+PRG = Path(ROOT) / "reverse-engineering" / "atari-st" / "phantasie2" / "unpacked" / "disk1" / "PHANT.PRG"
 
 
 def load(*parts):
@@ -461,6 +463,27 @@ def elementals(el):
 
 # ---- rules and manifest -----------------------------------------------------------------------------------------------
 
+def ffp(x: float) -> str:
+    """A positive float as a Motorola FFP single (24-bit mantissa, truncated; sign bit 0; exponent + 64), as hex."""
+    e = 0
+    while x >= 1.0:
+        x /= 2.0
+        e += 1
+    while x < 0.5:
+        x *= 2.0
+        e -= 1
+    return f"{int(x * (1 << 24)):06X}{e + 64:02X}"
+
+
+def training_class(name, weights, divisor):
+    """One training row; divisor_ffp = the FFP constant PHANT.PRG holds for it (checked to occur once in the program
+    when the unpacked PHANT.PRG is in the tree)."""
+    code = ffp(divisor)
+    if PRG.exists() and PRG.read_bytes().count(bytes.fromhex(code)) != 1:
+        sys.exit(f"training divisor {divisor} ({code}) not found once in {PRG}")
+    return {"class": name, "weights": weights, "divisor": divisor, "divisor_ffp": code}
+
+
 def rules():
     return {
         "_source": "Phase 09 T1.3 rules profile for Phantasie II (Atari ST v1.0 numbers; the combined I + II rulebook is "
@@ -485,6 +508,26 @@ def rules():
         "original_platform": "atari-st",
         "_starting_gold": "256 GP in the bank [C] (logic-specs/encounters.md section 8): create_character 0x0cc2a writes 256 to @262; the manual agrees "
                           "(combined rulebook general rules, 09-trilogy-manual-p2.md).",
+        "_elementals": "Atari ST PHANT.PRG [C] static s172 (logic-specs/towns.md section 10; not seen live): Guild Add "
+                       "0xd442 lists the three elementals (rows 22-24) whenever none is loaded and copies the pick into "
+                       "party record 6, with no member count (min_members 0), and characters can still be added beside it "
+                       "(the Guild menu 0x352 disables Add only when the party holds every available character up to six "
+                       "and the elemental). Drop 0xd57c lists the seven party records (the elemental too: drops_elemental) "
+                       "and clears only the picked record; the compaction 0xc14a moves records 0-5 only, so the elemental "
+                       "stays even when no character is left (drop_keeps, keeps_alone). Purge 0xd68a lists the 22 character "
+                       "records (the elementals never) and clears the party copies in records 0-5 only (purge keeps). "
+                       "Summon Elemental 0x83e2 still needs a party of six (summon_min_members 6; D-033's six non-DEAD, "
+                       "D2-045). The manual's 'will only serve a party of six adventurers' (Summon Elemental #48, Magic "
+                       "section): DIFFERENCES-II.md D2-051 (DECIDED s173: SUMMON's six is enough, Add stays the ST's).",
+        "elementals": {
+            "min_members": 0,
+            "blocks_add": False,
+            "drop_keeps": True,
+            "keeps_alone": True,
+            "drops_elemental": True,
+            "purge": "keeps",
+            "summon_min_members": 6,
+        },
         "game": GAME,
         "party_gold_cap": 65000,
         "bank_gold_cap": 65000,
@@ -518,14 +561,16 @@ def rules():
             "charisma_clamp": False,
             "spell_marks": "up_to_new_level",
             "hp_tie": "new_maximum",
-            "classes": [
-                {"class": "THIEF", "weights": {"STR": 1, "DEX": 2}, "divisor": 19.8},
-                {"class": "MONK", "weights": {"STR": 1, "INT": 1, "DEX": 1}, "divisor": 49.5},
-                {"class": "RANGER", "weights": {"STR": 1, "INT": 1, "CHA": 1}, "divisor": 52.8},
-                {"class": "FIGHTER", "weights": {"STR": 2, "DEX": 1}, "divisor": 33.0},
-                {"class": "PRIEST", "weights": {"STR": 1, "INT": 2}, "divisor": 36.3},
-                {"class": "WIZARD", "weights": {"INT": 2, "LUCK": 1}, "divisor": 42.9},
-            ],
+            # T3 / s92 (training.md): Core runs guild_train in Motorola FFP with each class's divisor as the ST holds it.
+            "arithmetic": "motorola_ffp",
+            "classes": [training_class(c, w, d) for c, w, d in (
+                ("THIEF", {"STR": 1, "DEX": 2}, 19.8),
+                ("MONK", {"STR": 1, "INT": 1, "DEX": 1}, 49.5),
+                ("RANGER", {"STR": 1, "INT": 1, "CHA": 1}, 52.8),
+                ("FIGHTER", {"STR": 2, "DEX": 1}, 33.0),
+                ("PRIEST", {"STR": 1, "INT": 2}, 36.3),
+                ("WIZARD", {"INT": 2, "LUCK": 1}, 42.9),
+            )],
         },
         "_terrain": "logic-specs/terrain.md [C][L] (PHANT.PRG overworld_step 0x6022). Every roll is rand / 327 (0..100). "
                     "Classes 7 (dark voids) and 11 (mist) share one path (0x6338): while the trip's fight flag is clear, "
@@ -594,9 +639,12 @@ def travel_time():
                    "travel 'takes less time relative to the other types of terrain', so the path (class 6) costs 30. The "
                    "ST charges it 60 like water, mist and lava ([75, 150, 225, 300] then 60): rules option p2.path-time = "
                    "st plays that table.",
-        "_wilderness_inn_dos": "Not decoded for II [?]: the field is left out (I's DOS value is 1000).",
+        "_wilderness_inn_dos": "D2-042: a wilderness inn stay (tile 41) adds 1000 through the step adder (PHANT.PRG "
+                               "0xfa38 -> 0xef62, towns.md 2), as DOS I. Used only under p2.wild-inn-time = st; the "
+                               "manual's default ages two weeks instead.",
         "step_cost_by_terrain_class": [75, 150, 225, 300, 60, 60, 30],
         "step_cost_other": 60,
+        "wilderness_inn_dos": 1000,
     }
 
 

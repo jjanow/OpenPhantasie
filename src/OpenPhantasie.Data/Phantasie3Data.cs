@@ -243,6 +243,11 @@ public sealed class Phantasie3RuleTables
     public required IReadOnlyList<int> CharacterAreaForColumn { get; init; }
     public required IReadOnlyList<int> TallMonsterIds { get; init; }
     public required IReadOnlyList<int> LimblessMonsterIds { get; init; }
+
+    /// <summary>The party's Fireflash I–IV (D3-075): the manual's top damage, DOS's factor t and DOS's caps.</summary>
+    public required IReadOnlyList<int> FireflashManualMax { get; init; }
+    public required IReadOnlyList<int> FireflashDosFactor { get; init; }
+    public required IReadOnlyList<int> FireflashDosCap { get; init; }
     public required IReadOnlyList<string> SocialClasses { get; init; }
     public required IReadOnlyList<int> SocialClassThresholds { get; init; }
     public required int SocialClassGoldPerClass { get; init; }
@@ -361,6 +366,9 @@ public sealed class Phantasie3RuleTables
             CharacterAreaForColumn = Ints(body.GetProperty("character_area_for_column")),
             TallMonsterIds = Ints(body.GetProperty("tall_monster_ids")),
             LimblessMonsterIds = Ints(body.GetProperty("limbless_monster_ids")),
+            FireflashManualMax = Ints(r.GetProperty("fireflash").GetProperty("manual_max")),
+            FireflashDosFactor = Ints(r.GetProperty("fireflash").GetProperty("dos_factor")),
+            FireflashDosCap = Ints(r.GetProperty("fireflash").GetProperty("dos_cap")),
             SocialClasses = Strs(soc.GetProperty("names")),
             SocialClassThresholds = Ints(soc.GetProperty("thresholds")),
             SocialClassGoldPerClass = soc.GetProperty("gold_per_class").GetInt32(),

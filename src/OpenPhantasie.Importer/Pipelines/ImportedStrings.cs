@@ -43,6 +43,13 @@ public static class ImportedStrings
     public const string ShippedFallbackFile = "strings/fallback.en.json";
 
     /// <summary>
+    /// A version's own shipped fallback file in a game's folder (any tables; s212: <c>phantasie3/strings/fallback.p3-apple2.en.json</c>,
+    /// the lines an Apple-only III lacks that DOS III gives): <see cref="WriteFallback"/> merges it, when shipped, after the
+    /// game's <see cref="ShippedFallbackFile"/>.
+    /// </summary>
+    public static string ShippedProfileFallbackFile(string profileId) => $"strings/fallback.{profileId}.en.json";
+
+    /// <summary>
     /// The shipped fallback for the shared and Phantasie I tables (<c>phantasie1/strings/fallback.en.json</c>): every
     /// import without I's tables writes it (s163), with its own game's file.
     /// </summary>
@@ -57,10 +64,9 @@ public static class ImportedStrings
     public static void WriteFallback(ImportContext ctx, params string[] games)
     {
         var merged = new SortedDictionary<string, JsonObject>(StringComparer.Ordinal);
-        foreach (var game in games)
+        var read = new List<string>();
+        void Merge(JsonObject tables)
         {
-            if (ctx.ReadShipped(game, ShippedFallbackFile)?["tables"] is not JsonObject tables)
-                throw new InvalidOperationException($"shipped {game}/{ShippedFallbackFile} missing");
             foreach (var (table, ids) in tables)
             {
                 if (ids is not JsonObject list)
@@ -71,7 +77,20 @@ public static class ImportedStrings
                     into[id] = text?.DeepClone();
             }
         }
-        var from = string.Join(", ", games.Select(g => $"{g}/{ShippedFallbackFile}"));
+        foreach (var game in games)
+        {
+            if (ctx.ReadShipped(game, ShippedFallbackFile)?["tables"] is not JsonObject tables)
+                throw new InvalidOperationException($"shipped {game}/{ShippedFallbackFile} missing");
+            Merge(tables);
+            read.Add($"{game}/{ShippedFallbackFile}");
+            var own = ShippedProfileFallbackFile(ctx.Profile.Id);
+            if (ctx.ReadShipped(game, own)?["tables"] is JsonObject profileTables)
+            {
+                Merge(profileTables);
+                read.Add($"{game}/{own}");
+            }
+        }
+        var from = string.Join(", ", read);
         foreach (var (table, list) in merged)
         {
             if (list.Count == 0)

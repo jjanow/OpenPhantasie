@@ -919,16 +919,59 @@
    "game": "phantasie2",
    "title": "Phantasie II v2.1 (Apple II)",
    "platform": "apple2",
-   "status": "recognised",
-   "reason": "no importer for this version yet (v1.0, the Memorial Set's II, is imported)",
+   "status": "supported",
+   "feeds": [
+    "tables",
+    "art:apple2"
+   ],
    "disks": [
     {
      "label": "side A",
      "key_files": [
       {
+       "name": "PHANTASIE II",
+       "size": 1391,
+       "sha1": "e3bf65987558b4caa9e168ce2423069523c5a96c"
+      },
+      {
+       "name": "TOWN2",
+       "size": 17744,
+       "sha1": "91e11d161248267e6e32ef7aea895b225b666a1a"
+      },
+      {
        "name": "OUTDOORS2",
        "size": 18650,
        "sha1": "298afe2c09b4a2f7f03feb0a1bc37dfcda6f4ce6"
+      },
+      {
+       "name": "ITEM",
+       "size": 1792,
+       "sha1": "7363b7fa87effc14767818ac262c2a95abb3f5ec"
+      },
+      {
+       "name": "TINFO",
+       "size": 1730,
+       "sha1": "41823569aa91b7e2d1ab96a505e672c5d9d3406a"
+      },
+      {
+       "name": "TF2",
+       "size": 2500,
+       "sha1": "929067298c167d519ce465880b5d2d6ff828f83d"
+      },
+      {
+       "name": "SHAPES",
+       "size": 2932,
+       "sha1": "86db875875b15de40ce5e0104cb3aaf95df6c701"
+      },
+      {
+       "name": "ICE DRAGON",
+       "size": 8192,
+       "sha1": "350fe9e8611530f49d2a6ffc1dc03c5516e51d0e"
+      },
+      {
+       "name": "INFO",
+       "size": 238,
+       "sha1": "af28cae4a9795a4f62e150980c16275037124d72"
       },
       {
        "name": "INTRO2",
@@ -949,6 +992,21 @@
        "name": "DUNGON2",
        "size": 19580,
        "sha1": "43fcedaed28f56ff10aa8f7218be369b2e23ab29"
+      },
+      {
+       "name": "DNG1",
+       "size": 6140,
+       "sha1": "2f14a667931485f2161a0768a3dd57a3387c8806"
+      },
+      {
+       "name": "DNG8",
+       "size": 6140,
+       "sha1": "0f53c5e5f35e343ceaa02318a09b82bd4bfdd28a"
+      },
+      {
+       "name": "SCROLLL0",
+       "size": 1000,
+       "sha1": "d573bf031805acd426352a734730f50ec332d16f"
       }
      ]
     }
@@ -956,6 +1014,155 @@
    "name_markers": [
     "TOWN2",
     "OUTDOORS2"
+   ],
+   "mutable_files": [
+    {
+     "name": "OUTT1",
+     "size": 768,
+     "sha1": "fccef97797469e195f0b0a2c26f3a63313b50a09"
+    },
+    {
+     "name": "OUTT2",
+     "size": 756,
+     "sha1": "7c988b06505717978dc925e59f6ce13d39d69cc0"
+    },
+    {
+     "name": "OUTT3",
+     "size": 768,
+     "sha1": "b5b21dc6e03475afdfca69db5ac63622ab74858e"
+    },
+    {
+     "name": "OUTT5",
+     "size": 768,
+     "sha1": "6cb23b00f62f4d47de0db49804752aa99ecb9a74"
+    },
+    {
+     "name": "OUTT6",
+     "size": 768,
+     "sha1": "f65b3f05b7664d9f8ff8d9b9627adb21b9373ad4"
+    },
+    {
+     "name": "OUTT7",
+     "size": 768,
+     "sha1": "b2891b1d4e22816ac29a58b633fac7d3a4c7f40b"
+    },
+    {
+     "name": "OUTT8",
+     "size": 768,
+     "sha1": "6529edea54dcd51a8c8e3879bb4b0ac10fdaac85"
+    },
+    {
+     "name": "OUTT11",
+     "size": 768,
+     "sha1": "53af92b77f36fb65e4474e3d5933b7def48441f1"
+    },
+    {
+     "name": "OUTT12",
+     "size": 768,
+     "sha1": "193abf4540d6af0825b862d1469125d62c0c7ae6"
+    },
+    {
+     "name": "OUTT17",
+     "size": 768,
+     "sha1": "a82e6b0c4bc883fef8ed2ff2e7c4edc110276441"
+    },
+    {
+     "name": "OUTT18",
+     "size": 768,
+     "sha1": "77f648e8e39ba3f7a9e5494102d05c7b9d4320a7"
+    },
+    {
+     "name": "OUTT22",
+     "size": 768,
+     "sha1": "2d5bfa08f44561eddbe1c8f73d1ac421eaed7143"
+    },
+    {
+     "name": "OUTT26",
+     "size": 768,
+     "sha1": "9b83fe92020c6555c66310944be6246b56b33d74"
+    },
+    {
+     "name": "OUTT27",
+     "size": 768,
+     "sha1": "4e0217833116709f3b08ca7a2345e4c12c87fc43"
+    },
+    {
+     "name": "OUTT28",
+     "size": 768,
+     "sha1": "b69b9437dcd37d8daf12e1ede0dd8cd1a1b01e2f"
+    },
+    {
+     "name": "OUTT30",
+     "size": 768,
+     "sha1": "270368e78ff263dac14ded22b76e48f49ee45acb"
+    },
+    {
+     "name": "OUTT31",
+     "size": 768,
+     "sha1": "514e2bbb240d3814c9330935ea142541d5bcee40"
+    },
+    {
+     "name": "TWN21",
+     "size": 250,
+     "sha1": "06d7b2ce2454a8c881b404ed8174a9ab47b2eeeb"
+    },
+    {
+     "name": "TWN22",
+     "size": 250,
+     "sha1": "fd32c276453400c5823c1a69702d90e71d24a269"
+    },
+    {
+     "name": "TWN23",
+     "size": 250,
+     "sha1": "c9a5dd03e5a851c8d6e9697ae07f47359196de5d"
+    },
+    {
+     "name": "TWN24",
+     "size": 250,
+     "sha1": "58beffd7c9be76486cfb0030a5280c0de3ea8486"
+    },
+    {
+     "name": "TWN25",
+     "size": 250,
+     "sha1": "bbcced9501bc9f904dd262a59167e230a502c286"
+    },
+    {
+     "name": "TWN26",
+     "size": 250,
+     "sha1": "64e9567df49f730e4189d7864b432df25197eff3"
+    },
+    {
+     "name": "TWN27",
+     "size": 250,
+     "sha1": "feffd1c1419c57d038a240389897715f45c9e92c"
+    },
+    {
+     "name": "TWN28",
+     "size": 250,
+     "sha1": "4f6f0aa7b8da07a1c7be92bba2c3fe3b1bda8823"
+    },
+    {
+     "name": "TWN29",
+     "size": 250,
+     "sha1": "97c99cedab6a32222b6809450abe3ba28af5d5b4"
+    },
+    {
+     "name": "TWN210",
+     "size": 250,
+     "sha1": "6d57093e1c9b6d6a3c830b2acf2e303caa7ef3d0"
+    }
+   ],
+   "images": [
+    {
+     "sha1": "b5efe8c9e28989e2e1689b7143d4202503237031",
+     "size": 143360,
+     "note": "the A2CAN flux capture of the original Disk 1 side A (a played copy), decoded to a DOS-order .dsk (RDOS 3.3)"
+    },
+    {
+     "sha1": "b52f391ca2b94346f4d44f10105d1da6c798f769",
+     "size": 143360,
+     "note": "the A2CAN flux capture of the original Disk 1 side B (a played copy), decoded to a DOS-order .dsk (RDOS 3.3)"
+    }
    ]
   },
   {
@@ -1185,8 +1392,48 @@
    "game": "phantasie3",
    "title": "Phantasie III (Apple II)",
    "platform": "apple2",
-   "status": "recognised",
-   "reason": "no importer for this version yet",
+   "status": "supported",
+   "feeds": [
+    "tables",
+    "art:apple2"
+   ],
+   "disks": [
+    {
+     "label": "disk 1 side A (boot; or the Player disk)",
+     "key_files": [
+      {
+       "name": "TF3",
+       "size": 4250,
+       "sha1": "83382f6dbd996edd659ba8bc4f9ff1b69499bd1b"
+      },
+      {
+       "name": "ITEM",
+       "size": 1792,
+       "sha1": "3a40c2587a49976ff853017c7f09418ede2f3b6f"
+      },
+      {
+       "name": "TINFO",
+       "size": 1730,
+       "sha1": "b0208442d7f8d82f59140530da690ba6431478d0"
+      }
+     ]
+    },
+    {
+     "label": "disk 1 side B (utilities; or the Dungeon disk)",
+     "key_files": [
+      {
+       "name": "DNG1",
+       "size": 4132,
+       "sha1": "b6dde4904567dfdf94e593cd682c8ce28efefd84"
+      },
+      {
+       "name": "DNG10",
+       "size": 4132,
+       "sha1": "78c88193a938baf2d53f3e43904bf35a36405587"
+      }
+     ]
+    }
+   ],
    "images": [
     {
      "sha1": "b7ae3f30298c41fd9a2abfa2bcd566cf4051a39a",
@@ -1216,6 +1463,113 @@
    "name_markers": [
     "TOWN3",
     "OUTDOORS3"
+   ],
+   "mutable_files": [
+    {
+     "name": "CHAR3",
+     "size": 6800,
+     "sha1": "14af8cc9d47306babb9b6f54242af20b02d53cfe"
+    },
+    {
+     "name": "TWN31",
+     "size": 250,
+     "sha1": "d7addc0925485d1b055b713946f1bb669b43cdeb"
+    },
+    {
+     "name": "TWN32",
+     "size": 250,
+     "sha1": "5bf8c03494f8f3a7ede0cafdf1e4cd615fc1de72"
+    },
+    {
+     "name": "TWN33",
+     "size": 250,
+     "sha1": "5bd2e313fec4db34b10de956f215e81687f87dfe"
+    },
+    {
+     "name": "TWN34",
+     "size": 250,
+     "sha1": "3d69f0290b98ccf8fde408617ef66e3f861d7182"
+    },
+    {
+     "name": "TWN35",
+     "size": 250,
+     "sha1": "55851459cdaf4100e2fe4b68cd68d52ab8a500da"
+    },
+    {
+     "name": "TWN36",
+     "size": 250,
+     "sha1": "f5d2e19f31397a22e03892183c09f42dc23f22aa"
+    },
+    {
+     "name": "TWN37",
+     "size": 250,
+     "sha1": "9ace93e225d4687b9894fbacbfa4b595329f3084"
+    },
+    {
+     "name": "TWN38",
+     "size": 250,
+     "sha1": "510740021bd74de599d39c546b9c21650c17e4da"
+    },
+    {
+     "name": "TWN39",
+     "size": 250,
+     "sha1": "36cf5dee35b2346d0bf91393ff89c51e8f6d740c"
+    },
+    {
+     "name": "TWN310",
+     "size": 250,
+     "sha1": "49c8070e715e8ca5d1777c9214664c54b610414c"
+    },
+    {
+     "name": "TWN311",
+     "size": 250,
+     "sha1": "b422178d9bb711faf6e4e93c91a8f27447606f51"
+    },
+    {
+     "name": "TWN312",
+     "size": 250,
+     "sha1": "a6387b640574b4920adb42f4b390cd01c78cd0e3"
+    },
+    {
+     "name": "TWN313",
+     "size": 250,
+     "sha1": "5e6ba4587a40fbb255de3ed26dde0425d9cb3e3a"
+    },
+    {
+     "name": "TWN314",
+     "size": 250,
+     "sha1": "60fe41f526b42a7cb284c0c06989a0ae8e4d7a3c"
+    },
+    {
+     "name": "TWN315",
+     "size": 250,
+     "sha1": "d599be231d196a647e90d2e56a9979d42a558e9e"
+    },
+    {
+     "name": "TWN316",
+     "size": 250,
+     "sha1": "4921b5385615849431305c79bfe92b3c865e3c65"
+    },
+    {
+     "name": "TWN317",
+     "size": 250,
+     "sha1": "d1d9e947cd9e6eb91d5a6043f43af14d472a24bb"
+    },
+    {
+     "name": "DNGSAV",
+     "size": 4136,
+     "sha1": "8e3d3d1a1b9e1b939f6940efb993e8aa0c2878f8"
+    },
+    {
+     "name": "DNGCHK",
+     "size": 1,
+     "sha1": "5ba93c9db0cff93f52b521d7420e43f6eda2784f"
+    },
+    {
+     "name": "PIC",
+     "size": 1152,
+     "sha1": "c98c6a4a741d6b81b5a0a53302e46b2210300247"
+    }
    ]
   },
   {

@@ -96,6 +96,7 @@ public static class Phantasie3World
             HitLocations = new P3HitLocationTable(rt.HitLocationRows.Select(h => h.Cumulative).ToList()).Validate(),
             TallMonsterIds = rt.TallMonsterIds.ToHashSet(),
             LimblessMonsterIds = rt.LimblessMonsterIds.ToHashSet(),
+            Fireflash = new P3FireflashTable(rt.FireflashManualMax, rt.FireflashDosFactor, rt.FireflashDosCap).Validate(),
             Kit = rt.Kit,
             KitBow = rt.Classes.ToDictionary(Class, rt.KitBowFor),
             FirstSpell = rt.FirstSpell.ToDictionary(kv => Class(kv.Key), kv => kv.Value),

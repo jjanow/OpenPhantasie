@@ -6,7 +6,7 @@ namespace OpenPhantasie.Importer.Tests;
 
 /// <summary>
 /// <see cref="RdosVolume"/> on SSI's two Apple II DOSes: RDOS 2.1 (13-sector; I, II v1.0) and RDOS 3.3 (16-sector;
-/// II v2.1, III), and how the importer names the RDOS 3.3 disks it has no importer for.
+/// II v2.1, III), and how the importer names the RDOS 3.3 disks (II v2.1 imported since s212; III not yet).
 /// </summary>
 [Collection(nameof(LocatorCollection))]
 public class RdosVolumeTests
@@ -57,13 +57,14 @@ public class RdosVolumeTests
     [RequiresFilesTheory(V21A, P3Woz)]
     [InlineData("p2-apple2-2.1", "phantasie2/v2.1-a2can")]
     [InlineData("p3-apple2", "phantasie3/woz-original-v3.0")]
-    public void Rdos33Disks_AreRecognised_NotAnotherBuild(string profile, string folder)
+    public void Rdos33Disks_AreTheirOwnVersion_NotAnotherBuild(string profile, string folder)
     {
         var scan = ImportRunner.Scan([Repo.Path(Images + folder)]);
         var d = Assert.Single(scan.Detections);
         Assert.Equal(profile, d.Profile.Id);
-        Assert.Equal(DetectionStatus.Recognised, d.Status);
-        Assert.Empty(scan.Importable);
+        // s212: both are imported now (II v2.1, III's Apple II tables).
+        Assert.Equal(DetectionStatus.Ready, d.Status);
+        Assert.Equal([profile], scan.Importable.Select(x => x.Profile.Id));
         Assert.Empty(scan.Notes);
     }
 }

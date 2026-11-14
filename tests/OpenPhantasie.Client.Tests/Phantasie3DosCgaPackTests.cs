@@ -38,6 +38,9 @@ public class Phantasie3DosCgaPackTests
                     "\"root\": \"reverse-engineering/no-such-folder\"");
             File.WriteAllText(Path.Combine(graphics, "amiga.json"), amiga);
             File.Copy(Path.Combine(GameDir, "graphics", "dos-cga.json"), Path.Combine(graphics, "dos-cga.json"));
+            // s212: no Apple II art either (it would be the default before DOS CGA: index default_order).
+            File.WriteAllText(Path.Combine(graphics, "apple2.json"), File.ReadAllText(Path.Combine(GameDir, "graphics", "apple2.json"))
+                .Replace("reverse-engineering/apple2/phantasie3/extracted/graphics", "reverse-engineering/no-such-folder"));
             var catalog = GraphicsPackCatalog.Load(dir);
             Assert.Equal(["dos-cga"], catalog.Available.Select(p => p.Id));
             Assert.Equal("dos-cga", catalog.Default?.Id);

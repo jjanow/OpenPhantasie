@@ -568,10 +568,12 @@ public sealed class P3AmigaTables
     private static readonly CellPatches DosCells =
         new("amiga", "dos", "the Amiga copy's data", "the Amiga's", "DOS III's", "DOS III's value");
 
-    /// <summary>True when this Amiga copy gives III's tables: none imported yet, or the ones there are its own.</summary>
+    /// <summary>True when this Amiga copy gives III's tables: none imported yet, or the ones there are its own or the
+    /// Apple II's (s212: the Amiga's win over the Apple's, as DOS's win over both).</summary>
     public static bool OwnsTables(ImportContext ctx) =>
         ctx.ReadImportedGameData(Game, "monsters.json") is not JsonObject existing
-        || ((string?)existing["_source"])?.StartsWith(Label, StringComparison.Ordinal) == true;
+        || ((string?)existing["_source"]) is { } source
+        && (source.StartsWith(Label, StringComparison.Ordinal) || source.StartsWith(P3Apple2.P3Apple2Tables.Label, StringComparison.Ordinal));
 
     /// <summary>Write III's tables from the Amiga with DOS's values (<see cref="BuildWithDosValues"/>); false when
     /// DOS III's tables (this run or earlier) win.</summary>

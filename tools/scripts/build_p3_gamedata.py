@@ -268,12 +268,17 @@ def towns(tw):
                     "stock": t["stock"], "plane": plane(t["town"])})
     return {
         "_source": f"{SOURCE}: {tw['_source']}",
-        "_layout": tw["_layout"],
+        "_layout": ("stock[id] for item id 0..180 (stock[0] is always 0; the file's byte 0 is 'kinds', the number of "
+                    'ids with a non-zero count, checked here). Row 0 is unused; 15..17 (the plane towns) stock '
+                    'nothing. Counts of 200 / 99 / 77 on potions and scrolls = plenty. DOS never restocks; the '
+                    "remaster's default re-rolls weapons and potions on each town entry by Apple II's rule (D3-033, "
+                    'rule-tables.json armory_restock).'),
         "_notes": ["id = the town number (FAR:0xdd98; 1 Pendragon .. 14 Sciattica, 15 Light, 16 Dark, 17 Death). The "
                    "INITARMS row 0 is unused and left out.",
-                   "plane: the plane the town is on (root 0x1e18 picks the map by town: 15 Light, 16 Dark, 17 "
-                   "Netherworld) [C] (planes.md section 2). III has no TRANSPORTATION list and no restock list "
-                   "(restocking [?]); the town square is in overworld.json places.",
+                   ('plane: the plane the town is on (root 0x1e18 picks the map by town: 15 Light, 16 Dark, 17 '
+                    'Netherworld) [C] (planes.md section 2). III has no TRANSPORTATION list (spell 54 offers towns '
+                    '1-14, town.md section 8) and no I-style restock list (the restock pool is in rule-tables.json '
+                    'armory_restock, D3-033); the town square is in overworld.json places.'),
                    "Price: value * price_index / 100 (armory root 0x0f22, FORMAT.md section 4.1) [~]; training gold "
                    "uses the same index (training.md section 3)."],
         "towns": out,
@@ -295,17 +300,18 @@ def creation(rt, p1ct):
         "_schema": "phantasie.creation-tables/v1",
         "_source": f"{SOURCE}: MAIN.EXE DGROUP tables (extracted/rule-tables.json, tools/scripts/extract_dos_p3_rules.py) "
                    "and the III manual",
-        "_note": "Keys are Core's class / race names (Phantasie I order). hp_factors = III's HP dice for levels 1-15 "
-                 "(DS:0xa78) [C] (L16-22 in rule-tables.json); mp_ceiling = DS:0xafb [C], cell for cell the manual's "
-                 "Maximum Magic Points table (III PDF 10 / pr.14); skill_coefficients = III's eight class tables in I's "
-                 "slot layout [C]; spell_levels = DS:0x1208 [C] bytes, = the manual's Spells Available table cell for "
-                 "cell (index = spell number - 1, 57 entries). class / race attribute modifiers and ceilings: the III "
-                 "manual's tables (III PDF 4 / pr.3), which are Phantasie I's manual tables value for value "
-                 "(09-trilogy-manual-p3.md 1a), copied from GameData/phantasie1 (manual values, D-001 applied); DOS "
-                 "III's own tables are static data in MAIN.EXE [C] (s88, FORMAT.md section 4.3) and match these except "
-                 "Kobold CHA max (DOS 3, manual 13: D3-034). No "
-                 "lifespan_bands: III's maximum age is float maths not decoded [~] (FORMAT.md section 5 +0x2a), and "
-                 "I's D-003 bands are a Phantasie I decision.",
+        "_note": ("Keys are Core's class / race names (Phantasie I order). hp_factors = III's HP dice for levels "
+                  '1-15 (DS:0xa78) [C] (L16-22 in rule-tables.json); mp_ceiling = DS:0xafb [C], cell for cell the '
+                  "manual's Maximum Magic Points table (III PDF 10 / pr.14); skill_coefficients = III's eight class "
+                  "tables in I's slot layout [C]; spell_levels = DS:0x1208 [C] bytes, = the manual's Spells "
+                  'Available table cell for cell (index = spell number - 1, 57 entries). class / race attribute '
+                  "modifiers and ceilings: the III manual's tables (III PDF 4 / pr.3), which are Phantasie I's "
+                  'manual tables value for value (09-trilogy-manual-p3.md 1a), copied from GameData/phantasie1 '
+                  "(manual values, D-001 applied); DOS III's own tables are static data in MAIN.EXE [C] (s88, "
+                  'FORMAT.md section 4.3) and match these except Kobold CHA max (DOS 3, manual 13: D3-034). '
+                  "lifespan_bands: D3-041 (user s99, manual): III's manual has I's lifespan text word for word, so "
+                  "I's D-003 bands apply (manual figure +-10 %, picked by LCK 8..13); DOS III writes a maximum age "
+                  'but never reads it (the p3.lifespans dos option).'),
         "_skill_tables_vs_I": "III's skill tables equal Phantasie I's TWNS.INT tables except five cells, kept as read: "
                               "Thief Pick Lock L3 35 (I 55), Ranger Attack L15 25 (I 250), Ranger Parry L15 60 (I 85), "
                               "and Monk / Wizard Parry read one level ahead of I's rows (III's Parry table is one byte "
@@ -322,6 +328,13 @@ def creation(rt, p1ct):
                          "by_class": by_core(rt["spell_levels"]["by_class"])},
         "class_attribute_modifiers": {"by_class": p1ct["class_attribute_modifiers"]["by_class"]},
         "race_attribute_modifiers": {"by_race": p1ct["race_attribute_modifiers"]["by_race"]},
+        "lifespan_bands": {
+            "source": ("D3-041 (user s99): the III manual's lifespan text is I's, so I's D-003 bands (manual "
+                       "lifespans +-10 %). Not DOS: DOS III's maximum age +0x2a is never read."),
+            "formula": ('lifespan (age-clock units, 2 weeks) = round(26 * (lo + (LCK - 8) * (hi - lo) / 5)), LCK = '
+                        '8..13'),
+            "by_race": p1ct["lifespan_bands"]["by_race"],
+        },
     }
 
 
@@ -364,6 +377,22 @@ def skill_table_fixes(rt, p1ct):
             if mine != rows[cl]:
                 out.setdefault(skill, {})[cl] = mine
     return out
+
+
+# D3-033 (user s89): Apple II III's restock pool, 46 bytes LA+181..226 of every town file (rule-tables.json
+# armory_restock). Checked against the [cr] disk 1A when it is in the tree (the bytes occur there 30+ times).
+ARMORY_RESTOCK_POOL = [66, 23, 66, 6, 105, 115, 69, 24, 8, 85, 106, 116, 71, 72, 83, 74, 86, 32, 25, 107, 117, 75, 78,
+                       88, 89, 26, 34, 16, 108, 118, 27, 35, 77, 90, 109, 119, 172, 155, 80, 91, 92, 18, 19, 5, 110, 0]
+A2_P3_DISK_1A = os.path.join(ROOT, "reverse-engineering", "apple2", "original-images", "phantasie3",
+                             "Phantasie_III_1987_SSI_cr_Disk_1_of_3_Side_A.dsk")
+
+
+def armory_restock_pool():
+    if os.path.exists(A2_P3_DISK_1A):
+        with open(A2_P3_DISK_1A, "rb") as f:
+            if bytes(ARMORY_RESTOCK_POOL) not in f.read():
+                sys.exit(f"armory_restock pool not found in {A2_P3_DISK_1A}")
+    return ARMORY_RESTOCK_POOL
 
 
 def rule_tables(rt, nm, p1ct):
@@ -434,6 +463,12 @@ def rule_tables(rt, nm, p1ct):
             "tall_monster_ids": [44, 67, 68],
             "limbless_monster_ids": [2, 6, 17, 27, 29, 39, 40, 41, 51, 52, 62, 65],
         },
+        "fireflash": {
+            "_note": "The party's Fireflash I-IV (#5-8), one value per spell (D3-075, logic-specs/combat-round.md section 2). manual_max: the manual's 1-10 / 1-30 / 1-60 / 1-100 (III PDF 11 / pr.14), p3.fireflash = manual. dos_factor: t in DOS's rnd((INT / 2 + 1) * t) (DS:0xc1a[5..8], root 0xb42e) [C]; dos_cap: the caps on that roll (code immediates, root 0xb48a-0xb4c8) [C]; p3.fireflash = dos. Live s212 (DOSBox-X): the roll's top, the factors and the cap 99 seen as decoded (parity/s212-p3-fireflash-live.md).",
+            "manual_max": [10, 30, 60, 100],
+            "dos_factor": [1, 4, 8, 13],
+            "dos_cap": [10, 30, 60, 99],
+        },
         "social_classes": {
             "_note": "Creation (ovl2 0x227d) [C]: r = rnd(100) for races 0-4 (Human, Dwarven, Elven, Gnome, Halfling), "
                      "rnd(75) for the others; r < 30 Peasant, < 60 Labourer, < 90 Craftsman, else Noble. Starting gold "
@@ -481,6 +516,60 @@ def rule_tables(rt, nm, p1ct):
         },
         "transfer_maps": {"_note": "I -> III (DS:0x48 class, DS:0x4e race), indexed by Phantasie I's number [C]",
                           "class": nm["transfer_class_map_I_to_III"], "race": nm["transfer_race_map_I_to_III"]},
+        "creation_age": {'_note': 'Age and maximum age at creation, DOS ovl2 0x2691-0x2748 (MSEM87 float code, '
+                                  'decoded s98) [C]: f = LCK (+0x14) times the race factor, stored as a '
+                                  'single-precision float; races > 4 (every non-base race) f = f * 2.0 / 5.0; races '
+                                  '1 Dwarven and 4 Halfling f = f * 5.0 / 2.0 (a race-13 test there is dead code: 13 '
+                                  '> 4 takes the first branch); race 2 Elven f = 19.0 * f; races 0 Human and 3 Gnome '
+                                  'f unchanged. Maximum age +0x2a = trunc(f) (MS C _ftol root 0x3b2:0x2d9d); age '
+                                  'clock +0x28 = trunc((rnd(7) + 24) * f + 260.0) in 1/26 year units. Keys are DOS '
+                                  "race indexes (core_race). The maximum age is in I's lifespan steps of 256 units "
+                                  '(human LCK 10: 10 steps, about 98 years) [~]; nothing in DOS reads it (D3-041).',
+                         'roll_base': 24,
+                         'offset': 260,
+                         'factor_by_race': {'0': [1, 1], '1': [5, 2], '2': [19, 1], '3': [1, 1], '4': [5, 2]},
+                         'other_factor': [2, 5]},
+        "armory_restock": {'_note': "D3-033 (user s89): the manual's 'stocks of weapons and potions can change each "
+                                    "time the party enters', by Apple II's rule (side 1A town program lines 840-890) "
+                                    "[C]: on each town entry 'wipes' times stock[rnd(0..wipe_ids-1)] = 0 (ids 0-110: "
+                                    "equipment 1-100 and Healing Potions 101-110; repeats allowed), then 'picks' "
+                                    'times stock[pool[floor((1 - r1*r2) * L * 3)]] = 1 (set, not add), L = the '
+                                    "party's average level capped at level_cap, r1 / r2 uniform in [0, 1). pool = "
+                                    "Apple II's 46 bytes LA+181..226, the same in every town file (found at disk 1A "
+                                    'raw 0x46d8 and 30 more copies); positions 0..44 are reachable, the last byte '
+                                    "(0) never. 'removed' (user s89): a pick landing on these ids (Light Key 172, "
+                                    'Burnt Gem 155, positions 36-37) gives nothing, so the key stays a quest find. '
+                                    'Apple II ids = DOS ids (155 Burnt Gem, 172 Light Key, 66 Staff, 105 Healing '
+                                    'Potion 5 in items.json) [~]. Apple II skips the churn on the first entry after '
+                                    "start / load (SA+1196) [~]; the remaster's new-game start does not run it "
+                                    'either. DOS / Amiga: no restock (p3.armory-restock = dos).',
+                           'wipes': 18,
+                           'wipe_ids': 111,
+                           'picks': 13,
+                           'level_cap': 15,
+                           'pool': armory_restock_pool(),
+                           'removed': [155, 172]},
+        "town_entry_payout": {'_note': 'D3-071, DOS ovl2 0x0000(1) on a paying town entry (s144 static [C]): before '
+                                       "the found items' hand-out, ovl2 0x5a9 takes the last item with this id (180, "
+                                       'the Wand of Nikademus) out of the found list for good (the list closes up, '
+                                       'the found count -1; no quest bit, nothing else reads the slot). One per '
+                                       'entry.',
+                              'dropped_found_item': 180},
+        "transfer": {'_note': 'I / II -> III transfer (FORMAT.md section 6, DIFFERENCES-III D3-001...007, D3-016). '
+                              'DOS ovl1 after the creation routine [C]: social class 3 (Noble; the bank gold still '
+                              "comes from creation's own class roll), XP = xp_per_level * old level, bank gold += "
+                              'old bank gold / bank_gold_divisor, level 1 and dos_undead_level for Undead (DOS '
+                              "option; the manual's level 0 is the default). The wand (D3-001, Apple III's rule): if "
+                              "any source character's Phantasie I score is above wand_score_above, every transferred "
+                              "character carries wand_item and gets quest bit wand_quest_bit (DOS III's 'has the "
+                              "wand', dungeon-events.md section 4).",
+                     'social_class': 3,
+                     'xp_per_level': 100,
+                     'bank_gold_divisor': 35,
+                     'dos_undead_level': 20,
+                     'wand_item': 180,
+                     'wand_quest_bit': 2,
+                     'wand_score_above': 99},
     }
 
 
@@ -500,6 +589,33 @@ def rules():
                           "by III's creation rule (FORMAT.md section 5.1).",
         "_equipment_slots": "Manual (III PDF 6 / pr.6, 11-12) and DOS (ovl2 0x37f1) [C]: shield 1-20, armour 21-40, "
                             "bow 41-60, melee weapon 61-100.",
+        "_elementals": ("Manual (III PDF 11 / pr.16, Q12: 'does not count as a member') and DOS (ovl2 0x3a0a) [C] "
+                        'agree: an elemental joins once the party has one character, and a character can still be '
+                        'added afterwards (the elemental stays last). drop_keeps: DOS ovl2 0x3c92 [C] (s97): '
+                        'dropping a character keeps the loaded elemental (it moves up and stays last) until no '
+                        'character is left; the manual is silent. logic-specs/elementals.md section 2.'),
+        "_elementals_drop_purge": ('drops_elemental: DOS ovl2 0x3c92 [C]: Drop Member on the elemental clears the '
+                                   'flag and filled_slots (logic-specs/elementals.md section 2). purge: D3-040 (user '
+                                   "s99: the manual, as III's Drop) for the Manual / Remaster / Custom presets; "
+                                   'purge_original: DOS refuses a party member (string 448, guild_menu 0xafe3) under '
+                                   "the Original preset (user s172: III's elemental-purge = game follows the preset; "
+                                   'the former p3.purge option is folded in).'),
+        "elementals": {'min_members': 1,
+                       'blocks_add': False,
+                       'drop_keeps': True,
+                       'drops_elemental': True,
+                       'purge': 'as-drop',
+                       'purge_original': 'refused'},
+        "_dungeon_save_per_dungeon": ('DOS writes one saved map per dungeon, DNP<letter> / DNG<letter> (ovl4 0x62d; '
+                                      'live s82: the archives wrote DNPA / DNGA) [C]; logic-specs/dungeon-events.md '
+                                      'section 1. The manual is silent on the files.'),
+        "dungeon_save_per_dungeon": True,
+        "_drop_gold_share": ('Guild Drop Member pays the dropped character party_gold / characters (32-bit divide, '
+                             'the count taken before the Drop, the elemental not counted) into his bank account and '
+                             "takes it from the party gold: DOS ovl2 0x3c92 and Amiga 0xd448 [C] (s98). Apple II's "
+                             "Drop (town lines 3500-3520) moves no gold. The manual is silent (Guild: 'Drop From "
+                             "Party'), so not a conflict. logic-specs/town.md section 2."),
+        "drop_gold_share": True,
         "original_platform": "dos",
         "game": GAME,
         "party_gold_cap": 65000,

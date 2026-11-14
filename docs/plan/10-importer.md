@@ -231,13 +231,13 @@ come from, and I's 682 ids and the shared `p3*` / `p4` areas are not tagged.
 | I | Apple II, Atari ST (v2.0 en, v1.0 de), Atari 8-bit, MSX2, PC-88, PC-98, X1 | — | — | recognised by hash only |
 | II | **Atari ST v1.0** (Pasti `.stx`; TOSEC `.st` has byte-identical program and data files) | every II table + ST pack + title tune | `stx_to_st`, FAT12 unpack (mtools today), `st_prg`, `extract_st_phantasie2`, `extract_st_p2_maps` / `_dungeons` / `_scrolls` / `_towns`, `build_p2_gamedata`, `extract_st_p2_graphics`, `build_st_p2_asset_manifest` | supported |
 | II | **Apple II** v1.0 2/5/86 (4am `.dsk`, or the original `.woz` pair, decoded since s169): the Memorial Set's II | reference extract (s158): monsters, items, names, creation tables, towns, wilderness, dungeons + messages, scrolls; Apple II art pack | `a2_rdos`, `a2_applesoft`, `extract_a2_p2_tables`, `diff_a2_p2_vs_st`, `extract_a2_p2_graphics`, `build_a2_p2_asset_manifest` (`reverse-engineering/apple2/phantasie2/FORMAT.md`) | supported (s158 C# port, `p2-apple2`, 7.2 / 7.5): the Apple's text, the ST's numbers (D2-046…050, decided s159, built s160). Gaps: no spell names on the Apple (the manual's list is shipped; divine #57 / #58 unnamed there, the ST names them, D2-050 `[U]`). The Memorial Set's disks (s166, unplayed, shipped fog) are in DOS 3.3 sector order; since s167 the reader tries both orders and they are found (their save files are the profile's pristine sha1s) |
-| II | Apple II v2.1 8/19/86 (RDOS 3.3 `.dsk` pair, s210) | — | `a2_rdos` (reads RDOS 3.3 since s211) | recognised by key files (`p2-apple2-2.1`, s211; the v1.0 profile's "another build" is dropped when it matches) |
+| II | Apple II v2.1 8/19/86 (RDOS 3.3 `.dsk` pair, s210; the A2CAN original, played) | as v1.0: every II table + Apple II art pack (s212: the same data files, `apple2/phantasie2/FORMAT.md` section 4) | `a2_rdos` (reads RDOS 3.3 since s211), `build_string_sources.py` (its own string offsets) | supported (s212, `p2-apple2-2.1`, `P2Apple2V21Pipeline`; 7.5). Restored, its import equals the Memorial Set's v1.0 import but for the version's name. With v1.0 in the same run (or an earlier import), v2.1's tables win. Its DUNGON2 gold-op fix changes nothing here (Core plays the ST's script; D2-053) |
 | II | C64 v1.0 / v1.2, Atari 8-bit, MSX2, PC-88, PC-98 | — | — | recognised by hash only |
 | III | **DOS SSI 1988** (`.ima`) | every III table + DOS CGA pack (s160; drawn when no Amiga III pack is imported) | `extract_dos_p3_common` (EXEPACK unpack), `extract_dos_p3_tables` / `_dungeons` / `_rules` / `_scrolls` / `_towns` / `_world`, `build_p3_gamedata` | supported |
 | III | DOS WizardWorks 1991 (`.ima`) | as 1988 `[~]`: its unpacked folder holds only the extra `.BAT` files, so the data files are taken to be the same | as 1988 | check by key-file hashes |
 | III | Memorial Set DOS III (s166) | as 1988: every game file byte-identical | as 1988 | supported (found as `p3-dos-1988`) |
 | III | **Amiga v1.0 1987** (`.adf`) | every III table without DOS III (s210, 7.9: DOS's values where the Amiga differs, user s209) + Amiga pack: art, tunes, sounds (the map previews also read DOS's `WORLD.DAT` / `PLNS.DAT` when given; `monsinfo.dat` = DOS `CREATURE.DAT`, same sha1) | `extract_amiga_p3_common`, `extract_amiga_p3_graphics` | supported (s210: tables too, `P3AmigaTables`, `amiga/phantasie3/FORMAT.md` "Game tables for a standalone import"; DOS III's tables win when both are imported) |
-| III | Apple II v1.0 `[cr]` / v3.0 `.woz` (RDOS 3.3, read since s211) | — | `a2_rdos`, `detok_apple2_p3` | recognised (`p3-apple2`: image hashes + the file names TOWN3 / OUTDOORS3, s211) |
+| III | **Apple II** v3.0 5/26/87 `.woz` pair (uncracked, unplayed; the reference) / v1.0 `[cr]` `.dsk` sides (played, five scroll files damaged) | tables + Apple II art pack (s212): monsters, items, names, towns, rule tables, Scandor / planes / places, dungeons + texts, scrolls | `a2_woz`, `a2_rdos`, `detok_apple2_p3`, `extract_a2_p3_tables`, `diff_a2_p3_vs_dos` (`reverse-engineering/apple2/phantasie3/FORMAT.md`) | supported (`p3-apple2`, s212, 7.10): the Apple's text, DOS III's numbers (`apple2-import.json`, 653 cells). Key files the data both builds share (`TF3`, `ITEM`, `TINFO`; `DNG1`, `DNG10`); string alternatives from v3.0's programs only; the rest in `fallback.p3-apple2.en.json` (218 ids). Art: the Apple II pack (`P3Apple2Art`, `extract_a2_p3_graphics`, `build_a2_p3_asset_manifest`; `apple2/phantasie3/GRAPHICS.md`), drawn after the Amiga's; the real title / ending only from v3.0 |
 | III | C64 v1.1, Atari ST, MSX2, PC-88, PC-98 | — | — | recognised by hash only |
 | IV | **X68000 Ver.1.02** (`.dim`) | every IV table, `ja.json`, X68000 pack, tunes, voices | `x68k_dim`, `x68k_x`, `extract_x68k_p4_tables` / `_creation` / `_text`, `x68k_p4_events`, `build_p4_gamedata`, `x68k_p4_pkh`, `x68k_p4_pix`, `x68k_p4_fonts`, `x68k_p4_panels`, `x68k_p4_anim` | supported |
 | IV | PC-98 (`.hdm`), MSX2 (`.dsk`, + 2008 patch images), PC-88 (`.d88`) | nothing; IV's string ids are X68000 addresses | — (`msx2_p4_dis.py` is a disassembler) | not supported |
@@ -276,7 +276,9 @@ game rewrites. II's pipeline already avoids this (both ST sets are played copies
 | I DOS | `GUILD.DAT`, `SACK.DAT`, `TWNS.DAT` (town Save game), `DNG.SAV` / `DNGX.SAV` (`save-file-format.md` "When files are written") and `OUT<n>.DAT`: saved on leaving a region, with fog cleared and fixed fights spent (`inc byte [cell]`; `overworld-movement.md`, OV2 `0x5ea2` / `0x535d`) | `TWNS.DAT` (`extract_towns.py`), `OUT*.DAT` (`extract_maps.py`) | towns: yes, `TWNS.INT` bytes 2445–5936 equal the pristine `TWNS.DAT` byte for byte `[C]`, so the port reads towns from `TWNS.INT`. Regions: **none** (DOS I has no `MAPS.INT`): decision 6 (import + warn) |
 | I Amiga | `OUT*.DAT` on the disk: the game rewrites a region's file (upper-case name, `OUT%d.DAT`) with fog lifted and fixed fights spent (`inc` of the cell). The pipeline reads only the polygons (offset 1000) and the town / dungeon cells (classes 4 / 5, fog stripped); fog and fights come from DOS I's tables, so play changes nothing it imports; s201: an Amiga-only import takes the grids from `maps.int` (a key file, never written) and only the feature records and text pages, which play leaves, from `out*.dat` (GAME-TABLES.md section 3) (s163, checked on the reference dump: its played cells differ only in fog and in spent fights; OUT9's three 68s at (1, 18), (15, 19), (20, 9) are the Amiga's own data, DOS 67) | yes (icons; s201 features and text pages) | not needed. s163: the reference dump is played (AmigaDOS dates: `OUT1` / `OUT5` / `OUT9` written 22.04.1992 with `guild.dat` and the saves; `OUT10` / `11` / `13` / `14` written by the game on 06.11.1986 17:48–18:53, a clockless Amiga's date, fog partly lifted); the eleven lower-case files dated 06.11.1986 12:12–12:13 (mastering) with every cell fogged are pristine, and their sha1s are the profile's `mutable_files` (so OUT16 (4, 15) = 88, DOS 87, is the Amiga's own data, not a spent fight; OUT2 (11, 8) and OUT12 (11, 14) also differ from DOS). s169: the seven played ones take their pristine sha1s from a second source, the unplayed WHDLoad package `phantasie-v1.0-whdload-1185.lha` (all 18 files dated at mastering; eleven equal the earlier sha1s; every played file in four ADFs differs from it only by fog and spent fights), so all 18 have one and the reference dump now reports five played files (OUT9 / 10 / 11 / 13 / 14). A mismatch warns that the import is unchanged |
 | II ST | saves, `TWNS.DAT`, `OUTn.DAT` play ranges | no (`.INT` + static ranges) | yes |
-| II Apple | `CHAR2`, `TWN21`–`TWN210` (town Save), `DNGSAV` / `DNGCHK`, `OUTTn` (stored back on leaving a region, fog only; FORMAT.md 3.6) | `OUTTn` (`TF2` for towns) | the Memorial Set's unplayed disks give the pristine sha1s (`mutable_files`, s167). `OUTT2` ships stored back (756 B, open as on the ST), so size says nothing; the 4am crack is a played copy (15 regions + the saves). A played copy warns (fog only: the Apple stores no fights there) or, if the player chooses, gets the start fog back (D2-052, decision 6) |
+| II Apple | `CHAR2`, `TWN21`–`TWN210` (town Save), `DNGSAV` / `DNGCHK`, `OUTTn` (stored back on leaving a region, fog only; FORMAT.md 3.6) | `OUTTn` (`TF2` for towns) | the Memorial Set's unplayed disks give the pristine sha1s (`mutable_files`, s167). `OUTT2` ships stored back (756 B, open as on the ST), so size says nothing; the 4am crack is a played copy (15 regions + the saves). A played copy warns (fog only: the Apple stores no fights there) or, if the player chooses, gets the start fog back (D2-052, decision 6). s212, v2.1: no unplayed copy is known; its `OUTTn` / `TWN2n` pristine sha1s are v1.0's `[~]` (derived: its untouched regions and towns have them, its stored-back regions differ from them only in fog, `TF2` is identical; FORMAT.md section 4); `CHAR2` / `DNGSAV` / `DNGCHK` have none (not read). The A2CAN pair reports 10 regions + 6 towns played |
+| III Amiga | `gamesave.dat` (`0x1faf0`) and the dungeon map saves `D/DNG<c>` / `D/DNP<c>` (loader `0x1f5d8` in mode 0, `0x1be22` / `0x1bdf8`); every other open is read-only, and the disk check's write into `D/PLN3` is never called `[C]` (s212, 7.9) | no | not needed: a played copy loses nothing (the reference ADF is played: saves dated 1988, every file read dated 03.09.1986) |
+| III Apple | `CHAR3`, `TWN31`–`TWN317` (town Save, `BACKUP`), `DNGSAV` / `DNGCHK` / `PIC` (`DNGOUT3`) `[C]` (every `& STORE` of both sides) | no (`TF3` is read for towns) | v3.0's unplayed factory files give the pristine sha1s (`mutable_files`); the [cr] sides are played (`CHAR3`, `TWN31`, `TWN317`): the import is the same and the note says so |
 | III DOS | only the dungeon map saves `DNP<c>` / `DNG<c>` (ovl4 `0x90a` / `0x93a`, root `0x7bff` in write mode) and `gamesave.dat` (armory stock); `DNGS.DAT` / `PLNS.DAT` are read in read mode, `WORLD.DAT` / `CREATURE.DAT` / `INITARMS.DAT` opened read-only by the start-up loader (root `0x7e08`) `[C]` (s158) | `DNGS.DAT`, `WORLD.DAT`, `PLNS.DAT`, `INITARMS.DAT`, `SCROLLS.DAT` | not needed: a played copy loses nothing |
 | IV X68000 | saves go to disk 2 (`FORMAT.md`), which also holds `DATM`, `MOUT`, `IND*.PDT`; whether those are rewritten is `[?]` | yes | hash per file, not per image |
 
@@ -483,16 +485,23 @@ Public repo: built fresh, pushed to GitHub as **private** `jjanow/OpenPhantasie`
 | `kickstart-1.3` | `KickstartFontPipeline` | topaz 8: I's `amiga-topaz-8.json` + preview PNG and III's copy, byte-equal. Its own pipeline so either Amiga game gets it |
 | `p2-st-1.0` | `P2StPipeline` (+ `P2St/`) | 15 GameData files byte-equal (incl. `graphics/atari-st.json`), 262 PNG pixel-equal + 4 JSON byte-equal, raw `START.PRG` / `PHANT.PRG` byte-equal; the TOSEC `.st` pair gives identical output. Needs only I's shipped numbers (no names) |
 | `p2-apple2` | `P2Apple2Pipeline` (+ `P2Apple2/`, `Containers/RdosVolume`) | the 4am crack's two RDOS `.dsk` sides (key files from `extracted/key-files.json`; or the original `.woz` pair (s169, `Containers/WozImage`): every output byte-equal to the `.dsk` pair's; the `.woz` disks are the same played copy (`WozImageTests`); s170: the 4am pair written out as 16-sector 6-and-2 `.woz`, as a Memorial Set disk would be, imports byte-equal too). Art: 545 PNG pixel-equal, `extraction-index.json` and `graphics/apple2.json` byte-equal (the pack's constants live in `A2Manifest`, not read from the shipped file). Raw tables: the 9 `extracted/*.json` of `extract_a2_p2_tables.py` byte-equal. GameData (no Python counterpart, see 7.5): loads through `GameDataRepository.Load` and a new game starts; every number equals the ST build (the ST cells of `apple2-import.json` applied; s169: OUT1's unused feature record 14 too); the shipped cells equal the ST GameData; the scrolls' compass words, turned, equal the ST's. Strings: 217 ids verbatim + 95 in the Apple's own wording from the copy, the rest from the shipped fallbacks (7.6; s163: the common shared / I file + II's 3 ids); under the public "..." mask an Apple-only import leaves no id II shows on "..." (s160's check covered only the ids the ST gives; s163 covers II's whole chain) |
+| `p2-apple2-2.1` | `P2Apple2V21Pipeline` (s212; the same `P2Apple2/` code, `P2Apple2PipelineBase`) | the A2CAN RDOS 3.3 pair. Restored (D2-052), every GameData table, art file and resolved string line equals the Memorial Set's v1.0 import but for the version's name (`_source`, `game.json` `profile`, notes) and each region's file length (`P2Apple2V21Tests`); loads and starts a game fogged. Strings: every `p2-apple2` alternative has a `p2-apple2-2.1` twin (326; 155 `OUTDOORS2` references moved by Applesoft line; the test compares the resolved lines of all three tables, shared, I and II) |
 | `p3-dos-1988` | `P3DosPipeline` (+ `P3Dos/`) | 10 tables JSON-equal, 9 byte-identical (rule-tables JSON-equal only: hand-added blocks). WizardWorks 1991 detected by the same profile, identical output. III's spells take only `category` / `effect_summary` from I's shipped spells. s160: the DOS CGA pack (`P3CgaArt`), 512 PNG pixel-equal to `extract_dos_p3_graphics.py`'s (7.7) |
+| `p3-apple2` | `P3Apple2Pipeline` (+ `P3Apple2/P3Apple2Tables`) | tables only (s212, 7.10): the C# extract equals `extract_a2_p3_tables.py`'s nine files (`P3Apple2TablesTests`); with `apple2-import.json`'s cells, JSON-equal to the DOS GameData but for provenance and text (`P3Apple2ImportTests`); the same from a public-repo shipped folder; loads and starts a game |
 | `p3-amiga-1.0` | `P3AmigaPipeline` | 579 PNG pixel-equal, 2 JSON byte-equal, raw `D/m0`, `D/m1`, `PhantasieIII` byte-equal. Without DOS III only `previews/scandor-dos.png` (unused by the pack) is left out. s210 tables (`P3AmigaTables`, no Python counterpart, 7.9): with `amiga-import.json`'s cells, JSON-equal to the DOS GameData but for provenance (`P3AmigaImportTests`); the same from a public-repo shipped folder; loads and starts a game |
 | `p4-x68000-1.02` | `P4X68kPipeline` (+ `P4X68k/`) | 16 files JSON- and byte-equal (monsters, items, spells, names, overworld, dungeons, scrolls, towns, elementals, rule-tables, `strings/ja.json`, `graphics/x68000-panels.json`, the four `x68k-p4-*` fonts); 382 PNG pixel-equal (every PNG has a generator: 55 PKH, 273 `.pix`, 54 fonts / item icons; 2.6's 288 is stale); raw `P4.X`, `P4.SND`, `VDATA` byte-equal. English by id only (decision 3): `en.json[id]`, else the Japanese from the copy; `translation/en.json` is never read. A test with `en.json` cut to the differing ids and `rule-tables.json` without the copy's fields gives the same tables. `x68k_p4_anim.py` not ported (its numbers live in the shipped `x68000.json`); the panel call sites found by objdump are a fixed table (P4.X is pinned by sha1) |
 
 ### 7.3 Findings of the port (committed files vs scripts)
 
-- `build_p2_gamedata.py` and `build_p3_gamedata.py` are behind hand edits (`--check` fails): II `rules.json` /
-  `travel-time.json`, III `creation-tables`, `rules`, `towns`, `rule-tables`. The importer leaves those class (a)
-  files shipped and takes the hand-added parts of (c) files (III towns `_layout` / `_notes`, rule-tables blocks) from
-  the shipped copy, so a re-run of the Python would lose edits the importer keeps.
+- `build_p2_gamedata.py` and `build_p3_gamedata.py` were behind hand edits (`--check` failed): II `rules.json`
+  (`elementals`, `arithmetic: motorola_ffp`, `divisor_ffp`) / `travel-time.json` (D2-042 `wilderness_inn_dos`), III
+  `creation-tables` (`lifespan_bands`, `_note`), `rules` (`elementals`, `dungeon_save_per_dungeon`,
+  `drop_gold_share`), `towns` (`_layout` / `_notes`), `rule-tables` (`creation_age`, `armory_restock`,
+  `town_entry_payout`, `transfer`). s212: both scripts now emit those blocks (`divisor_ffp` computed from the divisor
+  and checked to occur in `PHANT.PRG`; the restock pool checked against the Apple III disk 1A), and `--check` passes
+  with a zero diff. The committed files changed only in whitespace (hand-pasted blocks re-indented as the script
+  writes them; their parsed JSON is unchanged). The importer still leaves those class (a) files shipped and takes the
+  hand-added parts of (c) files (III towns `_layout` / `_notes`, rule-tables blocks) from the shipped copy.
 - II `dungeons.json` lacks the `option_cells` that `extract_dungeon_events.message()` adds since s153; the port matches
   the committed file.
 - I `dungeons.json` keeps three hand-written top-level fields (`_note`, `_grid_byte_length`, `_grid_note`) no script
@@ -513,6 +522,9 @@ Public repo: built fresh, pushed to GitHub as **private** `jjanow/OpenPhantasie`
 II's GameData in the ST build's shape, from the Apple's files alone (`A2GameData`); with the ST copy imported too (same
 run or earlier) the ST's tables win and the Apple adds only `apple2.json` + its art (a warning says so;
 `import.json` `tables` stays the ST's; the runner now records `tables` only for a profile that wrote GameData tables).
+s212: v1.0 (`p2-apple2`) and v2.1 (`p2-apple2-2.1`) build the same tables (same data files; `game.json` `profile` and
+the `_source` lines name the version). With both (same run or earlier), v2.1's win: v1.0 runs after it and then adds
+only its art pack, and only v2.1 is asked about restoring its maps.
 
 - **From the Apple:** monsters (names, numbers; `sprite_width` = the idle picture's width, `sprite_height` = the
   Apple's rank height YS%), items 1-180 and value factors, names (classes, races incl. LIZARD MAN, status OKAY),
@@ -550,6 +562,8 @@ run or earlier) the ST's tables win and the Apple adds only `apple2.json` + its 
 
 - **II Apple II:** run in the Client (s163 / s169, 7.5). `.woz` pairs read since s169. Memorial Set disks (DOS 3.3 sector order): read and found since s167 (`RdosVolume.TryOpen` reads
   both orders and keeps the longer catalog; catalog sector 0 is the same in both); their saves are the pristine sha1s.
+  v2.1 (RDOS 3.3) imported since s212 (3.1, 7.2); not run in the Client yet (its tables equal v1.0's, so nothing new
+  to see), and no unplayed v2.1 copy is known to confirm its derived pristine sha1s (3.3).
 - **I Bonus Edition** (the Memorial Set's I): imported since s168 (`dos/bonus-edition.md`: `OV1.OVR` / `OV2.OVR` differ
   only in the hidden-save flag and the manual page lines; `IBMCOVER`, the WizardWorks cover, is not read).
   An import made before s168 recorded only the versions it imported, so the recipe re-run (4.4) does not find I in
@@ -618,7 +632,7 @@ run or earlier) the ST's tables win and the Apple adds only `apple2.json` + its 
   files under every other imported file, so DOS I's or the ST's own line still wins.
 - **Imports without I's tables** (s163): a version gives only the lines its files hold, so a game's chain (shared → I →
   its own table) had "..." for the rest: DOS-only III (395 ids), and also ST-only II and Apple-only II (175 ids each,
-  the Mystic's score line among them: s160's Apple check covered only the ids the ST gives). Now three shipped files:
+  the Mystic's score line among them: s160's Apple check covered only the ids the ST gives). Now three shipped files (s212: plus III's Apple-only file, 7.10):
   `phantasie1/strings/fallback.en.json` (shared 84 + I 322 ids: every id of those tables with original parts that the
   ST II, the Apple II II, DOS III or X68000 IV does not give, for a game that shows it; II leaves out III's ids, IV
   takes only its Hall's `core.p4.` ids), `phantasie2/...` (II's table: Pluto's minion, plus `core.p2.mystic.score_x`
@@ -681,14 +695,66 @@ before the art steps (the portraits read `core_race`).
   wants DOS's 22. The cell replaces each row with DOS's (L16..22 = L15's value), so the 22nd level is DOS's. Also
   DOS's: the XP / gold curves' index 0 and the terrain offsets' entry 0 (no Amiga counterpart; none is read).
 - **Strings:** the Amiga gives most of III's lines itself (`en.sources.json` holds `p3-amiga-1.0` alternatives for
-  94 of the 98 `core.p3.*` ids DOS gives); the eight only DOS III holds and those neither holds take the shipped
-  fallbacks (the common shared / I file + III's, `en.fallback.p3-amiga-1.0.json`), as a DOS-only III.
+  94 of the 98 `core.p3.*` ids DOS gives); the six only DOS III holds and those neither holds take the shipped
+  fallbacks (the common shared / I file + III's, `en.fallback.p3-amiga-1.0.json`), as a DOS-only III. s212 (user): two
+  lines the Amiga words its own way are the Amiga's, as own-wording alternatives (`tools/scripts/p3_amiga_own_wording.json`
+  → `en.own.p3-amiga-1.0.json`, III only, while III's tables are the Amiga's; recipe 3): `mystic.heroes_of_scandor` =
+  the Amiga's line at `PhantasieIII` +74800 (22 B, next to the three other `heroes_of_*` lines it already takes) and
+  `greetings` = its line at +108174 (15 B); both left III's fallback file. The Amiga has no counterpart for the other six (it always trades; no trap, transport or rank
+  line; Scroll IV's caption is part of its picture `D/s6`, "[original text]", so the caption id is drawn only by
+  the DOS CGA pack and never shows in an Amiga-only import).
 - **With DOS III** (same run: DOS runs first; or an earlier / later import): DOS III's tables win; the Amiga writes no
   table, no fallback, and warns. Amiga, then DOS, then an Amiga re-run leaves DOS's tables.
-- **Played copy `[~]`:** the files read are not the saves' (`gamesave.dat`, `Guild.dat`, `D/DNG<c>`, `D/DNP<c>` by
-  the program's file names); their open modes were not checked in the code.
-- Recipe 2 (an older Amiga III import re-runs and gains the tables, 4.4). Not seen in the Client on Xvfb `[~]` (the
-  load-and-start test covers the loader, a new game in Pendragon and leaving town).
+- **Played copy `[C]` (s212, static):** play rewrites no file the import reads, so only the three key files are pinned
+  and no `mutable_files` are needed. Every dos.library Open goes through the wrapper at `0x21418`; the only write-mode
+  opens reached are the save writer `0x1faf0` (`gamesave.dat`, `0x1fb16`) and the disk loader `0x1f5d8` in mode 0 from
+  the dungeon's save (`0x1bdf8` `D/DNP<c>`, `0x1be22` `D/DNG<c>`). `D/DNG<c>.DAT` (= `D/dng<c>.dat`), `D/PLN<n>`,
+  `D/S<n>`, `monsinfo.dat`, `inititem.dat`, `Phantasy.set`, the `.cmp` / `.csh` pictures and `D/M0` / `D/M1` are opened
+  read-only. Two write paths have no caller: the disk check `0x1f87e` in mode 3 (a word into `D/PLN3`, which the import
+  does not read; callers pass 0 or 1) and `0x20a5e` (`D/SXX`, `D/DNGX.DAT`, `D/WX.cmp`, `D/PLNX`, `D/MX`), called only
+  from `0x20bb4`, which nothing calls `[~]` (direct, absolute and PC-relative references searched; the start-up's two
+  `jsr (a0)` not traced). `Guild.dat` is a Phantasie I disk's roster, read for the transfer. The reference ADF agrees:
+  it is played (`gamesave.dat`, the 22 `D/DNG<c>` / `D/DNP<c>` dated 12-14.01.1988), while every file the import reads
+  keeps its 03.09.1986 date.
+- Recipe 2 (an older Amiga III import re-runs and gains the tables, 4.4; recipe 3, s212: the two own-wording lines). s212, seen in the Client on Xvfb from a
+  public-tree import of the ADF alone (`parity/s212-p3-amiga-only-live.md`): a new game in Pendragon, the Guild, the
+  Armory, the Bank, Trade, the Mystic, leaving town, the overworld (DOS's Pendragon tile and terrain names), fights by
+  the Amiga's screens and DOS's, a trap, Scroll IV's picture.
+
+### 7.10 What an Apple-only III import gives (s212)
+
+`P3Apple2Tables` (`Pipelines/P3Apple2/`, the C# port of `tools/scripts/extract_a2_p3_tables.py`; layouts in
+`reverse-engineering/apple2/phantasie3/FORMAT.md`) reads III's tables from the two sides of disk 1 (the v3.0 `.woz`
+pair or the [cr] `.dsk` sides) in `P3Extract`'s shapes; the unchanged `P3Build` writes the ten files `P3DosPipeline`
+writes. `P3Apple2Pipeline` (recipe 2; 1 had no fallback wording) runs after `p3-dos-1988` and `p3-amiga-1.0`.
+
+- **From the Apple:** `MN30`–`MN39` (monster records, text), `ITEM` + `TINFO` (items, HP / magic / skill / spell
+  tables), `TF3` (armory stock, price index, town names), `OT1`–`OT43` (Scandor in 25 sections, the plane maps, the
+  places), `DNG1`–`DNG10` (DOS's record layout; `DNG10` serves dungeons 1 and 8), `SC1`–`SC20` (scroll pages), the
+  programs' DATA lines (names), `INFO` (terrain monster offsets).
+- **DOS's values** (the rule of II's Apple and III's Amiga imports): the shipped class (a) `phantasie3/apple2-import.json`
+  holds 653 cells made by `diff_a2_p3_vs_dos.py --built … --cells` (FORMAT.md section 4: monster numbers and bytes
+  27 / 33, item 69's value, 44 stock cells and Tirith's index, dungeon event bytes, scroll pages, the Scandor grid by
+  rows and the three plane maps, places, the terrain table, HP L16–22, the skill cells of D3-032, the tables the
+  Apple computes, spell and missing names), applied by `CellPatches`. With them every file equals the DOS build but
+  for provenance and the Apple's own text (names, dungeon messages laid out in 38-column rows, scroll pages); the
+  dungeon records equal DOS's to 0x593.
+- **Open (for the user):** the Scandor and plane grids are not derivable from the Apple's bytes (terrain × 10 + level,
+  not DOS's tile ids), so the cells carry DOS's whole grids (75 Scandor rows, 3 plane maps) into the shipped (public)
+  file; the alternative is the Apple's own maps with an Apple tile → terrain table (no DOS art fits them).
+- **Strings:** `en.sources.json` holds `p3-apple2` alternatives for 17 ids (status / class words found verbatim in
+  v3.0's programs; v1.0's programs are laid out differently, so a [cr] import resolves none). s212: the 218 ids III
+  shows that neither the Apple nor the common / III fallbacks give (206 DOS III or Amiga lines, 10 of the v3.0 words a
+  [cr] copy lacks, and `greetings` / `mystic.heroes_of_scandor`, which left III's file for the Amiga's own lines) take
+  the remaster's wording from `phantasie3/strings/fallback.p3-apple2.en.json` (shared 78, I 5, III 135; recipe 2).
+  `ImportedStrings.WriteFallback` merges a game's `strings/fallback.<profile>.en.json`, when shipped, after its
+  `fallback.en.json`, so only this profile gets it. Wording as in 7.6 (88 game terms, labels and status words keep the
+  table's text; 130 lines reworded, format items, line count and the aligned header's length kept). Tests
+  (`P3StringFallbackTests`): v3.0 and [cr] Apple-only imports leave no id III shows on "...".
+- **With DOS III or the Amiga** (same run or earlier): their tables win; the Apple writes none and warns (the Amiga's
+  `OwnsTables` also takes over the Apple's).
+- **Played copy:** none of the files read is rewritten by play (3.3); a [cr] copy imports the same.
+- Not seen in the Client on Xvfb `[~]` (the load-and-start test covers the loader, a new game in Pendragon and leaving town).
 
 ### 7.7 s160: the III CGA pack, the topaz offer, I's dungeon note
 
@@ -824,7 +890,7 @@ Xvfb lists all four games and starts I with the imported Amiga art.
 | apple2 | `phantasie2/memorial-set-gog/PHANT2A.DSK` (DOS 3.3 sector order) | 143360 | `e21f26ddefd9d6d4fa1b966cece09cedfb42966b` |
 | apple2 | `phantasie2/memorial-set-gog/PHANT2B.DSK` | 143360 | `2f5d2bce122ffa417ac4c2b2873881f386c58991` |
 | apple2 | `phantasie2/v2.1-a2can/phantasie2-v2.1-side-a-boot.dsk` (RDOS 3.3) | 143360 | `b5efe8c9e28989e2e1689b7143d4202503237031` |
-| apple2 | `phantasie2/v2.1-a2can/phantasie2-v2.1-side-b-dungeon.dsk` | 143360 | `b52f391ca2b94346f4d44f10105d1da6c798f769` |
+| apple2 | `phantasie2/v2.1-a2can/phantasie2-v2.1-side-b-dungeon.dsk` | 143360 | `b52f391ca2b94346f4d44f10105d1da6c798f769` (both in `p2-apple2-2.1`'s `images`, s212) |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_1_of_3_Side_A.dsk` | 143360 | `b7ae3f30298c41fd9a2abfa2bcd566cf4051a39a` |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_1_of_3_Side_B.dsk` | 143360 | `51446a1e54c1ef84c13bb480d559f9b240b5b4e1` |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_2_of_3_Side_A_Dungeon.dsk` | 143360 | `da829c612540f772012cc2bc11674a16ac72d4f4` |
@@ -931,6 +997,12 @@ Taken from the unpacked copies in the repo.
 | II ST v1.0 | `START.PRG` | 2567 | `e79d928c3628f58b40062016a73cf25366202c91` |
 | II ST v1.0 | `TWNS.INT` | 13900 | `b5c4b95f38e72b0c06d4029729dc67ba2d055cb5` |
 | II ST v1.0 | `MAPS.INT` | 8840 | `16c993df0bb09e14e9779a6e989255bc34b7d484` |
+| II Apple v1.0 | `PHANTASIE II` (side A), `TOWN2`, `OUTDOORS2`, `ITEM`, `TINFO`, `TF2`, `SHAPES`, `ICE DRAGON`, `INFO`; side B `DUNGON2`, `DNG1`, `DNG8`, `SCROLLL0` | | `profiles.json` `p2-apple2` (= `apple2/phantasie2/extracted/key-files.json`) |
+| II Apple v2.1 | `OUTDOORS2` | 18650 | `298afe2c09b4a2f7f03feb0a1bc37dfcda6f4ce6` |
+| II Apple v2.1 | `DUNGON2` (side B) | 19580 | `43fcedaed28f56ff10aa8f7218be369b2e23ab29` |
+| II Apple v2.1 | `SCROLLL0` (side B) | 1000 | `d573bf031805acd426352a734730f50ec332d16f` |
+| II Apple v2.1 | `INTRO2`, `MAP` | 676, 750 | `0eb578a682d7584cfc46a5bddce41f2564a3f4ab`, `8d4d3e0e6de46e3611e0a1544f20c47e8487d8a6` |
+| II Apple v2.1 | `PHANTASIE II`, `TOWN2`, `ITEM`, `TINFO`, `TF2`, `SHAPES`, `ICE DRAGON`, `INFO`, `DNG1`, `DNG8` | | as v1.0 (s212) |
 | III DOS 1988 | `MAIN.EXE` | 152564 | `b85cd0eaab25884af4e90d298407e42a288b5ede` |
 | III DOS 1988 | `CREATURE.DAT` | 3072 | `a6341c8b7c4bb4bb473682f5267df4ad30850803` |
 | III DOS 1988 | `DNGS.DAT` | 46464 | `20bfda72d55ee07801764ed33a3c00fb46804d9f` |
@@ -938,6 +1010,11 @@ Taken from the unpacked copies in the repo.
 | III DOS 1988 | `PLNS.DAT` | 658 | `5f851b3ffdd8e7663ba3b9e97452692f81f7220a` |
 | III DOS 1988 | `INITARMS.DAT`, `SCROLLS.DAT` | 3328, 19950 | `56a360b7b000150cba73c546d5030522be54641b`, `643f7bbfb2ec53920103fe0ce2472030d20b7565` (s158: read at fixed offsets) |
 | III DOS 1988 | `TOWN.CMP`, `PICS.CMP`, `WORLD.CGA`, `SHAPES.CGA`, `MONSTERS.CGA` | 10736, 30170, 16000, 16192, 48768 | `642b4e3e…`, `a4c9c882…`, `3ac9f4ac…`, `e7a81eb9…`, `088129fb…` (s160: not key files; the CGA pack checks them, `P3CgaArt.Sources`) |
+| III Apple II (v3.0 and v1.0) | `TF3` | 4250 | `83382f6dbd996edd659ba8bc4f9ff1b69499bd1b` |
+| III Apple II | `ITEM` | 1792 | `3a40c2587a49976ff853017c7f09418ede2f3b6f` |
+| III Apple II | `TINFO` | 1730 | `b0208442d7f8d82f59140530da690ba6431478d0` |
+| III Apple II | `DNG1` (side B) | 4132 | `b6dde4904567dfdf94e593cd682c8ce28efefd84` |
+| III Apple II | `DNG10` (side B) | 4132 | `78c88193a938baf2d53f3e43904bf35a36405587` |
 | III Amiga v1.0 | `PhantasieIII` | 174928 | `40548339ddbcbc3be8c2a17055f322211b538150` |
 | III Amiga v1.0 | `monsinfo.dat` | 3072 | `a6341c8b7c4bb4bb473682f5267df4ad30850803` |
 | III Amiga v1.0 | `D/m0` | 896 | `b7cfea849f37d08467e065b02c7b8abb856ed290` |

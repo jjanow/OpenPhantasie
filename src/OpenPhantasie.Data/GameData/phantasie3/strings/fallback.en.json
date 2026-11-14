@@ -1,6 +1,6 @@
 {
  "_schema": "phantasie.strings-fallback/v1",
- "_note": "The remaster's own wording for the Phantasie III table lines DOS III does not give, and (s210) those only DOS III gives, for an Amiga-only III (10-importer.md 7.6); the shared and I table lines are in phantasie1/strings/fallback.en.json. The importer writes both to strings/en.fallback.<profile>.json, under every other imported file.",
+ "_note": "The remaster's own wording for the Phantasie III table lines DOS III does not give, and (s210) those only DOS III gives, for an Amiga-only III (10-importer.md 7.6; s212: the Amiga's own lines cover two of them, an Apple-only III takes those from fallback.p3-apple2.en.json); the shared and I table lines are in phantasie1/strings/fallback.en.json. The importer writes both to strings/en.fallback.<profile>.json, under every other imported file.",
  "language": "en",
  "tables": {
   "phantasie3": {
@@ -10,9 +10,7 @@
    "useitem.scroll_picture": "(A picture: a map of Scandor.)",
    "useitem.scroll_picture_caption": "Map of Scandor",
    "core.p3.party_transported": "The party is carried away.",
-   "core.p3.a_trap": "A trap!",
-   "core.p3.greetings": "Welcome...",
-   "core.p3.mystic.heroes_of_scandor": "and the heroes of Scandor."
+   "core.p3.a_trap": "A trap!"
   }
  }
 }

@@ -56,6 +56,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 | D2-050 | Apple II vs ST: text (names, scroll and message wording, menus); the Apple has no spell names | DECIDED |
 | D2-051 | Guild elementals: the manual's "will only serve a party of six adventurers" vs the ST's Add with any party size (SUMMON still needs six) | DECIDED (user s173: SUMMON's six-member gate is enough; the ST's Add stays as II's `game`) |
 | D2-052 | Apple II new game: the manual's "just as if you had bought a new game" vs the Apple's BACKUP, which keeps the lifted fog (and leaves the dungeon saves) | DECIDED (s209): manual; importer restores the start fog (a), built s210 |
+| D2-053 | Apple II v1.0: a dungeon gold event (ops 7–10) can run the winning ending or re-run the event (`X` reused) against the manual's quest; v2.1 and the ST don't | **DECIDED** (user s212): the manual's quest (the ST / v2.1 behaviour Core plays); nothing built |
 
 ---
 
@@ -718,3 +719,20 @@ and `strings/fallback.en.json`).
 - **Decision (user s173):** "not an issue if SUMMON gates it behind 6 party members. it's fine as is." The manual's
   sentence is read as a SUMMON rule; Add stays the ST's (any party size).
 - **Status:** DECIDED.
+
+## D2-053 — Apple II v1.0: a dungeon gold event can run the winning ending (fixed in v2.1)
+
+- **Manual:** the quest is to free Ferronrah from Nikademus (CB p.2 / PDF 3; `docs/plan/09-trilogy-manual-p2.md`
+  "Quest and endgame"); it describes no endgame screen, and nothing lets a gold find or loss end the game. A gold event
+  that runs the winning ending contradicts the stated quest.
+- **Apple II v1.0 2/5/86** (`DUNGON2` lines 8340–8370, 8516 / 8518; `apple2/phantasie2/FORMAT.md` section 3.7,
+  `apple2/original-images/SOURCES.txt` v2.1 notes) `[C]` static, not seen live: script ops 7–10 (party gold gained /
+  taken) compute the new gold high byte in `X`, which also holds the op that 8516 / 8518 test after it (23: `& RUN
+  "WIN"`, 22: re-run the square's event). So a gold op whose script ends with the high byte at 23 (6,143 gold after a
+  gain, 5,888 after a loss) runs the winning ending, and 22 re-runs the event once more (e.g. DNG7 event 225, gain 20,
+  with 768–1,023 gold before). Skipped only for a chained op printed above screen row 15 (8500).
+- **Apple II v2.1 8/19/86 and the ST:** v2.1 uses `Z` there (SSI's fix; every other rules file is v1.0's). The ST's
+  `dungeon_event` keeps the gold ops apart from op 23 (ENDING), as Core's `Phantasie2DungeonScript` does.
+- **Remaster:** the ST / v2.1 behaviour whatever the source copy (Core plays the ST's dungeon script; the Apple import
+  reads no program logic, only data, which is the same in both versions). Nothing to build. Found s211, entered s212.
+- **Status:** DECIDED (user s212): the manual's quest, i.e. the ST / v2.1 behaviour already built; no option for v1.0's bug.

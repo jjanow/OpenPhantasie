@@ -59,7 +59,8 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-072 | I / II → III transfer XP: the manual's characters keep "enough remaining experience … to train up several levels"; DOS gives 100 XP per old level (one or two trainings for most) | DECIDED: DOS (user s148) · built (s147) |
 | D3-073 | Armory list: the manual lists an item the buyer cannot use "as Unusable" and shows the point value of equipment; DOS prints "N/A" in the Pt Val column, and also for the three requirement-0 items (Cloth +1, Robes +1, Self Bow) | DECIDED (user s174): manual · built s174 |
 | D3-074 | Town keys: the manual's town letters (I's A G M N B L / C U D I S, plus T Trade) or the Amiga bar's own (`?OS` / `+-ENPR·LT` / `ABIMX·CDGUV`: G Trade, I Inn, N New Member, L Learn, T Training) | DECIDED (user s180): Amiga under AMIGA SCREENS, manual in the DOS look; QoL COMMON TOWN KEYS for one set · built s180 |
-| D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | DECIDED (s209): manual, DOS as option (`p3.fireflash`) · built s210 |
+| D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | DECIDED (s209): manual, DOS as option (`p3.fireflash`) · built s210 · live s212 |
+| D3-076 | Town inn: the manual cures "1 Break or 2 Injuries" at every inn; Apple II III's town inn cures no body area (HP and magic only), its wilderness inns cure 2 points | DECIDED (user s212): the manual (D3-015); no Apple option |
 
 ---
 
@@ -1022,9 +1023,35 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   Fireflash pick (`P3CombatModule.CastAsksRank`). A rank-2 cast packs as `CombatAction.CastRankTwoBase + spell` (DOS
   action code 16). It is kept in the saved option (`+0x6e` 16, `+0x70`). Core's fight-start load keeps a saved code 16 as
   it is, as DOS's `0xd5c4` table does. The order screens repeat the order at rank 2 while two groups live, and at rank 1
-  once only one is left, as they do for melee orders. The numbers
-  (`DS:0xc1a` factors, the caps, the manual's maxima) are constants in `P3CombatModule`, like III's other combat-spell
-  numbers. Tests: `P3FireflashTests`, `AmigaOrdersScreenTests` (Fireflash_*).
+  once only one is left, as they do for melee orders. The numbers (the `DS:0xc1a` factors, the caps, the manual's
+  maxima) were constants in `P3CombatModule` until s212. Since then they are III's rule data: `rule-tables.json`
+  `fireflash` (`manual_max`, `dos_factor`, `dos_cap`), also written by the importer's `P3Build`. `P3World.Fireflash` hands
+  them to `P3Fight.Fireflash`, and `P3FireflashTable.Default` keeps the same values for fights built without data. III's
+  other combat-spell numbers are still C# constants. Tests: `P3FireflashTests`, `AmigaOrdersScreenTests` (Fireflash_*).
+- **Live (s212):** DOS III on DOSBox-X matches the code read and `p3.fireflash` = `dos` (`parity/s212-p3-fireflash-live.md`):
+  - INT-bound tops: IV at INT 3 ≤ 26 in 12 casts, IV at INT 12 ≤ 91 in 28, II at INT 5 = 12 exactly, I at INT 5 = 3.
+  - IV's cap is 99: three 99s in 14 casts at INT 20 and never 100.
+  - The rank question on the order screen; code 16 hit only rank 2 (10 of 10).
+  - Target slots fit `0xb4ec`.
+
+  The Client under both values was checked on Xvfb:
+  - `dos`: the Amiga rank window, rank 2 and rank 1 hits;
+  - `manual`: no question, front rank.
+
+  No new difference.
 - **Side effects:** monsters' Fireflash on the party (`combat-round.md` section 3, `rnd(t[s])` with 12 / 35 / 70 / 120) is
   a separate table and not part of this entry.
 - **Spec:** `reverse-engineering/dos/phantasie3/logic-specs/combat-round.md` section 2 ("The party's Fireflash I–IV").
+
+## D3-076 — Apple II III's town inn cures no body area
+
+- **Manual:** an inn stay "will cure 1 Break or 2 Injuries" (III PDF 9 / pr.12; App. II PDF 14 / pr.23); "Injured Body
+  Areas can be cured with rest in the Inn" (PDF 7 / pr.8).
+- **Code:** Apple II III (v3.0 and v1.0, `TOWN3` 7200–7320, s212 `[C]`): the town inn restores hit points and magic
+  (and may raise the magic maximum) but never touches the body-area bits (record +129 / +130); only a Healing spell
+  above #2 and a Healing potion above 6 clear them (`TOWN3` 7030, 6840 → 8900). The wilderness inns (`OUTDOORS3`
+  7250–7310) spend 2 cure points (`GOSUB 8490` with N = 2), as the manual says. DOS cures every non-Gone area in a
+  town (D3-015).
+- **Decision:** DECIDED (user s212): the manual's rule (D3-015, user s81), already built; no option for the Apple's town inn.
+- **Remaster:** nothing changes. The Apple-only import (s212) imports tables, not this rule.
+- **Side effects:** none today.

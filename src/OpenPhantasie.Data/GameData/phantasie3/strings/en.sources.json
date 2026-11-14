@@ -1415,6 +1415,17 @@
       12
      ]
     ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "PhantasieIII",
+      108174,
+      15
+     ]
+    ]
    }
   ],
   "core.p3.no_response": [
@@ -1937,6 +1948,17 @@
       "MAIN.EXE",
       104073,
       26
+     ]
+    ]
+   },
+   {
+    "from": "p3-amiga-1.0",
+    "wording": "own",
+    "parts": [
+     [
+      "PhantasieIII",
+      74800,
+      22
      ]
     ]
    }

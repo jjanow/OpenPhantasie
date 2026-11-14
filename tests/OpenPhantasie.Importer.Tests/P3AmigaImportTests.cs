@@ -195,7 +195,7 @@ public class P3AmigaImportTests
             var manifest = Manifest(root);
             Assert.Equal("p3-amiga-1.0", (string?)manifest["games"]!["phantasie3"]!["tables"]);
             Assert.Equal("p3-amiga-1.0", (string?)manifest["games"]!["phantasie3"]!["art"]!["amiga"]);
-            Assert.Equal(2, (int)manifest["games"]!["phantasie3"]!["versions"]!["p3-amiga-1.0"]!["recipe"]!);
+            Assert.Equal(3, (int)manifest["games"]!["phantasie3"]!["versions"]!["p3-amiga-1.0"]!["recipe"]!);
             Assert.StartsWith(P3AmigaTables.Label, MonstersSource(root));
             Assert.True(File.Exists(Path.Combine(root, "GameData", "phantasie3", ImportedStrings.FallbackFile("p3-amiga-1.0"))));
 

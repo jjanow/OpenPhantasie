@@ -1454,13 +1454,25 @@ costs and no terrain table.
   55, Priest 65, Ranger 80, Monk 60, Wizard 40), so the loader's 22nd level is DOS's, not made up.
 - III's UI lines: the s208 note that the 124 `core.p3.*` ids have no Amiga alternatives no longer holds:
   `en.sources.json` has `p3-amiga-1.0` alternatives for 94 of the 98 `core.p3.*` ids DOS gives (and most of the
-  shared table's `p3*` lines). The eight lines only DOS III holds (`core.p3.party_transported`, `a_trap`, `greetings`,
-  `mystic.heroes_of_scandor` (the Amiga prints `and heroes of Scandor.`), `useitem.scroll_picture` / `_caption`,
-  `p3town.no_trade`, `p3combat.x_target_which_rank`) get the remaster's wording from the shipped fallback files, as a
-  DOS-only III does for the lines neither holds (`P3StringFallbackTests.PublicMask_AmigaIiiOnly_NoEllipsis`).
-- Played copies `[~]`: only `PhantasieIII`, `monsinfo.dat` and `D/m0` are pinned. The program's file names put the
-  saves in `gamesave.dat`, `Guild.dat`, `D/DNG<c>` (seen cells) and `D/DNP<c>` (played maps), none read here; that
-  `inititem.dat`, `D/dng<c>.dat`, `phantasy.set`, `D/pln<n>` and `D/s<n>` are opened read-only was not checked in the
-  code.
+  shared table's `p3*` lines). The six lines only DOS III holds (`core.p3.party_transported`, `a_trap`,
+  `useitem.scroll_picture` / `_caption`, `p3town.no_trade`, `p3combat.x_target_which_rank`) get the remaster's
+  wording from the shipped fallback files, as a DOS-only III does for the lines neither holds
+  (`P3StringFallbackTests.PublicMask_AmigaIiiOnly_NoEllipsis`). s212 (user): `greetings` (+108174, 15 B) and
+  `mystic.heroes_of_scandor` (+74800, 22 B), which the Amiga words its own way, take the Amiga's line as own-wording
+  alternatives (`tools/scripts/p3_amiga_own_wording.json`; `AmigaIiiOnly_OwnWording_ForScandorAndGreeting`).
+- Played copies `[C]` (s212, static): only `PhantasieIII`, `monsinfo.dat` and `D/m0` are pinned, and nothing more is
+  needed. dos.library is reached through wrappers (Open `0x21418`, Read `0x21432`, Write `0x21444`, Close
+  `0x213e8` / `0x213f0`; no DeleteFile or Rename). Write-mode opens: the save writer `0x1faf0` (`gamesave.dat` at
+  `0x1fb16`, four Writes `0x1fbec`-`0x1fc34`) and the file loader `0x1f5d8` (table `0x23a62`) in mode 0, called only
+  by the dungeon's map save (`0x1bdf8` entry 11 `D/DNP<c>`, `0x1be22` entry 1 `D/DNG<c>`). Read-only: entry 0
+  `D/DNG<c>.DAT` (`0x1bca2`), entry 20 `D/PLN<n>` (`0x1ebc6`, `0x1ec58`), the scrolls `D/S<n>` (`0x1f780`),
+  `monsinfo.dat` (`0x1f9a6`), `inititem.dat` (`0x1f9fe`, into `0x25d4a`, which the save writes to `gamesave.dat`),
+  `Phantasy.set` (`0x27e4`), the pictures (`0x124c`), `D/M0` / `D/M1` (`0x1fa68`), `gamesave.dat` (`0x1fcae`), and a
+  Phantasie I disk's `final.pic` / `final2.pic` / `Guild.dat` (`0x20b00`, `0x20b42`, the transfer). No caller found
+  `[~]` (direct, absolute and PC-relative references; the start-up's two `jsr (a0)` at `0x2129c` / `0x212f4` not
+  traced): the disk check `0x1f87e`'s mode 3 (writes the word into `D/PLN3`; its callers pass 1 or 0) and `0x20a5e`
+  (read or write by table `0x23ee6`: `D/SXX`, `D/DNGX.DAT`, `D/WX.cmp`, `D/PLNX`, `D/MX`), called only by `0x20bb4`.
+  The master ADF is a played copy (`gamesave.dat`, the 22 `D/DNG<c>` / `D/DNP<c>` dated 12-14.01.1988), and every file
+  the import reads keeps its 03.09.1986 date.
 - `P3Build`'s other hand-written constants (class kits, encounter numbers, the rule blocks) are DOS readings not all
   re-read on the Amiga (the elementals' are, above).

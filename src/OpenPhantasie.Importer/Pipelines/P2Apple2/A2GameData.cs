@@ -26,14 +26,26 @@ internal static class A2GameData
 
     private static readonly string[] Attrs = ["STR", "INT", "DEX", "CON", "CHA"];
 
-    /// <summary>Write II's tables from the Apple; false when the ST copy's tables (this run or earlier) win.</summary>
+    /// <summary>
+    /// Write II's tables from the Apple; false when the ST copy's tables (this run or earlier) win, or, for v1.0,
+    /// v2.1's (s212: the later version; both give the same tables).
+    /// </summary>
     public static bool Write(ImportContext ctx, A2Source src, JsonObject gfxIndex)
     {
-        if (ctx.ReadImportedGameData(Game, "game.json") is JsonObject existing && (string?)existing["platform"] != "apple2")
+        if (ctx.ReadImportedGameData(Game, "game.json") is JsonObject existing)
         {
-            ctx.Warn("Phantasie II's game data comes from the Atari ST copy (imported as well); the Apple II copy adds " +
-                     "only its art pack (choose it under the graphics options).");
-            return false;
+            if ((string?)existing["platform"] != "apple2")
+            {
+                ctx.Warn("Phantasie II's game data comes from the Atari ST copy (imported as well); the Apple II copy adds " +
+                         "only its art pack (choose it under the graphics options).");
+                return false;
+            }
+            if (ctx.Profile.Id == P2Apple2Pipeline.Id && (string?)existing["profile"] == P2Apple2V21Pipeline.Id)
+            {
+                ctx.Warn("Phantasie II's game data comes from the Apple II v2.1 copy (imported as well; the same tables); " +
+                         "this copy adds only its art pack.");
+                return false;
+            }
         }
         var built = Build(ctx, src, gfxIndex, out var warnings);
         foreach (var (file, node) in built)
@@ -90,11 +102,34 @@ internal static class A2GameData
             st.ApplyStartFog(built["overworld.json"], warnings);
         // D2-046..049 (user s159): the ST's numbers in every cell where the Apple's differ.
         st.ApplyCells(built, warnings);
-        built["game.json"] = Manifest(built);
+        built["game.json"] = Manifest(built, ctx.Profile.Id, src.SourceName);
+        // s212: v2.1's tables name their own version (every reader of v1.0's files reads the same data in v2.1's).
+        if (src.SourceName != Source)
+            foreach (var (_, node) in built)
+                RenameSource(node, src.SourceName);
 
         warnings.Add("Phantasie II's elementals are not on the Apple II disks: the remaster's three (the same numbers as " +
                      "Phantasie I's and the Atari ST's) are used.");
         return built;
+    }
+
+    /// <summary>Every <c>_source</c> line under <paramref name="node"/> with v1.0's name replaced by <paramref name="name"/>.</summary>
+    private static void RenameSource(JsonNode? node, string name)
+    {
+        switch (node)
+        {
+            case JsonObject o:
+                foreach (var (key, child) in o.ToList())
+                    if (key == "_source" && child is JsonValue v && v.TryGetValue(out string? text))
+                        o[key] = text.Replace(Source, name, StringComparison.Ordinal);
+                    else
+                        RenameSource(child, name);
+                break;
+            case JsonArray a:
+                foreach (var child in a)
+                    RenameSource(child, name);
+                break;
+        }
     }
 
     private static JsonObject Retag(JsonObject o, string source)
@@ -457,7 +492,7 @@ internal static class A2GameData
             Elemental("EARTH ELEMENTAL", 200, 100, 100, 25, 20, 21, [12, 13, 14, 15, 16, 17, 18, 19]),
         ])));
 
-    private static JsonObject Manifest(IReadOnlyDictionary<string, JsonObject> built)
+    private static JsonObject Manifest(IReadOnlyDictionary<string, JsonObject> built, string profile, string source)
     {
         int Count(string file, string key) => built[file][key] switch
         {
@@ -467,11 +502,12 @@ internal static class A2GameData
         };
         return J.O(
             ("_schema", "phantasie.game/v1"),
-            ("_source", "Built by the importer (p2-apple2) from " + Source),
+            ("_source", $"Built by the importer ({profile}) from {source}"),
             ("_note", "II's tables from the Apple II copy (no messages.json: the Apple keeps dungeon text in the levels). Its " +
                       "graphics pack is graphics/apple2.json."),
             ("game", "p2"),
             ("platform", "apple2"),
+            ("profile", profile),
             ("counts", J.O(
                 ("monsters", Count("monsters.json", "monsters")),
                 ("items", Count("items.json", "items")),

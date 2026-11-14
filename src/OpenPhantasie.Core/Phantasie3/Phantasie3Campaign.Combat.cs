@@ -88,6 +88,7 @@ public sealed partial class Phantasie3Campaign
         HitLocations = World.HitLocations,
         TallMonster = World.TallMonsterIds.Contains(firstMonsterId),
         LimblessMonsterIds = World.LimblessMonsterIds,
+        Fireflash = World.Fireflash,
         Items = session.CampaignAccess.Items,
         SpellNames = World.SpellNames,
     };

@@ -198,7 +198,7 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
             if (!CastGoesAhead(encounter, spellIndex))
                 return true; // no line, no magic spent
             if (fight is not null && IsFireflash(spellIndex))
-                CastFireflash(encounter, memberIndex, spellIndex, castRank + 1, rng, log);
+                CastFireflash(encounter, fight, memberIndex, spellIndex, castRank + 1, rng, log);
             else if (fight is not null && BowSpell(spellIndex) is { } bowSpell)
                 CastBowSpell(encounter, fight, memberIndex, spellIndex, bowSpell, log);
             else if (SpellCaster.ResolveCombatCast(encounter, memberIndex, packedAction, rng, log).Success && fight is not null)
@@ -615,24 +615,21 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
 
     // ---- Fireflash (D3-075) -----------------------------------------------------------------------------------------------
 
-    /// <summary>The manual's Fireflash I–IV top damage (III PDF 11 / pr.14): 1-10 / 1-30 / 1-60 / 1-100.</summary>
-    public static readonly int[] FireflashManualMax = [10, 30, 60, 100];
-
-    /// <summary>DOS's Fireflash I–IV multiplier <c>t</c> (<c>DS:0xc1a[5..8]</c>, root <c>0xb42e</c>): 1 / 4 / 8 / 13.</summary>
-    public static readonly int[] FireflashDosFactor = [1, 4, 8, 13];
-
-    /// <summary>DOS's Fireflash I–IV damage caps (root <c>0xb48a…0xb4c8</c>): 10 / 30 / 60 / 99.</summary>
-    public static readonly int[] FireflashDosCap = [10, 30, 60, 99];
-
     /// <summary>
     /// DOS's party Fireflash damage (root <c>0xb42e</c>): <c>min(rnd((INT / 2 + 1) · t), cap)</c>, integer division, rnd
     /// = 1…n (<see cref="P3Dice.Rnd"/>). The top damage is <c>(INT / 2 + 1) · t</c> below the cap (INT 9: 5 / 20 / 40 / 65).
+    /// The numbers are III's rule data (<see cref="P3FireflashTable"/>; <see cref="P3FireflashTable.Default"/> when none is
+    /// given).
     /// </summary>
-    public static int FireflashDosDamage(int tier, int intelligence, IRandomSource rng) =>
-        Math.Min(P3Dice.Rnd(rng, (Math.Max(0, intelligence) / 2 + 1) * FireflashDosFactor[tier]), FireflashDosCap[tier]);
+    public static int FireflashDosDamage(int tier, int intelligence, IRandomSource rng, P3FireflashTable? table = null)
+    {
+        var t = table ?? P3FireflashTable.Default;
+        return Math.Min(P3Dice.Rnd(rng, (Math.Max(0, intelligence) / 2 + 1) * t.DosFactor[tier]), t.DosCap[tier]);
+    }
 
     /// <summary>The manual's party Fireflash damage: <c>rnd(10 / 30 / 60 / 100)</c>, no INT.</summary>
-    public static int FireflashManualDamage(int tier, IRandomSource rng) => P3Dice.Rnd(rng, FireflashManualMax[tier]);
+    public static int FireflashManualDamage(int tier, IRandomSource rng, P3FireflashTable? table = null) =>
+        P3Dice.Rnd(rng, (table ?? P3FireflashTable.Default).ManualMax[tier]);
 
     /// <summary>
     /// The party's Fireflash I–IV (#5–8) in a III fight (D3-075; <c>combat-round.md</c> section 2). The magic is spent and
@@ -649,7 +646,8 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
     /// </list>
     /// </summary>
     private static void CastFireflash(
-        CombatEncounter encounter, int casterIndex, int spellIndex, int rank, IRandomSource rng, List<string> log)
+        CombatEncounter encounter, P3Fight fight, int casterIndex, int spellIndex, int rank, IRandomSource rng,
+        List<string> log)
     {
         var caster = encounter.Party.Members[casterIndex];
         if (Magic.TrySpendMp(caster, spellIndex, out var reason, SpellSlots.For(encounter.Rules)) < 0)
@@ -667,14 +665,14 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
             if (Group(encounter, rank) is not { } group || PickMonster(group, rng) is not { } slot)
                 return;
             target = group.Members[slot];
-            damage = FireflashDosDamage(tier, caster.Stats.Int, rng);
+            damage = FireflashDosDamage(tier, caster.Stats.Int, rng, fight.Fireflash);
         }
         else
         {
             target = SpellCaster.PickFireflashTarget(encounter, rng);
             if (target is null)
                 return;
-            damage = FireflashManualDamage(tier, rng);
+            damage = FireflashManualDamage(tier, rng, fight.Fireflash);
         }
         CombatResolver.ApplyMonsterDamage(encounter, target, Math.Max(1, damage), DamageSource.PartySpell, rng, log,
             spellIndex, damage);

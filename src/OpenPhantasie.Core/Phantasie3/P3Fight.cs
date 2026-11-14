@@ -51,6 +51,9 @@ public sealed class P3Fight
     /// <summary>The items' point values.</summary>
     public required IItemCatalog Items { get; init; }
 
+    /// <summary>The party's Fireflash numbers (D3-075, <see cref="P3World.Fireflash"/>).</summary>
+    public P3FireflashTable Fireflash { get; init; } = P3FireflashTable.Default;
+
     /// <summary>The spell names by 0-based index (<see cref="P3World.SpellNames"/>).</summary>
     public IReadOnlyList<string> SpellNames { get; init; } = [];
 

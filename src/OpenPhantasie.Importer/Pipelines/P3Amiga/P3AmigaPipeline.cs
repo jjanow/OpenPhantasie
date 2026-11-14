@@ -23,7 +23,7 @@ namespace OpenPhantasie.Importer.Pipelines.P3Amiga;
 public sealed class P3AmigaPipeline : IImportPipeline
 {
     public string ProfileId => "p3-amiga-1.0";
-    public int RecipeVersion => 2; // 2 (s210): III's tables from the Amiga alone (P3AmigaTables)
+    public int RecipeVersion => 3; // 2 (s210): III's tables from the Amiga alone (P3AmigaTables); 3 (s212): its two own-wording lines
 
     /// <summary>DOS III's tables win when both copies are imported in one run: DOS runs first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p3-dos-1988"];
@@ -365,8 +365,10 @@ public sealed class P3AmigaPipeline : IImportPipeline
             ctx.WriteFile(Unpacked + raw, files.Read(raw));
 
         // The game's own lines of the string tables (10-importer.md 7.6). With the Amiga's tables, the remaster's
-        // wording for the lines it lacks (the common shared / I fallback and III's own, as a DOS-only III).
-        ImportedStrings.Write(ctx);
+        // wording for the lines it lacks (the common shared / I fallback and III's own, as a DOS-only III). Its two lines
+        // in its own wording (s212: the Mystic's Scandor rank, the greeting answer) go to III's own-wording file, which
+        // holds only while III's tables are the Amiga's.
+        ImportedStrings.Write(ctx, ownWordingGame: tables ? P3Dos.P3DosPipeline.Game : null);
         if (tables)
             ImportedStrings.WriteFallback(ctx, ImportedStrings.CommonFallbackGame, P3Dos.P3DosPipeline.Game);
     }

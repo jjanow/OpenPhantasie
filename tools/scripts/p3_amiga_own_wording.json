@@ -1,0 +1,9 @@
+{
+ "_note": "Phantasie III, Amiga v1.0 (p3-amiga-1.0, s212, user decision): ids the Amiga prints in its own wording, for an import whose III tables are the Amiga's. The Mystic's Scandor rank line (PhantasieIII +74800, next to the three other heroes_of_* lines en.sources.json takes verbatim) and the greeting answer (+108174); DOS III words both differently, so no DOS line is found verbatim. Parts as in en.sources.json: [file, offset, length] into the Amiga's PhantasieIII. build_string_sources.py adds them as alternatives marked \"wording\": \"own\"; --show-amiga prints what they resolve to.",
+ "strings": {
+  "phantasie3": {
+   "core.p3.mystic.heroes_of_scandor": [["PhantasieIII", 74800, 22]],
+   "core.p3.greetings": [["PhantasieIII", 108174, 15]]
+  }
+ }
+}

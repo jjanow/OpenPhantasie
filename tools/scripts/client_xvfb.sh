@@ -141,6 +141,10 @@ PY
       kill "$p"; for _ in $(seq 1 50); do kill -0 "$p" 2>/dev/null || break; sleep 0.1; done
     fi
     if [[ -f $home/sink.module ]]; then pactl unload-module "$(cat "$home/sink.module")" || true; rm -f "$home/sink.module"; fi
+    # s212: a second start on the same display overwrote sink.module and left a sink loaded; unload every one of ours.
+    for m in $(pactl list short modules 2>/dev/null | awk -v s="sink_name=$sink" '$0 ~ (s "( |$)") { print $1 }'); do
+      pactl unload-module "$m" || true
+    done
     ;;
   *) echo "unknown command $cmd" >&2; exit 1 ;;
 esac

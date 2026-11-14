@@ -228,6 +228,25 @@ TINFO, TF2, SHAPES, ICE DRAGON, INFO; side B: DUNGON2, DNG1, DNG8, SCROLLL0). Pl
 are not key files; with `DNGSAV` / `DNGCHK` they are the profile's `mutable_files`, hashed from the Memorial Set's
 unplayed disks (s167). Version string: INTRO2 192–193 "VERSION 1.0  2/5/86".
 
+**v2.1 8/19/86** (s212, profile `p2-apple2-2.1`, the A2CAN original pair under RDOS 3.3) `[C]`: of the files the
+importer reads, `PHANTASIE II` (side A), `TOWN2`, `ITEM`, `TINFO`, `TF2`, `SHAPES`, `ICE DRAGON`, `INFO`, `MN20`–`MN29`
+and `DNG1`–`DNG8` have v1.0's sha1. Different: `OUTDOORS2` (18650 B: new line 100 `& RECALL "MAP"`, 4811 / 4815, linked
+for $0801), `DUNGON2` (same size: `Z` for `X` in 8350–8370, linked for $0801), `SCROLLL0`–`20` (screen-hole bytes 120 /
+248 only), `INTRO2` (version line). Its key files: v1.0's set at v2.1's sha1s, plus `INTRO2` and `MAP` (side A). Every
+table it gives equals v1.0's: the Applesoft lines the importer reads (`TOWN2` 260 / 270, `OUTDOORS2` 120 / 280 / 290)
+are unchanged, the scroll text too. Only the byte offsets of the game's own lines in `OUTDOORS2` move (155 references;
+`build_string_sources.py` writes `p2-apple2-2.1` alternatives by Applesoft line; `TOWN2`, `DUNGON2`, `WIN`,
+`CEMETARY2`, `CHAR2`, `SCROLLL0` keep v1.0's offsets).
+**Pristine state for v2.1:** no unplayed v2.1 copy is known (SOURCES.txt: the A2CAN pair is played). Its shipped
+regions and towns are taken to be v1.0's `[~]`, derived: the seven regions and four towns play left alone
+(`OUTT2`, `22`, `26`–`28`, `30`, `31`; `TWN27`–`TWN210`) have the Memorial Set's sha1s; each of the ten stored-back
+regions differs from the Memorial copy only in fog (tile ± 120 in the grid bytes 0–519) and the 12-byte cut to 756 B;
+`TF2` (the town template) is identical, and the Memorial `TWN22`–`TWN210` equal its 250-B slices. So the profile's
+`mutable_files` are v1.0's `OUTTn` / `TWN2n` sha1s; `CHAR2`, `DNGSAV` and `DNGCHK` are left out (no unplayed v2.1 to
+hash; the importer never reads them, so they could only add a "played" warning). The reference pair reports
+`OUTT1`, `3`, `5`–`8`, `11`, `12`, `17`, `18` and `TWN21`–`TWN26` as played, and D2-052's start fog restores it to the
+Memorial import (`P2Apple2V21Tests`).
+
 ## 5. Apple II vs ST: what the diff finds (s158, reference dump)
 
 `diff_a2_p2_vs_st.py` summary: monsters 1274 / 1280 numbers equal; items 180 / 180 factors; creation 1541 / 1545

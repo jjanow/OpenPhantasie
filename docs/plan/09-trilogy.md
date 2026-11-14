@@ -87,8 +87,8 @@ lists). Left: the follow-ups on `PLAN.md` P3 "Inventory".
 
 RE plan and status: `03b-phantasie2-re.md` (one file for 03b + 04b). Specs and formats in
 `reverse-engineering/atari-st/phantasie2/` (`FORMAT.md`, `logic-specs/`, live Hatari checks in `parity/`).
-- **Data and rules:** `GameData/phantasie2/` (built by `tools/scripts/build_p2_gamedata.py`, then hand-edited; see the
-  `PLAN.md` watch list before rerunning it), `rules.json` (training, terrain, travel time, Motorola FFP arithmetic),
+- **Data and rules:** `GameData/phantasie2/` (built by `tools/scripts/build_p2_gamedata.py`, which since s212 emits
+  the formerly hand-edited blocks too: a rerun is safe, `--check` passes), `rules.json` (training, terrain, travel time, Motorola FFP arithmetic),
   `Phantasie2Campaign`. Every DIFFERENCES-II decision is built, with the ST's behaviour as `p2.*` options.
 - **Modules:** Toss Rock is module `p2.rock-throwing` (an option in the other games).
 - **Art:** `GameData/phantasie2/graphics/atari-st.json` (default; ST fill patterns as `overworld.pattern.N`, D2-014),

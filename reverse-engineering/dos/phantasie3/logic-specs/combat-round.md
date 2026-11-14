@@ -126,7 +126,8 @@ party_casts (0xbf9a): line = name + " casts " + master string (331 + spell); sou
   a non-healing cast (bow spells too: they go through `0xcaac`) after the last monster died earlier in the round prints
   nothing and spends no magic. Remaster: `P3CombatModule.CastGoesAhead` (any rank not wiped).
 
-**The party's Fireflash I–IV (#5–8)** (s208, `[C]` static; `0xcaac` → `0xc3cc` case 5–8 at `0xc3ef` → `0xb42e`):
+**The party's Fireflash I–IV (#5–8)** (s208, `[C]` static; `0xcaac` → `0xc3cc` case 5–8 at `0xc3ef` → `0xb42e`; s212
+`[C] live`, below):
 
 ```
 rank = the caster's order: 7 Cast (R1) → group R1 (FAR:0xe5b0), 16 Cast (R2) → group R2 (FAR:0xe63a)
@@ -154,7 +155,16 @@ damage_monster(group, d, target, rank, 1, 1)
   `[bp+0x12]`. With the flag set, `0xb116` draws the flash (`0x1537`) and skips the injury step (`0xe6c6`) and the status
   from the body (`0xec1a`), so the row is never used: Fireflash takes HP only and kills at HP ≤ 0 `[C]`.
 - Remaster (s210): `P3CombatModule.CastFireflash` (both values; D3-075 "Remaster" has the details). With `dos` the order
-  carries the rank (`CombatAction.CastRankTwoBase` = action code 16) and the order screens ask it.
+  carries the rank (`CombatAction.CastRankTwoBase` = action code 16) and the order screens ask it. The numbers (t, the
+  caps, the manual's maxima) are III's rule data since s212: `rule-tables.json` `fireflash` → `P3FireflashTable`.
+- **Live (s212, DOSBox-X, `parity/s212-p3-fireflash-live.md`)** `[C] live`: 74 casts, with all monster HP loss from the cast
+  alone. The top damage follows INT: Fireflash IV at INT 3 never beat 26 in 12 casts, and at INT 12 never beat 91 in 28.
+  Fireflash II at INT 5 reached exactly 12, so `INT / 2` truncates; Fireflash I at INT 5 reached exactly 3. At INT 20,
+  Fireflash IV did exactly 99 three times in 14 casts and never 100 (cap 99). Magic cost 4 / 2 / 1 (IV / II / I).
+  "[original text]" One / Two follows the spell pick when two groups exist. Code 7 hit only `FAR:0xe5b0`, and code 16
+  hit only `FAR:0xe63a` (10 of 10). With three monsters alive, the target slots split 34 / 13 / 10, which fits `0xb4ec`'s
+  60 / 20 / 20. The combat list prints the spell name with no rank mark. The monster list at the screen's foot puts rank 2
+  on its first line. Fireflash III (t = 8) was not cast live.
 
 ## 3. Monster turn (root `0xd069`) `[C]`
 

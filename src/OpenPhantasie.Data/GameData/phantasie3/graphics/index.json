@@ -1,15 +1,17 @@
 {
   "_schema": "phantasie.graphics-index/v1",
-  "_note": "T1.5 graphics packs of Phantasie III. Art source: the Amiga v1.0 (03c-phantasie3-re.md), the default. DOS CGA (s160, user s159: a DOS-only import shows the DOS pictures) has auto_select false and is not in default_order; fallback_order: when no default_order pack is present (a DOS-only import) the first available of these is drawn, so art follows what was imported (as Phantasie I's index).",
+  "_note": "T1.5 graphics packs of Phantasie III. Art source: the Amiga v1.0 (03c-phantasie3-re.md), the default. DOS CGA (s160, user s159: a DOS-only import shows the DOS pictures) has auto_select false and is not in default_order; fallback_order: when no default_order pack is present (a DOS-only import) the first available of these is drawn, so art follows what was imported (as Phantasie I's index). Apple II (s212, reverse-engineering/apple2/phantasie3/GRAPHICS.md) is second in default_order, as II's: the Amiga stays the default; with no Amiga copy imported the Apple's art is drawn (before DOS CGA, which stays pick-only).",
   "game": "phantasie3",
   "default_order": [
-    "amiga"
+    "amiga",
+    "apple2"
   ],
   "fallback_order": [
     "dos-cga"
   ],
   "packs": [
     "amiga.json",
-    "dos-cga.json"
+    "dos-cga.json",
+    "apple2.json"
   ]
 }

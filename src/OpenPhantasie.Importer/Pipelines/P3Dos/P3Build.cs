@@ -541,6 +541,18 @@ public static class P3Build
                 ["tall_monster_ids"] = Ints([44, 67, 68]),
                 ["limbless_monster_ids"] = Ints([2, 6, 17, 27, 29, 39, 40, 41, 51, 52, 62, 65]),
             },
+            ["fireflash"] = new JsonObject
+            {
+                ["_note"] = "The party's Fireflash I-IV (#5-8), one value per spell (D3-075, logic-specs/combat-round.md " +
+                            "section 2). manual_max: the manual's 1-10 / 1-30 / 1-60 / 1-100 (III PDF 11 / pr.14), " +
+                            "p3.fireflash = manual. dos_factor: t in DOS's rnd((INT / 2 + 1) * t) (DS:0xc1a[5..8], root " +
+                            "0xb42e) [C]; dos_cap: the caps on that roll (code immediates, root 0xb48a-0xb4c8) [C]; " +
+                            "p3.fireflash = dos. Live s212 (DOSBox-X): the roll's top, the factors and the cap 99 seen as " +
+                            "decoded (parity/s212-p3-fireflash-live.md).",
+                ["manual_max"] = Ints([10, 30, 60, 100]),
+                ["dos_factor"] = Ints([1, 4, 8, 13]),
+                ["dos_cap"] = Ints([10, 30, 60, 99]),
+            },
             ["social_classes"] = new JsonObject
             {
                 ["_note"] = "Creation (ovl2 0x227d) [C]: r = rnd(100) for races 0-4 (Human, Dwarven, Elven, Gnome, Halfling), " +

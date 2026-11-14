@@ -170,6 +170,9 @@ public sealed class P3WorldData
 
     public required P3HitLocationTable HitLocations { get; init; }
 
+    /// <summary>The party's Fireflash I–IV numbers (D3-075; <c>rule-tables.json</c> <c>fireflash</c>).</summary>
+    public P3FireflashTable Fireflash { get; init; } = P3FireflashTable.Default;
+
     /// <summary>A first group of one of these sets the "tall monster" flag: every hit on a monster uses row 4 (0-based ids).</summary>
     public IReadOnlySet<int> TallMonsterIds { get; init; } = new HashSet<int>();
 

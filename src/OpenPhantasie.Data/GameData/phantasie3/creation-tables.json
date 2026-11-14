@@ -1975,70 +1975,70 @@
    }
   }
  },
-  "lifespan_bands": {
-    "source": "D3-041 (user s99): the III manual's lifespan text is I's, so I's D-003 bands (manual lifespans +-10 %). Not DOS: DOS III's maximum age +0x2a is never read.",
-    "formula": "lifespan (age-clock units, 2 weeks) = round(26 * (lo + (LCK - 8) * (hi - lo) / 5)), LCK = 8..13",
-    "by_race": {
-      "HUMAN": {
-        "lo_years": 72,
-        "hi_years": 88
-      },
-      "DWARF": {
-        "lo_years": 180,
-        "hi_years": 220
-      },
-      "ELF": {
-        "lo_years": 2700,
-        "hi_years": 3300
-      },
-      "HALFLING": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "GNOME": {
-        "lo_years": 180,
-        "hi_years": 220
-      },
-      "PIXIE": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "SPRITE": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "OGRE": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "GNOLL": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "TROLL": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "KOBOLD": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "ORC": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "GOBLIN": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "LIZ.MAN": {
-        "lo_years": 40,
-        "hi_years": 50
-      },
-      "MINOTAUR": {
-        "lo_years": 40,
-        "hi_years": 50
-      }
-    }
+ "lifespan_bands": {
+  "source": "D3-041 (user s99): the III manual's lifespan text is I's, so I's D-003 bands (manual lifespans +-10 %). Not DOS: DOS III's maximum age +0x2a is never read.",
+  "formula": "lifespan (age-clock units, 2 weeks) = round(26 * (lo + (LCK - 8) * (hi - lo) / 5)), LCK = 8..13",
+  "by_race": {
+   "HUMAN": {
+    "lo_years": 72,
+    "hi_years": 88
+   },
+   "DWARF": {
+    "lo_years": 180,
+    "hi_years": 220
+   },
+   "ELF": {
+    "lo_years": 2700,
+    "hi_years": 3300
+   },
+   "HALFLING": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "GNOME": {
+    "lo_years": 180,
+    "hi_years": 220
+   },
+   "PIXIE": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "SPRITE": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "OGRE": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "GNOLL": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "TROLL": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "KOBOLD": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "ORC": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "GOBLIN": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "LIZ.MAN": {
+    "lo_years": 40,
+    "hi_years": 50
+   },
+   "MINOTAUR": {
+    "lo_years": 40,
+    "hi_years": 50
+   }
   }
+ }
 }

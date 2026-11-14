@@ -25,10 +25,14 @@ verbatim in the Apple's programs (the same text), and the ids the Apple prints i
 hand-mapped alternatives of `p2_apple2_own_wording.json` (references only, marked `"wording": "own"`: they resolve
 to the Apple's text, not to the committed value). The ids neither covers get the remaster's own wording from
 `GameData/phantasie2/strings/fallback.en.json` (written by the importer under every imported file).
+s212: every `p2-apple2` alternative gets a `p2-apple2-2.1` twin right after it (the Apple's v2.1 8/19/86, an RDOS 3.3
+disk pair): the same text, its references moved to where v2.1's files hold the same bytes (a program file by its
+Applesoft line, the rest at the same offset), and checked to resolve to v1.0's text.
 
 Phantasie I's Amiga (`p1-amiga-1.0`, s201: an Amiga-only import gives I's tables) prints Zeus's speech in its own
 wording (upper case, its own line breaks): `p1_amiga_own_wording.json` maps those ids, added last as `"wording": "own"`
-alternatives (`--show-amiga` prints what they resolve to).
+alternatives (`--show-amiga` prints what they resolve to). Phantasie III's Amiga (`p3-amiga-1.0`, s212) does the same
+for two lines it words its own way (`p3_amiga_own_wording.json`: the Mystic's Scandor rank line, the greeting answer).
 
 Run with `python3 -I tools/scripts/build_string_sources.py` (`--check` compares with the committed files;
 `--folders=phantasie1,shared` limits both to those tables).
@@ -45,6 +49,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import re_common  # noqa: E402
 import extract_dos_p3_common as p3  # noqa: E402
 from a2_rdos import RdosDisk  # noqa: E402
+from a2_applesoft import lines as applesoft_lines  # noqa: E402
 from extract_a2_p2_tables import text_page  # noqa: E402
 
 GAMEDATA = REPO / "src" / "OpenPhantasie.Data" / "GameData"
@@ -72,8 +77,22 @@ def load_versions() -> dict[str, dict[str, bytes]]:
 A2_IMAGES = RE / "apple2" / "original-images" / "phantasie2" / "4am-crack"
 A2_PROGRAMS = {"a": ["OUTDOORS2", "TOWN2", "CEMETARY2", "CHAR2", "INTRO2", "INFO"], "b": ["DUNGON2", "WIN"]}
 A2_OWN = Path(__file__).resolve().parent / "p2_apple2_own_wording.json"
+# s212: Phantasie II v2.1 (p2-apple2-2.1), the A2CAN original pair (RDOS 3.3); its alternatives follow v1.0's.
+A2_V21_IMAGES = RE / "apple2" / "original-images" / "phantasie2" / "v2.1-a2can"
+A2_V21_SIDES = {"a": "phantasie2-v2.1-side-a-boot.dsk", "b": "phantasie2-v2.1-side-b-dungeon.dsk"}
+A2_V21 = "p2-apple2-2.1"
 # s201: Phantasie I's Amiga (p1-amiga-1.0): ids it prints in its own wording (Zeus's speech), for an Amiga-only import.
 P1A_OWN = Path(__file__).resolve().parent / "p1_amiga_own_wording.json"
+# s212: Phantasie III's Amiga (p3-amiga-1.0): two lines it words its own way (the Mystic's Scandor rank, the greeting).
+P3A_OWN = Path(__file__).resolve().parent / "p3_amiga_own_wording.json"
+# Own-wording files of the Amiga versions, by profile (added last, after every other alternative of the id).
+AMIGA_OWN = {"p1-amiga-1.0": P1A_OWN, "p3-amiga-1.0": P3A_OWN}
+
+
+def load_amiga_own() -> dict[str, dict]:
+    """profile → {folder: {id: parts}} of each Amiga own-wording file."""
+    return {prof: json.loads(path.read_text(encoding="utf-8"))["strings"]
+            for prof, path in AMIGA_OWN.items() if path.exists()}
 
 
 def a2_page_text(raw: bytes) -> bytes:
@@ -88,6 +107,56 @@ def load_apple2() -> dict[str, bytes]:
         for n in names:
             out[n] = disk.read(n)
     out["SCROLLL0:page"] = a2_page_text(RdosDisk(A2_IMAGES / "phantasie2-4am-side-b.dsk").read("SCROLLL0"))
+    return out
+
+
+def load_apple2_v21() -> dict[str, bytes]:
+    out: dict[str, bytes] = {}
+    for side, names in A2_PROGRAMS.items():
+        disk = RdosDisk(A2_V21_IMAGES / A2_V21_SIDES[side])
+        for n in names:
+            out[n] = disk.read(n)
+    out["SCROLLL0:page"] = a2_page_text(RdosDisk(A2_V21_IMAGES / A2_V21_SIDES["b"]).read("SCROLLL0"))
+    return out
+
+
+# The Applesoft programs among the Apple keys (a reference moves with its line); the rest stay at their offset.
+A2_APPLESOFT = {"OUTDOORS2", "TOWN2", "CEMETARY2", "INTRO2", "DUNGON2", "WIN"}
+
+
+def relocate_v21(apple: dict[str, bytes], v21: dict[str, bytes], parts: list) -> list | None:
+    """v1.0's references moved to the same bytes in v2.1's files; None when one is not there."""
+    out: list = []
+    for p in parts:
+        if isinstance(p, str):
+            out.append(p)
+            continue
+        name, at, n = p
+        want, data = apple[name][at:at + n], v21[name]
+        if name in A2_APPLESOFT and apple[name] != data:
+            old = next(((q, ln) for q, ln, _ in applesoft_lines(apple[name]) if q <= at < apple[name].index(0, q + 4)), None)
+            new = {ln: q for q, ln, _ in applesoft_lines(data)}
+            if old is None or old[1] not in new:
+                return None
+            at = new[old[1]] + at - old[0]
+        if data[at:at + n] != want:
+            return None
+        out.append([name, at, n])
+    return out
+
+
+def add_v21(apple: dict[str, bytes], v21: dict[str, bytes], folder: str, sid: str, alts: list) -> list:
+    """Each p2-apple2 alternative followed by its p2-apple2-2.1 twin (same text from v2.1's files)."""
+    out = []
+    for a in alts:
+        out.append(a)
+        if a["from"] != "p2-apple2":
+            continue
+        parts = relocate_v21(apple, v21, a["parts"])
+        if parts is None:
+            raise SystemExit(f"{folder} {sid}: a p2-apple2 part is not in v2.1's files")
+        assert resolve(v21, parts) == resolve(apple, a["parts"]), (folder, sid)
+        out.append({"from": A2_V21, **{k: v for k, v in a.items() if k not in ("from", "parts")}, "parts": parts})
     return out
 
 
@@ -232,6 +301,40 @@ def sources_for(versions, folder: str, sid: str, value: str):
     return alts
 
 
+# s212: Phantasie III's Apple II (p3-apple2, an Apple-only III): its v3.0 programs whose names are on one side only. An
+# id gets a `p3-apple2` alternative when every original part of III's DOS (or Amiga) alternative is in them verbatim
+# (the Apple prints upper case, so mostly status words). The importer resolves them from v3.0's programs only.
+A3_IMAGES = RE / "apple2" / "original-images" / "phantasie3" / "woz-original-v3.0"
+A3_PROGRAMS = {"side-a-boot": ["TOWN3", "OUTDOORS3", "STARTER", "CEMETARY3", "INTRO3", "QUITER"],
+               "side-b-utilities": ["DUNGON3", "BACKUP", "WIN", "DNGLD3", "DNGOUT3"]}
+
+
+def load_apple3() -> dict[str, bytes]:
+    from a2_woz import load_image  # noqa: E402 (a .woz decode; imported here so the other tables need no image)
+    out: dict[str, bytes] = {}
+    for side, names in A3_PROGRAMS.items():
+        disk = RdosDisk(load_image(A3_IMAGES / f"phantasie3-v3.0-disk1-{side}.woz"))
+        for n in names:
+            out[n] = disk.read(n)
+    return out
+
+
+def apple3_verbatim(apple3: dict[str, bytes], versions, alts: list) -> dict | None:
+    """The `p3-apple2` alternative of an id whose DOS III (or Amiga III) parts are all in the Apple's programs."""
+    ref = next((a for a in alts if a["from"] in P3), None)
+    if ref is None:
+        return None
+    parts: list = []
+    for p in ref["parts"]:
+        if isinstance(p, str):
+            parts.append(p)
+            continue
+        if (hit := find(apple3, versions[ref["from"]][p[0]][p[1]:p[1] + p[2]].decode("latin-1"))) is None:
+            return None
+        parts.append(hit)
+    return {"from": "p3-apple2", "parts": parts}
+
+
 def apple2_verbatim(apple: dict[str, bytes], versions, alts: list) -> dict | None:
     """The `p2-apple2` alternative of an id whose ST parts are all found verbatim in the Apple's programs."""
     st = next((a for a in alts if a["from"] == "p2-st-1.0"), None)
@@ -252,7 +355,8 @@ def resolve(files: dict[str, bytes], parts: list) -> str:
     return "".join(p if isinstance(p, str) else files[p[0]][p[1]:p[1] + p[2]].decode("latin-1") for p in parts)
 
 
-def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: dict | None = None) -> dict:
+def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: dict | None = None,
+          v21: dict[str, bytes] | None = None, apple3: dict[str, bytes] | None = None) -> dict:
     table = json.loads((GAMEDATA / folder / "strings" / "en.json").read_text(encoding="utf-8"))
     own_amiga = own_amiga or {}
     out = {}
@@ -270,21 +374,28 @@ def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: 
                 text = resolve(apple, parts)
                 assert text.strip() and "\x00" not in text, (folder, sid, text)
                 alts.append({"from": "p2-apple2", "wording": "own", "parts": parts})
-            # s201: Phantasie I's Amiga lines in its own wording (an Amiga-only import, its tables the Amiga's).
-            if sid in own_amiga.get(folder, {}):
-                if any(a["from"] == "p1-amiga-1.0" for a in alts):
-                    raise SystemExit(f"{folder} {sid}: in {P1A_OWN.name} but the Amiga holds it verbatim")
-                parts = own_amiga[folder][sid]
-                text = resolve(versions["p1-amiga-1.0"], parts)
+            # s212: Phantasie III's Apple II, verbatim (an Apple-only III).
+            if apple3 is not None and (a3 := apple3_verbatim(apple3, versions, alts)) is not None:
+                assert resolve(apple3, a3["parts"]) == value, (folder, sid)
+                alts.append(a3)
+            # s201 / s212: an Amiga's lines in its own wording (an Amiga-only import, its tables the Amiga's).
+            for prof, ids in own_amiga.items():
+                if sid not in ids.get(folder, {}):
+                    continue
+                if any(a["from"] == prof for a in alts):
+                    raise SystemExit(f"{folder} {sid}: in {AMIGA_OWN[prof].name} but the Amiga holds it verbatim")
+                parts = ids[folder][sid]
+                text = resolve(versions[prof], parts)
                 assert text.strip() and "\x00" not in text, (folder, sid, text)
-                alts.append({"from": "p1-amiga-1.0", "wording": "own", "parts": parts})
-            out[sid] = alts
+                alts.append({"from": prof, "wording": "own", "parts": parts})
+            out[sid] = add_v21(apple, v21, folder, sid, alts) if v21 is not None else alts
     for sid in own.get(folder, {}):
         if sid not in out or not any(a["from"] == "p2-apple2" for a in out[sid]):
             raise SystemExit(f"{folder} {sid}: in {A2_OWN.name} but not an id the Apple lacks verbatim")
-    for sid in own_amiga.get(folder, {}):
-        if sid not in out:
-            raise SystemExit(f"{folder} {sid}: in {P1A_OWN.name} but not an id with original parts")
+    for prof, ids in own_amiga.items():
+        for sid in ids.get(folder, {}):
+            if sid not in out:
+                raise SystemExit(f"{folder} {sid}: in {AMIGA_OWN[prof].name} but not an id with original parts")
     return {
         "_schema": "openphantasie.string-sources/v1",
         "_note": "Generated by tools/scripts/build_string_sources.py: where each id's original text sits in the "
@@ -302,17 +413,20 @@ def main() -> int:
     check = "--check" in sys.argv[1:]
     versions = load_versions()
     apple = load_apple2()
+    v21 = load_apple2_v21()
+    apple3 = load_apple3()
     own = json.loads(A2_OWN.read_text(encoding="utf-8"))["strings"] if A2_OWN.exists() else {}
-    own_amiga = json.loads(P1A_OWN.read_text(encoding="utf-8"))["strings"] if P1A_OWN.exists() else {}
+    own_amiga = load_amiga_own()
     if "--show-apple" in sys.argv[1:]:
         for folder, ids in own.items():
             for sid, parts in ids.items():
                 print(f"{folder} {sid}: {resolve(apple, parts)!r}")
         return 0
     if "--show-amiga" in sys.argv[1:]:
-        for folder, ids in own_amiga.items():
-            for sid, parts in ids.items():
-                print(f"{folder} {sid}: {resolve(versions['p1-amiga-1.0'], parts)!r}")
+        for prof, folders in own_amiga.items():
+            for folder, ids in folders.items():
+                for sid, parts in ids.items():
+                    print(f"{prof} {folder} {sid}: {resolve(versions[prof], parts)!r}")
         return 0
     # --folders a,b: build / check only those tables.
     only = next((a.split("=", 1)[1].split(",") for a in sys.argv[1:] if a.startswith("--folders=")), list(FOLDERS))
@@ -320,7 +434,7 @@ def main() -> int:
     for folder in FOLDERS:
         if folder not in only:
             continue
-        data = build(versions, folder, apple, own, own_amiga)
+        data = build(versions, folder, apple, own, own_amiga, v21=v21, apple3=apple3)
         path = GAMEDATA / folder / "strings" / "en.sources.json"
         text = json.dumps(data, indent=1, ensure_ascii=False) + "\n"
         if check:

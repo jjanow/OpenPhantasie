@@ -1,4 +1,5 @@
 using OpenPhantasie.Core;
+using OpenPhantasie.Data;
 
 namespace OpenPhantasie.Core.Tests;
 
@@ -138,6 +139,33 @@ public class P3FireflashTests
         var rng = new Script(top);
         Assert.Equal(top, P3CombatModule.FireflashManualDamage(tier, rng));
         Assert.Equal(top, rng.LastMax);
+    }
+
+    [OriginalDataFact] // the public tree's III rule-tables.json lacks the imported blocks until an import
+    public void Numbers_ComeFromIiisRuleData_AndMatchTheDefaults()
+    {
+        var rt = Phantasie3RuleTables.Load(
+            Path.Combine(GameDataRepository.DefaultPathFor(GameId.P3), Phantasie3RuleTables.FileName));
+        var t = new P3FireflashTable(rt.FireflashManualMax, rt.FireflashDosFactor, rt.FireflashDosCap).Validate();
+        Assert.Equal([10, 30, 60, 100], t.ManualMax);
+        Assert.Equal([1, 4, 8, 13], t.DosFactor);
+        Assert.Equal([10, 30, 60, 99], t.DosCap);
+        Assert.Equal(P3FireflashTable.Default.ManualMax, t.ManualMax);
+        Assert.Equal(P3FireflashTable.Default.DosFactor, t.DosFactor);
+        Assert.Equal(P3FireflashTable.Default.DosCap, t.DosCap);
+    }
+
+    [Fact]
+    public void Damage_UsesTheTableItIsGiven()
+    {
+        var table = new P3FireflashTable([7, 30, 60, 100], [2, 4, 8, 13], [5, 30, 60, 99]).Validate();
+        var rng = new Script(7);
+        Assert.Equal(7, P3CombatModule.FireflashManualDamage(0, rng, table));
+        Assert.Equal(7, rng.LastMax);
+        var dos = new Script(5);
+        Assert.Equal(5, P3CombatModule.FireflashDosDamage(0, 9, dos, table)); // rnd((9 / 2 + 1) · 2) = 1…10, cap 5
+        Assert.Equal(10, dos.LastMax);
+        Assert.Throws<ArgumentException>(() => new P3FireflashTable([10, 30, 60], [1, 4, 8, 13], [10, 30, 60, 99]).Validate());
     }
 
     [Fact]

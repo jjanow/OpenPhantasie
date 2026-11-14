@@ -53,7 +53,7 @@
   "charisma_clamp": false,
   "spell_marks": "up_to_new_level",
   "hp_tie": "new_maximum",
- "arithmetic": "motorola_ffp",
+  "arithmetic": "motorola_ffp",
   "classes": [
    {
     "class": "THIEF",
@@ -62,7 +62,7 @@
      "DEX": 2
     },
     "divisor": 19.8,
-   "divisor_ffp": "9E666645"
+    "divisor_ffp": "9E666645"
    },
    {
     "class": "MONK",
@@ -72,7 +72,7 @@
      "DEX": 1
     },
     "divisor": 49.5,
-   "divisor_ffp": "C6000046"
+    "divisor_ffp": "C6000046"
    },
    {
     "class": "RANGER",
@@ -82,7 +82,7 @@
      "CHA": 1
     },
     "divisor": 52.8,
-   "divisor_ffp": "D3333346"
+    "divisor_ffp": "D3333346"
    },
    {
     "class": "FIGHTER",
@@ -91,7 +91,7 @@
      "DEX": 1
     },
     "divisor": 33.0,
-   "divisor_ffp": "84000046"
+    "divisor_ffp": "84000046"
    },
    {
     "class": "PRIEST",
@@ -100,7 +100,7 @@
      "INT": 2
     },
     "divisor": 36.3,
-   "divisor_ffp": "91333346"
+    "divisor_ffp": "91333346"
    },
    {
     "class": "WIZARD",
@@ -109,7 +109,7 @@
      "LUCK": 1
     },
     "divisor": 42.9,
-   "divisor_ffp": "AB999946"
+    "divisor_ffp": "AB999946"
    }
   ]
  },

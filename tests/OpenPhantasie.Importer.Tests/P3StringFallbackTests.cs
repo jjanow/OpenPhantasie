@@ -10,7 +10,8 @@ namespace OpenPhantasie.Importer.Tests;
 /// own table) carries "..." for every original part, a version gives only the lines its files hold, and the shipped
 /// fallbacks give the remaster's wording for the rest: <c>phantasie1/strings/fallback.en.json</c> (shared and I tables,
 /// written by every II, III and IV import) and each game's own file (its table). A DOS-only III, an ST-only II and an
-/// Apple-only II leave no id their game shows on "...". The scopes are built from <c>en.sources.json</c> at test time,
+/// Apple-only II leave no id their game shows on "..."; s212: so does an Apple-only III (v3.0 or [cr]), with its own
+/// <c>phantasie3/strings/fallback.p3-apple2.en.json</c>. The scopes are built from <c>en.sources.json</c> at test time,
 /// so ids a later <c>build_string_sources.py</c> run adds fail here until they get a wording.
 /// </summary>
 [Collection(nameof(LocatorCollection))]
@@ -42,8 +43,11 @@ public class P3StringFallbackTests
     private static string Masked(JsonNode alts) =>
         string.Concat(alts.AsArray()[0]!["parts"]!.AsArray().Select(p => p is JsonArray ? "..." : (string)p!));
 
-    private static JsonObject Shipped(string game) =>
-        JsonNode.Parse(File.ReadAllBytes(Repo.Path($"{GameData}/{game}/{ImportedStrings.ShippedFallbackFile}")))!["tables"]!.AsObject();
+    private static JsonObject Shipped(string game, string file = ImportedStrings.ShippedFallbackFile) =>
+        JsonNode.Parse(File.ReadAllBytes(Repo.Path($"{GameData}/{game}/{file}")))!["tables"]!.AsObject();
+
+    /// <summary>s212: the Apple-only III's own shipped fallback (the lines DOS III or the Amiga gives and the Apple does not).</summary>
+    private static readonly string AppleFallback = ImportedStrings.ShippedProfileFallbackFile("p3-apple2");
 
     /// <summary>A game's chain as <c>StringTable.ForGame</c> lays it over the public tables, and the masked text per id.</summary>
     private static (Dictionary<string, string> Shown, Dictionary<string, string> Masked) PublicChain(string game)
@@ -101,7 +105,7 @@ public class P3StringFallbackTests
     /// <summary>
     /// Each fallback file holds only its own tables (the common one shared and I, a game's its own), no id is in two
     /// files (so the order of two fallback files in one table never matters), every id is one with original text, and
-    /// every format item of the table's text is kept.
+    /// every format item of the table's text is kept. s212: III's Apple file may hold the shared, I and III tables.
     /// </summary>
     [RequiresFilesFact(Common)]
     public void ShippedFallbacks_OwnTablesOnly_NoIdTwice_FormatItemsKept()
@@ -109,10 +113,13 @@ public class P3StringFallbackTests
         var files = new Dictionary<string, JsonObject>
         {
             ["phantasie1"] = Shipped("phantasie1"), ["phantasie2"] = Shipped("phantasie2"), ["phantasie3"] = Shipped("phantasie3"),
+            ["phantasie3 p3-apple2"] = Shipped("phantasie3", AppleFallback),
         };
         Assert.Equal(["phantasie1", "shared"], files["phantasie1"].Select(kv => kv.Key).Order(StringComparer.Ordinal));
         Assert.Equal(["phantasie2"], files["phantasie2"].Select(kv => kv.Key));
         Assert.Equal(["phantasie3"], files["phantasie3"].Select(kv => kv.Key));
+        Assert.Equal(["phantasie1", "phantasie3", "shared"],
+            files["phantasie3 p3-apple2"].Select(kv => kv.Key).Order(StringComparer.Ordinal));
         var bad = new List<string>();
         var seen = new HashSet<(string, string)>();
         foreach (var (game, tables) in files)
@@ -165,6 +172,66 @@ public class P3StringFallbackTests
     /// </summary>
     [RequiresFilesFact(P3Adf, Common)]
     public void PublicMask_AmigaIiiOnly_NoEllipsis() => AssertNoEllipsis("phantasie3", P3Adf);
+
+    /// <summary>
+    /// s212 (user): an Amiga-only III shows the Amiga's own wording for the Mystic's Scandor line and the greeting answer
+    /// (<c>en.own.p3-amiga-1.0.json</c>, over III's table), and neither id is in its fallback any more.
+    /// </summary>
+    [RequiresFilesFact(P3Adf, Common)]
+    public void AmigaIiiOnly_OwnWording_ForScandorAndGreeting()
+    {
+        var dir = Directory.CreateTempSubdirectory("phantasie-p3aown-").FullName;
+        try
+        {
+            var root = ImportInto(dir, P3Adf);
+            GameDataLocator.UseImport(root);
+            var table = StringTable.ForGame(GameId.P3);
+            Assert.Equal("and heroes of Scandor.", table.Get("core.p3.mystic.heroes_of_scandor"));
+            Assert.Equal("They greet you!", table.Get("core.p3.greetings"));
+            var fallback = JsonNode.Parse(File.ReadAllBytes(Path.Combine(root, "GameData", "phantasie3", "strings",
+                "en.fallback.p3-amiga-1.0.json")))!["strings"]!.AsObject();
+            Assert.False(fallback.ContainsKey("core.p3.greetings"));
+            Assert.False(fallback.ContainsKey("core.p3.mystic.heroes_of_scandor"));
+        }
+        finally
+        {
+            GameDataLocator.UseImport(null);
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    private const string WozA = P3Apple2TablesTests.WozA;
+    private const string WozB = P3Apple2TablesTests.WozB;
+    private const string Cr1A = P3Apple2TablesTests.Cr1A;
+    private const string Cr1B = P3Apple2TablesTests.Cr1B;
+
+    /// <summary>
+    /// s212: an Apple-only III (v3.0 originals): the Apple gives 17 status / class words; the rest of what DOS III or the
+    /// Amiga gives takes the remaster's wording from <c>phantasie3/strings/fallback.p3-apple2.en.json</c>.
+    /// </summary>
+    [RequiresFilesFact(WozA, WozB, Common)]
+    public void PublicMask_AppleIiiOnly_NoEllipsis()
+    {
+        AssertNoEllipsis("phantasie3", WozA, WozB);
+        var dir = Directory.CreateTempSubdirectory("phantasie-p3a2s-").FullName;
+        try
+        {
+            GameDataLocator.UseImport(ImportInto(dir, WozA, WozB));
+            var table = StringTable.ForGame(GameId.P3);
+            // The Apple's own word wins over the fallback under it; a line it lacks reads the remaster's wording.
+            Assert.Equal("MONK", table.Get("p3combat.class.Monk"));
+            Assert.Equal("Welcome...", table.Get("core.p3.greetings"));
+        }
+        finally
+        {
+            GameDataLocator.UseImport(null);
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>s212: the [cr] (v1.0) sides give no Apple line at all; the fallbacks cover every id III shows.</summary>
+    [RequiresFilesFact(Cr1A, Cr1B, Common)]
+    public void PublicMask_AppleIiiCrOnly_NoEllipsis() => AssertNoEllipsis("phantasie3", Cr1A, Cr1B);
 
     /// <summary>An ST-only II: the ST gives II's lines; the I-table ids it lacks (e.g. the Mystic's score line) get the remaster's wording.</summary>
     [RequiresFilesFact(Stx1, Stx2, Common)]

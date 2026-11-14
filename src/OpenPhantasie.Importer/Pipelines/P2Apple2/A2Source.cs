@@ -11,8 +11,12 @@ internal sealed class A2Source
 {
     private readonly Container _a, _b;
 
-    public A2Source(FileSet files)
+    /// <summary>The version's name in the built files' <c>_source</c> lines (v1.0's: <see cref="A2Tables.Source"/>).</summary>
+    public string SourceName { get; }
+
+    public A2Source(FileSet files, string sourceName = A2Tables.Source)
     {
+        SourceName = sourceName;
         _a = files.Containers.FirstOrDefault(c => Has(c, "TOWN2")) ?? throw new FileNotFoundException("side A (TOWN2) not found");
         _b = files.Containers.FirstOrDefault(c => Has(c, "DUNGON2")) ?? throw new FileNotFoundException("side B (DUNGON2) not found");
     }

@@ -48,6 +48,17 @@
       15
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGON2",
+      14564,
+      15
+     ]
+    ]
    }
   ],
   "core.dungeon.trap_x_takes_x_damage": [
@@ -118,6 +129,23 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      10378,
+      5
+     ],
+     " {1} ",
+     [
+      "OUTDOORS2",
+      10392,
+      6
+     ]
+    ]
    }
   ],
   "core.dungeon.trap_x_dies": [
@@ -164,6 +192,17 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      10463,
+      4
+     ]
+    ]
    }
   ],
   "core.dungeon.x_swims": [
@@ -207,6 +246,17 @@
      [
       "OUTDOORS2",
       14057,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      14066,
       5
      ]
     ]
@@ -287,6 +337,30 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     "{0}",
+     [
+      "OUTDOORS2",
+      14016,
+      6
+     ],
+     " AND ",
+     [
+      "OUTDOORS2",
+      10378,
+      6
+     ],
+     "{1}",
+     [
+      "OUTDOORS2",
+      10391,
+      7
+     ]
+    ]
    }
   ],
   "core.dungeon.swim_x_dies": [
@@ -330,6 +404,17 @@
      [
       "OUTDOORS2",
       10451,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      10463,
       4
      ]
     ]
@@ -403,6 +488,23 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      10378,
+      5
+     ],
+     " {1} ",
+     [
+      "OUTDOORS2",
+      10392,
+      6
+     ]
+    ]
    }
   ],
   "core.script.report_x_dies": [
@@ -449,6 +551,17 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      10463,
+      4
+     ]
+    ]
    }
   ],
   "core.defeat.x_status_undead": [
@@ -471,6 +584,23 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     "{0} ",
+     [
+      "CEMETARY2",
+      1099,
+      13
+     ],
+     " ",
+     [
+      "CEMETARY2",
+      1292,
+      21
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      "{0} ",
      [
@@ -527,6 +657,22 @@
       18
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9910,
+      8
+     ],
+     [
+      "TOWN2",
+      9671,
+      18
+     ]
+    ]
    }
   ],
   "core.p2.mystic.rank_1": [
@@ -543,6 +689,22 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9910,
+      8
+     ],
+     [
+      "TOWN2",
+      9698,
+      23
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -590,6 +752,27 @@
       24
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9910,
+      8
+     ],
+     [
+      "TOWN2",
+      9763,
+      8
+     ],
+     [
+      "TOWN2",
+      9730,
+      24
+     ]
+    ]
    }
   ],
   "core.p2.mystic.rank_3": [
@@ -619,6 +802,22 @@
       24
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9910,
+      8
+     ],
+     [
+      "TOWN2",
+      9730,
+      24
+     ]
+    ]
    }
   ],
   "core.p2.mystic.rank_4": [
@@ -635,6 +834,22 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9910,
+      8
+     ],
+     [
+      "TOWN2",
+      9790,
+      18
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -682,6 +897,27 @@
       9
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9910,
+      8
+     ],
+     [
+      "TOWN2",
+      9817,
+      10
+     ],
+     [
+      "TOWN2",
+      651,
+      9
+     ]
+    ]
    }
   ],
   "core.p2.mystic.heroes_of_gelnor_also": [
@@ -697,6 +933,22 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      9934,
+      15
+     ],
+     [
+      "TOWN2",
+      636,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -746,6 +998,17 @@
       15
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS2",
+      11814,
+      15
+     ]
+    ]
    }
   ],
   "core.p2.plutos_minion_is_killed": [
@@ -766,6 +1029,17 @@
      [
       "OUTDOORS2",
       11750,
+      38
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "OUTDOORS2",
+      11762,
       38
      ]
     ]
@@ -797,6 +1071,35 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "SCROLLL0:page",
+      0,
+      25
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      31,
+      33
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      65,
+      38
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      104,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -881,6 +1184,34 @@
       35
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "SCROLLL0:page",
+      111,
+      32
+     ],
+     [
+      "SCROLLL0:page",
+      145,
+      39
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      185,
+      39
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      225,
+      35
+     ]
+    ]
    }
   ],
   "core.p2.pluto_voice_3": [
@@ -909,6 +1240,35 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "SCROLLL0:page",
+      261,
+      36
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      298,
+      37
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      336,
+      39
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      376,
+      9
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1048,6 +1408,59 @@
       38
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "SCROLLL0:page",
+      391,
+      32
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      424,
+      40
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      465,
+      38
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      504,
+      39
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      544,
+      35
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      580,
+      37
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      618,
+      40
+     ],
+     " ",
+     [
+      "SCROLLL0:page",
+      659,
+      38
+     ]
+    ]
    }
   ],
   "core.p2.pluto_voice_5": [
@@ -1063,6 +1476,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "SCROLLL0:page",
+      703,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1095,6 +1519,17 @@
       37
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      24,
+      37
+     ]
+    ]
    }
   ],
   "core.p2.filmon_intro_2": [
@@ -1111,6 +1546,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      64,
+      35
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1143,6 +1589,17 @@
       37
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      104,
+      37
+     ]
+    ]
    }
   ],
   "core.p2.filmon_intro_4": [
@@ -1159,6 +1616,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      144,
+      20
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1191,6 +1659,17 @@
       36
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      174,
+      36
+     ]
+    ]
    }
   ],
   "core.p2.filmon_intro_6": [
@@ -1207,6 +1686,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      214,
+      35
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1249,6 +1739,27 @@
       14
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      254,
+      15
+     ],
+     [
+      "WIN",
+      280,
+      6
+     ],
+     [
+      "WIN",
+      297,
+      14
+     ]
+    ]
    }
   ],
   "core.p2.filmon_intro_8": [
@@ -1265,6 +1776,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      316,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1297,6 +1819,17 @@
       35
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      331,
+      35
+     ]
+    ]
    }
   ],
   "core.p2.filmon_intro_10": [
@@ -1313,6 +1846,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      371,
+      20
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1344,6 +1888,17 @@
       14
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2035,
+      14
+     ]
+    ]
    }
   ],
   "core.p2.presenting_heroes": [
@@ -1359,6 +1914,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2056,
+      34
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1412,6 +1978,31 @@
      ],
      "{2}"
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     "{0} - ",
+     [
+      "WIN",
+      29,
+      4
+     ],
+     "{1}",
+     [
+      "WIN",
+      2237,
+      4
+     ],
+     " ",
+     [
+      "WIN",
+      303,
+      5
+     ],
+     "{2}"
+    ]
    }
   ],
   "core.p2.title_word_0": [
@@ -1427,6 +2018,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      404,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1458,6 +2060,17 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      424,
+      6
+     ]
+    ]
    }
   ],
   "core.p2.title_word_2": [
@@ -1473,6 +2086,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      439,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1504,6 +2128,17 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      458,
+      8
+     ]
+    ]
    }
   ],
   "core.p2.title_word_4": [
@@ -1519,6 +2154,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      475,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1550,6 +2196,17 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      488,
+      6
+     ]
+    ]
    }
   ],
   "core.p2.title_word_6": [
@@ -1565,6 +2222,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      503,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1596,6 +2264,17 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      519,
+      7
+     ]
+    ]
    }
   ],
   "core.p2.title_word_8": [
@@ -1619,6 +2298,17 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      535,
+      7
+     ]
+    ]
    }
   ],
   "core.p2.title_word_9": [
@@ -1634,6 +2324,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      551,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1675,6 +2376,17 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      570,
+      6
+     ]
+    ]
    }
   ],
   "core.p2.origin_ferronrah": [
@@ -1690,6 +2402,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      154,
+      9
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1721,6 +2444,17 @@
       15
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      603,
+      15
+     ]
+    ]
    }
   ],
   "core.p2.wand_line_1": [
@@ -1736,6 +2470,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2446,
+      22
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1767,6 +2512,17 @@
       38
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2471,
+      38
+     ]
+    ]
    }
   ],
   "core.p2.wand_line_3": [
@@ -1782,6 +2538,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2511,
+      25
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1814,6 +2581,17 @@
       38
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2570,
+      38
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_2": [
@@ -1830,6 +2608,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2610,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1862,6 +2651,17 @@
       40
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2626,
+      40
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_4": [
@@ -1878,6 +2678,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2666,
+      40
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1910,6 +2721,17 @@
       38
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2706,
+      38
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_6": [
@@ -1926,6 +2748,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2746,
+      22
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -1958,6 +2791,17 @@
       38
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2776,
+      38
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_8": [
@@ -1974,6 +2818,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2816,
+      39
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2006,6 +2861,17 @@
       38
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2856,
+      38
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_10": [
@@ -2022,6 +2888,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2896,
+      39
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2054,6 +2931,17 @@
       37
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2936,
+      37
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_12": [
@@ -2078,6 +2966,17 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2976,
+      6
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_13": [
@@ -2094,6 +2993,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      2990,
+      40
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2132,6 +3042,23 @@
       13
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      3030,
+      24
+     ],
+     " {0}",
+     [
+      "WIN",
+      3061,
+      13
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_15": [
@@ -2148,6 +3075,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      3078,
+      37
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2180,6 +3118,17 @@
       10
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      3119,
+      10
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_17": [
@@ -2196,6 +3145,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      3137,
+      40
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2228,6 +3188,17 @@
       39
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      3177,
+      39
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_19": [
@@ -2244,6 +3215,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      3217,
+      39
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2276,6 +3258,17 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      3257,
+      6
+     ]
+    ]
    }
   ],
   "core.p2.filmon_closing_21": [
@@ -2292,6 +3285,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "WIN",
+      3273,
+      38
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2344,6 +3348,16 @@
       15
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      12458,
+      15
+     ]
+    ]
    }
   ],
   "core.p2.looks_nice": [
@@ -2359,6 +3373,17 @@
    },
    {
     "from": "p2-apple2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN2",
+      12250,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "wording": "own",
     "parts": [
      [
@@ -2409,6 +3434,16 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "TOWN2",
+      2988,
+      8
+     ]
+    ]
    }
   ],
   "core.p2.x_appears_and_gives_you_advice": [
@@ -2425,6 +3460,17 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGON2",
+      15654,
+      28
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      "{0} ",
      [
@@ -2455,6 +3501,16 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "DUNGON2",
+      424,
+      7
+     ]
+    ]
    }
   ],
   "core.p2.deity_1": [
@@ -2477,6 +3533,16 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "DUNGON2",
+      440,
+      6
+     ]
+    ]
    }
   ],
   "core.p2.deity_2": [
@@ -2492,6 +3558,16 @@
    },
    {
     "from": "p2-apple2",
+    "parts": [
+     [
+      "DUNGON2",
+      455,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
     "parts": [
      [
       "DUNGON2",
@@ -2541,6 +3617,16 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "DUNGON2",
+      409,
+      4
+     ]
+    ]
    }
   ],
   "p2.terrain_key.party": [
@@ -2583,6 +3669,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      2510,
+      5
+     ]
+    ]
    }
   ],
   "p2.terrain_key.dungeon": [
@@ -2622,6 +3718,16 @@
      [
       "OUTDOORS2",
       163,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p2-apple2-2.1",
+    "parts": [
+     [
+      "OUTDOORS2",
+      175,
       7
      ]
     ]
