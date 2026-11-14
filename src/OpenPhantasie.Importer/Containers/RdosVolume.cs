@@ -4,8 +4,9 @@ using System.Text;
 namespace OpenPhantasie.Importer.Containers;
 
 /// <summary>
-/// SSI's RDOS 2.1 (Apple II, 13-sector) inside a 140K DOS-order <c>.dsk</c>, as Phantasie II's 4am crack keeps it
-/// (and as <see cref="WozImage"/> decodes the original disks' <c>.woz</c> images).
+/// SSI's RDOS (Apple II) inside a 140K <c>.dsk</c>: RDOS 2.1 (13-sector; Phantasie I, II v1.0) as Phantasie II's 4am
+/// crack keeps it (and as <see cref="WozImage"/> decodes the original disks' <c>.woz</c> images), and RDOS 3.3
+/// (16-sector; II v2.1, III) in a DOS-order <c>.dsk</c>.
 /// Port of <c>tools/scripts/a2_rdos.py</c> (format: <c>reverse-engineering/apple2/phantasie2/FORMAT.md</c> section 1):
 /// logical sector n = <c>.dsk</c> track n / 13, sector n % 13; catalog = track 1 sectors 0-10, 32-byte entries ended
 /// by a first byte 0 (name 0-23 high-bit ASCII, 24 type, 25 sector count, 26 load, 28 length, 30 first sector); a
@@ -13,6 +14,9 @@ namespace OpenPhantasie.Importer.Containers;
 /// The Memorial Set (GOG / Steam) ships the same disks in DOS 3.3 sector order: its sector s is the 4am image's sector
 /// <c>[0,13,11,9,7,5,3,1,14,12,10,8,6,4,2,15][s]</c> on every track (s166). Both orders share catalog sector 0, so
 /// <see cref="TryOpen"/> reads the image both ways and keeps the catalog with more entries.
+/// RDOS 3.3 (s211): logical sector n = track n / 16, DOS-order slot <c>[0,14,13,...,1,15][n % 16]</c> (ProDOS order
+/// within a track); catalog = logical sectors 16-31, same entries. Its first entry, <c>RDOS 3.3 COPYRIGHT 1986</c>,
+/// picks this layout first: a 13-sector read of these disks also finds a plausible (partial) catalog.
 /// </summary>
 public sealed class RdosVolume
 {
@@ -23,11 +27,15 @@ public sealed class RdosVolume
 
     private readonly byte[] _image;
 
-    private RdosVolume(byte[] image, List<Entry> entries)
+    private RdosVolume(byte[] image, List<Entry> entries, bool rdos33)
     {
         _image = image;
         Entries = entries;
+        IsRdos33 = rdos33;
     }
+
+    /// <summary>True for a 16-sector RDOS 3.3 disk, false for 13-sector RDOS 2.1.</summary>
+    public bool IsRdos33 { get; }
 
     /// <summary>Every catalog entry, deleted ones included (as <c>RdosDisk.files</c>).</summary>
     public IReadOnlyList<Entry> Entries { get; }
@@ -43,6 +51,8 @@ public sealed class RdosVolume
     {
         if (image.Length != ImageSize)
             return null;
+        if (TryOpenInOrder(image, rdos33: true) is { } r33 && r33.Entries[0].Name.StartsWith(Rdos33Mark, StringComparison.Ordinal))
+            return r33;
         var asIs = TryOpenInOrder(image);
         var remapped = TryOpenInOrder(FromDos33Order(image));
         return remapped is not null && (asIs is null || remapped.Entries.Count > asIs.Entries.Count) ? remapped : asIs;
@@ -50,6 +60,11 @@ public sealed class RdosVolume
 
     /// <summary>DOS 3.3 → the 4am image's order (<c>tools/scripts/a2_rdos.py</c> <c>from_dos33_order</c>).</summary>
     internal static readonly int[] Dos33ToImage = [0, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 15];
+
+    /// <summary>RDOS 3.3 sector n % 16 → DOS-order <c>.dsk</c> slot (<c>a2_rdos.py</c> <c>RDOS33_SLOT</c>).</summary>
+    internal static readonly int[] Rdos33Slot = [0, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 15];
+
+    private const string Rdos33Mark = "RDOS 3.3";
 
     public static byte[] FromDos33Order(byte[] image)
     {
@@ -60,14 +75,14 @@ public sealed class RdosVolume
         return o;
     }
 
-    private static RdosVolume? TryOpenInOrder(byte[] image)
+    private static RdosVolume? TryOpenInOrder(byte[] image, bool rdos33 = false)
     {
         var entries = new List<Entry>();
-        const int logicalSectors = 35 * SectorsPerTrack;
+        int perTrack = rdos33 ? 16 : SectorsPerTrack, logicalSectors = 35 * perTrack;
         var ended = false;
-        for (var s = 0; s < CatalogSectors && !ended; s++)
+        for (var s = 0; s < (rdos33 ? 16 : CatalogSectors) && !ended; s++)
         {
-            var sec = Sector(image, CatalogTrack * SectorsPerTrack + s);
+            var sec = Sector(image, CatalogTrack * perTrack + s, rdos33);
             for (var e = 0; e < 256 / EntrySize; e++)
             {
                 var b = sec.Slice(e * EntrySize, EntrySize);
@@ -88,11 +103,12 @@ public sealed class RdosVolume
                 entries.Add(new Entry(name.ToString().TrimEnd(), type, b[25], load, length, start, deleted));
             }
         }
-        return entries.Count == 0 ? null : new RdosVolume(image, entries);
+        return entries.Count == 0 ? null : new RdosVolume(image, entries, rdos33);
     }
 
-    private static ReadOnlySpan<byte> Sector(byte[] image, int n) =>
-        image.AsSpan((n / SectorsPerTrack) * TrackBytes + (n % SectorsPerTrack) * 256, 256);
+    private static ReadOnlySpan<byte> Sector(byte[] image, int n, bool rdos33) => rdos33
+        ? image.AsSpan((n / 16) * TrackBytes + Rdos33Slot[n % 16] * 256, 256)
+        : image.AsSpan((n / SectorsPerTrack) * TrackBytes + (n % SectorsPerTrack) * 256, 256);
 
     /// <summary>
     /// A file's bytes: its sectors, cut to <c>length</c> when that is non-zero and fits (as <c>RdosDisk.read</c>).
@@ -101,7 +117,7 @@ public sealed class RdosVolume
     {
         var data = new byte[e.Sectors * 256];
         for (var i = 0; i < e.Sectors; i++)
-            Sector(_image, e.Start + i).CopyTo(data.AsSpan(i * 256));
+            Sector(_image, e.Start + i, IsRdos33).CopyTo(data.AsSpan(i * 256));
         return e.Length != 0 && e.Length <= data.Length ? data[..e.Length] : data;
     }
 

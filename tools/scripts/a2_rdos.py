@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read SSI's RDOS disks (Apple II) as used by Phantasie II (and I): catalog + file contents.
+"""Read SSI's RDOS disks (Apple II) as used by Phantasie I, II and III: catalog + file contents.
 
 Format (decoded s158 from the 4am crack of Phantasie II, `reverse-engineering/apple2/phantasie2/FORMAT.md`):
 
@@ -14,6 +14,11 @@ Format (decoded s158 from the 4am crack of Phantasie II, `reverse-engineering/ap
 * The Memorial Set (GOG / Steam) ships the same disks in DOS 3.3 sector order: its sector s is the 4am image's
   sector `DOS33_TO_IMAGE[s]` on every track (s166). Both orders share catalog sector 0, so `RdosDisk` reads the image
   both ways and keeps the catalog with more entries (as the importer's `RdosVolume.TryOpen`).
+* RDOS 3.3 (s211; II v2.1 and III) is a 16-sector DOS. The .dsk is in DOS 3.3 order (as every 16-sector .dsk and
+  `WozImage`'s 16-sector output); logical sector n is track n // 16, .dsk slot `RDOS33_SLOT[n % 16]` (ProDOS order
+  within a track). The catalog is logical sectors 16..31 (track 1) with the same 32-byte entries, ended by a first
+  byte 0. Its first entry is `RDOS 3.3 COPYRIGHT 1986` (sectors 0..31), which is what picks this layout: a 13-sector
+  read of these disks also finds a plausible (partial) catalog, so the entry count can't decide.
 
 Usage (CLI): python3 -I a2_rdos.py <side.dsk> [--extract OUTDIR]
 Library: `RdosDisk(path).files` -> list of `RdosFile`; `disk.read(name)` -> bytes (exactly `length` bytes).
@@ -34,6 +39,8 @@ CATALOG_TRACK = 1
 CATALOG_SECTORS = 11            # track 1 sectors 0..10
 ENTRY_SIZE = 32
 DOS33_TO_IMAGE = (0, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 15)
+RDOS33_SLOT = (0, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 15)   # RDOS 3.3 sector n % 16 -> DOS-order .dsk slot
+RDOS33_MARK = "RDOS 3.3"
 
 
 def from_dos33_order(image: bytes) -> bytes:
@@ -62,6 +69,12 @@ class RdosDisk:
         image = path_or_bytes if isinstance(path_or_bytes, (bytes, bytearray)) else Path(path_or_bytes).read_bytes()
         if len(image) != 143360:
             raise ValueError(f"not a 140K .dsk image ({len(image)} bytes)")
+        self.image, self.version = image, "3.3"
+        rdos33 = self._catalog()
+        if rdos33 and rdos33[0].name.startswith(RDOS33_MARK):
+            self.files = rdos33
+            return
+        self.version = "2.1"
         self.image = from_dos33_order(image)
         remapped = self._catalog()
         self.image = image
@@ -69,14 +82,22 @@ class RdosDisk:
         if len(remapped) > len(self.files):
             self.image, self.files = from_dos33_order(image), remapped
 
+    @property
+    def sectors_per_track(self) -> int:
+        return 16 if self.version == "3.3" else SECTORS_PER_TRACK
+
     def sector(self, n: int) -> bytes:
-        off = (n // SECTORS_PER_TRACK) * DSK_TRACK_BYTES + (n % SECTORS_PER_TRACK) * 256
+        if self.version == "3.3":
+            off = (n // 16) * DSK_TRACK_BYTES + RDOS33_SLOT[n % 16] * 256
+        else:
+            off = (n // SECTORS_PER_TRACK) * DSK_TRACK_BYTES + (n % SECTORS_PER_TRACK) * 256
         return self.image[off:off + 256]
 
     def _catalog(self) -> list[RdosFile]:
         out: list[RdosFile] = []
-        for s in range(CATALOG_SECTORS):
-            sec = self.sector(CATALOG_TRACK * SECTORS_PER_TRACK + s)
+        catalog_sectors = 16 if self.version == "3.3" else CATALOG_SECTORS
+        for s in range(catalog_sectors):
+            sec = self.sector(CATALOG_TRACK * self.sectors_per_track + s)
             for e in range(256 // ENTRY_SIZE):
                 b = sec[e * ENTRY_SIZE:(e + 1) * ENTRY_SIZE]
                 if b[0] == 0:
@@ -102,6 +123,7 @@ class RdosDisk:
 
 def main(argv: list[str]) -> None:
     disk = RdosDisk(argv[1])
+    print(f"RDOS {disk.version}, {len(disk.files)} catalog entries")
     out = Path(argv[argv.index("--extract") + 1]) if "--extract" in argv else None
     for f in disk.files:
         flag = " (deleted)" if f.deleted else ""

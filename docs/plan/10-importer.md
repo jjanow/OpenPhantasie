@@ -231,12 +231,14 @@ come from, and I's 682 ids and the shared `p3*` / `p4` areas are not tagged.
 | I | Apple II, Atari ST (v2.0 en, v1.0 de), Atari 8-bit, MSX2, PC-88, PC-98, X1 | — | — | recognised by hash only |
 | II | **Atari ST v1.0** (Pasti `.stx`; TOSEC `.st` has byte-identical program and data files) | every II table + ST pack + title tune | `stx_to_st`, FAT12 unpack (mtools today), `st_prg`, `extract_st_phantasie2`, `extract_st_p2_maps` / `_dungeons` / `_scrolls` / `_towns`, `build_p2_gamedata`, `extract_st_p2_graphics`, `build_st_p2_asset_manifest` | supported |
 | II | **Apple II** v1.0 2/5/86 (4am `.dsk`, or the original `.woz` pair, decoded since s169): the Memorial Set's II | reference extract (s158): monsters, items, names, creation tables, towns, wilderness, dungeons + messages, scrolls; Apple II art pack | `a2_rdos`, `a2_applesoft`, `extract_a2_p2_tables`, `diff_a2_p2_vs_st`, `extract_a2_p2_graphics`, `build_a2_p2_asset_manifest` (`reverse-engineering/apple2/phantasie2/FORMAT.md`) | supported (s158 C# port, `p2-apple2`, 7.2 / 7.5): the Apple's text, the ST's numbers (D2-046…050, decided s159, built s160). Gaps: no spell names on the Apple (the manual's list is shipped; divine #57 / #58 unnamed there, the ST names them, D2-050 `[U]`). The Memorial Set's disks (s166, unplayed, shipped fog) are in DOS 3.3 sector order; since s167 the reader tries both orders and they are found (their save files are the profile's pristine sha1s) |
+| II | Apple II v2.1 8/19/86 (RDOS 3.3 `.dsk` pair, s210) | — | `a2_rdos` (reads RDOS 3.3 since s211) | recognised by key files (`p2-apple2-2.1`, s211; the v1.0 profile's "another build" is dropped when it matches) |
 | II | C64 v1.0 / v1.2, Atari 8-bit, MSX2, PC-88, PC-98 | — | — | recognised by hash only |
 | III | **DOS SSI 1988** (`.ima`) | every III table + DOS CGA pack (s160; drawn when no Amiga III pack is imported) | `extract_dos_p3_common` (EXEPACK unpack), `extract_dos_p3_tables` / `_dungeons` / `_rules` / `_scrolls` / `_towns` / `_world`, `build_p3_gamedata` | supported |
 | III | DOS WizardWorks 1991 (`.ima`) | as 1988 `[~]`: its unpacked folder holds only the extra `.BAT` files, so the data files are taken to be the same | as 1988 | check by key-file hashes |
 | III | Memorial Set DOS III (s166) | as 1988: every game file byte-identical | as 1988 | supported (found as `p3-dos-1988`) |
 | III | **Amiga v1.0 1987** (`.adf`) | every III table without DOS III (s210, 7.9: DOS's values where the Amiga differs, user s209) + Amiga pack: art, tunes, sounds (the map previews also read DOS's `WORLD.DAT` / `PLNS.DAT` when given; `monsinfo.dat` = DOS `CREATURE.DAT`, same sha1) | `extract_amiga_p3_common`, `extract_amiga_p3_graphics` | supported (s210: tables too, `P3AmigaTables`, `amiga/phantasie3/FORMAT.md` "Game tables for a standalone import"; DOS III's tables win when both are imported) |
-| III | Apple II `[cr]`, C64 v1.1, Atari ST, MSX2, PC-88, PC-98 | — | — | recognised by hash only |
+| III | Apple II v1.0 `[cr]` / v3.0 `.woz` (RDOS 3.3, read since s211) | — | `a2_rdos`, `detok_apple2_p3` | recognised (`p3-apple2`: image hashes + the file names TOWN3 / OUTDOORS3, s211) |
+| III | C64 v1.1, Atari ST, MSX2, PC-88, PC-98 | — | — | recognised by hash only |
 | IV | **X68000 Ver.1.02** (`.dim`) | every IV table, `ja.json`, X68000 pack, tunes, voices | `x68k_dim`, `x68k_x`, `extract_x68k_p4_tables` / `_creation` / `_text`, `x68k_p4_events`, `build_p4_gamedata`, `x68k_p4_pkh`, `x68k_p4_pix`, `x68k_p4_fonts`, `x68k_p4_panels`, `x68k_p4_anim` | supported |
 | IV | PC-98 (`.hdm`), MSX2 (`.dsk`, + 2008 patch images), PC-88 (`.d88`) | nothing; IV's string ids are X68000 addresses | — (`msx2_p4_dis.py` is a disassembler) | not supported |
 
@@ -821,10 +823,14 @@ Xvfb lists all four games and starts I with the imported Amiga art.
 | apple2 | `phantasie2/woz-original/phantasie2-disk1-side-b.woz` | 233452 | `b395fd5175d875063dd5bfcaee040457ea1cd603` |
 | apple2 | `phantasie2/memorial-set-gog/PHANT2A.DSK` (DOS 3.3 sector order) | 143360 | `e21f26ddefd9d6d4fa1b966cece09cedfb42966b` |
 | apple2 | `phantasie2/memorial-set-gog/PHANT2B.DSK` | 143360 | `2f5d2bce122ffa417ac4c2b2873881f386c58991` |
+| apple2 | `phantasie2/v2.1-a2can/phantasie2-v2.1-side-a-boot.dsk` (RDOS 3.3) | 143360 | `b5efe8c9e28989e2e1689b7143d4202503237031` |
+| apple2 | `phantasie2/v2.1-a2can/phantasie2-v2.1-side-b-dungeon.dsk` | 143360 | `b52f391ca2b94346f4d44f10105d1da6c798f769` |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_1_of_3_Side_A.dsk` | 143360 | `b7ae3f30298c41fd9a2abfa2bcd566cf4051a39a` |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_1_of_3_Side_B.dsk` | 143360 | `51446a1e54c1ef84c13bb480d559f9b240b5b4e1` |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_2_of_3_Side_A_Dungeon.dsk` | 143360 | `da829c612540f772012cc2bc11674a16ac72d4f4` |
 | apple2 | `phantasie3/Phantasie_III_1987_SSI_cr_Disk_3_of_3_Side_A_Player.dsk` | 143360 | `4aac758b75a1e1d682e9477ebebb611a1b159dbc` |
+| apple2 | `phantasie3/woz-original-v3.0/phantasie3-v3.0-disk1-side-a-boot.woz` | 233475 | `534d51086d981163ac5fa47f6947c0b85ecb37b8` |
+| apple2 | `phantasie3/woz-original-v3.0/phantasie3-v3.0-disk1-side-b-utilities.woz` | 233475 | `3a2344b877cce46b57e29801e39f607f74ed603e` |
 | atari-st | `phantasie1/tosec-v2.0-repacked/phantasie1-v2.0-tosec-disk1.st` | 819200 | `81090efe59010c517f92b374206b86deb08b93ff` |
 | atari-st | `phantasie1/tosec-v2.0-repacked/phantasie1-v2.0-tosec-disk2.st` | 737280 | `62f71840b671b2e10675cc839bf289956f6a4e53` |
 | atari-st | `phantasie1/v1.0-de/phantasie1-v1.0-de-disk1.stx` | 792086 | `48cf671aa017a5f4d8540d32e19edb15cdada3b2` |

@@ -47,7 +47,7 @@ and DOS pictures, for example), Options → the game's tab → GRAPHICS switches
 Copies are recognised by their content (checksums of the program and data files), not by file or folder names, so
 an installed store version can be pointed at directly. A copy that has been played is imported as it is; the import
 report says what that changes (for DOS Phantasie I: map regions already explored and fixed fights already won).
-Other versions (C64, Apple II Phantasie I / III,
+Other versions (C64, Apple II Phantasie I / III, Apple II Phantasie II v2.1,
 PC-88, PC-98, MSX2, …) are recognised but cannot be imported yet.
 
 ## Planned source-platform support
@@ -60,7 +60,7 @@ systems OpenPhantasie runs on, separate from these source platforms.
 | Game | Platforms still to add | Existing support to extend |
 |---|---|---|
 | Phantasie I | Apple II, Commodore 64, Atari 8-bit, Atari ST, MSX2, NEC PC-88, NEC PC-98, Sharp X1 | DOS and Amiga imports already work (the Amiga copy alone too) |
-| Phantasie II | Commodore 64, Atari 8-bit, MSX2, NEC PC-88, NEC PC-98 | Atari ST and Apple II imports already work |
+| Phantasie II | Commodore 64, Atari 8-bit, MSX2, NEC PC-88, NEC PC-98 | Atari ST and Apple II v1.0 imports already work (Apple II v2.1 is recognised) |
 | Phantasie III | Apple II, Commodore 64, Atari ST, MSX2, NEC PC-88, NEC PC-98 | DOS and Amiga imports already work (the Amiga copy alone too) |
 | Phantasie IV | NEC PC-88, NEC PC-98, MSX2 (including the existing DJANGO English patch) | X68000 import already works |
 

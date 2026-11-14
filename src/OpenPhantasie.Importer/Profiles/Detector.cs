@@ -38,12 +38,14 @@ public static class Detector
         profiles ??= VersionProfiles.All;
         var result = new List<Detection>();
         var claimed = new HashSet<Container>();
+        var unknownBuildIn = new Dictionary<Detection, List<Container>>();
 
         foreach (var profile in profiles.Where(p => p.Disks.Count > 0))
         {
             var matched = new List<(VersionProfile.Disk Disk, Container Container, string Anchor)>();
             var missing = new List<string>();
             var wrongHash = new List<string>();
+            var wrongHashIn = new List<Container>();
             foreach (var disk in profile.Disks)
             {
                 var hit = containers.Select(c => (c, Match(c, disk.KeyFiles))).FirstOrDefault(x => x.Item2.Ok);
@@ -59,7 +61,10 @@ public static class Detector
                                 || profile.NameMarkers.All(n => c.Files.Any(f => FileSet.TailMatches(f.Path, n))))
                     .Select(c => (c, Match(c, disk.KeyFiles))).FirstOrDefault(x => x.Item2.NamesFound);
                 if (named.c is not null)
+                {
                     wrongHash.AddRange(named.Item2.Mismatched.Select(m => $"{named.c.Description}: {m}"));
+                    wrongHashIn.Add(named.c);
+                }
                 missing.Add(disk.Label);
             }
             if (matched.Count == 0 && wrongHash.Count == 0)
@@ -100,14 +105,21 @@ public static class Detector
             }
             else
             {
-                result.Add(new Detection
+                var unknown = new Detection
                 {
                     Profile = profile,
                     Status = DetectionStatus.UnknownBuild,
                     Message = $"{profile.Title}: the files are there but are another build ({string.Join("; ", wrongHash.Take(4))}); not imported",
-                });
+                };
+                result.Add(unknown);
+                unknownBuildIn[unknown] = wrongHashIn;
             }
         }
+
+        // "Another build" of one version is no news when another profile of the same game matched those disks by
+        // their own key files (Apple II II v2.1 next to the supported v1.0).
+        result.RemoveAll(d => unknownBuildIn.TryGetValue(d, out var cs) && cs.Count > 0 && cs.All(c => result.Any(o =>
+            o.Status != DetectionStatus.UnknownBuild && o.Profile.Game == d.Profile.Game && o.Containers.Contains(c))));
 
         // Image fingerprints and name markers for the rest (recognised-only versions, planned importers, and
         // reference dumps that a key-file match above already covered).

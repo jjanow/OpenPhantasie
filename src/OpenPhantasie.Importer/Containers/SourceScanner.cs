@@ -257,7 +257,7 @@ public static class SourceScanner
         if (!ImageExtensions.Contains(ext) && !LooksLikeImageSize(data.Length))
             return false;
 
-        // Apple II RDOS (SSI's 13-sector DOS in a 140K .dsk: Phantasie II's 4am crack).
+        // Apple II RDOS in a 140K .dsk (RDOS 2.1, 13-sector: Phantasie II's 4am crack; RDOS 3.3, 16-sector: II v2.1, III).
         if (data.Length == RdosVolume.ImageSize && RdosVolume.TryOpen(data) is { } rdos)
         {
             result.Add(RdosContainer("rdos", description, sourcePath, sha1, data.Length, rdos));

@@ -915,6 +915,50 @@
    ]
   },
   {
+   "id": "p2-apple2-2.1",
+   "game": "phantasie2",
+   "title": "Phantasie II v2.1 (Apple II)",
+   "platform": "apple2",
+   "status": "recognised",
+   "reason": "no importer for this version yet (v1.0, the Memorial Set's II, is imported)",
+   "disks": [
+    {
+     "label": "side A",
+     "key_files": [
+      {
+       "name": "OUTDOORS2",
+       "size": 18650,
+       "sha1": "298afe2c09b4a2f7f03feb0a1bc37dfcda6f4ce6"
+      },
+      {
+       "name": "INTRO2",
+       "size": 676,
+       "sha1": "0eb578a682d7584cfc46a5bddce41f2564a3f4ab"
+      },
+      {
+       "name": "MAP",
+       "size": 750,
+       "sha1": "8d4d3e0e6de46e3611e0a1544f20c47e8487d8a6"
+      }
+     ]
+    },
+    {
+     "label": "side B",
+     "key_files": [
+      {
+       "name": "DUNGON2",
+       "size": 19580,
+       "sha1": "43fcedaed28f56ff10aa8f7218be369b2e23ab29"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "TOWN2",
+    "OUTDOORS2"
+   ]
+  },
+  {
    "id": "p3-dos-1988",
    "game": "phantasie3",
    "title": "Phantasie III (DOS, SSI 1988)",
@@ -1159,7 +1203,19 @@
     {
      "sha1": "4aac758b75a1e1d682e9477ebebb611a1b159dbc",
      "size": 143360
+    },
+    {
+     "sha1": "534d51086d981163ac5fa47f6947c0b85ecb37b8",
+     "size": 233475
+    },
+    {
+     "sha1": "3a2344b877cce46b57e29801e39f607f74ed603e",
+     "size": 233475
     }
+   ],
+   "name_markers": [
+    "TOWN3",
+    "OUTDOORS3"
    ]
   },
   {

@@ -26,6 +26,12 @@ Tools (all `python3 -I`, run from the repo root):
   space padded), 24 type (`A` Applesoft, `B` binary, `T` text), 25 sector count, 26–27 load address, 28–29 length,
   30–31 first logical sector. Files are contiguous. A deleted entry starts with 0x80 (side A has a stale `TWN210`).
   Track 1 sectors 11–12 hold RWTS code, not entries.
+- **RDOS 3.3** (v2.1 8/19/86 and III; "RDOS 3.3 COPYRIGHT 1986"), a **16-sector** DOS `[C]` (s211). In a DOS-order
+  `.dsk` (as `WozImage` writes a 16-sector disk) logical sector n is track n // 16, slot
+  `[0,14,13,12,11,10,9,8,7,6,5,4,3,2,1,15][n % 16]` (ProDOS order within a track). Catalog = logical sectors 16–31
+  (track 1), the same 32-byte entries; its first entry is `RDOS 3.3 COPYRIGHT 1986` (sectors 0–31). A 13-sector read
+  of these disks also finds a plausible partial catalog, so `a2_rdos.py` / `RdosVolume` take the 16-sector layout when
+  that first entry says RDOS 3.3, and only then fall back to the 13-sector orders.
 - **Crack patches** (4am notes): side A `T0E,S07` = logical sector 189 = the first sector of `SSI.INIT2`, plus boot /
   RWTS sectors on track 0 of both sides. So `SSI.INIT2` differs from the original and is not a key file; every other
   file equals the original `[C]` (s169, from the decoded `.woz`, below). The Memorial Set's II (s166) is a cracked
@@ -196,6 +202,9 @@ quarter turn between the versions. D2-046.
   labels. Ids agree with the ST's MESS slot ids. The text area ends at slot 110; the ST's MESS files carry extra
   records past their last referenced id (junk).
 - `DNGSAV` / `DNGCHK` are save state (DNGOUT2), never read by the extractor.
+- Script ops 7–10 (gold high byte ± D, DUNGON2 8340–8370): v1.0 computes the new gold high byte in `X`, which also
+  holds the op that 8516 / 8518 test after it (23: `& RUN "WIN"`, 22: re-run the event), so a gold event leaving the
+  high byte at 23 runs the winning ending; v2.1 uses `Z` (bug fix, `../original-images/SOURCES.txt`). Data unchanged.
 
 ### 3.8 Scrolls: `SCROLLL1`–`SCROLLL20` (side A), `SCROLLL0` (side B) `[C]`
 
@@ -203,6 +212,8 @@ quarter turn between the versions. D2-046.
 i (121–140) shows `SCROLLL(i − 120)`, then the next file while row 22 column 0 is `!` (TOWN2 8020, `PEEK(1872) = 161`):
 scroll A (121) = files 1–3, 132 = 12–13, 134 = 14–16; there is no `SCROLLL17` (item 137, as on the ST). `SCROLLL0` is
 Pluto's speech after he is beaten (DUNGON2 4300; on the ST a `strings/en.json` line).
+Bytes 120–127, 248–255, … are text-page screen holes, not shown and not read; v1.0 and v2.1 differ only in bytes 120
+and 248 ($0478 / $04F8, RDOS 3.3's RWTS retry counters).
 
 ### 3.9 Save state and other files (not read by the extractor)
 
