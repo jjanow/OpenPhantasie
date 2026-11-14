@@ -5,7 +5,8 @@ namespace OpenPhantasie.Core;
 /// (<see cref="P3Combat.Choose"/>, D3-010…013), party melee, Aim and Fire Bow (<c>character_attack</c> root
 /// <c>0xc03b</c>), body-area injury on both sides (<c>body-areas.md</c> §2–3), Arrow Flame / Accuracy (D3-017) and monster
 /// melee (root <c>0xb64e</c>, D3-018 / 019). Its rules live in <see cref="P3Combat"/> / <see cref="P3BodyAreas"/>; this
-/// class only feeds them the fight. Other casts go to the shared <see cref="SpellCaster"/> with I's packing.
+/// class only feeds them the fight. The party's Fireflash I–IV is III's own (D3-075, <see cref="CastFireflash"/>); other
+/// casts go to the shared <see cref="SpellCaster"/> with I's packing.
 /// <para>
 /// Who acts when, monster specials and the round end are III's round loop (<see cref="P3RoundResolver"/>). A group is
 /// found by its rank position (<see cref="MonsterRank.RankIndex"/>: 0 = rank 1, 1 = rank 2); the round loop swaps the
@@ -101,6 +102,10 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
                 ? Pack(new P3ActionChoice(P3Action.Thrust, 1)) // root 0xff55: action 3, Thrust (R1)
                 : CombatOrders.Choose(request.Member, request.Prep, CombatChoice.Cast, rng, 0, request.SpellIndex,
                     request.HealTargetIndex, rules); // the packing is the shared caster's (I's)
+            // D3-075 dos: Fireflash at rank 2 is DOS's action code 16 (root 0xfc41 asks the rank when rank 2 exists).
+            if (request.RankIndex == 1 && request.Encounter is { } e && CastAsksRank(e, request.SpellIndex)
+                && CombatAction.TryDecodeCast(packedAction, out var cast, out _) && cast == request.SpellIndex)
+                packedAction = CombatAction.CastSpellAtRank(cast, 1);
         }
         else
             packedAction = Pack(choice);
@@ -162,6 +167,19 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
     }
 
     /// <summary>
+    /// D3-075 (<c>p3.fireflash</c> = <c>dos</c>): the order screen asks the rank (`p3combat.x_target_which_rank`) after a
+    /// Fireflash I–IV pick when a second group exists (root <c>0xfc41</c>, <c>combat-actions-and-ranks.md</c> section 2; the
+    /// Amiga the same). Under the manual's Fireflash no rank is asked: it strikes the front rank.
+    /// </summary>
+    public static bool CastAsksRank(CombatEncounter encounter, int spellIndex)
+    {
+        ArgumentNullException.ThrowIfNull(encounter);
+        return IsFireflash(spellIndex) && encounter.Rules.P3DosFireflash() && RankTwoExists(encounter);
+    }
+
+    private static bool IsFireflash(int spellIndex) => spellIndex is >= SpellId.FireflashI and <= SpellId.FireflashIv;
+
+    /// <summary>
     /// The cast gate of DOS III's <c>0xce66</c> [C]: Healing I–IV and Resurrection are always cast; any other spell (bow
     /// spells too) only while a group's living count (<c>FAR:0xe5b2</c> / <c>0xe63c</c>, lowered only by a monster's death
     /// in <c>damage_monster</c> <c>0xb33d</c>) is above 0. A cast after the last monster died earlier in the round prints
@@ -175,11 +193,13 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
         CombatEncounter encounter, int memberIndex, int packedAction, IRandomSource rng, List<string> log)
     {
         var fight = P3Fight.Of(encounter);
-        if (CombatAction.TryDecodeCast(packedAction, out var spellIndex, out _))
+        if (CombatAction.TryDecodeCast(packedAction, out var spellIndex, out _, out var castRank))
         {
             if (!CastGoesAhead(encounter, spellIndex))
                 return true; // no line, no magic spent
-            if (fight is not null && BowSpell(spellIndex) is { } bowSpell)
+            if (fight is not null && IsFireflash(spellIndex))
+                CastFireflash(encounter, memberIndex, spellIndex, castRank + 1, rng, log);
+            else if (fight is not null && BowSpell(spellIndex) is { } bowSpell)
                 CastBowSpell(encounter, fight, memberIndex, spellIndex, bowSpell, log);
             else if (SpellCaster.ResolveCombatCast(encounter, memberIndex, packedAction, rng, log).Success && fight is not null)
                 SetFightValues(encounter, fight, spellIndex);
@@ -253,7 +273,7 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
     }
 
     /// <summary>
-    /// The target of one swing or shot (root <c>0xb4ec</c>): a random start among the group's five slots, then the first
+    /// The target of one swing, shot or DOS Fireflash (root <c>0xb4ec</c>): a random start among the group's five slots, then the first
     /// living member from there `[~]` (wrap-around assumed). Asleep, Down and Unconscious members are targets.
     /// </summary>
     private static int? PickMonster(MonsterRank group, IRandomSource rng)
@@ -341,8 +361,8 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
     /// </summary>
     public static int? ActionCode(int packedAction)
     {
-        if (CombatAction.TryDecodeCast(packedAction, out _, out _))
-            return CastCode;
+        if (CombatAction.TryDecodeCast(packedAction, out _, out _, out var castRank))
+            return castRank == 1 ? CastRankTwoCode : CastCode;
         if (CombatAction.IsParry(packedAction))
             return (int)P3Action.Parry;
         if (!TryUnpack(packedAction, out var c))
@@ -377,7 +397,7 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
             if (ActionCode(packed) is not { } code)
                 continue;
             p3.SavedAction = code;
-            p3.SavedCast = code == CastCode ? packed : null;
+            p3.SavedCast = code is CastCode or CastRankTwoCode ? packed : null;
         }
     }
 
@@ -591,6 +611,73 @@ public sealed class P3CombatModule : ICombatActionModule, IMonsterMeleeModule
             else if (spellIndex is >= SpellId.ProtectionI and <= SpellId.ProtectionIv)
                 fight.SetArmour(m, fight.Points(m.WornArmor) + Magic.ProtectionFlat[spellIndex - SpellId.ProtectionI]);
         }
+    }
+
+    // ---- Fireflash (D3-075) -----------------------------------------------------------------------------------------------
+
+    /// <summary>The manual's Fireflash I–IV top damage (III PDF 11 / pr.14): 1-10 / 1-30 / 1-60 / 1-100.</summary>
+    public static readonly int[] FireflashManualMax = [10, 30, 60, 100];
+
+    /// <summary>DOS's Fireflash I–IV multiplier <c>t</c> (<c>DS:0xc1a[5..8]</c>, root <c>0xb42e</c>): 1 / 4 / 8 / 13.</summary>
+    public static readonly int[] FireflashDosFactor = [1, 4, 8, 13];
+
+    /// <summary>DOS's Fireflash I–IV damage caps (root <c>0xb48a…0xb4c8</c>): 10 / 30 / 60 / 99.</summary>
+    public static readonly int[] FireflashDosCap = [10, 30, 60, 99];
+
+    /// <summary>
+    /// DOS's party Fireflash damage (root <c>0xb42e</c>): <c>min(rnd((INT / 2 + 1) · t), cap)</c>, integer division, rnd
+    /// = 1…n (<see cref="P3Dice.Rnd"/>). The top damage is <c>(INT / 2 + 1) · t</c> below the cap (INT 9: 5 / 20 / 40 / 65).
+    /// </summary>
+    public static int FireflashDosDamage(int tier, int intelligence, IRandomSource rng) =>
+        Math.Min(P3Dice.Rnd(rng, (Math.Max(0, intelligence) / 2 + 1) * FireflashDosFactor[tier]), FireflashDosCap[tier]);
+
+    /// <summary>The manual's party Fireflash damage: <c>rnd(10 / 30 / 60 / 100)</c>, no INT.</summary>
+    public static int FireflashManualDamage(int tier, IRandomSource rng) => P3Dice.Rnd(rng, FireflashManualMax[tier]);
+
+    /// <summary>
+    /// The party's Fireflash I–IV (#5–8) in a III fight (D3-075; <c>combat-round.md</c> section 2). The magic is spent and
+    /// the cast line printed as for any cast (<c>0xce66</c>), then one monster takes the damage through
+    /// <c>damage_monster</c> with its spell flag set (root <c>0xb116</c>, <c>[bp+0x10]</c> = 1): HP only, no injury step and
+    /// no status from the body, dead at 0 HP.
+    /// <list type="bullet">
+    /// <item><c>p3.fireflash</c> = <c>dos</c> (root <c>0xc3ef</c> → <c>0xb42e</c>): the order's rank (code 7 → rank 1, 16 →
+    /// rank 2); with that group wiped nothing happens (no other rank is tried, the magic stays spent). The target is
+    /// <c>0xb4ec</c>'s (a random start slot, then the first living one), drawn before the damage roll.</item>
+    /// <item><c>manual</c>: the remaster's target as before (a random living monster of the front rank,
+    /// <see cref="SpellCaster.PickFireflashTarget"/>), then <c>rnd(10 / 30 / 60 / 100)</c>. The manual is silent on
+    /// injury; DOS's spell flag (no injury) is kept.</item>
+    /// </list>
+    /// </summary>
+    private static void CastFireflash(
+        CombatEncounter encounter, int casterIndex, int spellIndex, int rank, IRandomSource rng, List<string> log)
+    {
+        var caster = encounter.Party.Members[casterIndex];
+        if (Magic.TrySpendMp(caster, spellIndex, out var reason, SpellSlots.For(encounter.Rules)) < 0)
+        {
+            log.Add(GameText.F("core.magic.x_fails_to_cast_x", caster.Name, reason));
+            return;
+        }
+        caster.CastSinceRest = true;
+        P3Fight.AddCastLine(encounter, caster, spellIndex, log);
+        var tier = spellIndex - SpellId.FireflashI;
+        Monster? target;
+        int damage;
+        if (encounter.Rules.P3DosFireflash())
+        {
+            if (Group(encounter, rank) is not { } group || PickMonster(group, rng) is not { } slot)
+                return;
+            target = group.Members[slot];
+            damage = FireflashDosDamage(tier, caster.Stats.Int, rng);
+        }
+        else
+        {
+            target = SpellCaster.PickFireflashTarget(encounter, rng);
+            if (target is null)
+                return;
+            damage = FireflashManualDamage(tier, rng);
+        }
+        CombatResolver.ApplyMonsterDamage(encounter, target, Math.Max(1, damage), DamageSource.PartySpell, rng, log,
+            spellIndex, damage);
     }
 
     // ---- Bow spells ----------------------------------------------------------------------------------------------------

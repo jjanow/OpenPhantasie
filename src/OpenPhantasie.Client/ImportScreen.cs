@@ -17,8 +17,8 @@ namespace OpenPhantasie.Client;
 /// <para>s160: when the report names a file the import still lacks (<see cref="ImportReport.Offers"/>: Amiga I / III
 /// imported without the Kickstart 1.3 ROM, so no topaz font), A asks for that file: only the path row shows, and the
 /// path typed or dropped there is imported at once, alone (the rest of the import stays).</para>
-/// <para>s205: the paths are scanned first; for a played copy whose maps would come over played (DOS I:
-/// <see cref="ImportRunner.CanRestoreMaps"/>) the player is asked whether to restore them as on a fresh copy, then the
+/// <para>s205: the paths are scanned first; for a played copy whose maps would come over played (DOS I; the Apple II's
+/// II, D2-052: <see cref="ImportRunner.CanRestoreMaps"/>) the player is asked whether to restore them as on a fresh copy, then the
 /// import runs.</para>
 /// </summary>
 public sealed class ImportScreen
@@ -570,7 +570,11 @@ public sealed class ImportScreen
     private List<MenuLine> RestoreHeader()
     {
         var lines = new List<MenuLine> { new(UiText.S("import.restore.title"), MenuLineStyle.Title) };
-        lines.AddRange(Wrap(UiText.F("import.restore.question", RestoreTitle ?? ""), MenuLineStyle.Normal));
+        // D2-052: the Apple's II keeps only the fog in its regions, DOS I spent fixed fights too.
+        var question = AskingRestore && !ImportRunner.MapsHoldFights(_restoreQueue[0])
+            ? UiText.F("import.restore.question.fog", RestoreTitle ?? "")
+            : UiText.F("import.restore.question", RestoreTitle ?? "");
+        lines.AddRange(Wrap(question, MenuLineStyle.Normal));
         lines.Add(new("", MenuLineStyle.Normal));
         return lines;
     }

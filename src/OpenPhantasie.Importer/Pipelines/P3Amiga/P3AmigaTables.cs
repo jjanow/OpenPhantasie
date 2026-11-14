@@ -11,16 +11,19 @@ namespace OpenPhantasie.Importer.Pipelines.P3Amiga;
 /// Phantasie III's game tables from the Amiga v1.0 disk alone (s208), in the shapes <see cref="P3Extract"/> gives for
 /// DOS III, so the same <see cref="P3Build"/> turns them into GameData. Layouts, addresses and every Amiga ≠ DOS cell:
 /// <c>reverse-engineering/amiga/phantasie3/FORMAT.md</c> section "Game tables for a standalone import".
-/// <para><b>Not offered to players.</b> No pipeline calls this: <c>p3-amiga-1.0</c> still imports only the art. Where
-/// the Amiga's numbers or content differ from DOS (HP above level 15, training gold above 15, the terrain table's
-/// overrun, the place tiles' terrain, the Scroll III pages, the text) the user has not decided what an Amiga-only
-/// import uses, and some outputs do not load as they are (<c>hp_dice</c> has 21 levels on the Amiga, the loader wants
-/// 22). Values the Amiga does not have are <c>null</c>, never DOS's.</para>
+/// <para><see cref="Build"/> gives the Amiga's own values (those it does not have are <c>null</c>, never DOS's);
+/// <see cref="Write"/> (s210, <c>p3-amiga-1.0</c> recipe 2) writes them with DOS III's value in every cell where they
+/// differ, from the shipped <c>phantasie3/amiga-import.json</c> (user s209: DOS for all eight differences: HP above
+/// level 15 and its 22nd level, training gold above 15, Parry Wizard L15, the terrain table's overrun, Scandor's 54
+/// cells, the place tiles' terrain, the Scroll III pages, the text), so the files load and III plays the same whichever
+/// version was imported. When DOS III's tables are imported too (this run or earlier) they win and this writes nothing.</para>
 /// <para>Addresses are offsets in <see cref="AmigaHunks.LoadFlat"/>'s image (CODE at 0, DATA at 0x21890), each read
 /// from the code that indexes it (FORMAT.md lists the code sites).</para>
 /// </summary>
 public sealed class P3AmigaTables
 {
+    /// <summary>Starts every <c>_source</c> these files carry (the <see cref="P3Build"/> label replaced), so a later
+    /// run can tell them from DOS III's.</summary>
     public const string Label = "Phantasie III, Amiga v1.0 SSI 1987 (reverse-engineering/amiga/phantasie3/FORMAT.md, " +
                                 "section 'Game tables for a standalone import')";
 
@@ -557,9 +560,57 @@ public sealed class P3AmigaTables
 
     // ---- GameData -----------------------------------------------------------------------------------------------
 
+    private const string Game = P3DosPipeline.Game;
+
+    /// <summary>The shipped cells (DOS III's values where the Amiga's differ, user s209).</summary>
+    public const string CellsFile = "amiga-import.json";
+
+    private static readonly CellPatches DosCells =
+        new("amiga", "dos", "the Amiga copy's data", "the Amiga's", "DOS III's", "DOS III's value");
+
+    /// <summary>True when this Amiga copy gives III's tables: none imported yet, or the ones there are its own.</summary>
+    public static bool OwnsTables(ImportContext ctx) =>
+        ctx.ReadImportedGameData(Game, "monsters.json") is not JsonObject existing
+        || ((string?)existing["_source"])?.StartsWith(Label, StringComparison.Ordinal) == true;
+
+    /// <summary>Write III's tables from the Amiga with DOS's values (<see cref="BuildWithDosValues"/>); false when
+    /// DOS III's tables (this run or earlier) win.</summary>
+    public static bool Write(ImportContext ctx)
+    {
+        if (!OwnsTables(ctx))
+        {
+            ctx.Warn("Phantasie III's game data comes from the DOS copy (imported as well); the Amiga copy adds its " +
+                     "pictures and sounds.");
+            return false;
+        }
+        var warnings = new List<string>();
+        foreach (var (file, node) in BuildWithDosValues(ctx, warnings))
+        {
+            ctx.Cancel.ThrowIfCancellationRequested();
+            ctx.WriteGameData(Game, file, node, indent: 1);
+        }
+        foreach (var w in warnings)
+            ctx.Warn(w);
+        return true;
+    }
+
+    /// <summary>
+    /// <see cref="Build"/>, then DOS III's value in every cell of the shipped <see cref="CellsFile"/> (user s209: DOS
+    /// for all eight Amiga ≠ DOS differences; also the three entries the Amiga lacks, so the loader takes the files).
+    /// </summary>
+    public static List<(string File, JsonObject Node)> BuildWithDosValues(ImportContext context, List<string> warnings)
+    {
+        var built = Build(context);
+        var cells = context.ReadShipped(Game, CellsFile)?["dos_cells"]?.AsArray()
+                    ?? throw new InvalidOperationException($"shipped {Game}/{CellsFile} missing");
+        DosCells.Apply(cells, built.ToDictionary(t => t.File, t => t.Node), warnings);
+        return built;
+    }
+
     /// <summary>
     /// The ten class (b) / (c) files <see cref="P3DosPipeline"/> writes, built by <see cref="P3Build"/> from the
-    /// Amiga's tables (provenance relabelled). Not called by any pipeline (see the class summary).
+    /// Amiga's tables (provenance relabelled), with the Amiga's own values (the import uses
+    /// <see cref="BuildWithDosValues"/>).
     /// </summary>
     public static List<(string File, JsonObject Node)> Build(ImportContext context)
     {

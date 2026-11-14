@@ -30,6 +30,9 @@ public sealed class ImportContext
     /// <summary>The player chose to restore this played copy's maps (<see cref="ImportRunner.CanRestoreMaps"/>, s205).</summary>
     public bool RestoreMaps => _session.RestoreMaps.Contains(Profile.Id) && ImportRunner.CanRestoreMaps(Detection);
 
+    /// <summary>This run wrote the game's maps (false for the Apple's II when the ST copy's tables win).</summary>
+    internal bool WroteOverworld => Pending.ContainsKey(GameDataKey(Profile.Game, "overworld.json"));
+
     /// <summary>The files of another detected (Ready) version in this run, e.g. <c>kickstart-1.3</c>; null if absent.</summary>
     public FileSet? OptionalFiles(string profileId) =>
         _session.Detections.FirstOrDefault(d => d.Profile.Id == profileId && d.Status == DetectionStatus.Ready)?.Files;

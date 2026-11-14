@@ -47,6 +47,48 @@ internal sealed class A2StValues
     public int ApplyCells(IReadOnlyDictionary<string, JsonObject> built, List<string> warnings) =>
         StCells.Apply(_doc["st_cells"]!.AsArray(), built, warnings);
 
+    // ---- start fog (D2-052) ---------------------------------------------------------------------------------------
+
+    private const int Fog = 120;
+
+    /// <summary>
+    /// D2-052 (user s209): the shipped start fog over a played copy's grids (<c>start_fog</c>: OUT1 / OUT2 open, the rest
+    /// fogged; the ST's <c>MAPS.INT</c>, which the Memorial Set's unplayed Apple disk equals). Every cell of an open region
+    /// loses its fog, every cell of a fogged region gets it (fog = tile + 120). A region the list or the grids lack is
+    /// named in <paramref name="warnings"/>. Returns the cells changed.
+    /// </summary>
+    public int ApplyStartFog(JsonObject overworld, List<string> warnings)
+    {
+        var fog = _doc["start_fog"]?.AsObject() ?? throw new InvalidDataException($"{File}: start_fog missing");
+        var regions = overworld["regions"]!.AsObject();
+        var listed = new HashSet<string>(StringComparer.Ordinal);
+        var changed = 0;
+        foreach (var (kind, fogged) in new[] { ("open", false), ("fogged", true) })
+            foreach (var name in fog[kind]!.AsArray().Select(n => (string)n!))
+            {
+                listed.Add(name);
+                if (regions[name]?["tiles"] is not JsonArray rows)
+                {
+                    warnings.Add($"{File}: start fog region {name} is not in the Apple copy's data; left as it is.");
+                    continue;
+                }
+                foreach (var row in rows.Select(r => r!.AsArray()))
+                    for (var x = 0; x < row.Count; x++)
+                    {
+                        var t = (int)row[x]!;
+                        var isFogged = t is >= Fog and < 255;
+                        if (isFogged == fogged || (fogged && t + Fog >= 255))
+                            continue;
+                        row[x] = fogged ? t + Fog : t - Fog;
+                        changed++;
+                    }
+            }
+        foreach (var (name, _) in regions)
+            if (!listed.Contains(name))
+                warnings.Add($"{File}: region {name} has no start fog; its fog is left as played.");
+        return changed;
+    }
+
     // ---- scroll compass -------------------------------------------------------------------------------------------
 
     /// <summary>

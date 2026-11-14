@@ -85,13 +85,15 @@ the result is written back over the same file. A save that can't be read is refu
   the grids from `MAPS.INT`, never from the played `OUTn.DAT`; `P2StSource.Region`). So a reset gives exactly UTILIT2's
   result: every region as shipped (OUT1 / OUT2 open, the rest fogged), towns from the template, no dungeon save, an empty
   sack (test `II_Reset_RestoresTheShippedWorld`, Purge and Keep). No II fog rule is needed in Core.
-  - **Left `[?]`: an Apple-only import of a played Apple copy** (the 4am dump: 15 `OUTTn` stored back with fog lifted;
-    s158 "import as is, say what was lost"). Its GameData grids carry the play, so a new game *and* a reset keep the
-    lifted fog. The shipped fog is not in that copy; it is the ST's `MAPS.INT` pattern (the Memorial Set's unplayed
-    disk equals it cell for cell, s167). **User s209 (D2-052): way (a).** Two ways were offered: (a) extend s205's "restore the maps?" import choice
-    (`ImportRunner.CanRestoreMaps`, I only today) to II's Apple pipeline, the start fog given as a per-region open /
-    fogged list in `apple2-import.json` (where D2-049's ST cells already live); new game and reset are then both right;
-    (b) keep the start fog beside the played grids for Reset only (a new game and a reset would then differ). Not built.
+  - **An Apple-only import of a played Apple copy** (the 4am dump: 15 `OUTTn` stored back with fog lifted; s158
+    "import as is, say what was lost"): its GameData grids carry the play, so a new game *and* a reset would keep the
+    lifted fog. **User s209 (D2-052): way (a), built s210.** The importer's "restore the maps?" choice (s205,
+    `ImportRunner.CanRestoreMaps`) covers II's Apple pipeline too: RESTORE THE MAPS gives the imported grids the shipped
+    start fog, a per-region open / fogged list in `apple2-import.json` (`start_fog`: OUT1 / OUT2 open, the other 15
+    fogged in every cell). The list is the ST's `MAPS.INT` pattern, which the Memorial Set's unplayed Apple disk equals
+    cell for cell (s167); `tools/scripts/derive_a2_p2_start_fog.py` derives it from both and `--check`s the file. So a new
+    game and a reset of such an import start fogged (test `P2Apple2PlayedMapsTests`: the restored 4am import equals the
+    Memorial import, and its reset is MAPS.INT's pattern; the kept one's is not). KEEP THEM AS PLAYED stays as before.
 - **I with DOS-sourced regions** (any data whose `overworld.json` is not the Amiga's own grids): after the build, DOS's
   rule is run on OUT2–4, 6–16, 18, 19: `b -= 120` if `b ≥ 120`; `b -= 1` if `b % 10 == 8`; `b += 120`. On pristine data
   this changes nothing (every such cell is fogged, no x8 ships). Amiga-only grids are from `maps.int` (never written) and

@@ -59,7 +59,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-072 | I / II → III transfer XP: the manual's characters keep "enough remaining experience … to train up several levels"; DOS gives 100 XP per old level (one or two trainings for most) | DECIDED: DOS (user s148) · built (s147) |
 | D3-073 | Armory list: the manual lists an item the buyer cannot use "as Unusable" and shows the point value of equipment; DOS prints "N/A" in the Pt Val column, and also for the three requirement-0 items (Cloth +1, Robes +1, Self Bow) | DECIDED (user s174): manual · built s174 |
 | D3-074 | Town keys: the manual's town letters (I's A G M N B L / C U D I S, plus T Trade) or the Amiga bar's own (`?OS` / `+-ENPR·LT` / `ABIMX·CDGUV`: G Trade, I Inn, N New Member, L Learn, T Training) | DECIDED (user s180): Amiga under AMIGA SCREENS, manual in the DOS look; QoL COMMON TOWN KEYS for one set · built s180 |
-| D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | DECIDED (s209): manual, DOS as option |
+| D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | DECIDED (s209): manual, DOS as option (`p3.fireflash`) · built s210 |
 
 ---
 
@@ -1008,11 +1008,23 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   1–40 / 1–65), and Fireflash IV never does 100. The target is one living monster of the rank the caster picked (a
   random start slot, then the first living one after it). The Amiga (`0x186f6`, s138) does the same.
 - **Decision:** (user s209) manual by default (flat 1-10 / 1-30 / 1-60 / 1-100 on one monster); DOS's INT-scaled roll
-  with its caps and the rank pick as a rule option (`p3.fireflash` = manual / dos; the DOS preset picks dos). Not built yet.
-- **Remaster:** unchanged so far: Core's III Fireflash runs Phantasie I's (`SpellCaster.ApplyFireflash`, I's damage
-  formulas and target pick, with no rank from the order). Either side needs III's own Fireflash; following DOS also
-  needs the cast order to carry the picked rank (the order screens already ask it for Fireflash in DOS, not in the
-  remaster).
+  with its caps and the rank pick as a rule option (`p3.fireflash` = manual / dos; the DOS preset picks dos).
+- **Remaster (s210):** III's party Fireflash I–IV is its own (`P3CombatModule.CastFireflash`; I's
+  `SpellCaster.ApplyFireflash` is no longer used in a III fight). The magic and the cast line are as for any cast. The hit
+  goes through DOS's spell form of `damage_monster` (root `0xb116` with its spell flag, `[bp+0x10]` = 1): HP only, with
+  no injury step and no status from the body; the monster dies at 0 HP. The manual says nothing about injury, so both
+  values use this. `p3.fireflash` = `manual` (default, Original (manual) and Remaster presets): `rnd(10 / 30 / 60 / 100)`
+  on a random living monster of the front rank (the remaster's earlier target, `SpellCaster.PickFireflashTarget`); no
+  rank is asked. `dos` (Original (DOS) preset): `min(rnd((INT / 2 + 1) · 1 / 4 / 8 / 13), 10 / 30 / 60 / 99)`
+  (`P3CombatModule.FireflashDosDamage`) on one monster of the order's rank. The pick is `0xb4ec`'s: a random start slot,
+  then the first living one, drawn before the damage. If that rank is wiped, nothing happens and the magic stays spent.
+  With two groups, both III order screens (the DOS One / Two menu and the Amiga's rank window) ask the rank after a
+  Fireflash pick (`P3CombatModule.CastAsksRank`). A rank-2 cast packs as `CombatAction.CastRankTwoBase + spell` (DOS
+  action code 16). It is kept in the saved option (`+0x6e` 16, `+0x70`). Core's fight-start load keeps a saved code 16 as
+  it is, as DOS's `0xd5c4` table does. The order screens repeat the order at rank 2 while two groups live, and at rank 1
+  once only one is left, as they do for melee orders. The numbers
+  (`DS:0xc1a` factors, the caps, the manual's maxima) are constants in `P3CombatModule`, like III's other combat-spell
+  numbers. Tests: `P3FireflashTests`, `AmigaOrdersScreenTests` (Fireflash_*).
 - **Side effects:** monsters' Fireflash on the party (`combat-round.md` section 3, `rnd(t[s])` with 12 / 35 / 70 / 120) is
   a separate table and not part of this entry.
 - **Spec:** `reverse-engineering/dos/phantasie3/logic-specs/combat-round.md` section 2 ("The party's Fireflash I–IV").

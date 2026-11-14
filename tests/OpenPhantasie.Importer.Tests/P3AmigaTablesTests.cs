@@ -7,11 +7,12 @@ using OpenPhantasie.Importer.Profiles;
 namespace OpenPhantasie.Importer.Tests;
 
 /// <summary>
-/// III's tables from the Amiga disk alone (<see cref="P3AmigaTables"/>, s208; not offered to players): the ten files
-/// DOS III's pipeline writes, built by the same <c>P3Build</c> from the Amiga's tables, against the committed DOS-built
-/// GameData. Every difference must be one of the listed ones: provenance by pattern, every text, number and content
-/// cell by its exact path. That list is the set of Amiga ≠ DOS cells the user decides on
-/// (<c>reverse-engineering/amiga/phantasie3/FORMAT.md</c> section "Game tables for a standalone import").
+/// III's tables from the Amiga disk alone (<see cref="P3AmigaTables.Build"/>, s208; the Amiga's own values): the ten
+/// files DOS III's pipeline writes, built by the same <c>P3Build</c> from the Amiga's tables, against the committed
+/// DOS-built GameData. Every difference must be one of the listed ones: provenance by pattern, every text, number and
+/// content cell by its exact path. That list is the set of Amiga ≠ DOS cells (user s209: DOS for all eight; the import
+/// writes DOS's values from <c>phantasie3/amiga-import.json</c>, <see cref="P3AmigaImportTests"/>;
+/// <c>reverse-engineering/amiga/phantasie3/FORMAT.md</c> section "Game tables for a standalone import").
 /// </summary>
 public class P3AmigaTablesTests
 {
@@ -71,8 +72,8 @@ public class P3AmigaTablesTests
     ];
 
     /// <summary>
-    /// Every number / content cell where the Amiga differs from DOS (FORMAT.md "Game tables", Amiga ≠ DOS): the user
-    /// decides what an Amiga-only import uses.
+    /// Every number / content cell where the Amiga differs from DOS (FORMAT.md "Game tables", Amiga ≠ DOS): an
+    /// Amiga-only import uses DOS's (user s209).
     /// </summary>
     private static readonly Dictionary<string, string[]> Content = new()
     {

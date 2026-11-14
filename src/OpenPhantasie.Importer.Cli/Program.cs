@@ -9,8 +9,9 @@ using OpenPhantasie.Importer.Profiles;
 //   Client's import screen (10-importer.md 4.1).
 //   --check: import into a scratch copy and compare every output with the sha1 DIR's import.json recorded for that
 //   version; DIR is not changed. Exit 0 when all match, 1 otherwise.
-//   --restore-maps / --keep-maps: a played DOS I copy's maps (fog lifted, fixed fights spent) are restored as on a
-//   fresh copy, or imported as they are. Without either, the importer asks on a terminal and keeps them otherwise (s205).
+//   --restore-maps / --keep-maps: a played DOS I copy's maps (fog lifted, fixed fights spent) or a played Apple II
+//   Phantasie II's (fog lifted; D2-052) are restored as on a fresh copy, or imported as they are. Without either, the
+//   importer asks on a terminal and keeps them otherwise (s205).
 //   --refresh: re-run the versions DIR's import.json records with an older recipe, from their recorded sources (4.4).
 
 var paths = new List<string>();
@@ -114,7 +115,8 @@ foreach (var d in ImportRunner.RestorableMaps(scan))
     var yes = restoreMaps;
     if (yes is null && !Console.IsInputRedirected)
     {
-        Console.Write($"{d.Profile.Title} has been played: its maps have the fog lifted and fixed fights already won. " +
+        var fights = ImportRunner.MapsHoldFights(d) ? " and fixed fights already won" : "";
+        Console.Write($"{d.Profile.Title} has been played: its maps have the fog lifted{fights}. " +
                       "Restore them as on a fresh copy? [y/N] ");
         yes = Console.ReadLine()?.Trim().StartsWith("y", StringComparison.OrdinalIgnoreCase) == true;
     }

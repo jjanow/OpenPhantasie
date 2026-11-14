@@ -209,7 +209,7 @@ request) never reads as "Custom".
 - **Phantasie III (T4 Core rules, user s81 decisions; `P3RuleOptions`, accessors `P3RuleOptionsExtensions`):** `manual` in
   Original (manual) and Remaster, `dos` in Original (DOS): `p3.slash-fallback` D3-010, `p3.lunge` D3-011,
   `p3.thief-attack` D3-012, `p3.heal-order` D3-031, `p3.aim` D3-013, `p3.down-targets` D3-019, `p3.armour-defence` D3-018, `p3.arrow-flame`
-  D3-017, `p3.bow-spells` D3-039, `p3.parry` D3-036, `p3.status-letter` D3-021, `p3.combat-spell-list` D-063,
+  D3-017, `p3.bow-spells` D3-039, `p3.parry` D3-036, `p3.fireflash` D3-075, `p3.status-letter` D3-021, `p3.combat-spell-list` D-063,
   `p3.healing-iv` D3-014, `p3.inn-healing` D3-015, `p3.hit-points` D3-022, `p3.level-gold` D3-023, `p3.skill-tables`
   D3-032, `p3.encounter-block` D3-024, `p3.mercy` D3-024, `p3.gold-cap` D3-026 (`dos` = lifted), `p3.armory-restock`
   D3-033, `p3.autosave` D3-028, `p3.roster` D3-029 (`dos` 17; `guild-limit` = `none` lifts it), `p3.lifespans` D3-041,

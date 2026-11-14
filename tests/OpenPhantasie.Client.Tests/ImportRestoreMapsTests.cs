@@ -10,10 +10,12 @@ public class ImportRestoreMapsTests
 {
     private const string Dos = "p1-dos-1987";
 
-    private static ScanResult PlayedScan(params string[] played) => new()
+    private static ScanResult PlayedScan(params string[] played) => PlayedScanOf(Dos, played);
+
+    private static ScanResult PlayedScanOf(string profile, params string[] played) => new()
     {
         Paths = [], Containers = [], Notes = [],
-        Detections = [new Detection { Profile = VersionProfiles.Get(Dos), Status = DetectionStatus.Ready, Message = "found", PlayedFiles = played }],
+        Detections = [new Detection { Profile = VersionProfiles.Get(profile), Status = DetectionStatus.Ready, Message = "found", PlayedFiles = played }],
     };
 
     private static (ImportScreen Screen, List<IReadOnlySet<string>> Runs) Screen(ScanResult scan)
@@ -102,5 +104,20 @@ public class ImportRestoreMapsTests
         s.HandleKeys(s.PadKeys([Microsoft.Xna.Framework.Input.Buttons.A]));
         Until(s, () => s.ShowingReport);
         Assert.Empty(Assert.Single(runs));
+    }
+
+    [Fact]
+    public void APlayedAppleII_IsAskedAboutTheFogOnly()
+    {
+        // D2-052 (user s209): the Apple's II keeps only the fog in its OUTTn; the question says nothing of fights.
+        var (s, runs) = Screen(PlayedScanOf("p2-apple2", "OUTT3", "CHAR2"));
+        Until(s, () => s.AskingRestore);
+        var text = string.Join(" ", s.Lines().Select(l => l.Text));
+        Assert.Contains("fog", text);
+        Assert.DoesNotContain("fights", text);
+        Assert.Contains("RESTORE THE MAPS", text);
+        s.HandleKeys([Keys.Y]);
+        Until(s, () => s.ShowingReport);
+        Assert.Equal(["p2-apple2"], Assert.Single(runs));
     }
 }

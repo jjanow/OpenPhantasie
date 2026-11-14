@@ -440,4 +440,71 @@ public partial class AmigaOrdersScreenTests
         Assert.Equal((80, 111), rank.Ok);
         Assert.Equal((184, 111), rank.Cancel);
     }
+
+    // ---- D3-075: Fireflash asks the rank under p3.fireflash = dos ---------------------------------------------------------
+
+    private static GameOptions DosFireflash => GameOptions.ForPreset(GameId.P3).With("p3.fireflash", "dos");
+
+    [OriginalDataTheory]
+    [InlineData(Keys.Y, 0)]
+    [InlineData(Keys.N, 1)]
+    public void Fireflash_DosOption_OwnList_AsksTheRank_AndPacksIt(Keys answer, int rankIndex)
+    {
+        var (s, ui) = AtOrders(amiga: false, DosFireflash);
+        Assert.Equal(2, s.Combat!.Ranks.Count(r => !r.IsWiped)); // this seed meets two groups
+        Teach(s, SpellId.FireflashI + 1);
+        ui.HandleKey(s, Keys.Enter); // the Fighter keeps his order
+        ui.HandleKey(s, Keys.D8); // Cast Spell
+        ui.HandleKey(s, Keys.D6); // #6 Fireflash II
+        ui.HandleKey(s, Keys.Enter);
+        Assert.True(ui.AsksDosRank(s)); // root 0xfc41: Fireflash picks a rank when rank 2 exists
+        ui.HandleKey(s, answer);
+        Assert.False(ui.AsksDosRank(s));
+        Assert.Equal(CombatAction.CastSpellAtRank(SpellId.FireflashI + 1, rankIndex), s.Combat.Prep[1].PackedAction);
+    }
+
+    [OriginalDataFact]
+    public void Fireflash_Manual_OwnList_AsksNoRank()
+    {
+        var (s, ui) = AtOrders(amiga: false);
+        Teach(s, SpellId.FireflashI + 1);
+        ui.HandleKey(s, Keys.Enter);
+        ui.HandleKey(s, Keys.D8);
+        ui.HandleKey(s, Keys.D6);
+        ui.HandleKey(s, Keys.Enter);
+        Assert.False(ui.AsksDosRank(s));
+        Assert.Equal(CombatAction.CastSpell(SpellId.FireflashI + 1), s.Combat!.Prep[1].PackedAction);
+    }
+
+    [OriginalDataFact]
+    public void Fireflash_DosOption_AmigaScreen_AsksInTheRankWindow()
+    {
+        var (s, ui) = AtOrders(options: DosFireflash);
+        Teach(s, SpellId.FireflashI);
+        ui.HandleKey(s, Keys.D2); // the Priest
+        ui.HandleKey(s, Keys.C);
+        ui.HandleKey(s, Keys.O); // OK on Fireflash I
+        Assert.True(ui.AsksRankWindow);
+        ui.HandleKey(s, Keys.C); // CANCEL = rank 2 (0x19878)
+        Assert.Equal(-1, ui.OrderMember);
+        Assert.Equal(CombatAction.CastSpellAtRank(SpellId.FireflashI, 1), ui.PackedOrder(1));
+
+        // Another spell asks no rank.
+        Teach(s, SpellId.QuicknessI);
+        ui.HandleKey(s, Keys.D2);
+        ui.HandleKey(s, Keys.C);
+        ui.HandleKey(s, Keys.O);
+        Assert.False(ui.AsksRankWindow);
+        Assert.Equal(CombatAction.CastSpell(SpellId.QuicknessI), ui.PackedOrder(1));
+    }
+
+    [Fact]
+    public void RepeatFor_ARankTwoFireflash_KeepsItsRank_WhileTwoRanksLive()
+    {
+        var packed = CombatAction.CastSpellAtRank(SpellId.FireflashI, 1);
+        var two = CombatText.RepeatFor(packed, CharacterClass.Wizard, livingRanks: 2);
+        Assert.Equal((CombatChoice.Cast, 1, SpellId.FireflashI), (two.Choice, two.RankIndex, two.SpellIndex));
+        Assert.Equal(0, CombatText.RepeatFor(packed, CharacterClass.Wizard, livingRanks: 1).RankIndex);
+        Assert.Equal(0, CombatText.RepeatFor(CombatAction.CastSpell(SpellId.FireflashI), CharacterClass.Wizard, 2).RankIndex);
+    }
 }

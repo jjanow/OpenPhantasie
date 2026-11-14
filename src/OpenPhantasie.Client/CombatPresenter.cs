@@ -1340,6 +1340,8 @@ public sealed partial class CombatPresenter
                 }
                 else if (_spellIndex is >= 0 and <= 3)
                     _step = OrderStep.HealTarget;
+                else if (CastAsksRank(session))
+                    _step = OrderStep.Rank; // D3-075 dos: Fireflash asks the rank (root 0xfc41), then Commit keeps the spell
                 else
                     Commit(session, rank: 0);
                 break;
@@ -1393,6 +1395,13 @@ public sealed partial class CombatPresenter
         if (digit is 1 or 2)
             Commit(session, rank: digit - 1);
     }
+
+    /// <summary>
+    /// III's rank question after a Fireflash pick (D3-075, <c>p3.fireflash</c> = <c>dos</c>, a second group present):
+    /// <see cref="P3CombatModule.CastAsksRank"/>.
+    /// </summary>
+    private bool CastAsksRank(GameSession session) =>
+        session.Game == GameId.P3 && session.Combat is { } enc && P3CombatModule.CastAsksRank(enc, _spellIndex);
 
     private void Commit(GameSession session, int rank, int healTarget = 0)
     {
@@ -1596,6 +1605,8 @@ public sealed partial class CombatPresenter
                     _step = OrderStep.HealTarget;
                     _amigaCursor = 0;
                 }
+                else if (CastAsksRank(session))
+                    _step = OrderStep.Rank; // D3-075 dos: window 20 asks the rank for Fireflash (0x19430 path)
                 else
                     Commit(session, rank: 0);
                 break;

@@ -1,6 +1,6 @@
 {
  "_schema": "phantasie.strings-fallback/v1",
- "_note": "The remaster's own wording for the shared and Phantasie I table lines an import without I's tables lacks (10-importer.md 7.6): the ids with original parts (strings/en.sources.json) that the Atari ST II, the Apple II II, DOS III or X68000 IV does not give, for a game that shows them (II leaves out III's ids; IV shows only its Hall's core.p4. ids of these tables). Left out: I's Amiga field / map / town screens (p1field., p1map., p1town., amiga.; s165: but p1field.scroll.ok, requester 19's O.K. label, whose text the ST holds too), I's ending (core.endgame.) and IV's p4. ids. Single words, game terms (classes, races, stats, spell names), short labels and fixed-width sheet rows keep the table's text; lines are reworded, format items unchanged. The II, III and IV pipelines write it (II and III with their own game's fallback) to strings/en.fallback.<profile>.json in the import, under every other imported file, so a version that holds the line (DOS I, Amiga I, the game's own copy) still wins.",
+ "_note": "The remaster's own wording for the shared and Phantasie I table lines an import without I's tables lacks (10-importer.md 7.6): the ids with original parts (strings/en.sources.json) that the Atari ST II, the Apple II II, DOS III, Amiga III or X68000 IV does not give, for a game that shows them (II leaves out III's ids; IV shows only its Hall's core.p4. ids of these tables). Left out: I's Amiga field / map / town screens (p1field., p1map., p1town., amiga.; s165: but p1field.scroll.ok, requester 19's O.K. label, whose text the ST holds too), I's ending (core.endgame.) and IV's p4. ids. Single words, game terms (classes, races, stats, spell names), short labels and fixed-width sheet rows keep the table's text; lines are reworded, format items unchanged. The II, III and IV pipelines write it (II and III with their own game's fallback) to strings/en.fallback.<profile>.json in the import, under every other imported file, so a version that holds the line (DOS I, Amiga I, the game's own copy) still wins.",
  "language": "en",
  "tables": {
   "shared": {
@@ -43,12 +43,14 @@
    "combattext.toss": "TOSS",
    "p3town.bank_one_share": "{0} share",
    "p3town.trade_which": "Which item to trade?",
+   "p3town.no_trade": "No trading in this game.",
    "p3combat.select_option": "Choose:",
    "p3combat.list.1": "To the back",
    "p3combat.list.2": "To the middle",
    "p3combat.list.3": "To the front",
    "p3combat.list.F": "Fight!",
    "p3combat.rank_question": "Rank 1 as target? (or 2)",
+   "p3combat.x_target_which_rank": "{0}: Aim at which rank?  {1} 1 One  {2} 2 Two",
    "p3field.menu.file": "File",
    "p3field.item.info": "?) About ",
    "p3field.item.F": "F) Fight",

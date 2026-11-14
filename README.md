@@ -41,7 +41,7 @@ and DOS pictures, for example), Options → the game's tab → GRAPHICS switches
 | Phantasie II | Atari ST v1.0 (two `.stx` or `.st` disks) | the game and the Atari ST pictures and music |
 | Phantasie II | Apple II v1.0 (two-sided `.dsk` pair, including the Steam / GOG "Phantasie Memorial Set" disks) | the game and the Apple II pictures (a few values still differ from the Atari ST version and are under review) |
 | Phantasie III | DOS, SSI 1988, WizardWorks 1991 or the "Phantasie Memorial Set" (disk image or folder) | the game and the DOS CGA pictures |
-| Phantasie III | Amiga v1.0, 1987 (`.adf`) | the Amiga pictures, music and sounds (needs the DOS copy for the game itself) |
+| Phantasie III | Amiga v1.0, 1987 (`.adf`) | the game itself, and the Amiga pictures, music and sounds (with the DOS copy imported too, the game data is DOS's) |
 | Phantasie IV | X68000 Ver.1.02 (two `.dim` disks) | the game, its pictures, music and voices, with the English translation |
 
 Copies are recognised by their content (checksums of the program and data files), not by file or folder names, so
@@ -61,10 +61,10 @@ systems OpenPhantasie runs on, separate from these source platforms.
 |---|---|---|
 | Phantasie I | Apple II, Commodore 64, Atari 8-bit, Atari ST, MSX2, NEC PC-88, NEC PC-98, Sharp X1 | DOS and Amiga imports already work (the Amiga copy alone too) |
 | Phantasie II | Commodore 64, Atari 8-bit, MSX2, NEC PC-88, NEC PC-98 | Atari ST and Apple II imports already work |
-| Phantasie III | Apple II, Commodore 64, Atari ST, MSX2, NEC PC-88, NEC PC-98 | Standalone Amiga import: use an Amiga copy for the game data as well as presentation, without needing DOS |
+| Phantasie III | Apple II, Commodore 64, Atari ST, MSX2, NEC PC-88, NEC PC-98 | DOS and Amiga imports already work (the Amiga copy alone too) |
 | Phantasie IV | NEC PC-88, NEC PC-98, MSX2 (including the existing DJANGO English patch) | X68000 import already works |
 
-That is 22 additional game/platform combinations and two standalone Amiga imports. Reference disk images are
+That is 22 additional game/platform combinations. Reference disk images are
 available for this backlog, but recognising an image does not mean it can be imported yet. Original game files
 will continue to come from the player's own copy.
 

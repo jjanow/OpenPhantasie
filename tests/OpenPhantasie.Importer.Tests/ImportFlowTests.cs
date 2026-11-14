@@ -30,12 +30,13 @@ public class ImportFlowTests
 
             var manifest = JsonNode.Parse(File.ReadAllBytes(Path.Combine(root, ImportRunner.ManifestName)))!;
             Assert.Equal("p3-amiga-1.0", (string?)manifest["games"]!["phantasie3"]!["art"]!["amiga"]);
-            Assert.Null(manifest["games"]!["phantasie3"]!["tables"]); // art only: III's tables need the DOS copy
+            // s210: an Amiga-only III gives III's tables too (P3AmigaImportTests).
+            Assert.Equal("p3-amiga-1.0", (string?)manifest["games"]!["phantasie3"]!["tables"]);
             var outputs = manifest["games"]!["phantasie3"]!["versions"]!["p3-amiga-1.0"]!["outputs"]!.AsObject();
             Assert.Equal(v.FilesWritten, outputs.Count);
 
             GameDataLocator.UseImport(root);
-            Assert.False(GameDataLocator.IsImported(GameId.P3));
+            Assert.True(GameDataLocator.IsImported(GameId.P3));
             Assert.Equal("p3-amiga-1.0", GameDataLocator.ImportedArt(GameId.P3)["amiga"]);
             var catalog = GraphicsPackCatalog.Load(Path.Combine(Repo.GameData, "phantasie3"));
             // (s160: the DOS CGA pack may be listed too, from the repo's extract in this dev build.)

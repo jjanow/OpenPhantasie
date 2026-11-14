@@ -55,7 +55,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 | D2-049 | Apple II vs ST: creation cells (2 agree with the manual / D2-009, 2 ST-only skill cells) and 9 map / 2 dungeon cells | DECIDED |
 | D2-050 | Apple II vs ST: text (names, scroll and message wording, menus); the Apple has no spell names | DECIDED |
 | D2-051 | Guild elementals: the manual's "will only serve a party of six adventurers" vs the ST's Add with any party size (SUMMON still needs six) | DECIDED (user s173: SUMMON's six-member gate is enough; the ST's Add stays as II's `game`) |
-| D2-052 | Apple II new game: the manual's "just as if you had bought a new game" vs the Apple's BACKUP, which keeps the lifted fog (and leaves the dungeon saves) | DECIDED (s209): manual; importer restores the start fog (a) |
+| D2-052 | Apple II new game: the manual's "just as if you had bought a new game" vs the Apple's BACKUP, which keeps the lifted fog (and leaves the dungeon saves) | DECIDED (s209): manual; importer restores the start fog (a), built s210 |
 
 ---
 
@@ -680,11 +680,17 @@ and `strings/fallback.en.json`).
   a new game". No Y/N prompt on the ST (not a rule conflict: the ST's manual section gives none).
 - **Decision:** (user s209) manual: a new game and a reset start with the shipped fog. Fix (a) of `16-reset-game.md`
   section 3: the Apple-only II import gets the "restore the maps?" choice, the start fog stored as a per-region open /
-  fogged list in `apple2-import.json`. Not built yet.
+  fogged list in `apple2-import.json`. Built s210.
 - **Remaster:** RESET GAME (`docs/plan/16-reset-game.md`) follows the manual and the ST: the world is rebuilt from
-  GameData, whose II grids are `MAPS.INT`'s on an ST import. An Apple-only import of a played copy keeps its lifted fog
-  in GameData, so its reset does too until the importer restores the start fog (16-reset-game.md section 3, "Left").
-- **Side effects:** none until decided; only an Apple-only import is concerned.
+  GameData, whose II grids are `MAPS.INT`'s on an ST import. An Apple-only import of a played copy (the importer tells it
+  by the Memorial Set's sha1s) asks, as a played DOS I copy does (s205): RESTORE THE MAPS / KEEP THEM AS PLAYED (Client
+  import screen; CLI `--restore-maps` / `--keep-maps` or a terminal prompt; the choice is kept in `import.json`
+  `maps_restored`). Restore gives every region the shipped start fog from `apple2-import.json` `start_fog` (OUT1 / OUT2
+  open, the other 15 fogged in every cell: the ST's `MAPS.INT`, equal to the Memorial Set's unplayed Apple disk;
+  `tools/scripts/derive_a2_p2_start_fog.py`), so a new game and a reset start fogged as the manual says. Keep imports
+  the lifted fog as before (and a new game and a reset keep it). No rules option: the choice is made at import.
+- **Side effects:** only an Apple-only import is concerned (with the ST copy in the same scan its tables win and nothing
+  is asked). The Apple's `DNGSAV` / `DNGCHK` are never read by the importer, so the dungeons start as shipped either way.
 
 ## D2-051 — Guild Add / Drop / Purge with an elemental (Atari ST)
 

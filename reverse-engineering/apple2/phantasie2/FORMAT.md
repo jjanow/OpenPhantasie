@@ -176,6 +176,9 @@ Regions 1, 2, 3, 5, 6, 7, 8, 11, 12, 17, 18, 22, 26, 27, 28, 30, 31 (the ST's se
   before shipping) and `OUTT1` / `OUTT2` are open, the other 15 fully fogged: the ST's start fog cell for cell `[C]`
   (s167, `MemorialSet_StartFogIsTheSts`). So 756 B does not mean played; the importer tells a played copy by the
   Memorial disks' sha1s (profile `mutable_files`).
+- **Start fog for a played copy** (D2-052, s210): per region, all open (OUT1, OUT2) or all fogged (the other 15), in
+  `MAPS.INT` and the Memorial `OUTTn` alike; `tools/scripts/derive_a2_p2_start_fog.py` reads both and writes / checks
+  `apple2-import.json` `start_fog`, which the importer applies when the player restores a played copy's maps.
 
 **Orientation** `[C]`: the Apple draws CX across and CY down (`DRAW … AT 140 + 7·CX, 2 + 6·CY`, line 5040) and moves
 N = CY − 1, E = CX + 1 (lines 5220–5260). In ST terms Apple north = ST east, Apple east = ST south: **the Apple map is

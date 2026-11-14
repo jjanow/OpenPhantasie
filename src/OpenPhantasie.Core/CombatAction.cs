@@ -115,15 +115,49 @@ public static class CombatAction
 
     public static bool IsCastOrSpecial(int packed) => packed >= 105;
 
-    public static bool IsHealingCast(int packed) => packed >= 1000;
+    public static bool IsHealingCast(int packed) => packed is >= 1000 and < 5000;
 
     /// <summary>
-    /// Decode a cast packed word into 0-based spell index + optional HEALING target.
+    /// First packed value of Phantasie III's cast at monster rank 2 (DOS action code 16, "Cast at rank 2"):
+    /// <c>CastRankTwoBase + spellIndex</c>. Only Fireflash I–IV under <c>p3.fireflash</c> = <c>dos</c> packs it (D3-075,
+    /// <see cref="P3CombatModule.CastAsksRank"/>). Clear of I's melee and casts, HEALING (1000–4999), II's toss
+    /// (5000–5009) and III's actions (6000–6072); <see cref="TryDecodeCast(int, out int, out int)"/> reads it as the spell.
+    /// </summary>
+    public const int CastRankTwoBase = 7000;
+
+    /// <summary>A non-HEALING spell cast at monster rank 2 (0-based <paramref name="rankIndex"/> 1); rank index 0 is <see cref="CastSpell"/>.</summary>
+    public static int CastSpellAtRank(int spellIndex, int rankIndex)
+    {
+        if (rankIndex is < 0 or > 1)
+            throw new ArgumentOutOfRangeException(nameof(rankIndex));
+        var rankOne = CastSpell(spellIndex); // validates the index
+        return rankIndex == 0 ? rankOne : CastRankTwoBase + spellIndex;
+    }
+
+    /// <summary>
+    /// Decode a cast packed word into 0-based spell index, optional HEALING target and the monster rank index it was
+    /// cast at (1 only for III's <see cref="CastRankTwoBase"/> block, else 0).
+    /// </summary>
+    public static bool TryDecodeCast(int packed, out int spellIndex, out int healTargetIndex, out int rankIndex)
+    {
+        var ok = TryDecodeCast(packed, out spellIndex, out healTargetIndex);
+        rankIndex = ok && packed >= CastRankTwoBase ? 1 : 0;
+        return ok;
+    }
+
+    /// <summary>
+    /// Decode a cast packed word into 0-based spell index + optional HEALING target (III's rank-2 casts too, rank dropped:
+    /// <see cref="TryDecodeCast(int, out int, out int, out int)"/> reads it).
     /// </summary>
     public static bool TryDecodeCast(int packed, out int spellIndex, out int healTargetIndex)
     {
         healTargetIndex = 0;
         spellIndex = -1;
+        if (packed - CastRankTwoBase is >= 4 and < SpellSlots.MaxCount)
+        {
+            spellIndex = packed - CastRankTwoBase;
+            return true;
+        }
         if (packed < 105)
             return false;
 

@@ -191,7 +191,7 @@ public class P3CombatModuleTests
         caster.MagicCur = caster.MagicMax = 20;
         var (enc, _, module) = Fight(Manual, [caster], [Cat(hp: 1)]);
         var log = new List<string>();
-        Assert.True(module.TryResolve(enc, 0, CombatAction.CastSpell(SpellId.FireflashI), new Script(50, 1, 1, 1, 1), log));
+        Assert.True(module.TryResolve(enc, 0, CombatAction.CastSpell(SpellId.FireflashI), new Script(5), log)); // D3-075 manual: rnd(10)
         var tag = Assert.Single(enc.TakeRoundLines(), t => t.Sound == P3Sounds.Dies);
         Assert.Equal(GameText.F("core.combat.x_dies", "Wild Cat"), log[tag.Line]);
     }

@@ -1328,9 +1328,11 @@ sound off, the master ADF's saved party, "Continue a previously saved game"). Sh
 Goal: an Amiga-only III owner imports the game tables too (today they come from DOS III, `P3DosPipeline`). s208 read
 every table DOS III's import takes from its Amiga counterpart, static (flat image of `extract_amiga_p3_common`;
 code sites are the `lea` / `cmpi` that index each table). Builder: `P3AmigaTables`
-(`src/OpenPhantasie.Importer/Pipelines/P3Amiga/`), same shapes as `P3Extract`, then the unchanged `P3Build`;
-**not called by any pipeline** (the user decides the differences below first). Test: `P3AmigaTablesTests` (the
-Amiga-built GameData against the committed DOS-built one; every differing cell listed).
+(`src/OpenPhantasie.Importer/Pipelines/P3Amiga/`), same shapes as `P3Extract`, then the unchanged `P3Build`.
+**Built s210:** `p3-amiga-1.0` (recipe 2) writes III's ten tables from the Amiga alone, with DOS's value in every
+differing cell (decision below; the shipped `GameData/phantasie3/amiga-import.json`, applied by `CellPatches`). Tests:
+`P3AmigaTablesTests` (the raw Amiga build against the committed DOS-built GameData; every differing cell listed) and
+`P3AmigaImportTests` (with the cells applied, equal to DOS's but for provenance; loads and starts a game; DOS wins).
 
 **The s201 survey's open list, resolved:**
 - `D/w0` … `w4.cmp` are **pictures**, not the world (section 3: Pluto, Zeus, the defeat, the door pieces, the street).
@@ -1424,7 +1426,11 @@ Transfer maps I → III: `0x23f12` (class, 6 B, `0x206b6`) and `0x23f18` (race, 
 
 **Decision (user s209): DOS for all eight.** An Amiga-only import writes DOS's values wherever the list below differs
 (numbers, the Scandor grid, place-tile terrain, Scroll III pages, text), carried as data in the importer; III then plays
-the same whichever version was imported. Not built yet.
+the same whichever version was imported. **Built s210**: `GameData/phantasie3/amiga-import.json` `dos_cells` (156
+cells: the six HP rows whole, the 54 Scandor tiles + Pendragon's place tile, the terrain names / ranges / `other`, the
+two scroll pages, the item / spell / place / dungeon names in every file that carries them, the numbers below), plus
+the three entries the Amiga has no counterpart for (the XP and gold curves' index 0, the terrain offsets' entry 0;
+none is read) so the files load.
 
 Standing rule: between versions DOS wins on numbers; maps and content are the user's call. None of these is a
 manual ↔ code conflict: the III manual's HP chart (III PDF 8 / pr.11) stops at L15, and it gives no training
@@ -1440,12 +1446,21 @@ costs and no terrain table.
 8. **Text**: the item articles, `Flame Arrow`, spell #53's placeholder, dungeon 2's name, the inns' trailing spaces,
    terrain capitals. (D3-005 chose DOS's item names for the DOS-built tables.)
 
-### Left `[?]`
+### Done s210, and left `[?]`
 
-- A recipe for `p3-amiga-1.0` that writes the tables (DOS's still win when both are
-  imported, as I's `P1AmigaTables`). As built the files do not load (`Phantasie3Data`): `hp_dice` has 21 levels (the
-  loader wants 22), the curves' index 0 and `terrain.other` are null.
-- III's own UI lines (`strings/en.json` `core.p3.*`, 124 ids quoted from `MAIN.EXE`) have no Amiga alternatives in
-  `en.sources.json`: an Amiga-only import shows the fallback wording.
+- The `p3-amiga-1.0` recipe writes the tables (DOS's still win when both are imported, as I's `P1AmigaTables`: DOS
+  runs first and the Amiga writes no table; an Amiga import followed by DOS keeps DOS's). `hp_dice`: the Amiga's 21
+  levels per class (L16..21 rising) are replaced by DOS's whole 22-level row (L16..22 = L15's value: Fighter 85, Thief
+  55, Priest 65, Ranger 80, Monk 60, Wizard 40), so the loader's 22nd level is DOS's, not made up.
+- III's UI lines: the s208 note that the 124 `core.p3.*` ids have no Amiga alternatives no longer holds:
+  `en.sources.json` has `p3-amiga-1.0` alternatives for 94 of the 98 `core.p3.*` ids DOS gives (and most of the
+  shared table's `p3*` lines). The eight lines only DOS III holds (`core.p3.party_transported`, `a_trap`, `greetings`,
+  `mystic.heroes_of_scandor` (the Amiga prints `and heroes of Scandor.`), `useitem.scroll_picture` / `_caption`,
+  `p3town.no_trade`, `p3combat.x_target_which_rank`) get the remaster's wording from the shipped fallback files, as a
+  DOS-only III does for the lines neither holds (`P3StringFallbackTests.PublicMask_AmigaIiiOnly_NoEllipsis`).
+- Played copies `[~]`: only `PhantasieIII`, `monsinfo.dat` and `D/m0` are pinned. The program's file names put the
+  saves in `gamesave.dat`, `Guild.dat`, `D/DNG<c>` (seen cells) and `D/DNP<c>` (played maps), none read here; that
+  `inititem.dat`, `D/dng<c>.dat`, `phantasy.set`, `D/pln<n>` and `D/s<n>` are opened read-only was not checked in the
+  code.
 - `P3Build`'s other hand-written constants (class kits, encounter numbers, the rule blocks) are DOS readings not all
   re-read on the Amiga (the elementals' are, above).

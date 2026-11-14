@@ -669,6 +669,9 @@ public class P2Apple2PipelineTests
             var scan = ImportRunner.Scan([Repo.Path(SideA), Repo.Path(SideB),
                 Repo.Path("reverse-engineering/atari-st/original-images/phantasie2/phantasie2-v1.0-disk1.stx"),
                 Repo.Path("reverse-engineering/atari-st/original-images/phantasie2/phantasie2-v1.0-disk2.stx")]);
+            // D2-052: the played Apple copy's maps are not imported here, so nobody is asked to restore them.
+            Assert.True(ImportRunner.CanRestoreMaps(scan.Detections.Single(d => d.Profile.Id == Profile)));
+            Assert.Empty(ImportRunner.RestorableMaps(scan));
             var report = new ImportRunner(root, Repo.GameData).Run(scan);
             Assert.Equal(2, report.Versions.Count);
             Assert.All(report.Versions, v => Assert.True(v.Ok, v.Error));

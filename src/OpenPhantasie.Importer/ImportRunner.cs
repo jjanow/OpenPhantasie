@@ -170,7 +170,7 @@ public sealed class ImportRunner
                 continue;
             }
             if (d.PlayedFiles.Count > 0)
-                ctx.Warnings.Insert(0, PlayedWarning(d, ctx.RestoreMaps));
+                ctx.Warnings.Insert(0, PlayedWarning(d, ctx.RestoreMaps && ctx.WroteOverworld));
             // A re-import of the same version replaces its earlier outputs. A file another version wrote since (DOS I's
             // tables over an Amiga I import's, s201) is that version's now and stays.
             if (manifest["games"]?[d.Profile.Game]?["versions"]?[d.Profile.Id]?["outputs"] is JsonObject previous)
@@ -359,16 +359,34 @@ public sealed class ImportRunner
     private static readonly HashSet<string> NotTables = new(StringComparer.Ordinal) { "GameData/phantasie1/asset-manifest.json" };
 
     /// <summary>
-    /// A played copy whose import would carry the play (fog lifted, fixed fights spent): DOS I's regions, read from the
-    /// OUT*.DAT play rewrites. The player is asked whether to restore them (user s205) by DOS's own Reset rule
-    /// (<see cref="Core.GameSession.DosResetCells"/>), which gives a fresh copy's cells back.
+    /// A played copy whose import would carry the play (fog lifted, fixed fights spent). The player is asked whether to
+    /// restore it (user s205):
+    /// <list type="bullet">
+    /// <item>DOS I's regions, read from the OUT*.DAT play rewrites, by DOS's own Reset rule
+    /// (<see cref="Core.GameSession.DosResetCells"/>), which gives a fresh copy's cells back;</item>
+    /// <item>the Apple II's II (D2-052, user s209), whose OUTTn keep only the fog, by the shipped start fog per region
+    /// (<c>apple2-import.json</c> <c>start_fog</c>, the ST's <c>MAPS.INT</c>).</item>
+    /// </list>
     /// </summary>
     public static bool CanRestoreMaps(Detection d) =>
-        d.Profile.Game == "phantasie1" && d.Profile.Feeds.Contains("tables") && !PlayedCopySafe.Contains(d.Profile.Id)
+        RestorableGames.Contains(d.Profile.Game) && d.Profile.Feeds.Contains("tables") && !PlayedCopySafe.Contains(d.Profile.Id)
         && d.PlayedFiles.Any(IsRegionFile);
 
-    /// <summary>The versions of <paramref name="scan"/> the player is asked about (<see cref="CanRestoreMaps"/>).</summary>
-    public static IReadOnlyList<Detection> RestorableMaps(ScanResult scan) => [.. scan.Importable.Where(CanRestoreMaps)];
+    /// <summary>Profiles whose played maps can be restored: DOS I (s205), the Apple II's II (D2-052).</summary>
+    private static readonly HashSet<string> RestorableGames = new(StringComparer.Ordinal) { "phantasie1", "phantasie2" };
+
+    /// <summary>Whether the version's saved regions also keep spent fixed fights (DOS I) or only the fog (the Apple's II,
+    /// FORMAT.md 3.6): the wording of the question and the report.</summary>
+    public static bool MapsHoldFights(Detection d) => d.Profile.Game == "phantasie1";
+
+    /// <summary>
+    /// The versions of <paramref name="scan"/> the player is asked about (<see cref="CanRestoreMaps"/>). Not one whose
+    /// tables another copy in the same scan gives (the Apple's II after the ST's): its maps are not imported.
+    /// </summary>
+    public static IReadOnlyList<Detection> RestorableMaps(ScanResult scan) =>
+        [.. scan.Importable.Where(d => CanRestoreMaps(d) && !scan.Importable.Any(o =>
+            o.Profile.Game == d.Profile.Game && o.Profile.Feeds.Contains("tables")
+            && PipelineRegistry.For(d.Profile.Id)?.RunsAfter.Contains(o.Profile.Id) == true))];
 
     /// <summary>The versions the import at <paramref name="importRoot"/> recorded with restored maps (re-runs keep the choice).</summary>
     public static IReadOnlySet<string> RestoredMaps(string importRoot)
@@ -398,10 +416,10 @@ public sealed class ImportRunner
                    "is read from those files, so the import is the same as from a fresh copy.";
         if (restored && CanRestoreMaps(d))
             return $"This copy of {d.Profile.Title} has been played ({files} changed). Its saved map regions " +
-                   $"({string.Join(", ", outs)}) were restored as on a fresh copy: the fog is back and fixed fights are " +
-                   "armed again.";
+                   $"({string.Join(", ", outs)}) were restored as on a fresh copy: the fog is back" +
+                   (MapsHoldFights(d) ? " and fixed fights are armed again." : ".");
         // DOS I stores spent fixed fights in its regions; the Apple's II stores only the fog (FORMAT.md 3.6).
-        var fights = d.Profile.Game == "phantasie1" ? " and fixed fights already won stay gone" : "";
+        var fights = MapsHoldFights(d) ? " and fixed fights already won stay gone" : "";
         return outs.Count > 0
             ? $"This copy of {d.Profile.Title} has been played ({files} changed). It was imported as it is: on the " +
               $"saved map regions ({string.Join(", ", outs)}) the fog is already lifted{fights}. Import a fresh copy (an unplayed disk image, Steam \"verify files\", or the GOG installer) " +

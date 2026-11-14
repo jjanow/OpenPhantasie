@@ -782,5 +782,29 @@
    "name": "DIVINE I",
    "from_st": true
   }
- ]
+ ],
+ "_start_fog": "D2-052 (user s209): a new game and RESET GAME start with the shipped fog. When the player chooses to restore a played Apple copy's maps (ImportRunner.CanRestoreMaps), every cell of an open region is unfogged and every cell of a fogged region fogged (fog = tile + 120). The shipped fog is per region, all or nothing: the ST's MAPS.INT (UTILIT2 0xb2c, its new game; reverse-engineering/atari-st/phantasie2/FORMAT.md 9.1) and the Memorial Set's unplayed Apple OUTTn (FORMAT.md 3.6, s167) agree region for region. Derived by tools/scripts/derive_a2_p2_start_fog.py (--check compares this list).",
+ "start_fog": {
+  "open": [
+   "OUT1.DAT",
+   "OUT2.DAT"
+  ],
+  "fogged": [
+   "OUT3.DAT",
+   "OUT5.DAT",
+   "OUT6.DAT",
+   "OUT7.DAT",
+   "OUT8.DAT",
+   "OUT11.DAT",
+   "OUT12.DAT",
+   "OUT17.DAT",
+   "OUT18.DAT",
+   "OUT22.DAT",
+   "OUT26.DAT",
+   "OUT27.DAT",
+   "OUT28.DAT",
+   "OUT30.DAT",
+   "OUT31.DAT"
+  ]
+ }
 }

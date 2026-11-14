@@ -64,8 +64,10 @@ public class P3AmigaPipelineTests
 
         foreach (var raw in new[] { "D/m0", "D/m1", "PhantasieIII" })
             Assert.True(Golden.BytesEqualFile(r.Outputs[Key($"{Unpacked}/{raw}")], $"{Unpacked}/{raw}"), raw);
-        // Nothing outside the pack root and the three raw files (the script writes no GameData).
-        Assert.Equal(committed.Count + 3, r.Outputs.Count);
+        // Nothing outside the pack root, the three raw files and III's ten tables (s210: the harness runs no DOS III
+        // first, so the Amiga gives them; P3AmigaImportTests checks them and the DOS-wins path).
+        Assert.Equal(committed.Count + 3 + P3AmigaTablesTests.Tables.Length, r.Outputs.Count);
+        Assert.All(P3AmigaTablesTests.Tables, t => Assert.True(r.Outputs.ContainsKey($"GameData/phantasie3/{t}"), t));
     }
 
     [RequiresFilesFact(Adf, Root)]

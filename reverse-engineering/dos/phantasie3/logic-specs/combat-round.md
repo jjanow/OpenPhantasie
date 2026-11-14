@@ -148,10 +148,13 @@ damage_monster(group, d, target, rank, 1, 1)
 - **Manual** (III PDF 11 / pr.14, "Fireflash (#5-8): these spells shoot a blast of flame at one monster. The spell causes the
   following damage according to the level of the spell: Fireflash 1 1-10 points of damage, Fireflash 2 1-30 points of
   damage, Fireflash 3 1-60 points of damage, Fireflash 4 1-100 points of damage"): flat ranges, no INT, and IV reaches
-  100. **D3-075, PENDING** (the user decides).
-- Remaster (s208): unchanged. Core's III Fireflash still runs I's `SpellCaster.ApplyFireflash` (I's damage and target:
-  the front rank, or I's DOS rearmost rank); III's cast order carries no rank (`P3CombatModule.TryChoose` packs casts
-  with I's packing, `ActionCode` never yields 16), so the picked rank cannot reach it yet `[?]` until D3-075 is decided.
+  100. **D3-075, DECIDED** (user s209): manual by default, this DOS rule as `p3.fireflash` = `dos`.
+- `damage_monster`'s arguments (s210, `0xb4cd`): `(group, d, target, rank, 1, 1)` = group far pointer, damage (floored
+  at 1), slot, rank (1: the R1 kill counter `0xfd22`, else R2's `0xcba`), the **spell flag** `[bp+0x10]` and the location row
+  `[bp+0x12]`. With the flag set, `0xb116` draws the flash (`0x1537`) and skips the injury step (`0xe6c6`) and the status
+  from the body (`0xec1a`), so the row is never used: Fireflash takes HP only and kills at HP ≤ 0 `[C]`.
+- Remaster (s210): `P3CombatModule.CastFireflash` (both values; D3-075 "Remaster" has the details). With `dos` the order
+  carries the rank (`CombatAction.CastRankTwoBase` = action code 16) and the order screens ask it.
 
 ## 3. Monster turn (root `0xd069`) `[C]`
 

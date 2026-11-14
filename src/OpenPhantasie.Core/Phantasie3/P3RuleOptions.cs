@@ -141,6 +141,14 @@ public static class P3RuleOptions
     /// </summary>
     public static readonly RuleOptionDescriptor Parry = ManualOrDos("p3.parry", "D3-036");
 
+    /// <summary>
+    /// D3-075 (user s209): the party's Fireflash I–IV does the manual's flat 1-10 / 1-30 / 1-60 / 1-100 to one monster
+    /// of the front rank (<c>manual</c>), or DOS's <c>rnd((INT / 2 + 1) · 1 / 4 / 8 / 13)</c> capped 10 / 30 / 60 / 99 to one
+    /// monster of the rank the caster picked (<c>dos</c>, root <c>0xb42e</c>; the Amiga's <c>0x186f6</c> the same).
+    /// <see cref="P3CombatModule"/>.
+    /// </summary>
+    public static readonly RuleOptionDescriptor Fireflash = ManualOrDos("p3.fireflash", "D3-075");
+
     /// <summary>D3-028: the game saves itself every time the party leaves a town (<c>manual</c>) or only from the menu (<c>dos</c>).</summary>
     public static readonly RuleOptionDescriptor AutoSave = ManualOrDos("p3.autosave", "D3-028");
 
@@ -232,7 +240,7 @@ public static class P3RuleOptions
     public static IReadOnlyList<RuleOptionDescriptor> All { get; } =
     [
         SlashFallback, Lunge, ThiefAttack, Aim, DownTargets, ArmourDefence, ArrowFlame, BowSpells, Parry, StatusLetter,
-        CombatSpellList,
+        CombatSpellList, Fireflash,
         HealingIv, HealOrder, InnHealing, HitPoints, LevelGold, SkillTables, EncounterBlock, BossFlee, Mercy,
         FoundItems, Bank, GoldCap, Trade, ArmoryRestock, AutoSave, Roster, Lifespans, Altar, EventGold, DungeonMapNo,
         TransferSource, TransferRoster, TransferLevel, TransferDivine, TransferWand,
@@ -297,6 +305,9 @@ public static class P3RuleOptionsExtensions
 
     /// <summary>D3-036: Parry is DOS's saved option (true) or this round's skill roll.</summary>
     public static bool P3DosParry(this GameOptions o) => o.IsDos(P3RuleOptions.Parry);
+
+    /// <summary>D3-075: the party's Fireflash is DOS's INT roll on the picked rank (true) or the manual's flat range.</summary>
+    public static bool P3DosFireflash(this GameOptions o) => o.IsDos(P3RuleOptions.Fireflash);
 
     /// <summary>D3-032: skill training reads DOS's tables as read (true) or with I's values in the five error cells.</summary>
     public static bool P3DosSkillTables(this GameOptions o) => o.IsDos(P3RuleOptions.SkillTables);

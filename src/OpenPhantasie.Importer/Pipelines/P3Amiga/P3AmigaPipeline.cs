@@ -7,8 +7,10 @@ using static OpenPhantasie.Importer.Pipelines.P3Amiga.P3AmigaArt;
 namespace OpenPhantasie.Importer.Pipelines.P3Amiga;
 
 /// <summary>
-/// Phantasie III, Amiga v1.0 (SSI 1987): the Amiga art pack (port of <c>tools/scripts/extract_amiga_p3_graphics.py</c>)
-/// plus the raw files its audio reads verbatim (<c>D/m0</c>, <c>D/m1</c> tunes, <c>PhantasieIII</c> sound effects).
+/// Phantasie III, Amiga v1.0 (SSI 1987): III's tables (<see cref="P3AmigaTables.Write"/>, s210: an Amiga-only import is
+/// a playable III, with DOS III's values where the Amiga's differ, user s209; DOS III's tables win when that copy is
+/// imported too), the Amiga art pack (port of <c>tools/scripts/extract_amiga_p3_graphics.py</c>) plus the raw files
+/// its audio reads verbatim (<c>D/m0</c>, <c>D/m1</c> tunes, <c>PhantasieIII</c> sound effects).
 /// <para>Inputs: the Amiga disk's <c>Graphics/</c>, <c>D/</c>, <c>monsinfo.dat</c>; III's <c>rule-tables.json</c>
 /// (<c>core_race</c>, the portrait file names); for the map previews only, DOS III's <c>WORLD.DAT</c> /
 /// <c>PLNS.DAT</c> (profile <c>p3-dos-1988</c>, when handed in the same run). Without the DOS copy the Light / Dark /
@@ -21,7 +23,9 @@ namespace OpenPhantasie.Importer.Pipelines.P3Amiga;
 public sealed class P3AmigaPipeline : IImportPipeline
 {
     public string ProfileId => "p3-amiga-1.0";
-    public int RecipeVersion => 1;
+    public int RecipeVersion => 2; // 2 (s210): III's tables from the Amiga alone (P3AmigaTables)
+
+    /// <summary>DOS III's tables win when both copies are imported in one run: DOS runs first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p3-dos-1988"];
 
     private const string Root = "reverse-engineering/amiga/phantasie3/extracted/graphics/";
@@ -134,6 +138,10 @@ public sealed class P3AmigaPipeline : IImportPipeline
 
     public void Run(ImportContext ctx)
     {
+        // III's tables first (unless DOS III's are imported): the portraits read rule-tables.json's core_race.
+        ctx.Progress("tables");
+        var tables = P3AmigaTables.Write(ctx);
+
         var files = ctx.Files;
         var w = new Writer(ctx);
         var palettes = new JsonObject();
@@ -356,7 +364,10 @@ public sealed class P3AmigaPipeline : IImportPipeline
         foreach (var raw in new[] { "D/m0", "D/m1", "PhantasieIII" })
             ctx.WriteFile(Unpacked + raw, files.Read(raw));
 
-        // The game's own lines of the string tables (10-importer.md 7.6).
+        // The game's own lines of the string tables (10-importer.md 7.6). With the Amiga's tables, the remaster's
+        // wording for the lines it lacks (the common shared / I fallback and III's own, as a DOS-only III).
         ImportedStrings.Write(ctx);
+        if (tables)
+            ImportedStrings.WriteFallback(ctx, ImportedStrings.CommonFallbackGame, P3Dos.P3DosPipeline.Game);
     }
 }

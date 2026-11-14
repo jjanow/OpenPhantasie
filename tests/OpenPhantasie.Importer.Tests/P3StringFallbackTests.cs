@@ -157,6 +157,15 @@ public class P3StringFallbackTests
         }
     }
 
+    private const string P3Adf = "reverse-engineering/amiga/original-images/phantasie3/phantasie3-v1.0-1987-ssi.adf";
+
+    /// <summary>
+    /// An Amiga-only III (s210): the Amiga gives most of III's lines (its own alternatives in <c>en.sources.json</c>);
+    /// the few only DOS III holds, and those neither holds, get the remaster's wording.
+    /// </summary>
+    [RequiresFilesFact(P3Adf, Common)]
+    public void PublicMask_AmigaIiiOnly_NoEllipsis() => AssertNoEllipsis("phantasie3", P3Adf);
+
     /// <summary>An ST-only II: the ST gives II's lines; the I-table ids it lacks (e.g. the Mystic's score line) get the remaster's wording.</summary>
     [RequiresFilesFact(Stx1, Stx2, Common)]
     public void PublicMask_StOnly_NoEllipsis() => AssertNoEllipsis("phantasie2", Stx1, Stx2);

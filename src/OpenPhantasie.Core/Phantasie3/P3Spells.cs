@@ -2,7 +2,7 @@ namespace OpenPhantasie.Core;
 
 /// <summary>
 /// Phantasie III's spell list on the shared caster (T4): #1–12, 17–52 and 54 are I's spells (<c>FORMAT.md</c> §4.2) and
-/// cast as I's; III's own — #13–16 Arrow Flame I / P. Arrow Flame I / Arrow Flame II / P. Arrow Flame II (I's slots were
+/// cast as I's, except Fireflash I–IV (#5–8), which <see cref="P3CombatModule"/> casts itself in a III fight (D3-075); III's own — #13–16 Arrow Flame I / P. Arrow Flame I / Arrow Flame II / P. Arrow Flame II (I's slots were
 /// Strength I–IV), #53 (empty), #55 / #56 Accuracy / Party Accuracy and #57 Divine Aid (never castable,
 /// <c>dungeon-events.md</c> §6) — do nothing on it: in a III fight <see cref="P3CombatModule"/> casts Arrow Flame #13–16
 /// and Accuracy #55 / #56 itself (III's spell layout, <see cref="SpellSlots.PhantasieIII"/>: index = DOS slot, so

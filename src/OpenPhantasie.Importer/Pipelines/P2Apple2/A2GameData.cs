@@ -85,6 +85,9 @@ internal static class A2GameData
             ["elementals.json"] = Elementals(),
             ["wilderness-encounters.json"] = P2GameDataBuilder.WildernessEncounters(),
         };
+        // D2-052 (user s209): a played copy's maps back to the shipped start fog when the player chose so.
+        if (ctx.RestoreMaps)
+            st.ApplyStartFog(built["overworld.json"], warnings);
         // D2-046..049 (user s159): the ST's numbers in every cell where the Apple's differ.
         st.ApplyCells(built, warnings);
         built["game.json"] = Manifest(built);

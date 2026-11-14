@@ -137,8 +137,9 @@ public static class CombatText
 
         if (CombatAction.IsCastOrSpecial(previousPacked))
         {
-            return CombatAction.TryDecodeCast(previousPacked, out var spell, out var target)
-                ? new RepeatOrder(CombatChoice.Cast, 0, spell, target)
+            // III's Fireflash at rank 2 (D3-075 dos) repeats at rank 2 while two ranks live.
+            return CombatAction.TryDecodeCast(previousPacked, out var spell, out var target, out var castRank)
+                ? new RepeatOrder(CombatChoice.Cast, Math.Clamp(castRank, 0, Math.Max(0, livingRanks - 1)), spell, target)
                 : new RepeatOrder(CombatChoice.Parry, 0, -1, 0); // unreachable from DOS orders: menu 0x1a has no specials
         }
 
@@ -198,7 +199,7 @@ public static class CombatText
         CombatChoice.Attack => UiText.S("combattext.attack") + RankSuffix(order.RankIndex),
         CombatChoice.Slash => UiText.S("combattext.slash") + RankSuffix(order.RankIndex),
         CombatChoice.Lunge => UiText.S("combattext.lunge"),
-        CombatChoice.Cast => UiText.F("combattext.spell_x", order.SpellIndex + 1),
+        CombatChoice.Cast => UiText.F("combattext.spell_x", order.SpellIndex + 1) + RankSuffix(order.RankIndex), // III Fireflash R2 (D3-075)
         CombatChoice.Toss => UiText.S("combattext.toss") + UiText.F("combattext.at_rank_x", order.RankIndex + 1), // ST "TOSS AT RANK n"
         CombatChoice.FireBow => UiText.S("combattext.fire_bow") + RankSuffix(order.RankIndex),
         CombatChoice.Aim => UiText.S("combattext.aim"),
