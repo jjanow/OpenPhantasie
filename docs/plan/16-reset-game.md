@@ -88,7 +88,7 @@ the result is written back over the same file. A save that can't be read is refu
   - **Left `[?]`: an Apple-only import of a played Apple copy** (the 4am dump: 15 `OUTTn` stored back with fog lifted;
     s158 "import as is, say what was lost"). Its GameData grids carry the play, so a new game *and* a reset keep the
     lifted fog. The shipped fog is not in that copy; it is the ST's `MAPS.INT` pattern (the Memorial Set's unplayed
-    disk equals it cell for cell, s167). Two ways, for the user: (a) extend s205's "restore the maps?" import choice
+    disk equals it cell for cell, s167). **User s209 (D2-052): way (a).** Two ways were offered: (a) extend s205's "restore the maps?" import choice
     (`ImportRunner.CanRestoreMaps`, I only today) to II's Apple pipeline, the start fog given as a per-region open /
     fogged list in `apple2-import.json` (where D2-049's ST cells already live); new game and reset are then both right;
     (b) keep the start fog beside the played grids for Reset only (a new game and a reset would then differ). Not built.

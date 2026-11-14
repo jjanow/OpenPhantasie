@@ -59,7 +59,7 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
 | D3-072 | I / II → III transfer XP: the manual's characters keep "enough remaining experience … to train up several levels"; DOS gives 100 XP per old level (one or two trainings for most) | DECIDED: DOS (user s148) · built (s147) |
 | D3-073 | Armory list: the manual lists an item the buyer cannot use "as Unusable" and shows the point value of equipment; DOS prints "N/A" in the Pt Val column, and also for the three requirement-0 items (Cloth +1, Robes +1, Self Bow) | DECIDED (user s174): manual · built s174 |
 | D3-074 | Town keys: the manual's town letters (I's A G M N B L / C U D I S, plus T Trade) or the Amiga bar's own (`?OS` / `+-ENPR·LT` / `ABIMX·CDGUV`: G Trade, I Inn, N New Member, L Learn, T Training) | DECIDED (user s180): Amiga under AMIGA SCREENS, manual in the DOS look; QoL COMMON TOWN KEYS for one set · built s180 |
-| D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | PENDING (s208) |
+| D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | DECIDED (s209): manual, DOS as option |
 
 ---
 
@@ -1007,7 +1007,8 @@ Side effects** (plus the spec). IDs are `D3-nnn`.
   (Fireflash I reaches 10 only at INT ≥ 18; II–IV reach their caps at INT ≥ 14; a caster with INT 9 does 1–5 / 1–20 /
   1–40 / 1–65), and Fireflash IV never does 100. The target is one living monster of the rank the caster picked (a
   random start slot, then the first living one after it). The Amiga (`0x186f6`, s138) does the same.
-- **Decision:** PENDING (s208).
+- **Decision:** (user s209) manual by default (flat 1-10 / 1-30 / 1-60 / 1-100 on one monster); DOS's INT-scaled roll
+  with its caps and the rank pick as a rule option (`p3.fireflash` = manual / dos; the DOS preset picks dos). Not built yet.
 - **Remaster:** unchanged so far: Core's III Fireflash runs Phantasie I's (`SpellCaster.ApplyFireflash`, I's damage
   formulas and target pick, with no rank from the order). Either side needs III's own Fireflash; following DOS also
   needs the cast order to carry the picked rank (the order screens already ask it for Fireflash in DOS, not in the

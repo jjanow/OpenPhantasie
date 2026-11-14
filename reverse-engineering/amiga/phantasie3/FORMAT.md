@@ -1420,7 +1420,11 @@ Transfer maps I → III: `0x23f12` (class, 6 B, `0x206b6`) and `0x23f18` (race, 
   as DOS but **no place ranges** (DOS 26..38 → 19, 39..46 → 20, 47..54 → 21) and **no default**: tiles 26..60 and
   75..89 leave the local unset (never initialised) `[?]` (DOS: 4). No encounters on 10, 8, 15 (`0x7c24`).
 
-### Amiga ≠ DOS, for the user to decide (an Amiga-only import)
+### Amiga ≠ DOS, decided (an Amiga-only import)
+
+**Decision (user s209): DOS for all eight.** An Amiga-only import writes DOS's values wherever the list below differs
+(numbers, the Scandor grid, place-tile terrain, Scroll III pages, text), carried as data in the importer; III then plays
+the same whichever version was imported. Not built yet.
 
 Standing rule: between versions DOS wins on numbers; maps and content are the user's call. None of these is a
 manual ↔ code conflict: the III manual's HP chart (III PDF 8 / pr.11) stops at L15, and it gives no training
@@ -1438,7 +1442,7 @@ costs and no terrain table.
 
 ### Left `[?]`
 
-- The decisions above; after them, a recipe for `p3-amiga-1.0` that writes the tables (DOS's still win when both are
+- A recipe for `p3-amiga-1.0` that writes the tables (DOS's still win when both are
   imported, as I's `P1AmigaTables`). As built the files do not load (`Phantasie3Data`): `hp_dice` has 21 levels (the
   loader wants 22), the curves' index 0 and `terrain.other` are null.
 - III's own UI lines (`strings/en.json` `core.p3.*`, 124 ids quoted from `MAIN.EXE`) have no Amiga alternatives in

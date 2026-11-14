@@ -55,7 +55,7 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 | D2-049 | Apple II vs ST: creation cells (2 agree with the manual / D2-009, 2 ST-only skill cells) and 9 map / 2 dungeon cells | DECIDED |
 | D2-050 | Apple II vs ST: text (names, scroll and message wording, menus); the Apple has no spell names | DECIDED |
 | D2-051 | Guild elementals: the manual's "will only serve a party of six adventurers" vs the ST's Add with any party size (SUMMON still needs six) | DECIDED (user s173: SUMMON's six-member gate is enough; the ST's Add stays as II's `game`) |
-| D2-052 | Apple II new game: the manual's "just as if you had bought a new game" vs the Apple's BACKUP, which keeps the lifted fog (and leaves the dungeon saves) | PENDING |
+| D2-052 | Apple II new game: the manual's "just as if you had bought a new game" vs the Apple's BACKUP, which keeps the lifted fog (and leaves the dungeon saves) | DECIDED (s209): manual; importer restores the start fog (a) |
 
 ---
 
@@ -678,7 +678,9 @@ and `strings/fallback.en.json`).
 - **ST** (`UTILIT2.PRG` `0xb2c`; `atari-st/phantasie2/FORMAT.md` 9.1) `[C]`: every region's grid back from `MAPS.INT`
   (fog as shipped), `TWNS.DAT`, `GUILD.DAT`, `DNG.SAV`, `DNGX.SAV`, `SACK.DAT` deleted: the manual's "as if you had bought
   a new game". No Y/N prompt on the ST (not a rule conflict: the ST's manual section gives none).
-- **Decision:** —
+- **Decision:** (user s209) manual: a new game and a reset start with the shipped fog. Fix (a) of `16-reset-game.md`
+  section 3: the Apple-only II import gets the "restore the maps?" choice, the start fog stored as a per-region open /
+  fogged list in `apple2-import.json`. Not built yet.
 - **Remaster:** RESET GAME (`docs/plan/16-reset-game.md`) follows the manual and the ST: the world is rebuilt from
   GameData, whose II grids are `MAPS.INT`'s on an ST import. An Apple-only import of a played copy keeps its lifted fog
   in GameData, so its reset does too until the importer restores the start fog (16-reset-game.md section 3, "Left").
