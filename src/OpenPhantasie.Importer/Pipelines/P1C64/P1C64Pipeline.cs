@@ -4,14 +4,14 @@ namespace OpenPhantasie.Importer.Pipelines.P1C64;
 /// Phantasie I, Commodore 64 (SSI 1985, v1.4; both disk sides, <c>.d64</c> or C64PP's <c>.g64</c>): I's tables
 /// (<see cref="P1C64Tables"/>, s216: a C64-only import is a playable I, with the C64's text and DOS I's numbers; DOS I's
 /// or the Amiga's tables win when that copy is imported too) and the remaster's wording for the string-table lines only
-/// another copy holds. No art yet: the C64 pictures (FORMAT.md section 6) are not a pack, so the Client draws I's
-/// default art when another copy gave it.
+/// another copy holds. Then the C64 art pack (<see cref="P1C64Art"/>, s218; <c>graphics/c64.json</c>), written whichever
+/// copy's tables win: the Amiga's pack stays I's default, the C64's is drawn when no Amiga copy is imported.
 /// </summary>
 public sealed class P1C64Pipeline : IImportPipeline
 {
     public string ProfileId => "p1-c64";
 
-    public int RecipeVersion => 1; // 1 (s216): I's tables from the C64
+    public int RecipeVersion => 2; // 1 (s216): I's tables from the C64; 2 (s218): the C64 art pack
 
     /// <summary>DOS I's and the Amiga's tables win when one of them is imported in the same run: they run first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p1-dos-1987", "p1-dos-bonus-1991", "p1-amiga-1.0"];
@@ -28,5 +28,15 @@ public sealed class P1C64Pipeline : IImportPipeline
         ImportedStrings.Write(ctx, ownWordingGame: tables ? P1DosPipeline.Game : null);
         if (tables)
             ImportedStrings.WriteFallback(ctx, ImportedStrings.CommonFallbackGame);
+
+        ctx.Progress("art");
+        try
+        {
+            P1C64Art.Import(ctx);
+        }
+        catch (FileNotFoundException e)
+        {
+            ctx.Warn($"No C64 art: {e.Message}.");
+        }
     }
 }

@@ -235,13 +235,19 @@ internal static class P2StExtract
     }
 
     /// <summary>extracted/dungeons/dungeons.json levels (id, size, raw_hex, embedded_text, messages).</summary>
-    public static JsonObject Dungeons(P2StSource src)
+    public static JsonObject Dungeons(P2StSource src) => Dungeons(n => src.Read($"DNG{n}"), n => src.Read($"MESS{n}"));
+
+    /// <summary>
+    /// As <see cref="Dungeons(P2StSource)"/> from any copy holding the ST's level and MESSn layouts (s218: the C64's
+    /// <c>DNG n</c> / <c>PMES n</c>).
+    /// </summary>
+    public static JsonObject Dungeons(Func<int, byte[]> level, Func<int, byte[]> mess)
     {
         var levels = new JsonObject();
         foreach (var n in P2StSource.Dungeons)
         {
-            var raw = src.Read($"DNG{n}");
-            var plain = src.Read($"MESS{n}");
+            var raw = level(n);
+            var plain = mess(n);
             var msgs = new JsonObject();
             for (var mid = 1; mid <= MaxId; mid++)
             {
@@ -282,12 +288,15 @@ internal static class P2StExtract
     }
 
     /// <summary>extracted/dungeons/messages.json (the fields the GameData build keeps).</summary>
-    public static JsonObject Messages(P2StSource src)
+    public static JsonObject Messages(P2StSource src) => Messages(n => src.Read($"MESS{n}"));
+
+    /// <summary>As <see cref="Messages(P2StSource)"/> from any copy holding the ST's MESSn layout (s218: the C64's PMES n).</summary>
+    public static JsonObject Messages(Func<int, byte[]> mess)
     {
         var areas = new JsonArray();
         foreach (var n in P2StSource.Dungeons)
         {
-            var plain = src.Read($"MESS{n}");
+            var plain = mess(n);
             var slots = new JsonArray();
             for (var sid = 0; sid <= MaxId; sid++)
             {

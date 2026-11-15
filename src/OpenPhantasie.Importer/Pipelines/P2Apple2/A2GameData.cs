@@ -34,7 +34,8 @@ internal static class A2GameData
     {
         if (ctx.ReadImportedGameData(Game, "game.json") is JsonObject existing)
         {
-            if ((string?)existing["platform"] != "apple2")
+            // s218: the C64's tables (p2-c64) give way to the Apple's, as the Apple's to the ST's.
+            if ((string?)existing["platform"] is not ("apple2" or "c64"))
             {
                 ctx.Warn("Phantasie II's game data comes from the Atari ST copy (imported as well); the Apple II copy adds " +
                          "only its art pack (choose it under the graphics options).");

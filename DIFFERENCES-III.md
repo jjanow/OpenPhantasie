@@ -66,6 +66,8 @@ they differ.
 | D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | DECIDED (user s209): manual, DOS as option (`p3.fireflash`) · built · DOS checked live |
 | D3-076 | Town inn: the manual cures "1 Break or 2 Injuries" at every inn; Apple II III's town inn cures no body area (HP and magic only), its wilderness inns cure 2 points | DECIDED (user s212): the manual (D3-015); no Apple option |
 | D3-077 | Apple-only III import: lines the Apple prints in its own words (Mystic, Greetings, SHARES FOR, the ending speech, combat / dungeon lines) shown as the remaster's fallback wording, or as the Apple's text like II's Apple import (D2-050) | DECIDED (user s215): the Apple's own text, like II; the fallbacks stay for lines the Apple lacks and for a [cr] v1.0 copy · built s216 (128 ids) |
+| D3-078 | C64 III's starter party, v1.0: its six's age clocks (6635 .. 8165, 255 .. 314 years on the C64's own sheet) do not fit the C64's creation formula (v1.2's do); under the manual's lifespans (D3-041) CHUMLEY, TRACKER, FINGERS and BONES die of old age at the first town entry with the party | DECIDED (user s218): v1.0's six get Guild New's start age; v1.2's stored ages kept · built |
+| D3-079 | C64-only III import, defaults applied without a decision (s218): the Apple's tables outrank the C64's; a played copy's town stock imported as played; the C64's dungeon descriptions matched to the dungeons by meaning; overworld place / inn / terrain names DOS's (mixed case) beside the C64's upper-case town, item and spell names | DECIDED (user s218): as built |
 
 ---
 
@@ -1096,3 +1098,47 @@ they differ.
 - **Side effects:** none on rules.
 - **Spec:** `docs/plan/p3-apple2-fallback-review.md` (Findings), `reverse-engineering/apple2/phantasie3/FORMAT.md`
   (section 4, Strings).
+
+## D3-078 — C64 III's starter party (v1.0): ages past the manual's lifespans
+
+- **Manual:** "A reasonable beginning party has been pre-generated and pre-equipped and is listed as the first 6
+  members of the Guild" (III PDF 5); ages and lifespans of these six are not stated. D3-041 (user s99): III characters get
+  the manual's (I's) lifespans.
+- **Code (C64, `reverse-engineering/c64/phantasie3/FORMAT.md` 3.5):** the record's age clock is P16 + 256 · P17, 1/26
+  year (PHANT.OBJ's sheet prints it / 26 on the AGE row, `$56B0`) `[C]`. TOWN.OBJ's creation (`$4216`..`$4243`) writes
+  P166 = LCK × the race factor and the clock = (rnd(7) + 24) · P166 + 260, DOS's formula `[C]`; P166 is never read, so
+  on the C64 the age is shown only (no death of old age) `[C]`. v1.2 (alt)'s six fit the formula exactly (e.g. CHUMLEY
+  360 = 25 · 4 + 260) `[C]`. v1.0's do not: 6635, 6635, 6635, 8165, 7655, 7400 (ages 255, 255, 255, 314, 294, 284 on its
+  sheet) `[C]`; on every v1.0 record P16 + P17 = 260 `[C]`, meaning `[?]` (P17 = 25, 25, 25, 31, 29, 28 would read as
+  years).
+- **Found (s218):** imported as read, in a v1.0 import CHUMLEY (lifespan 1040), TRACKER (2205), FINGERS (1196) and
+  BONES (5720) were past their lifespan and died at the first town entry with the party (the elves and all of v1.2's six
+  were fine; under `p3.lifespans` = `dos` nobody died). Options put to the user: keep as read; the C64's creation
+  formula; Guild New's start age; P17 as years.
+- **Decision (user s218):** a C64 v1.0 import gives the six Guild New's start age, the age a character made at Guild New
+  gets under III's rules, in place of the stored clock; everything else from the record is kept. For v1.2 (alt) the
+  stored ages are kept (our choice within the decision: they fit the C64's own creation formula, so they are real rolls).
+- **Remaster:** built (s218). `starter-guild.json` carries v1.0's members with no `age_clock` (the stored value in
+  `record_age_clock`); `Phantasie3Campaign.CreateStarterMember` then draws Guild New's start age at new game, as
+  `RollNewMember`: DOS's ⌊(rnd(7) + 24) · f + 260⌋, and under the manual's lifespans (D3-041) I's lifespan and I's start
+  age for it. v1.2's members carry their stored `age_clock`. Tests: `P3C64ImportTests.V10Ages_GuildNewStartAge_V12Ages_Kept`,
+  `V10Starters_SurviveTheFirstTownEntry` (all six alive and below 70 % of their lifespan after the first entry).
+- **Spec:** `reverse-engineering/c64/phantasie3/FORMAT.md` 3.5.
+
+## D3-079 — C64-only III import: defaults applied without a decision
+
+- **Manual:** silent. **Code:** see `reverse-engineering/c64/phantasie3/FORMAT.md` section 7.
+- **Decision (user s218):** as built, all four below.
+- **Remaster (built s218):**
+  1. **Precedence:** DOS III > Amiga > Apple II > C64 (as I's C64 below DOS and the Amiga): the Apple's and the Amiga's
+     `OwnsTables` take over the C64's tables; a C64 import beside any of them writes no table and no starter party.
+  2. **Played copy** (the held cracked pair): the towns' stock (`TOWN A`–`Q`) is read as played (the shipped cells hold
+     DOS's values only where a fresh C64 copy differs; a played cell holding neither is kept and warned), and a played
+     `PCHARS0` gives no starter party (warned). Alternative: ship DOS's whole starting stock and use it for played copies.
+  3. **Dungeon names:** the C64 lists 11 dungeon descriptions in its own order; they are matched to III's dungeons 1–11 by
+     what they describe `[~]` (`CAVE SMELLING OF SULFUR` = dungeon 8, ...).
+  4. **Text mix:** the C64's upper-case names for classes, races, towns, items, spells, skills, dungeons, scrolls and
+     dungeon messages; DOS's mixed-case names where the C64's are not decoded (overworld place, inn and terrain names,
+     body-area states, the Random race). The C64's monster name `Drip Slimes` (already plural) shows as
+     "DRIP SLIMES(S)" in a fight's count line.
+

@@ -65,6 +65,10 @@ public sealed partial class GameDataRepository
     /// <summary>Phantasie III's hard-coded wilderness places; empty for I / II.</summary>
     public IReadOnlyList<WorldPlaceDefinition> Places { get; private init; } = [];
 
+    /// <summary>s218: pre-generated Guild members a new game starts with (<see cref="StarterGuildLoader"/>; the C64 III's
+    /// six); empty for every other copy.</summary>
+    public IReadOnlyList<StarterGuildMember> StarterGuild { get; private init; } = [];
+
     /// <summary>Phantasie III's tile terrain; null for I / II.</summary>
     public TileTerrainDefinition? TileTerrain { get; private init; }
 

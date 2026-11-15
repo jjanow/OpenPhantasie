@@ -404,7 +404,7 @@ public sealed class P3Apple2Tables
 
     // ---- scrolls ------------------------------------------------------------------------------------------------
 
-    private static List<string> ScrollInner(List<string> lines)
+    internal static List<string> ScrollInner(List<string> lines)
     {
         var inner = lines.Skip(1).Take(22).Select(l => P3Exe.PyRStrip(l.PadRight(40)[1..39])).ToList();
         while (inner.Count > 0 && inner[^1].Length == 0)
@@ -555,7 +555,7 @@ public sealed class P3Apple2Tables
 
     private const int DngPtr = 0x593, DngTextBase = 0x800, DngW = 24, DngH = 30;
 
-    private static (int Slots, JsonArray Texts) DungeonTexts(byte[] rec)
+    internal static (int Slots, JsonArray Texts) DungeonTexts(byte[] rec)
     {
         var ptrs = new List<int>();
         int o = DngPtr, end = rec.Length;
@@ -755,10 +755,12 @@ public sealed class P3Apple2Tables
     private static readonly CellPatches DosCells =
         new("apple", "dos", "the Apple copy's data", "the Apple's", "DOS III's", "DOS III's value");
 
-    /// <summary>True when this Apple copy gives III's tables: none imported yet, or the ones there are its own.</summary>
+    /// <summary>True when this Apple copy gives III's tables: none imported yet, or the ones there are its own or the C64's
+    /// (s218: the Apple's take over the C64's, as the Amiga's take over both).</summary>
     public static bool OwnsTables(ImportContext ctx) =>
         ctx.ReadImportedGameData(Game, "monsters.json") is not JsonObject existing
-        || ((string?)existing["_source"])?.StartsWith(Label, StringComparison.Ordinal) == true;
+        || ((string?)existing["_source"]) is { } source
+        && (source.StartsWith(Label, StringComparison.Ordinal) || source.StartsWith(P3C64.P3C64Tables.Label, StringComparison.Ordinal));
 
     /// <summary>Write III's tables from the Apple with DOS's values (<see cref="BuildWithDosValues"/>); false when
     /// DOS III's tables (this run or earlier) or the Amiga's win.</summary>

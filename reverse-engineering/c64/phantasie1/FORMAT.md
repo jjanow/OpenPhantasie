@@ -327,19 +327,32 @@ the English build `[~]` (the English programs are other sizes).
 
 ## 6. Graphics and sound
 
-### 6.1 Monster sprites: `MX n` `[C]` layout, `[~]` header
+Decoded s218, with the 6502 code of `UTIL-3.O`, `B`'s BASIC and live VICE screens: **`GRAPHICS.md`** (beside this file),
+which also describes the `c64` art pack the import builds from them. In short:
 
-Monster n − 1. Loaded at `$1FDA`: a 38-byte header (`$1FDA..$1FFF`), then k = MN field 13 + 1 hardware sprites (64 B
-each, 24 × 21 hires, at `$2000`). Header `[~]`: `$78`, 8 × 16-bit x positions, 8 colour bytes, `$80`, 8 sprite-block
-indices (which block each of the 8 VIC sprites shows), 2 bytes (expand flags?), the sprite-enable mask, `$8C`. A group
-of monsters is drawn as up to 8 VIC sprites showing the k blocks.
+### 6.1 Monster sprites: `MX n` `[C]`
+
+Monster n − 1. Loaded at `$1FDA` (in play: to a group's slot, e.g. `$CB5A`): a 38-byte **sprite-band record** (the
+raster interrupt `$C529` loads it into the VIC: y base, 8 (x, y) byte pairs, 8 colours, block base, 8 block indices,
+x / y expand and enable masks, next raster line; GRAPHICS.md 2), then k = MN field 13 + 1 hires sprite blocks. The record
+lays out the whole group; one monster = its first sprites up to the first repeated block `[~]`. A one-sprite monster
+attacks in block 1 `[C]`; the extra block of a several-sprite monster is not placed `[?]`. (s214's reading "8 × 16-bit x
+positions" was wrong.) `FONT+HER`'s first 38 bytes are the same record for the party's sprites in a fight.
 
 ### 6.2 Other pictures
 
-Title (`PIC.*`, multicolour bitmap + screen + colour RAM, 160 × 200), the 14 item / feature pictures (3.x table in
-section 2), `FONT` (the screen font and the map tiles as characters `[?]`), `HSPRIT`, `FONT+HER`, `CEMETARY`'s files,
-`ZALL`: not decoded (`PATTERN` is the new-game template, section 2). Palette: the VIC-II's 16 colours. No sound or music files: SID code is inside the
-programs / `UTIL-3.O` `[?]`.
+| File | What | Tag |
+|---|---|---|
+| `HSPRIT` | 15 (idle, attacking) hero sprite pairs, pair = race 0–14 (no UNDEAD) | `[C]` |
+| `PIC.MAP` / `.SCR` / `.CLR` | the title: multicolour bitmap, background black (`B` 200–290, 595) | `[C]` |
+| `FONT` (`$E800`) | upper-case screen font, the map's terrain characters (64–87), the dungeon map's (`$E6`–`$EC`) | `[C]` |
+| `FONT+HER` (`$CFDA`) | the hero band record; a mixed-case font; sprite blocks 91–95 (dungeon party; map party, town, inn, dungeon); the town's character set (the six buildings) | `[C]` |
+| `SHIELD` … `EXIT` | character pictures printed at `$EAC0` on: 7 × 7 characters (`EXIT` 8 × 6), numbered down each column | `[C]` layout, `[?]` colours but EXIT |
+| `CEMETARY`'s `SKEL2`, `CSPRIT`, `FONTO`; `ZALL` | the defeat and ending screens | `[?]` not decoded |
+
+The overworld is printed by `UTIL-3.O` `$C5C3` (class = map byte div 10, a character pair by column parity, colours from
+`$C688`); the dungeon map in `FONT`'s `$E6`–`$EC` by DOS's cell ranges, grey (GRAPHICS.md 5, 6). Palette: the VIC-II's
+16 colours as Colodore. No sound or music files: SID code is inside the programs / `UTIL-3.O` `[?]`.
 
 ## 7. The importer: `p1-c64` (built s216; plan s214)
 
@@ -398,9 +411,8 @@ I field / map screens are not in the C64's programs verbatim and stay "..." in a
 lines, the rest of the C64's text stays; scroll 5 keeps the C64's NORTH; the three reachable DNG cells (DNG3 (2, 14),
 DNG6 (12, 11), DNG7 (19, 11)) take DOS's values like the walled-in ones.
 
-**Graphics pack (`c64`): not built.** Monster sprites (`MX`, 80 sets, VIC colours), the title picture, the item /
-feature pictures, the font; the map tiles and hero sprites are not decoded yet (`FONT`, `HSPRIT`, `FONT+HER`: 6.2), nor
-any sound. Needs a VIC-II palette and an asset manifest like the Amiga's. A C64-only player gets no I art pack.
+**Graphics pack (`c64`): built s218** (`P1C64Art`, recipe 2; GRAPHICS.md 8): monsters, hero sprites, title, town
+buildings, the character-tile overworld and dungeon maps, Colodore colours; drawn when no Amiga copy is imported. No sound.
 
 **Not done here:** the bytecode tables (training curves, pair table, step costs) and the 170-byte record's `[?]` bytes
 (only needed for a C64 roster transfer); a live check in VICE. The C64's own wording for its town / Guild / sheet

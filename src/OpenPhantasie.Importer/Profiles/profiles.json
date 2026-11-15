@@ -1949,10 +1949,221 @@
   {
    "id": "p2-c64",
    "game": "phantasie2",
-   "title": "Phantasie II (C64)",
+   "title": "Phantasie II (C64 v1.2)",
    "platform": "c64",
-   "status": "recognised",
-   "reason": "no importer for this version yet",
+   "status": "supported",
+   "feeds": [
+    "tables"
+   ],
+   "disks": [
+    {
+     "label": "side 1",
+     "key_files": [
+      {
+       "name": "TOWN2",
+       "size": 22943,
+       "sha1": "736ab7bb74c2578a8d47104985e38c83e6cac432"
+      },
+      {
+       "name": "OUTDOORS2",
+       "size": 30597,
+       "sha1": "9462ad6ac901569582ba1c879d1b0ebc972ba47c"
+      },
+      {
+       "name": "TINFO",
+       "size": 1733,
+       "sha1": "46767bce4e0ae779647def2cc6d81276446faf35"
+      },
+      {
+       "name": "MN",
+       "size": 8100,
+       "sha1": "1038e1a3046cf52d4e0cac587d069b539f531366"
+      },
+      {
+       "name": "ITEM",
+       "size": 1563,
+       "sha1": "f1933fff0496c733937e196661193184ccf991e8"
+      },
+      {
+       "name": "SCROLLS",
+       "size": 16480,
+       "sha1": "605b521fb6fce2431a05c2b237b4c1b1341b946b"
+      }
+     ]
+    },
+    {
+     "label": "side 2",
+     "key_files": [
+      {
+       "name": "DUNGEON2",
+       "size": 30658,
+       "sha1": "d45eef51c469a507be464f7891b49044f2a6dd00"
+      },
+      {
+       "name": "PATTERN2",
+       "size": 19566,
+       "sha1": "f71dd34ecc5e809d6bc33aba8dc6d8a4f250ac75"
+      },
+      {
+       "name": "DNG 7",
+       "size": 1964,
+       "sha1": "6ac17ee3f71d522dff33e1cebc72707641185e29"
+      },
+      {
+       "name": "MN",
+       "size": 8100,
+       "sha1": "dd4951ab937ba071a2c27d7675c1a811c934848b"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "TOWN2",
+    "OUTDOORS2",
+    "TINFO"
+   ],
+   "mutable_files": [
+    {
+     "name": "CHAR22",
+     "size": 4252,
+     "sha1": "03922cf8cbb8b8311e6455383ca56ea93cb37097"
+    },
+    {
+     "name": "TWN21",
+     "size": 252,
+     "sha1": "7eec623015b8328d6893e45a6e126943478969d5"
+    },
+    {
+     "name": "TWN22",
+     "size": 252,
+     "sha1": "af24eca1c0a96c44b8997fa4a763e5b459baf6d4"
+    },
+    {
+     "name": "TWN23",
+     "size": 252,
+     "sha1": "6c2d04f4856434137be9f3146c89f93c2b985b88"
+    },
+    {
+     "name": "TWN24",
+     "size": 252,
+     "sha1": "f43cd12ab3370424eba68ce0cbb8c8ac8fb62606"
+    },
+    {
+     "name": "TWN25",
+     "size": 252,
+     "sha1": "e9645a166e561a45235f4fd3ce8fdf1bf8750a5c"
+    },
+    {
+     "name": "TWN26",
+     "size": 252,
+     "sha1": "f68a90c890d3983fe5fae8b174a83dce8c372637"
+    },
+    {
+     "name": "TWN27",
+     "size": 252,
+     "sha1": "bb91a27d09efea5278d94fbc12de9ffc234991c5"
+    },
+    {
+     "name": "TWN28",
+     "size": 252,
+     "sha1": "5c8901a24d2b3883920f4ec62baaef22e6f441a9"
+    },
+    {
+     "name": "TWN29",
+     "size": 252,
+     "sha1": "e154a9ad8e60f1611df83bb69bf30f8797021570"
+    },
+    {
+     "name": "TWN210",
+     "size": 252,
+     "sha1": "3500ec067da614bbdc39c6e6e825214a369dd3bc"
+    },
+    {
+     "name": "OUTT1",
+     "size": 752,
+     "sha1": "fe0293dbffc1d2f319c55a8a9aa1b7d727309638"
+    },
+    {
+     "name": "OUTT2",
+     "size": 752,
+     "sha1": "bbb5ecae373fe6e6be2f1122ee8c7cb09bba93fd"
+    },
+    {
+     "name": "OUTT3",
+     "size": 752,
+     "sha1": "2b9aec8cd3e5ce5b785ce941ceb7d48158919e07"
+    },
+    {
+     "name": "OUTT5",
+     "size": 752,
+     "sha1": "d453f23dc28c11c5973912c789e4b6a0bb1f1885"
+    },
+    {
+     "name": "OUTT6",
+     "size": 752,
+     "sha1": "e72e298af5c65ba1f37f7f48025237bb93c786c3"
+    },
+    {
+     "name": "OUTT7",
+     "size": 752,
+     "sha1": "f2aa82948999b4f8642c0d1430d156e0de70fc47"
+    },
+    {
+     "name": "OUTT8",
+     "size": 752,
+     "sha1": "ac7e4679a690b0e3a10624e84cd4d53446d36307"
+    },
+    {
+     "name": "OUTT11",
+     "size": 752,
+     "sha1": "34dec2c5917cd596f6e8437d6f9b30749f3e6b9c"
+    },
+    {
+     "name": "OUTT12",
+     "size": 752,
+     "sha1": "13a66090e211ba1082e7ffc7a22399003f06390c"
+    },
+    {
+     "name": "OUTT17",
+     "size": 752,
+     "sha1": "825cbc4fd31bf6057557b605970654e8e75d1bab"
+    },
+    {
+     "name": "OUTT18",
+     "size": 752,
+     "sha1": "24683f2f43738c9c792078647b5504637c29e19e"
+    },
+    {
+     "name": "OUTT22",
+     "size": 752,
+     "sha1": "d83e699086c6a3a84eb46d69ce8724d2c1d62cf0"
+    },
+    {
+     "name": "OUTT26",
+     "size": 752,
+     "sha1": "8f3022cfc6d332efff731c3d8dd9d71697fedf47"
+    },
+    {
+     "name": "OUTT27",
+     "size": 752,
+     "sha1": "3f27b8efe62c10cdc9977e8cc1c6868e9a36ef18"
+    },
+    {
+     "name": "OUTT28",
+     "size": 752,
+     "sha1": "11a72337b0cbed04d9b8b0da96f5c379e384255d"
+    },
+    {
+     "name": "OUTT30",
+     "size": 752,
+     "sha1": "4e5f7c921beec963e773668b01acdb32834b5662"
+    },
+    {
+     "name": "OUTT31",
+     "size": 752,
+     "sha1": "4ca468abb13fe6afdcb62b9fe8cd34097dbcccac"
+    }
+   ],
    "images": [
     {
      "sha1": "3c69be20e0a9106c5ccb1402564cc3305a938254",
@@ -1965,16 +2176,241 @@
     {
      "sha1": "9d6c9d848e2be80857711be14ce01d723911b6ed",
      "size": 174848
+    },
+    {
+     "sha1": "cf03d0c6e486476433ea904b8a91900e8682dc11",
+     "size": 286164
+    },
+    {
+     "sha1": "3d96ebd7c34fbf9c7ee2677127a70c45814a5a78",
+     "size": 286164
+    },
+    {
+     "sha1": "afeb9559298530467d228d7c3cd4fe88f720832d",
+     "size": 286164
+    }
+   ]
+  },
+  {
+   "id": "p2-c64-1.0",
+   "game": "phantasie2",
+   "title": "Phantasie II (C64 v1.0)",
+   "platform": "c64",
+   "status": "recognised",
+   "reason": "only the C64's v1.2 is imported (user s217): v1.0 is an earlier master with its own map cells and OUT28 entrances, no name for item 180 and another route in scroll L (reverse-engineering/c64/phantasie2/FORMAT.md 4.1)",
+   "disks": [
+    {
+     "label": "side 1",
+     "key_files": [
+      {
+       "name": "TOWN2",
+       "size": 22816,
+       "sha1": "4ff7ebbde4cf007935b3af0d4b778d96325f7967"
+      },
+      {
+       "name": "OUTDOORS2",
+       "size": 30303,
+       "sha1": "e9cac25cca4d00408fc63f731165e2aefb11acd6"
+      }
+     ]
+    },
+    {
+     "label": "side 2",
+     "key_files": [
+      {
+       "name": "DUNGEON2",
+       "size": 30612,
+       "sha1": "941d1d92e76c18ee0470906fabb5b9d77064e6b6"
+      },
+      {
+       "name": "PATTERN2",
+       "size": 19566,
+       "sha1": "dfc5ad99318f834dc30c86153d36c1db0f997b9a"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "TOWN2",
+    "OUTDOORS2",
+    "TINFO"
+   ],
+   "images": [
+    {
+     "sha1": "0f75a7723cf0f1364429391ed815800bb25c7708",
+     "size": 286164
+    },
+    {
+     "sha1": "6309f057261d31cec81afb3f1f863ef4b22235ce",
+     "size": 278234
+    },
+    {
+     "sha1": "6910dea4cc8b248778eddfd7caeba3ecb129961f",
+     "size": 286164
+    },
+    {
+     "sha1": "b72740409f50926ad635a85109d3a1c0ce9f3940",
+     "size": 278234
     }
    ]
   },
   {
    "id": "p3-c64",
    "game": "phantasie3",
-   "title": "Phantasie III (C64)",
+   "title": "Phantasie III (C64 v1.0)",
    "platform": "c64",
-   "status": "recognised",
-   "reason": "no importer for this version yet",
+   "status": "supported",
+   "feeds": [
+    "tables"
+   ],
+   "disks": [
+    {
+     "label": "side 1",
+     "key_files": [
+      {
+       "name": "PHANT.OBJ",
+       "size": 22549,
+       "sha1": "f80c4b136e3e708a0332df92cba237b40fb20692"
+      },
+      {
+       "name": "MONSTERS",
+       "size": 8035,
+       "sha1": "4e5823e5aa246c0aad2ba339e8c02237b62406a7"
+      },
+      {
+       "name": "DATA",
+       "size": 3936,
+       "sha1": "b445fbadbc84189596025e840109114707959dc6"
+      }
+     ]
+    },
+    {
+     "label": "side 2 (DUNGEON)",
+     "key_files": [
+      {
+       "name": "TOWN.OBJ",
+       "size": 14473,
+       "sha1": "4da0e5566bad03a864eba49a46458cc168085dfd"
+      },
+      {
+       "name": "DUNGEON.OBJ",
+       "size": 9829,
+       "sha1": "ca18138f3ac57ac2d55e26b56e547b76d3a069aa"
+      },
+      {
+       "name": "MATERIALMAP",
+       "size": 3753,
+       "sha1": "e29ddbfde08d3acedc79f6f26c08088f384e5499"
+      },
+      {
+       "name": "DNG1",
+       "size": 4135,
+       "sha1": "2db07953d3cf369318896778430c6e73eea5e9da"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "PHANT.OBJ",
+    "MONSTERS"
+   ],
+   "mutable_files": [
+    {
+     "name": "PCHARS0",
+     "size": 3063,
+     "sha1": "9bbf79dbb3f88fa1cfa96301da1634d99bb0256f"
+    },
+    {
+     "name": "TOWN A",
+     "size": 183,
+     "sha1": "0dfd8da8fda8f75b635eb46e41b56899b40489c6"
+    },
+    {
+     "name": "TOWN B",
+     "size": 183,
+     "sha1": "5dc318063e819a6d444a6ae73c0d44bd36bd54e1"
+    },
+    {
+     "name": "TOWN C",
+     "size": 183,
+     "sha1": "70429496a6ba5495969647dfd6a82ee92b59e1c8"
+    },
+    {
+     "name": "TOWN D",
+     "size": 183,
+     "sha1": "51430ea101f4c67b84b07b660a9a75846d520030"
+    },
+    {
+     "name": "TOWN E",
+     "size": 183,
+     "sha1": "ee0a22b48833acd93cc9278dde91652c6c97d23c"
+    },
+    {
+     "name": "TOWN F",
+     "size": 183,
+     "sha1": "0f89e69d09b6223f9fc946ca854ef33acc06f2a7"
+    },
+    {
+     "name": "TOWN G",
+     "size": 183,
+     "sha1": "ebf95e6a0bbcbd7ce656d47baa8943222c2b6c58"
+    },
+    {
+     "name": "TOWN H",
+     "size": 183,
+     "sha1": "caf9ad53991abbcade04a65764c71a6db0cce7ef"
+    },
+    {
+     "name": "TOWN I",
+     "size": 183,
+     "sha1": "9a455fc86fa0e2a4d2fa1b257b30761f6bdb2637"
+    },
+    {
+     "name": "TOWN J",
+     "size": 183,
+     "sha1": "9a2bbcca718b85a1d0d8aaf21848f1c1b67f6dda"
+    },
+    {
+     "name": "TOWN K",
+     "size": 183,
+     "sha1": "4d03456772bef15be7d82f712e2b46c353dcd7a6"
+    },
+    {
+     "name": "TOWN L",
+     "size": 183,
+     "sha1": "5070e899a2d6b4d1a87645708814ddfb2764170c"
+    },
+    {
+     "name": "TOWN M",
+     "size": 183,
+     "sha1": "d6f6579a302fd43c04497da80eec43e2f2134123"
+    },
+    {
+     "name": "TOWN N",
+     "size": 183,
+     "sha1": "4801d11651b68c69245d421cd73a4ee6883d6468"
+    },
+    {
+     "name": "TOWN O",
+     "size": 183,
+     "sha1": "8bcb5970f55aea21e308af5940460247f6aec5ce"
+    },
+    {
+     "name": "TOWN P",
+     "size": 183,
+     "sha1": "8bcb5970f55aea21e308af5940460247f6aec5ce"
+    },
+    {
+     "name": "TOWN Q",
+     "size": 183,
+     "sha1": "03949fec617c7f36b5955ce891ef5d8f53efcce3"
+    },
+    {
+     "name": "DNGIP1",
+     "size": 5,
+     "sha1": "7fa0a94b151898b8f43fd017c3684e3488c7e5c7"
+    }
+   ],
    "images": [
     {
      "sha1": "440db1ba6d4b8cd87a324be3a05232dcf3a03eff",
@@ -1996,7 +2432,167 @@
      "sha1": "61be8fa4b53fb30bfe744267f0aa0235507e2618",
      "size": 174848
     }
-   ]
+   ],
+   "_note": "C64PP v1.0 (!); the held v1.1 pair and the held cracked pair have v1.0's programs and import as v1.0 (the cracked pair is played: PCHARS0, TOWN A). images: the held d64s (s218)."
+  },
+  {
+   "id": "p3-c64-1.2",
+   "game": "phantasie3",
+   "title": "Phantasie III (C64 v1.2)",
+   "platform": "c64",
+   "status": "supported",
+   "feeds": [
+    "tables"
+   ],
+   "disks": [
+    {
+     "label": "side 1",
+     "key_files": [
+      {
+       "name": "PHANT.OBJ",
+       "size": 22555,
+       "sha1": "8e94d5304dad971dda6147a50cb61a3cf27def26"
+      },
+      {
+       "name": "MONSTERS",
+       "size": 8035,
+       "sha1": "4e5823e5aa246c0aad2ba339e8c02237b62406a7"
+      },
+      {
+       "name": "DATA",
+       "size": 3936,
+       "sha1": "b445fbadbc84189596025e840109114707959dc6"
+      }
+     ]
+    },
+    {
+     "label": "side 2 (DUNGEON)",
+     "key_files": [
+      {
+       "name": "TOWN.OBJ",
+       "size": 14473,
+       "sha1": "315ddc88d39a1d58e6d4346f91c5a5fd7970a4c9"
+      },
+      {
+       "name": "DUNGEON.OBJ",
+       "size": 9829,
+       "sha1": "ca18138f3ac57ac2d55e26b56e547b76d3a069aa"
+      },
+      {
+       "name": "MATERIALMAP",
+       "size": 3753,
+       "sha1": "e29ddbfde08d3acedc79f6f26c08088f384e5499"
+      },
+      {
+       "name": "DNG1",
+       "size": 4135,
+       "sha1": "2db07953d3cf369318896778430c6e73eea5e9da"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "PHANT.OBJ",
+    "MONSTERS"
+   ],
+   "mutable_files": [
+    {
+     "name": "PCHARS0",
+     "size": 3063,
+     "sha1": "c612806fbeae6ba89f6347e7ad789b91ab4ac2b2"
+    },
+    {
+     "name": "TOWN A",
+     "size": 183,
+     "sha1": "0dfd8da8fda8f75b635eb46e41b56899b40489c6"
+    },
+    {
+     "name": "TOWN B",
+     "size": 183,
+     "sha1": "5dc318063e819a6d444a6ae73c0d44bd36bd54e1"
+    },
+    {
+     "name": "TOWN C",
+     "size": 183,
+     "sha1": "70429496a6ba5495969647dfd6a82ee92b59e1c8"
+    },
+    {
+     "name": "TOWN D",
+     "size": 183,
+     "sha1": "51430ea101f4c67b84b07b660a9a75846d520030"
+    },
+    {
+     "name": "TOWN E",
+     "size": 183,
+     "sha1": "ee0a22b48833acd93cc9278dde91652c6c97d23c"
+    },
+    {
+     "name": "TOWN F",
+     "size": 183,
+     "sha1": "0f89e69d09b6223f9fc946ca854ef33acc06f2a7"
+    },
+    {
+     "name": "TOWN G",
+     "size": 183,
+     "sha1": "ebf95e6a0bbcbd7ce656d47baa8943222c2b6c58"
+    },
+    {
+     "name": "TOWN H",
+     "size": 183,
+     "sha1": "caf9ad53991abbcade04a65764c71a6db0cce7ef"
+    },
+    {
+     "name": "TOWN I",
+     "size": 183,
+     "sha1": "9a455fc86fa0e2a4d2fa1b257b30761f6bdb2637"
+    },
+    {
+     "name": "TOWN J",
+     "size": 183,
+     "sha1": "9a2bbcca718b85a1d0d8aaf21848f1c1b67f6dda"
+    },
+    {
+     "name": "TOWN K",
+     "size": 183,
+     "sha1": "4d03456772bef15be7d82f712e2b46c353dcd7a6"
+    },
+    {
+     "name": "TOWN L",
+     "size": 183,
+     "sha1": "5070e899a2d6b4d1a87645708814ddfb2764170c"
+    },
+    {
+     "name": "TOWN M",
+     "size": 183,
+     "sha1": "d6f6579a302fd43c04497da80eec43e2f2134123"
+    },
+    {
+     "name": "TOWN N",
+     "size": 183,
+     "sha1": "4801d11651b68c69245d421cd73a4ee6883d6468"
+    },
+    {
+     "name": "TOWN O",
+     "size": 183,
+     "sha1": "8bcb5970f55aea21e308af5940460247f6aec5ce"
+    },
+    {
+     "name": "TOWN P",
+     "size": 183,
+     "sha1": "8bcb5970f55aea21e308af5940460247f6aec5ce"
+    },
+    {
+     "name": "TOWN Q",
+     "size": 183,
+     "sha1": "03949fec617c7f36b5955ce891ef5d8f53efcce3"
+    },
+    {
+     "name": "DNGIP1",
+     "size": 5,
+     "sha1": "7fa0a94b151898b8f43fd017c3684e3488c7e5c7"
+    }
+   ],
+   "_note": "C64PP v1.2 (alt): v1.0's data files but its own PHANT.OBJ / TOWN.OBJ and the re-rolled PCHARS0 (s218)."
   },
   {
    "id": "p1-msx2",

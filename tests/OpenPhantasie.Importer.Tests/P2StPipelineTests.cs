@@ -29,6 +29,8 @@ public class P2StPipelineTests
         ["graphics/apple2.json"] = "the Apple II pack: p2-apple2's output (P2Apple2PipelineTests)",
         ["apple2-import.json"] = "class (a), shipped: the ST cells, compass map and manual spell names an Apple-only import takes (D2-046..050)",
         ["strings/fallback.en.json"] = "class (a), shipped: the remaster's wording for lines the Apple II lacks (D2-050)",
+        ["c64-import.json"] = "class (a), shipped (s218): the ST cells, sprite sizes and manual spell names a C64-only import takes (D2-054..056)",
+        ["strings/fallback.p2-c64.en.json"] = "class (a), shipped (s218): the remaster's wording for the line a C64-only II lacks besides",
         ["terrain-key.json"] = "s171, shipped: the TERRAIN KEY rows (string ids, picture names), the remaster's QoL data",
         ["graphics/fonts/emutos-st-8x8.json"] = "s160: EmuTOS's font (emutos_st_font.py), not from the disks, ships",
         ["graphics/fonts/emutos-st-8x8-italic.json"] = "s160: EmuTOS's font in VDI italic (emutos_st_font.py), ships",

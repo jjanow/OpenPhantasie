@@ -61,7 +61,15 @@ public static class ImportedStrings
     /// same; a test keeps every id in one file), one fallback file per table (DIFFERENCES-II D2-050; s163 III and the
     /// common shared / I file).
     /// </summary>
-    public static void WriteFallback(ImportContext ctx, params string[] games)
+    public static void WriteFallback(ImportContext ctx, params string[] games) =>
+        WriteFallback(ctx, [ctx.Profile.Id], games);
+
+    /// <summary>
+    /// <see cref="WriteFallback(ImportContext, string[])"/> with the shipped profile fallback files of
+    /// <paramref name="profileFiles"/> merged after each game's file, in that order (s218: the C64 III takes its own file
+    /// and the Apple III's, whose lines it lacks too).
+    /// </summary>
+    public static void WriteFallback(ImportContext ctx, IReadOnlyList<string> profileFiles, params string[] games)
     {
         var merged = new SortedDictionary<string, JsonObject>(StringComparer.Ordinal);
         var read = new List<string>();
@@ -83,11 +91,14 @@ public static class ImportedStrings
                 throw new InvalidOperationException($"shipped {game}/{ShippedFallbackFile} missing");
             Merge(tables);
             read.Add($"{game}/{ShippedFallbackFile}");
-            var own = ShippedProfileFallbackFile(ctx.Profile.Id);
-            if (ctx.ReadShipped(game, own)?["tables"] is JsonObject profileTables)
+            foreach (var profile in profileFiles)
             {
-                Merge(profileTables);
-                read.Add($"{game}/{own}");
+                var own = ShippedProfileFallbackFile(profile);
+                if (ctx.ReadShipped(game, own)?["tables"] is JsonObject profileTables)
+                {
+                    Merge(profileTables);
+                    read.Add($"{game}/{own}");
+                }
             }
         }
         var from = string.Join(", ", read);
@@ -221,6 +232,9 @@ public static class ImportedStrings
                         >= 0x41 and <= 0x5A => (byte)(b + 0x20),
                         _ => b,
                     })] : null,
+                // s218: a C64 III program with bit 7 cleared on every byte (bit 7 ends each of its strings).
+                _ when key.EndsWith(":low7", StringComparison.Ordinal) =>
+                    Raw(key[..^5]) is { } low ? [.. low.Select(b => (byte)(b & 0x7F))] : null,
                 _ => Raw(key),
             };
             _cache[key] = data;

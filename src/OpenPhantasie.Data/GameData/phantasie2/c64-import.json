@@ -1,0 +1,1924 @@
+{
+ "_schema": "openphantasie.p2-c64-import/v1",
+ "_source": "Remaster data for a Phantasie II import from the C64 copy alone (profile p2-c64, v1.2), applied by the importer (OpenPhantasie.Importer.Pipelines.P2C64.P2C64Tables). Built by tools/scripts/build_c64_p2_import.py from the C64 v1.2 disks and the Atari ST's data. Numbers and the manual's spell names only; no text from the game disks.",
+ "_note": "As the Apple import (DIFFERENCES-II D2-046 .. D2-050, user s159; the C64-only numbers the same way, s217): a C64-only import keeps the C64's text and takes the ST's value in every cell where the C64's number differs (reverse-engineering/c64/phantasie2/FORMAT.md sections 3 and 7). DNG7's exits are the ST's (user s217).",
+ "_st_cells": "As apple2-import.json's st_cells (CellPatches): a path into the GameData file the C64 import builds (the ST's shape); byte = an offset into a hex string; fog = a map tile whose fog (tile + 120) is kept. A cell holding the C64 value takes the ST value; one holding neither is kept and warned. why = the decision (D2-047 .. D2-049 shared with the Apple; C64 = the C64-only numbers, FORMAT.md 7).",
+ "st_cells": [
+  {
+   "why": "D2-047: VIPER companions (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 6
+    },
+    "companions"
+   ],
+   "c64": [
+    1,
+    1
+   ],
+   "st": [
+    0,
+    0
+   ]
+  },
+  {
+   "why": "C64: RANGER group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 10
+    },
+    "group_size_factor"
+   ],
+   "c64": 3,
+   "st": 5
+  },
+  {
+   "why": "C64 (picture layout): PLUTO'S GIANT CONST. byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 17
+    },
+    "byte_34"
+   ],
+   "c64": 105,
+   "st": 62
+  },
+  {
+   "why": "C64: GOBLIN group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 20
+    },
+    "group_size_factor"
+   ],
+   "c64": 2,
+   "st": 3
+  },
+  {
+   "why": "C64: ILLUSIONIST group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 22
+    },
+    "group_size_factor"
+   ],
+   "c64": 2,
+   "st": 3
+  },
+  {
+   "why": "C64: WIGHT group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 25
+    },
+    "group_size_factor"
+   ],
+   "c64": 2,
+   "st": 3
+  },
+  {
+   "why": "C64: KILLER BEE group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 28
+    },
+    "group_size_factor"
+   ],
+   "c64": 4,
+   "st": 6
+  },
+  {
+   "why": "C64: BABY DRAGON group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 30
+    },
+    "group_size_factor"
+   ],
+   "c64": 3,
+   "st": 4
+  },
+  {
+   "why": "C64: WRAITH group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 37
+    },
+    "group_size_factor"
+   ],
+   "c64": 2,
+   "st": 3
+  },
+  {
+   "why": "C64 (picture layout): VIPER MOTH byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 40
+    },
+    "byte_34"
+   ],
+   "c64": 35,
+   "st": 62
+  },
+  {
+   "why": "C64: ASP group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 41
+    },
+    "group_size_factor"
+   ],
+   "c64": 1,
+   "st": 2
+  },
+  {
+   "why": "C64 (picture layout): PLUTO'S WINGED DEVIL byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 43
+    },
+    "byte_34"
+   ],
+   "c64": 65,
+   "st": 35
+  },
+  {
+   "why": "C64: OGRE group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 44
+    },
+    "group_size_factor"
+   ],
+   "c64": 2,
+   "st": 3
+  },
+  {
+   "why": "C64 (picture layout): DARK DWARF byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 45
+    },
+    "byte_34"
+   ],
+   "c64": 62,
+   "st": 110
+  },
+  {
+   "why": "C64: LORD group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 47
+    },
+    "group_size_factor"
+   ],
+   "c64": 3,
+   "st": 4
+  },
+  {
+   "why": "C64: DEMON group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 48
+    },
+    "group_size_factor"
+   ],
+   "c64": 2,
+   "st": 3
+  },
+  {
+   "why": "D2-047: FIRE ELEMENTAL reaction_modifier (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 53
+    },
+    "reaction_modifier"
+   ],
+   "c64": -10,
+   "st": 0
+  },
+  {
+   "why": "D2-047: FIRE ELEMENTAL treasure_items (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 53
+    },
+    "treasure_items"
+   ],
+   "c64": [
+    0,
+    0
+   ],
+   "st": [
+    0,
+    135
+   ]
+  },
+  {
+   "why": "C64: MASTER ILLUSIONIST group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 58
+    },
+    "group_size_factor"
+   ],
+   "c64": 2,
+   "st": 3
+  },
+  {
+   "why": "C64: HIGH RANGER group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 59
+    },
+    "group_size_factor"
+   ],
+   "c64": 3,
+   "st": 5
+  },
+  {
+   "why": "C64: HIGH DEMON group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 60
+    },
+    "group_size_factor"
+   ],
+   "c64": 1,
+   "st": 2
+  },
+  {
+   "why": "C64: SPIRIT group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 64
+    },
+    "group_size_factor"
+   ],
+   "c64": 3,
+   "st": 4
+  },
+  {
+   "why": "C64: CLOUD GIANT xp (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 68
+    },
+    "xp"
+   ],
+   "c64": 44464,
+   "st": 44614
+  },
+  {
+   "why": "C64: CLOUD GIANT companions (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 68
+    },
+    "companions"
+   ],
+   "c64": [
+    0,
+    4
+   ],
+   "st": [
+    0,
+    0
+   ]
+  },
+  {
+   "why": "C64: GREAT TROLL group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 69
+    },
+    "group_size_factor"
+   ],
+   "c64": 1,
+   "st": 2
+  },
+  {
+   "why": "C64: WIZARD group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 70
+    },
+    "group_size_factor"
+   ],
+   "c64": 3,
+   "st": 4
+  },
+  {
+   "why": "C64: OVERLORD group_size_factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 71
+    },
+    "group_size_factor"
+   ],
+   "c64": 3,
+   "st": 4
+  },
+  {
+   "why": "C64 (picture layout): PLUTO'S UNDEAD SNAKE byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 72
+    },
+    "byte_34"
+   ],
+   "c64": 62,
+   "st": 105
+  },
+  {
+   "why": "C64 (picture layout): PLUTO'S DEMON-FLY byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 73
+    },
+    "byte_34"
+   ],
+   "c64": 62,
+   "st": 113
+  },
+  {
+   "why": "D2-047: PLUTO'S WYVERN damage (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 74
+    },
+    "damage"
+   ],
+   "c64": 40,
+   "st": 35
+  },
+  {
+   "why": "C64 (picture layout): PLUTO'S WYVERN byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 74
+    },
+    "byte_34"
+   ],
+   "c64": 62,
+   "st": 120
+  },
+  {
+   "why": "C64 (picture layout): PLUTO'S SNAKE-DRAGON byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 75
+    },
+    "byte_34"
+   ],
+   "c64": 105,
+   "st": 107
+  },
+  {
+   "why": "C64 (picture layout): PLUTO'S GIANT WYVERN byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 76
+    },
+    "byte_34"
+   ],
+   "c64": 105,
+   "st": 140
+  },
+  {
+   "why": "D2-047: PLUTO'S GIANT WYVERN attack_power (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 76
+    },
+    "attack_power"
+   ],
+   "c64": 350,
+   "st": 300
+  },
+  {
+   "why": "C64 (picture layout): PLUTO'S DRAGON-DEMON byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 77
+    },
+    "byte_34"
+   ],
+   "c64": 105,
+   "st": 35
+  },
+  {
+   "why": "D2-047: PLUTO'S DRAGON-DEMON attack_power (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 77
+    },
+    "attack_power"
+   ],
+   "c64": 800,
+   "st": 400
+  },
+  {
+   "why": "C64 (picture layout): PLUTO'S ICE DRAGON byte_34 (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 78
+    },
+    "byte_34"
+   ],
+   "c64": 105,
+   "st": 62
+  },
+  {
+   "why": "D2-049: MONK level 10 skill 6",
+   "file": "creation-tables.json",
+   "path": [
+    "skill_coefficients",
+    "by_class_level",
+    "MONK",
+    9,
+    6
+   ],
+   "c64": 0,
+   "st": 14
+  },
+  {
+   "why": "D2-049: PRIEST level 15 skill 8",
+   "file": "creation-tables.json",
+   "path": [
+    "skill_coefficients",
+    "by_class_level",
+    "PRIEST",
+    14,
+    8
+   ],
+   "c64": 0,
+   "st": 4
+  },
+  {
+   "why": "D2-048: IPSWICH stock of item 126",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 4
+    },
+    "stock",
+    126
+   ],
+   "c64": 0,
+   "st": 5
+  },
+  {
+   "why": "D2-048: IPSWICH stock of item 127",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 4
+    },
+    "stock",
+    127
+   ],
+   "c64": 5,
+   "st": 0
+  },
+  {
+   "why": "C64: FERRON stock of item 115",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 5
+    },
+    "stock",
+    115
+   ],
+   "c64": 1,
+   "st": 0
+  },
+  {
+   "why": "D2-048: FERRON stock of item 126",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 5
+    },
+    "stock",
+    126
+   ],
+   "c64": 0,
+   "st": 5
+  },
+  {
+   "why": "D2-048: FERRON stock of item 127",
+   "file": "towns.json",
+   "path": [
+    "towns",
+    {
+     "index": 5
+    },
+    "stock",
+    127
+   ],
+   "c64": 5,
+   "st": 0
+  },
+  {
+   "why": "D2-049: OUT1 feature record 14",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    {
+     "index": 14
+    },
+    "dest_y"
+   ],
+   "c64": 0,
+   "st": 32
+  },
+  {
+   "why": "D2-049: OUT3 (5, 12)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "tiles",
+    12,
+    5
+   ],
+   "fog": true,
+   "c64": 1,
+   "st": 21
+  },
+  {
+   "why": "D2-049: OUT3 (5, 13)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "tiles",
+    13,
+    5
+   ],
+   "fog": true,
+   "c64": 1,
+   "st": 21
+  },
+  {
+   "why": "D2-049: OUT3 (5, 14)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "tiles",
+    14,
+    5
+   ],
+   "fog": true,
+   "c64": 1,
+   "st": 21
+  },
+  {
+   "why": "D2-049: OUT3 (5, 15)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "tiles",
+    15,
+    5
+   ],
+   "fog": true,
+   "c64": 1,
+   "st": 21
+  },
+  {
+   "why": "C64: OUT5 (17, 3)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT5.DAT",
+    "tiles",
+    3,
+    17
+   ],
+   "fog": true,
+   "c64": 2,
+   "st": 62
+  },
+  {
+   "why": "C64: OUT5 (18, 3)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT5.DAT",
+    "tiles",
+    3,
+    18
+   ],
+   "fog": true,
+   "c64": 2,
+   "st": 62
+  },
+  {
+   "why": "C64: OUT5 (19, 3)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT5.DAT",
+    "tiles",
+    3,
+    19
+   ],
+   "fog": true,
+   "c64": 2,
+   "st": 62
+  },
+  {
+   "why": "C64 (junk record): OUT5 feature record 5",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT5.DAT",
+    "features",
+    {
+     "index": 5
+    },
+    "y"
+   ],
+   "c64": 10,
+   "st": 0
+  },
+  {
+   "why": "D2-049: OUT17 (20, 6)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT17.DAT",
+    "tiles",
+    6,
+    20
+   ],
+   "fog": true,
+   "c64": 76,
+   "st": 72
+  },
+  {
+   "why": "C64: OUT26 (0, 2)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT26.DAT",
+    "tiles",
+    2,
+    0
+   ],
+   "fog": true,
+   "c64": 101,
+   "st": 100
+  },
+  {
+   "why": "C64: OUT26 (1, 2)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT26.DAT",
+    "tiles",
+    2,
+    1
+   ],
+   "fog": true,
+   "c64": 101,
+   "st": 100
+  },
+  {
+   "why": "C64: OUT27 (23, 2)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT27.DAT",
+    "tiles",
+    2,
+    23
+   ],
+   "fog": true,
+   "c64": 101,
+   "st": 100
+  },
+  {
+   "why": "C64: OUT27 (24, 2)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT27.DAT",
+    "tiles",
+    2,
+    24
+   ],
+   "fog": true,
+   "c64": 101,
+   "st": 100
+  },
+  {
+   "why": "C64: OUT28 (23, 2)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    2,
+    23
+   ],
+   "fog": true,
+   "c64": 101,
+   "st": 100
+  },
+  {
+   "why": "C64: OUT28 (24, 2)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    2,
+    24
+   ],
+   "fog": true,
+   "c64": 101,
+   "st": 100
+  },
+  {
+   "why": "C64: OUT28 (17, 12)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    12,
+    17
+   ],
+   "fog": true,
+   "c64": 52,
+   "st": 50
+  },
+  {
+   "why": "C64: OUT28 (18, 12)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    12,
+    18
+   ],
+   "fog": true,
+   "c64": 52,
+   "st": 50
+  },
+  {
+   "why": "C64: OUT28 (19, 12)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    12,
+    19
+   ],
+   "fog": true,
+   "c64": 52,
+   "st": 50
+  },
+  {
+   "why": "C64: OUT28 (17, 13)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    13,
+    17
+   ],
+   "fog": true,
+   "c64": 52,
+   "st": 50
+  },
+  {
+   "why": "C64: OUT28 (19, 13)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    13,
+    19
+   ],
+   "fog": true,
+   "c64": 52,
+   "st": 50
+  },
+  {
+   "why": "C64: OUT28 (17, 14)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    14,
+    17
+   ],
+   "fog": true,
+   "c64": 52,
+   "st": 50
+  },
+  {
+   "why": "C64: OUT28 (18, 14)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    14,
+    18
+   ],
+   "fog": true,
+   "c64": 52,
+   "st": 50
+  },
+  {
+   "why": "C64: OUT28 (19, 14)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT28.DAT",
+    "tiles",
+    14,
+    19
+   ],
+   "fog": true,
+   "c64": 52,
+   "st": 50
+  },
+  {
+   "why": "C64: OUT30 (23, 2)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT30.DAT",
+    "tiles",
+    2,
+    23
+   ],
+   "fog": true,
+   "c64": 101,
+   "st": 100
+  },
+  {
+   "why": "C64: OUT30 (24, 2)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT30.DAT",
+    "tiles",
+    2,
+    24
+   ],
+   "fog": true,
+   "c64": 101,
+   "st": 100
+  },
+  {
+   "why": "D2-049: OUT31 (17, 18)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT31.DAT",
+    "tiles",
+    18,
+    17
+   ],
+   "fog": true,
+   "c64": 100,
+   "st": 85
+  },
+  {
+   "why": "D2-049: OUT31 (17, 19)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT31.DAT",
+    "tiles",
+    19,
+    17
+   ],
+   "fog": true,
+   "c64": 100,
+   "st": 85
+  },
+  {
+   "why": "C64: DNG1 byte 0x343 = cell (10, 25)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG1",
+    "raw_hex"
+   ],
+   "byte": 835,
+   "c64": 15,
+   "st": 0
+  },
+  {
+   "why": "C64: DNG1 byte 0x674 = script area",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG1",
+    "raw_hex"
+   ],
+   "byte": 1652,
+   "c64": 16,
+   "st": 10
+  },
+  {
+   "why": "C64: DNG2 byte 0x0f7 = cell (16, 7)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG2",
+    "raw_hex"
+   ],
+   "byte": 247,
+   "c64": 142,
+   "st": 140
+  },
+  {
+   "why": "C64: DNG2 byte 0x0f8 = cell (17, 7)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG2",
+    "raw_hex"
+   ],
+   "byte": 248,
+   "c64": 142,
+   "st": 140
+  },
+  {
+   "why": "C64: DNG2 byte 0x0f9 = cell (18, 7)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG2",
+    "raw_hex"
+   ],
+   "byte": 249,
+   "c64": 142,
+   "st": 140
+  },
+  {
+   "why": "C64: DNG2 byte 0x34e = cell (21, 25)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG2",
+    "raw_hex"
+   ],
+   "byte": 846,
+   "c64": 184,
+   "st": 188
+  },
+  {
+   "why": "C64: DNG3 byte 0x205 = cell (22, 15)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG3",
+    "raw_hex"
+   ],
+   "byte": 517,
+   "c64": 128,
+   "st": 0
+  },
+  {
+   "why": "C64: DNG3 byte 0x658 = script area",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG3",
+    "raw_hex"
+   ],
+   "byte": 1624,
+   "c64": 239,
+   "st": 79
+  },
+  {
+   "why": "C64: DNG5 byte 0x3cc = cell (15, 29)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 972,
+   "c64": 144,
+   "st": 140
+  },
+  {
+   "why": "C64: DNG5 byte 0x3cd = cell (16, 29)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 973,
+   "c64": 144,
+   "st": 140
+  },
+  {
+   "why": "C64: DNG5 byte 0x3ce = cell (17, 29)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 974,
+   "c64": 144,
+   "st": 140
+  },
+  {
+   "why": "C64: DNG5 byte 0x3cf = cell (18, 29)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 975,
+   "c64": 144,
+   "st": 140
+  },
+  {
+   "why": "D2-049: DNG5 byte 0x4d1 = cell (12, 37)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 1233,
+   "c64": 17,
+   "st": 0
+  },
+  {
+   "why": "C64: DNG5 byte 0x5c6 = script area",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 1478,
+   "c64": 152,
+   "st": 0
+  },
+  {
+   "why": "C64: DNG5 byte 0x5c7 = script area",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 1479,
+   "c64": 152,
+   "st": 0
+  },
+  {
+   "why": "C64: DNG6 byte 0x224 = cell (20, 16)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG6",
+    "raw_hex"
+   ],
+   "byte": 548,
+   "c64": 130,
+   "st": 146
+  },
+  {
+   "why": "decided s217 (ST exits): DNG7 byte 0x4f4 = exit record",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG7",
+    "raw_hex"
+   ],
+   "byte": 1268,
+   "c64": 9,
+   "st": 5
+  },
+  {
+   "why": "decided s217 (ST exits): DNG7 byte 0x4f6 = exit record",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG7",
+    "raw_hex"
+   ],
+   "byte": 1270,
+   "c64": 12,
+   "st": 15
+  },
+  {
+   "why": "decided s217 (ST exits): DNG7 byte 0x4f7 = exit record",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG7",
+    "raw_hex"
+   ],
+   "byte": 1271,
+   "c64": 5,
+   "st": 6
+  },
+  {
+   "why": "decided s217 (ST exits): DNG7 byte 0x4f9 = exit record",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG7",
+    "raw_hex"
+   ],
+   "byte": 1273,
+   "c64": 15,
+   "st": 13
+  },
+  {
+   "why": "decided s217 (ST exits): DNG7 byte 0x4fa = exit record",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG7",
+    "raw_hex"
+   ],
+   "byte": 1274,
+   "c64": 7,
+   "st": 9
+  },
+  {
+   "why": "C64: DNG7 byte 0x6a5 = script area",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG7",
+    "raw_hex"
+   ],
+   "byte": 1701,
+   "c64": 19,
+   "st": 29
+  },
+  {
+   "why": "D2-049: DNG8 byte 0x447 = cell (6, 33)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG8",
+    "raw_hex"
+   ],
+   "byte": 1095,
+   "c64": 141,
+   "st": 133
+  },
+  {
+   "why": "C64: elemental 0 mp_ceiling (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    0,
+    "mp_ceiling"
+   ],
+   "c64": 0,
+   "st": 20
+  },
+  {
+   "why": "C64: elemental 0 guild_number (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    0,
+    "guild_number"
+   ],
+   "c64": 38,
+   "st": 23
+  },
+  {
+   "why": "C64: elemental 0 race (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    0,
+    "race"
+   ],
+   "c64": 16,
+   "st": 15
+  },
+  {
+   "why": "C64: elemental 1 mp_ceiling (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    1,
+    "mp_ceiling"
+   ],
+   "c64": 0,
+   "st": 20
+  },
+  {
+   "why": "C64: elemental 1 guild_number (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    1,
+    "guild_number"
+   ],
+   "c64": 39,
+   "st": 24
+  },
+  {
+   "why": "C64: elemental 1 race (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    1,
+    "race"
+   ],
+   "c64": 16,
+   "st": 15
+  },
+  {
+   "why": "C64: elemental 2 mp_ceiling (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    2,
+    "mp_ceiling"
+   ],
+   "c64": 0,
+   "st": 20
+  },
+  {
+   "why": "C64: elemental 2 guild_number (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    2,
+    "guild_number"
+   ],
+   "c64": 40,
+   "st": 25
+  },
+  {
+   "why": "C64: elemental 2 race (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    2,
+    "race"
+   ],
+   "c64": 16,
+   "st": 15
+  }
+ ],
+ "_sprite_sizes": "The ST's monster sprite (width, height) per monster (PHANT.PRG 0x2112e): II's group fit reads the height (encounters.md 3). The C64 has no such table (its groups are up to 8 VIC sprites).",
+ "sprite_sizes": [
+  [
+   32,
+   34
+  ],
+  [
+   32,
+   30
+  ],
+  [
+   32,
+   27
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   25
+  ],
+  [
+   32,
+   26
+  ],
+  [
+   32,
+   22
+  ],
+  [
+   32,
+   22
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   33
+  ],
+  [
+   32,
+   36
+  ],
+  [
+   32,
+   34
+  ],
+  [
+   32,
+   37
+  ],
+  [
+   32,
+   31
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   21
+  ],
+  [
+   32,
+   26
+  ],
+  [
+   80,
+   39
+  ],
+  [
+   32,
+   31
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   37
+  ],
+  [
+   32,
+   34
+  ],
+  [
+   32,
+   38
+  ],
+  [
+   32,
+   33
+  ],
+  [
+   32,
+   37
+  ],
+  [
+   32,
+   34
+  ],
+  [
+   32,
+   25
+  ],
+  [
+   32,
+   26
+  ],
+  [
+   64,
+   39
+  ],
+  [
+   32,
+   34
+  ],
+  [
+   32,
+   28
+  ],
+  [
+   32,
+   37
+  ],
+  [
+   32,
+   31
+  ],
+  [
+   32,
+   35
+  ],
+  [
+   32,
+   39
+  ],
+  [
+   32,
+   34
+  ],
+  [
+   32,
+   31
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   48,
+   32
+  ],
+  [
+   48,
+   32
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   48,
+   31
+  ],
+  [
+   32,
+   33
+  ],
+  [
+   32,
+   35
+  ],
+  [
+   32,
+   38
+  ],
+  [
+   32,
+   37
+  ],
+  [
+   32,
+   30
+  ],
+  [
+   64,
+   39
+  ],
+  [
+   32,
+   39
+  ],
+  [
+   32,
+   21
+  ],
+  [
+   32,
+   35
+  ],
+  [
+   32,
+   38
+  ],
+  [
+   80,
+   73
+  ],
+  [
+   32,
+   38
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   38
+  ],
+  [
+   32,
+   33
+  ],
+  [
+   32,
+   38
+  ],
+  [
+   32,
+   39
+  ],
+  [
+   32,
+   26
+  ],
+  [
+   32,
+   25
+  ],
+  [
+   32,
+   36
+  ],
+  [
+   32,
+   34
+  ],
+  [
+   80,
+   79
+  ],
+  [
+   80,
+   77
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   32,
+   38
+  ],
+  [
+   32,
+   39
+  ],
+  [
+   32,
+   38
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   48,
+   33
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   80,
+   80
+  ]
+ ],
+ "_spell_names": "D2-050: the C64 has no spell names (spells are cast by number, FORMAT.md 3.10); the manual's list as apple2-import.json's (slots 56 / 57, the divine spells: the ST's names, user s170).",
+ "spell_names": [
+  {
+   "slot": 0,
+   "name": "HEALING 1"
+  },
+  {
+   "slot": 1,
+   "name": "HEALING 2"
+  },
+  {
+   "slot": 2,
+   "name": "HEALING 3"
+  },
+  {
+   "slot": 3,
+   "name": "HEALING 4"
+  },
+  {
+   "slot": 4,
+   "name": "FIREFLASH 1"
+  },
+  {
+   "slot": 5,
+   "name": "FIREFLASH 2"
+  },
+  {
+   "slot": 6,
+   "name": "FIREFLASH 3"
+  },
+  {
+   "slot": 7,
+   "name": "FIREFLASH 4"
+  },
+  {
+   "slot": 8,
+   "name": "QUICKNESS 1"
+  },
+  {
+   "slot": 9,
+   "name": "QUICKNESS 2"
+  },
+  {
+   "slot": 10,
+   "name": "QUICKNESS 3"
+  },
+  {
+   "slot": 11,
+   "name": "QUICKNESS 4"
+  },
+  {
+   "slot": 12,
+   "name": "STRENGTH 1"
+  },
+  {
+   "slot": 13,
+   "name": "STRENGTH 2"
+  },
+  {
+   "slot": 14,
+   "name": "STRENGTH 3"
+  },
+  {
+   "slot": 15,
+   "name": "STRENGTH 4"
+  },
+  {
+   "slot": 16,
+   "name": "PROTECTION 1"
+  },
+  {
+   "slot": 17,
+   "name": "PROTECTION 2"
+  },
+  {
+   "slot": 18,
+   "name": "PROTECTION 3"
+  },
+  {
+   "slot": 19,
+   "name": "PROTECTION 4"
+  },
+  {
+   "slot": 20,
+   "name": "CONFUSION 1"
+  },
+  {
+   "slot": 21,
+   "name": "CONFUSION 2"
+  },
+  {
+   "slot": 22,
+   "name": "CONFUSION 3"
+  },
+  {
+   "slot": 23,
+   "name": "CONFUSION 4"
+  },
+  {
+   "slot": 24,
+   "name": "WEAKNESS 1"
+  },
+  {
+   "slot": 25,
+   "name": "WEAKNESS 2"
+  },
+  {
+   "slot": 26,
+   "name": "WEAKNESS 3"
+  },
+  {
+   "slot": 27,
+   "name": "WEAKNESS 4"
+  },
+  {
+   "slot": 28,
+   "name": "BINDING 1"
+  },
+  {
+   "slot": 29,
+   "name": "BINDING 2"
+  },
+  {
+   "slot": 30,
+   "name": "BINDING 3"
+  },
+  {
+   "slot": 31,
+   "name": "BINDING 4"
+  },
+  {
+   "slot": 32,
+   "name": "MINDBLAST 1"
+  },
+  {
+   "slot": 33,
+   "name": "MINDBLAST 2"
+  },
+  {
+   "slot": 34,
+   "name": "MINDBLAST 3"
+  },
+  {
+   "slot": 35,
+   "name": "MINDBLAST 4"
+  },
+  {
+   "slot": 36,
+   "name": "FLAMEBOLT 1"
+  },
+  {
+   "slot": 37,
+   "name": "FLAMEBOLT 2"
+  },
+  {
+   "slot": 38,
+   "name": "FLAMEBOLT 3"
+  },
+  {
+   "slot": 39,
+   "name": "FLAMEBOLT 4"
+  },
+  {
+   "slot": 40,
+   "name": "CHARM"
+  },
+  {
+   "slot": 41,
+   "name": "SLEEP"
+  },
+  {
+   "slot": 42,
+   "name": "TELEPORTATION"
+  },
+  {
+   "slot": 43,
+   "name": "RESURRECTION"
+  },
+  {
+   "slot": 44,
+   "name": "NINJA 2"
+  },
+  {
+   "slot": 45,
+   "name": "FEAR"
+  },
+  {
+   "slot": 46,
+   "name": "DISSOLVE"
+  },
+  {
+   "slot": 47,
+   "name": "SUMMONS ELEMENTAL"
+  },
+  {
+   "slot": 48,
+   "name": "DISPELL UNDEAD"
+  },
+  {
+   "slot": 49,
+   "name": "NINJA 1"
+  },
+  {
+   "slot": 50,
+   "name": "AWAKEN"
+  },
+  {
+   "slot": 51,
+   "name": "MONSTER EVALUATION"
+  },
+  {
+   "slot": 52,
+   "name": "VISION"
+  },
+  {
+   "slot": 53,
+   "name": "TRANSPORTATION"
+  },
+  {
+   "slot": 56,
+   "name": "DIVINE II",
+   "from_st": true
+  },
+  {
+   "slot": 57,
+   "name": "DIVINE I",
+   "from_st": true
+  }
+ ]
+}

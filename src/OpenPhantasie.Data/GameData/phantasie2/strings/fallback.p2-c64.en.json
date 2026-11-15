@@ -1,0 +1,10 @@
+{
+ "_schema": "phantasie.strings-fallback/v1",
+ "_note": "s218: the remaster's own wording for the lines a C64-only Phantasie II lacks besides those of fallback.en.json: the ids the Atari ST gives that the C64 v1.2 prints neither verbatim nor in its own wording (strings/en.sources.json, tools/scripts/p2_c64_own_wording.json). The C64 shows swimming as a '--- SWIMMING ---' box, not a line per member. The importer merges this file after the game's fallback.en.json (ImportedStrings.WriteFallback).",
+ "language": "en",
+ "tables": {
+  "phantasie2": {
+   "core.dungeon.x_swims": "{0} SWIMS"
+  }
+ }
+}

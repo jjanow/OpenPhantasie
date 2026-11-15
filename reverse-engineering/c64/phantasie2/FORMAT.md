@@ -3,8 +3,8 @@
 Where each of II's game tables lives on the C64 disks, how it maps onto the Atari ST's tables (today's
 `src/OpenPhantasie.Data/GameData/phantasie2/`, `../../atari-st/phantasie2/FORMAT.md`), and every place found so far
 where the C64 differs from the ST (and whether the Apple II shares it, `../../apple2/phantasie2/FORMAT.md`,
-`DIFFERENCES-II.md` D2-046…D2-050). First step of a C64 port (s216): data formats only, no importer code (section 7
-is the plan). Same engine as C64 I (`../phantasie1/FORMAT.md`): BASIC compiled to the bytecode of
+`DIFFERENCES-II.md` D2-046…D2-050). Data formats (s216); the `p2-c64` importer built on them (s218, section 7;
+`DIFFERENCES-II.md` D2-054…D2-056). Same engine as C64 I (`../phantasie1/FORMAT.md`): BASIC compiled to the bytecode of
 `../bytecode-notes.md`, the same file kinds and record layouts. Tags: `[C]` read in the code or confirmed on all
 records against the ST's data, `[~]` probable, `[?]` not known. Offsets are into the file **after** its 2-byte PRG
 load address; `P(n)` = byte n of a 170-byte character record.
@@ -117,7 +117,7 @@ Against the ST's 80 records (1,254 of 1,280 numbers equal; the names of 77 equal
 
 What the group-size factor does on the C64 (the ST: group size from it, `logic-specs`) is not read in `OUTDOORS2` /
 `DUNGEON2` `[?]`; the C64 draws a group as up to 8 VIC sprites (6), a plausible reason for smaller groups `[?]`.
-`byte_34` differs in 13 records (35 / 62 / 65 / 105 against the ST's 35–140): a picture-layout value on every version
+`byte_34` differs in 11 records (35 / 62 / 65 / 105 against the ST's 35–140; s218 count): a picture-layout value on every version
 (the Apple keeps a rank height there, D2-047's note) `[~]`. Names that differ: PLUTO'S GIANT CONSTR. (17, ST CONST., Apple
 CONSTRICTOR), CREEPING MOLD (62, ST KILLER CRUD, = Apple), PLUTO'S DEMON FLY / SNAKE DRAGON / DRAGON DEMON (73, 75, 77:
 no hyphen), PLUTO'S GIANT WYWERN (76).
@@ -162,7 +162,8 @@ I's record (`../phantasie1/FORMAT.md` 3.5). 25 records at `SA − 4250` (`SA` = 
 ST has 22), the elementals at 21–23 (FIRE ELEM / WATER ELEM / EARTH ELEM, creation numbers 38–40), record 24 `0xFF`
 filler. The template's elementals equal the ST's `elementals.json` in HP, attack / parry, level 20, class, race 16,
 points (40 / 30 / 20, 100, 7 / 14 / 21) and known spells (slots 4–7, 20–31, 12–19), as in I; P(9) MP ceiling = 0 (ST
-20), P(7) = 20, names with a space (`FIRE ELEM`, ST `FIRE_ELEM`).
+20), P(7) = 20, creation number P(59) 38–40 (ST 23–25), P(161) 16 = the ST's birth race (its race 15), names with a
+space (`FIRE ELEM`, ST `FIRE_ELEM`) (s218: the import's 9 cells).
 
 ### 3.6 Wilderness: `OUTT<n>` (= `PATTERN2` 6780…) `[C]`
 
@@ -205,7 +206,7 @@ the level part (cell kinds: `../../dos/logic-specs/dungeon-representation.md`):
 | DNG5 | `0x4D1` | (12, 37) | 17 wandering | 0 | = C64 (D2-049) | |
 | DNG6 | `0x224` | (20, 16) | **130 forced fight** (entry 2: monster 56) | 146 message 28 "THE DINING ROOM" | = ST | yes |
 | DNG8 | `0x447` | (6, 33) | 141 message 23 | 133 forced fight | = C64 (D2-049) | |
-| DNG7 | `0x4F2`–`0x4FA` | exit records 0–2 (cells 215 / 216 / 217) | **OUT28 (16, 11), (20, 12), (18, 15)** | (20, 11), (19, 15), (16, 13) | = ST | yes: leaving the Black castle |
+| DNG7 | `0x4F2`–`0x4FA` | exit records 0–2 (cells 215 / 216 / 217; 5 of the 9 bytes differ: `0x4F4`, `0x4F6`, `0x4F7`, `0x4F9`, `0x4FA`) | **OUT28 (16, 11), (20, 12), (18, 15)** | (20, 11), (19, 15), (16, 13) | = ST | yes: leaving the Black castle |
 | DNG1 / DNG3 / DNG5 / DNG7 | `0x674` / `0x658` / `0x5C6`–`0x5C7` / `0x6A5` | script area | 16 / 239 / 152, 152 / `0x13` | 10 / 79 / 0, 0 / `0x1D` | = ST | `[?]` what each byte is |
 
 DNG7's exits: on the C64 the north exits (row 0 and (0, 18), cell 215) land on the ring's north-west corner, the east
@@ -215,8 +216,12 @@ south side and the west side. All six target cells are mist / text cells of the 
 ### 3.8 Dungeon messages: `PMES 1`–`PMES 8` `[C]`
 
 Plain ASCII in the ST's `MESSn` layout (slot table u16 LE at `2 (id − 1)`, records = prefix byte + 40 characters at
-`0xE6 + word`); **the slot tables equal the ST's** for ids 1–113, so every message id a cell or event uses is the ST's.
-The files end before the ST's junk records (ids above 110). Words (whole level text, ids 1–110 in order, normalised)
+`0xE6 + word`); **the slot tables equal the ST's** for ids 1–113, so every message id a cell or event uses is the ST's,
+but PMES8: it holds a blank 40-character record at id 95 (the ST's slot 95 is empty), so its words from id 96 on are 41
+higher and every id still names the ST's text; no message cell or event record names 95 `[C]` data, the dungeon
+scripts not walked for it `[~]` (s218). A record's prefix (its
+length) differs in DNG2's message 7: 80, so the C64 shows its second line "FROM A SLIT OF THE CEILING." (the ST's 40:
+one line, the next record a continuation). The files end before the ST's junk records (ids above 110). Words (whole level text, ids 1–110 in order, normalised)
 equal the ST's but: PMES1 `DETENTION` (ST `DETENSION`), "DROP GOLD AND WALK INTO THE SMOKE" (ST "DROP YOUR GOLD"),
 "PLUTO'S ICE DRAGON, THE RETURN HERE" (ST THEN); PMES2 "A SLIT OF THE CEILING" (IN), "UNDER A TOWER" (THE); PMES3
 `KEEPERS'S`; PMES4 "SMALL OAK CHEST" (no OAK), "THERE IS SMALL BUTTON" (IS A), `BEFORE` (BE FORE); PMES5 `DOOR` (DOOT),
@@ -231,7 +236,8 @@ DNG1 msg 40, the DNG6 / DNG7 menus) is **not** on the C64: there it reads as the
 I's REL layout: records 1–4 = the index (21 values `5, 28, 51, …, 381, 404`: page k = records `idx[k] … idx[k+1] − 1`,
 k = 1–20 = items 121–140), each page boxed in `+---+` / `! … !` rows in mixed-case PETSCII. Page 17 is empty (item
 137, as on the ST and the Apple). The lettered scrolls take the ST's pages: A = 1–3, J = 12–13, K = 14–16, the others
-one page each. Words equal the ST's but A `VENGENCE`, G "A MUCH SMALLER PALACE" (ST SUCH), K "AN ENOURMOUS **GREEN**
+one page each (the ST's record r = page r + 1, from record 16 page r + 2: the ST has no empty record). SCROLL C's row
+(record 114) "THE NETHERWORLD OR 'PLACE OF DE-" lacks its closing `!`. Words equal the ST's but A `VENGENCE`, G "A MUCH SMALLER PALACE" (ST SUCH), K "AN ENOURMOUS **GREEN**
 SNAKE" (ST BROWN; the Apple GREEN), N one `A` fewer. Records 404–411: a leftover page tail ("The other starts between the
 Arena and the Jail Cell …", no scroll uses it) `[~]`. No spell names on either side (searched as in I).
 
@@ -278,10 +284,34 @@ k = `MN` field 13 + 1; a group = up to 8 VIC sprites); `TLUM1` the ending's spri
 (`PIC.*`), the item / feature pictures, `FONT`, `FONT+HER`, `HSPRIT`, `PH2.END-4`, `CEMETARY2`'s files: not decoded.
 No sound files (SID code inside the programs `[?]`).
 
-## 7. Importer plan: `p2-c64` (plan only, s216)
+## 7. Importer: `p2-c64` (planned s216, built s218)
 
 As the Apple import (D2-046…D2-050, `GameData/phantasie2/apple2-import.json`): **the C64's text, the ST's numbers**,
 built through the ST builders so the GameData keeps the ST schema (the decisions below).
+
+**Built (s218):** `src/OpenPhantasie.Importer/Pipelines/P2C64/` (`P2C64Pipeline`, `P2C64Tables`), the shipped
+`GameData/phantasie2/c64-import.json` (`tools/scripts/build_c64_p2_import.py`, which asserts the cell count per file
+against this file's tables: 104 cells), profiles `p2-c64` (supported) and `p2-c64-1.0` (recognised), tests
+`P2C64TablesTests`; write-up `docs/plan/10-importer.md` 7.12, decisions `DIFFERENCES-II.md` D2-054…D2-056. As planned
+below, with these details:
+
+- Each C64 table is put into the ST extract's shape (`P2StExtract`'s; `Dungeons` / `Messages` take any reader of the
+  ST's layouts) and goes through `P2GameDataBuilder`; `Creation` takes the C64's manual cells (`manualCopy`). The ST
+  cells are applied to the built files (`CellPatches`, as the Apple's).
+- Files are read per side (`MN` and `B` differ between the sides): `MN`, `TOWN2`, `ITEM`, `TINFO`, `SCROLLS` from side
+  1; `PATTERN2`, `DNG n`, `PMES n` from side 2. Key files: side 1 `TOWN2`, `OUTDOORS2`, `TINFO`, `MN`, `ITEM`,
+  `SCROLLS`; side 2 `DUNGEON2`, `PATTERN2`, `DNG 7`, `MN` (never `B`: the held side A's differs). Mutable: `CHAR22`,
+  `TWN21`–`TWN210`, the 17 `OUTT`s at their mastered sha1s (alt1's); never_used reports `CHAR22`, `TWN21`, `OUTT2`.
+  `p2-c64` is `PlayedCopySafe` (no map-restore question).
+- `monsters.json` has no `raw_hex` (the ST's 58-byte record is not on the C64); `byte_34` takes the ST's (11 cells).
+  The ten towns (the ST's 12th / 11th are unused); 750-byte regions (pages 0–3); 1,962-byte levels; a real
+  `messages.json` (`message_areas` 8).
+- Strings: `p2-c64` alternatives verbatim from `TOWN2`, `OUTDOORS2`, `DUNGEON2`, `CEMETARY2`, `WIN`, `SCROLL0`, and in
+  the C64's own wording (`tools/scripts/p2_c64_own_wording.json`: Pluto's speech, the Filmon ending, the Mystic, three
+  field lines); `fallback.p2-c64.en.json` for `{0} SWIMS`.
+- Precedence: the ST's, then the Apple's tables win (same run or earlier; an Apple import after a C64 one replaces the
+  C64's tables, `A2GameData.Write`) `[U]` (not in the decisions: the order Apple over C64 was chosen to keep Apple
+  imports unchanged).
 
 **Containers.** `.d64` / `.g64` as `p1-c64` (the G64 decoder and D64 / REL reader are shared).
 
@@ -333,4 +363,8 @@ from `PATTERN2`; played = loads at `$81C3` / `$9448` / `$898A` (a warning only, 
 **Graphics pack (`c64`).** As I's plan: `MX` sprites (80 sets + `TLUM1`), title, item / feature pictures, font; map
 tiles, hero sprites, `PH2.END-4` not decoded.
 
-**Not done here:** the bytecode rules (group size, restock, training), the C64-only `MN` fields 14 / 24, a live check.
+**Not done here:** the bytecode rules (group size, restock, training), the C64-only `MN` fields 14 / 24, the
+graphics pack. **Live check (s218):** a C64-only import (CLI, never_used pair) played in a dev Client on Xvfb: new
+game, PIPPACOTT, Guild (new member: status OKAY; Add lists FIRE / WATER / EARTH ELEM), the Mystic ("YOUR SCORE IS 0.
+YOU ARE NOVICE ADVENTURERS", the C64's own wording), EXIT to the wilderness and a step; the dev build's built-in ST art. A no-built-in-data build plays the same without
+pictures.

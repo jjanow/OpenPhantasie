@@ -1,0 +1,672 @@
+{
+ "_note": "Phantasie II, C64 v1.2 (p2-c64, s218): ids the C64 prints in its own wording, for an import whose II tables are the C64's (as the Apple's p2_apple2_own_wording.json, D2-050): Pluto's speech (SCROLL0's 40-column rows joined, a word broken at a row end joined without its hyphen), the Filmon ending (WIN's PRINT lines), the Mystic's score and ranks (TOWN2's M$ pieces after \" YOU \"), a few field lines. Parts as in en.sources.json: our literal glue, or [file, offset, length] into the raw program (load address included). build_string_sources.py adds them as alternatives marked \"wording\": \"own\".",
+ "strings": {
+  "phantasie2": {
+   "core.p2.pluto_voice_1": [
+    [
+     "SCROLL0",
+     2,
+     25
+    ],
+    " ",
+    [
+     "SCROLL0",
+     47,
+     33
+    ],
+    " ",
+    [
+     "SCROLL0",
+     82,
+     38
+    ],
+    " ",
+    [
+     "SCROLL0",
+     122,
+     5
+    ]
+   ],
+   "core.p2.pluto_voice_2": [
+    [
+     "SCROLL0",
+     128,
+     32
+    ],
+    [
+     "SCROLL0",
+     162,
+     39
+    ],
+    " ",
+    [
+     "SCROLL0",
+     202,
+     39
+    ],
+    " ",
+    [
+     "SCROLL0",
+     242,
+     35
+    ]
+   ],
+   "core.p2.pluto_voice_3": [
+    [
+     "SCROLL0",
+     282,
+     36
+    ],
+    " ",
+    [
+     "SCROLL0",
+     322,
+     36
+    ],
+    " ",
+    [
+     "SCROLL0",
+     362,
+     39
+    ],
+    " ",
+    [
+     "SCROLL0",
+     402,
+     9
+    ]
+   ],
+   "core.p2.pluto_voice_4": [
+    [
+     "SCROLL0",
+     447,
+     32
+    ],
+    " ",
+    [
+     "SCROLL0",
+     482,
+     37
+    ],
+    " ",
+    [
+     "SCROLL0",
+     522,
+     33
+    ],
+    " ",
+    [
+     "SCROLL0",
+     562,
+     37
+    ],
+    [
+     "SCROLL0",
+     602,
+     39
+    ],
+    " ",
+    [
+     "SCROLL0",
+     642,
+     39
+    ],
+    " ",
+    [
+     "SCROLL0",
+     682,
+     38
+    ],
+    " ",
+    [
+     "SCROLL0",
+     722,
+     36
+    ]
+   ],
+   "core.p2.pluto_voice_5": [
+    [
+     "SCROLL0",
+     767,
+     17
+    ]
+   ],
+   "core.p2.filmon_intro_1": [
+    [
+     "WIN",
+     2156,
+     36
+    ]
+   ],
+   "core.p2.filmon_intro_2": [
+    [
+     "WIN",
+     2196,
+     36
+    ]
+   ],
+   "core.p2.filmon_intro_3": [
+    [
+     "WIN",
+     2236,
+     35
+    ]
+   ],
+   "core.p2.filmon_intro_4": [
+    [
+     "WIN",
+     2276,
+     26
+    ]
+   ],
+   "core.p2.filmon_intro_5": [
+    [
+     "WIN",
+     2308,
+     35
+    ]
+   ],
+   "core.p2.filmon_intro_6": [
+    [
+     "WIN",
+     2349,
+     37
+    ]
+   ],
+   "core.p2.filmon_intro_7": [
+    [
+     "WIN",
+     2390,
+     33
+    ]
+   ],
+   "core.p2.filmon_intro_8": [
+    [
+     "WIN",
+     2429,
+     11
+    ]
+   ],
+   "core.p2.filmon_intro_9": [
+    [
+     "WIN",
+     2446,
+     34
+    ]
+   ],
+   "core.p2.filmon_intro_10": [
+    [
+     "WIN",
+     2487,
+     22
+    ]
+   ],
+   "core.p2.filmon_closing_1": [
+    [
+     "WIN",
+     2704,
+     37
+    ]
+   ],
+   "core.p2.filmon_closing_2": [
+    [
+     "WIN",
+     2745,
+     8
+    ]
+   ],
+   "core.p2.filmon_closing_3": [
+    [
+     "WIN",
+     2786,
+     35
+    ]
+   ],
+   "core.p2.filmon_closing_4": [
+    [
+     "WIN",
+     2827,
+     29
+    ]
+   ],
+   "core.p2.filmon_closing_5": [
+    [
+     "WIN",
+     2868,
+     34
+    ],
+    [
+     "WIN",
+     2909,
+     4
+    ]
+   ],
+   "core.p2.filmon_closing_6": [
+    [
+     "WIN",
+     2913,
+     29
+    ],
+    [
+     "WIN",
+     2950,
+     10
+    ]
+   ],
+   "core.p2.filmon_closing_7": [
+    [
+     "WIN",
+     2991,
+     33
+    ]
+   ],
+   "core.p2.filmon_closing_8": [
+    [
+     "WIN",
+     3032,
+     37
+    ]
+   ],
+   "core.p2.filmon_closing_9": [
+    [
+     "WIN",
+     3073,
+     37
+    ]
+   ],
+   "core.p2.filmon_closing_10": [
+    [
+     "WIN",
+     3114,
+     36
+    ]
+   ],
+   "core.p2.filmon_closing_11": [
+    [
+     "WIN",
+     3155,
+     34
+    ]
+   ],
+   "core.p2.filmon_closing_12": [
+    [
+     "WIN",
+     3196,
+     26
+    ]
+   ],
+   "core.p2.filmon_closing_13": [
+    [
+     "WIN",
+     3237,
+     33
+    ]
+   ],
+   "core.p2.filmon_closing_14": [
+    [
+     "WIN",
+     3278,
+     31
+    ]
+   ],
+   "core.p2.filmon_closing_15": [
+    [
+     "WIN",
+     3319,
+     36
+    ]
+   ],
+   "core.p2.filmon_closing_16": [
+    [
+     "WIN",
+     3360,
+     24
+    ]
+   ],
+   "core.p2.filmon_closing_17": [
+    [
+     "WIN",
+     3401,
+     35
+    ]
+   ],
+   "core.p2.filmon_closing_18": [
+    [
+     "WIN",
+     3442,
+     36
+    ]
+   ],
+   "core.p2.filmon_closing_19": [
+    [
+     "WIN",
+     3483,
+     35
+    ]
+   ],
+   "core.p2.filmon_closing_20": [
+    [
+     "WIN",
+     3524,
+     20
+    ]
+   ],
+   "core.p2.filmon_closing_21": [
+    [
+     "WIN",
+     3565,
+     37
+    ]
+   ],
+   "core.p2.filmon_speaks": [
+    [
+     "WIN",
+     924,
+     15
+    ]
+   ],
+   "core.p2.presenting_heroes": [
+    [
+     "WIN",
+     945,
+     36
+    ]
+   ],
+   "core.p2.wand_line_1": [
+    [
+     "WIN",
+     1600,
+     35
+    ]
+   ],
+   "core.p2.wand_line_2": [
+    [
+     "WIN",
+     1639,
+     35
+    ]
+   ],
+   "core.p2.wand_line_3": [
+    [
+     "WIN",
+     1678,
+     25
+    ]
+   ],
+   "core.p2.title_word_0": [
+    [
+     "WIN",
+     258,
+     11
+    ]
+   ],
+   "core.p2.title_word_1": [
+    [
+     "WIN",
+     274,
+     6
+    ]
+   ],
+   "core.p2.title_word_2": [
+    [
+     "WIN",
+     285,
+     10
+    ]
+   ],
+   "core.p2.title_word_3": [
+    [
+     "WIN",
+     300,
+     8
+    ]
+   ],
+   "core.p2.title_word_4": [
+    [
+     "WIN",
+     313,
+     4
+    ]
+   ],
+   "core.p2.title_word_5": [
+    [
+     "WIN",
+     322,
+     6
+    ]
+   ],
+   "core.p2.title_word_6": [
+    [
+     "WIN",
+     333,
+     7
+    ]
+   ],
+   "core.p2.title_word_7": [
+    [
+     "WIN",
+     345,
+     7
+    ]
+   ],
+   "core.p2.title_word_8": [
+    [
+     "WIN",
+     358,
+     7
+    ]
+   ],
+   "core.p2.title_word_9": [
+    [
+     "WIN",
+     371,
+     6
+    ]
+   ],
+   "core.p2.origin_gelnor": [
+    [
+     "WIN",
+     407,
+     6
+    ]
+   ],
+   "core.p2.origin_ferronrah": [
+    [
+     "WIN",
+     418,
+     9
+    ]
+   ],
+   "core.p2.origin_netherworld": [
+    [
+     "WIN",
+     432,
+     15
+    ]
+   ],
+   "core.p2.title_x_x_x": [
+    "{0} - ",
+    [
+     "WIN",
+     432,
+     4
+    ],
+    "{1}",
+    [
+     "WIN",
+     2638,
+     4
+    ],
+    " ",
+    [
+     "WIN",
+     2419,
+     5
+    ],
+    "{2}"
+   ],
+   "core.p2.mystic.score_x": [
+    [
+     "TOWN2",
+     10316,
+     13
+    ],
+    " {0,4}."
+   ],
+   "core.p2.mystic.rank_0": [
+    [
+     "TOWN2",
+     10415,
+     4
+    ],
+    [
+     "TOWN2",
+     10092,
+     10
+    ],
+    " ",
+    [
+     "TOWN2",
+     10114,
+     11
+    ]
+   ],
+   "core.p2.mystic.rank_1": [
+    [
+     "TOWN2",
+     10415,
+     4
+    ],
+    [
+     "TOWN2",
+     10131,
+     15
+    ],
+    " ",
+    [
+     "TOWN2",
+     10114,
+     11
+    ]
+   ],
+   "core.p2.mystic.rank_2": [
+    [
+     "TOWN2",
+     10415,
+     4
+    ],
+    [
+     "TOWN2",
+     10242,
+     11
+    ],
+    " ",
+    [
+     "TOWN2",
+     10187,
+     24
+    ]
+   ],
+   "core.p2.mystic.rank_3": [
+    [
+     "TOWN2",
+     10415,
+     4
+    ],
+    [
+     "TOWN2",
+     2024,
+     3
+    ],
+    " ",
+    [
+     "TOWN2",
+     10187,
+     24
+    ]
+   ],
+   "core.p2.mystic.rank_4": [
+    [
+     "TOWN2",
+     10415,
+     4
+    ],
+    [
+     "TOWN2",
+     10217,
+     20
+    ]
+   ],
+   "core.p2.mystic.rank_5": [
+    [
+     "TOWN2",
+     10415,
+     4
+    ],
+    [
+     "TOWN2",
+     10258,
+     10
+    ],
+    " ",
+    [
+     "TOWN2",
+     4062,
+     3
+    ],
+    [
+     "TOWN2",
+     1500,
+     9
+    ]
+   ],
+   "core.p2.mystic.heroes_of_gelnor_also": [
+    [
+     "TOWN2",
+     10464,
+     14
+    ],
+    " ",
+    [
+     "TOWN2",
+     10487,
+     15
+    ]
+   ],
+   "core.p2.looks_nice": [
+    [
+     "TOWN2",
+     12600,
+     11
+    ]
+   ],
+   "core.p2.plutos_minion_is_killed": [
+    [
+     "OUTDOORS2",
+     13934,
+     38
+    ]
+   ],
+   "core.dungeon.x_sinks_and_takes_x_damage": [
+    "{0}",
+    [
+     "OUTDOORS2",
+     24073,
+     6
+    ],
+    " AND",
+    [
+     "OUTDOORS2",
+     12870,
+     6
+    ],
+    " {1}",
+    [
+     "OUTDOORS2",
+     12887,
+     7
+    ]
+   ]
+  }
+ }
+}

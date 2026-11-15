@@ -854,6 +854,33 @@ public sealed record TileMapLayout(
     /// <summary>The tile drawn for map byte <paramref name="tile"/> in region <paramref name="region"/> (<see cref="TileSwaps"/>).</summary>
     public int DrawnTile(int region, int tile) => TileSwaps.TryGetValue((region, tile), out var swapped) ? swapped : tile;
 
+    /// <summary>
+    /// s218 (C64 I, <c>reverse-engineering/c64/phantasie1/GRAPHICS.md</c>): when not 0, a cell in an odd map column draws tile
+    /// <c>map byte + OddColumnTile</c> instead (the C64 prints each terrain as a pair of characters by the column's parity).
+    /// </summary>
+    public int OddColumnTile { get; init; }
+
+    /// <summary>The overworld tile of map byte <paramref name="tile"/> at map column <paramref name="x"/> (<see cref="OddColumnTile"/>).</summary>
+    public int ColumnTile(int tile, int x) => OddColumnTile != 0 && (x & 1) == 1 ? tile + OddColumnTile : tile;
+
+    /// <summary>
+    /// A picture drawn at its own size over every cell whose map byte is <see cref="Min"/>..<see cref="Max"/>, its top left
+    /// at the cell's plus (<see cref="Dx"/>, <see cref="Dy"/>): tile <see cref="Tile"/> (C64 I's town / inn / dungeon sprites).
+    /// </summary>
+    public sealed record Overlay(int Min, int Max, int Tile, int Dx, int Dy);
+
+    /// <summary>The pack's <see cref="Overlay"/>s, drawn after the tiles (none by default).</summary>
+    public IReadOnlyList<Overlay> Overlays { get; init; } = [];
+
+    /// <summary>
+    /// When set, the overworld party picture is drawn at its own size with its top left at the party cell's plus this offset
+    /// (a C64 sprite larger than a cell); when null it fills the cell (every pack before s218).
+    /// </summary>
+    public (int Dx, int Dy)? PartyOffset { get; init; }
+
+    /// <summary>When true the dungeon's party glyph is drawn over the cell's own glyph (a C64 sprite), not instead of it.</summary>
+    public bool DungeonPartyOver { get; init; }
+
     /// <summary>The glyph of a seen dungeon cell holding map byte <paramref name="cell"/>: the first matching range, else the default.</summary>
     public int DungeonGlyphFor(int cell)
     {
@@ -889,11 +916,20 @@ public sealed record TileMapLayout(
             r => r[2]);
         if (dto.ViewCentreMargin is not (null or [>= 0, >= 0]))
             throw new InvalidDataException($"{manifestPath}: tile_maps view_centre_margin is [columns, rows].");
+        var overlays = (dto.Overlays ?? []).Select(r => r is [var lo, var hi, var t, var dx, var dy] && lo <= hi
+            ? new Overlay(lo, hi, t, dx, dy)
+            : throw new InvalidDataException($"{manifestPath}: tile_maps overlays entries are [min, max, tile, dx, dy]."))
+            .ToList();
+        if (dto.PartyOffset is not (null or [_, _]))
+            throw new InvalidDataException($"{manifestPath}: tile_maps party_offset is [dx, dy].");
         return new TileMapLayout(tile[0], tile[1], view[0], view[1], glyph[0], glyph[1],
             dto.DungeonUnseen, dto.DungeonParty, dto.DungeonDefault, ranges)
         {
             PastMap = past, ViewCounters = counters, TileSwaps = swaps,
             ViewCentreMargin = dto.ViewCentreMargin is [var mc, var mr] ? (mc, mr) : null,
+            OddColumnTile = dto.OddColumnTile, Overlays = overlays,
+            PartyOffset = dto.PartyOffset is [var px, var py] ? (px, py) : null,
+            DungeonPartyOver = dto.DungeonPartyOver,
         };
     }
 
@@ -910,6 +946,10 @@ public sealed record TileMapLayout(
         [JsonPropertyName("view_counters")] public List<int[]>? ViewCounters { get; set; }
         [JsonPropertyName("view_centre_margin")] public int[]? ViewCentreMargin { get; set; }
         [JsonPropertyName("tile_swaps")] public List<int[]>? TileSwaps { get; set; }
+        [JsonPropertyName("odd_column_tile")] public int OddColumnTile { get; set; }
+        [JsonPropertyName("overlays")] public List<int[]>? Overlays { get; set; }
+        [JsonPropertyName("party_offset")] public int[]? PartyOffset { get; set; }
+        [JsonPropertyName("dungeon_party_over")] public bool DungeonPartyOver { get; set; }
     }
 }
 

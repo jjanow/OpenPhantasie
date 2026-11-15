@@ -222,6 +222,7 @@ public sealed partial class GameDataRepository
             TileTerrain = t.TileTerrain,
             ScrollItemRecords = t.ScrollItemRecords,
             ScrollPagesAsRows = t.ScrollPagesAsRows,
+            StarterGuild = StarterGuildLoader.Load(dir),
         };
     }
 

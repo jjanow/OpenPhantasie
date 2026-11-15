@@ -3951,15 +3951,34 @@ public partial class Game1 : Game
                 }
                 continue;
             }
-            if (assets.GetOverworldTile(tiles.DrawnTile(session.Overworld.RegionId, region.GetRaw(x, y))) is { } tex)
+            if (assets.GetOverworldTile(tiles.ColumnTile(tiles.DrawnTile(session.Overworld.RegionId, region.GetRaw(x, y)), x)) is { } tex)
                 _spriteBatch.Draw(tex, dest, Color.White);
             else
                 _spriteBatch.Draw(pixel, dest, TileColor(session, region, x, y));
         }
 
+        // s218: pictures larger than a cell (C64 I's town / inn / dungeon sprites) at their own size over their cells. They
+        // may reach past the view by a few pixels at its edge, as the C64's sprites do past their cell.
+        if (tiles.Overlays.Count > 0)
+            for (var vy = 0; vy < rows; vy++)
+            for (var vx = 0; vx < cols; vx++)
+            {
+                var x = x0 + vx;
+                var y = y0 + vy;
+                if (!region.InBounds(x, y))
+                    continue;
+                var b = region.GetRaw(x, y);
+                foreach (var o in tiles.Overlays)
+                    if (b >= o.Min && b <= o.Max && assets.GetOverworldTile(o.Tile) is { } icon)
+                        _spriteBatch.Draw(icon, new Rectangle(left + vx * tw + o.Dx, top + vy * th + o.Dy, icon.Width, icon.Height),
+                            Color.White);
+            }
+
         var party = new Rectangle(left + (session.Overworld.X - x0) * tw, top + (session.Overworld.Y - y0) * th, tw, th);
         if (assets.GetOverworldParty() is { } mark)
-            _spriteBatch.Draw(mark, party, Color.White);
+            _spriteBatch.Draw(mark, tiles.PartyOffset is { } po
+                ? new Rectangle(party.X + po.Dx, party.Y + po.Dy, mark.Width, mark.Height)
+                : party, Color.White);
         else
             _spriteBatch.Draw(pixel, party, Color.White);
     }
@@ -4024,14 +4043,22 @@ public partial class Game1 : Game
         {
             var x = x0 + vx;
             var y = y0 + vy;
-            var glyph = x == state.X && y == state.Y ? tiles.PartyGlyph
-                : _qol.IsVisited(state.LevelId, x, y) ? tiles.DungeonGlyphFor(level.Get(x, y))
-                : tiles.UnseenGlyph;
+            var party = x == state.X && y == state.Y;
+            var cell = _qol.IsVisited(state.LevelId, x, y) ? tiles.DungeonGlyphFor(level.Get(x, y)) : tiles.UnseenGlyph;
+            var glyph = party && !tiles.DungeonPartyOver ? tiles.PartyGlyph : cell;
             var dest = new Rectangle(left + vx * gw, top + vy * gh, gw, gh);
             if (assets.GetDungeonCell(glyph) is { } tex)
                 _spriteBatch!.Draw(tex, dest, Color.White);
             else
                 _spriteBatch!.Draw(pixel, dest, glyph == tiles.PartyGlyph ? Color.Red : Color.Gray);
+            // s218: the C64's party is a sprite over the cell's own glyph.
+            if (party && tiles.DungeonPartyOver)
+            {
+                if (assets.GetDungeonCell(tiles.PartyGlyph) is { } mark)
+                    _spriteBatch!.Draw(mark, dest, Color.White);
+                else
+                    _spriteBatch!.Draw(pixel, dest, Color.Red);
+            }
         }
         return (new Rectangle(left, top, cols * gw, rows * gh),
             new Rectangle(left + (state.X - x0) * gw, top + (state.Y - y0) * gh, gw, gh));

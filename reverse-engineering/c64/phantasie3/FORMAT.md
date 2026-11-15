@@ -1,8 +1,8 @@
 # Phantasie III (Commodore 64, SSI 1987): disks, files and tables
 
 Where III's game tables live on the C64 disks and how they compare with DOS III (the reference,
-`../../dos/phantasie3/FORMAT.md`, `extracted/`) and the Apple II (`../../apple2/phantasie3/FORMAT.md`). First step of
-a C64 port (s216): data formats only, no importer code (section 7 is the plan). Tags: `[C]` confirmed in the bytes on
+`../../dos/phantasie3/FORMAT.md`, `extracted/`) and the Apple II (`../../apple2/phantasie3/FORMAT.md`). Data formats
+s216; the importer and the character record s218 (section 7). Tags: `[C]` confirmed in the bytes on
 every record against DOS's / the Apple's data, `[~]` probable, `[?]` not known. Offsets are into the file **after** its
 2-byte PRG load address.
 
@@ -12,7 +12,7 @@ armory rows, the Scandor map, the item / spell tables) with the Apple II's upper
 scroll pages) and the Apple's corrections of a few DOS data faults.
 
 Extract in the repo: `extracted-v1.0/` = C64PP v1.0 (!) sides 1 + 2 (`tools/scripts/extract_c64_d64.py --out …`;
-`manifest.json` lists every file with size, load address and hashes). v1.2 (alt) is not extracted in the repo.
+`manifest.json` lists every file with size, load address and hashes). v1.2 (alt) is not extracted in the repo (the importer and its tests read both C64PP `.g64` pairs).
 Comparisons below were made with throw-away scripts reading these files and DOS III's `unpacked/ssi-1988/` files /
 `extracted/*.json` and the Apple's `extracted/*.json`.
 
@@ -51,7 +51,7 @@ byte-identical to v1.0's `PHANT.OBJ`), plus 3 stray sectors on track 17 and 17 B
 | `LIGHTMAP`, `DRKPLN`, `NETHERMAP` | s2, PRG 165 `$7000` / 168 `$2000` / 450 `$6000` | the Light, Dark and Netherworld plane maps: **not** DOS's 81 / 81 / 496-B `PLNS.DAT` parts (163 / 166 / 448 B) | `[?]` layout |
 | `DNG1`–`DNG9`, `DNG0` | s2, PRG 4,135 (`DNG4` 4,138, load `$2000`), `$1000` | dungeons in DOS's `DNGS.DAT` record layout (3.7) | `[C]` |
 | `SCROLL A`–`SCROLL T` | s2, PRG 963 (`T` 961, load `$2000`), `$6000` | the 20 scroll pages: 40 × 24 screen codes, framed (3.8) | `[C]` |
-| `PCHARS0` | s2, PRG 3,063, `$A300` | the Guild roster: 18 × 170 B; slots 0–5 the manual's **pre-generated party** (CHUMLEY, TRACKER, FINGERS, GRASSHOPPER, BONES, SAURIAN, level 1) (3.5) | `[C]` names, `[~]` layout |
+| `PCHARS0` | s2, PRG 3,063, `$A300` | the Guild roster: 18 × 170 B; slots 0–5 the manual's **pre-generated party** (CHUMLEY, TRACKER, FINGERS, GRASSHOPPER, BONES, SAURIAN, level 1) (3.5) | `[C]` |
 | `DNGIP1` | s2, PRG 5, `$687F` | dungeon-in-progress flag (`DUNGEON.OBJ` names `DNGIP` / `DNGIP1`) | `[~]` |
 | `B` | s2, PRG 3,686, `$0801` | the utility (plain BASIC): 1 play the game, 2 make a dungeon disk, 3 / 4 transfer Phantasie I / II characters to III format; loads `UTILITIES.OBJ`, `P3COPY.OBJ` | `[C]` |
 | `UTILITIES.OBJ`, `P3COPY.OBJ` | s2, PRG 313 `$C100` / 1,841 `$C800` | the utility's machine code (disk copy, transfer) | `[~]` |
@@ -134,14 +134,57 @@ C64 / DOS / Apple):
 Xanador and Scanport stock Scroll 134 where DOS and the Apple stock Scroll 137 `[~]` (which scroll that is on the
 C64 depends on the item → page map, not read).
 
-### 3.5 Characters: 170-byte records `[~]`
+### 3.5 Characters: 170-byte records `[C]` (s218)
 
-`ELEMENTALS` (3 records) and `PCHARS0` (18 records) use a 170-byte record with the name at 131 (Phantasie I / II's
-record, the Apple III's too; not DOS III's 262-byte one): `ELEMENTALS` = AIR, MIST, MUD ELEMENTAL (DOS's Air / Mist /
-Mud), level 20 at P(54), race 16; HP 150 / 200 / 250 at P(12–13). `PCHARS0` slots 0–5 = the manual's pre-generated,
-pre-equipped party ("listed as the first 6 members of the Guild", manual p. 7 and Appendix I) `[C]`; slots 6–17 empty.
-v1.0 and v1.2 (alt) hold the same six names with other attributes, HP and skills (126 bytes differ): re-rolled per
-release, or play `[?]`. DOS III's pre-generated party (if it has one) was not compared.
+`ELEMENTALS` (3 records) and `PCHARS0` (18 records + 1 byte; runtime `$A300`, record x at `$A300 + 170 x`, pointer in
+zero page `$37`/`$38`, PHANT.OBJ `$44AA`) use a 170-byte record with the name at 131: the Apple III's size, but **not**
+C64 I's field layout (class, race, skills and items sit elsewhere). Read from **TOWN.OBJ's creation code** (`$4055`–`$42E4`,
+the fields it writes) and **PHANT.OBJ's character sheet** (`$5516`–`$5800` runtime `$4516`…; PHANT.OBJ runs at file
+address − `$1000`, TOWN.OBJ where it loads), checked on the 6 + 6 starter records and the elementals. `P(n)` = byte n.
+
+| `P(n)` | Field | Source | Tag |
+|---|---|---|---|
+| 0 | 2 on every used record (creation writes 2 after clearing all 170) | creation | `[?]` |
+| 1–5, 6 | STR INT DEX CON CHA; LCK (= rnd(6) + 7) | creation (race / class tables `$90D1` / `$90EF`), sheet | `[C]` |
+| 7 | defence rating, set at fight start (2 DEX + parry / 4 + shield points / 2 − armour term); elementals 200 / 100 / 25 | PHANT `$3D70` | `[~]` |
+| 9, 10, 11 | magic ceiling, magic max, current | creation, sheet | `[C]` |
+| 12, 13 | HP max, current | creation, sheet | `[C]` |
+| 14, 15 | gold in the bank, little-endian (creation: P15 = social class → 256 per class) | sheet (`$56EF`), creation | `[C]` |
+| 16, 17 | **age clock**, little-endian, 1/26 year (sheet prints it / 26 on AGE; creation (rnd(7) + 24) · P166 + 260; aging adds to it, TOWN `$1D4A`) | sheet `$56B0`, creation `$421A` | `[C]` |
+| 18 | status 0 DEAD, 1 OKAY, 2 DOWN, 3 SLEP, 4 OUT (PHANT 1343) | sheet | `[C]` |
+| 19, 56, 57, 58, 123, 125 | fight-start copies (level; armour pts; level + weapon pts; attack; 2 · bow pts + 4; fire bow) | PHANT `$3D27` | `[~]` |
+| 20, 22, …, 36 | the nine skills: ATTACK, PARRY, FIND ITEM, SPOT TRAP, DISARM TRAP, LISTEN, **FIRE BOW** (32), PICK LOCK, SWIM | sheet (`$53CA` from 20 step 2), creation | `[C]` |
+| 21, 23, …, 37 | skill bonuses, recomputed on every sheet view: 2 · attr + 30 (STR, DEX, INT, INT, DEX, INT, –, DEX, CON); 33 = Fire Bow's 2 L + 4 DEX + STR + 10 (+15 / +30 by class / race `[~]`) | PHANT `$5303` | `[C]` |
+| 38, 39 | combat work bytes | PHANT | `[?]` |
+| 40 | origin (PHANT's `$0953` table: 0 GELNOR 1 FERRONRAH 2 NETHERWORLD 3 SCANDOR 4 LIGHT 5 DARK = III's numbers); creation: 3, or by town 15 / 16 / 17 | sheet, creation `$42E5` | `[C]` |
+| 43, 44, 45 | cleared at creation and by raise dead; written by the dungeon: the body areas `[~]` | creation, PHANT `$4D0F` | `[~]` |
+| 47, 48, 49, 50 | worn bow, shield, armour, weapon (kit: 41 or 44 for a Thief, 4, 22, 64) | creation | `[C]` |
+| 51, 52, 53 | experience, 24 bits little-endian | sheet | `[C]` |
+| 54 | level | sheet, creation | `[C]` |
+| 59 | creation number (the starters 1–6) | creation | `[~]` |
+| 61–120 | spell n at 60 + n: 0, 1 known, 2 learnable (creation: Heal 1 for Ranger / Priest, Fireflash 1 for Monk / Wizard) | creation | `[C]` |
+| 121 | bow points (item points of P47) | creation | `[~]` |
+| 122 | score | sheet | `[C]` |
+| 126 | flags; bit 2 = carries the Wand of Nikademus (the sheet lists it) | sheet `$579F` | `[C]` bit 2 |
+| 128 | social class 0–3 (rnd(100), rnd(75) for races ≥ 5: < 30 / 60 / 90); the sheet's names 4 SUPER HERO, 5 DARK LORD | creation, sheet | `[C]` |
+| 129, 130 | 21 at creation | creation | `[?]` |
+| 131–150 | name | sheet, creation | `[C]` |
+| 152–160 | nine carried items (the kit: 4, 64, 22, bow) | sheet `$5805`, creation | `[C]` |
+| 161 | race, **Phantasie I's / Core's numbering** (PHANT's `$0852` table: HUMAN DWARF ELF HALFLING GNOME PIXIE SPRITE OGRE GNOLL TROLL KOBOLD ORC GOBLIN LIZARD MINOTAUR UNDEAD ELEMENTAL) | sheet, creation | `[C]` |
+| 162, 163, 164 | weapon, shield, armour points (creation writes weapon then armour points into 162: 164 stays 0 `[~]`) | creation, fight start | `[~]` |
+| 165 | town, 0-based (0 = Pendragon) | creation | `[C]` |
+| 166 | maximum age ⌊LCK × race factor⌋ (DOS's +0x2a; never read) | creation `$41CD` | `[C]` |
+| 169 | class, Core's order (THIEF MONK RANGER FIGHTER PRIEST WIZARD, PHANT 1235) | sheet, creation | `[C]` |
+| 8, 41, 42, 46, 55, 60, 127, 151, 167, 168 | | | `[?]` |
+
+**The starter party** (`PCHARS0` slots 0–5, the manual's six; slots 6–17 empty): CHUMLEY Troll Fighter, TRACKER Human
+Ranger, FINGERS Sprite Thief, GRASSHOPPER Elf Monk, BONES Gnome Priest, SAURIAN Elf Wizard, level 1, in Pendragon,
+origin Scandor, the class kit worn. v1.0 and v1.2 (alt) hold the same six with other rolls (attributes, HP, skills,
+social class, gold, age): v1.2's ages fit the creation formula; **v1.0's do not** (6635 .. 8165 = 255 .. 314 years on
+the sheet; P16 + P17 = 260 on every v1.0 record `[?]`): DIFFERENCES-III D3-078 (user s218: a v1.0 import gives the six
+Guild New's start age; v1.2's stored ages are kept). The held cracked pair's `PCHARS0` is
+played (other bytes in slots 0–5). `ELEMENTALS`: AIR, MIST, MUD ELEMENTAL (backspaces / `=` in the name field),
+level 20, race 16, class FIGHTER (3).
 
 ### 3.6 Wilderness `[C]` layout, `[?]` tile meaning
 
@@ -201,7 +244,8 @@ FERRONRAH`), skills. `DUNGEON.OBJ`: the endgame. Monster names: DOS's mixed case
 
 ## 5. Rules
 
-Not read (machine code; no disassembly yet). Candidates: the giant rule with byte 27 (3.1), the town-row byte 0, the
+Mostly not read (s218 read only the character record's code, 3.5: creation in TOWN.OBJ, the sheet in PHANT.OBJ, with a
+throw-away capstone 6502 disassembly; PHANT.OBJ runs at file address − `$1000`, parts of TOWN.OBJ at + `$4000`). Candidates: the giant rule with byte 27 (3.1), the town-row byte 0, the
 training curves (no DOS-shaped table found).
 
 ## 6. Graphics and sound
@@ -209,54 +253,45 @@ training curves (no DOS-shaped table found).
 Not decoded: `MONSTERS` 0–4991 (monster pictures; byte 27 points into them `[~]`), `TITLE`, `PSET0` / `PTOWN1`
 (character sets `[~]`), `HEROSPRITES`, `GUT` / `TOT` / `SCHLECHT` (endgame), `SND`. Palette: the VIC-II's 16 colours.
 
-## 7. Importer plan: `p3-c64` (plan only, s216)
+## 7. Importer: `p3-c64` / `p3-c64-1.2` (built s218)
 
 The rule of the Apple and Amiga imports (`../../apple2/phantasie3/FORMAT.md` section 4): **DOS's values where the C64
-differs or has none, the C64's own text**, built into DOS III's GameData shapes (the decisions below).
+differs or has none, the C64's own text**, into DOS III's GameData shapes. Code: `src/OpenPhantasie.Importer/Pipelines/P3C64/`
+(`P3C64Tables`, `P3C64StarterGuild`, `P3C64Pipeline`); write-up `docs/plan/10-importer.md` 7.13.
 
-**Containers.** `.d64` / `.g64` as `p1-c64` (shared reader). Side 1 + side 2 of the one disk.
+**Containers.** `.d64` / `.g64` through the shared `D64Volume` / `G64Image`. Side 1 + side 2 of the one disk.
 
-**Detection.** Side 1: `PHANT.OBJ` + `MONSTERS` + `DATA`; side 2: `TOWN.OBJ` + `DUNGEON.OBJ` + `MATERIALMAP` + `DNG1`.
-v1.0 sha1s: `PHANT.OBJ` `f80c4b13…`, `TOWN.OBJ` `4da0e556…`, `DUNGEON.OBJ` `ca18138f…`, `MONSTERS` `4e5823e5…`, `DATA`
-`b445fbad…`, `MATERIALMAP` `e29ddbfd…` (full hashes in `extracted-v1.0/manifest.json`); v1.2 (alt) shares every data
-file and has its own `PHANT.OBJ` / `TOWN.OBJ` (same table offsets).
+**Detection.** Two profiles (as II's Apple v1.0 / v2.1): `p3-c64` (v1.0) and `p3-c64-1.2` (v1.2 (alt)). Key files side 1
+`PHANT.OBJ`, `MONSTERS`, `DATA`; side 2 `TOWN.OBJ`, `DUNGEON.OBJ`, `MATERIALMAP`, `DNG1` (each build's sha1s; v1.2 has its
+own `PHANT.OBJ` / `TOWN.OBJ`). `B` is not a key file: the held v1.1 pair (v1.0's programs and roster, v1.2's `B`) and the
+held cracked pair (v1.0's programs, played) import as v1.0. Mutable files: `PCHARS0` (per build), `TOWN A`–`Q`, `DNGIP1`.
+A played copy imports its towns' stock as played and no starter party (both warned; D3-079).
 
-**What maps where:**
+**Built:**
 
-| GameData file | From the C64 | Cells that take DOS's values |
+| GameData file | From the C64 | Cells that take DOS's values (`phantasie3/c64-import.json`, 265) |
 |---|---|---|
-| `monsters.json` | `MONSTERS` records | byte 27 (DOS's picture ids), the five Apple-shared records |
-| `items.json` | `DATA` names, `PHANT.OBJ` points, `TOWN.OBJ` requirement / value / price index | requirement 42, values 27 / 69 / 111, Tirith, town 0 |
-| `rule-tables.json` | `TOWN.OBJ` HP dice, ceilings, skills, spells; `PHANT.OBJ` area levels | HP dice 16–22, the tables the C64 lacks; the skill cells are already D3-032's default |
-| `towns.json` | `TOWN A`–`Q` | the stock cells of 3.4, byte 0 |
-| `dungeons.json` | `DNG0`–`DNG9` (tables = DOS's; text in the Apple's window font) | — (tables equal) |
-| `world.json` | `MATERIALMAP` (needs the C64 tile → terrain table first) | the tile ids / place tiles; plane maps (C64 layouts not decoded) |
-| `scrolls.json` | `SCROLL A`–`T` (the Apple's pages) | — |
-| `names.json`, `spells.json` | `PHANT.OBJ`, `TOWN.OBJ`, `DATA`, `MONSTERS` | — (the C64 has every spell name) |
-| `elementals.json` | `ELEMENTALS` (170-B records) | DOS's numbers |
+| `monsters.json` | `MONSTERS` + 4992 (`P3Extract.MonstersFrom`) | byte 27 (80), the five Apple-shared records (12) |
+| `items.json` | `DATA` names, `PHANT.OBJ` points, `TOWN.OBJ` requirement / value / price index | requirement 42, values 27 / 69 / 111 |
+| `spells.json`, `names.json` | `PHANT.OBJ` (56 spell names, races, classes, social classes, status, origins, towns, the sheet's skill words, the 11 dungeon descriptions mapped by meaning `[~]`) | Random race, body states (5) |
+| `rule-tables.json` | `TOWN.OBJ` HP dice, ceilings, skill tables (levels 1–15 of 16 rows), spell rows; `PHANT.OBJ` area levels (v1.0 14888, v1.2 14890) | HP dice L16–22, the skill cells as DOS reads them + D3-032's fixes (the C64 has I's cells: same result), training curves, score weights, hit location, terrain offsets, dungeon entrances, the Air elemental's spells |
+| `towns.json` | `TOWN A`–`Q`, price index | the stock cells of 3.4, Tirith's index |
+| `dungeons.json` | `DNG0`–`DNG9` by DOS's letters (the Apple's text path: CR-ended, window font) | — (bytes to `0x593` equal DOS's) |
+| `overworld.json` | `MATERIALMAP` (the C64's tile ids) | DOS's Scandor rows (75), the plane maps, places, start, terrain |
+| `scrolls.json` | `SCROLL A`–`T` (screen codes; `F` = Scroll IV's map is no text record) | item → page map of items 123, 124, 130 |
+| `elementals.json` | (P3Build's constants) | Air's spells |
+| `starter-guild.json` (import only) | `PCHARS0` slots 0–5 of a fresh roster (3.5) | — |
 
-**Applied by default** (already decided; the importer follows these unless the user says otherwise):
+Generator: `tools/scripts/build_c64_p3_import.py` (from the importer's raw build, `P3C64_DUMP`; reuses
+`diff_a2_p3_vs_dos.py`'s rules). v1.2 gives v1.0's tables and takes the same cells without a warning. The starter
+party keeps the record's values but v1.0's age clocks (D3-078: Guild New's start age at new game; v1.2's kept).
 
-- **DOS's numbers** wherever the C64 differs (DOS wins on numbers; the Apple III import's rule, `apple2-import.json`;
-  D-086 for C64 I): the five Apple-shared monster records (Drip Slime XP, Kobold, Wight, the Wolf stub, Dragon) and
-  byte 27, requirement 42, values 27 / 69 / 111, Tirith's 199 and town 0's index, every starting-stock cell of 3.4,
-  town byte 0, the tables the C64 lacks (HP dice 16–22, training curves, score weights, hit location, terrain offsets,
-  the Air elemental's spells), the world's tile ids and place tiles and the plane maps (DOS's `WORLD.DAT` / `PLNS.DAT`).
-- **Skill tables:** the C64's cells are Phantasie I's, which is D3-032's decided default (I's values; DOS's tables as
-  read only as the `p3.skill-tables` option): the import lands on the same cells.
-- **The C64's own text** (D3-077 for the Apple, D-084 / D2-050): item names (the Apple's abbreviations, `HALBERD`,
-  `SWORD +3…+5` for 90–92), the dungeon texts, the scroll pages, `Drip Slimes`; the C64's own spell names (it has all 56).
+**Strings:** `p3-c64` and `p3-c64-1.2` alternatives for 16 ids found verbatim in each build's programs (status / class
+words; key `<file>:low7` = bit 7 cleared), the Apple III's `fallback.p3-apple2.en.json` for the rest.
 
-**Decided** (user, 2026-11-15, s217):
+**Decided (user s218):** D3-078 (above) and D3-079 (precedence DOS > Amiga > Apple > C64, played copies, dungeon names by
+content, the mixed text) as built.
 
-1. **The pre-generated party: imported, from the disk being imported.** The manual promises six pre-generated,
-   pre-equipped characters as the first Guild members (`docs/plan/09-trilogy-manual-p3.md`: not on the IBM version).
-   `PCHARS0` slots 0–5 (CHUMLEY, TRACKER, FINGERS, GRASSHOPPER, BONES, SAURIAN) go into the Guild's first six slots: a
-   v1.0 import gets v1.0's rolls, a v1.2 (alt) import v1.2's. Needs the 170-byte layout decoded first.
-2. **v1.2 (alt) supported** beside v1.0: the same tables, its own title picture and starter party.
-
-**Graphics pack (`c64`).** Not started: monster pictures (`MONSTERS` 0–4991), title, character sets, hero sprites,
-endgame pictures.
-
-**Not done here:** a disassembly of `PHANT.OBJ` / `TOWN.OBJ` / `DUNGEON.OBJ` (tile table, item → scroll page map,
-giant rule, town byte 0, training), the plane-map layouts, `PCHARS0`'s field layout, a live check.
+**Open:** a `c64` art pack (section 6); the tile → terrain table, the plane-map layouts, the places in code, the item →
+scroll page map, the giant rule with byte 27, town byte 0, the dungeon → file and entrance code, the transfer utility
+`[?]`; the C64's own wording for lines it prints differently (no own-wording file yet).

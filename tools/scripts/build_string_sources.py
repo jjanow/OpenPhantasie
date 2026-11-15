@@ -359,6 +359,50 @@ def load_c64() -> dict[str, bytes]:
     return out
 
 
+# s218: Phantasie III's C64 (p3-c64 = v1.0, p3-c64-1.2 = v1.2 (alt); a C64-only III): its machine-code programs, each
+# byte's bit 7 cleared (bit 7 ends every string; the importer's `<file>:low7` key). An id gets an alternative of each
+# build when every original part of III's DOS (or Amiga) alternative is in that build's programs verbatim (upper case:
+# status words, sheet labels). v1.2's programs are laid out differently, so its alternatives are found in its own files.
+C64P3_IMAGES = RE / "c64" / "original-images" / "phantasie3" / "c64pp"
+C64P3_PROGRAMS = {
+    "p3-c64": {"phantasie_iii_s1[ssi_1987](v1_0)(!).g64": ["PHANT.OBJ"],
+               "phantasie_iii_s2[ssi_1987](v1_0)(!).g64": ["TOWN.OBJ", "DUNGEON.OBJ"]},
+    "p3-c64-1.2": {"phantasie_iii_s1[ssi_1987](v1_2)(alt).g64": ["PHANT.OBJ"],
+                   "phantasie_iii_s2[ssi_1987](v1_2)(alt).g64": ["TOWN.OBJ", "DUNGEON.OBJ"]},
+}
+
+
+def load_c64_p3() -> dict[str, dict[str, bytes]]:
+    """profile -> {`<file>:low7`: the program with bit 7 cleared} of each C64 III build."""
+    import extract_c64_d64 as d64  # noqa: E402
+    out: dict[str, dict[str, bytes]] = {}
+    for prof, images in C64P3_PROGRAMS.items():
+        files: dict[str, bytes] = {}
+        for image, names in images.items():
+            img = d64.load_image(C64P3_IMAGES / image)
+            raw = {e["name"]: d64.read_chain(img, *e["start"]) for e in d64.directory(img)}
+            for n in names:
+                files[f"{n}:low7"] = bytes(b & 0x7F for b in raw[n])
+        out[prof] = files
+    return out
+
+
+def c64p3_verbatim(prof: str, files: dict[str, bytes], versions, alts: list) -> dict | None:
+    """The alternative of C64 III build `prof` for an id whose DOS III (or Amiga III) parts are all in its programs."""
+    ref = next((a for a in alts if a["from"] in P3), None)
+    if ref is None:
+        return None
+    parts: list = []
+    for p in ref["parts"]:
+        if isinstance(p, str):
+            parts.append(p)
+            continue
+        if (hit := find(files, versions[ref["from"]][p[0]][p[1]:p[1] + p[2]].decode("latin-1"))) is None:
+            return None
+        parts.append(hit)
+    return {"from": prof, "parts": parts}
+
+
 # The ids the C64 prints in its own wording (Zeus's speech, PETSCII mixed case: the importer's `P.END:petscii` key).
 C64_OWN = Path(__file__).resolve().parent / "p1_c64_own_wording.json"
 
@@ -384,6 +428,46 @@ def c64_verbatim(c64: dict[str, bytes], versions, alts: list) -> dict | None:
     return {"from": "p1-c64", "parts": parts}
 
 
+# s218: Phantasie II's C64 (p2-c64, a C64-only II): its v1.2 programs (raw files, load address included, as the
+# importer's FileSet reads them). An id gets a `p2-c64` alternative when every original part of the ST's alternative is
+# in them verbatim (the C64 prints upper case: status words, menus, combat lines; SCROLL0 / WIN hold Pluto's and
+# Filmon's speeches).
+C64_2_IMAGES = RE / "c64" / "original-images" / "phantasie2" / "c64pp"
+C64_2_PROGRAMS = {"phantasie_ii_s1[ssi_1986](v1_2)(never_used).g64": ["TOWN2", "OUTDOORS2"],
+                  "phantasie_ii_s2[ssi_1986](v1_2)(never_used)(!).g64": ["DUNGEON2", "CEMETARY2", "WIN", "SCROLL0"]}
+
+
+# The ids the C64 II prints in its own wording (Pluto's speech, the Filmon ending, the Mystic; as the Apple's, D2-050).
+C64_2_OWN = Path(__file__).resolve().parent / "p2_c64_own_wording.json"
+
+
+def load_c64_2() -> dict[str, bytes]:
+    import extract_c64_d64 as d64  # noqa: E402
+    out: dict[str, bytes] = {}
+    for image, names in C64_2_PROGRAMS.items():
+        img = d64.load_image(C64_2_IMAGES / image)
+        files = {e["name"]: d64.read_chain(img, *e["start"]) for e in d64.directory(img)}
+        for n in names:
+            out[n] = files[n]
+    return out
+
+
+def c64_2_verbatim(c64_2: dict[str, bytes], versions, alts: list) -> dict | None:
+    """The `p2-c64` alternative of an id whose ST parts are all found verbatim in the C64 II's programs."""
+    st = next((a for a in alts if a["from"] == "p2-st-1.0"), None)
+    if st is None:
+        return None
+    parts: list = []
+    for p in st["parts"]:
+        if isinstance(p, str):
+            parts.append(p)
+            continue
+        if (ref := find(c64_2, versions["p2-st-1.0"][p[0]][p[1]:p[1] + p[2]].decode("latin-1"))) is None:
+            return None
+        parts.append(ref)
+    return {"from": "p2-c64", "parts": parts}
+
+
 def apple2_verbatim(apple: dict[str, bytes], versions, alts: list) -> dict | None:
     """The `p2-apple2` alternative of an id whose ST parts are all found verbatim in the Apple's programs."""
     st = next((a for a in alts if a["from"] == "p2-st-1.0"), None)
@@ -406,11 +490,13 @@ def resolve(files: dict[str, bytes], parts: list) -> str:
 
 def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: dict | None = None,
           v21: dict[str, bytes] | None = None, apple3: dict[str, bytes] | None = None,
-          own3: dict | None = None, c64: dict[str, bytes] | None = None) -> dict:
+          own3: dict | None = None, c64: dict[str, bytes] | None = None, c64_2: dict[str, bytes] | None = None,
+          c64p3: dict[str, dict[str, bytes]] | None = None) -> dict:
     table = json.loads((GAMEDATA / folder / "strings" / "en.json").read_text(encoding="utf-8"))
     own_amiga = own_amiga or {}
     own3 = own3 or {}
     c64_own = json.loads(C64_OWN.read_text(encoding="utf-8"))["strings"] if c64 is not None and C64_OWN.exists() else {}
+    c64_2_own = json.loads(C64_2_OWN.read_text(encoding="utf-8"))["strings"] if c64_2 is not None and C64_2_OWN.exists() else {}
     out = {}
     for sid, value in table["strings"].items():
         if not isinstance(value, str) or sid.startswith(OURS):
@@ -439,6 +525,11 @@ def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: 
                 assert text.strip() and "\x00" not in text, (folder, sid, text)
                 assert not any(c in text for c in "=@<>;"), (folder, sid, text)  # an undecoded hi-res window byte
                 alts.append({"from": "p3-apple2", "wording": "own", "parts": parts})
+            # s218: Phantasie III's C64 (v1.0, v1.2 (alt)), verbatim (a C64-only III).
+            for prof, files in (c64p3 or {}).items():
+                if (c3 := c64p3_verbatim(prof, files, versions, alts)) is not None:
+                    assert resolve(files, c3["parts"]) == value, (folder, sid, prof)
+                    alts.append(c3)
             # s216: Phantasie I's C64, verbatim (a C64-only I).
             if c64 is not None and (c := c64_verbatim(c64, versions, alts)) is not None:
                 assert resolve(c64, c["parts"]) == value, (folder, sid)
@@ -449,6 +540,17 @@ def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: 
                 text = resolve(files, parts)
                 assert text.strip() and "\x00" not in text, (folder, sid, text)
                 alts.append({"from": "p1-c64", "wording": "own", "parts": parts})
+            # s218: Phantasie II's C64, verbatim (a C64-only II), else in its own wording.
+            if c64_2 is not None and (c2 := c64_2_verbatim(c64_2, versions, alts)) is not None:
+                if sid in c64_2_own.get(folder, {}):
+                    raise SystemExit(f"{folder} {sid}: in {C64_2_OWN.name} but the C64 holds it verbatim")
+                assert resolve(c64_2, c2["parts"]) == value, (folder, sid)
+                alts.append(c2)
+            elif c64_2 is not None and sid in c64_2_own.get(folder, {}):
+                parts = c64_2_own[folder][sid]
+                text = resolve(c64_2, parts)
+                assert text.strip() and "\x00" not in text, (folder, sid, text)
+                alts.append({"from": "p2-c64", "wording": "own", "parts": parts})
             # s201 / s212: an Amiga's lines in its own wording (an Amiga-only import, its tables the Amiga's).
             for prof, ids in own_amiga.items():
                 if sid not in ids.get(folder, {}):
@@ -463,6 +565,9 @@ def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: 
     for sid in own.get(folder, {}):
         if sid not in out or not any(a["from"] == "p2-apple2" for a in out[sid]):
             raise SystemExit(f"{folder} {sid}: in {A2_OWN.name} but not an id the Apple lacks verbatim")
+    for sid in c64_2_own.get(folder, {}):
+        if sid not in out or not any(a["from"] == "p2-c64" for a in out[sid]):
+            raise SystemExit(f"{folder} {sid}: in {C64_2_OWN.name} but not an id with original parts")
     for sid in own3.get(folder, {}):
         if sid not in out:
             raise SystemExit(f"{folder} {sid}: in {P3A2_OWN.name} but not an id with original parts")
@@ -490,6 +595,8 @@ def main() -> int:
     v21 = load_apple2_v21()
     apple3 = load_apple3()
     c64 = load_c64()
+    c64_2 = load_c64_2()
+    c64p3 = load_c64_p3()
     own = json.loads(A2_OWN.read_text(encoding="utf-8"))["strings"] if A2_OWN.exists() else {}
     own_amiga = load_amiga_own()
     own3 = json.loads(P3A2_OWN.read_text(encoding="utf-8"))["strings"] if P3A2_OWN.exists() else {}
@@ -515,7 +622,8 @@ def main() -> int:
     for folder in FOLDERS:
         if folder not in only:
             continue
-        data = build(versions, folder, apple, own, own_amiga, v21=v21, apple3=apple3, own3=own3, c64=c64)
+        data = build(versions, folder, apple, own, own_amiga, v21=v21, apple3=apple3, own3=own3, c64=c64,
+                     c64_2=c64_2, c64p3=c64p3)
         path = GAMEDATA / folder / "strings" / "en.sources.json"
         text = json.dumps(data, indent=1, ensure_ascii=False) + "\n"
         if check:

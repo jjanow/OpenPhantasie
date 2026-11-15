@@ -563,6 +563,7 @@ public sealed partial class GameSession
         _otherParties.Clear(); // D-069: a new game has no parked parties
         var startTown = Campaign.StartTownId; // I: 1 = Pelnor
         CurrentTownId = startTown;
+        SeedStarterGuild();
         FreshStart = true;
         CurrentTown = TownStateFor(startTown);
         Dungeon = null;
@@ -570,6 +571,26 @@ public sealed partial class GameSession
         Mode = GameMode.Town;
         Note(GameText.F("core.session.entered_x", TownLabel(startTown)));
         Campaign.OnTownEntered(this, startTown); // T4: III puts the party on Pendragon's square
+    }
+
+    /// <summary>
+    /// s218: pre-generated Guild members the game data brings (the C64 III's six, <c>starter-guild.json</c>; empty for
+    /// every other copy). <see cref="StartNewGame"/> puts each in its Guild slot when that slot is free.
+    /// </summary>
+    public IReadOnlyList<StarterGuildMember> StarterGuild { get; set; } = [];
+
+    private void SeedStarterGuild()
+    {
+        foreach (var m in StarterGuild)
+        {
+            if (m.Slot < 0 || m.Slot >= Roster.Slots.Length || Roster.Slots[m.Slot] is not null
+                || !CharacterCreation.IsNameUnique(m.Name, Roster.Occupied)
+                || Campaign.CreateStarterMember(this, m) is not { } c)
+                continue;
+            Roster.Slots[m.Slot] = c;
+        }
+        if (StarterGuild.Count > 0)
+            SweepTreasury(); // as Guild N)EW: the bank gold goes to the treasury when that rule is on
     }
 
     public void OpenGuild()

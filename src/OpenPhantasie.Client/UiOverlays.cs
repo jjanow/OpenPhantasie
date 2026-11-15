@@ -1314,7 +1314,7 @@ public static partial class UiOverlays
         var sparkle = presenter.P2Run?.Sparkle is { Target: not null } sp ? sp : null;
         var sparkleLayout = presenter.P2Lines?.Invoke()?.Sparkle;
         var inner = new Rectangle(box.X, box.Y, box.Width - ScrollBox.BarWidth - 2, box.Height);
-        var rows = new List<(Texture2D? Picture, Point Size, IReadOnlyList<string> Text, int Height)>();
+        var rows = new List<(Texture2D? Picture, Point Size, IReadOnlyList<string> Text, int Height, bool Below)>();
         for (var i = 0; i < lines.Count && i < living.Count; i++)
         {
             var picture = assets.GetMonsterIdle(living[i][0].Id);
@@ -1323,8 +1323,14 @@ public static partial class UiOverlays
                 && P2PoseArt(assets, presenter, PictureNames.MonsterAttacking(posing.Id), pose.Silhouette) is { } posed)
                 picture = posed;
             var size = picture is null ? new Point(12, 12) : new Point(picture.Width, picture.Height);
-            var text = Lines(lines[i], Math.Max(1, (inner.Width - size.X - 6) / PixelFont.Advance));
-            rows.Add((picture, size, text, Math.Max(size.Y, 3 + text.Count * PixelFont.LineHeight)));
+            // s218: a picture too wide to leave a readable line beside it (C64 I's PYTHON, 144 px) puts its line below.
+            var besideChars = (inner.Width - size.X - 6) / PixelFont.Advance;
+            var under = Lines(lines[i], Math.Max(1, (inner.Width - 4) / PixelFont.Advance));
+            var below = besideChars < MinRankLineChars && size.Y + 3 + under.Count * PixelFont.LineHeight <= box.Height;
+            var text = below ? under : Lines(lines[i], Math.Max(1, besideChars));
+            rows.Add((picture, size, text, below
+                ? size.Y + 3 + text.Count * PixelFont.LineHeight
+                : Math.Max(size.Y, 3 + text.Count * PixelFont.LineHeight), below));
         }
         var scroll = presenter.RankScroll;
         var visible = WholePictureRows(scroll, rows.Select(r => r.Height).ToArray(), box.Height);
@@ -1334,7 +1340,7 @@ public static partial class UiOverlays
             foreach (var (r, offset) in visible)
             {
                 var y = box.Y + offset;
-                var (picture, size, text, height) = rows[r];
+                var (picture, size, text, height, below) = rows[r];
                 var art = new Rectangle(box.X + 2, y, size.X, size.Y);
                 if (picture is not null)
                     batch.Draw(picture, art, Color.White);
@@ -1353,9 +1359,9 @@ public static partial class UiOverlays
                         Color.White);
                 for (var k = 0; k < text.Count; k++)
                 {
-                    var lineY = y + 3 + k * PixelFont.LineHeight;
+                    var lineY = (below ? y + size.Y : y) + 3 + k * PixelFont.LineHeight;
                     if (lineY >= box.Y && lineY + PixelFont.GlyphHeight <= box.Bottom) // a line shows whole or not at all
-                        PixelFont.Draw(batch, pixel, art.Right + 4, lineY, text[k], Color.White);
+                        PixelFont.Draw(batch, pixel, below ? box.X + 2 : art.Right + 4, lineY, text[k], Color.White);
                 }
             }
         });
@@ -1365,6 +1371,9 @@ public static partial class UiOverlays
                     { Click = [HitTest.Digit(i + 1)] });
         DrawScrollBar(batch, pixel, scroll, box);
     }
+
+    /// <summary>s218: the fewest characters a rank line gets beside its picture before it moves below it.</summary>
+    public const int MinRankLineChars = 6;
 
     /// <summary>Scroll by complete entries. Text and its picture stay together; the last entry is always reachable.</summary>
     public static IReadOnlyList<(int Index, int Y)> WholePictureRows(ScrollBox scroll, IReadOnlyList<int> heights, int room)

@@ -573,7 +573,8 @@ public sealed class P3AmigaTables
     public static bool OwnsTables(ImportContext ctx) =>
         ctx.ReadImportedGameData(Game, "monsters.json") is not JsonObject existing
         || ((string?)existing["_source"]) is { } source
-        && (source.StartsWith(Label, StringComparison.Ordinal) || source.StartsWith(P3Apple2.P3Apple2Tables.Label, StringComparison.Ordinal));
+        && (source.StartsWith(Label, StringComparison.Ordinal) || source.StartsWith(P3Apple2.P3Apple2Tables.Label, StringComparison.Ordinal)
+            || source.StartsWith(P3C64.P3C64Tables.Label, StringComparison.Ordinal));
 
     /// <summary>Write III's tables from the Amiga with DOS's values (<see cref="BuildWithDosValues"/>); false when
     /// DOS III's tables (this run or earlier) win.</summary>

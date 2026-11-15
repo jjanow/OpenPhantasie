@@ -60,6 +60,9 @@ parity/transfer-live.md`: the converted roster matches the decoded byte table by
 | D2-051 | Guild elementals: the manual's "will only serve a party of six adventurers" vs the ST's Add with any party size (SUMMON still needs six) | DECIDED (user s173: SUMMON's six-member gate is enough; the ST's Add stays as II's `game`) |
 | D2-052 | Apple II new game: the manual's "just as if you had bought a new game" vs the Apple's BACKUP, which keeps the lifted fog (and leaves the dungeon saves) | DECIDED (user s209): manual; importer restores the start fog (a) · built |
 | D2-053 | Apple II v1.0: a dungeon gold event (ops 7–10) can run the winning ending or re-run the event (`X` reused) against the manual's quest; v2.1 and the ST don't | **DECIDED** (user s212): the manual's quest (the ST / v2.1 behaviour Core plays); nothing built |
+| D2-054 | C64 v1.2 vs ST: numbers (the Apple's D2-047…049 cells plus the C64's own: group sizes, CLOUD GIANT, FERRON's MAGIC 5, map and dungeon cells, the elementals' fields) | DECIDED (user s217: the ST's, as the Apple's) · built (s218, `p2-c64`) |
+| D2-055 | C64 v1.2 vs ST: DNG7's three exit records (the C64's land on the side of the Black castle you leave by) | DECIDED (user s217): the ST's · built |
+| D2-056 | C64 v1.2 vs ST: text (names, PMES / scroll wording, Pluto's speech, the Filmon ending, the Mystic); no spell names on the C64 | DECIDED (D2-050's rule, s217) · built; two remaster joins `[~]` |
 
 ---
 
@@ -731,3 +734,60 @@ and `strings/fallback.en.json`).
 - **Remaster:** the ST / v2.1 behaviour whatever the source copy (Core plays the ST's dungeon script; the Apple import
   reads no program logic, only data, which is the same in both versions). Nothing to build.
 - **Status:** DECIDED (user s212): the manual's quest, i.e. the ST / v2.1 behaviour already built; no option for v1.0's bug.
+
+## C64 entries (s218)
+
+The importer builds II from the C64 v1.2 too (`p2-c64`, `docs/plan/10-importer.md` 7.12). D2-054 to D2-056 compare
+its data with the ST data today's GameData holds, as D2-046…050 do for the Apple; evidence:
+`reverse-engineering/c64/phantasie2/FORMAT.md` sections 3, 4 and 7, `tools/scripts/build_c64_p2_import.py` (its counts
+are asserted). The C64 shares the Apple's D2-047…049 cells but none of its other differences (no quarter turn, D2-046).
+A C64-only import is built as each entry's "Remaster" line says (the importer's `P2C64` pipeline with the shipped
+`GameData/phantasie2/c64-import.json`, `strings/fallback.p2-c64.en.json`). v1.0 is recognised and not imported (user
+s217: v1.2 only).
+With the ST or an Apple copy also imported (any order), their tables win over the C64's (user s218, as III's order).
+
+## D2-054 — C64 numbers
+
+- **Manual:** gives none of these numbers.
+- **C64 v1.2 / ST:** the Apple's cells (D2-047's five monsters, D2-048's IPSWICH / FERRON scroll stock, D2-049's two
+  skill cells, OUT3 / OUT17 / OUT31 and DNG5 (12, 37), DNG8 (6, 33), OUT1's junk feature) and the C64's own: 17 smaller
+  group-size factors and BABY DRAGON's (side 1's `MN`; side 2's differs again there and in APPRENTICE DEVIL's treasure);
+  CLOUD GIANT's xp 44,464 / 44,614 and companions 0, 4 / 0, 0; `byte_34` in 11 records (a picture-layout value);
+  FERRON's one MAGIC 5; OUT5 (17…19, 3) 2 / 62; the unreachable water pairs of OUT26 / 27 / 28 / 30; OUT28's eight
+  entrance cells 52 / 50; OUT5's junk feature record 5; DNG1 (10, 25), DNG2 (16…18, 7) and (21, 25), DNG3 (22, 15),
+  DNG5 (15…18, 29), DNG6 (20, 16) and five script-area bytes; the three elementals' MP ceiling 0 / 20, creation
+  number 38–40 / 23–25 and race 16 / 15 (FORMAT.md 3.1, 3.4, 3.5, 3.6, 3.7). Reachable cells among them change play
+  (DNG1 / DNG3 / DNG6's extra fights or wandering cells, DNG2 / DNG5's room labels, DNG2's lock).
+- **Decision:** (user s217) the ST's value for every one, as the Apple's (between versions the reference wins on
+  numbers), so which side's `MN` is read does not matter.
+- **Remaster:** ST values (built). C64-only import: 104 `st_cells` of `c64-import.json` (a fogged cell keeps its fog)
+  and the ST's monster sprite sizes; every number of the C64 build equals the ST build's (test).
+
+## D2-055 — DNG7's exits on the C64
+
+- **Manual:** silent.
+- **C64 v1.2:** DNG7's exit records 0–2 land on OUT28 (16, 11), (20, 12), (18, 15): the north exits on the ring's
+  north-west corner, the east exit on its east side, the south exits on its south side, i.e. on the side of the Black
+  castle the party leaves by. **ST / Apple:** (20, 11), (19, 15), (16, 13) (FORMAT.md 3.7); perhaps made for the
+  Apple's quarter-turned map (D2-046) `[~]`, which the C64 v1.2 corrected along with its OUT28 entrances.
+- **Decision:** (user s217) the ST's, as every other II import.
+- **Remaster:** ST exits (built). C64-only import: the five differing bytes of the three records set to the ST's.
+
+## D2-056 — C64 text
+
+- **Manual:** silent on these texts.
+- **C64 v1.2:** monster names CREEPING MOLD (62, = the Apple), PLUTO'S GIANT CONST. / WYWERN, no hyphens (DEMON FLY,
+  SNAKE DRAGON, DRAGON DEMON); item 53 SH SWORD and trailing blanks on PIKE / SCROLL / SAPPHIRE; status OKAY (ST OK);
+  the PMES spellings of FORMAT.md 3.8 (DNG2's message 7 is 80 characters long and shows its second line "FROM A SLIT
+  OF THE CEILING.", the ST's 40; PMES8 holds a blank record at id 95, which no message cell or event record names, scripts not walked [~]); the scrolls in mixed
+  case with A `VENGENCE`, G SMALLER, K GREEN, N one A fewer (SCROLL C's row 114 lacks its closing `!`); OUT6's two
+  pages without the ST's comma and full stop. Pluto's speech (`SCROLL0`), the Filmon ending (`WIN`) and the Mystic
+  (`TOWN2`) in its own upper-case wording. No spell names (spells are cast by number). The ST's other texts.
+- **Decision:** D2-050's rule (user s159, again s217): a port import keeps its wording; spell names from the manual's
+  list.
+- **Remaster:** C64-only import: the C64's names, messages, scrolls and wilderness pages; string-table lines found
+  verbatim in its programs (`p2-c64` alternatives) or in its own wording (`tools/scripts/p2_c64_own_wording.json`);
+  `{0} SWIMS` in the remaster's wording (`fallback.p2-c64.en.json`: the C64 boxes swimming as `--- SWIMMING ---`).
+  Two joins are the remaster's `[~]`: the Filmon closing's 22 C64 lines in the ST's 21 (lines 5–7 reflowed: "FOR THE" /
+  "ULTIMATE BATTLE BETWEEN GOOD AND EVIL."), and the Mystic's rank 5 as `YOU ARE HEROES OF FERRONRAH` (the C64 prints
+  `OF ` and a name from elsewhere in `TOWN2`, not traced).

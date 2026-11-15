@@ -350,8 +350,11 @@ public sealed class ImportRunner
     }
 
     /// <summary>Versions that feed tables but read nothing play rewrites (Amiga I: grids from maps.int, s201; C64 I: towns
-    /// and regions from PATTERN, its OUT1 the same on every copy, s216).</summary>
-    private static readonly HashSet<string> PlayedCopySafe = new(StringComparer.Ordinal) { "p1-amiga-1.0", "p1-c64" };
+    /// and regions from PATTERN, its OUT1 the same on every copy, s216; C64 II: towns, regions, elementals from PATTERN2, s218).</summary>
+    private static readonly HashSet<string> PlayedCopySafe = new(StringComparer.Ordinal) { "p1-amiga-1.0", "p1-c64", "p2-c64" };
+
+    /// <summary>Versions that read a played file as it is (C64 III, s218: the towns' stock TOWN A..Q).</summary>
+    private static readonly HashSet<string> PlayedStockAsIs = new(StringComparer.Ordinal) { "p3-c64", "p3-c64-1.2" };
 
     /// <summary>
     /// GameData files outside <c>graphics/</c> and <c>strings/</c> that are a pack's, not a table: I's
@@ -419,6 +422,13 @@ public sealed class ImportRunner
             return $"This copy of {d.Profile.Title} has been played ({files} changed). Its saved map regions " +
                    $"({string.Join(", ", outs)}) were restored as on a fresh copy: the fog is back" +
                    (MapsHoldFights(d) ? " and fixed fights are armed again." : ".");
+        // s218: the C64's III reads its towns' stock files (TOWN A..Q) as they are; its roster (PCHARS0) only for the
+        // starter party, which a played roster does not give.
+        if (PlayedStockAsIs.Contains(d.Profile.Id))
+            return $"This copy of {d.Profile.Title} has been played ({files} changed). It was imported as it is: the " +
+                   "armory stock of the played towns is the played copy's" +
+                   (d.PlayedFiles.Contains("PCHARS0") ? ", and the Guild's pre-generated party is not imported" : "") +
+                   ". Import a fresh copy (an unplayed disk image) to get the original stock and party.";
         // DOS I stores spent fixed fights in its regions; the Apple's II stores only the fog (FORMAT.md 3.6).
         var fights = MapsHoldFights(d) ? " and fixed fights already won stay gone" : "";
         return outs.Count > 0

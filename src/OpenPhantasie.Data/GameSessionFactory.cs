@@ -30,7 +30,7 @@ public static class GameSessionFactory
         if (monsterIds.Count == 0)
             monsterIds = data.Monsters.Select(m => m.Id).Take(8).ToList();
 
-        return new GameSession(
+        var session = new GameSession(
             overworld: data.CreateTraversal(campaign),
             dungeons: data.CreateDungeonTraversal(),
             items: data.CreateItemCatalog(),
@@ -44,6 +44,8 @@ public static class GameSessionFactory
             elementalTemplates: data.Elementals.Select(e => e.ToCharacter()).ToList(),
             wildernessEncounters: data.WildernessEncounters,
             campaign: campaign);
+        session.StarterGuild = data.StarterGuild; // s218: the C64 III's pre-generated six, when imported
+        return session;
     }
 
     /// <summary>Import Phase 3 guild.json snapshots into a live roster.</summary>

@@ -133,6 +133,12 @@ public interface ICampaign
     }
 
     /// <summary>
+    /// s218: the character for a pre-generated Guild member of the game data (<see cref="GameSession.StarterGuild"/>, the
+    /// C64 III's six), built by the game's own rules for what the record does not hold; null = the game has none.
+    /// </summary>
+    Character? CreateStarterMember(GameSession session, StarterGuildMember member) => null;
+
+    /// <summary>
     /// A spell cast outside combat that the game handles itself (II: DIVINE II's summons). Return the result, or null to
     /// let the shared <see cref="SpellCaster"/> cast it.
     /// </summary>

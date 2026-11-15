@@ -425,18 +425,20 @@ internal sealed class P2GameDataBuilder
 
     // ---- creation tables, elementals ---------------------------------------------------------------------------
 
-    public JsonObject Creation(JsonObject ct)
+    /// <param name="manualCopy">s218: the copy already holds the manual's HALFLING DEX 12 / MONK 41 = 0 (the C64, as the
+    /// Apple: C64 FORMAT.md 3.3), so the checks expect those; the cells are set from I's all the same.</param>
+    public JsonObject Creation(JsonObject ct, bool manualCopy = false)
     {
         var p1ct = P1("creation-tables.json");
         var hal = ct["race_attribute_modifiers"]!["by_race"]!["HALFLING"]!;
-        if ((int)hal["modifiers"]!["DEX"]! != 11)
+        if ((int)hal["modifiers"]!["DEX"]! != (manualCopy ? 12 : 11))
             throw new InvalidDataException("HALFLING DEX changed upstream");
         // D2-009 (user: "manual, as in I"): the same two cells Phantasie I's GameData sets from the manual (D-001, D-006).
         var p1Hal = p1ct["race_attribute_modifiers"]!["by_race"]!["HALFLING"]!;
         hal["modifiers"]!["DEX"] = J.Clone(p1Hal["modifiers"]!["DEX"]);
         hal["ceilings"]!["DEX"] = J.Clone(p1Hal["ceilings"]!["DEX"]);
         var monk = ct["spell_levels"]!["by_class"]!["MONK"]!.AsArray();
-        if ((int)monk[41]! != 7)
+        if ((int)monk[41]! != (manualCopy ? 0 : 7))
             throw new InvalidDataException("MONK spell 41 changed upstream");
         monk[41] = J.Clone(p1ct["spell_levels"]!["by_class"]!["MONK"]![41]);
         // D2-015 (user s79: manual, wizard level 13).
