@@ -247,13 +247,13 @@ file and has its own `PHANT.OBJ` / `TOWN.OBJ` (same table offsets).
 - **The C64's own text** (D3-077 for the Apple, D-084 / D2-050): item names (the Apple's abbreviations, `HALBERD`,
   `SWORD +3…+5` for 90–92), the dungeon texts, the scroll pages, `Drip Slimes`; the C64's own spell names (it has all 56).
 
-**Open** (the user decides):
+**Decided** (user, 2026-11-15, s217):
 
-1. **The pre-generated party.** The manual promises six pre-generated, pre-equipped characters as the first Guild
-   members (`docs/plan/09-trilogy-manual-p3.md`: not on the IBM version; the trilogy matrix lists it for III). The C64's
-   `PCHARS0` has them (CHUMLEY, TRACKER, FINGERS, GRASSHOPPER, BONES, SAURIAN; v1.0 and v1.2 (alt) rolled differently).
-   Import them into the Guild, and from which version? (Their 170-byte layout needs decoding first.)
-2. **v1.2 (alt) support** (the same data files; other programs and starter party), or v1.0 only?
+1. **The pre-generated party: imported, from the disk being imported.** The manual promises six pre-generated,
+   pre-equipped characters as the first Guild members (`docs/plan/09-trilogy-manual-p3.md`: not on the IBM version).
+   `PCHARS0` slots 0–5 (CHUMLEY, TRACKER, FINGERS, GRASSHOPPER, BONES, SAURIAN) go into the Guild's first six slots: a
+   v1.0 import gets v1.0's rolls, a v1.2 (alt) import v1.2's. Needs the 170-byte layout decoded first.
+2. **v1.2 (alt) supported** beside v1.0: the same tables, its own title picture and starter party.
 
 **Graphics pack (`c64`).** Not started: monster pictures (`MONSTERS` 0–4991), title, character sets, hero sprites,
 endgame pictures.

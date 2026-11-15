@@ -94,7 +94,7 @@ names its presets only where they differ from this.
 | D-084 | C64 import: DNG7's bleeb puzzle (two pool hints from swapped speakers, question 3 asked by a blue bleeb about "it") vs DOS | DECIDED: DOS's puzzle lines (they fit the kept answer key) · built (s216) |
 | D-085 | C64 import: scroll 5's third pool NORTH of the star (fits the map) vs DOS's SOUTH | DECIDED: C64's NORTH in the C64 import; DOS keeps SOUTH · built (s216) |
 | D-086 | C64 import: three reachable dungeon squares differ (DNG3 (2, 14), DNG6 (12, 11), DNG7 (19, 11)) | DECIDED: DOS's cells · built (s216) |
-| D-087 | C64 import: no spell names on the C64; the fire elemental's name field reads FIRE ELE | **PENDING** (built by precedent: the manual's spell table + DIVINE I as D2-050; FIRE ELEM as D-083) |
+| D-087 | C64 import: no spell names on the C64; the fire elemental's name field reads FIRE ELE | **DECIDED: as built** + built (user s217; the manual's spell table + DIVINE I as D2-050; FIRE ELEM as D-083) |
 
 ---
 
@@ -1095,8 +1095,7 @@ names its presets only where they differ from this.
 - **DOS:** its own spell table (`HEALING I` … `DIVINE I`, Roman numerals); the elementals FIRE ELEM, WATER ELEM, EARTH ELEM.
 - **C64 (v1.4):** no spell names on either side (spells are cast by number, FORMAT.md 3.10). `CHAR2`'s 12-byte name
   fields, backspaces applied, read `FIRE ELE`, `WATER ELEM`, `EARTH ELEM` (the fire one runs on past the field).
-- **Decision:** none yet (**PENDING**; not a manual↔code conflict but two import choices). Built by precedent (s216):
-  the manual's table as printed for slots 0–53 and the remaster wording `DIVINE I` for the divine spell, as II's Apple
+- **Decision (user, 2026-11-15, s217):** keep as built (not a manual↔code conflict but two import choices): the manual's table as printed for slots 0–53 and the remaster wording `DIVINE I` for the divine spell, as II's Apple
   import (DIFFERENCES-II D2-050); `FIRE ELE` fixed to DOS's `FIRE ELEM`, as D-083 fixed the Amiga's cut name.
 - **Remaster:** `phantasie1/c64-import.json` `spell_names` and `name_fixes`; DOS I and the Amiga keep their own names.
 - **Side effects:** none on rules; a C64-only import's spell names differ from DOS's (Arabic numerals, SUMMONS

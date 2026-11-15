@@ -321,16 +321,14 @@ from `PATTERN2`; played = loads at `$81C3` / `$9448` / `$898A` (a warning only, 
   CONSTR., WYWERN, no hyphens), item 53 SH SWORD, scroll K's GREEN snake, the PMES spellings, `SCROLL0`, `WIN`; spell
   names from the manual's list (D2-050). No compass swap is needed (the C64 is ST-oriented).
 
-**Open** (new evidence; the user decides):
+**Decided** (user, 2026-11-15, s217):
 
-1. **DNG7's exits** (3.7). The C64's land on the side of the Black castle you leave by; the ST's (and the Apple's, the
-   same bytes) do not on the ST-oriented map: they may have been made for the Apple's quarter-turned map (D2-046) `[~]`,
-   which the C64 v1.2 corrected along with its OUT28 entrances (v1.0 still had the Apple's entrance set, 4.1). The
-   ST's exits as everywhere else, or the C64's?
-2. **v1.0 support.** A second profile would need its own cells; its scroll L gives another route into Pluto's castle
-   ("THE UNDEAD SERVANTS DOOR ON THE SOUTHEAST" vs v1.2 / ST "THE MIDDLE DOOR ON THE NORTH SIDE AND SNUCK PAST THE
-   GUARD": which one fits the map is not checked), its OUT28 entrances are the Apple's quarter-turned set, and it has no
-   name for item 180. Plain v1.0's `SCROLLS` is short (unreadable sector): (alt)(g2) only. Support v1.0, or v1.2 only?
+1. **DNG7's exits** (3.7): **the ST's**, as every other II import. The C64's exits land on the side of the Black castle
+   you leave by; the ST's (and the Apple's, the same bytes) may have been made for the Apple's quarter-turned map
+   (D2-046) `[~]`, which the C64 v1.2 corrected along with its OUT28 entrances. The import ignores the C64's exit bytes.
+2. **v1.2 only.** v1.0 (its own cells, the Apple's OUT28 entrances, no name for item 180, scroll L's other route
+   "THE UNDEAD SERVANTS DOOR ON THE SOUTHEAST", a short `SCROLLS` on the plain copy) is recognised and refused as
+   unsupported.
 
 **Graphics pack (`c64`).** As I's plan: `MX` sprites (80 sets + `TLUM1`), title, item / feature pictures, font; map
 tiles, hero sprites, `PH2.END-4` not decoded.
