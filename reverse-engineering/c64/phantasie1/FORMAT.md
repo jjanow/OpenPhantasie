@@ -298,7 +298,7 @@ and `OUTDOORS` / `DUNGEON` `17167, 21629, ... 45830` (11 values) `[?]`.
 
 - **Numbers that differ:** BLACK KNIGHT's group size (2 vs 3); MONK SLEEP never (the manual's, D-006); 2 unused skill
   cells; the DNG cells of 3.7 (3 change reachable geometry); the OUT cells of 3.6.
-- **Text that changes play:** the PMES7 bleeb puzzle, scroll 5's third pool (north vs south; the C64's fits the map).
+- **Text that changes play:** the PMES7 bleeb puzzle, scroll 5's third pool (north vs south; the C64's fits the map). Import choices: D-084…D-086 (section 7).
   Cosmetic: item spellings (3.2), PMES / OUT / scroll typos.
 - **Shared with the Amiga against DOS:** HEAL POT1..9, the PMES1 chest line without a full stop, DNG6's lock bank,
   OUT9's three cells, the region / town cell transposition `(y, 25 − x)`, plain-text messages and scrolls. Not shared:
@@ -360,17 +360,17 @@ warns for any other played region or town.
 | `elementals.json` | `CHAR2` 21–23 (names, HP, skills, points, spells) | defense / MP fields (3.5) |
 | `overworld.json` | `OUT n` grids (transposed), features, pages (screen codes) | fog and fixed fights of played regions, OUT1 / OUT5 grids, the OUT9 / OUT13 / OUT15 / OUT18 cells |
 | `dungeons.json` | `DNG n` + `PMES n` (DOS layout: DOS's dungeon extractor without the cipher) | the DNG cells of 3.7 |
-| `messages.json` | `PMES n` | — (the C64's text, bleebs included: **user to decide**, see below) |
-| `scrolls.json` | `SCROLLS` (frame stripped, the lines inside) | — (scroll 5: user) |
+| `messages.json` | `PMES n` | the bleeb puzzle's lines (two pool hints, question 3; D-084) |
+| `scrolls.json` | `SCROLLS` (frame stripped, the lines inside) | — (scroll 5 keeps the C64's NORTH, D-085) |
 | `item-descriptions.json`, `spells.json` | the builders | spell names as above |
 | `creation-tables.json`, `rules.json`, travel / encounter tables | shipped (class a); `TINFO` equals DOS but MONK SLEEP | — |
 
 Strings: the programs' PRINT text gives `p1-c64` alternatives (town menus, Guild, sheet, Zeus's speech as an
 own-wording file like the Amiga's).
 
-**Open for the user** (before an import is built): the text that changes play (PMES7's bleebs; scroll 5's third pool,
-where the C64's NORTH fits the map and DOS's south does not) and the three reachable DNG cell differences (DNG3 (2, 14), DNG6 (12, 11), DNG7 (19, 11)): C64 text with DOS numbers
-would put DOS's map under the C64's puzzle text. Which version is right is unchecked against the manual.
+**Decided (user s215, D-084…D-086):** PMES7's bleeb puzzle (the two pool hints and question 3) takes DOS's lines, the rest
+of the C64's text stays; scroll 5 keeps the C64's NORTH; the three reachable DNG cells (DNG3 (2, 14), DNG6 (12, 11),
+DNG7 (19, 11)) take DOS's values like the walled-in ones.
 
 **Graphics pack (`c64`).** Monster sprites (`MX`, 80 sets, VIC colours), the title picture, the item / feature
 pictures, the font; the map tiles and hero sprites are not decoded yet (`FONT`, `HSPRIT`, `FONT+HER`: 6.2), nor any

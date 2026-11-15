@@ -91,6 +91,9 @@ names its presets only where they differ from this.
 | D-081 | Amiga POTIONS view: the Amiga's ring letters run into "…ND OF NIKADEMUS" (no end marker) | DECIDED: an Amiga bug, fixed: clean rows · built |
 | D-082 | Amiga-only import: item names "HEAL POT1".."HEAL POT9" and "SROLL 19" vs the manual's Healing 1..9 / SCROLL n | DECIDED: Amiga's HEAL POT1..9, typo SROLL 19 → SCROLL 19 · built |
 | D-083 | Amiga-only import: the fire elemental named "FIRE  ELE" vs the manual's FIRE (DOS "FIRE ELEM") | DECIDED: typo fixed to DOS's FIRE ELEM · built |
+| D-084 | C64 import: DNG7's bleeb puzzle (two pool hints from swapped speakers, question 3 asked by a blue bleeb about "it") vs DOS | DECIDED: DOS's puzzle lines (they fit the kept answer key) · not built |
+| D-085 | C64 import: scroll 5's third pool NORTH of the star (fits the map) vs DOS's SOUTH | DECIDED: C64's NORTH in the C64 import; DOS keeps SOUTH · not built |
+| D-086 | C64 import: three reachable dungeon squares differ (DNG3 (2, 14), DNG6 (12, 11), DNG7 (19, 11)) | DECIDED: DOS's cells · not built |
 
 ---
 
@@ -1045,3 +1048,41 @@ names its presets only where they differ from this.
   `phantasie1/amiga-import.json`).
 - **Side effects:** none (the summon finds the record by number).
 - **Spec:** `reverse-engineering/amiga/GAME-TABLES.md` section 2 / 6.
+
+## D-084 — C64 import: the bleeb puzzle's text (DNG7)
+
+- **Manual:** silent (no dungeon text).
+- **DOS (MESS7):** a **blue** bleeb says "BLUE POOLS ARE HARMFUL", a **red** bleeb "RED POOLS SOMETIMES TELEPORT";
+  question 3 is asked by a **green** bleeb: "WHAT KIND OF BLEEB [original text]". The answer key
+  (DNG7 scripts, `endgame.md` 2.3) is GREEN, RED/GREEN, RED; RED fits question 3 exactly (only blue says greens
+  sometimes lie; red says they always lie).
+- **C64 (v1.4 `PMES 7`):** the two pool hints come from a **red** and a **blue** bleeb (speakers swapped); question 3
+  is asked by a **blue** bleeb: "...WOULD NEVER SAY THAT IT SOMETIMES LIES?", which reads as RED or RED / BLUE.
+- **Decision (user s215):** the C64 import uses DOS's lines for the puzzle (the two pool hints and question 3); the
+  rest of PMES7 stays the C64's. The import keeps DOS's answer key (DOS's numbers).
+- **Remaster:** not built (the `p1-c64` importer doesn't exist yet). Whether the swapped pool hints fit DNG7's pools
+  was not checked `[~]` (moot with DOS's lines).
+- **Side effects:** none on rules.
+- **Spec:** `reverse-engineering/c64/phantasie1/FORMAT.md` sections 3.8 / 7.
+
+## D-085 — C64 import: scroll 5's third pool
+
+- **Manual:** silent (scroll texts are not in it).
+- **DOS:** scroll 5 "THE THIRD POOL LIES SOUTH OF THE STAR".
+- **C64 (v1.4 `SCROLLS`):** "NORTH OF THE STAR". The map (equal on both) puts the third pool at OUT14 (12, 6), north
+  of both star candidates (rows 10–15; which tiles draw the star `[?]`), so the C64's fits the map and DOS's does not.
+- **Decision (user s215):** the C64 import shows NORTH. DOS I keeps SOUTH (no option).
+- **Remaster:** not built.
+- **Side effects:** none (a hint only).
+- **Spec:** `reverse-engineering/c64/phantasie1/FORMAT.md` section 3.9.
+
+## D-086 — C64 import: three reachable dungeon squares
+
+- **Manual:** silent.
+- **DOS / C64:** DNG3 (2, 14) DOS wandering cell `0x0F` (fight chance, else "A DRY NATURAL CAVERN") / C64 wall; DNG6
+  (12, 11) DOS message `0x9C` ("ARENA VIEWING AREA") / C64 wall; DNG7 (19, 11) DOS wall / C64 message `0x90` ("A PLAIN
+  STONE ROOM"). No loot, lock, puzzle or script on any of them. The other differing cells are walled in.
+- **Decision (user s215):** DOS's cells (DOS wins on numbers); the C64 import's dungeons equal DOS's maps.
+- **Remaster:** not built; the cells go into `phantasie1/c64-import.json`'s class (a) list.
+- **Side effects:** none.
+- **Spec:** `reverse-engineering/c64/phantasie1/FORMAT.md` section 3.7.
