@@ -220,7 +220,7 @@ public class P3StringFallbackTests
             var table = StringTable.ForGame(GameId.P3);
             // The Apple's own word wins over the fallback under it; a line it lacks reads the remaster's wording.
             Assert.Equal("MONK", table.Get("p3combat.class.Monk"));
-            Assert.Equal("Welcome...", table.Get("core.p3.greetings"));
+            Assert.Equal("The monsters greet you...", table.Get("core.p3.greetings"));
         }
         finally
         {

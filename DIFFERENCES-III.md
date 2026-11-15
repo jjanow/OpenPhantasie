@@ -65,6 +65,7 @@ they differ.
 | D3-074 | Town keys: the manual's town letters (I's A G M N B L / C U D I S, plus T Trade) or the Amiga bar's own (`?OS` / `+-ENPR·LT` / `ABIMX·CDGUV`: G Trade, I Inn, N New Member, L Learn, T Training) | DECIDED (user s180): Amiga under AMIGA SCREENS, manual in the DOS look; QoL COMMON TOWN KEYS for one set · built |
 | D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | DECIDED (user s209): manual, DOS as option (`p3.fireflash`) · built · DOS checked live |
 | D3-076 | Town inn: the manual cures "1 Break or 2 Injuries" at every inn; Apple II III's town inn cures no body area (HP and magic only), its wilderness inns cure 2 points | DECIDED (user s212): the manual (D3-015); no Apple option |
+| D3-077 | Apple-only III import: lines the Apple prints in its own words (Mystic, Greetings, SHARES FOR, the ending speech, combat / dungeon lines) shown as the remaster's fallback wording, or as the Apple's text like II's Apple import (D2-050) | DECIDED (user s215): the Apple's own text, like II; the fallbacks stay for lines the Apple lacks and for a [cr] v1.0 copy · not built |
 
 ---
 
@@ -1044,3 +1045,20 @@ they differ.
 - **Decision (user s212):** the manual's rule (D3-015, user s81), already built; no option for the Apple's town inn.
 - **Remaster:** nothing changes. The Apple-only import (s212) imports tables, not this rule.
 - **Side effects:** none.
+
+## D3-077 — Apple-only III import: the Apple's own wording
+
+- **Manual:** silent (screen text).
+- **Code:** Apple II III v3.0 prints many of the lines DOS III / the Amiga give, in its own words and upper case: the
+  Mystic (`YOU ARE ... ADVENTURERS`, `AND HEROES OF ...`, TOWN3 4653-4663), `THE [original text]` (OUTDOORS3 1160),
+  `SHARES FOR`, `DIVIDING [original text]`, the astral lines (CEMETARY3), most of the reward speech (WIN 41-190),
+  combat / dungeon lines (`[original text]`, `[original text]`, ARMOR's lines, HITS / MISSES ...).
+  The s212 import takes only lines that match the original word for word; the rest read the remaster's fallback
+  wording (`fallback.p3-apple2.en.json`).
+- **Decision (user s215):** as II's Apple import (D2-050): hand-map these ids to the Apple's text (a
+  `tools/scripts/p3_apple2_own_wording.json`, an own-wording file at the top of III's chain), shown in the Apple's
+  upper case. The fallbacks stay for lines the Apple lacks and for a `[cr]` v1.0 copy (no Apple lines); their wording
+  was reviewed the same session (`docs/plan/p3-apple2-fallback-review.md`, 16 ids changed).
+- **Remaster:** not built (the own-wording mechanism is II-only today, `10-importer.md` 7.6).
+- **Side effects:** none on rules.
+- **Spec:** `docs/plan/p3-apple2-fallback-review.md` (Findings), `reverse-engineering/apple2/phantasie3/FORMAT.md`.
