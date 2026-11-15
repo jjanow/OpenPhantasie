@@ -42,6 +42,7 @@ public partial class Game1
     {
         _hits.Clear();
         UiOverlays.Hits = _hits;
+        UiOverlays.PanelKeepClear = null; // s216: set again by the Guild screen when it is the one drawn this frame
     }
 
     private void EndHits()

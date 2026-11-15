@@ -74,7 +74,7 @@ public class MinimalCampaignTests
         var session = NewSession(new MinimalCampaign());
         session.StartNewGame();
         Assert.Equal(3, session.CurrentTownId);
-        Assert.Equal("Entered town #3.", session.LastMessage);
+        Assert.Equal($"Entered {session.CurrentTown!.Name}.", session.LastMessage); // s216: the name, not "town #3"
     }
 
     [OriginalDataFact]

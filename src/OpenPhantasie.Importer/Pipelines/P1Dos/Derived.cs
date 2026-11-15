@@ -111,6 +111,7 @@ internal static class Derived
     {
         ["EMERALD"] = "A green emerald, cut and polished.",
         ["SAPPHIRE"] = "A deep blue sapphire, one of those the Black Knights hoard.",
+        ["SAPHIRE"] = "A deep blue sapphire, one of those the Black Knights hoard.", // the C64's spelling (s216)
         ["RUBY"] = "A blood-red ruby.",
         ["COIN"] = "An old coin of Gelnor, from before the invasion.",
         ["DIAMOND"] = "A flawless diamond.",

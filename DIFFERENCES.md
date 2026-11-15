@@ -91,9 +91,10 @@ names its presets only where they differ from this.
 | D-081 | Amiga POTIONS view: the Amiga's ring letters run into "…ND OF NIKADEMUS" (no end marker) | DECIDED: an Amiga bug, fixed: clean rows · built |
 | D-082 | Amiga-only import: item names "HEAL POT1".."HEAL POT9" and "SROLL 19" vs the manual's Healing 1..9 / SCROLL n | DECIDED: Amiga's HEAL POT1..9, typo SROLL 19 → SCROLL 19 · built |
 | D-083 | Amiga-only import: the fire elemental named "FIRE  ELE" vs the manual's FIRE (DOS "FIRE ELEM") | DECIDED: typo fixed to DOS's FIRE ELEM · built |
-| D-084 | C64 import: DNG7's bleeb puzzle (two pool hints from swapped speakers, question 3 asked by a blue bleeb about "it") vs DOS | DECIDED: DOS's puzzle lines (they fit the kept answer key) · not built |
-| D-085 | C64 import: scroll 5's third pool NORTH of the star (fits the map) vs DOS's SOUTH | DECIDED: C64's NORTH in the C64 import; DOS keeps SOUTH · not built |
-| D-086 | C64 import: three reachable dungeon squares differ (DNG3 (2, 14), DNG6 (12, 11), DNG7 (19, 11)) | DECIDED: DOS's cells · not built |
+| D-084 | C64 import: DNG7's bleeb puzzle (two pool hints from swapped speakers, question 3 asked by a blue bleeb about "it") vs DOS | DECIDED: DOS's puzzle lines (they fit the kept answer key) · built (s216) |
+| D-085 | C64 import: scroll 5's third pool NORTH of the star (fits the map) vs DOS's SOUTH | DECIDED: C64's NORTH in the C64 import; DOS keeps SOUTH · built (s216) |
+| D-086 | C64 import: three reachable dungeon squares differ (DNG3 (2, 14), DNG6 (12, 11), DNG7 (19, 11)) | DECIDED: DOS's cells · built (s216) |
+| D-087 | C64 import: no spell names on the C64; the fire elemental's name field reads FIRE ELE | **PENDING** (built by precedent: the manual's spell table + DIVINE I as D2-050; FIRE ELEM as D-083) |
 
 ---
 
@@ -1060,7 +1061,7 @@ names its presets only where they differ from this.
   is asked by a **blue** bleeb: "...WOULD NEVER SAY THAT IT SOMETIMES LIES?", which reads as RED or RED / BLUE.
 - **Decision (user s215):** the C64 import uses DOS's lines for the puzzle (the two pool hints and question 3); the
   rest of PMES7 stays the C64's. The import keeps DOS's answer key (DOS's numbers).
-- **Remaster:** not built (the `p1-c64` importer doesn't exist yet). Whether the swapped pool hints fit DNG7's pools
+- **Remaster:** built (s216): `c64-import.json` `text_patches` put DOS's words into `PMES 7` (the two speakers, question 3's bleeb and wording) before the messages and dungeons read it. Whether the swapped pool hints fit DNG7's pools
   was not checked `[~]` (moot with DOS's lines).
 - **Side effects:** none on rules.
 - **Spec:** `reverse-engineering/c64/phantasie1/FORMAT.md` sections 3.8 / 7.
@@ -1072,7 +1073,7 @@ names its presets only where they differ from this.
 - **C64 (v1.4 `SCROLLS`):** "NORTH OF THE STAR". The map (equal on both) puts the third pool at OUT14 (12, 6), north
   of both star candidates (rows 10–15; which tiles draw the star `[?]`), so the C64's fits the map and DOS's does not.
 - **Decision (user s215):** the C64 import shows NORTH. DOS I keeps SOUTH (no option).
-- **Remaster:** not built.
+- **Remaster:** built (s216): the C64 import's scroll 5 reads NORTH (no patch).
 - **Side effects:** none (a hint only).
 - **Spec:** `reverse-engineering/c64/phantasie1/FORMAT.md` section 3.9.
 
@@ -1083,6 +1084,21 @@ names its presets only where they differ from this.
   (12, 11) DOS message `0x9C` ("ARENA VIEWING AREA") / C64 wall; DNG7 (19, 11) DOS wall / C64 message `0x90` ("A PLAIN
   STONE ROOM"). No loot, lock, puzzle or script on any of them. The other differing cells are walled in.
 - **Decision (user s215):** DOS's cells (DOS wins on numbers); the C64 import's dungeons equal DOS's maps.
-- **Remaster:** not built; the cells go into `phantasie1/c64-import.json`'s class (a) list.
+- **Remaster:** built (s216): the three cells and the walled-in ones (and the side-table bytes of FORMAT.md 3.7) are byte cells in `phantasie1/c64-import.json`'s `dos_cells`.
 - **Side effects:** none.
 - **Spec:** `reverse-engineering/c64/phantasie1/FORMAT.md` section 3.7.
+
+## D-087 — C64 import: spell names and the fire elemental's name
+
+- **Manual:** names spells 1–54 in its "Spells by Class and Level" table (page 18; #48 SUMMONS ELEMENTAL, #52 MONSTER
+  EVALUATION); names no divine spell.
+- **DOS:** its own spell table (`HEALING I` … `DIVINE I`, Roman numerals); the elementals FIRE ELEM, WATER ELEM, EARTH ELEM.
+- **C64 (v1.4):** no spell names on either side (spells are cast by number, FORMAT.md 3.10). `CHAR2`'s 12-byte name
+  fields, backspaces applied, read `FIRE ELE`, `WATER ELEM`, `EARTH ELEM` (the fire one runs on past the field).
+- **Decision:** none yet (**PENDING**; not a manual↔code conflict but two import choices). Built by precedent (s216):
+  the manual's table as printed for slots 0–53 and the remaster wording `DIVINE I` for the divine spell, as II's Apple
+  import (DIFFERENCES-II D2-050); `FIRE ELE` fixed to DOS's `FIRE ELEM`, as D-083 fixed the Amiga's cut name.
+- **Remaster:** `phantasie1/c64-import.json` `spell_names` and `name_fixes`; DOS I and the Amiga keep their own names.
+- **Side effects:** none on rules; a C64-only import's spell names differ from DOS's (Arabic numerals, SUMMONS
+  ELEMENTAL, MONSTER EVALUATION).
+- **Spec:** `reverse-engineering/c64/phantasie1/FORMAT.md` sections 3.5, 7.

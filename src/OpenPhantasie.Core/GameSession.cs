@@ -185,6 +185,16 @@ public sealed partial class GameSession
         }
     }
 
+    /// <summary>
+    /// s216: how a status line names town <paramref name="townId"/>: its name (the current town's, else the kept state's),
+    /// "town #N" only when it has none (the lines said "town #8" for Asmith).
+    /// </summary>
+    internal string TownLabel(int townId)
+    {
+        var name = CurrentTown is { } here && CurrentTownId == townId ? here.Name : TownStateFor(townId).Name;
+        return string.IsNullOrWhiteSpace(name) ? GameText.F("core.session.town_x", townId) : name;
+    }
+
     /// <summary>The kept state of town <paramref name="townId"/>, built from the town factory on first use.</summary>
     private TownState TownStateFor(int townId)
     {
@@ -558,7 +568,7 @@ public sealed partial class GameSession
         Dungeon = null;
         Combat = null;
         Mode = GameMode.Town;
-        Note(GameText.F("core.session.entered_town_x", startTown));
+        Note(GameText.F("core.session.entered_x", TownLabel(startTown)));
         Campaign.OnTownEntered(this, startTown); // T4: III puts the party on Pendragon's square
     }
 
@@ -874,7 +884,7 @@ public sealed partial class GameSession
         CurrentTown = TownStateFor(townId);
         Mode = GameMode.Town;
         SweepTreasury(TreasuryEntryKind.Trip); // s175: trip gold is banked on arrival, before any share-out
-        Note(GameText.F("core.session.entered_town_x", townId));
+        Note(GameText.F("core.session.entered_x", TownLabel(townId)));
         // D-037 (manual p.15; DOS 0x1954 calls the split 0x167d at 0x1992, before aging and the elemental leaving): the
         // fight pool's XP / gold are divided on arrival, Core's equal split. With the treasury on, the sweep above has
         // already banked the gold, so only the XP is split. Nobody living: the pool waits (Distribute would refuse).
@@ -1875,7 +1885,11 @@ public sealed partial class GameSession
         Combat = enc;
         _roundMoraleDone = _roundOptionTaken = false;
         Mode = GameMode.Combat;
-        Note(GameText.F("core.encounter.combat_vs_x", string.Join(", ", enc.Ranks.Select(r => $"{r.Members.Count} {r.Members[0].Name}"))));
+        // s216: each rank as the games' own monster lists word it: the name with "(s)" whatever the count (I's Show names
+        // "RANK %1d : %1d  %s(S)", DOS and Amiga, the same in II ST / Apple; III DOS 0x110f5, Amiga 0x1a4ea, manual pr.24
+        // "2 GNOME(S)"). None of them has plural forms of the names.
+        Note(GameText.F("core.encounter.combat_vs_x", string.Join(", ",
+            enc.Ranks.Select(r => GameText.F("core.encounter.group_x_x", r.Members.Count, r.Members[0].Name)))));
         return enc;
     }
 

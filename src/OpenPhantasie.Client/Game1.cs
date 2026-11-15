@@ -1544,6 +1544,7 @@ public partial class Game1 : Game
                     : _promptNote.Length > 0 ? _promptNote
                     : P1MapMenuFor(open) is not null || P1MapRequesterFor(open) is not null ? ""
                     : _confirm.Owns(open) && KeepWindowFor(open) is not null ? "" // s158 / s160: the text is in window 1
+                    : _confirm.Owns(open) ? P3ConfirmQuestion.StatusLine(open) // s216: the question whole, not its first row
                     : FirstLine(open),
                     dosDefeat ? "" : KeepWindowFor(open) is not null ? UiText.S("game.keep_window_ok_cancel")
                     : AmigaDisarmWindowFor(open) is not null ? UiText.S("p3combat.member_window_help")

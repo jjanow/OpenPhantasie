@@ -1671,10 +1671,270 @@
   {
    "id": "p1-c64",
    "game": "phantasie1",
-   "title": "Phantasie I (C64)",
+   "title": "Phantasie I (C64 v1.4)",
+   "platform": "c64",
+   "status": "supported",
+   "feeds": [
+    "tables"
+   ],
+   "disks": [
+    {
+     "label": "side 1",
+     "key_files": [
+      {
+       "name": "TOWNR",
+       "size": 21631,
+       "sha1": "451e594c95c5749cbaf2a18952a51815d8a8b893"
+      },
+      {
+       "name": "TINFO",
+       "size": 1733,
+       "sha1": "d0fb2a5d0afec25509739266a61602c975aeb904"
+      },
+      {
+       "name": "MN",
+       "size": 8100,
+       "sha1": "f539c1b315f063ee2a476be1e1e490a8d79574ae"
+      },
+      {
+       "name": "ITEM",
+       "size": 1589,
+       "sha1": "47dd7e3bfada4e554c3923bc07685ec2b3a6d438"
+      },
+      {
+       "name": "SCROLLS",
+       "size": 16480,
+       "sha1": "c5b5bc83c831f00d371f197db564a3f246e8a239"
+      }
+     ]
+    },
+    {
+     "label": "side 2",
+     "key_files": [
+      {
+       "name": "DUNGEON",
+       "size": 29235,
+       "sha1": "94d2bccd4a093e56205c0ff3ac4bc27ab85ab4df"
+      },
+      {
+       "name": "DNG 1",
+       "size": 1964,
+       "sha1": "24825c668f18679d30a4ccc1b7692a7e7abe1843"
+      },
+      {
+       "name": "PMES 7",
+       "size": 3062,
+       "sha1": "230f5fc3d875b6e892a731730083a8d3c45b9f40"
+      },
+      {
+       "name": "PATTERN",
+       "size": 21707,
+       "sha1": "431d10d5282d705be68c799496cf4b318c65bc3c"
+      }
+     ]
+    }
+   ],
+   "name_markers": [
+    "TOWNR",
+    "OUTDOORS",
+    "TINFO"
+   ],
+   "mutable_files": [
+    {
+     "name": "OUT2",
+     "size": 1014,
+     "sha1": "340a7fe43f0dd6347720e755039b0e70ded91b9b"
+    },
+    {
+     "name": "OUT3",
+     "size": 1014,
+     "sha1": "013e0bead1e119a100a8744ed23fcad7f045c49a"
+    },
+    {
+     "name": "OUT4",
+     "size": 1014,
+     "sha1": "977a7db9e467d7b29edb233009a9a8e8051b72b3"
+    },
+    {
+     "name": "OUT6",
+     "size": 761,
+     "sha1": "f8e89211996b8763a2ba0a6acdea146fd5e8da91"
+    },
+    {
+     "name": "OUT7",
+     "size": 761,
+     "sha1": "0eb58c6d559dca8d664cd00644db0461bad96812"
+    },
+    {
+     "name": "OUT8",
+     "size": 761,
+     "sha1": "0f9bee24454e12e75ab0dd9fdbc9edd4651cc29a"
+    },
+    {
+     "name": "OUT9",
+     "size": 761,
+     "sha1": "4624fb283e2fa90e1a4b3bc5d2b71b0019e7946e"
+    },
+    {
+     "name": "OUT10",
+     "size": 761,
+     "sha1": "53669947ad0d9bbef642d737953bb7b381a97102"
+    },
+    {
+     "name": "OUT11",
+     "size": 761,
+     "sha1": "5cb59ba167df9a51e362472897a4581a438a20e7"
+    },
+    {
+     "name": "OUT12",
+     "size": 761,
+     "sha1": "bc7ca93db6f786ecb9e6c673ec99dc88a39f0ead"
+    },
+    {
+     "name": "OUT13",
+     "size": 761,
+     "sha1": "bc08cfec744452bd7a8537615e85bcf3fa8c9cc2"
+    },
+    {
+     "name": "OUT14",
+     "size": 761,
+     "sha1": "b18a55f09b51e45df7b03bc666d5ec2c02fe6bac"
+    },
+    {
+     "name": "OUT15",
+     "size": 761,
+     "sha1": "711332bc7cb0ba45d895938806bb9fdecedb31d2"
+    },
+    {
+     "name": "OUT16",
+     "size": 761,
+     "sha1": "b3dfce32853c272781fa5d9e019249d2fe777858"
+    },
+    {
+     "name": "OUT18",
+     "size": 1014,
+     "sha1": "ab9cf09a971eea17f548aa05e55b8c737f039352"
+    },
+    {
+     "name": "OUT19",
+     "size": 1014,
+     "sha1": "dd2bc0d86885668c7e65bae8f95a97a5b9c4012b"
+    },
+    {
+     "name": "TWN 3",
+     "size": 252,
+     "sha1": "25fc43a68a6b7b938a31ebba6ea94d605afaed23"
+    },
+    {
+     "name": "TWN 4",
+     "size": 252,
+     "sha1": "41be8b40340b04687723d9efa3cefc99176f923b"
+    },
+    {
+     "name": "TWN 5",
+     "size": 252,
+     "sha1": "4e7e76bc0269ead7a657e22b68eddfceca7a01d5"
+    },
+    {
+     "name": "TWN 6",
+     "size": 252,
+     "sha1": "2c0d533e05d5cd93b5015730a86f3967483f3111"
+    },
+    {
+     "name": "TWN 7",
+     "size": 252,
+     "sha1": "ea0a7b3c77401e9b84463e06dd96002d4b56bdd3"
+    },
+    {
+     "name": "TWN 8",
+     "size": 252,
+     "sha1": "82a9823de50780cd7100fe333fabaac891f38428"
+    },
+    {
+     "name": "TWN 9",
+     "size": 252,
+     "sha1": "8004ca4a94116210d6152b9b0ab9c2186e143960"
+    },
+    {
+     "name": "TWN 10",
+     "size": 252,
+     "sha1": "b50990774e9ac20b3ab3d3b464277f7fcff86c24"
+    },
+    {
+     "name": "TWN 11",
+     "size": 252,
+     "sha1": "004de258702c9568fcfc26ec987c8b61c13840de"
+    },
+    {
+     "name": "TWN 99",
+     "size": 252,
+     "sha1": "d035573ad55436404f8349ef1c629d84b4f09f75"
+    }
+   ],
+   "images": [
+    {
+     "sha1": "be66cf9d9aca3072ef2013c062b8c5d3a77635cf",
+     "size": 174848
+    },
+    {
+     "sha1": "a29d02baa60bb50c15d58d93a5979c395127c0bd",
+     "size": 174848
+    }
+   ]
+  },
+  {
+   "id": "p1-c64-de",
+   "game": "phantasie1",
+   "title": "Phantasie I (C64, German)",
    "platform": "c64",
    "status": "recognised",
-   "reason": "no importer for this version yet",
+   "reason": "no importer for the German C64 version yet (its text is German)",
+   "name_markers": [
+    "SCHILD",
+    "WAFFE"
+   ],
+   "disks": [
+    {
+     "label": "Seite A",
+     "key_files": [
+      {
+       "name": "TOWNR",
+       "size": 21959,
+       "sha1": "32de361ac71769b150eafe743fb7ecf33e16b0f8"
+      },
+      {
+       "name": "MN",
+       "size": 8100,
+       "sha1": "f0463a26de91da86fc2aebd410aa9fb53825a5e1"
+      },
+      {
+       "name": "ITEM",
+       "size": 1609,
+       "sha1": "8e265ffee967c83a73455fb1c21c67b2ecf02065"
+      },
+      {
+       "name": "SCROLLS",
+       "size": 13960,
+       "sha1": "636d4442795072db796d2be4d0fc02e25f5010cd"
+      }
+     ]
+    },
+    {
+     "label": "Seite B",
+     "key_files": [
+      {
+       "name": "DUNGEON",
+       "size": 1666,
+       "sha1": "6ea4b12167918d40a837d6f5167ea049bcf8844f"
+      },
+      {
+       "name": "DNG 1",
+       "size": 1964,
+       "sha1": "24825c668f18679d30a4ccc1b7692a7e7abe1843"
+      }
+     ]
+    }
+   ],
    "images": [
     {
      "sha1": "9b46f52dc155c3f2585b61fa14a0d575ad6bf30a",
@@ -1682,14 +1942,6 @@
     },
     {
      "sha1": "1f6cda627716c7a2d75a5cafd593cff1e1649feb",
-     "size": 174848
-    },
-    {
-     "sha1": "be66cf9d9aca3072ef2013c062b8c5d3a77635cf",
-     "size": 174848
-    },
-    {
-     "sha1": "a29d02baa60bb50c15d58d93a5979c395127c0bd",
      "size": 174848
     }
    ]

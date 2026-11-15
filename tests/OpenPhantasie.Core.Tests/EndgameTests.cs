@@ -505,7 +505,7 @@ public partial class EndgameTests
         Assert.False(result.AnyRevived);
         Assert.Equal(GameMode.Town, session.Mode);
         Assert.Equal(1, session.CurrentTownId);
-        Assert.Contains("Entered town #1.", session.Log); // s41: state 1 → 0x1e15(0) → 0x1954 (aging + restock)
+        Assert.Contains("Entered PELNOR.", session.Log); // s216: the name, not "town #1"; s41: state 1 → 0x1e15(0) → 0x1954 (aging + restock)
     }
 
     [OriginalDataFact]

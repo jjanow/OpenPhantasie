@@ -65,7 +65,7 @@ they differ.
 | D3-074 | Town keys: the manual's town letters (I's A G M N B L / C U D I S, plus T Trade) or the Amiga bar's own (`?OS` / `+-ENPR·LT` / `ABIMX·CDGUV`: G Trade, I Inn, N New Member, L Learn, T Training) | DECIDED (user s180): Amiga under AMIGA SCREENS, manual in the DOS look; QoL COMMON TOWN KEYS for one set · built |
 | D3-075 | Fireflash damage: the manual's flat 1-10 / 1-30 / 1-60 / 1-100; DOS (and the Amiga) roll rnd((INT/2 + 1) · 1 / 4 / 8 / 13), capped 10 / 30 / 60 / 99, on one monster of the rank the caster picked | DECIDED (user s209): manual, DOS as option (`p3.fireflash`) · built · DOS checked live |
 | D3-076 | Town inn: the manual cures "1 Break or 2 Injuries" at every inn; Apple II III's town inn cures no body area (HP and magic only), its wilderness inns cure 2 points | DECIDED (user s212): the manual (D3-015); no Apple option |
-| D3-077 | Apple-only III import: lines the Apple prints in its own words (Mystic, Greetings, SHARES FOR, the ending speech, combat / dungeon lines) shown as the remaster's fallback wording, or as the Apple's text like II's Apple import (D2-050) | DECIDED (user s215): the Apple's own text, like II; the fallbacks stay for lines the Apple lacks and for a [cr] v1.0 copy · not built |
+| D3-077 | Apple-only III import: lines the Apple prints in its own words (Mystic, Greetings, SHARES FOR, the ending speech, combat / dungeon lines) shown as the remaster's fallback wording, or as the Apple's text like II's Apple import (D2-050) | DECIDED (user s215): the Apple's own text, like II; the fallbacks stay for lines the Apple lacks and for a [cr] v1.0 copy · built s216 (128 ids) |
 
 ---
 
@@ -1059,6 +1059,40 @@ they differ.
   `tools/scripts/p3_apple2_own_wording.json`, an own-wording file at the top of III's chain), shown in the Apple's
   upper case. The fallbacks stay for lines the Apple lacks and for a `[cr]` v1.0 copy (no Apple lines); their wording
   was reviewed the same session (`docs/plan/p3-apple2-fallback-review.md`, 16 ids changed).
-- **Remaster:** not built (the own-wording mechanism is II-only today, `10-importer.md` 7.6).
+- **Remaster:** built (s216). `tools/scripts/p3_apple2_own_wording.json` maps **128 ids**: 103 of the 218 in
+  `fallback.p3-apple2.en.json` (shared 6, III's table 97, some of them I-engine ids III overrides) and 25 shared / I
+  ids an Apple-only III took from the common `phantasie1/strings/fallback.en.json` (lava, the dungeon's lock / wall /
+  stairs / go-back lines, smoke, monsters appear, charmed / dissolving / party awakens, is alive, aged / died, the
+  Guild's drop / train / learn / purge / inspect prompts and its cost line, who will use, the surprise lines, and the
+  sinking line) to references into v3.0's programs (TOWN3, OUTDOORS3, DUNGON3, CEMETARY3,
+  WIN, DNGOUT3); `build_string_sources.py` adds them to `en.sources.json` as `p3-apple2` alternatives marked
+  `"wording": "own"`, and the v3.0 import (recipe 3) writes them to `phantasie3/strings/en.own.p3-apple2.json`, on top
+  of III's chain while III's tables are the Apple's (DOS III or the Amiga imported too: not written). Text the Apple
+  prints in its hi-res windows is decoded (its font: `=` blank, `:` hyphen, `@` colon, `<` comma, `>` question mark,
+  `;` quote): window rows joined by one space, a row-end hyphen into the word; the decoded punctuation, spaces and
+  format items are our glue, every letter is a reference. Mapped: the monsters' answers (Greet, no response,
+  surrender, take your gold, run), surprise / night watch, combat lines (hits, misses, takes n damage, death, awakens,
+  casts, breathes, armour / slow), dungeon lines (exit, lock, disarm, events: gold found / taken, moved, noise; the
+  save question), the Mystic (rank and heroes lines), SHARES FOR / DIVIDING, the Astral Plane and its three verdicts,
+  the whole reward speech with its god / cause / title words, Guild / Armory / Trade / Bank / Inn refusals, the
+  overworld's blocked squares, the field spell lines, press any key (OUTDOORS3 6010, for every any-key page). Still the remaster's wording on v3.0 (115 ids): 74 terms (skill,
+  order, status and body-area words, menu titles: the Apple's are the same words in upper case, or abbreviated for
+  its own columns) and 41 lines the Apple has no counterpart for or words with other keys: the Yes / No encounter and
+  trap questions (the Apple asks F)IGHT OR R)UN, LEAVE?, GO BACK?, D)ISARM OR L)EAVE: other answers than the
+  remaster's Yes / No), the confirmations it never asks, the party-status sheet's fixed-width labels and the handout
+  header, the Bank's withdraw-all / deposit-some choices (the Apple's are other operations), injury lines (the Apple
+  composes "INJURING IT"), lines it lacks (elemental, purge refusals, monster names, ...). A `[cr]` (v1.0) copy keeps
+  all 218 fallbacks (its programs are laid out differently). Not reviewed one by one `[?]`: the rest of the common
+  fallback's shared / I ids (some 420, most of them screens III never shows); the 25 above are
+  lines the Apple prints with the same meaning (whether III shows each was not traced).
+  Kept as the Apple has them: its spelling (DAMMAGE, ATTENDENTS), no closing punctuation where it prints none; a
+  monster's spell line reads "... CASTS A SPELL" (the Apple never names it); the Mystic's Netherworld / Scandor line
+  is the Apple's phrase alone ("HEROES OF ..."): the Apple prints it in place of the rank, the remaster after it.
+  Glue we add: ". " where the Apple starts a new sentence on its own row (the treasure KEEP IT?, the night watch, the
+  god's name, go back?), ", " between the watch and HEARS THE MONSTERS and in the sinking line, "?" after the town
+  prompts the Apple ends with a key wait, the Bank title's two leading spaces. Every death line (party and monster)
+  reads "{0} -DEATH-" (`core.combat.x_dies` is one id for both; the Apple prints -IT DIES- for a monster). Tests: `P3StringFallbackTests`
+  (`AppleIiiOnly_OwnWording_FromTheAppleProgramsOverTheFallback`, `AppleIiiOwnWording_NotForCr_NorBesideDosIii`).
 - **Side effects:** none on rules.
-- **Spec:** `docs/plan/p3-apple2-fallback-review.md` (Findings), `reverse-engineering/apple2/phantasie3/FORMAT.md`.
+- **Spec:** `docs/plan/p3-apple2-fallback-review.md` (Findings), `reverse-engineering/apple2/phantasie3/FORMAT.md`
+  (section 4, Strings).

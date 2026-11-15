@@ -1,8 +1,8 @@
 # Phantasie I (Commodore 64, SSI 1985): disks, files and tables
 
 Where each of I's game tables lives on the English C64 disks, how it maps onto DOS I's tables (and so onto
-`src/OpenPhantasie.Data/GameData/phantasie1/`), and every place found so far where the C64 differs from DOS I. First
-step of a C64 port (s214): data formats only, no importer code yet (section 7 is the plan). Tags: `[C]` read in the
+`src/OpenPhantasie.Data/GameData/phantasie1/`), and every place found so far where the C64 differs from DOS I. Formats
+s214; the `p1-c64` importer that reads them is built (s216, section 7). Tags: `[C]` read in the
 code or confirmed on all records against DOS's data, `[~]` probable (data pattern, no code read), `[?]` not known.
 Offsets are into the file **after** its 2-byte PRG load address unless "file offset" is said; `P(n)` = the
 program's `FN P(X) = PEEK(SA + 170 · PM + X)` (`../bytecode-notes.md`).
@@ -74,7 +74,7 @@ Side 1 (138 files), side 2 (125 files); both sides also hold `MN` and `MX 1`–`
 | `PIC.MAP`, `PIC.SCR`, `PIC.CLR` | PRG 8,194 `$A000`, 1,026 `$8400`, 1,026 `$D800` | the title picture: multicolour bitmap, screen RAM, colour RAM (`B` 200–290: MULTI COLOR, bank, BIT mode) | `[C]` |
 | `SKEL2`, `CSPRIT`, `FONTO` (s2) | PRG 514 / 1,027 / 1,970 | `CEMETARY`'s skeleton, sprites, font | `[~]` |
 | `ZALL` (s1) | PRG 3,718, `$4000` | endgame picture data, loaded by `P.END` | `[~]` |
-| `PATTERN` (s2) | PRG 21,707, `$2000` | read by side 2's `B` utility; absent on v1.0 / v1.1 side 2 | `[?]` |
+| `PATTERN` (s2) | PRG 21,707, `$2000` | **the new-game template** (s216, from II's utility, `../phantasie2/FORMAT.md` 2.1): `CHAR2` 0–4249, `TWN 99` 4260, `TWN t` 4260 + 252 t (t = 1–11), `OUT2`–`OUT19` from 7284 (1,012 / 759 B + 2 each); **no `OUT1`**. Absent on v1.0 / v1.1 side 2 | `[C]` layout |
 
 ### 2.1 Files play rewrites, and how to tell `[C]`
 
@@ -86,9 +86,22 @@ The game saves a town or a region from its memory buffer, so a rewritten file **
 
 - **v1.4 plain:** `TWN 1`, `TWN 2`, `OUT1`, `OUT5` rewritten; everything else at its slot. Its slot files equal DOS's
   data (sections 3.4, 3.6), so slot = mastered.
-- **`OUT1` and `OUT5` load at `$9448` on every copy**: no mastered region 1 or 5 exists in C64PP. `TWN 1` loads at
-  `$81C3` on every copy; v1.2's `TWN 2` (`$4000`) equals DOS's record.
-- `CHAR2` (roster), `%DNG*` (dungeon save) are always play data.
+- **`OUT1` and `OUT5` load at `$9448` on every copy**: no mastered region 1 or 5 file exists in C64PP. But side 2's
+  `PATTERN` (v1.4 plain, alt, en and v1.3: one file, sha1 `431d10d5…`) holds mastered `TWN 1`, `TWN 2` and `OUT5` (s216) `[C]`: its `TWN 1`, `TWN 2`
+  (and `TWN 3`, `TWN 99`) equal DOS's records in stock, restock, price, region, cell and name (its `TWN 1` differs from
+  plain v1.4's file in exactly the 7 stock bytes below); its `OUT5` grid and fog equal DOS's `OUT5.DAT` (all open) and
+  plain v1.4's file; its elementals equal `CHAR2`'s. Region 1 is not in it. **The slot rule comes from it:** a mastered
+  file loads at `$2000` + its `PATTERN` offset (`TWN 99` 4260 → `$30A4`, `TWN 1` → `$31A0`, `OUT5` 10320 → `$4850`), as
+  II's at `$4000` + its `PATTERN2` offset. `TWN 1` loads at
+  `$81C3` on every copy; v1.2's `TWN 2` (`$4000`) equals DOS's record. Every region 2–19 and town of `PATTERN` equals
+  plain v1.4's slot file byte for byte (s216).
+- `CHAR2` (roster), `%DNG*` (dungeon save) are always play data. Its records 21–23 (the elementals) are equal on every
+  C64PP copy and the held en copy (s216).
+- OUT1 and OUT5 are byte-identical on every copy of every version (s216): their grid, features and pages are one state,
+  so DOS's cells for them hold on any copy.
+- The held en copy's `OUT6` loads at its slot (`$4C44`) but holds another grid (about 220 cells differ from v1.4 plain,
+  unfogged values that are not DOS's tiles + 120): not the game's save `[?]`. The importer reads regions 2–19 from
+  `PATTERN`, so it never reads this file (s216).
 
 ## 3. Tables
 
@@ -207,7 +220,9 @@ programs' own PRINT text (`TOWNR` sheet, Inn, Guild list) are `[C]`:
 | 8, 19, 40–41, 43–47, 60, 121–130, 143–150, 166–169 | | | `[?]` |
 
 Elementals vs DOS's `elementals.json`: HP, attack / parry, level 20, the points and the spell sets agree; P(7) = 20,
-P(9) = 0 (DOS: defense 0, ceiling 20) and the names differ `[~]`.
+P(9) = 0 (DOS: defense 0, ceiling 20) and the names differ `[~]`. The 12-byte name fields with their backspaces applied
+read `FIRE ELE`, `WATER ELEM`, `EARTH ELEM` (DOS: `FIRE ELEM`, ...); how far the game prints past the field is `[?]`.
+DOS's race word (15, UNDEAD shown) has no C64 counterpart: P(161) = 16 = DOS's birth race.
 
 ### 3.6 Wilderness: `OUT1`–`OUT19` `[C]`
 
@@ -298,7 +313,7 @@ and `OUTDOORS` / `DUNGEON` `17167, 21629, ... 45830` (11 values) `[?]`.
 
 - **Numbers that differ:** BLACK KNIGHT's group size (2 vs 3); MONK SLEEP never (the manual's, D-006); 2 unused skill
   cells; the DNG cells of 3.7 (3 change reachable geometry); the OUT cells of 3.6.
-- **Text that changes play:** the PMES7 bleeb puzzle, scroll 5's third pool (north vs south; the C64's fits the map). Import choices: D-084…D-086 (section 7).
+- **Text that changes play:** the PMES7 bleeb puzzle, scroll 5's third pool (north vs south; the C64's fits the map). Import choices: D-084…D-086 (section 7, built s216).
   Cosmetic: item spellings (3.2), PMES / OUT / scroll typos.
 - **Shared with the Amiga against DOS:** HEAL POT1..9, the PMES1 chest line without a full stop, DNG6's lock bank,
   OUT9's three cells, the region / town cell transposition `(y, 25 − x)`, plain-text messages and scrolls. Not shared:
@@ -323,58 +338,70 @@ of monsters is drawn as up to 8 VIC sprites showing the k blocks.
 
 Title (`PIC.*`, multicolour bitmap + screen + colour RAM, 160 × 200), the 14 item / feature pictures (3.x table in
 section 2), `FONT` (the screen font and the map tiles as characters `[?]`), `HSPRIT`, `FONT+HER`, `CEMETARY`'s files,
-`ZALL`, `PATTERN`: not decoded. Palette: the VIC-II's 16 colours. No sound or music files: SID code is inside the
+`ZALL`: not decoded (`PATTERN` is the new-game template, section 2). Palette: the VIC-II's 16 colours. No sound or music files: SID code is inside the
 programs / `UTIL-3.O` `[?]`.
 
-## 7. Importer plan: `p1-c64` (plan only, s214)
+## 7. The importer: `p1-c64` (built s216; plan s214)
 
 The rule of the Amiga and Apple imports: **the C64's text, DOS I's numbers** (DOS wins on numbers), through DOS's
-builders, so the GameData files keep DOS's schema.
+builders, so the GameData files keep DOS's schema. Built (s216): `src/OpenPhantasie.Importer/Pipelines/P1C64/`
+(`P1C64Pipeline`, `P1C64Tables`), `Containers/D64Volume.cs` (`D64Volume`, `G64Image`), profiles `p1-c64` (v1.4) and
+`p1-c64-de` (recognised only), the shipped `GameData/phantasie1/c64-import.json` (from
+`tools/scripts/build_c64_p1_import.py`), tests `P1C64TablesTests`, `D64VolumeTests`. Write-up:
+`docs/plan/10-importer.md` 7.11. The subsections below are the s214 plan with what became of each point.
 
-**Containers.** `.d64` (174,848 B; already recognised) and `.g64` (`GCR-1541` signature): a C# port of `c64_g64.py`
-(sync search, GCR 5-to-4, header / data checksums, about 120 lines) gives the D64; `.nbz` is not needed (C64PP ships
-G64s of every dump). A D64 directory / file-chain / REL reader (a REL file reads as its data-block chain, records by
-the length in the directory entry).
+**Containers (built).** `.d64` (174,848 B, or 175,531 with error bytes) and `.g64` (`GCR-1541` signature): the C# port
+of `c64_g64.py` gives the D64; `.nbz` is not read (C64PP ships G64s of every dump). The D64 reader takes the directory
+chain, file chains and a REL file as its data-block chain (records by the entry's length); DEL / odd entries are
+skipped. Every file of the v1.4 G64s equals `extract_c64_d64.py`'s; every held C64 I image decodes all 683 sectors.
 
-**Detection.** Side 1: `TOWNR` + `OUTDOORS` + `TINFO` + `MN`; side 2: `DUNGEON` + `DNG 1`. Build by sha1 of the key
-files (v1.4: `TOWNR` `451e594c…`, `OUTDOORS` `5927bf25…`, `SCROLLS` `c5b5bc83…`, `ITEM` `47dd7e3b…`, `MN` `f539c1b3…`,
-`TINFO` `d0fb2a5d…`, `DNG n`, `PMES n`; full hashes in `extracted-v1.4/manifest.json`), plus `B`'s `VERSION 1.x` for
-the report. Other versions against v1.4: `MN`, `TINFO`, `MX`, `DNG` (but v1.0's DNG8 `0x546`), `PMES` (but v1.0's
+**Detection (built).** Side 1: `TOWNR`, `TINFO`, `MN`, `ITEM`, `SCROLLS`; side 2: `DUNGEON`, `DNG 1`, `PMES 7`
++ `PATTERN` (v1.4's sha1s, `extracted-v1.4/manifest.json`); name markers `TOWNR`, `OUTDOORS`, `TINFO` (another build reports as
+such). `B`'s version string is not read. The German D64s: profile `p1-c64-de` (its own key files and name markers `SCHILD`, `WAFFE`, recognised). Other
+versions against v1.4: `MN`, `TINFO`, `MX`, `DNG` (but v1.0's DNG8 `0x546`), `PMES` (but v1.0's
 PMES9 option row) are equal in v1.0 and v1.3; `SCROLLS` differs in v1.0 (HOBBITS / HOBBITON + 2 spellings) and in v1.2 /
 v1.3 (HOBBITS / HOBBITON); `ITEM` in v1.0 (id 139); the programs (`TOWNR`, `OUTDOORS`, side 2 `DUNGEON`, `B`) differ
-in every version. v1.0 / v1.3 could be extra profiles reading the same layouts; v1.1 is refused (damaged `MN`). German: a separate profile later (German text).
+in every version. v1.0 / v1.3 could be extra profiles reading the same layouts (not built: they report as another
+build); v1.1 is refused (damaged `MN`). German: recognised only (German text).
 
-**Mutable files and played copies.** `CHAR2`, `TWN n`, `OUT n`, `%DNG*`, `%DNGSTS*`. Played = loads at `$81C3` /
-`$9448` (2.1), a test that needs no pristine hash. OUT1 / OUT5 / TWN 1 are never available mastered, so (as for the
-Amiga's played regions) the grids' fog and fights and TWN 1's stock come from DOS's tables by cells, and the import
-warns for any other played region or town.
+**Mutable files and played copies (built).** `CHAR2`, `TWN n`, `OUT n`, `%DNG*`, `%DNGSTS*`. Played = loads at `$81C3` /
+`$9448` (2.1). **s216: side 2's `PATTERN` holds the mastered towns (`TWN 1` = DOS's record), regions 2–19 and the
+elementals** (byte-identical on every copy, sha1 `431d10d5…`; a key file of side 2), so the import reads towns,
+regions 2–19 and elementals from it whatever side 1 holds; only OUT1 has no mastered copy (its fog and fights come
+from DOS's tables by cells, as for the Amiga's played regions; OUT1 is the same on every copy, 2.1). This replaces the
+s214 plan's "OUT1 / OUT5 / TWN 1 are never available mastered". The profile's mutable files are v1.4's slot files
+(OUT2–4, 6–16, 18, 19; TWN 3–11, 99), so a played copy is reported, but nothing it rewrote is read: it imports as
+a fresh one (the held en copy's import equals the C64PP pair's, its odd OUT6 included; no map-restore question).
 
-**What maps where:**
+**What maps where (built as planned):**
 
-| GameData file | From the C64 | DOS's values (class (a) `phantasie1/c64-import.json` cells, made by a diff script as `amiga-import.json`) |
+| GameData file | From the C64 | DOS's values (class (a) `phantasie1/c64-import.json`) |
 |---|---|---|
-| `monsters.json` | `MN` (all DOS fields) | BLACK KNIGHT group size 3; `sprite_width` / `sprite_height` / `raw_hex` from DOS's table (none on the C64) |
-| `items.json` | `ITEM` names, `TINFO` values (= DOS) | — |
-| `names.json` | classes, races, status (`TOWNR` DATA), items, monsters, town labels (`TWN` names) | spell names: none on the C64 → the manual's list / DOS's (as II's Apple import) |
-| `towns.json` | `TWN 2`–`11`, `99` (stock, restock, price, cell) | `TWN 1`'s record (and any played town's) |
-| `elementals.json` | `CHAR2` 21–23 (names, HP, skills, points, spells) | defense / MP fields (3.5) |
-| `overworld.json` | `OUT n` grids (transposed), features, pages (screen codes) | fog and fixed fights of played regions, OUT1 / OUT5 grids, the OUT9 / OUT13 / OUT15 / OUT18 cells |
-| `dungeons.json` | `DNG n` + `PMES n` (DOS layout: DOS's dungeon extractor without the cipher) | the DNG cells of 3.7 |
-| `messages.json` | `PMES n` | the bleeb puzzle's lines (two pool hints, question 3; D-084) |
-| `scrolls.json` | `SCROLLS` (frame stripped, the lines inside) | — (scroll 5 keeps the C64's NORTH, D-085) |
-| `item-descriptions.json`, `spells.json` | the builders | spell names as above |
+| `monsters.json` | `MN` (all DOS fields; fields 13, 14, 24 unused) | BLACK KNIGHT group size 3 (field and `raw_hex` byte); `sprite_sizes` (DOS's 80 pairs; none on the C64) |
+| `items.json` | `ITEM` names (ids 1–180), `TOWNR`'s `NOTHING` (id 0), `TINFO` 89 + id values (= DOS) | — (id 0's value 0, no item) |
+| `names.json` | classes, races (`TOWNR` DATA), items, monsters, town labels (`PATTERN`'s town and elemental names) | spell names: none on the C64 → `spell_names`: the manual's table (slots 0–53) + `DIVINE I` (remaster wording, as II's Apple import, D2-050) |
+| `towns.json` | `PATTERN`'s `TWN 1`–`11`, `99` (stock, restock, price, region, cell, name with backspaces applied) | — (= DOS's records) |
+| `elementals.json` | `PATTERN`'s `CHAR2` 21–23 (INT, MP, HP, status, attack, parry, level, creation number, points, race, class, spells, name) | MP ceiling 20, creation numbers 23–25, race 15; `FIRE ELE` → `FIRE ELEM` (`name_fixes`, as D-083) |
+| `overworld.json` | `PATTERN`'s regions 2–19 + side 1's `OUT1`: grids (transposed), features, pages (screen codes; a CR-padding page is no page; OUT19's page 6 is DOS's leftover ASCII, kept) | OUT1 row 0 and (18, 14), OUT1's feature order, the OUT9 / OUT13 / OUT15 / OUT18 cells, DOS's leftover bytes in unused feature records (OUT3, 4, 12–16, 19) |
+| `dungeons.json` | `DNG n` + `PMES n` (DOS layout: DOS's builders without the cipher) | every differing byte of 3.7 (18) |
+| `messages.json` | `PMES n` | the bleeb puzzle's words (`text_patches`, D-084), applied to `PMES 7` before both files read it |
+| `scrolls.json` | `SCROLLS` (the rows between each frame's `!`s, the frame's blank first / last rows dropped; 14–21 lines) | — (scroll 5 keeps the C64's NORTH, D-085) |
+| `item-descriptions.json`, `spells.json` | the builders (`SAPHIRE` takes the sapphire text) | spell names as above |
 | `creation-tables.json`, `rules.json`, travel / encounter tables | shipped (class a); `TINFO` equals DOS but MONK SLEEP | — |
 
-Strings: the programs' PRINT text gives `p1-c64` alternatives (town menus, Guild, sheet, Zeus's speech as an
-own-wording file like the Amiga's).
+Strings (built): 259 ids found verbatim in `TOWNR`, `OUTDOORS`, `DUNGEON`, `CEMETARY`, `P.END` get `p1-c64`
+alternatives (`build_string_sources.py`); Zeus's speech in the C64's own wording (`P.END`'s DATA, PETSCII mixed case,
+`tools/scripts/p1_c64_own_wording.json`, read through the importer's `P.END:petscii` key). 22 ids of the shared table's
+I field / map screens are not in the C64's programs verbatim and stay "..." in a public C64-only build `[~]`.
 
-**Decided (user s215, D-084…D-086):** PMES7's bleeb puzzle (the two pool hints and question 3) takes DOS's lines, the rest
-of the C64's text stays; scroll 5 keeps the C64's NORTH; the three reachable DNG cells (DNG3 (2, 14), DNG6 (12, 11),
-DNG7 (19, 11)) take DOS's values like the walled-in ones.
+**Decided (user s215, D-084…D-086), built s216:** PMES7's bleeb puzzle (the two pool hints and question 3) takes DOS's
+lines, the rest of the C64's text stays; scroll 5 keeps the C64's NORTH; the three reachable DNG cells (DNG3 (2, 14),
+DNG6 (12, 11), DNG7 (19, 11)) take DOS's values like the walled-in ones.
 
-**Graphics pack (`c64`).** Monster sprites (`MX`, 80 sets, VIC colours), the title picture, the item / feature
-pictures, the font; the map tiles and hero sprites are not decoded yet (`FONT`, `HSPRIT`, `FONT+HER`: 6.2), nor any
-sound. Needs a VIC-II palette and an asset manifest like the Amiga's.
+**Graphics pack (`c64`): not built.** Monster sprites (`MX`, 80 sets, VIC colours), the title picture, the item /
+feature pictures, the font; the map tiles and hero sprites are not decoded yet (`FONT`, `HSPRIT`, `FONT+HER`: 6.2), nor
+any sound. Needs a VIC-II palette and an asset manifest like the Amiga's. A C64-only player gets no I art pack.
 
 **Not done here:** the bytecode tables (training curves, pair table, step costs) and the 170-byte record's `[?]` bytes
-(only needed for a C64 roster transfer); a live check in VICE.
+(only needed for a C64 roster transfer); a live check in VICE. The C64's own wording for its town / Guild / sheet
+lines (PRINT text not found verbatim) is not mapped.

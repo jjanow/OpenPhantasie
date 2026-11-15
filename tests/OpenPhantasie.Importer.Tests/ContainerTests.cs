@@ -131,7 +131,7 @@ public class ContainerTests
 
     [RequiresFilesTheory("reverse-engineering/apple2/original-images")]
     [InlineData("p1-apple2", "reverse-engineering/apple2/original-images/phantasie1/woz-original")]
-    [InlineData("p1-c64", "reverse-engineering/c64/original-images/phantasie1/en")]
+    [InlineData("p1-c64-de", "reverse-engineering/c64/original-images/phantasie1/de")]
     [InlineData("p4-pc98", "reverse-engineering/pc98/original-images/phantasie4")]
     public void Recognises_UnsupportedVersions(string profile, string source)
     {

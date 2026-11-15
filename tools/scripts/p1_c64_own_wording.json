@@ -1,0 +1,63 @@
+{
+ "_note": "Phantasie I, C64 v1.4 (p1-c64, s216): ids the C64 prints in its own wording, for an import whose I tables are the C64's. Zeus's speech (P.END's DATA, 7 lines in its own breaks: 'ADVENTU-' / 'RE.', no Phantasie II): PETSCII of the lower / upper-case set, read through the importer's P.END:petscii key (0xC1..0xDA capitals, 0x41..0x5A small letters). Parts as in en.sources.json: [file, offset, length] into the raw P.END (load address included). build_string_sources.py adds them as alternatives marked \"wording\": \"own\".",
+ "strings": {
+  "phantasie1": {
+   "core.endgame.zeus_1": [
+    [
+     "P.END:petscii",
+     139,
+     36
+    ]
+   ],
+   "core.endgame.zeus_2": [
+    [
+     "P.END:petscii",
+     178,
+     36
+    ]
+   ],
+   "core.endgame.zeus_3": [
+    [
+     "P.END:petscii",
+     217,
+     36
+    ]
+   ],
+   "core.endgame.zeus_4": [
+    [
+     "P.END:petscii",
+     256,
+     36
+    ]
+   ],
+   "core.endgame.zeus_5": [
+    [
+     "P.END:petscii",
+     295,
+     36
+    ]
+   ],
+   "core.endgame.zeus_6": [
+    [
+     "P.END:petscii",
+     334,
+     36
+    ]
+   ],
+   "core.endgame.zeus_7": [
+    [
+     "P.END:petscii",
+     373,
+     16
+    ]
+   ],
+   "amiga.endgame.zeus_4": [
+    [
+     "P.END:petscii",
+     256,
+     36
+    ]
+   ]
+  }
+ }
+}

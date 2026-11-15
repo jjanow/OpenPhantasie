@@ -1,0 +1,2076 @@
+{
+ "_schema": "openphantasie.p1-c64-import/v1",
+ "_source": "Remaster data for a Phantasie I import from the C64 copy alone (profile p1-c64, v1.4), applied by the importer (OpenPhantasie.Importer.Pipelines.P1C64.P1C64Tables). Built by tools/scripts/build_c64_p1_import.py from the C64 v1.4 disks and DOS I's data.",
+ "_note": "Between versions DOS wins on numbers (AGENTS.md): a C64-only import takes the C64's text, maps and names, and DOS I's value in every cell where the C64's number differs (reverse-engineering/c64/phantasie1/FORMAT.md sections 3, 4 and 7; DIFFERENCES.md D-084 .. D-086).",
+ "_dos_cells": "As amiga-import.json's dos_cells (CellPatches): a path into the GameData file the C64 import builds (DOS shape); byte = an offset into a hex string; fog = a map tile whose fog (tile + 120) is kept. A cell holding the C64 value takes the DOS value; one holding neither is kept and warned.",
+ "dos_cells": [
+  {
+   "why": "BLACK KNIGHT: DOS record byte 0x33",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 76
+    },
+    "raw_hex"
+   ],
+   "byte": 51,
+   "c64": 2,
+   "dos": 3
+  },
+  {
+   "why": "BLACK KNIGHT: group-size factor (FORMAT.md 3.1)",
+   "file": "monsters.json",
+   "path": [
+    "monsters",
+    {
+     "index": 76
+    },
+    "group_size_factor"
+   ],
+   "c64": 2,
+   "dos": 3
+  },
+  {
+   "why": "OUT1 (0, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    0
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (1, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    1
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (2, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    2
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (3, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    3
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (4, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    4
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (5, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    5
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (6, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    6
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (7, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    7
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (8, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    8
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (9, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    9
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (10, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    10
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (11, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    11
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (12, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    12
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (13, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    13
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (14, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    14
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (15, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    15
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (16, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    16
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (17, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    17
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (18, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    18
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (19, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    19
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (20, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    20
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (21, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    21
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (22, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    22
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (23, 0) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    0,
+    23
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 101
+  },
+  {
+   "why": "OUT1 (18, 14) (a region file play rewrote)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "tiles",
+    14,
+    18
+   ],
+   "fog": true,
+   "c64": 0,
+   "dos": 10
+  },
+  {
+   "why": "OUT1 feature record 0",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    0,
+    "x"
+   ],
+   "c64": 14,
+   "dos": 13
+  },
+  {
+   "why": "OUT1 feature record 0",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    0,
+    "arg"
+   ],
+   "c64": 1,
+   "dos": 12
+  },
+  {
+   "why": "OUT1 feature record 1",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    1,
+    "x"
+   ],
+   "c64": 13,
+   "dos": 8
+  },
+  {
+   "why": "OUT1 feature record 1",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    1,
+    "y"
+   ],
+   "c64": 15,
+   "dos": 13
+  },
+  {
+   "why": "OUT1 feature record 1",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    1,
+    "arg"
+   ],
+   "c64": 12,
+   "dos": 10
+  },
+  {
+   "why": "OUT1 feature record 2",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    2,
+    "y"
+   ],
+   "c64": 13,
+   "dos": 8
+  },
+  {
+   "why": "OUT1 feature record 2",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    2,
+    "arg"
+   ],
+   "c64": 10,
+   "dos": 14
+  },
+  {
+   "why": "OUT1 feature record 4",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    4,
+    "y"
+   ],
+   "c64": 9,
+   "dos": 7
+  },
+  {
+   "why": "OUT1 feature record 5",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    5,
+    "x"
+   ],
+   "c64": 8,
+   "dos": 9
+  },
+  {
+   "why": "OUT1 feature record 5",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    5,
+    "y"
+   ],
+   "c64": 8,
+   "dos": 9
+  },
+  {
+   "why": "OUT1 feature record 6",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    6,
+    "x"
+   ],
+   "c64": 9,
+   "dos": 20
+  },
+  {
+   "why": "OUT1 feature record 6",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    6,
+    "y"
+   ],
+   "c64": 7,
+   "dos": 5
+  },
+  {
+   "why": "OUT1 feature record 6",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    6,
+    "arg"
+   ],
+   "c64": 14,
+   "dos": 6
+  },
+  {
+   "why": "OUT1 feature record 7",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    7,
+    "x"
+   ],
+   "c64": 9,
+   "dos": 14
+  },
+  {
+   "why": "OUT1 feature record 7",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    7,
+    "y"
+   ],
+   "c64": 8,
+   "dos": 15
+  },
+  {
+   "why": "OUT1 feature record 7",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    7,
+    "dest_x"
+   ],
+   "c64": 20,
+   "dos": 0
+  },
+  {
+   "why": "OUT1 feature record 8",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    8,
+    "x"
+   ],
+   "c64": 20,
+   "dos": 9
+  },
+  {
+   "why": "OUT1 feature record 8",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    8,
+    "y"
+   ],
+   "c64": 5,
+   "dos": 8
+  },
+  {
+   "why": "OUT1 feature record 8",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    8,
+    "arg"
+   ],
+   "c64": 6,
+   "dos": 1
+  },
+  {
+   "why": "OUT1 feature record 8",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    8,
+    "dest_x"
+   ],
+   "c64": 0,
+   "dos": 20
+  },
+  {
+   "why": "OUT1 feature record 14",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT1.DAT",
+    "features",
+    14,
+    "dest_y"
+   ],
+   "c64": 0,
+   "dos": 32
+  },
+  {
+   "why": "OUT3 feature record 5",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "features",
+    5,
+    "arg"
+   ],
+   "c64": 0,
+   "dos": 124
+  },
+  {
+   "why": "OUT3 feature record 6",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "features",
+    6,
+    "arg"
+   ],
+   "c64": 0,
+   "dos": 124
+  },
+  {
+   "why": "OUT3 feature record 6",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "features",
+    6,
+    "dest_y"
+   ],
+   "c64": 0,
+   "dos": 124
+  },
+  {
+   "why": "OUT3 feature record 12",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "features",
+    12,
+    "x"
+   ],
+   "c64": 25,
+   "dos": 68
+  },
+  {
+   "why": "OUT3 feature record 13",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT3.DAT",
+    "features",
+    13,
+    "x"
+   ],
+   "c64": 25,
+   "dos": 157
+  },
+  {
+   "why": "OUT4 feature record 11",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT4.DAT",
+    "features",
+    11,
+    "dest_y"
+   ],
+   "c64": 0,
+   "dos": 124
+  },
+  {
+   "why": "OUT9 (20, 9)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT9.DAT",
+    "tiles",
+    9,
+    20
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT9 (1, 18)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT9.DAT",
+    "tiles",
+    18,
+    1
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT9 (15, 19)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT9.DAT",
+    "tiles",
+    19,
+    15
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT12 feature record 7",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT12.DAT",
+    "features",
+    7,
+    "dest_y"
+   ],
+   "c64": 0,
+   "dos": 123
+  },
+  {
+   "why": "OUT12 feature record 9",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT12.DAT",
+    "features",
+    9,
+    "x"
+   ],
+   "c64": 25,
+   "dos": 138
+  },
+  {
+   "why": "OUT12 feature record 10",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT12.DAT",
+    "features",
+    10,
+    "x"
+   ],
+   "c64": 25,
+   "dos": 150
+  },
+  {
+   "why": "OUT12 feature record 12",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT12.DAT",
+    "features",
+    12,
+    "dest_x"
+   ],
+   "c64": 0,
+   "dos": 143
+  },
+  {
+   "why": "OUT12 feature record 13",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT12.DAT",
+    "features",
+    13,
+    "x"
+   ],
+   "c64": 25,
+   "dos": 138
+  },
+  {
+   "why": "OUT12 feature record 14",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT12.DAT",
+    "features",
+    14,
+    "dest_y"
+   ],
+   "c64": 0,
+   "dos": 32
+  },
+  {
+   "why": "OUT13 (9, 0)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT13.DAT",
+    "tiles",
+    0,
+    9
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 3
+  },
+  {
+   "why": "OUT13 feature record 3",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT13.DAT",
+    "features",
+    3,
+    "y"
+   ],
+   "c64": 0,
+   "dos": 123
+  },
+  {
+   "why": "OUT13 feature record 5",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT13.DAT",
+    "features",
+    5,
+    "arg"
+   ],
+   "c64": 0,
+   "dos": 123
+  },
+  {
+   "why": "OUT14 feature record 5",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT14.DAT",
+    "features",
+    5,
+    "y"
+   ],
+   "c64": 0,
+   "dos": 221
+  },
+  {
+   "why": "OUT14 feature record 5",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT14.DAT",
+    "features",
+    5,
+    "dest_x"
+   ],
+   "c64": 0,
+   "dos": 221
+  },
+  {
+   "why": "OUT14 feature record 8",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT14.DAT",
+    "features",
+    8,
+    "y"
+   ],
+   "c64": 0,
+   "dos": 221
+  },
+  {
+   "why": "OUT15 (0, 11)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT15.DAT",
+    "tiles",
+    11,
+    0
+   ],
+   "fog": true,
+   "c64": 100,
+   "dos": 23
+  },
+  {
+   "why": "OUT15 feature record 14",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT15.DAT",
+    "features",
+    14,
+    "arg"
+   ],
+   "c64": 0,
+   "dos": 143
+  },
+  {
+   "why": "OUT15 feature record 14",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT15.DAT",
+    "features",
+    14,
+    "dest_y"
+   ],
+   "c64": 0,
+   "dos": 143
+  },
+  {
+   "why": "OUT16 feature record 13",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT16.DAT",
+    "features",
+    13,
+    "x"
+   ],
+   "c64": 25,
+   "dos": 158
+  },
+  {
+   "why": "OUT16 feature record 14",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT16.DAT",
+    "features",
+    14,
+    "x"
+   ],
+   "c64": 25,
+   "dos": 159
+  },
+  {
+   "why": "OUT18 (5, 10)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT18.DAT",
+    "tiles",
+    10,
+    5
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT18 (10, 10)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT18.DAT",
+    "tiles",
+    10,
+    10
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT18 (15, 10)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT18.DAT",
+    "tiles",
+    10,
+    15
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT18 (20, 10)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT18.DAT",
+    "tiles",
+    10,
+    20
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT18 (5, 15)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT18.DAT",
+    "tiles",
+    15,
+    5
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT18 (10, 15)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT18.DAT",
+    "tiles",
+    15,
+    10
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT18 (15, 15)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT18.DAT",
+    "tiles",
+    15,
+    15
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT18 (20, 15)",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT18.DAT",
+    "tiles",
+    15,
+    20
+   ],
+   "fog": true,
+   "c64": 68,
+   "dos": 67
+  },
+  {
+   "why": "OUT19 feature record 12",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT19.DAT",
+    "features",
+    12,
+    "dest_x"
+   ],
+   "c64": 0,
+   "dos": 195
+  },
+  {
+   "why": "OUT19 feature record 13",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT19.DAT",
+    "features",
+    13,
+    "x"
+   ],
+   "c64": 25,
+   "dos": 86
+  },
+  {
+   "why": "OUT19 feature record 14",
+   "file": "overworld.json",
+   "path": [
+    "regions",
+    "OUT19.DAT",
+    "features",
+    14,
+    "x"
+   ],
+   "c64": 25,
+   "dos": 86
+  },
+  {
+   "why": "DNG2 byte 0x2d8 = cell (2, 22)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG2",
+    "raw_hex"
+   ],
+   "byte": 728,
+   "c64": 0,
+   "dos": 1
+  },
+  {
+   "why": "DNG3 byte 0x1d0 = cell (2, 14)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG3",
+    "raw_hex"
+   ],
+   "byte": 464,
+   "c64": 0,
+   "dos": 15
+  },
+  {
+   "why": "DNG3 byte 0x361 = cell (7, 26)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG3",
+    "raw_hex"
+   ],
+   "byte": 865,
+   "c64": 0,
+   "dos": 144
+  },
+  {
+   "why": "DNG3 byte 0x3b2 = cell (22, 28)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG3",
+    "raw_hex"
+   ],
+   "byte": 946,
+   "c64": 0,
+   "dos": 15
+  },
+  {
+   "why": "DNG3 byte 0x49e = cell (27, 35)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG3",
+    "raw_hex"
+   ],
+   "byte": 1182,
+   "c64": 0,
+   "dos": 130
+  },
+  {
+   "why": "DNG5 byte 0x35a = cell (0, 26)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 858,
+   "c64": 0,
+   "dos": 153
+  },
+  {
+   "why": "DNG5 byte 0x4ff (side tables)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG5",
+    "raw_hex"
+   ],
+   "byte": 1279,
+   "c64": 0,
+   "dos": 238
+  },
+  {
+   "why": "DNG6 byte 0x177 = cell (12, 11)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG6",
+    "raw_hex"
+   ],
+   "byte": 375,
+   "c64": 0,
+   "dos": 156
+  },
+  {
+   "why": "DNG6 byte 0x491 = cell (14, 35)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG6",
+    "raw_hex"
+   ],
+   "byte": 1169,
+   "c64": 214,
+   "dos": 199
+  },
+  {
+   "why": "DNG7 byte 0x17e = cell (19, 11)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG7",
+    "raw_hex"
+   ],
+   "byte": 382,
+   "c64": 144,
+   "dos": 0
+  },
+  {
+   "why": "DNG7 byte 0x4ff (side tables)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG7",
+    "raw_hex"
+   ],
+   "byte": 1279,
+   "c64": 0,
+   "dos": 8
+  },
+  {
+   "why": "DNG7 byte 0x50e (side tables)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG7",
+    "raw_hex"
+   ],
+   "byte": 1294,
+   "c64": 0,
+   "dos": 8
+  },
+  {
+   "why": "DNG8 byte 0x57e (side tables)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG8",
+    "raw_hex"
+   ],
+   "byte": 1406,
+   "c64": 0,
+   "dos": 16
+  },
+  {
+   "why": "DNG8 byte 0x5ea (side tables)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG8",
+    "raw_hex"
+   ],
+   "byte": 1514,
+   "c64": 65,
+   "dos": 193
+  },
+  {
+   "why": "DNG8 byte 0x5ec (side tables)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG8",
+    "raw_hex"
+   ],
+   "byte": 1516,
+   "c64": 0,
+   "dos": 81
+  },
+  {
+   "why": "DNG8 byte 0x5ed (side tables)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG8",
+    "raw_hex"
+   ],
+   "byte": 1517,
+   "c64": 0,
+   "dos": 76
+  },
+  {
+   "why": "DNG8 byte 0x640 (side tables)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG8",
+    "raw_hex"
+   ],
+   "byte": 1600,
+   "c64": 72,
+   "dos": 71
+  },
+  {
+   "why": "DNG9 byte 0x626 (side tables)",
+   "file": "dungeons.json",
+   "path": [
+    "levels",
+    "DNG9",
+    "raw_hex"
+   ],
+   "byte": 1574,
+   "c64": 0,
+   "dos": 65
+  },
+  {
+   "why": "elemental 0: mp_ceiling (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    0,
+    "mp_ceiling"
+   ],
+   "c64": 0,
+   "dos": 20
+  },
+  {
+   "why": "elemental 0: guild_number (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    0,
+    "guild_number"
+   ],
+   "c64": 38,
+   "dos": 23
+  },
+  {
+   "why": "elemental 0: race (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    0,
+    "race"
+   ],
+   "c64": 16,
+   "dos": 15
+  },
+  {
+   "why": "elemental 1: mp_ceiling (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    1,
+    "mp_ceiling"
+   ],
+   "c64": 0,
+   "dos": 20
+  },
+  {
+   "why": "elemental 1: guild_number (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    1,
+    "guild_number"
+   ],
+   "c64": 39,
+   "dos": 24
+  },
+  {
+   "why": "elemental 1: race (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    1,
+    "race"
+   ],
+   "c64": 16,
+   "dos": 15
+  },
+  {
+   "why": "elemental 2: mp_ceiling (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    2,
+    "mp_ceiling"
+   ],
+   "c64": 0,
+   "dos": 20
+  },
+  {
+   "why": "elemental 2: guild_number (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    2,
+    "guild_number"
+   ],
+   "c64": 40,
+   "dos": 25
+  },
+  {
+   "why": "elemental 2: race (FORMAT.md 3.5)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    2,
+    "race"
+   ],
+   "c64": 16,
+   "dos": 15
+  }
+ ],
+ "_name_fixes": "As dos_cells, but the C64's name and the fixed one (the same cut-off name D-083 fixed on the Amiga).",
+ "name_fixes": [
+  {
+   "why": "the fire elemental's name, M cut off (CHAR2 record 21; as D-083)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    0,
+    "name"
+   ],
+   "c64": "FIRE ELE",
+   "fixed": "FIRE ELEM"
+  },
+  {
+   "why": "the same name in the town labels",
+   "file": "names.json",
+   "path": [
+    "town_labels",
+    12,
+    "name"
+   ],
+   "c64": "FIRE ELE",
+   "fixed": "FIRE ELEM"
+  }
+ ],
+ "_sprite_sizes": "DOS's monster sprite (width, height) per monster (PHANTASI.COM DS:0x2c3e): the encounter build's group fit reads the width. The C64 has no such table (its sprites are 24 x 21 VIC sprites).",
+ "sprite_sizes": [
+  [
+   34,
+   32
+  ],
+  [
+   30,
+   32
+  ],
+  [
+   27,
+   32
+  ],
+  [
+   26,
+   32
+  ],
+  [
+   25,
+   32
+  ],
+  [
+   26,
+   32
+  ],
+  [
+   22,
+   32
+  ],
+  [
+   24,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   33,
+   32
+  ],
+  [
+   36,
+   32
+  ],
+  [
+   34,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   31,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   21,
+   32
+  ],
+  [
+   26,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   28,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   33,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   34,
+   32
+  ],
+  [
+   25,
+   32
+  ],
+  [
+   31,
+   64
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   30,
+   32
+  ],
+  [
+   35,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   35,
+   32
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   34,
+   48
+  ],
+  [
+   30,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   26,
+   48
+  ],
+  [
+   32,
+   80
+  ],
+  [
+   80,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   33,
+   80
+  ],
+  [
+   80,
+   32
+  ],
+  [
+   36,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   30,
+   64
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   26,
+   32
+  ],
+  [
+   29,
+   32
+  ],
+  [
+   38,
+   80
+  ],
+  [
+   73,
+   32
+  ],
+  [
+   29,
+   32
+  ],
+  [
+   32,
+   48
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   33,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   27,
+   32
+  ],
+  [
+   24,
+   32
+  ],
+  [
+   36,
+   32
+  ],
+  [
+   34,
+   80
+  ],
+  [
+   79,
+   80
+  ],
+  [
+   77,
+   80
+  ],
+  [
+   80,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   38,
+   48
+  ],
+  [
+   40,
+   80
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   80,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   40,
+   32
+  ],
+  [
+   31,
+   32
+  ],
+  [
+   27,
+   80
+  ],
+  [
+   80,
+   22356
+  ]
+ ],
+ "_text_patches": "Applied to the C64 file (after its load address) before it is read; only where it holds the c64 text. Latin-1.",
+ "text_patches": [
+  {
+   "why": "D-084 (user s215): the bleeb puzzle's lines as DOS's MESS7",
+   "file": "PMES 7",
+   "offset": 1350,
+   "c64": "RED ",
+   "dos": "BLUE"
+  },
+  {
+   "why": "D-084 (user s215): the bleeb puzzle's lines as DOS's MESS7",
+   "file": "PMES 7",
+   "offset": 1432,
+   "c64": "BLUE",
+   "dos": "RED "
+  },
+  {
+   "why": "D-084 (user s215): the bleeb puzzle's lines as DOS's MESS7",
+   "file": "PMES 7",
+   "offset": 2817,
+   "c64": "BLUE BLEEB SAYS -",
+   "dos": "GREEN BLEEB SAYS "
+  },
+  {
+   "why": "D-084 (user s215): the bleeb puzzle's lines as DOS's MESS7",
+   "file": "PMES 7",
+   "offset": 2853,
+   "c64": " ",
+   "dos": "B"
+  },
+  {
+   "why": "D-084 (user s215): the bleeb puzzle's lines as DOS's MESS7",
+   "file": "PMES 7",
+   "offset": 2877,
+   "c64": "T SOMETIMES LIES?",
+   "dos": " SOMETIMES LIE ? "
+  }
+ ],
+ "_spell_names": "The C64 has no spell names (spells are cast by number, FORMAT.md 3.10). Slots 0-53: the manual's spell table as it prints the names; slot 57 (the divine spell): not in the manual, the remaster's wording [~] (as II's Apple import, DIFFERENCES-II D2-050).",
+ "spell_names": [
+  {
+   "slot": 0,
+   "name": "HEALING 1"
+  },
+  {
+   "slot": 1,
+   "name": "HEALING 2"
+  },
+  {
+   "slot": 2,
+   "name": "HEALING 3"
+  },
+  {
+   "slot": 3,
+   "name": "HEALING 4"
+  },
+  {
+   "slot": 4,
+   "name": "FIREFLASH 1"
+  },
+  {
+   "slot": 5,
+   "name": "FIREFLASH 2"
+  },
+  {
+   "slot": 6,
+   "name": "FIREFLASH 3"
+  },
+  {
+   "slot": 7,
+   "name": "FIREFLASH 4"
+  },
+  {
+   "slot": 8,
+   "name": "QUICKNESS 1"
+  },
+  {
+   "slot": 9,
+   "name": "QUICKNESS 2"
+  },
+  {
+   "slot": 10,
+   "name": "QUICKNESS 3"
+  },
+  {
+   "slot": 11,
+   "name": "QUICKNESS 4"
+  },
+  {
+   "slot": 12,
+   "name": "STRENGTH 1"
+  },
+  {
+   "slot": 13,
+   "name": "STRENGTH 2"
+  },
+  {
+   "slot": 14,
+   "name": "STRENGTH 3"
+  },
+  {
+   "slot": 15,
+   "name": "STRENGTH 4"
+  },
+  {
+   "slot": 16,
+   "name": "PROTECTION 1"
+  },
+  {
+   "slot": 17,
+   "name": "PROTECTION 2"
+  },
+  {
+   "slot": 18,
+   "name": "PROTECTION 3"
+  },
+  {
+   "slot": 19,
+   "name": "PROTECTION 4"
+  },
+  {
+   "slot": 20,
+   "name": "CONFUSION 1"
+  },
+  {
+   "slot": 21,
+   "name": "CONFUSION 2"
+  },
+  {
+   "slot": 22,
+   "name": "CONFUSION 3"
+  },
+  {
+   "slot": 23,
+   "name": "CONFUSION 4"
+  },
+  {
+   "slot": 24,
+   "name": "WEAKNESS 1"
+  },
+  {
+   "slot": 25,
+   "name": "WEAKNESS 2"
+  },
+  {
+   "slot": 26,
+   "name": "WEAKNESS 3"
+  },
+  {
+   "slot": 27,
+   "name": "WEAKNESS 4"
+  },
+  {
+   "slot": 28,
+   "name": "BINDING 1"
+  },
+  {
+   "slot": 29,
+   "name": "BINDING 2"
+  },
+  {
+   "slot": 30,
+   "name": "BINDING 3"
+  },
+  {
+   "slot": 31,
+   "name": "BINDING 4"
+  },
+  {
+   "slot": 32,
+   "name": "MINDBLAST 1"
+  },
+  {
+   "slot": 33,
+   "name": "MINDBLAST 2"
+  },
+  {
+   "slot": 34,
+   "name": "MINDBLAST 3"
+  },
+  {
+   "slot": 35,
+   "name": "MINDBLAST 4"
+  },
+  {
+   "slot": 36,
+   "name": "FLAMEBOLT 1"
+  },
+  {
+   "slot": 37,
+   "name": "FLAMEBOLT 2"
+  },
+  {
+   "slot": 38,
+   "name": "FLAMEBOLT 3"
+  },
+  {
+   "slot": 39,
+   "name": "FLAMEBOLT 4"
+  },
+  {
+   "slot": 40,
+   "name": "CHARM"
+  },
+  {
+   "slot": 41,
+   "name": "SLEEP"
+  },
+  {
+   "slot": 42,
+   "name": "TELEPORTATION"
+  },
+  {
+   "slot": 43,
+   "name": "RESURRECTION"
+  },
+  {
+   "slot": 44,
+   "name": "NINJA 2"
+  },
+  {
+   "slot": 45,
+   "name": "FEAR"
+  },
+  {
+   "slot": 46,
+   "name": "DISSOLVE"
+  },
+  {
+   "slot": 47,
+   "name": "SUMMONS ELEMENTAL"
+  },
+  {
+   "slot": 48,
+   "name": "DISPELL UNDEAD"
+  },
+  {
+   "slot": 49,
+   "name": "NINJA 1"
+  },
+  {
+   "slot": 50,
+   "name": "AWAKEN"
+  },
+  {
+   "slot": 51,
+   "name": "MONSTER EVALUATION"
+  },
+  {
+   "slot": 52,
+   "name": "VISION"
+  },
+  {
+   "slot": 53,
+   "name": "TRANSPORTATION"
+  },
+  {
+   "slot": 57,
+   "name": "DIVINE I"
+  }
+ ]
+}

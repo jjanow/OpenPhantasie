@@ -1080,7 +1080,7 @@
     "inventory.help_sell_pad": "A sell  B keep",
     "core.guild.rename_party_member": "Party members can't be renamed.",
     "core.session.game_loaded": "Game loaded.",
-    "core.parties.x_continues_in_town_x": "{0}'s party continues in town #{1}.",
+    "core.parties.x_continues_in_x": "{0}'s party continues in {1}.",
     "core.parties.x_continues_where_it_was": "{0}'s party continues where it was.",
     "core.parties.no_such_member": "No such Guild member.",
     "core.parties.in_another_party": "In another party.",

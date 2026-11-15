@@ -5,8 +5,9 @@ namespace OpenPhantasie.Importer.Containers;
 /// <summary>
 /// Turns what the player picked (files, folders, zips, disk images, in any mix) into <see cref="Container"/>s. Folders
 /// are searched recursively; zips are opened in memory; disk images are opened read-only and their file systems read
-/// (FAT12, Human68k, AmigaDOS, Pasti, Apple II RDOS from a <c>.dsk</c> or a <c>.woz</c>). Nothing is written next to the
-/// originals. Images we can't read a file system from (Apple II DOS 3.3, C64, PC-88 …) still become containers with their image sha1, so detection can name them.
+/// (FAT12, Human68k, AmigaDOS, Pasti, Apple II RDOS from a <c>.dsk</c> or a <c>.woz</c>, Commodore 1541 from a <c>.d64</c>
+/// or a <c>.g64</c>). Nothing is written next to the originals. Images we can't read a file system from (Apple II DOS 3.3,
+/// PC-88 …) still become containers with their image sha1, so detection can name them.
 /// </summary>
 public static class SourceScanner
 {
@@ -16,7 +17,7 @@ public static class SourceScanner
     private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".adf", ".ima", ".img", ".st", ".stx", ".dim", ".xdf", ".hdm", ".dsk", ".d64", ".d88", ".woz", ".atr", ".zip",
-        ".msa", ".fdi", ".do", ".po", ".nib", ".2mg",
+        ".msa", ".fdi", ".do", ".po", ".nib", ".2mg", ".g64",
     };
 
     public static List<Container> Scan(IEnumerable<string> paths, ICollection<string> notes, CancellationToken cancel = default)
@@ -254,8 +255,32 @@ public static class SourceScanner
             return true;
         }
 
+        // Commodore 1541 .g64 (GCR-1541): decoded to its 683 standard sectors, then read as a D64 (s216). The container
+        // keeps the .g64's own sha1.
+        if (G64Image.IsG64(data))
+        {
+            var g64 = G64Image.Decode(data);
+            if (D64Volume.TryOpen(g64.Image) is { } gvol)
+            {
+                if (g64.Missing.Count > 0)
+                    notes.Add($"{description}: {g64.Missing.Count} sector(s) of the .g64 did not decode (track.sector "
+                        + string.Join(", ", g64.Missing.Take(8).Select(m => $"{m.Track}.{m.Sector}")) + "); they read as zeros");
+                result.Add(D64Container("g64", description, sourcePath, sha1, data.Length, gvol));
+            }
+            else
+                result.Add(new Container("raw-image", description, sourcePath) { ImageSha1 = sha1, ImageSize = data.Length });
+            return true;
+        }
+
         if (!ImageExtensions.Contains(ext) && !LooksLikeImageSize(data.Length))
             return false;
+
+        // Commodore 1541 .d64 (s216): the directory and its files.
+        if (D64Volume.TryOpen(data) is { } d64)
+        {
+            result.Add(D64Container("d64", description, sourcePath, sha1, data.Length, d64));
+            return true;
+        }
 
         // Apple II RDOS in a 140K .dsk (RDOS 2.1, 13-sector: Phantasie II's 4am crack; RDOS 3.3, 16-sector: II v2.1, III).
         if (data.Length == RdosVolume.ImageSize && RdosVolume.TryOpen(data) is { } rdos)
@@ -295,6 +320,17 @@ public static class SourceScanner
         {
             var entry = e;
             c.Files.Add(new ImportFile(c, entry.Name, () => rdos.Read(entry), RdosVolume.SizeOf(entry)));
+        }
+        return c;
+    }
+
+    private static Container D64Container(string kind, string description, string? sourcePath, string sha1, int size, D64Volume vol)
+    {
+        var c = new Container(kind, description, sourcePath) { ImageSha1 = sha1, ImageSize = size };
+        foreach (var e in vol.Files)
+        {
+            var entry = e;
+            c.Files.Add(new ImportFile(c, entry.Name, () => vol.Read(entry)));
         }
         return c;
     }

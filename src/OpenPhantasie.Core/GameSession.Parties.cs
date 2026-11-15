@@ -36,7 +36,7 @@ public sealed partial class GameSession
         ApplySnapshot(file);
         if (Party.Adventurers.FirstOrDefault() is { } leader)
             Note(CurrentTownId is int town
-                ? GameText.F("core.parties.x_continues_in_town_x", leader.Name, town)
+                ? GameText.F("core.parties.x_continues_in_x", leader.Name, TownLabel(town))
                 : GameText.F("core.parties.x_continues_where_it_was", leader.Name));
     }
 
@@ -58,7 +58,7 @@ public sealed partial class GameSession
             Overworld.TerrainClass = OverworldRegion.Normalize(region.GetRaw(at.X, at.Y)) / 10;
         }
         var name = Roster.Slots[guildNumber - 1]!.Name;
-        Note(CurrentTownId is int town ? GameText.F("core.parties.x_continues_in_town_x", name, town) : GameText.F("core.parties.x_continues_where_it_was", name));
+        Note(CurrentTownId is int town ? GameText.F("core.parties.x_continues_in_x", name, TownLabel(town)) : GameText.F("core.parties.x_continues_where_it_was", name));
         return true;
     }
 }

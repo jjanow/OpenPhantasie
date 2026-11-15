@@ -213,6 +213,14 @@ public static class ImportedStrings
                 "MAIN.EXE:root" => Raw("MAIN.EXE") is { } exe ? P3Exe.UnpackRoot(exe) : null,
                 _ when key.EndsWith(":page", StringComparison.Ordinal) =>
                     Raw(key[..^5]) is { } page ? Encoding.Latin1.GetBytes(string.Join("\n", A2Text.TextPage(page))) : null,
+                // s216: a C64 file's PETSCII of the lower / upper-case set, its letters made ASCII (I's C64 P.END).
+                _ when key.EndsWith(":petscii", StringComparison.Ordinal) =>
+                    Raw(key[..^8]) is { } pet ? [.. pet.Select(b => b switch
+                    {
+                        >= 0xC1 and <= 0xDA => (byte)(b - 0x80),
+                        >= 0x41 and <= 0x5A => (byte)(b + 0x20),
+                        _ => b,
+                    })] : null,
                 _ => Raw(key),
             };
             _cache[key] = data;

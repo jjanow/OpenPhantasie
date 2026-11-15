@@ -11,7 +11,9 @@ public sealed class P3Apple2Pipeline : IImportPipeline
 {
     public string ProfileId => "p3-apple2";
 
-    public int RecipeVersion => 2; // 1 (s212): III's tables and the Apple II art pack; 2 (s212): the remaster's wording for the lines it lacks
+    // 1 (s212): III's tables and the Apple II art pack; 2 (s212): the remaster's wording for the lines it lacks;
+    // 3 (s216, D3-077): the lines v3.0 prints in its own words (en.own.p3-apple2.json, tools/scripts/p3_apple2_own_wording.json)
+    public int RecipeVersion => 3;
 
     /// <summary>DOS III's and the Amiga's tables win when both copies are imported in one run: they run first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p3-dos-1988", "p3-amiga-1.0"];
@@ -22,7 +24,8 @@ public sealed class P3Apple2Pipeline : IImportPipeline
         var tables = P3Apple2Tables.Write(ctx);
 
         // The game's own lines of the string tables (10-importer.md 7.6); with the Apple's tables, the remaster's wording
-        // for the lines it lacks (the common shared / I fallback and III's own).
+        // for the lines it lacks (the common shared / I fallback and III's own). The lines v3.0 prints in its own words
+        // (D3-077) go, from every table, to III's own-wording file, on top of III's chain while III's tables are the Apple's.
         // The p3-apple2 alternatives point into v3.0's programs; v1.0's are laid out differently, so they give none.
         ctx.Progress("text");
         if (IsV30(ctx.Files))

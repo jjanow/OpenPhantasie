@@ -53,6 +53,17 @@ public sealed class P3ConfirmQuestion
         Action = "";
     }
 
+    /// <summary>
+    /// s216: the question on the status line, whole: its rows joined with a space ("Save this game in place of the one
+    /// saved before?"), where the line had shown only the first row ("SAVE THIS GAME IN PLACE OF"). The status band wraps
+    /// a line longer than its columns.
+    /// </summary>
+    public static string StatusLine(SessionPrompt prompt)
+    {
+        ArgumentNullException.ThrowIfNull(prompt);
+        return string.Join(" ", prompt.Lines.Select(l => l.Trim()).Where(l => l.Length > 0));
+    }
+
     /// <summary>True when <paramref name="prompt"/> is this question (the one the prompt path is showing).</summary>
     public bool Owns(SessionPrompt? prompt) => prompt is not null && ReferenceEquals(prompt, Prompt);
 

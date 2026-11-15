@@ -59,6 +59,17 @@
       15
      ]
     ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON",
+      16258,
+      15
+     ]
+    ]
    }
   ],
   "core.dungeon.trap_x_takes_x_damage": [
@@ -146,6 +157,23 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     "{0} ",
+     [
+      "TOWNR",
+      8455,
+      5
+     ],
+     " {1} ",
+     [
+      "OUTDOORS",
+      12232,
+      6
+     ]
+    ]
    }
   ],
   "core.dungeon.trap_x_dies": [
@@ -200,6 +228,17 @@
      [
       "OUTDOORS2",
       10463,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS",
+      12058,
       4
      ]
     ]
@@ -418,6 +457,17 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS",
+      12058,
+      4
+     ]
+    ]
    }
   ],
   "core.script.report_x_takes_x_damage": [
@@ -505,6 +555,23 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     "{0} ",
+     [
+      "TOWNR",
+      8455,
+      5
+     ],
+     " {1} ",
+     [
+      "OUTDOORS",
+      12232,
+      6
+     ]
+    ]
    }
   ],
   "core.script.report_x_dies": [
@@ -559,6 +626,17 @@
      [
       "OUTDOORS2",
       10463,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS",
+      12058,
       4
      ]
     ]
@@ -3326,6 +3404,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "OUTDOORS",
+      22889,
+      5
+     ]
+    ]
    }
   ],
   "core.p2.you_are_changed": [
@@ -3441,6 +3529,16 @@
      [
       "TOWN2",
       2988,
+      8
+     ]
+    ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "TOWNR",
+      3606,
       8
      ]
     ]
@@ -3679,6 +3777,16 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "TOWNR",
+      8373,
+      5
+     ]
+    ]
    }
   ],
   "p2.terrain_key.dungeon": [
@@ -3728,6 +3836,16 @@
      [
       "OUTDOORS2",
       175,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "OUTDOORS",
+      2193,
       7
      ]
     ]

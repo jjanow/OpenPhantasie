@@ -16,6 +16,12 @@ public static partial class UiOverlays
     public const int MessageY = 182;
 
     private static readonly Color PanelBg = new(16, 22, 36, 235);
+
+    /// <summary>
+    /// s216: a modal's own panel (text panel, prompt, prompt grid) is opaque, so the screen under it (the Guild's cards and
+    /// title, a sheet's party) no longer shows through its text.
+    /// </summary>
+    private static readonly Color ModalBg = new(16, 22, 36);
     private static readonly Color PanelEdge = new(90, 110, 150);
     private static readonly Color TitleGold = new(220, 200, 120);
     private static readonly Color BodyText = new(190, 200, 220);
@@ -631,6 +637,7 @@ public static partial class UiOverlays
             PixelFont.Draw(batch, pixel, 86, 48 - lift / 2, UiText.S("ui.adventurers_guild"), TitleGold);
             hintY = 60 - lift * 5 / 8;
             stripTop = 74 - lift;
+            PanelKeepClear = (28 - lift / 4 - 2, hintY + PixelFont.GlyphHeight + 2);
         }
         else
         {
@@ -641,6 +648,7 @@ public static partial class UiOverlays
             PixelFont.Draw(batch, pixel, x + PixelFont.Measure(title) * 2 + 12, 29, subtitle, TitleGold);
             hintY = 39;
             stripTop = 48;
+            PanelKeepClear = (20, hintY + PixelFont.GlyphHeight + 2);
         }
         PixelFont.Draw(batch, pixel, 160 - PixelFont.Measure(hint) / 2, hintY, hint, DimText);
         HitTokens(hint, 160 - PixelFont.Measure(hint) / 2, hintY, commandList: true);
@@ -1551,7 +1559,7 @@ public static partial class UiOverlays
         var height = 16 + (shown + answers.Count) * 10 + 4;
         var top = PromptPanelTop(shown, height);
         var panel = new Rectangle(8, top, 304, height);
-        DrawPanel(batch, pixel, panel, PanelBg, PanelEdge);
+        DrawPanel(batch, pixel, panel, ModalBg, PanelEdge);
         var y = top + 8 + shown * 10 + 4;
         HitPrompt(prompt, cursor, single, sideBySide, y, pairSpots); // under the text's scroll bar
         DrawPromptText(batch, pixel, lines, shown, top);
@@ -1577,9 +1585,32 @@ public static partial class UiOverlays
         return shown;
     }
 
-    /// <summary>A prompt panel's top: centred on its text as always, moved up when its foot would reach the help band.</summary>
+    /// <summary>
+    /// A prompt panel's top: centred on its text as always, moved up when its foot would reach the help band, and clear of
+    /// the screen's header (<see cref="PanelKeepClear"/>, <see cref="KeepClearOf"/>).
+    /// </summary>
     private static int PromptPanelTop(int textRows, int height) =>
-        Math.Max(ContentTop + 2, Math.Min(TextPanelTop(textRows), ContentBottom - height));
+        KeepClearOf(Math.Max(ContentTop + 2, Math.Min(TextPanelTop(textRows), ContentBottom - height)), height, PanelKeepClear);
+
+    /// <summary>
+    /// s216: the rows of the screen under a modal that its panel must not cut through (the Guild's PHANTASIE title, the
+    /// ADVENTURERS GUILD line and the key hint, set by <see cref="DrawGuild"/>); null = none. The shell clears it at each
+    /// frame's start (<c>Game1.BeginHits</c>), so it holds only while the Guild is the screen drawn.
+    /// </summary>
+    public static (int Top, int Bottom)? PanelKeepClear { get; set; }
+
+    /// <summary>
+    /// s216 (watch list: the New Member panel's top edge ran through the Guild's PHANTASIE header): a panel of
+    /// <paramref name="height"/> placed at <paramref name="top"/> that would start inside <paramref name="band"/> goes below
+    /// it when it still ends above the help band (<see cref="ContentBottom"/>), else up to <see cref="ContentTop"/> + 2,
+    /// where its opaque body covers the header whole. A panel that does not start inside the band stays where it is.
+    /// </summary>
+    public static int KeepClearOf(int top, int height, (int Top, int Bottom)? band)
+    {
+        if (band is not (int bandTop, int bandBottom) || top <= bandTop || top >= bandBottom)
+            return top;
+        return bandBottom + height <= ContentBottom ? bandBottom : ContentTop + 2;
+    }
 
     /// <summary>The scrolled prompt text from the panel's first line (and its bar); the y under the last line shown.</summary>
     private static int DrawPromptText(SpriteBatch batch, Texture2D pixel, IReadOnlyList<string> lines, int shown, int top)
@@ -2008,7 +2039,7 @@ public static partial class UiOverlays
         var shown = ScrollPromptText(lines, rows);
         var height = 16 + (shown + rows) * 10 + 4;
         var top = PromptPanelTop(shown, height);
-        DrawPanel(batch, pixel, new Rectangle(8, top, 304, height), PanelBg, PanelEdge);
+        DrawPanel(batch, pixel, new Rectangle(8, top, 304, height), ModalBg, PanelEdge);
         if (Hits is { } hits)
             hits.Add(new HitRegion(ModalArea, new BackdropTag()) { Click = [] });
         var y = DrawPromptText(batch, pixel, lines, shown, top);
@@ -2084,7 +2115,7 @@ public static partial class UiOverlays
         // than the screen holds scrolls (PgUp / PgDn where the dialog leaves them free, the wheel, the bar).
         var gridRows = typing?.Rows.Count ?? 0;
         var (rows, shown, top, height) = TextPanelLayout(lines, gridRows, wide);
-        DrawPanel(batch, pixel, new Rectangle(frame.Left, top, frame.Width, height), PanelBg, PanelEdge);
+        DrawPanel(batch, pixel, new Rectangle(frame.Left, top, frame.Width, height), ModalBg, PanelEdge);
         int? LineTop(int line) => TextPanelLineTop(lines, line, gridRows, wide);
         HitPanel(lines, frame.TextX, top + 8, 10, frame.MaxChars, LineTop);
         var area = new Rectangle(frame.Left + 4, top + 7, frame.Width - 8, shown * 10);
@@ -2126,7 +2157,7 @@ public static partial class UiOverlays
         TextPanelScroll.Set(rows.Count, shown);
         TextPanelScroll.TopFor(HashCode.Combine(lines.Count > 0 ? lines[0] : "", lines.Count));
         var height = 16 + (shown + gridRows) * 10;
-        var top = Math.Max(ContentTop + 2, (ContentTop + ContentBottom - height) / 2);
+        var top = KeepClearOf(Math.Max(ContentTop + 2, (ContentTop + ContentBottom - height) / 2), height, PanelKeepClear);
         return (rows, shown, top, height);
     }
 

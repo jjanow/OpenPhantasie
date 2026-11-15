@@ -48,6 +48,7 @@ public class ContinueLoadTests
             Assert.True(next.Continue(file, 1, out var error), error);
             Assert.Equal(GameMode.Town, next.Mode);
             Assert.Equal(1, next.CurrentTownId);
+            Assert.Equal("Alpha's party continues in PELNOR.", next.LastMessage); // s216: the town's name, not "town #1"
             Assert.Equal(["Alpha", "Bravo"], next.Party.Members.Select(m => m.Name));
             Assert.Equal(OptionPreset.Manual, next.Options.Preset); // the save's rules, not the new game's
             Assert.Equal(GameId.P1, next.Game);

@@ -323,7 +323,7 @@ public class MouseTests
 
     [Theory]
     [InlineData("L list P purge N new R rename A add S spells T train D drop E exit", "LPNRASTDE")]
-    [InlineData("A add to party, N new member, G leave.", "ANG")]
+    [InlineData("A add to party, N new member, E exit.", "ANE")]
     [InlineData("C)AST     H)EALTH", "CH")]
     [InlineData("1 THRUST 2 ATTACK 3 SLASH 4 LUNGE", "1234")]
     [InlineData("001 WEAPON(S)", "")]

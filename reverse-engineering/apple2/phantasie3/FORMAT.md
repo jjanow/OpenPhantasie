@@ -171,7 +171,7 @@ I → III transfer: `BACKUP` 4000–5015 copies I / II records unchanged (the ma
 ## 4. Apple ≠ DOS, and the standalone import
 
 **Rule (the user's for II's Apple and III's Amiga): DOS's values where the Apple differs or has none.** An Apple-only
-import (`p3-apple2`, recipe 1) writes the ten III tables from the Apple, then DOS III's value in every number /
+import (`p3-apple2`, recipe 1; 3 adds the own wording, Strings below) writes the ten III tables from the Apple, then DOS III's value in every number /
 structure cell of the shipped `GameData/phantasie3/apple2-import.json` (653 cells, made by `diff_a2_p3_vs_dos.py
 --built … --cells`, applied by `CellPatches`); the Apple's own text is kept (names, messages, scroll pages). With DOS
 III or the Amiga imported too, their tables win. Tests: `P3Apple2TablesTests` (C# = the Python extract; the [cr] sides;
@@ -214,6 +214,41 @@ The cells, by group (each a real Apple ≠ DOS difference unless "lacks"):
 
 None of these is a manual question but the inn (DIFFERENCES-III D3-076): the manual has no monster, stock, dungeon or
 training tables, and its HP chart (L1–15) and item points / requirements equal the Apple's.
+
+### Strings: the Apple's own wording (s216, DIFFERENCES-III D3-077) `[C]`
+
+v3.0's programs print 145 of the string ids III shows: 17 verbatim (status / class words) and 128 in their own words,
+mapped by `tools/scripts/p3_apple2_own_wording.json` (references into the programs; `build_string_sources.py
+--show-apple3`). Where each comes from:
+
+| Program (lines) | Mode | Ids |
+|---|---|---|
+| `OUTDOORS3` 1120–1160 | window, 8 columns | the monsters' answers to Greet / Beg / Surrender (no response, greet, surrender, take your gold) |
+| `OUTDOORS3` 1310–1390, 1360 | window | the spell prompts (which spell, on which person), not enough magic |
+| `OUTDOORS3` 1650–1940, 2920–3250 | window | combat: awakens, misses, hits, casts (party: + the remaster's spell name; monster: "A SPELL"), monsters run, armour reduced, slowed, breathes |
+| `OUTDOORS3` 4380 | window | treasure: you find … keep it?, keep it? |
+| `OUTDOORS3` 5280–5290 | window | the blocked squares (ocean, River Styx) |
+| `OUTDOORS3` 6330–6448 | window | you surprise them, monsters surprise you, the night watch lines |
+| `OUTDOORS3` 6930–6960, 7140, 7220 | window | monster evaluation level, spell will not work here, will you enter?, the inn's can't afford |
+| `DUNGON3` 4004 / 4020 | text | takes n DAMMAGE (combat, traps, scripts, the damage report), -DEATH- (every death line) |
+| `DUNGON3` 6270–6420, 7140, 7950 | window | who will disarm?, disarms trap, avoids the trap, the exit question, picks the lock |
+| `DUNGON3` 8340–8410 | text | event lines: gold found, gold taken, party moved, a noise in the distance |
+| `DUNGON3` 5280, 7800, 7870, 7960, 8280, 8440 | window / text | that is a wall, stairs from level … to level …, hears monsters / will you go back?, no one can pick the lock, smoke fills the air, monsters appear |
+| `OUTDOORS3` 2710–2840, 6010, 6160, 6545, 6730 | window | monsters charmed / start dissolving, party awakens, is alive, press any key to continue (every any-key page), sinks (+ takes n DAMMAGE), lava, who will use? |
+| `DNGOUT3` 20 | window | save the dungeon status? |
+| `TOWN3` 550–560, 2800–3500, 4390 | text | has aged / has died, the Guild's prompts (who wants training, it will cost … gold pieces, who will learn spells, drop who, purge which guild member) |
+| `TOWN3` 601–615 | text | the XP division header, SHARES FOR (+ the name) |
+| `TOWN3` 290, 4653–4663 | text | the Mystic: rank lines (YOU ARE + rank + ADVENTURERS), heroes of Gelnor (ALSO …) / Ferronrah (AND …) / the Netherworld / Scandor |
+| `TOWN3` 1295–1330, 2207–3284, 4005–4060, 6000, 6190, 7400 | text | the Armory, Guild and Trade refusals (can not afford, nine items, no room, already here, learn no more, assemble a group), the move question, the trade prompts, the Bank title / gold carried, inspect who? |
+| `CEMETARY3` 605–1100 | text | the three Astral Plane lines, destroyed / resurrected / granted undead status |
+| `WIN` 41–190 | window, 22 / 40 columns | the reward speech (noises, intensity, the god, the cause and title, farewell, teleport), the god / cause / title words (line 92 / 98) |
+
+Window texts are decoded through the hi-res font (section 2): `=` blank, `:` hyphen, `@` colon, `<` comma, `>`
+question mark, `;` quote; each window row is stripped and the rows joined by one space, a row ending in a hyphen joined
+to the next word without it, a row of punctuation only (a full row's `?`) joined without a space. The 40-column text
+screen texts have their wrap padding (two or more spaces) collapsed. Letters are references, the rest glue. Not mapped
+(115 ids, the remaster's `fallback.p3-apple2.en.json`): see D3-077. The [cr] (v1.0) programs are laid out differently,
+so a [cr] import gives none of the 145.
 
 ### Left `[?]`
 

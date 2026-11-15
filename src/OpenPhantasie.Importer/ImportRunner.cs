@@ -349,8 +349,9 @@ public sealed class ImportRunner
         return keys;
     }
 
-    /// <summary>Versions that feed tables but read nothing play rewrites (Amiga I: grids from maps.int, s201).</summary>
-    private static readonly HashSet<string> PlayedCopySafe = new(StringComparer.Ordinal) { "p1-amiga-1.0" };
+    /// <summary>Versions that feed tables but read nothing play rewrites (Amiga I: grids from maps.int, s201; C64 I: towns
+    /// and regions from PATTERN, its OUT1 the same on every copy, s216).</summary>
+    private static readonly HashSet<string> PlayedCopySafe = new(StringComparer.Ordinal) { "p1-amiga-1.0", "p1-c64" };
 
     /// <summary>
     /// GameData files outside <c>graphics/</c> and <c>strings/</c> that are a pack's, not a table: I's
