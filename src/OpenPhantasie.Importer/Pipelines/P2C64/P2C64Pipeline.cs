@@ -34,14 +34,7 @@ public sealed class P2C64Pipeline : IImportPipeline
         ImportedStrings.WriteFallback(ctx, ImportedStrings.CommonFallbackGame, P2C64Tables.Game);
 
         ctx.Progress("art");
-        try
-        {
-            P2C64Art.Import(ctx);
-        }
-        catch (FileNotFoundException e)
-        {
-            ctx.Warn($"No C64 art: {e.Message}.");
-        }
+        ctx.TryOptional("No C64 art", () => P2C64Art.Import(ctx));
     }
 }
 

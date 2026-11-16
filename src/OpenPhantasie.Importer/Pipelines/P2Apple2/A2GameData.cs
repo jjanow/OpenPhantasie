@@ -248,7 +248,7 @@ internal static class A2GameData
     private static readonly Regex Marker = new(@"(?<![A-Z0-9])([1-9])-", RegexOptions.CultureInvariant);
 
     /// <summary>The largest option count of an event record pointing at each message (record byte 1).</summary>
-    private static Dictionary<int, int> OptionCounts(byte[] raw)
+    internal static Dictionary<int, int> OptionCounts(byte[] raw)
     {
         var d = new Dictionary<int, int>();
         for (var f = 0xdc; f <= 0xff; f++)
@@ -296,7 +296,7 @@ internal static class A2GameData
     }
 
     /// <summary>How many of the markers 1-, 2-, ... appear in order (0 when fewer than two).</summary>
-    private static int MarkedOptions(IReadOnlyList<string> lines)
+    internal static int MarkedOptions(IReadOnlyList<string> lines)
     {
         var text = string.Join("\n", lines);
         var pos = 0;

@@ -28,7 +28,7 @@ internal static class MapTables
     }
 
     /// <summary><c>re.finditer(rb"[ -~]{4,}")</c> runs that look like text (legacy/debug output).</summary>
-    private static JsonArray TextRuns(byte[] data)
+    internal static JsonArray TextRuns(byte[] data)
     {
         var output = new JsonArray();
         var i = 0;
@@ -128,9 +128,9 @@ internal static class MapTables
     // file in place, so they stayed). They are ours, so they are constants here, in the committed key order.
     public const string DungeonNote =
         "raw feature bytes; [C] grid = first 1254 B = 33x38, then side tables / events / scripts (dungeon-representation.md).";
-    private const int GridByteLength = 1254;
+    internal const int GridByteLength = 1254;
 
-    private const string GridNote =
+    internal const string GridNote =
         "[C] Walkable grid = first 1254 bytes = 33×38 (width 0x21, height 0x26); the rest of raw_hex is side tables, " +
         "event records and scripts. Cell legend: dungeon-representation.md.";
 

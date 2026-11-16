@@ -1,0 +1,43 @@
+{
+ "_schema": "phantasie.strings-fallback/v1",
+ "_note": "The remaster's own wording for the shared and I table lines an Apple-only Phantasie I import (p1-apple2, s222) lacks besides those of fallback.en.json: the ids with original parts (strings/en.sources.json) that DOS I and the Amiga give and the Apple's programs do not hold verbatim. Menu words, box titles and sheet labels keep the table's text; Zeus's speech (the Apple's FLASH? words its own short scene) and the Black Lord line are reworded, line count kept, each line within 40 columns. ImportedStrings.WriteFallback merges it after this folder's fallback.en.json for p1-apple2 only, into strings/en.fallback.p1-apple2.json under every other imported file (10-importer.md 7.14).",
+ "language": "en",
+ "tables": {
+  "shared": {
+   "p1field.at_rank": " AT RANK",
+   "p1field.item.beg_mercy": "Beg mercy",
+   "p1field.item.flee": "Flee",
+   "p1field.item.greetings": "Greetings",
+   "p1field.item.party_health": "Party health",
+   "p1field.item.show_names": "Show names",
+   "p1field.item.threaten": "Threaten",
+   "p1field.menu.speed": "Speed",
+   "p1field.on_whom": "ON WHOM:",
+   "p1field.sheet.earth": "EARTH",
+   "p1field.sheet.fire": "FIRE",
+   "p1field.sheet.wand_row": "THE WAND OF NIKADEMUS",
+   "p1field.sheet.water": "WATER",
+   "p1field.spells_available": "SPELLS AVAILABLE:",
+   "p1map.item.health": "Health",
+   "p1map.item.inspect": "Inspect",
+   "p1map.item.look": "Look",
+   "p1map.menu.options": "Options",
+   "p1map.title.health_report": "HEALTH REPORT:",
+   "p1map.title.in_the_inn": "  IN THE INN",
+   "p1map.title.in_the_trap": "IN THE TRAP:",
+   "p1map.title.report": "   REPORT:",
+   "p1map.title.swimming": "  SWIMMING:"
+  },
+  "phantasie1": {
+   "amiga.endgame.zeus_4": "rest, and make ready for more to come.",
+   "core.endgame.black_lord_is_dead": "THE BLACK LORD HAS FALLEN",
+   "core.endgame.zeus_1": "You have done well, my small friends.",
+   "core.endgame.zeus_2": "The evil that held Gelnor is gone.",
+   "core.endgame.zeus_3": "Your quest is ended. Go now and take",
+   "core.endgame.zeus_4": "your rest, and make ready for more.",
+   "core.endgame.zeus_5": "Take this gift: your first Divine Spell.",
+   "core.endgame.zeus_6": "How to use it well you will learn",
+   "core.endgame.zeus_7": "in the adventures still to come."
+  }
+ }
+}

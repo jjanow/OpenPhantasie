@@ -1366,8 +1366,72 @@
    "game": "phantasie1",
    "title": "Phantasie I (Apple II)",
    "platform": "apple2",
-   "status": "recognised",
-   "reason": "no importer for this version yet",
+   "status": "supported",
+   "feeds": [
+    "tables"
+   ],
+   "disks": [
+    {
+     "label": "side A (boot)",
+     "key_files": [
+      {
+       "name": "TOWN",
+       "size": 16869,
+       "sha1": "60ff97b191fdecce3f2a74b3d4c7d663ba1e8e92"
+      },
+      {
+       "name": "OUTDOORS",
+       "size": 17831,
+       "sha1": "730b6fb0996ce076dba32a417caa2802570e124a"
+      },
+      {
+       "name": "CEMETARY",
+       "size": 1498,
+       "sha1": "8d357be2883bd23ff9ea6b8aae189d03573b3f80"
+      },
+      {
+       "name": "ITEM",
+       "size": 1792,
+       "sha1": "d99680808b4bf5dafda27ed4a4561385c901b259"
+      },
+      {
+       "name": "TINFO",
+       "size": 1730,
+       "sha1": "41823569aa91b7e2d1ab96a505e672c5d9d3406a"
+      },
+      {
+       "name": "SCROLL1",
+       "size": 1000,
+       "sha1": "d5dc81ce8b0deb4568406d9bade2abc67e296250"
+      }
+     ]
+    },
+    {
+     "label": "side B (dungeon)",
+     "key_files": [
+      {
+       "name": "DUNGON",
+       "size": 18353,
+       "sha1": "b6ba56910b75c43b01478bf4302ee1d3fcaa00ce"
+      },
+      {
+       "name": "DNG1",
+       "size": 6140,
+       "sha1": "06e2682b36ef334dd7f50853aeccc5127eb64c9f"
+      },
+      {
+       "name": "DNG10",
+       "size": 5120,
+       "sha1": "336e58228ba2462912c0d59e1e9f4ec60f1f9a35"
+      },
+      {
+       "name": "TF",
+       "size": 3000,
+       "sha1": "eb507bb48e2af6fcfd2a1ff7eede572445f9d6e9"
+      }
+     ]
+    }
+   ],
    "images": [
     {
      "sha1": "42cae93c68cfb5bf7a52de3d695b876aac393736",
@@ -1385,7 +1449,74 @@
      "sha1": "2c9ad81a049c342eb097fc2916c6b2f7ef694211",
      "size": 234819
     }
-   ]
+   ],
+   "name_markers": [
+    "TOWN",
+    "OUTDOORS"
+   ],
+   "mutable_files": [
+    {
+     "name": "TWN1",
+     "size": 250,
+     "sha1": "ffb8e5f6c27d41992e24087b5b0d0bece93f36fe"
+    },
+    {
+     "name": "TWN2",
+     "size": 250,
+     "sha1": "fb8480d5a49c07aae9fb24222a3a65980bf212be"
+    },
+    {
+     "name": "TWN3",
+     "size": 250,
+     "sha1": "ec8914265d0bbdc2c452be22169af575fcd37444"
+    },
+    {
+     "name": "TWN4",
+     "size": 250,
+     "sha1": "d57e82f392306db0c6465c32da6c559263068971"
+    },
+    {
+     "name": "TWN5",
+     "size": 250,
+     "sha1": "9e2f6a8a813b2e4f29695b9b57ad641aace745f3"
+    },
+    {
+     "name": "TWN6",
+     "size": 250,
+     "sha1": "a052d08bed08b783abd67cfcf67edd2a78c43743"
+    },
+    {
+     "name": "TWN7",
+     "size": 250,
+     "sha1": "e99f229e0ea4ededf367daafd5038cff2ebc2381"
+    },
+    {
+     "name": "TWN8",
+     "size": 250,
+     "sha1": "c8c1e3bcee38c9b5d9f98fe90483c9431331a279"
+    },
+    {
+     "name": "TWN9",
+     "size": 250,
+     "sha1": "97129a1c10b20ae0c4e08f02237e7366d35fabdc"
+    },
+    {
+     "name": "TWN10",
+     "size": 250,
+     "sha1": "f4fb137c95b833d30454bf55c93b508ad75091ca"
+    },
+    {
+     "name": "TWN11",
+     "size": 250,
+     "sha1": "00a77af0b3d681a66266b3e95edf1d99af457c2c"
+    },
+    {
+     "name": "TWN99",
+     "size": 250,
+     "sha1": "6783a71a1bafdcc570ce013855e81cc0db209bc4"
+    }
+   ],
+   "_note": "The 4am crack's .dsk pair and the original .woz pair (the same played copy; no unplayed Apple II I is known). mutable_files: TWN1..TWN11 / TWN99 at the sha1s of side B's TF slices (BACKUP's new game stores TF's 250-byte slices as the town files, so a fresh game has them); the import reads TF, not these. CHAR and OUTn have no pristine copy; the import takes only CHAR's elementals (kept by a new game) and gives the regions DOS I's start state (reverse-engineering/apple2/phantasie1/FORMAT.md)."
   },
   {
    "id": "p3-apple2",

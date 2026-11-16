@@ -129,15 +129,14 @@ public class ContainerTests
         Assert.Equal(DetectionStatus.Ready, Assert.Single(scan.Detections, d => d.Profile.Id == "p4-x68000-1.02").Status);
     }
 
-    [RequiresFilesTheory("reverse-engineering/apple2/original-images")]
-    [InlineData("p1-apple2", "reverse-engineering/apple2/original-images/phantasie1/woz-original")]
+    [RequiresFilesTheory("reverse-engineering/c64/original-images")]
     [InlineData("p1-c64-de", "reverse-engineering/c64/original-images/phantasie1/de")]
     [InlineData("p4-pc98", "reverse-engineering/pc98/original-images/phantasie4")]
     public void Recognises_UnsupportedVersions(string profile, string source)
     {
         var scan = ImportRunner.Scan([Repo.Path(source)]);
         var d = Assert.Single(scan.Detections, x => x.Profile.Id == profile);
-        Assert.Equal(DetectionStatus.Recognised, d.Status); // the Apple I .woz is read (WozImage) but has no importer
+        Assert.Equal(DetectionStatus.Recognised, d.Status);
         Assert.Empty(scan.Importable);
     }
 

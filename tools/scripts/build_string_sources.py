@@ -435,6 +435,39 @@ def c64_verbatim(c64: dict[str, bytes], versions, alts: list) -> dict | None:
     return {"from": "p1-c64", "parts": parts}
 
 
+# s222: Phantasie I's Apple II (p1-apple2, an Apple-only I): its Applesoft programs (the raw RDOS files, as the
+# importer's FileSet reads them; names on one side only). An id gets a `p1-apple2` alternative when every original part
+# of I's DOS (or Amiga) alternative is in them verbatim (the Apple prints upper case).
+A1_IMAGES = RE / "apple2" / "original-images" / "phantasie1" / "4am-crack"
+A1_PROGRAMS = {"phantasie1-4am-side-a-boot.dsk": ["TOWN", "OUTDOORS", "CEMETARY"],
+               "phantasie1-4am-side-b-dungeon.dsk": ["DUNGON"]}
+
+
+def load_apple1() -> dict[str, bytes]:
+    out: dict[str, bytes] = {}
+    for image, names in A1_PROGRAMS.items():
+        disk = RdosDisk(A1_IMAGES / image)
+        for n in names:
+            out[n] = disk.read(n)
+    return out
+
+
+def apple1_verbatim(apple1: dict[str, bytes], versions, alts: list) -> dict | None:
+    """The `p1-apple2` alternative of an id whose DOS I (or Amiga I) parts are all in the Apple's programs."""
+    ref = next((a for a in alts if a["from"] in P1), None)
+    if ref is None:
+        return None
+    parts: list = []
+    for p in ref["parts"]:
+        if isinstance(p, str):
+            parts.append(p)
+            continue
+        if (hit := find(apple1, versions[ref["from"]][p[0]][p[1]:p[1] + p[2]].decode("latin-1"))) is None:
+            return None
+        parts.append(hit)
+    return {"from": "p1-apple2", "parts": parts}
+
+
 # s218: Phantasie II's C64 (p2-c64, a C64-only II): its v1.2 programs (raw files, load address included, as the
 # importer's FileSet reads them). An id gets a `p2-c64` alternative when every original part of the ST's alternative is
 # in them verbatim (the C64 prints upper case: status words, menus, combat lines; SCROLL0 / WIN hold Pluto's and
@@ -498,7 +531,7 @@ def resolve(files: dict[str, bytes], parts: list) -> str:
 def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: dict | None = None,
           v21: dict[str, bytes] | None = None, apple3: dict[str, bytes] | None = None,
           own3: dict | None = None, c64: dict[str, bytes] | None = None, c64_2: dict[str, bytes] | None = None,
-          c64p3: dict[str, dict[str, bytes]] | None = None) -> dict:
+          c64p3: dict[str, dict[str, bytes]] | None = None, apple1: dict[str, bytes] | None = None) -> dict:
     table = json.loads((GAMEDATA / folder / "strings" / "en.json").read_text(encoding="utf-8"))
     own_amiga = own_amiga or {}
     own3 = own3 or {}
@@ -558,6 +591,10 @@ def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: 
                 text = resolve(files, parts)
                 assert text.strip() and "\x00" not in text, (folder, sid, text)
                 alts.append({"from": "p1-c64", "wording": "own", "parts": parts})
+            # s222: Phantasie I's Apple II, verbatim (an Apple-only I).
+            if apple1 is not None and (a1 := apple1_verbatim(apple1, versions, alts)) is not None:
+                assert resolve(apple1, a1["parts"]) == value, (folder, sid)
+                alts.append(a1)
             # s218: Phantasie II's C64, verbatim (a C64-only II), else in its own wording.
             if c64_2 is not None and (c2 := c64_2_verbatim(c64_2, versions, alts)) is not None:
                 if sid in c64_2_own.get(folder, {}):
@@ -619,6 +656,7 @@ def main() -> int:
     c64 = load_c64()
     c64_2 = load_c64_2()
     c64p3 = load_c64_p3()
+    apple1 = load_apple1()
     own = json.loads(A2_OWN.read_text(encoding="utf-8"))["strings"] if A2_OWN.exists() else {}
     own_amiga = load_amiga_own()
     own3 = json.loads(P3A2_OWN.read_text(encoding="utf-8"))["strings"] if P3A2_OWN.exists() else {}
@@ -652,7 +690,7 @@ def main() -> int:
         if folder not in only:
             continue
         data = build(versions, folder, apple, own, own_amiga, v21=v21, apple3=apple3, own3=own3, c64=c64,
-                     c64_2=c64_2, c64p3=c64p3)
+                     c64_2=c64_2, c64p3=c64p3, apple1=apple1)
         path = GAMEDATA / folder / "strings" / "en.sources.json"
         text = json.dumps(data, indent=1, ensure_ascii=False) + "\n"
         if check:

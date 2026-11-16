@@ -121,6 +121,29 @@ internal static class Derived
         ["PLATINUM"] = "A bar of platinum.",
         ["GOLD COIN"] = "A heavy gold coin.",
         ["GOLD RING"] = "A golden ring of incredible workmanship.",
+        // The Apple II's treasure names (s222, ids 151-180; remaster-written as the rest).
+        ["QUARTZ"] = "A clear quartz crystal the size of a thumb.",
+        ["CRYSTAL"] = "A crystal that throws little rainbows in the light.",
+        ["BRONZE"] = "An old bronze casting, green with age.",
+        ["COPPER"] = "A piece of beaten copper work.",
+        ["JADE"] = "A carved piece of green jade.",
+        ["SILVER"] = "A bar of silver.",
+        ["RING"] = "A plain ring of some value.",
+        ["GOLD"] = "A small bar of gold.",
+        ["NECKLACE"] = "A necklace of gold links set with stones.",
+        ["BRASS"] = "A polished brass ornament.",
+        ["ORB"] = "A glass orb with a faint glow deep inside.",
+        ["GOLD CUP"] = "A drinking cup of gold.",
+        ["BRACELET"] = "A jewelled bracelet.",
+        ["STATUETTE"] = "A small statuette of a forgotten god.",
+        ["CROWN"] = "A jewelled crown from a fallen kingdom.",
+        ["EAR RINGS"] = "A pair of gold ear rings.",
+        ["GOLD BALL"] = "A ball of solid gold.",
+        ["STATUE"] = "A stone statue, heavy but well made.",
+        ["GOLD BOX"] = "A small box of gold, finely engraved.",
+        ["GOLDEN OX"] = "A large gold statue fashioned after an ox and encrusted with jewels.",
+        ["GOLD FOX"] = "A small gold figure of a fox.",
+        ["GOD RING"] = "A ring made by the gods.",
     };
 
     private const string TreasureTail = "Worth little in a fight, but the Armory pays well for it.";
@@ -181,7 +204,12 @@ internal static class Derived
         }
         const string letters = "ABCDEFGHI";
         for (var k = 0; k < letters.Length; k++)
-            output[(141 + k).ToString()] = Entry($"Ring {letters[k]}", RingText);
+        {
+            // The rings are lettered A-I (DOS, the Amiga, the C64) or numbered I-IX (the Apple II, s222): the copy's mark.
+            var ring = (string)itemList[141 + k]!["name"]!;
+            var mark = ring.StartsWith("RING ", StringComparison.Ordinal) ? ring[5..].Trim() : letters[k].ToString();
+            output[(141 + k).ToString()] = Entry($"Ring {mark}", RingText);
+        }
         output["150"] = Entry("The Wand of Nikademus", WandText);
         for (var i = 151; i < 181; i++)
         {

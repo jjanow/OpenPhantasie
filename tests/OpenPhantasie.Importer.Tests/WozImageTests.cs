@@ -91,13 +91,14 @@ public class WozImageTests
     [RequiresFilesFact(P1WozA, P1WozB, P1DskA, P1DskB)]
     public void P1_WozPairIsDetectedAsTheDskPair()
     {
-        // No importer for Apple I: both pairs are recognised by their image hashes, and the files the .woz now shows
-        // do not make another version's detection.
+        // s222: the Apple I importer (p1-apple2) takes either pair; the files the .woz shows make no other version's
+        // detection.
         var woz = ImportRunner.Scan([Repo.Path(P1WozA), Repo.Path(P1WozB)]);
         var dsk = ImportRunner.Scan([Repo.Path(P1DskA), Repo.Path(P1DskB)]);
         Assert.Equal(dsk.Detections.Select(d => (d.Profile.Id, d.Status)), woz.Detections.Select(d => (d.Profile.Id, d.Status)));
-        Assert.Equal(("p1-apple2", DetectionStatus.Recognised), woz.Detections.Select(d => (d.Profile.Id, d.Status)).Single());
-        Assert.Empty(woz.Importable);
+        Assert.Equal(("p1-apple2", DetectionStatus.Ready), woz.Detections.Select(d => (d.Profile.Id, d.Status)).Single());
+        Assert.Equal(dsk.Detections.Single().PlayedFiles, woz.Detections.Single().PlayedFiles);
+        Assert.All(woz.Detections.Single().Containers, c => Assert.Equal("woz", c.Kind));
     }
 
     [Fact]

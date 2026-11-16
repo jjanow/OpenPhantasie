@@ -1,0 +1,984 @@
+{
+ "_schema": "openphantasie.p1-apple2-import/v1",
+ "_source": "Remaster data for a Phantasie I import from the Apple II copy alone (profile p1-apple2), applied by the importer (OpenPhantasie.Importer.Pipelines.P1Apple2.P1Apple2Tables). Made by tools/scripts/diff_a2_p1_vs_dos.py --built from the importer's raw Apple build and DOS I's data.",
+ "_note": "Between versions DOS wins on numbers (AGENTS.md): an Apple-only import takes the Apple's text and names, and DOS I's value in every cell where the Apple's number differs (reverse-engineering/apple2/phantasie1/FORMAT.md section 5).",
+ "_dos_cells": "CellPatches, as c64-import.json's: a path into the GameData file the Apple import builds (DOS shape); byte = an offset into a hex string; fog = a map tile whose fog (tile + 120) is kept. A cell holding the Apple value takes the DOS value; one holding neither is kept and warned.",
+ "dos_cells": [
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 0, "byte_34"], "apple": 22, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 0, "raw_hex"], "byte": 52, "apple": 22, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 1, "byte_34"], "apple": 16, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 1, "raw_hex"], "byte": 52, "apple": 16, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 2, "byte_34"], "apple": 24, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 2, "raw_hex"], "byte": 52, "apple": 24, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 3, "byte_34"], "apple": 50, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 3, "raw_hex"], "byte": 52, "apple": 50, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 4, "byte_34"], "apple": 15, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 4, "raw_hex"], "byte": 52, "apple": 15, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 5, "byte_34"], "apple": 11, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 5, "raw_hex"], "byte": 52, "apple": 11, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 6, "byte_34"], "apple": 56, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 6, "raw_hex"], "byte": 52, "apple": 56, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 7, "byte_34"], "apple": 31, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 7, "raw_hex"], "byte": 52, "apple": 31, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 8, "byte_34"], "apple": 18, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 8, "raw_hex"], "byte": 52, "apple": 18, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 9, "byte_34"], "apple": 18, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 9, "raw_hex"], "byte": 52, "apple": 18, "dos": 35},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "companions", 0], "apple": 7, "dos": 10},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "companions", 1], "apple": 11, "dos": 10},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "next_group_chance"], "apple": 90, "dos": 40},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "group_size_factor"], "apple": 5, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "byte_34"], "apple": 43, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "raw_hex"], "byte": 39, "apple": 7, "dos": 10},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "raw_hex"], "byte": 40, "apple": 11, "dos": 10},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "raw_hex"], "byte": 43, "apple": 90, "dos": 40},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "raw_hex"], "byte": 51, "apple": 5, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 10, "raw_hex"], "byte": 52, "apple": 43, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 11, "byte_34"], "apple": 19, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 11, "raw_hex"], "byte": 52, "apple": 19, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 12, "byte_34"], "apple": 35, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 12, "treasure_items", 1], "apple": 24, "dos": 4},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 12, "raw_hex"], "byte": 52, "apple": 35, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 12, "raw_hex"], "byte": 54, "apple": 24, "dos": 4},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 13, "byte_34"], "apple": 40, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 13, "raw_hex"], "byte": 52, "apple": 40, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 14, "group_size_factor"], "apple": 3, "dos": 6},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 14, "byte_34"], "apple": 33, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 14, "raw_hex"], "byte": 51, "apple": 3, "dos": 6},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 14, "raw_hex"], "byte": 52, "apple": 33, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 15, "byte_34"], "apple": 15, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 15, "raw_hex"], "byte": 52, "apple": 15, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 16, "byte_34"], "apple": 21, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 16, "raw_hex"], "byte": 52, "apple": 21, "dos": 35},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 17, "group_size_factor"], "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 17, "byte_34"], "apple": 32, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 17, "raw_hex"], "byte": 51, "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 17, "raw_hex"], "byte": 52, "apple": 32, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 18, "byte_34"], "apple": 32, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 18, "raw_hex"], "byte": 52, "apple": 32, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 19, "byte_34"], "apple": 36, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 19, "raw_hex"], "byte": 52, "apple": 36, "dos": 35},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 20, "group_size_factor"], "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 20, "byte_34"], "apple": 36, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 20, "raw_hex"], "byte": 51, "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 20, "raw_hex"], "byte": 52, "apple": 36, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 21, "byte_34"], "apple": 36, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 21, "raw_hex"], "byte": 52, "apple": 36, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 22, "group_size_factor"], "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 22, "byte_34"], "apple": 34, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 22, "raw_hex"], "byte": 51, "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 22, "raw_hex"], "byte": 52, "apple": 34, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 24, "byte_34"], "apple": 68, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 24, "raw_hex"], "byte": 52, "apple": 68, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 25, "group_size_factor"], "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 25, "byte_34"], "apple": 30, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 25, "raw_hex"], "byte": 51, "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 25, "raw_hex"], "byte": 52, "apple": 30, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 26, "defense"], "apple": 35, "dos": 15},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 26, "group_size_factor"], "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 26, "byte_34"], "apple": 36, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 26, "raw_hex"], "byte": 45, "apple": 35, "dos": 15},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 26, "raw_hex"], "byte": 51, "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 26, "raw_hex"], "byte": 52, "apple": 36, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 27, "byte_34"], "apple": 46, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 27, "raw_hex"], "byte": 52, "apple": 46, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 28, "group_size_factor"], "apple": 6, "dos": 4},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 28, "byte_34"], "apple": 10, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 28, "raw_hex"], "byte": 51, "apple": 6, "dos": 4},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 28, "raw_hex"], "byte": 52, "apple": 10, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 29, "byte_34"], "apple": 26, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 29, "raw_hex"], "byte": 52, "apple": 26, "dos": 35},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 30, "group_size_factor"], "apple": 4, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 30, "byte_34"], "apple": 21, "dos": 65},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 30, "raw_hex"], "byte": 51, "apple": 4, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 30, "raw_hex"], "byte": 52, "apple": 21, "dos": 65},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 31, "byte_34"], "apple": 30, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 31, "raw_hex"], "byte": 52, "apple": 30, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 32, "byte_34"], "apple": 17, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 32, "raw_hex"], "byte": 52, "apple": 17, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 33, "byte_34"], "apple": 17, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 33, "raw_hex"], "byte": 52, "apple": 17, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 34, "byte_34"], "apple": 25, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 34, "raw_hex"], "byte": 52, "apple": 25, "dos": 35},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 35, "companions", 0], "apple": 11, "dos": 22},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 35, "next_group_chance"], "apple": 80, "dos": 70},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 35, "byte_34"], "apple": 18, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 35, "raw_hex"], "byte": 39, "apple": 11, "dos": 22},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 35, "raw_hex"], "byte": 43, "apple": 80, "dos": 70},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 35, "raw_hex"], "byte": 52, "apple": 18, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 36, "byte_34"], "apple": 100, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 36, "raw_hex"], "byte": 52, "apple": 100, "dos": 107},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 37, "group_size_factor"], "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 37, "byte_34"], "apple": 32, "dos": 111},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 37, "raw_hex"], "byte": 51, "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 37, "raw_hex"], "byte": 52, "apple": 32, "dos": 111},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "companions", 0], "apple": 5, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "companions", 1], "apple": 5, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "next_group_chance"], "apple": 90, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "defense"], "apple": 33, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "group_size_factor"], "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "byte_34"], "apple": 36, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "raw_hex"], "byte": 39, "apple": 5, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "raw_hex"], "byte": 40, "apple": 5, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "raw_hex"], "byte": 43, "apple": 90, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "raw_hex"], "byte": 45, "apple": 33, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "raw_hex"], "byte": 51, "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 38, "raw_hex"], "byte": 52, "apple": 36, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 39, "byte_34"], "apple": 23, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 39, "raw_hex"], "byte": 52, "apple": 23, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 40, "byte_34"], "apple": 21, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 40, "raw_hex"], "byte": 52, "apple": 21, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "companions", 0], "apple": 15, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "companions", 1], "apple": 15, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "next_group_chance"], "apple": 90, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "group_size_factor"], "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "byte_34"], "apple": 42, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "raw_hex"], "byte": 39, "apple": 15, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "raw_hex"], "byte": 40, "apple": 15, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "raw_hex"], "byte": 43, "apple": 90, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "raw_hex"], "byte": 51, "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 41, "raw_hex"], "byte": 52, "apple": 42, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 42, "byte_34"], "apple": 38, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 42, "raw_hex"], "byte": 52, "apple": 38, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 43, "byte_34"], "apple": 15, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 43, "raw_hex"], "byte": 52, "apple": 15, "dos": 35},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 44, "group_size_factor"], "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 44, "byte_34"], "apple": 63, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 44, "raw_hex"], "byte": 51, "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 44, "raw_hex"], "byte": 52, "apple": 63, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 45, "byte_34"], "apple": 72, "dos": 110},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 45, "raw_hex"], "byte": 52, "apple": 72, "dos": 110},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 46, "byte_34"], "apple": 32, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 46, "raw_hex"], "byte": 52, "apple": 32, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "companions", 0], "apple": 35, "dos": 10},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "companions", 1], "apple": 23, "dos": 10},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "next_group_chance"], "apple": 80, "dos": 70},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "group_size_factor"], "apple": 4, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "byte_34"], "apple": 43, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "raw_hex"], "byte": 39, "apple": 35, "dos": 10},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "raw_hex"], "byte": 40, "apple": 23, "dos": 10},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "raw_hex"], "byte": 43, "apple": 80, "dos": 70},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "raw_hex"], "byte": 51, "apple": 4, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 47, "raw_hex"], "byte": 52, "apple": 43, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 48, "group_size_factor"], "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 48, "byte_34"], "apple": 47, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 48, "raw_hex"], "byte": 51, "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 48, "raw_hex"], "byte": 52, "apple": 47, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 49, "byte_34"], "apple": 60, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 49, "raw_hex"], "byte": 52, "apple": 60, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 50, "byte_34"], "apple": 33, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 50, "raw_hex"], "byte": 52, "apple": 33, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 51, "byte_34"], "apple": 46, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 51, "raw_hex"], "byte": 52, "apple": 46, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 52, "byte_34"], "apple": 70, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 52, "raw_hex"], "byte": 52, "apple": 70, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "reaction_modifier"], "apple": -10, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "next_group_chance"], "apple": 0, "dos": 40},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "defense"], "apple": 40, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "gold"], "apple": 0, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "byte_34"], "apple": 91, "dos": 120},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "treasure_items", 1], "apple": 0, "dos": 135},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "attack_power"], "apple": 135, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "raw_hex"], "byte": 41, "apple": 246, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "raw_hex"], "byte": 42, "apple": 255, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "raw_hex"], "byte": 43, "apple": 0, "dos": 40},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "raw_hex"], "byte": 45, "apple": 40, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "raw_hex"], "byte": 47, "apple": 0, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "raw_hex"], "byte": 52, "apple": 91, "dos": 120},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "raw_hex"], "byte": 54, "apple": 0, "dos": 135},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 53, "raw_hex"], "byte": 55, "apple": 135, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 54, "byte_34"], "apple": 76, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 54, "raw_hex"], "byte": 52, "apple": 76, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 55, "byte_34"], "apple": 34, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 55, "raw_hex"], "byte": 52, "apple": 34, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 56, "byte_34"], "apple": 53, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 56, "raw_hex"], "byte": 52, "apple": 53, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 57, "byte_34"], "apple": 34, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 57, "raw_hex"], "byte": 52, "apple": 34, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 58, "group_size_factor"], "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 58, "byte_34"], "apple": 34, "dos": 110},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 58, "raw_hex"], "byte": 51, "apple": 3, "dos": 2},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 58, "raw_hex"], "byte": 52, "apple": 34, "dos": 110},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 59, "companions", 1], "apple": 11, "dos": 47},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 59, "next_group_chance"], "apple": 80, "dos": 75},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 59, "group_size_factor"], "apple": 5, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 59, "byte_34"], "apple": 43, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 59, "raw_hex"], "byte": 40, "apple": 11, "dos": 47},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 59, "raw_hex"], "byte": 43, "apple": 80, "dos": 75},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 59, "raw_hex"], "byte": 51, "apple": 5, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 59, "raw_hex"], "byte": 52, "apple": 43, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "companions", 0], "apple": 2, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "companions", 1], "apple": 2, "dos": 1},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "next_group_chance"], "apple": 95, "dos": 77},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "group_size_factor"], "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "byte_34"], "apple": 47, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "raw_hex"], "byte": 39, "apple": 2, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "raw_hex"], "byte": 40, "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "raw_hex"], "byte": 43, "apple": 95, "dos": 77},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "raw_hex"], "byte": 51, "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 60, "raw_hex"], "byte": 52, "apple": 47, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 61, "byte_34"], "apple": 125, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 61, "raw_hex"], "byte": 52, "apple": 125, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 62, "byte_34"], "apple": 96, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 62, "raw_hex"], "byte": 52, "apple": 96, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 63, "defense"], "apple": 45, "dos": -10},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 63, "group_size_factor"], "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 63, "byte_34"], "apple": 36, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 63, "raw_hex"], "byte": 45, "apple": 45, "dos": 246},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 63, "raw_hex"], "byte": 46, "apple": 0, "dos": 255},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 63, "raw_hex"], "byte": 51, "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 63, "raw_hex"], "byte": 52, "apple": 36, "dos": 62},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 64, "group_size_factor"], "apple": 4, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 64, "byte_34"], "apple": 32, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 64, "raw_hex"], "byte": 51, "apple": 4, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 64, "raw_hex"], "byte": 52, "apple": 32, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 65, "byte_34"], "apple": 92, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 65, "raw_hex"], "byte": 52, "apple": 92, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 66, "byte_34"], "apple": 80, "dos": 120},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 66, "raw_hex"], "byte": 52, "apple": 80, "dos": 120},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 67, "companions", 0], "apple": 15, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 67, "companions", 1], "apple": 5, "dos": 0},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 67, "next_group_chance"], "apple": 95, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 67, "byte_34"], "apple": 107, "dos": 113},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 67, "raw_hex"], "byte": 39, "apple": 15, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 67, "raw_hex"], "byte": 40, "apple": 5, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 67, "raw_hex"], "byte": 43, "apple": 95, "dos": 0},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 67, "raw_hex"], "byte": 52, "apple": 107, "dos": 113},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 68, "companions", 0], "apple": 0, "dos": 15},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 68, "companions", 1], "apple": 0, "dos": 4},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 68, "next_group_chance"], "apple": 0, "dos": 70},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 68, "byte_34"], "apple": 120, "dos": 113},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 68, "raw_hex"], "byte": 39, "apple": 0, "dos": 15},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 68, "raw_hex"], "byte": 40, "apple": 0, "dos": 4},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 68, "raw_hex"], "byte": 43, "apple": 0, "dos": 70},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 68, "raw_hex"], "byte": 52, "apple": 120, "dos": 113},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 69, "group_size_factor"], "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 69, "byte_34"], "apple": 71, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 69, "raw_hex"], "byte": 51, "apple": 2, "dos": 1},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 69, "raw_hex"], "byte": 52, "apple": 71, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 70, "byte_34"], "apple": 32, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 70, "raw_hex"], "byte": 52, "apple": 32, "dos": 105},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 71, "group_size_factor"], "apple": 4, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 71, "byte_34"], "apple": 43, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 71, "raw_hex"], "byte": 51, "apple": 4, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 71, "raw_hex"], "byte": 52, "apple": 43, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 72, "byte_34"], "apple": 102, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 72, "raw_hex"], "byte": 52, "apple": 102, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 73, "byte_34"], "apple": 96, "dos": 113},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 73, "raw_hex"], "byte": 52, "apple": 96, "dos": 113},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 74, "byte_34"], "apple": 128, "dos": 120},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 74, "raw_hex"], "byte": 52, "apple": 128, "dos": 120},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 75, "byte_34"], "apple": 51, "dos": 107},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 75, "raw_hex"], "byte": 52, "apple": 51, "dos": 107},
+  {"why": "monster numbers (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 76, "group_size_factor"], "apple": 2, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 76, "byte_34"], "apple": 68, "dos": 140},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 76, "raw_hex"], "byte": 51, "apple": 2, "dos": 3},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 76, "raw_hex"], "byte": 52, "apple": 68, "dos": 140},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 77, "byte_34"], "apple": 45, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 77, "raw_hex"], "byte": 52, "apple": 45, "dos": 35},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 78, "byte_34"], "apple": 34, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 78, "raw_hex"], "byte": 52, "apple": 34, "dos": 62},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 79, "byte_34"], "apple": 76, "dos": 105},
+  {"why": "monster record bytes (FORMAT.md 3.1)", "file": "monsters.json", "path": ["monsters", 79, "raw_hex"], "byte": 52, "apple": 76, "dos": 105},
+  {"why": "town stock / numbers (FORMAT.md 3.5)", "file": "towns.json", "path": ["towns", 0, "stock", 22], "apple": 5, "dos": 0},
+  {"why": "town stock / numbers (FORMAT.md 3.5)", "file": "towns.json", "path": ["towns", 0, "dos_record"], "byte": 22, "apple": 5, "dos": 0},
+  {"why": "elementals (FORMAT.md 3.4)", "file": "elementals.json", "path": ["elementals", 0, "mp_ceiling"], "apple": 0, "dos": 20},
+  {"why": "elementals (FORMAT.md 3.4)", "file": "elementals.json", "path": ["elementals", 0, "guild_number"], "apple": 38, "dos": 23},
+  {"why": "elementals (FORMAT.md 3.4)", "file": "elementals.json", "path": ["elementals", 0, "race"], "apple": 16, "dos": 15},
+  {"why": "elementals (FORMAT.md 3.4)", "file": "elementals.json", "path": ["elementals", 1, "mp_ceiling"], "apple": 0, "dos": 20},
+  {"why": "elementals (FORMAT.md 3.4)", "file": "elementals.json", "path": ["elementals", 1, "guild_number"], "apple": 39, "dos": 24},
+  {"why": "elementals (FORMAT.md 3.4)", "file": "elementals.json", "path": ["elementals", 1, "race"], "apple": 16, "dos": 15},
+  {"why": "elementals (FORMAT.md 3.4)", "file": "elementals.json", "path": ["elementals", 2, "mp_ceiling"], "apple": 0, "dos": 20},
+  {"why": "elementals (FORMAT.md 3.4)", "file": "elementals.json", "path": ["elementals", 2, "guild_number"], "apple": 40, "dos": 25},
+  {"why": "elementals (FORMAT.md 3.4)", "file": "elementals.json", "path": ["elementals", 2, "race"], "apple": 16, "dos": 15},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 0], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 1], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 2], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 3], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 4], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 5], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 6], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 7], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 8], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 9], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 10], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 11], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 12], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 13], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 14], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 15], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 16], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 17], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 18], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 19], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 20], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 21], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 22], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 0, 23], "fog": true, "apple": 100, "dos": 101},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "tiles", 14, 18], "fog": true, "apple": 0, "dos": 10},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 0, "x"], "apple": 14, "dos": 13},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 0, "arg"], "apple": 1, "dos": 12},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 1, "x"], "apple": 13, "dos": 8},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 1, "y"], "apple": 15, "dos": 13},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 1, "arg"], "apple": 12, "dos": 10},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 2, "y"], "apple": 13, "dos": 8},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 2, "arg"], "apple": 10, "dos": 14},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 4, "y"], "apple": 9, "dos": 7},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 5, "x"], "apple": 8, "dos": 9},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 5, "y"], "apple": 8, "dos": 9},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 6, "x"], "apple": 9, "dos": 20},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 6, "y"], "apple": 7, "dos": 5},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 6, "arg"], "apple": 14, "dos": 6},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 7, "x"], "apple": 9, "dos": 14},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 7, "y"], "apple": 8, "dos": 15},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 7, "dest_x"], "apple": 20, "dos": 0},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 8, "x"], "apple": 20, "dos": 9},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 8, "y"], "apple": 5, "dos": 8},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 8, "arg"], "apple": 6, "dos": 1},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 8, "dest_x"], "apple": 0, "dos": 20},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT1.DAT", "features", 14, "dest_y"], "apple": 0, "dos": 32},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT3.DAT", "features", 5, "arg"], "apple": 0, "dos": 124},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT3.DAT", "features", 6, "arg"], "apple": 0, "dos": 124},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT3.DAT", "features", 6, "dest_y"], "apple": 0, "dos": 124},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT3.DAT", "features", 12, "x"], "apple": 25, "dos": 68},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT3.DAT", "features", 13, "x"], "apple": 25, "dos": 157},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT3.DAT", "features", 14, "dest_x"], "apple": 0, "dos": 23},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT4.DAT", "features", 0, "arg"], "apple": 0, "dos": 10},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT4.DAT", "features", 1, "arg"], "apple": 0, "dos": 10},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT4.DAT", "features", 11, "dest_y"], "apple": 0, "dos": 124},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT7.DAT", "features", 14, "dest_x"], "apple": 0, "dos": 87},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT8.DAT", "features", 14, "dest_x"], "apple": 0, "dos": 192},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT9.DAT", "features", 14, "dest_x"], "apple": 0, "dos": 17},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT9.DAT", "features", 14, "dest_y"], "apple": 0, "dos": 1},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT12.DAT", "features", 7, "dest_y"], "apple": 0, "dos": 123},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT12.DAT", "features", 9, "x"], "apple": 25, "dos": 138},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT12.DAT", "features", 10, "x"], "apple": 25, "dos": 150},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT12.DAT", "features", 12, "dest_x"], "apple": 0, "dos": 143},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT12.DAT", "features", 13, "x"], "apple": 25, "dos": 138},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT12.DAT", "features", 14, "dest_y"], "apple": 0, "dos": 32},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT13.DAT", "tiles", 0, 9], "fog": true, "apple": 100, "dos": 3},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT13.DAT", "features", 3, "y"], "apple": 0, "dos": 123},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT13.DAT", "features", 5, "arg"], "apple": 0, "dos": 123},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT14.DAT", "features", 5, "y"], "apple": 0, "dos": 221},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT14.DAT", "features", 5, "dest_x"], "apple": 0, "dos": 221},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT14.DAT", "features", 8, "y"], "apple": 0, "dos": 221},
+  {"why": "region cells (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT15.DAT", "tiles", 11, 0], "fog": true, "apple": 100, "dos": 23},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT15.DAT", "features", 14, "arg"], "apple": 0, "dos": 143},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT15.DAT", "features", 14, "dest_y"], "apple": 0, "dos": 143},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT16.DAT", "features", 13, "x"], "apple": 25, "dos": 158},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT16.DAT", "features", 14, "x"], "apple": 25, "dos": 159},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT19.DAT", "features", 12, "dest_x"], "apple": 0, "dos": 195},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT19.DAT", "features", 13, "x"], "apple": 25, "dos": 86},
+  {"why": "region feature records (FORMAT.md 3.6)", "file": "overworld.json", "path": ["regions", "OUT19.DAT", "features", 14, "x"], "apple": 25, "dos": 86},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG2", "raw_hex"], "byte": 728, "apple": 0, "dos": 1},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG3", "raw_hex"], "byte": 15, "apple": 88, "dos": 0},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG3", "raw_hex"], "byte": 17, "apple": 141, "dos": 0},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG3", "raw_hex"], "byte": 18, "apple": 96, "dos": 15},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG3", "raw_hex"], "byte": 19, "apple": 24, "dos": 0},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG3", "raw_hex"], "byte": 464, "apple": 0, "dos": 15},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG3", "raw_hex"], "byte": 865, "apple": 0, "dos": 144},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG3", "raw_hex"], "byte": 946, "apple": 0, "dos": 15},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG3", "raw_hex"], "byte": 1182, "apple": 0, "dos": 130},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG5", "raw_hex"], "byte": 858, "apple": 0, "dos": 153},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG5", "raw_hex"], "byte": 1279, "apple": 0, "dos": 238},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG6", "raw_hex"], "byte": 375, "apple": 0, "dos": 156},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG6", "raw_hex"], "byte": 1169, "apple": 214, "dos": 199},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG7", "raw_hex"], "byte": 382, "apple": 144, "dos": 0},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG7", "raw_hex"], "byte": 1279, "apple": 0, "dos": 8},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG7", "raw_hex"], "byte": 1294, "apple": 0, "dos": 8},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG8", "raw_hex"], "byte": 1350, "apple": 82, "dos": 210},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG8", "raw_hex"], "byte": 1406, "apple": 0, "dos": 16},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG8", "raw_hex"], "byte": 1514, "apple": 65, "dos": 193},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG8", "raw_hex"], "byte": 1516, "apple": 0, "dos": 81},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG8", "raw_hex"], "byte": 1517, "apple": 0, "dos": 76},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG8", "raw_hex"], "byte": 1600, "apple": 72, "dos": 71},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG9", "raw_hex"], "byte": 1574, "apple": 0, "dos": 65},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG10", "raw_hex"], "byte": 8, "apple": 88, "dos": 0},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG10", "raw_hex"], "byte": 10, "apple": 142, "dos": 0},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG10", "raw_hex"], "byte": 11, "apple": 12, "dos": 0},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG10", "raw_hex"], "byte": 12, "apple": 164, "dos": 0},
+  {"why": "dungeon level bytes (FORMAT.md 3.7)", "file": "dungeons.json", "path": ["levels", "DNG10", "raw_hex"], "byte": 1255, "apple": 24, "dos": 5}
+ ],
+ "_name_fixes": "As dos_cells, but the Apple's name and the fixed one (CHAR's 12-byte field reads FIRE ELE, as the C64's; D-087).",
+ "name_fixes": [
+  {
+   "why": "the fire elemental's name, M cut off (CHAR record 37; as D-083 / D-087)",
+   "file": "elementals.json",
+   "path": [
+    "elementals",
+    0,
+    "name"
+   ],
+   "apple": "FIRE ELE",
+   "fixed": "FIRE ELEM"
+  },
+  {
+   "why": "the same name in the town labels",
+   "file": "names.json",
+   "path": [
+    "town_labels",
+    12,
+    "name"
+   ],
+   "apple": "FIRE ELE",
+   "fixed": "FIRE ELEM"
+  }
+ ],
+ "_sprite_sizes": "DOS's monster sprite (width, height) per monster (PHANTASI.COM DS:0x2c3e): the encounter build's group fit reads the width. The Apple has no such table (it draws shapes at a SCALE).",
+ "sprite_sizes": [
+  [
+   34,
+   32
+  ],
+  [
+   30,
+   32
+  ],
+  [
+   27,
+   32
+  ],
+  [
+   26,
+   32
+  ],
+  [
+   25,
+   32
+  ],
+  [
+   26,
+   32
+  ],
+  [
+   22,
+   32
+  ],
+  [
+   24,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   33,
+   32
+  ],
+  [
+   36,
+   32
+  ],
+  [
+   34,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   31,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   21,
+   32
+  ],
+  [
+   26,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   28,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   33,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   34,
+   32
+  ],
+  [
+   25,
+   32
+  ],
+  [
+   31,
+   64
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   30,
+   32
+  ],
+  [
+   35,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   35,
+   32
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   34,
+   48
+  ],
+  [
+   30,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   26,
+   48
+  ],
+  [
+   32,
+   80
+  ],
+  [
+   80,
+   32
+  ],
+  [
+   32,
+   32
+  ],
+  [
+   33,
+   80
+  ],
+  [
+   80,
+   32
+  ],
+  [
+   36,
+   32
+  ],
+  [
+   37,
+   32
+  ],
+  [
+   30,
+   64
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   26,
+   32
+  ],
+  [
+   29,
+   32
+  ],
+  [
+   38,
+   80
+  ],
+  [
+   73,
+   32
+  ],
+  [
+   29,
+   32
+  ],
+  [
+   32,
+   48
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   33,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   27,
+   32
+  ],
+  [
+   24,
+   32
+  ],
+  [
+   36,
+   32
+  ],
+  [
+   34,
+   80
+  ],
+  [
+   79,
+   80
+  ],
+  [
+   77,
+   80
+  ],
+  [
+   80,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   39,
+   32
+  ],
+  [
+   38,
+   48
+  ],
+  [
+   40,
+   80
+  ],
+  [
+   80,
+   80
+  ],
+  [
+   80,
+   32
+  ],
+  [
+   38,
+   32
+  ],
+  [
+   40,
+   32
+  ],
+  [
+   31,
+   32
+  ],
+  [
+   27,
+   80
+  ],
+  [
+   80,
+   22356
+  ]
+ ],
+ "_scroll_compass": "The Apple draws the wilderness turned a quarter (its north = DOS's east) and its region texts and scrolls follow its own compass. Each word on the left, at the start of a word (SOUTH-, a compound before its first half), becomes the one on the right, all at once; a scroll box's closing ! keeps its column (as II's Apple import, DIFFERENCES-II D2-046).",
+ "scroll_compass": {
+  "NORTHWEST": "NORTHEAST",
+  "NORTHEAST": "SOUTHEAST",
+  "SOUTHEAST": "SOUTHWEST",
+  "SOUTHWEST": "NORTHWEST",
+  "NORTH": "EAST",
+  "EAST": "SOUTH",
+  "SOUTH": "WEST",
+  "WEST": "NORTH"
+ },
+ "_spell_names": "The Apple has no spell names (spells are cast by number, FORMAT.md 3.3). Slots 0-53: the manual's spell table as it prints the names; slot 57 (the divine spell): not in the manual, the remaster's wording [~] (as the C64's, D-087).",
+ "spell_names": [
+  {
+   "slot": 0,
+   "name": "HEALING 1"
+  },
+  {
+   "slot": 1,
+   "name": "HEALING 2"
+  },
+  {
+   "slot": 2,
+   "name": "HEALING 3"
+  },
+  {
+   "slot": 3,
+   "name": "HEALING 4"
+  },
+  {
+   "slot": 4,
+   "name": "FIREFLASH 1"
+  },
+  {
+   "slot": 5,
+   "name": "FIREFLASH 2"
+  },
+  {
+   "slot": 6,
+   "name": "FIREFLASH 3"
+  },
+  {
+   "slot": 7,
+   "name": "FIREFLASH 4"
+  },
+  {
+   "slot": 8,
+   "name": "QUICKNESS 1"
+  },
+  {
+   "slot": 9,
+   "name": "QUICKNESS 2"
+  },
+  {
+   "slot": 10,
+   "name": "QUICKNESS 3"
+  },
+  {
+   "slot": 11,
+   "name": "QUICKNESS 4"
+  },
+  {
+   "slot": 12,
+   "name": "STRENGTH 1"
+  },
+  {
+   "slot": 13,
+   "name": "STRENGTH 2"
+  },
+  {
+   "slot": 14,
+   "name": "STRENGTH 3"
+  },
+  {
+   "slot": 15,
+   "name": "STRENGTH 4"
+  },
+  {
+   "slot": 16,
+   "name": "PROTECTION 1"
+  },
+  {
+   "slot": 17,
+   "name": "PROTECTION 2"
+  },
+  {
+   "slot": 18,
+   "name": "PROTECTION 3"
+  },
+  {
+   "slot": 19,
+   "name": "PROTECTION 4"
+  },
+  {
+   "slot": 20,
+   "name": "CONFUSION 1"
+  },
+  {
+   "slot": 21,
+   "name": "CONFUSION 2"
+  },
+  {
+   "slot": 22,
+   "name": "CONFUSION 3"
+  },
+  {
+   "slot": 23,
+   "name": "CONFUSION 4"
+  },
+  {
+   "slot": 24,
+   "name": "WEAKNESS 1"
+  },
+  {
+   "slot": 25,
+   "name": "WEAKNESS 2"
+  },
+  {
+   "slot": 26,
+   "name": "WEAKNESS 3"
+  },
+  {
+   "slot": 27,
+   "name": "WEAKNESS 4"
+  },
+  {
+   "slot": 28,
+   "name": "BINDING 1"
+  },
+  {
+   "slot": 29,
+   "name": "BINDING 2"
+  },
+  {
+   "slot": 30,
+   "name": "BINDING 3"
+  },
+  {
+   "slot": 31,
+   "name": "BINDING 4"
+  },
+  {
+   "slot": 32,
+   "name": "MINDBLAST 1"
+  },
+  {
+   "slot": 33,
+   "name": "MINDBLAST 2"
+  },
+  {
+   "slot": 34,
+   "name": "MINDBLAST 3"
+  },
+  {
+   "slot": 35,
+   "name": "MINDBLAST 4"
+  },
+  {
+   "slot": 36,
+   "name": "FLAMEBOLT 1"
+  },
+  {
+   "slot": 37,
+   "name": "FLAMEBOLT 2"
+  },
+  {
+   "slot": 38,
+   "name": "FLAMEBOLT 3"
+  },
+  {
+   "slot": 39,
+   "name": "FLAMEBOLT 4"
+  },
+  {
+   "slot": 40,
+   "name": "CHARM"
+  },
+  {
+   "slot": 41,
+   "name": "SLEEP"
+  },
+  {
+   "slot": 42,
+   "name": "TELEPORTATION"
+  },
+  {
+   "slot": 43,
+   "name": "RESURRECTION"
+  },
+  {
+   "slot": 44,
+   "name": "NINJA 2"
+  },
+  {
+   "slot": 45,
+   "name": "FEAR"
+  },
+  {
+   "slot": 46,
+   "name": "DISSOLVE"
+  },
+  {
+   "slot": 47,
+   "name": "SUMMONS ELEMENTAL"
+  },
+  {
+   "slot": 48,
+   "name": "DISPELL UNDEAD"
+  },
+  {
+   "slot": 49,
+   "name": "NINJA 1"
+  },
+  {
+   "slot": 50,
+   "name": "AWAKEN"
+  },
+  {
+   "slot": 51,
+   "name": "MONSTER EVALUATION"
+  },
+  {
+   "slot": 52,
+   "name": "VISION"
+  },
+  {
+   "slot": 53,
+   "name": "TRANSPORTATION"
+  },
+  {
+   "slot": 57,
+   "name": "DIVINE I"
+  }
+ ]
+}

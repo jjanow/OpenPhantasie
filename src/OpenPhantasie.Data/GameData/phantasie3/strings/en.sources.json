@@ -37,6 +37,17 @@
       15
      ]
     ]
+   },
+   {
+    "from": "p1-apple2",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGON",
+      13733,
+      15
+     ]
+    ]
    }
   ],
   "core.dungeon.trap_x_takes_x_damage": [
@@ -232,6 +243,17 @@
      [
       "PHANT.OBJ:low7",
       19651,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p1-apple2",
+    "parts": [
+     "{0} ",
+     [
+      "OUTDOORS",
+      13152,
       5
      ]
     ]

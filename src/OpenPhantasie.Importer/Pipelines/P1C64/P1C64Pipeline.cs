@@ -30,13 +30,6 @@ public sealed class P1C64Pipeline : IImportPipeline
             ImportedStrings.WriteFallback(ctx, ImportedStrings.CommonFallbackGame);
 
         ctx.Progress("art");
-        try
-        {
-            P1C64Art.Import(ctx);
-        }
-        catch (FileNotFoundException e)
-        {
-            ctx.Warn($"No C64 art: {e.Message}.");
-        }
+        ctx.TryOptional("No C64 art", () => P1C64Art.Import(ctx));
     }
 }

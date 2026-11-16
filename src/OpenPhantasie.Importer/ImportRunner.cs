@@ -350,8 +350,9 @@ public sealed class ImportRunner
     }
 
     /// <summary>Versions that feed tables but read nothing play rewrites (Amiga I: grids from maps.int, s201; C64 I: towns
-    /// and regions from PATTERN, its OUT1 the same on every copy, s216; C64 II: towns, regions, elementals from PATTERN2, s218).</summary>
-    private static readonly HashSet<string> PlayedCopySafe = new(StringComparer.Ordinal) { "p1-amiga-1.0", "p1-c64", "p2-c64" };
+    /// and regions from PATTERN, its OUT1 the same on every copy, s216; C64 II: towns, regions, elementals from PATTERN2, s218;
+    /// Apple II I: towns from TF, regions given DOS I's start state, s222).</summary>
+    private static readonly HashSet<string> PlayedCopySafe = new(StringComparer.Ordinal) { "p1-amiga-1.0", "p1-c64", "p1-apple2", "p2-c64" };
 
     /// <summary>Versions that read a played file as it is (C64 III, s218: the towns' stock TOWN A..Q).</summary>
     private static readonly HashSet<string> PlayedStockAsIs = new(StringComparer.Ordinal) { "p3-c64", "p3-c64-1.2" };

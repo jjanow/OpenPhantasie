@@ -24,8 +24,10 @@ internal sealed class A2StValues
         _doc = doc;
         _compassMap = (doc["scroll_compass"]?.AsObject() ?? throw new InvalidDataException($"{File}: scroll_compass missing"))
             .ToDictionary(kv => kv.Key, kv => (string)kv.Value!, StringComparer.Ordinal);
-        // At the start of a word (SOUTH-, NORTHERN), never inside one (BEAST).
-        _compass = new Regex(@"(?<![A-Za-z])(" + string.Join("|", _compassMap.Keys.Select(Regex.Escape)) + ")",
+        // At the start of a word (SOUTH-, NORTHERN), never inside one (BEAST); a compound (NORTHWEST, I's map) before
+        // its first half.
+        _compass = new Regex(@"(?<![A-Za-z])(" + string.Join("|", _compassMap.Keys.OrderByDescending(k => k.Length)
+            .Select(Regex.Escape)) + ")",
             RegexOptions.CultureInvariant);
     }
 

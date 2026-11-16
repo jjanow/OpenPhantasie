@@ -39,6 +39,30 @@ public sealed class ImportContext
 
     public void Warn(string message) => Warnings.Add(message);
 
+    /// <summary>
+    /// Run a step the version can do without (an art pack): a missing file or a malformed one (truncated, an unknown
+    /// layout) warns <c>"{what}: {message}."</c> instead of failing the whole import, and the step's writes so far are
+    /// taken back, so no half pack is left. Returns whether the step finished.
+    /// </summary>
+    public bool TryOptional(string what, Action step)
+    {
+        var before = new Dictionary<string, byte[]>(Pending, StringComparer.Ordinal);
+        try
+        {
+            step();
+            return true;
+        }
+        catch (Exception e) when (e is FileNotFoundException or InvalidDataException or EndOfStreamException
+                                      or IndexOutOfRangeException or ArgumentOutOfRangeException)
+        {
+            Pending.Clear();
+            foreach (var (k, v) in before)
+                Pending[k] = v;
+            Warn($"{what}: {e.Message.TrimEnd('.')}.");
+            return false;
+        }
+    }
+
     public void Progress(string message) => _session.Progress?.Report($"{Profile.Title}: {message}");
 
     // ---- readers ---------------------------------------------------------------------------------------------

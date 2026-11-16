@@ -72,14 +72,15 @@ internal static class P1AmigaTables
     private const int AmigaTextEnd = 1000;
 
     /// <summary>
-    /// True when this Amiga copy gives I's tables: none imported yet, or the ones there are its own or the C64's
-    /// (s216: the Amiga's win over the C64's, DOS I's over both).
+    /// True when this Amiga copy gives I's tables: none imported yet, or the ones there are its own, the C64's or the
+    /// Apple II's (s216: the Amiga's win over the C64's, DOS I's over both; s222: and over the Apple's).
     /// </summary>
     public static bool OwnsTables(ImportContext ctx) =>
         ctx.ReadImportedGameData(Game, "monsters.json") is not JsonObject existing
         || ((string?)existing["_source"]) is { } source
         && (source.StartsWith(SourcePrefix, StringComparison.Ordinal)
-            || source.StartsWith(P1C64.P1C64Tables.SourcePrefix, StringComparison.Ordinal));
+            || source.StartsWith(P1C64.P1C64Tables.SourcePrefix, StringComparison.Ordinal)
+            || source.StartsWith(P1Apple2.P1Apple2Tables.SourcePrefix, StringComparison.Ordinal));
 
     /// <summary>Write I's tables from the Amiga; false when DOS I's tables (this run or earlier) win.</summary>
     public static bool Write(ImportContext ctx)

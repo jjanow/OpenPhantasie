@@ -38,14 +38,7 @@ public abstract class P3C64PipelineBase : IImportPipeline
             ImportedStrings.WriteFallback(ctx, FallbackProfiles, ImportedStrings.CommonFallbackGame, P3Dos.P3DosPipeline.Game);
 
         ctx.Progress("art");
-        try
-        {
-            P3C64Art.Import(ctx);
-        }
-        catch (FileNotFoundException e)
-        {
-            ctx.Warn($"No C64 art: {e.Message}.");
-        }
+        ctx.TryOptional("No C64 art", () => P3C64Art.Import(ctx));
     }
 }
 

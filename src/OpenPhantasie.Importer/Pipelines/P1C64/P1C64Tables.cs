@@ -67,10 +67,13 @@ internal static class P1C64Tables
     /// <summary>The town files in DOS record order (Pelnor .. Starville, then Olympia = <c>TWN 99</c>).</summary>
     public static readonly string[] TownFiles = [.. Enumerable.Range(1, 11).Select(t => $"TWN {t}"), "TWN 99"];
 
-    /// <summary>True when this C64 copy gives I's tables: none imported yet, or the ones there are its own.</summary>
+    /// <summary>True when this C64 copy gives I's tables: none imported yet, or the ones there are its own or the Apple II's
+    /// (s222: the C64's win over the Apple's).</summary>
     public static bool OwnsTables(ImportContext ctx) =>
         ctx.ReadImportedGameData(Game, "monsters.json") is not JsonObject existing
-        || ((string?)existing["_source"])?.StartsWith(SourcePrefix, StringComparison.Ordinal) == true;
+        || ((string?)existing["_source"]) is { } source
+        && (source.StartsWith(SourcePrefix, StringComparison.Ordinal)
+            || source.StartsWith(P1Apple2.P1Apple2Tables.SourcePrefix, StringComparison.Ordinal));
 
     /// <summary>Write I's tables from the C64; false when DOS I's or the Amiga's tables (this run or earlier) win.</summary>
     public static bool Write(ImportContext ctx)

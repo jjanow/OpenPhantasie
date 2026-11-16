@@ -34,14 +34,7 @@ public sealed class P3Apple2Pipeline : IImportPipeline
             ImportedStrings.WriteFallback(ctx, ImportedStrings.CommonFallbackGame, P3Dos.P3DosPipeline.Game);
 
         ctx.Progress("art");
-        try
-        {
-            P3Apple2Art.Import(ctx);
-        }
-        catch (FileNotFoundException e)
-        {
-            ctx.Warn($"No Apple II art: {e.Message}.");
-        }
+        ctx.TryOptional("No Apple II art", () => P3Apple2Art.Import(ctx));
     }
 
     /// <summary>The programs the string sources point into are v3.0's (5/26/87; <c>build_string_sources.py</c>
