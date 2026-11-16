@@ -668,5 +668,45 @@
     ]
    ]
   }
+ },
+ "_note_only": "s224: \"only\" = lines no other version prints (WIN's cheer line, the presented member's title rows, the wands prompt's key text); plain p2-c64 alternatives (en.p2-c64.json); their en.json value is the C64's text.",
+ "only": {
+  "phantasie2": {
+   "c64.p2.crowd_goes_wild": [
+    [
+     "WIN",
+     1756,
+     20
+    ]
+   ],
+   "c64.p2.title_the_x_one": [
+    [
+     "WIN",
+     2630,
+     4
+    ],
+    "{0}",
+    [
+     "WIN",
+     2638,
+     4
+    ]
+   ],
+   "c64.p2.title_from_x": [
+    [
+     "WIN",
+     2419,
+     5
+    ],
+    "{0}"
+   ],
+   "c64.p2.press_ret": [
+    [
+     "WIN",
+     1703,
+     12
+    ]
+   ]
+  }
  }
 }

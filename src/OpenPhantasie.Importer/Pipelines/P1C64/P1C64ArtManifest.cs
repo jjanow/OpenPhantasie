@@ -50,9 +50,10 @@ public static class P1C64ArtManifest
         EndingScene = J.O(
             ("_note", "s221 / s223 (GRAPHICS.md 9.1 / 9.4, P.END's compiled BASIC, ZALL's and UTIL-3.O's 6502): the C64's " +
                 "own steps in c64 (the remaster's ending screen fields below are its fallback and unused with c64). " +
-                "Positions are screen pixels (VIC x - 24, y - 50), colours Colodore indices. The closing text page " +
-                "('Now your party will be transported ...', until a key) is not imported: the screen ends after the " +
-                "grant [~]; the speech is Core's 7 lines on the C64's rows; no C64 sounds."),
+                "Positions are screen pixels (VIC x - 24, y - 50), colours Colodore indices. After the grant the closing " +
+                "text page (s224: P.END's 9 lines from column 0, row 2, green, and its key prompt at column 7, row 24; " +
+                "until a key). The speech is Core's 7 lines on the C64's rows. No C64 sounds: SID playback [?] " +
+                "(GRAPHICS.md 9.6)."),
             ("palette", C64PhantasieArtManifest.Pens()),
             ("vbl_hz", 50),
             ("fade_vbl", 1),
@@ -123,7 +124,13 @@ public static class P1C64ArtManifest
                 ("hand_x", 200 - 24),
                 ("hand_y", 74 - 50),
                 ("hand_blank", J.Ints([22 * 8, 3 * 8, 24, 16])),
-                ("grant_seconds", 12)))),
+                ("grant_seconds", 12),
+                ("closing", J.O(
+                    ("lines", J.Strs(Enumerable.Range(1, 9).Select(i => $"c64.endgame.closing_{i}"))),
+                    ("col", 0),
+                    ("row", 2),
+                    ("colour", 5),
+                    ("key", J.O(("text", "c64.endgame.closing_key"), ("col", 7), ("row", 24), ("colour", 5), ("seconds", 0)))))))),
         DefeatPictures = J.O(
             ("_note", "s221 (GRAPHICS.md 9.2, CEMETARY live in VICE): DOS's pages (P1DosDefeatScene) with CEMETARY's " +
                 "pictures: defeat.temple (FONTO's temple, dark grey, doorway open), defeat.demon (the same with the Great " +

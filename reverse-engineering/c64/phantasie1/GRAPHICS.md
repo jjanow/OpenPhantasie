@@ -290,8 +290,9 @@ Per member Zeus strikes (`$CF` flashing) and the cloud becomes the member's figu
 `0x6a0`: `POKE screen + $3F8 + member, FN P(168) + 64`), a block of `FONT+HER`'s copy at `$D000` (blocks `$4C`, `$4E`,
 `$52`, `$54` seen = `HSPRIT` blocks 0, 4, 12, 16), multicolour off, colour 7 if `P(18)` (status) ≠ 0, else 15; an OK
 member also gets `POKE C(118),1` (spell 58, "Your First Divine Spell"). Then "Zeus smiles and says" (row 24) and the speech, typed
-word by word in yellow on rows 18–24 with the face talking (s223: section 9.4; s221's "row 21" was a line part-way down); the hand at the grant; a key; a text page without
-pictures ("Now Your Party will be transported to The City of Pelnor …", green); `FONT` back to `$E800`; `TOWNR`.
+word by word in yellow on rows 18–24 with the face talking (s223: section 9.4; s221's "row 21" was a line part-way down); the hand at the grant; a text page without
+pictures ("Now Your Party will be transported to The City of Pelnor …", green) until a key (s224: imported and drawn, 9.4
+step 10); `FONT` back to `$E800`; `TOWNR`.
 
 `P(168)` (record byte 168, in FORMAT.md 3.5's `[?]` range) is the figure's block offset. s223: `TOWNR` `0x2c41`–`0x2c60`
 sets it, for each party slot k, to **12 + 2 k** right after copying the member's `HSPRIT` pair (from `$F000 + 128 · P(145)`,
@@ -316,8 +317,8 @@ offsets pointed at other members' copies.
 (the formula; the values `[C]`). The **door**: sprite 7, block `$8B`, light grey (15), x- and y-expanded, **behind the
 characters** (`$D01B` = `$80`), at (148, 77), filling the doorway; its y then falls by about 10 a second to 0, so the door **rises** into the lintel (the Amiga's door sinks).
 "YOU HAVE ARRIVED ON THE ASTRAL PLANE !!" (blue). Then the face: sprite 6, block `$8A`, purple (4), expanded, in front,
-at (148, 81), in the doorway; "A GREAT DEMON APPEARS AND SPEAKS..." (blue). Per member with a level (`P(54)` ≠ 0): its
-name (row 21), then its ghost block is rewritten in place into `CSPRIT` block `P(145)` (`CEMETARY` `0x877`: from
+at (148, 81), in the doorway; "[original text]" (blue). Per member with a level (`P(54)` ≠ 0): its
+line (row 23; an UNDEAD fate also its name on row 21, s224: 9.4 step 6), then its ghost block is rewritten in place into `CSPRIT` block `P(145)` (`CEMETARY` `0x877`: from
 `8192 + 64 · P(145)`; seen: GRUNT block 0, HIT 3, SCOTT and BORACK 2), coloured as the fate's line: **GRANTED UNDEAD
 STATUS 3 (cyan)**, RESURRECTED 7 (yellow), **DESTROYED 11 (dark grey) and then switched off**: s223, `CEMETARY` `0x905`
 is `ON DF GOSUB 0x863, 0x869` (opcode `$4E`, RTL-64 `$B528`: ON … GOSUB, the targets read in order); DF = 1 (destroyed)
@@ -404,7 +405,12 @@ waits, whose time is the interpreter's (measured in VICE, PAL, section 9.5).
    hand `$C0` … `$C5` (it has one slot, so the face stops), the face set back to `$C6`. TD = 12.
 10. Zeus printed again, sprites 6–7 off, Zeus's cells cleared, all sprites off; `SYS SY+60,0` removes the animator. A text
     page in green from row 2 ("Now your party will be transported to the City of Pelnor …", 9 lines) and "(PRESS A KEY WHEN
-    READY)" on row 24 until a key; `TOWNR` loads.
+    READY)" on row 24 until a key; `TOWNR` loads. s224, read in full (`0x92d`–`0xaf0`): `PRINT CHR$(147)`; `SYS SY+60,0`;
+    `SYS Q,0,2,"<CHR$(30)>Now  Your Party …"` (column 0, row 2; CHR$(30) = green) and eight `PRINT`s, one row each (rows
+    3–10, the C64's own line breaks: "the-" / "re,", "dis-" / "tribute"); `SYS Q,7,24,"(PRESS A KEY WHEN READY)"` (the
+    unshifted letters print lower case in the mixed set); `GET A$` until a key (`0xae1`); then the disk check and `TOWNR`.
+    The lines are P.END's PETSCII (`P.END:petscii` offsets 2374 … 2755): imported as `c64.endgame.closing_1` … `_9` and
+    `closing_key`, C64-only plain alternatives (`build_string_sources.py`, the json's `only` ids) `[C]`.
 
 **`CEMETARY`** (`CEMETARY2` is the same program but for its file names and the record writes after the fates, s223
 diff): sprites 6–7 expanded, sprite 7 behind the characters. SS = INT((220 − 35 · PO) / 2): ghost k at (SS + 35 k, 170),
@@ -416,12 +422,18 @@ block `$84 + k`, white; the door (sprite 7, `$8B`, light grey) at (148, 77); the
 3. For each slot with a level (`P(54)` ≠ 0): TL = 0.3, then its ghost on (one at a time).
 4. A SID sound; TL = 2.
 5. The door rises: y = 77 down to 0 (78 steps), TL = 0.1 each (behind the temple's characters, so it shows only in the
-   doorway). Then the face on; "A GREAT DEMON APPEARS AND SPEAKS..." (blue, row 23); TL = 4.
-6. For each slot with a level: rows 21–24 cleared; the fate; for UNDEAD the name in cyan on row 21 and the line "YOU HAVE
-   BEEN [original text]"; the others "name-YOU HAVE BEEN RESURRECTED / DESTROYED" — all on row 23 in the fate's colour
-   (cyan 3, yellow 7, dark grey 11); a SID sound with TL = 1.08; then `ON DF GOSUB`: the ghost's block is overwritten
-   byte by byte (64 iterations of BASIC) with `CSPRIT` block `P(145)` and coloured; a destroyed member's sprite is then
-   switched off; TL = 2.
+   doorway). Then the face on; "[original text]" (blue, row 23); TL = 4.
+6. For each slot with a level: the fate (`0x433`–`0x576`: TX$ = "YOU HAVE BEEN " + DESTROYED / RESURRECTED / GRANTED
+   UNDEAD STATUS, the colour E = 11 / 7 / 3, DF = 1 / 2 / 2; the destroyed and resurrected TX$ get "name-" in front, the
+   UNDEAD one does not); rows 21–24 cleared (`0x577`); for UNDEAD only, the name in cyan at column 1, row 21 (`0x58e`,
+   `"<CHR$(159)>"A$(PM)`), before the sound. Then (s224 order, `0x5a1`–`0x5a7`): `GOSUB 0x97b`, the SID sound with its TL =
+   1.08; `GOSUB 0x8ee`: `POKE 646,E` and TX$ at column 1, row 23 in the fate's colour, then `ON DF GOSUB 0x863, 0x869`;
+   `GOSUB 0x8bf`, TL = 2. `0x869`, the copy: YS = 8192 + 64 · P(145), DS = 57600 + 64 · slot; `FOR I = 0 TO 63`: a dummy
+   expression (Y = P(X) / 0.77 + 2 ^ 1.777, the same each pass) then `POKE DS + I, PEEK(YS + I)`; after the loop
+   `POKE 53287 + slot, E`. So the ghost turns into the figure one sprite byte a pass (byte i = pixel row i / 3, 8 pixels;
+   byte 63 unused), **still white**, over the 4.1 s, and takes the fate's colour at the end (the s223 VICE shot
+   `s223-vice-p1-defeat-morph.png` shows a white half-copied ghost); `0x863` (DF = 1) runs the copy, then `0x80c` turns the
+   sprite off. Every pass runs the same statements, so the bytes come at an even rate `[C]` (the 4.1 s is VICE's, 9.5).
 7. With no member left: "ALL MEMBERS ARE DESTROYED" (red); TL = 2. The record writes; TL = 6; the screen cleared, "PLEASE
    INSERT YOUR BOOT DISK AGAIN" until a key.
 
@@ -462,6 +474,46 @@ Seen and confirmed: the rows 18–24 speech, word by word, with the face on; the
 light grey for a status-0 member; the rising light-grey door; the fates: UNDEAD figure and line cyan with its name on row
 21, RESURRECTED yellow, DESTROYED's line dark grey and its slot empty (the sprite goes off ~0.035 s after the colour);
 II's presented member light red in its attacking pose in its own place; II's intro and closing pages black letters on
-yellow (the closing page prints with the hall's inverted characters still loaded). Not watched: whether a band IRQ
-alternates the crowd's frames during the cheer (one shot showed the second frame) `[~]`. Screenshots:
-`parity/s223-vice-*.png`.
+yellow (the closing page prints with the hall's inverted characters still loaded). Screenshots: `parity/s223-vice-*.png`.
+
+**s224, `WIN` again** (same harness, rebuilt: RTL-64 at `$A000` and `$02FF` = 100 so the stub loads nothing, UTIL-3.O,
+LOUIS and THUNDAR at `SA` with `P(168)` = 12 / 14 and their `HSPRIT` pairs at `$D300`, `g $0819`; logs not kept):
+
+| What | Seconds |
+|---|---|
+| The hall on (`POKE 646,3`) → `TLUM1`'s load starts (the `FOR 2000`) | 1.743 |
+| `TLUM1`'s load (true drive) → the bands start | 7.745 `[~]` |
+| The bands → the header printed → its `FOR 4000` starts | 0.025, 0.032 |
+| The header's `FOR 4000` | 4.171 |
+| A cheer: `GOSUB` → pointers + 8 → the sound → its end (pointers − 8) → the panel cleared → the next step | 0.102, 0.058, 9.928, 0.058, 0.088 (10.23) |
+| A member: `FOR 4000` → the pose and titles (`0x9fb`, its `FOR 1000` included) → `FOR 4000` → the cheer | 4.172, 1.094, 4.172 |
+| The last cheer → the wands prompt up | 0.095 + 0.062 |
+
+A watchpoint on stores to the crowd band's pointer bytes (`$CBF4`–`$CBFA`, `TLUM1`'s record at `$CBDA` + 26) from the start
+to the wands prompt: 7 stores by the KERNAL load (`$F51E`, `TLUM1` itself) and 42 by RTL-64's `POKE` (`$B604`) = 3 cheers ×
+(7 × + 8, 7 × − 8); `WIN` calls UTIL-3.O's `SY+57` (bands) and `SY+60` only, never `SY+51` (the animator). So **no interrupt
+alternates the crowd**: one frame change a cheer `[C]` (s223's `[~]`). Shots `parity/s224-vice-p2-ending-*.png` (the
+"SEARCHING FOR TLUM1" lines are the harness's, KERNAL messages on in direct mode).
+
+### 9.6 Sounds (SID), s224 `[C]` reads, playback `[?]`
+
+Every end-screen sound is plain SID register writes; none is a sample or a tune table. The remaster has no SID path (the
+packs' sounds are YM / Paula / Dosound players and PCM; `OpenPhantasie.Data.Audio`), so none is played `[?]`.
+
+| Where | What it writes (`$D400` + n) | Timing |
+|---|---|---|
+| `ZALL` `$4CC6` → `$4D40` (P.END step 3, stopped by `$4CC9` → `$4E46` after the wipe) | the 29 bytes at `$4E65` to `$D400`–`$D41C` (voice 1 noise, voice 2 triangle, freq hi 100, volume 15), then a KERNAL-IRQ hook (`$0314` → `$4D73`): a wind: the pitch (`$D401` and `$D408`) climbs from 100 to 200 a step every N jiffies, random pauses (`$DC04` low bits), falls back to 100, gates toggled (`$D404` = `$80` / `$81`, `$D40B` = `$10` / `$11`) | jiffies (60 Hz on PAL and NTSC) |
+| P.END `0xbb6`, the thunder (each strike) | all 0; `$D418` = 143, AD 10 / 10 and SR 170 / 169 (voices 1, 3), `$D404` = 21, `$D412` = 17, freq hi 68 / 42; TD 0.3; gates off (20, 16); TD 0.2; `FOR 1400` | 1.79 s (9.5) |
+| P.END `0xc43`, a speech click (each space) | `$D400` = 188, `$D401` = 2, `$D418` = 15, `$D407` = 15, `$D408` = 0, AD 0 / SR 244 (voice 2), `$D40B` = 21; `$D400` := 110 + RND · 70; TI to 16 jiffies; `$D40B` = 16 | 16 + RND · 8 jiffies |
+| CEMETARY `0x90e` (step 4) | all 0; `$D415` = 7, `$D417` = 242, `$D418` = 31, AD 245 / SR 240 (voice 3), `$D40A` = 4, freq hi 48 / 8, `$D40B` = 135 (noise, ring, sync, gate) | TL = 2 after it |
+| CEMETARY `0x97b`, a fate's sound | all 0; `$D401` = 3, `$D405` = 41, `$D40F` = 30, `$D403` = 8, `$D418` = 31, `$D417` = 4, `$D415` = 1, `$D404` = 21 (triangle, ring, gate); TL = 1.08; `$D404` = 20 | 1.17 s |
+| WIN `0x749`, a cheer | all 0; AD 238, SR 172, `$D416` = 126, `$D404` = 133 (noise, ring, gate), `$D418` = 79; freq 11650 → 10500 in steps of 40, gate off, `FOR 400`, gate on, 10500 → 11650; volume 15 → 0, `FOR 500` a step | 9.93 s |
+
+### 9.7 PAL or NTSC `[~]` (s224)
+
+Nothing in the programs picks one: no read of `$02A6` (the KERNAL's PAL / NTSC flag) in any v1.4 or II v1.2 file; the wipe
+counts frames on `$D011` bit 7 and UTIL-3.O's band IRQ compares raster lines from its records (all below 256), which run
+on both. C64PP tags some copies `(ntsc)` (I v1.0, v1.2), but v1.2 `(ntsc)` and the untagged v1.3 carry the same program
+files, so the disks hold no region: the held v1.4 pair's untagged name says where that copy came from, not what it runs
+on. The waits counted in frames (the wipe, the face / hand animator) are a PAL machine's (`vbl_hz` 50, as measured in
+VICE); an NTSC C64 runs them 6/5 faster. Kept PAL; which machine a player had is not knowable from the images `[~]`.

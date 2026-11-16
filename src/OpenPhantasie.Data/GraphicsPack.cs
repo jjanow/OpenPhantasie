@@ -421,6 +421,19 @@ public sealed class GraphicsPack
     /// <summary>s223: I / II C64's party wipe (<c>c64_defeat</c>, <c>CEMETARY</c>'s steps), or null.</summary>
     public C64DefeatLayout? C64Defeat { get; init; }
 
+    /// <summary>s224: I Apple II's combat field (<c>apple2_field</c>, OUTDOORS / DUNGON 1480–2006), or null.</summary>
+    public Apple2FieldLayout? Apple2Field { get; init; }
+
+    /// <summary>s224: the Apple's own numbers for <see cref="Apple2Field"/> (the import's index under the root), or null.</summary>
+    public Apple2FieldArt? LoadApple2FieldArt() =>
+        Apple2Field is { } field ? Apple2FieldArt.Load(Path.Combine(RootDirectory, field.Index)) : null;
+
+    /// <summary>The full path of <paramref name="relative"/> under the pack's root, or null when the file is missing.</summary>
+    public string? ResolveFile(string relative) => Existing(relative);
+
+    /// <summary>s224: I Apple II's party wipe and ending as their BASIC runs them (<c>apple2_scenes</c>), or null.</summary>
+    public Apple2ScenesLayout? Apple2Scenes { get; init; }
+
     /// <summary>I Amiga's sounds at moments outside its screens (<c>cue_sounds</c>, s153), or null.</summary>
     public CueSounds? CueSounds { get; init; }
     /// <summary>The original's combat screen (Phantasie I Amiga, s132), or null when the pack has none.</summary>
@@ -579,6 +592,8 @@ public sealed class GraphicsPack
             DefeatScreen = dto.DefeatScreen is { } ds ? DefeatScreenLayout.FromDto(ds, manifestPath) : null,
             DefeatPictures = dto.DefeatPictures is { } dp ? DefeatPicturesLayout.FromDto(dp, manifestPath) : null,
             C64Defeat = dto.C64Defeat is { } c64d ? C64DefeatLayout.FromDto(c64d, manifestPath) : null,
+            Apple2Field = dto.Apple2Field is { } a2f ? Apple2FieldLayout.FromDto(a2f, manifestPath) : null,
+            Apple2Scenes = dto.Apple2Scenes is { } a2s ? Apple2ScenesLayout.FromDto(a2s, manifestPath, rootDirectory) : null,
             CueSounds = dto.CueSounds is { } cs ? Data.CueSounds.FromDto(cs, manifestPath) : null,
             CombatField = combatField,
             MapMessage = dto.MapMessage is { } mm ? MapMessageLayout.FromDto(mm, dto.Palettes, combatField, manifestPath) : null,
@@ -766,6 +781,8 @@ public sealed class GraphicsPack
         [JsonPropertyName("defeat_screen")] public DefeatScreenLayout.Dto? DefeatScreen { get; set; }
         [JsonPropertyName("defeat_pictures")] public DefeatPicturesLayout.Dto? DefeatPictures { get; set; }
         [JsonPropertyName("c64_defeat")] public C64DefeatLayout.Dto? C64Defeat { get; set; }
+        [JsonPropertyName("apple2_field")] public Apple2FieldLayout.Dto? Apple2Field { get; set; }
+        [JsonPropertyName("apple2_scenes")] public Apple2ScenesLayout.Dto? Apple2Scenes { get; set; }
         [JsonPropertyName("cue_sounds")] public CueSounds.Dto? CueSounds { get; set; }
         [JsonPropertyName("combat_field")] public CombatFieldLayout.Dto? CombatField { get; set; }
         [JsonPropertyName("map_message")] public MapMessageLayout.Dto? MapMessage { get; set; }

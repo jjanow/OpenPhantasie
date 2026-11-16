@@ -3509,6 +3509,61 @@
     ]
    }
   ],
+  "c64.p2.crowd_goes_wild": [
+   {
+    "from": "p2-c64",
+    "parts": [
+     [
+      "WIN",
+      1756,
+      20
+     ]
+    ]
+   }
+  ],
+  "c64.p2.title_the_x_one": [
+   {
+    "from": "p2-c64",
+    "parts": [
+     [
+      "WIN",
+      2630,
+      4
+     ],
+     "{0}",
+     [
+      "WIN",
+      2638,
+      4
+     ]
+    ]
+   }
+  ],
+  "c64.p2.title_from_x": [
+   {
+    "from": "p2-c64",
+    "parts": [
+     [
+      "WIN",
+      2419,
+      5
+     ],
+     "{0}"
+    ]
+   }
+  ],
+  "c64.p2.press_ret": [
+   {
+    "from": "p2-c64",
+    "parts": [
+     [
+      "WIN",
+      1703,
+      12
+     ]
+    ]
+   }
+  ],
   "core.p2.filmon_closing_1": [
    {
     "from": "p2-st-1.0",

@@ -51,8 +51,8 @@ public class P1Apple2ArtTests
         }
         Assert.Equal(files.Count, n);
         // 58 shapes, 80 monsters x 2 poses, 4 bodies x 3 poses, 16 races x 2 poses, 256 tiles + 12 odd-column looks +
-        // the party block, 7 dungeon marks + the blank, 2 effects, the title, the index
-        Assert.Equal(58 + 160 + 12 + 32 + 256 + 12 + 1 + 8 + 2 + 1 + 1, n);
+        // the party block, 7 dungeon marks + the blank, 2 effects + the spell hit at SCALE 2-6 and 8 (s224), the title, the index
+        Assert.Equal(58 + 160 + 12 + 32 + 256 + 12 + 1 + 8 + 2 + 6 + 1 + 1, n);
     }
 
     [RequiresFilesFact(DskA, DskB, WozA, WozB)]
@@ -125,6 +125,9 @@ public class P1Apple2ArtTests
         Assert.Contains($"files/{ArtRoot}/monsters/idle/00-skeleton.png", run.AllOutputs.Keys);
         Assert.Contains($"files/{ArtRoot}/overworld/party.png", run.AllOutputs.Keys);
         Assert.Contains($"files/{ArtRoot}/{P1Apple2Art.TitleFile}", run.AllOutputs.Keys);
+        // s224: the combat field reads the index and the spell hit at each monster SCALE from the import
+        Assert.Contains($"files/{ArtRoot}/extraction-index.json", run.AllOutputs.Keys);
+        Assert.Contains($"files/{ArtRoot}/effects/24-spell-hit-scale-8.png", run.AllOutputs.Keys);
         Assert.DoesNotContain(run.Warnings, w => w.StartsWith("No Apple II art", StringComparison.Ordinal));
     }
 

@@ -85,10 +85,12 @@ public static class C64PhantasieArtManifest
             "x- and y-expanded, behind the characters) and the astral line (blue, column 1, row 23); a ghost per member at " +
             "VIC y 170, x = INT((220 - 35 PO) / 2) + 35 k, one each TL = 0.3; a sound, TL = 2; the door rises from VIC y 77 " +
             "to 0, one pixel each TL = 0.1; the face (purple, expanded, in front) and the demon's line, TL = 4; per member " +
-            "the rows cleared, a sound with TL = 1.08, its line in the fate's colour, its ghost turned into CSPRIT block " +
-            "P(145) (its own figure) in that colour, a destroyed member's then switched off (ON DF GOSUB), TL = 2; TL = 6. " +
-            "The interpreter's time around the waits measured in VICE (PAL, s223) [~]: ghosts 0.33 s apart, the fate sound 1.17 s, the copy 4.1 s (the ghost morphs into the figure while it runs; here it changes at the end). The C64's own fate rule and texts are not used: " +
-            "Core's fates and lines."),
+            "the rows cleared (an UNDEAD fate's name on row 21, column 1, cyan: undead_name_row), a sound with TL = 1.08, " +
+            "its line in the fate's colour, its ghost's block overwritten with CSPRIT block P(145) (its own figure) a byte " +
+            "per BASIC pass, still white (64 passes, the 4.1 s copy; s224 morph), then coloured, a destroyed member's then " +
+            "switched off (ON DF GOSUB), TL = 2; TL = 6. The interpreter's time around the waits measured in VICE (PAL, " +
+            "s223) [~]: ghosts 0.33 s apart, the fate sound 1.17 s, the copy 4.1 s. The C64's own fate rule and texts are " +
+            "not used: Core's fates and lines (I's UNDEAD line holds the name too [~])."),
         ("temple", "defeat.temple"),
         ("ghost", "defeat.ghost"),
         ("door", "defeat.door"),
@@ -117,7 +119,9 @@ public static class C64PhantasieArtManifest
         ("destroyed_colour", 11),
         ("resurrected_colour", 7),
         ("undead_colour", 3),
-        ("end_seconds", 6));
+        ("end_seconds", 6),
+        ("undead_name_row", 21),
+        ("undead_name_col", 1));
 
     /// <summary>s221: the Colodore palette as the 16 pens of an <c>ending_scene</c> (each art colour is one pen).</summary>
     public static JsonArray Pens() => J.Strs(C64Gfx.ColodoreHex);

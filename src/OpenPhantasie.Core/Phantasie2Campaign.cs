@@ -408,11 +408,13 @@ public sealed class Phantasie2Campaign : ICampaign
         var members = session.Party.Members;
         var n = members.Count(m => m.Status == CharacterStatus.Ok);
         var titles = new List<string>();
+        var parts = new List<VictoryTitle>();
         for (var i = 0; i < n && i < members.Count; i++)
         {
             var word = Math.Min(access.Rng.NextDosWord() / 0xce4, TitleWords - 1);
             var origin = OriginName(members[i].Phantasie2?.Origin ?? Phantasie2Origin.Gelnor);
             titles.Add(GameText.F("core.p2.title_x_x_x", members[i].Name, GameText.S(TitleWordIds[word]), origin));
+            parts.Add(new VictoryTitle(members[i].Name, GameText.S(TitleWordIds[word]), origin));
         }
         var speaks = GameText.S("core.p2.filmon_speaks");
         access.PendingVictoryScene = new VictoryScene(
@@ -422,6 +424,7 @@ public sealed class Phantasie2Campaign : ICampaign
             IntroPage = [.. FilmonIntroIds.Select(GameText.S)],
             HeaderLines = [speaks, GameText.S("core.p2.presenting_heroes")],
             Titles = titles,
+            TitleParts = parts,
             // The party size as {0}: the ST's lines take none; the Apple's "THESE "PO + 1" BRAVE ADVEN-" (WIN line 3116,
             // PO = the last party index, PEEK(SA + 1203)) prints it, so its own-wording line holds {0} (D2-050). The Apple
             // has no elementals; the remaster's summoned one is not an adventurer and is left out of the count (s170).

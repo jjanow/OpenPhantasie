@@ -35,7 +35,8 @@ public sealed class C64EndingView
     {
         if (_assets.Get(PictureNames.EndingFinal) is not { } zeus)
             return false;
-        var key = (screen, frame.CloudY, frame.CloudColour, frame.Figures, frame.ZeusRows, frame.Strike, frame.Face, frame.Hand);
+        var key = (screen, frame.CloudY, frame.CloudColour, frame.Figures, frame.ZeusRows, frame.Strike, frame.Face, frame.Hand,
+            frame.Page);
         if (_texture is null || !Equals(_drawnKey, key))
         {
             _texture ??= new Texture2D(_device, Width, Height);
@@ -53,6 +54,8 @@ public sealed class C64EndingView
     {
         var dst = new Color[Width * Height];
         Array.Fill(dst, Color.Black);
+        if (frame.Page)
+            return dst; // s224: the closing page: Zeus cleared, every sprite off, only its text
         // ZALL $4CC0: one pixel row of Zeus's 12 columns per step, from the bottom up.
         var src = PixelsOf(zeus);
         for (var y = _layout.WipeY + _layout.WipeHeight - frame.ZeusRows; y < _layout.WipeY + _layout.WipeHeight; y++)

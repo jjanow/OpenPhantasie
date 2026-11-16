@@ -1,6 +1,6 @@
 {
   "_schema": "phantasie.graphics-pack/v1",
-  "_note": "Apple II Phantasie I art (VERSION 1.0; the p1-apple2 import, P1Apple2Art; reverse-engineering/apple2/phantasie1/GRAPHICS.md). Every picture is an Applesoft shape (SHAPES, 58 shapes) drawn at the game's SCALE / HCOLOR and turned into colour by an NTSC artifact model [~], except the title picture (HPIC). I's engine is II's Apple engine, so the pack is laid out as II's. The Apple's text is the ROM font (not on the disks): the remaster 5x7 font stands in. Screen kept at the remaster's 320 x 200 layout: Apple pictures (280 x 192 hi-res pixels) are drawn 1:1 in it. Map: the Apple draws its 20 x 26 map rotated against the remaster's 26 x 20 grid (FORMAT.md 3.6); here the tiles follow the remaster's grid, 22 x 20 cells of 7 x 6. A tile's colour fringes depend on its screen column on the Apple: the pack uses the even-column look. No town, item, ending or defeat pictures: the Apple's town is text and CEMETARY / FLASH? draw in BASIC (not replayed [~]); the Client draws its plain screens there.",
+  "_note": "Apple II Phantasie I art (VERSION 1.0; the p1-apple2 import, P1Apple2Art; reverse-engineering/apple2/phantasie1/GRAPHICS.md). Every picture is an Applesoft shape (SHAPES, 58 shapes) drawn at the game's SCALE / HCOLOR and turned into colour by an NTSC artifact model [~], except the title picture (HPIC). I's engine is II's Apple engine, so the pack is laid out as II's. The Apple's text is the ROM font (not on the disks): the remaster 5x7 font stands in. Screen kept at the remaster's 320 x 200 layout: Apple pictures (280 x 192 hi-res pixels) are drawn 1:1 in it. Map: the Apple draws its 20 x 26 map rotated against the remaster's 26 x 20 grid (FORMAT.md 3.6); here the tiles follow the remaster's grid, 22 x 20 cells of 7 x 6. A tile's colour fringes depend on its screen column on the Apple: the pack uses the even-column look. No town, item, ending or defeat pictures: the Apple's town is text; CEMETARY / FLASH? draw in BASIC, replayed from apple2_scenes (s224).",
   "id": "apple2",
   "game": "phantasie1",
   "platform": "apple2",
@@ -85,11 +85,1255 @@
       }
     ]
   },
+  "apple2_field": {
+    "_note": "OUTDOORS / DUNGON (the same lines) 1480-2006, 4100-4145, 4790-4811; GRAPHICS.md section 7. The round (1560-2005) plays on the mixed hi-res screen (graphics rows 0-159, text rows 20-23: POKE 34,20); the status, ranks, PARTY OPTIONS and orders (1000-1470) are a TEXT page, the remaster's screen there. Lines: the set-up's HPLOTs (4810), white; the field is left of x 138, the map right of it (not drawn here, black [~]). Party: slot k's body + arm at (19k, 158) (1525-1534; dead members not drawn, the slot kept), arm 22 from a swing (1695), 21 from a cast (1760) or a parry that took (1532), else 20; bodies by TOWN 2350-2356. Monsters: front rank y 135, next 135 - YS% of the front, third that - YS% of the second, not below 0 (1480-1500); monster i of n at H% + INT(i * 120 / n) (1550); pose B (S% + 1) from its swing, cast or breath to the round's end (2006); erased at its DIES (4145). The sparkle (23) at (19k + 19, 136) during the cast tones (1762-1764), the spell hit (24) at the monster's SCALE for 500 loops (4132). H%, SCALE, YS% and each picture's DRAW point are the Apple's data: the import's extraction-index.json (index). Pauses: PA = 120 * TIME LAG loops a line (361 / 7560); loop_ms is a rule of thumb for an empty Applesoft FOR / NEXT pass [~]; sparkle_ms the cast tones' length (CALL 770 not decoded) [?].",
+    "screen_x": 20,
+    "screen_y": 4,
+    "width": 280,
+    "graphics_rows": 160,
+    "divider": 138,
+    "lines": [
+      [
+        0,
+        0,
+        279,
+        0
+      ],
+      [
+        0,
+        159,
+        279,
+        159
+      ],
+      [
+        138,
+        0,
+        138,
+        159
+      ]
+    ],
+    "party_step": 19,
+    "party_y": 158,
+    "rank_y": 135,
+    "spread": 120,
+    "sparkle_dx": 19,
+    "sparkle_y": 136,
+    "text_top": 20,
+    "text_rows": 4,
+    "columns": 40,
+    "cell_width": 7,
+    "cell_height": 8,
+    "index": "extraction-index.json",
+    "line_loops_per_time_lag": 120,
+    "hit_loops": 500,
+    "loop_ms": 1.0,
+    "sparkle_ms": 300.0,
+    "bodies": {
+      "monster_races_from": 7,
+      "monster_body": 26,
+      "human_elf": [
+        0,
+        2
+      ],
+      "small_body": 25,
+      "plain_body": 19,
+      "robed_classes": [
+        1,
+        4,
+        5
+      ],
+      "robed_body": 27,
+      "elemental_body": 26
+    }
+  },
   "pictures": {
     "title.cover": "screens/title.png",
     "title.credits": "screens/title.png",
     "combat.sparkle": "effects/23-spell-sparkle.png",
     "overworld.party": "overworld/party.png"
+  },
+  "apple2_scenes": {
+    "_note": "s224 (GRAPHICS.md 8): CEMETARY (defeat) and FLASH? (ending) as their BASIC runs them, a statement per step and s = the seconds to the next statement (the Apple II+ ROM run in a 6502 emulator, 1.020484 MHz; a key wait's s runs after the key). Drawn on a hi-res page with the ROM's DRAW / XDRAW (any ROT) / HPLOT and SHAPES (shapes.bin). Mixed mode: hi-res rows 0-159 over text rows 21-24. The party row: CEMETARY 630 draws shape 19 + 20 at X = 65 TO 185 STEP 120 / (PO + (PO = 0)) (two figures for a lone member); FLASH? 40-50 the member's own body (record byte 168, bodies) after arm 20 at 35 + PM * 180 / PO (120 alone). The fates are Core's (CEMETARY's own rule, 725-740, is not used); their seconds are the Apple's per path. Not shown: DUNGON's INSERT BOOT DISK page before CEMETARY, FLASH?'s after the scene. Interpreter times vary with the party (names, bodies) [~]; page 2 (flash) is rebuilt from SHAPES and FLASH? only [~].",
+    "shapes": "scenes/shapes.bin",
+    "page2": "scenes/page2.bin",
+    "clock_hz": 1020484,
+    "_bodies": "TOWN 2350-2356: races 7+ shape 26, DWARF / HALFLING / GNOME / PIXIE / SPRITE 25, HUMAN / ELF 19, or 27 for a MONK / PRIEST / WIZARD.",
+    "bodies": {
+      "by_race": [
+        19,
+        25,
+        19,
+        25,
+        25,
+        25,
+        25,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26
+      ],
+      "robed": 27,
+      "robed_races": [
+        0,
+        2
+      ],
+      "robed_classes": [
+        1,
+        4,
+        5
+      ]
+    },
+    "_sounds": "FLASH? 1100: 15 pairs of DATA 1105 POKEd into 768 (pitch) / 769 (duration), then CALL 770 (INFO: a click, then DEY / DEX loops; X = 157, Y = 2 at entry); calls = [start s, pitch, duration].",
+    "sounds": {
+      "thunder": {
+        "x": 157,
+        "y": 2,
+        "calls": [
+          [
+            0.04781,
+            1,
+            1
+          ],
+          [
+            0.06669,
+            250,
+            4
+          ],
+          [
+            0.09185,
+            1,
+            1
+          ],
+          [
+            0.10945,
+            1,
+            1
+          ],
+          [
+            0.1287,
+            255,
+            7
+          ],
+          [
+            0.16309,
+            255,
+            7
+          ],
+          [
+            0.19572,
+            1,
+            4
+          ],
+          [
+            0.22836,
+            230,
+            4
+          ],
+          [
+            0.25347,
+            1,
+            5
+          ],
+          [
+            0.28957,
+            1,
+            6
+          ],
+          [
+            0.33243,
+            210,
+            3
+          ],
+          [
+            0.35501,
+            1,
+            7
+          ],
+          [
+            0.40109,
+            1,
+            9
+          ],
+          [
+            0.45888,
+            160,
+            2
+          ],
+          [
+            0.47889,
+            1,
+            9
+          ]
+        ]
+      }
+    },
+    "defeat": [
+      {
+        "op": "home",
+        "s": 0.0156
+      },
+      {
+        "op": "clear",
+        "s": 1.5439
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 200,
+        "y": 140,
+        "scale": 2,
+        "rot": 8,
+        "hcolor": 3,
+        "s": 0.0332
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 201,
+        "y": 140,
+        "scale": 2,
+        "rot": 8,
+        "hcolor": 3,
+        "s": 0.0384
+      },
+      {
+        "op": "draw",
+        "shape": 7,
+        "x": 226,
+        "y": 140,
+        "scale": 1,
+        "rot": 0,
+        "hcolor": 2,
+        "s": 0.0281
+      },
+      {
+        "op": "draw",
+        "shape": 7,
+        "x": 227,
+        "y": 140,
+        "scale": 1,
+        "rot": 0,
+        "hcolor": 2,
+        "s": 0.0314
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 240,
+        "y": 0,
+        "scale": 2,
+        "rot": 0,
+        "hcolor": 3,
+        "s": 0.0318
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          0,
+          159,
+          279,
+          159
+        ],
+        "s": 0.0351
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          0,
+          0,
+          279,
+          0
+        ],
+        "s": 0.0351
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 50,
+        "y": 100,
+        "scale": 1,
+        "rot": 32,
+        "hcolor": 3,
+        "s": 0.0218
+      },
+      {
+        "op": "draw",
+        "shape": 21,
+        "x": 50,
+        "y": 100,
+        "scale": 1,
+        "rot": 32,
+        "hcolor": 3,
+        "s": 0.027
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 180,
+        "y": 80,
+        "scale": 1,
+        "rot": 16,
+        "hcolor": 3,
+        "s": 0.0218
+      },
+      {
+        "op": "draw",
+        "shape": 22,
+        "x": 180,
+        "y": 80,
+        "scale": 1,
+        "rot": 16,
+        "hcolor": 3,
+        "s": 0.0198
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 75,
+        "y": 125,
+        "scale": 1,
+        "rot": 56,
+        "hcolor": 3,
+        "s": 0.0297
+      },
+      {
+        "op": "draw",
+        "shape": 20,
+        "x": 75,
+        "y": 125,
+        "scale": 1,
+        "rot": 56,
+        "hcolor": 3,
+        "s": 0.0273
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 100,
+        "y": 170,
+        "scale": 2,
+        "rot": 48,
+        "hcolor": 3,
+        "s": 0.036
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 180,
+        "y": 100,
+        "scale": 2,
+        "rot": 36,
+        "hcolor": 3,
+        "s": 0.0407
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 181,
+        "y": 100,
+        "scale": 2,
+        "rot": 36,
+        "hcolor": 3,
+        "s": 0.0461
+      },
+      {
+        "op": "draw",
+        "shape": 7,
+        "x": 130,
+        "y": 136,
+        "scale": 1,
+        "rot": 0,
+        "hcolor": 2,
+        "s": 0.0279
+      },
+      {
+        "op": "draw",
+        "shape": 7,
+        "x": 131,
+        "y": 136,
+        "scale": 1,
+        "rot": 0,
+        "hcolor": 2,
+        "s": 0.0318
+      },
+      {
+        "op": "draw",
+        "shape": 19,
+        "x": 130,
+        "y": 0,
+        "scale": 2,
+        "rot": 0,
+        "hcolor": 3,
+        "s": 0.0319
+      },
+      {
+        "op": "vtab",
+        "row": 24,
+        "s": 0.0025
+      },
+      {
+        "op": "print",
+        "text": "apple2.defeat.defeated",
+        "newline": true,
+        "s": 0.0235
+      },
+      {
+        "op": "print",
+        "text": "apple2.defeat.monsters_jump",
+        "newline": true,
+        "s": 0.0247
+      },
+      {
+        "op": "graphics",
+        "s": 0.0201
+      },
+      {
+        "op": "repeat",
+        "count": 70,
+        "steps": [
+          {
+            "op": "xdraw",
+            "shape": 6,
+            "x": 100,
+            "y": 40,
+            "scale": 1,
+            "rot": 0,
+            "s": 0.0233
+          },
+          {
+            "op": "draw",
+            "shape": 5,
+            "x": 100,
+            "y": 50,
+            "scale": 1,
+            "rot": 0,
+            "hcolor": 3,
+            "s": 0.0242
+          },
+          {
+            "op": "xdraw",
+            "shape": 6,
+            "x": 130,
+            "y": 40,
+            "scale": 1,
+            "rot": 0,
+            "s": 0.0232
+          },
+          {
+            "op": "draw",
+            "shape": 5,
+            "x": 130,
+            "y": 50,
+            "scale": 1,
+            "rot": 0,
+            "hcolor": 3,
+            "s": 0.0242
+          },
+          {
+            "op": "xdraw",
+            "shape": 6,
+            "x": 160,
+            "y": 40,
+            "scale": 1,
+            "rot": 0,
+            "s": 0.0233
+          },
+          {
+            "op": "draw",
+            "shape": 5,
+            "x": 160,
+            "y": 50,
+            "scale": 1,
+            "rot": 0,
+            "hcolor": 3,
+            "s": 0.033
+          },
+          {
+            "op": "xdraw",
+            "shape": 5,
+            "x": 100,
+            "y": 50,
+            "scale": 1,
+            "rot": 0,
+            "s": 0.0232
+          },
+          {
+            "op": "draw",
+            "shape": 6,
+            "x": 100,
+            "y": 40,
+            "scale": 1,
+            "rot": 0,
+            "hcolor": 3,
+            "s": 0.0243
+          },
+          {
+            "op": "xdraw",
+            "shape": 5,
+            "x": 130,
+            "y": 50,
+            "scale": 1,
+            "rot": 0,
+            "s": 0.0232
+          },
+          {
+            "op": "draw",
+            "shape": 6,
+            "x": 130,
+            "y": 40,
+            "scale": 1,
+            "rot": 0,
+            "hcolor": 3,
+            "s": 0.0243
+          },
+          {
+            "op": "xdraw",
+            "shape": 5,
+            "x": 160,
+            "y": 50,
+            "scale": 1,
+            "rot": 0,
+            "s": 0.0232
+          },
+          {
+            "op": "draw",
+            "shape": 6,
+            "x": 160,
+            "y": 40,
+            "scale": 1,
+            "rot": 0,
+            "hcolor": 3,
+            "s": 0.0346
+          }
+        ],
+        "s": 0
+      },
+      {
+        "op": "clear",
+        "s": 0.2789
+      },
+      {
+        "op": "text",
+        "s": 0.0003
+      },
+      {
+        "op": "home",
+        "s": 0.0157
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          0,
+          159,
+          100,
+          100,
+          179,
+          100,
+          279,
+          159
+        ],
+        "s": 0.0582
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          100,
+          100,
+          100,
+          10,
+          179,
+          10,
+          179,
+          100
+        ],
+        "s": 0.0467
+      },
+      {
+        "op": "party",
+        "xs": [
+          [
+            65,
+            185
+          ],
+          [
+            65,
+            185
+          ],
+          [
+            65,
+            125,
+            185
+          ],
+          [
+            65,
+            105,
+            145,
+            185
+          ],
+          [
+            65,
+            95,
+            125,
+            155,
+            185
+          ],
+          [
+            65,
+            89,
+            113,
+            137,
+            161,
+            185
+          ]
+        ],
+        "y": 159,
+        "shapes": [
+          19,
+          20
+        ],
+        "scale": 1,
+        "rot": 0,
+        "hcolor": 3,
+        "lead": 0.0154,
+        "each": [
+          0.0209,
+          0.0177
+        ],
+        "tail": 0.021,
+        "s": 0
+      },
+      {
+        "op": "draw",
+        "shape": 11,
+        "x": 49,
+        "y": 100,
+        "scale": 3,
+        "rot": 0,
+        "hcolor": 6,
+        "s": 0.0621
+      },
+      {
+        "op": "draw",
+        "shape": 11,
+        "x": 185,
+        "y": 100,
+        "scale": 3,
+        "rot": 0,
+        "hcolor": 6,
+        "s": 0.0635
+      },
+      {
+        "op": "draw",
+        "shape": 11,
+        "x": 48,
+        "y": 100,
+        "scale": 3,
+        "rot": 0,
+        "hcolor": 6,
+        "s": 0.0629
+      },
+      {
+        "op": "draw",
+        "shape": 11,
+        "x": 184,
+        "y": 100,
+        "scale": 3,
+        "rot": 0,
+        "hcolor": 6,
+        "s": 0.0643
+      },
+      {
+        "op": "graphics",
+        "s": 0.0072
+      },
+      {
+        "op": "vtab",
+        "row": 24,
+        "s": 0.0025
+      },
+      {
+        "op": "print",
+        "text": "apple2.defeat.astral",
+        "newline": true,
+        "s": 8.9646
+      },
+      {
+        "op": "draw",
+        "shape": 18,
+        "x": 120,
+        "y": 90,
+        "scale": 4,
+        "rot": 0,
+        "hcolor": 2,
+        "s": 0.0767
+      },
+      {
+        "op": "home",
+        "s": 0.0156
+      },
+      {
+        "op": "vtab",
+        "row": 24,
+        "s": 0.0025
+      },
+      {
+        "op": "print",
+        "text": "apple2.defeat.demon",
+        "newline": true,
+        "s": 6.9825
+      },
+      {
+        "op": "fates",
+        "lead_text": "apple2.defeat.you_have_been",
+        "destroyed": {
+          "text": "apple2.defeat.destroyed",
+          "s": 0.6662
+        },
+        "resurrected": {
+          "text": "apple2.defeat.resurrected",
+          "s": 0.1003
+        },
+        "undead": {
+          "text": "apple2.defeat.undead",
+          "newline": true,
+          "s": 0.1504
+        },
+        "after_key": 0.0202,
+        "tail": 0.3613,
+        "first": 0.0032,
+        "s": 0
+      },
+      {
+        "op": "hgr",
+        "s": 0.0001
+      }
+    ],
+    "ending": [
+      {
+        "op": "home",
+        "s": 0.0156
+      },
+      {
+        "op": "hgr",
+        "s": 0.2752
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          0,
+          159,
+          279,
+          159
+        ],
+        "s": 0.526
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          100,
+          0,
+          130,
+          15,
+          70,
+          40,
+          120,
+          60,
+          73,
+          80,
+          115,
+          90,
+          76,
+          110,
+          110,
+          122,
+          100,
+          140
+        ],
+        "s": 0.0919
+      },
+      {
+        "op": "hplot",
+        "hcolor": 0,
+        "points": [
+          100,
+          0,
+          130,
+          15,
+          70,
+          40,
+          120,
+          60,
+          73,
+          80,
+          115,
+          90,
+          76,
+          110,
+          110,
+          122,
+          100,
+          140
+        ],
+        "s": 0.0912
+      },
+      {
+        "op": "sound",
+        "sound": "thunder",
+        "s": 0.5258
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          200,
+          0,
+          235,
+          17,
+          172,
+          38,
+          226,
+          64,
+          167,
+          83,
+          217,
+          80,
+          172,
+          113,
+          214,
+          118,
+          200,
+          150
+        ],
+        "s": 0.1024
+      },
+      {
+        "op": "hplot",
+        "hcolor": 0,
+        "points": [
+          200,
+          0,
+          235,
+          17,
+          172,
+          38,
+          226,
+          64,
+          167,
+          83,
+          217,
+          80,
+          172,
+          113,
+          214,
+          118,
+          200,
+          150
+        ],
+        "s": 0.1014
+      },
+      {
+        "op": "sound",
+        "sound": "thunder",
+        "s": 1.9807
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          200,
+          0,
+          235,
+          17,
+          172,
+          38,
+          226,
+          64,
+          167,
+          83,
+          217,
+          80,
+          172,
+          113,
+          214,
+          118,
+          200,
+          150
+        ],
+        "s": 0.1024
+      },
+      {
+        "op": "hplot",
+        "hcolor": 0,
+        "points": [
+          200,
+          0,
+          235,
+          17,
+          172,
+          38,
+          226,
+          64,
+          167,
+          83,
+          217,
+          80,
+          172,
+          113,
+          214,
+          118,
+          200,
+          150
+        ],
+        "s": 0.102
+      },
+      {
+        "op": "sound",
+        "sound": "thunder",
+        "s": 1.4941
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          100,
+          0,
+          130,
+          15,
+          70,
+          40,
+          120,
+          60,
+          73,
+          80,
+          115,
+          90,
+          76,
+          110,
+          110,
+          122,
+          100,
+          140
+        ],
+        "s": 0.0919
+      },
+      {
+        "op": "hplot",
+        "hcolor": 0,
+        "points": [
+          100,
+          0,
+          130,
+          15,
+          70,
+          40,
+          120,
+          60,
+          73,
+          80,
+          115,
+          90,
+          76,
+          110,
+          110,
+          122,
+          100,
+          140
+        ],
+        "s": 0.0912
+      },
+      {
+        "op": "sound",
+        "sound": "thunder",
+        "s": 1.4987
+      },
+      {
+        "op": "party",
+        "s": 0,
+        "xs": [
+          [
+            120
+          ],
+          [
+            35,
+            215
+          ],
+          [
+            35,
+            125,
+            215
+          ],
+          [
+            35,
+            95,
+            155,
+            215
+          ],
+          [
+            35,
+            80,
+            125,
+            170,
+            215
+          ],
+          [
+            35,
+            71,
+            107,
+            143,
+            179,
+            215
+          ]
+        ],
+        "y": 159,
+        "shapes": [
+          20,
+          0
+        ],
+        "scale": 2,
+        "rot": 0,
+        "hcolor": 3,
+        "lead": 0.0315,
+        "each": [
+          0.0246,
+          0.0563
+        ],
+        "tail": 0.0439
+      },
+      {
+        "op": "vtab",
+        "row": 24,
+        "s": 0.0025
+      },
+      {
+        "op": "print",
+        "text": "apple2.ending.olympus",
+        "newline": true,
+        "s": 0.0439
+      },
+      {
+        "op": "key",
+        "s": 0.0039
+      },
+      {
+        "op": "draw",
+        "shape": 9,
+        "x": 101,
+        "y": 80,
+        "scale": 4,
+        "rot": 0,
+        "hcolor": 5,
+        "s": 0.0622
+      },
+      {
+        "op": "home",
+        "s": 0.0198
+      },
+      {
+        "op": "flash",
+        "s": 0.1537,
+        "count": 10,
+        "first": 0.0073,
+        "page2": 0.0069,
+        "page1": 0.0082
+      },
+      {
+        "op": "sound",
+        "sound": "thunder",
+        "s": 0.5211
+      },
+      {
+        "op": "home",
+        "s": 0.0198
+      },
+      {
+        "op": "flash",
+        "s": 0.1537,
+        "count": 10,
+        "first": 0.0073,
+        "page2": 0.0069,
+        "page1": 0.0082
+      },
+      {
+        "op": "sound",
+        "sound": "thunder",
+        "s": 0.5191
+      },
+      {
+        "op": "home",
+        "s": 0.0156
+      },
+      {
+        "op": "vtab",
+        "row": 24,
+        "s": 0.0025
+      },
+      {
+        "op": "print",
+        "text": "apple2.ending.zeus_appears",
+        "pad": 3,
+        "newline": true,
+        "s": 4.8963
+      },
+      {
+        "op": "home",
+        "s": 0.0156
+      },
+      {
+        "op": "vtab",
+        "row": 23,
+        "s": 0.0026
+      },
+      {
+        "op": "print",
+        "text": "apple2.ending.zeus_1",
+        "pad": 2,
+        "newline": true,
+        "s": 0.0063
+      },
+      {
+        "op": "print",
+        "text": "apple2.ending.zeus_2",
+        "pad": 4,
+        "newline": true,
+        "s": 0.0229
+      },
+      {
+        "op": "print",
+        "text": "apple2.ending.zeus_3",
+        "pad": 2,
+        "newline": false,
+        "s": 0.0071
+      },
+      {
+        "op": "key",
+        "s": 0.0068
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          100,
+          0,
+          130,
+          15,
+          70,
+          40,
+          120,
+          60,
+          73,
+          80,
+          115,
+          90,
+          76,
+          110,
+          110,
+          122,
+          100,
+          140
+        ],
+        "s": 0.0919
+      },
+      {
+        "op": "hplot",
+        "hcolor": 0,
+        "points": [
+          100,
+          0,
+          130,
+          15,
+          70,
+          40,
+          120,
+          60,
+          73,
+          80,
+          115,
+          90,
+          76,
+          110,
+          110,
+          122,
+          100,
+          140
+        ],
+        "s": 0.0906
+      },
+      {
+        "op": "sound",
+        "sound": "thunder",
+        "s": 0.5246
+      },
+      {
+        "op": "hplot",
+        "hcolor": 3,
+        "points": [
+          200,
+          0,
+          235,
+          17,
+          172,
+          38,
+          226,
+          64,
+          167,
+          83,
+          217,
+          80,
+          172,
+          113,
+          214,
+          118,
+          200,
+          150
+        ],
+        "s": 0.1024
+      },
+      {
+        "op": "hplot",
+        "hcolor": 0,
+        "points": [
+          200,
+          0,
+          235,
+          17,
+          172,
+          38,
+          226,
+          64,
+          167,
+          83,
+          217,
+          80,
+          172,
+          113,
+          214,
+          118,
+          200,
+          150
+        ],
+        "s": 0.1008
+      },
+      {
+        "op": "sound",
+        "sound": "thunder",
+        "s": 0.7105
+      },
+      {
+        "op": "hgr",
+        "s": 0.2736
+      }
+    ]
   },
   "_portraits": "portrait.{race}: the party figure (TOWN 2350-2356, record byte 168: races 7+ shape 26, DWARF / HALFLING / GNOME / PIXIE / SPRITE 25, HUMAN / ELF 19, or 27 for a MONK / PRIEST / WIZARD, which a race-keyed picture cannot show [~]) with the arm overlay 20 (idle) or 22 (attacking). The figures by body and pose are in figures/.",
   "picture_sets": [

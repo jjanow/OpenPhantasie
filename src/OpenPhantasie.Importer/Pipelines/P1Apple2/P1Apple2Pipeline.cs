@@ -12,7 +12,9 @@ public sealed class P1Apple2Pipeline : IImportPipeline
 {
     public string ProfileId => "p1-apple2";
 
-    public int RecipeVersion => 2; // 1 (s222): I's tables from the Apple II; 2 (s223): the Apple II art pack
+    // 1 (s222): I's tables from the Apple II; 2 (s223): the Apple II art pack; 3 (s224): the combat field (spell hit per
+    // SCALE, apple2_field); 4 (s224): the end scenes (shapes.bin, page2.bin, apple2_scenes) and the scenes' lines
+    public int RecipeVersion => 4;
 
     /// <summary>DOS I's, the Amiga's and the C64's tables win when one of them is imported in the same run: they run first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p1-dos-1987", "p1-dos-bonus-1991", "p1-amiga-1.0", "p1-c64"];

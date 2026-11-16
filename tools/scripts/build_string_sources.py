@@ -441,6 +441,9 @@ def c64_verbatim(c64: dict[str, bytes], versions, alts: list) -> dict | None:
 A1_IMAGES = RE / "apple2" / "original-images" / "phantasie1" / "4am-crack"
 A1_PROGRAMS = {"phantasie1-4am-side-a-boot.dsk": ["TOWN", "OUTDOORS", "CEMETARY"],
                "phantasie1-4am-side-b-dungeon.dsk": ["DUNGON"]}
+# s224: the end scenes' lines (CEMETARY, FLASH?), ids only the Apple's apple2_scenes prints: their p1-apple2 alternative
+# (FLASH? is read for these only, so no other id finds a verbatim match in it).
+A1_SCENES = Path(__file__).resolve().parent / "p1_apple2_scene_text.json"
 
 
 def load_apple1() -> dict[str, bytes]:
@@ -538,9 +541,32 @@ def build(versions, folder: str, apple: dict[str, bytes], own: dict, own_amiga: 
     c64_own = json.loads(C64_OWN.read_text(encoding="utf-8"))["strings"] if c64 is not None and C64_OWN.exists() else {}
     c64_2_own = json.loads(C64_2_OWN.read_text(encoding="utf-8"))["strings"] if c64_2 is not None and C64_2_OWN.exists() else {}
     c64p3_own = json.loads(C64P3_OWN.read_text(encoding="utf-8"))["strings"] if c64p3 and C64P3_OWN.exists() else {}
+    a1_scenes = json.loads(A1_SCENES.read_text(encoding="utf-8"))["strings"] if apple1 is not None and A1_SCENES.exists() else {}
+    a1_scene_files = {**apple1, "FLASH?": RdosDisk(A1_IMAGES / "phantasie1-4am-side-b-dungeon.dsk").read("FLASH?")} \
+        if a1_scenes.get(folder) else {}
+    # s224: lines only the C64 prints (no other version has them: I's closing page after Zeus's grant, II's cheer line and
+    # title rows): the json files' "only" ids, a plain p1-c64 / p2-c64 alternative whose text is the committed value.
+    c64_only = json.loads(C64_OWN.read_text(encoding="utf-8")).get("only", {}) if c64 is not None else {}
+    c64_2_only = json.loads(C64_2_OWN.read_text(encoding="utf-8")).get("only", {}) if c64_2 is not None else {}
     out = {}
     for sid, value in table["strings"].items():
         if not isinstance(value, str) or sid.startswith(OURS):
+            continue
+        if sid in a1_scenes.get(folder, {}):
+            parts = a1_scenes[folder][sid]
+            assert resolve(a1_scene_files, parts) == value, (folder, sid, resolve(a1_scene_files, parts))
+            out[sid] = [{"from": "p1-apple2", "parts": parts}]
+            continue
+        only = [(prof, files, ids[folder][sid]) for prof, files, ids in
+                (("p1-c64", {**c64, "P.END:petscii": petscii_mixed(c64["P.END"])} if c64 is not None else None, c64_only),
+                 ("p2-c64", c64_2, c64_2_only)) if files is not None and sid in ids.get(folder, {})]
+        if only:
+            out[sid] = []
+            for prof, files, parts in only:
+                text = resolve(files, parts)
+                if text != value:
+                    raise SystemExit(f"{folder} {sid}: the {prof} 'only' parts read {text!r}, en.json has {value!r}")
+                out[sid].append({"from": prof, "parts": parts})
             continue
         if (alts := sources_for(versions, folder, sid, value)) is not None:
             if not alts:

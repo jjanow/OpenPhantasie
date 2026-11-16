@@ -217,6 +217,10 @@ public partial class Phantasie2CampaignTests
         Assert.Equal(2, scene.Titles.Count);
         Assert.StartsWith(members[0].Name + " - the ", scene.Titles[0]);
         Assert.StartsWith(members[1].Name + " - the ", scene.Titles[1]); // the dead one
+        // s224: the same titles in parts (II C64's WIN prints name / "THE … ONE" / "FROM …" on rows of their own).
+        Assert.Equal(scene.Titles,
+            scene.TitleParts.Select(p => GameText.F("core.p2.title_x_x_x", p.Name, p.Word, p.Origin)));
+        Assert.Equal([members[0].Name, members[1].Name], scene.TitleParts.Select(p => p.Name));
         Assert.Equal([true, false, true], scene.Slots.Select(v => v.Granted));
         Assert.Equal(2, s.Sack.Items.Count(i => i == Phantasie2Campaign.FilmonWandId)); // wands only to OK members
     }

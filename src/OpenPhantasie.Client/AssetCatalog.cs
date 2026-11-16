@@ -30,6 +30,42 @@ public sealed class AssetCatalog : IDisposable
 
     public bool IsAvailable => Pack is not null;
 
+    /// <summary>
+    /// s224: the file <paramref name="relative"/> under the pack's root as a texture (I Apple II's field draws the pictures
+    /// its index names), or null when the pack has no such file.
+    /// </summary>
+    public Texture2D? GetFile(string relative)
+    {
+        if (Pack?.ResolveFile(relative) is not { } path)
+            return null;
+        return Load(path);
+    }
+
+    private Apple2FieldArt? _apple2FieldArt;
+    private bool _apple2FieldArtRead;
+
+    /// <summary>s224: the Apple's own numbers for the pack's <c>apple2_field</c> (read once), or null.</summary>
+    public Apple2FieldArt? Apple2FieldArt
+    {
+        get
+        {
+            if (!_apple2FieldArtRead)
+            {
+                _apple2FieldArtRead = true;
+                try
+                {
+                    _apple2FieldArt = Pack?.LoadApple2FieldArt();
+                }
+                catch (Exception e) when (e is IOException or System.Text.Json.JsonException or InvalidOperationException
+                                              or KeyNotFoundException or FormatException)
+                {
+                    _apple2FieldArt = null; // a broken index: the remaster's screen stays
+                }
+            }
+            return _apple2FieldArt;
+        }
+    }
+
     /// <summary>The pack's screen (resolution, pixel shape, background); the remaster default without a pack.</summary>
     public ScreenSpec Screen => Pack?.Screen ?? ScreenSpec.Default;
 

@@ -638,7 +638,7 @@ public partial class Game1 : Game
         var scene = _session is not null && _splash is null && CurrentPrompt is { Kind: SessionPromptKind.VictoryScene }
             ? _session.PendingVictoryScene : null;
         if (scene is null || _assets?.Pack?.EndingScene is not { } layout || _assets.Get(PictureNames.EndingFinal) is null
-            || layout.C64 is not null) // s223: the C64's own ending (UpdateC64EndScreens)
+            || layout.C64 is not null || layout.C64Win is not null) // s223 / s224: the C64's own endings (UpdateC64EndScreens)
         {
             if (_victory is not null)
                 StopEffects();
@@ -774,6 +774,9 @@ public partial class Game1 : Game
         _combatUi.AmigaP1Field = () => _session is { Game: GameId.P1 } && CurrentGameSettings.OriginalScreens
                                        && assets?.Pack?.CombatField is not null;
         _combatUi.P1SoundSeconds = P1SoundSeconds;
+        // s224: I Apple II's combat field (the ORIGINAL SCREENS switch and a pack with apple2_field and its index).
+        _combatUi.AppleField = () => _session is { Game: GameId.P1 } && CurrentGameSettings.OriginalScreens
+                                     && assets?.Apple2FieldArt is not null ? assets.Pack?.Apple2Field : null;
         _combatUi.P1ClockMs = () => Environment.TickCount64; // the Amiga's CurrentTime runs from boot (h80 +0xd2a's wrap, s136)
         // s136: II ST's round line by line with its sounds (the pack's combat_lines), paced by the game's COMBAT SPEED.
         _combatUi.P2Lines = () => _session is { Game: GameId.P2 } ? assets?.Pack?.StCombatLines : null;
@@ -1127,6 +1130,7 @@ public partial class Game1 : Game
         _updateSeconds = gameTime.TotalGameTime.TotalSeconds;
         UpdateRewardScene(_updateSeconds);
         UpdateC64EndScreens(_updateSeconds); // s223: the C64's ending and party wipe run by themselves
+        UpdateApple2EndScenes(_updateSeconds); // s224: the Apple II's CEMETARY / FLASH? replayed
         UpdateVictoryScreen(_updateSeconds);
         UpdateP1DefeatScreen(_updateSeconds); // s153: I Amiga's defeat screens run by themselves
         UpdateP1DosDefeat(_updateSeconds); // s154: I DOS's defeat lines run by themselves (5.00 s each)
@@ -1781,6 +1785,8 @@ public partial class Game1 : Game
         }
         else if (_combatUi.FieldRun is not null)
             UiOverlays.DrawCombatField(_spriteBatch, _pixel, _assets, _combatUi); // III Amiga: the whole screen (s117)
+        else if (_combatUi.AppleRun is not null && !_showInventory && !_showBestiary)
+            UiOverlays.DrawApple2Field(_spriteBatch, _pixel, _assets, _combatUi); // I Apple II's round (s224)
         else if (_combatUi.AmigaOrdersShown && !_showInventory && !_showBestiary)
             UiOverlays.DrawCombatOrders(_spriteBatch, _pixel, _assets, _session, _data, _combatUi,
                 _mouse.LeftDown ? _mouse.Position : null); // III Amiga's orders screen (s118)
@@ -1827,7 +1833,7 @@ public partial class Game1 : Game
             var scene = false;
             if (_confirm.Owns(prompt))
                 UiOverlays.Hits?.Clear(); // s160: III's Are-you-sure question over the street / Guild: only its answers click
-            if (DrawC64EndScreens(prompt))
+            if (DrawC64EndScreens(prompt) || DrawApple2EndScenes(prompt))
             {
                 scene = true; // s223: the C64's ending / party wipe, no box
                 _defeatSceneLines = null;
@@ -2398,7 +2404,9 @@ public partial class Game1 : Game
     /// </summary>
     private void HandlePrompt(KeyboardState keys, GamePadState pad, SessionPrompt prompt)
     {
-        if (HandleC64EndScreenKeys(prompt)) // s223: the C64's end screens read no key
+        if (HandleC64EndScreenKeys(keys, pad, prompt)) // s223 / s224: the C64's end screens read a key only where the C64 does
+            return;
+        if (HandleApple2EndSceneKeys(keys, pad, prompt)) // s224: the Apple's scenes latch keys for their GETs
             return;
         if (HandleP1DefeatKeys(keys, pad, prompt))
             return;

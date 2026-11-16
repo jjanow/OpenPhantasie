@@ -686,6 +686,22 @@ public sealed partial class CombatPresenter
     /// <summary>The round on the field now (its lines, then its flashes), or null.</summary>
     public CombatFieldRun? FieldRun { get; private set; }
 
+    /// <summary>
+    /// s224: I Apple II's combat field (<see cref="Apple2FieldRun"/>; GRAPHICS.md section 7): the layout when each round
+    /// plays on the Apple's field (the game's ORIGINAL SCREENS switch and a pack with <c>apple2_field</c>), else null (the
+    /// remaster's screen). Set by the front end. The orders stay on the remaster's screen (the Apple's are a text page).
+    /// </summary>
+    public Func<Apple2FieldLayout?>? AppleField { get; set; }
+
+    /// <summary>s224: the Apple field's round now, or null.</summary>
+    public Apple2FieldRun? AppleRun { get; private set; }
+
+    /// <summary>s224: who stood on the Apple field when <see cref="AppleRun"/>'s round began.</summary>
+    public Apple2FieldSnapshot? AppleSnapshot { get; private set; }
+
+    /// <summary>s224: the Apple field's state now, or null when no round plays on it.</summary>
+    public Apple2FieldRun.State? AppleShown => AppleRun?.At(_clockMs - _fieldStartMs);
+
     /// <summary>Who stood on the field when <see cref="FieldRun"/>'s round began.</summary>
     public CombatFieldSnapshot? FieldSnapshot { get; private set; }
 
@@ -707,6 +723,8 @@ public sealed partial class CombatPresenter
         _p2EndsFight = false;
         FieldRun = null;
         FieldSnapshot = null;
+        AppleRun = null;
+        AppleSnapshot = null;
         P1Run = null;
         P1Snapshot = null;
         _fieldRound = null;
@@ -900,7 +918,7 @@ public sealed partial class CombatPresenter
             }
             return EndAnswerHold(session);
         }
-        if (!IsPresenting || (session.Mode != GameMode.Combat && FieldRun is null && P1Run is null && P2Run is null))
+        if (!IsPresenting || (session.Mode != GameMode.Combat && FieldRun is null && P1Run is null && P2Run is null && AppleRun is null))
         {
             Phase = CombatPhase.Idle;
             EndField();
@@ -926,7 +944,7 @@ public sealed partial class CombatPresenter
             return !IsPresenting;
         }
 
-        if ((FieldRun?.LengthMs ?? P1Run?.LengthMs) is { } fieldLength && _fieldRound is { } fieldRound)
+        if ((FieldRun?.LengthMs ?? P1Run?.LengthMs ?? AppleRun?.LengthMs) is { } fieldLength && _fieldRound is { } fieldRound)
         {
             if (fastForward || _clockMs - _fieldStartMs >= fieldLength)
             {
@@ -996,9 +1014,11 @@ public sealed partial class CombatPresenter
         var onField = AmigaField?.Invoke() == true;
         var onP1Field = !onField && OnP1Field;
         var p2Lines = onField || onP1Field ? null : P2Lines?.Invoke();
+        // s224: I Apple II's field (its own TIME LAG pause comes after each line, Apple2FieldRun).
+        var appleField = onField || onP1Field || p2Lines is not null || session.Game != GameId.P1 ? null : AppleField?.Invoke();
         // T)IME LAG (D-073); the Amiga's field has no such pause, its Speed paces the lines instead (II ST: its Speed menu,
         // manual: no Time lag for Atari users).
-        var delay = onField || onP1Field || p2Lines is not null ? 0 : ClientSettings.RoundDelayMs(_settings.TimeLag);
+        var delay = onField || onP1Field || p2Lines is not null || appleField is not null ? 0 : ClientSettings.RoundDelayMs(_settings.TimeLag);
         _accumMs += elapsedMs;
         if (_accumMs < delay)
             return false;
@@ -1007,6 +1027,8 @@ public sealed partial class CombatPresenter
         var living = session.Party.Members.Where(m => m.Status != CharacterStatus.Dead).ToList();
         var snapshot = onField && session.Combat is { } before ? CombatFieldSnapshot.Of(session.Party, before) : null;
         var p1Snapshot = onP1Field && session.Combat is { } p1Before ? P1CombatFieldSnapshot.Of(session.Party, p1Before) : null;
+        var appleSnapshot = appleField is not null && session.Combat is { } appleBefore
+            ? Apple2FieldSnapshot.Of(session.Party, appleBefore) : null;
         _p2RanksBefore = p2Lines is not null && session.Combat is { } p2Before
             ? p2Before.Ranks.Select(r => (IReadOnlyList<Monster>)r.Members.Where(m => m.IsAlive).ToList()).ToList()
             : null;
@@ -1015,6 +1037,17 @@ public sealed partial class CombatPresenter
         if (p1Snapshot is not null)
         {
             StartP1Field(session, p1Snapshot, round, mark);
+            DrainLog(session);
+            if (round.EncounterOver && round.PartyWon)
+            {
+                LastLine = UiText.S("combat.victory");
+                Push(LastLine);
+            }
+            return false;
+        }
+        if (appleField is not null && appleSnapshot is not null)
+        {
+            StartAppleField(session, appleField, appleSnapshot, round, mark);
             DrainLog(session);
             if (round.EncounterOver && round.PartyWon)
             {
@@ -2083,6 +2116,26 @@ public sealed partial class CombatPresenter
         _fieldRound = round;
         _fieldStartMs = _clockMs;
         FieldRunSerial++;
+    }
+
+    /// <summary>
+    /// s224: put the round just resolved on I Apple II's field: its lines with their tags and hits, then what the session
+    /// noted after them (and the victory line on a win), each paced by the game's TIME LAG.
+    /// </summary>
+    private void StartAppleField(GameSession session, Apple2FieldLayout layout, Apple2FieldSnapshot snapshot,
+        CombatResult round, long mark)
+    {
+        var scene = session.PendingRewardScene?.Lines;
+        var noted = session.LogSince(mark);
+        var after = noted.Skip(round.Log.Count).Where(l => scene is null || !scene.Contains(l)).ToList();
+        if (round.EncounterOver && round.PartyWon)
+            after.Add(UiText.S("combat.victory"));
+        var log = round.Log.Select(l => scene is not null && scene.Contains(l) ? "" : l).ToList();
+        AppleSnapshot = snapshot;
+        AppleRun = Apple2FieldRun.Plan(layout, log, round.LineTags, round.Hits, after, snapshot, _settings.TimeLag,
+            _settings.Sound);
+        _fieldRound = round;
+        _fieldStartMs = _clockMs;
     }
 
     /// <summary>

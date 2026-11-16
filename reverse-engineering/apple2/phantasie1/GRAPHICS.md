@@ -20,12 +20,12 @@ Code: `src/OpenPhantasie.Importer/Pipelines/P1Apple2/P1Apple2Art.cs` (I's steps)
 |---|---|---|
 | Monsters (80, two poses), party figures, overworld tiles, dungeon marks, spell effects | `SHAPES` (side A, 2,930 B at $451F; INTRO 5 points $E8/$E9 there, line 30 RECALLs it) | Applesoft shape table, **58** shapes |
 | Title picture | `HPIC` (side A, 8,192 B at $2000; INTRO 1000 RECALLs it onto hi-res page 1, 1010 shows it full-screen, 1276 waits for a key) | raw hi-res page |
-| Party wipe | `CEMETARY` 400–680: shapes 19 / 20 / 21 / 22 at ROT 8–56, SCALE 1–2 (the fallen party), shapes 5 / 6 XDRAWn in turn (dancing monsters), then the Astral Plane: an HPLOT temple, the party as shape 19 + 20, shapes 11 (SCALE 3, HCOLOR 6) and the demon, shape 18 (SCALE 4, HCOLOR 2) | procedural BASIC: not extracted `[~]` |
-| Ending (Zeus) | `FLASH?` (side B, run by DUNGON 4300): a ground line, HPLOT lightning (1000–1030) flashed with speaker clicks, the party as SCALE 2 figures (2000), Zeus = shape 9 at SCALE 4, HCOLOR 5 (110), screen flashes (2100) | procedural BASIC: not extracted `[~]` |
+| Party wipe | `CEMETARY` (side A; OUTDOORS 4200, DUNGON 4205): the fallen party (shapes 19–22 at ROT 8–56), the dancing monsters (5 / 6), the Astral Plane's temple, the party row (19 + 20), the gargoyles (11) and the demon (18) | procedural BASIC: replayed from its statements (section 8, s224) |
+| Ending (Zeus) | `FLASH?` (side B, DUNGON 4300 after monster 72): ground line, HPLOT lightning, the party (arm 20 + own body at SCALE 2), Zeus (shape 9, SCALE 4, HCOLOR 5), page-2 flashes, thunder | procedural BASIC: replayed (section 8, s224) |
 | Town, Guild, shops, scrolls, messages | TOWN is a TEXT page (TOWN has no DRAW / HPLOT); scrolls are text-page dumps (`FORMAT.md` 3.8) | none |
 | Item / find / trap pictures | none: OUTDOORS / DUNGON print text only for finds, traps, stairs and locks | none |
 | Text | the Apple II character ROM | not on the disks: the remaster's 5×7 font |
-| Sound | speaker clicks (`CALL 770` with 768 / 769, `INFO` at $302, as II) | not decoded `[?]` |
+| Sound | speaker clicks (`CALL 770` with 768 / 769, `INFO` at $302, as II): the routine decoded (section 8.3) | `FLASH?`'s thunder played; combat's (OUTDOORS / DUNGON 7570–7575) not, the field (section 7) is silent `[~]` |
 
 ## 2. Shape table `[C]`
 
@@ -76,7 +76,7 @@ II's Apple pack's layout (the same engine), with I's files:
 - `tile_maps`: tiles 7 × 6, view 22 × 20 cells (the Apple shows its whole 20 × 26 map, rotated against the remaster's
   26 × 20 grid, FORMAT.md 3.6; the pack follows the remaster's grid), dungeon glyphs 4 × 4 by II's cell ranges.
 - Font: `remaster-5x7`. Screen: the remaster's 320 × 200 layout, Apple pixels 1:1.
-- No `town.backdrop`, item / event pictures, `ending.final` or `defeat.*`: the Client's plain screens stand in.
+- No `town.backdrop`, item / event pictures, `ending.final` or `defeat.*`; the end scenes are `apple2_scenes` (section 8).
 - `index.json`: `default_order` amiga, c64, apple2: the Amiga stays I's default, then the C64; with neither imported the
   Apple's pack is drawn (`Phantasie1AppleIIPackTests`).
 - Import: `P1Apple2Pipeline` runs the art through `ImportContext.TryOptional` after the tables and text, whichever copy's
@@ -84,12 +84,170 @@ II's Apple pack's layout (the same engine), with I's files:
 
 ## 6. Open
 
-- `[~]` The party figure is race-keyed: a HUMAN / ELF MONK, PRIEST or WIZARD shows body 19, not the Apple's robed 27
-  (`figures/` has all four bodies × three poses). Needs a race + class portrait key in the Client.
-- `[~]` CEMETARY's party wipe (ROT 8–56 bodies, dancing monsters, the Astral Plane temple and demon) and FLASH?'s Zeus
-  scene are BASIC drawings: not replayed (the first needs ROT support in the rasterizer; the Astral Plane and Zeus parts
-  are ROT 0 and could be drawn from the listing). The Client draws DOS's text pages there.
-- `[?]` Speaker sounds (`CALL 770`, FLASH?'s DATA 1105) and the FOR-loop pauses (combat effects 500 loops, FLASH? 500 /
-  5000) not timed.
+- `[~]` The party cards (Guild, map, the remaster's combat screen) are race-keyed: a HUMAN / ELF MONK, PRIEST or WIZARD
+  shows body 19, not the Apple's robed 27 (`figures/` has all four bodies × three poses). The combat field (section 7)
+  draws the right body by race and class.
+- The end scenes' `[~]`: section 8.5. Combat's speaker sounds and FOR-loop pauses (OUTDOORS / DUNGON) are decodable with
+  section 8's routine and trace; the combat field (section 7) still uses its own `loop_ms` / `sparkle_ms` `[?]` and plays
+  no speaker sound `[~]`.
 - `[~]` The colour model is an emulator-style approximation; colour fringes per screen column not shown (one look per
   picture).
+
+## 7. Combat field (s224) `[C]`
+
+OUTDOORS and DUNGON hold the same combat lines (I's 1000–2006 differ only in odds and texts, not in drawing; II's
+`OUTDOORS2` / `DUNGON2` are the same drawing lines but 4132, see the top). A fight has two screens:
+
+- **The status and orders: a TEXT page** (1000–1470): `TEXT : HOME`, the party table (# NAME ATTACKS MAGIC HIT PTS
+  STATUS), `RANK n  k NAME(S)` lines, PARTY OPTIONS 1)FIGHT … 5)FLEE, then INDIVIDUAL OPTIONS member by member. The
+  Client keeps the remaster's combat screen there.
+- **The round: the mixed hi-res screen** (1560 `POKE -16304,0 : POKE 34,20` to 2005 `GOTO 1000`): graphics rows 0–159,
+  the four text rows 20–23 below. The set-up (4790–4811, once per OUTDOORS / DUNGON run) draws white lines at y 0 and
+  y 159 across the screen and x 138 down, the party row, and clears x 139–279 (the map / dungeon marks go there). So
+  the field is x 0–137; the map stays beside it during the round.
+
+What the round draws:
+
+| What | Where | Lines |
+|---|---|---|
+| Party row | slot PM's body (`FN P(168)`, TOWN 2350–2356: section 2.1) + arm 20, SCALE 1, HCOLOR 3, DRAW at (19·PM, 158); a member DEAD at the set-up is erased and not drawn (its slot stays empty); a parry that took (1430–1435, `IN% = 3`) gets arm 21 | 1525–1536, from 1520 at each round |
+| Monster ranks | groups sorted by size each round (1047–1050: biggest first); rank 1 at y 135, rank 2 at 135 − YS%(rank 1), rank 3 at that − YS%(rank 2), 0 if that is ≤ 0; monster Y of a group of GN% + 1 living at x = INT(H% + Y·120 / (GN% + 1)), SCALE C%, HCOLOR H% | 1480–1500, 1540–1550 |
+| The round start's erase | at the status page (1018 `HCOLOR = 0`, 1030) every monster is erased in both poses before the dead are dropped from the groups (1040–1046), so the next round's 1550 re-spaces the living | 1018–1046 |
+| A member's swing | arm 20 erased, arm 22 drawn, before "HITS" / "MISSES"; it stays until the next round's 1525 | 1695 |
+| A member's cast | "X CASTS A SPELL", then arm 21 (stays to the round's end), shape 23 XDRAWn at (19·PM + 19, 136), the four cast tones (7570), shape 23 XDRAWn again (off) | 1750–1764 |
+| A monster's swing or special | pose A erased, pose B (S% + 1) drawn (2006, from 1895 before a melee and 1940 before a spell / breath); stays to the round's end. A third-rank monster with YS% < 40 does not swing (1891) | 2006 |
+| Spell hit | after "TAKES n DAMAGE" from a party damage spell (`SP = 1`, set by the spell routines 2050 …), shape 24 XDRAWn on the monster at its SCALE, 500 empty loops, XDRAWn again | 4132 |
+| A monster's death | "X DIES", then both poses erased | 4140–4145 |
+| A member's death | "X DIES" only (4020): the figure stays drawn until 1530 skips the dead at the next set-up | 4020 |
+| Text window | HOME at each member's turn (1610), each swing (1690) and each monster's turn (1860); the rows scroll past four | |
+| Pauses | `FOR PS = 1 TO PA` after most lines (PA = 120 × TIME LAG, 361 / 7560: the T)IME LAG command's digit); the tones (`CALL 770`, 7570) are skipped with the sound off (NS = 1) | |
+
+Not drawn: no grave, no flash of the screen for a hit (only 2065, the party's fire spells, toggles page 2 / page 1 with a
+click per `SQR(damage)`: `POKE -16299 / -16300`, page 2 holds whatever is there `[~]`), no rank or monster names.
+
+The remaster (`apple2_field` in `apple2.json`, `Apple2FieldLayout`; the Client's `Apple2FieldRun` /
+`UiOverlays.DrawApple2Field`; tests `Apple2FieldTests`): with the ORIGINAL SCREENS switch on, each round plays on this
+field (the Apple's 280 × 192 screen at (20, 4) of the 320 × 200 screen), the status and orders stay the remaster's
+screen. The import (recipe 3) also draws shape 24 at every SCALE a monster record holds (`effects/24-spell-hit-scale-N.png`);
+H%, SCALE, YS% and the DRAW points come from `extraction-index.json` (the Apple's data: the shipped tables hold DOS's YS%).
+Differences, all `[~]` / `[?]`:
+
+- The right half (the map) is drawn black; the Apple keeps the map there.
+- Core's rank order stands for the Apple's size sort (1047); Core's round order and texts are DOS's (the field shows
+  whatever Core's round prints, in the Apple's place and poses).
+- One pause a line (TIME LAG × 120 loops at `loop_ms` 1 ms a loop, a rule of thumb for an empty Applesoft FOR / NEXT
+  pass `[~]`), none after a "HITS" swing line (its damage line follows at once); the Apple pauses per swing / damage /
+  special, after their lines.
+- The cast tones' length (`sparkle_ms` 300) is a guess `[?]` (`CALL 770` not decoded); with the Sound switch off the
+  sparkle is not shown (7570 returns at once).
+- XDRAW is an exclusive-or: the hit and the sparkle are drawn over the picture, not XORed with it; colours per screen
+  column are the extract's (one look per picture).
+- 2065's page flip for the fire spells is not shown.
+- Not compared with an Apple II emulator (none is set up: MAME is not installed and needs the Apple II ROMs).
+
+II's Apple pack (same field code) and III's (its own field: `MONSTER PLOT` sprites, arms at (19·slot + 147, 198 − 8·row),
+`../phantasie3/GRAPHICS.md` sections 2–3) still play combat on the remaster's screen.
+## 8. End scenes: `CEMETARY` and `FLASH?` (s224)
+
+Both are short Applesoft programs that draw with HPLOT / DRAW / XDRAW, print in the four text rows under the graphics
+(mixed mode) and wait with FOR loops and GETs. The remaster replays them statement by statement: the import writes the
+game's shape table (`scenes/shapes.bin` = `SHAPES`) and a page-2 image (`scenes/page2.bin`), the pack's `apple2_scenes`
+lists the statements with the interpreter's time for each, and the Client runs them on a hi-res page model
+(`OpenPhantasie.Data.Apple2Hires`, `Apple2Scene`) under ORIGINAL SCREENS. Code: importer
+`Pipelines/P1Apple2/P1Apple2Scenes.cs`; Client `Game1.Apple2EndScenes.cs`, `Apple2SceneView.cs`,
+`Audio/Apple2SpeakerRenderer.cs`. Line numbers are `a2_applesoft.py`'s listing.
+
+### 8.1 How it was read `[C]`
+
+- **The ROM's drawing.** DRAW / XDRAW with ROT (the fallen party uses ROT 8–56) and HPLOT TO are the Apple II+ ROM's
+  routines, ported as the ROM runs them: `DRAW` $F601 / `XDRAW` $F65D (ROT / 16 = quadrant; the cosine table at $F5BA
+  gives each vector a major and a minor step, each carry plotting then moving, so SCALE 1 and 2 rotate unevenly), the
+  cursor moves $F465–$F52E (left / right wrap within the row; up / down step the base address the ROM's way), `HPLOT TO`
+  $F53A, `HPOSN` $F411 (the colour byte swapped on odd byte columns), `HCLR` $F3F2. XDRAW inverts the seven pixel bits
+  only (never the colour bit). Checked: 150 random DRAW / XDRAW / HPLOT sequences byte-equal to the ROM's own code run in
+  a 6502 emulator (py65).
+- **The programs.** `tools/scripts/a2_basic_trace.py` boots the Apple II+ ROM to Applesoft in py65 (a 12 KiB ROM image
+  and py65 kept outside the repo), puts the machine in the state the game leaves (TXTTAB $5101 as HELLO sets it,
+  `SHAPES` at $451F, `INFO` at $302, HPAG page 1), pokes a party at SA = 16385, loads the program and RUNs it; every GET
+  is answered at once. It logs every statement's start, the soft switches, key waits and speaker clicks in 6502 cycles
+  (1.020484 MHz). `tools/scripts/a2_p1_end_scenes.py` turns two CEMETARY runs and a FLASH? run into the steps (each
+  statement's time = until the next one starts). Test `P1Apple2ScenesTests`: the replayed page equals the ROM run's
+  (sha1) at eight points (CEMETARY 550, 600, 665, 690; FLASH? 20, 100, 122, 160) for a party of four with bodies 19 /
+  25 / 26 / 27. (py65 counts `DEC abs` as 3 cycles; the 6502 takes 6: corrected for the runs.)
+
+### 8.2 What the programs do `[C]`
+
+**CEMETARY** (party wipe; 42.4 s for four members without the key waits):
+
+| Lines | Does | Time |
+|---|---|---|
+| 80–340 | HOME, CALL 62450 (clear page 1); the members' names from bytes 131–140 | 1.56 s (depends on the names `[~]`) |
+| 400–530 | the fallen party: shape 19 at ROT 8 (SCALE 2) twice, 7s, 19 at the top (240, 0 / 130, 0: drawn upward from row 0, so the ROM's up-step leaves the page: only the bits it still steps onto the screen show, as the replay draws them), lines at rows 159 and 0, 19 + 21 / 22 / 20 at ROT 32 / 16 / 56 (SCALE 1), 19 at ROT 48 and 36 (SCALE 2) | 0.6 s; visible as drawn when OUTDOORS ran it; DUNGON 4200 switched to TEXT for its INSERT BOOT DISK page first, so there the field appears at 550 `[~]` |
+| 540 | VTAB 24: [original text] / [original text] (the window scrolls: rows 22–23) | |
+| 550–580 | POKE -16304 (graphics); 70 passes of XDRAW 6 at y 40 and DRAW 5 at y 50 for X = 100, 130, 160, then XDRAW 5 and DRAW 6. The first pass shows both; from then on 5 (y 50) and 6 (y 40) take turns: the monsters jump | 21.3 s (0.304 s a pass) |
+| 600 | CALL 62450, TEXT, HOME: a blank text page while 610–660 draw unseen | 0.55 s |
+| 610–665 | the temple (HPLOT), the party row (shape 19 + 20 at X = 65 TO 185 STEP 120 / (PO + (PO = 0)): every member as the fighter body, a lone member twice), the gargoyles (shape 11, SCALE 3, HCOLOR 6, each twice a pixel apart), then POKE -16304: the whole picture at once | |
+| 667–670 | [original text] (the Apple's spelling), FOR 9000 | 8.96 s |
+| 680–700 | the demon (shape 18, SCALE 4, HCOLOR 2); HOME, [original text], FOR 7000 | 7.06 s |
+| 710–1500 | per member: name YOU HAVE BEEN, then DESTROYED (750: and 54 record bytes zeroed), RESURRECTED (900) or a return and [original text] (1100); GET; HOME; VTAB 24 | 0.67 / 0.10 / 0.15 s before the GET, 0.02 s after |
+| 1550–1560 | the party state reset, HGR, `& RUN "OUTDOORS"` (Pelnor) | 0.36 s |
+
+The Apple's own fate rule (725–740: P(4) < 1 destroyed; P(54) > RND·4 + 2 resurrected; P(54) > RND·3 undead; else
+destroyed) is not used: the remaster prints Core's fates (DOS's rule) in the Apple's words with the Apple's time for that
+path, as the C64's replay does.
+
+**FLASH?** (ending; 15.9 s for four members without the key waits):
+
+| Lines | Does | Time |
+|---|---|---|
+| 10–15 | HOME, HGR (graphics, mixed, page 1, cleared), the ground line (HPLOT 0,159 TO 279,159), FOR 500 | 0.82 s |
+| 20–25 | lightning: GOSUB 1010 / 1030 draw a bolt (HPLOT, 9 points, HCOLOR 3) and erase it (the same in HCOLOR 0); GOSUB 1100 the thunder; FOR 500 pauses between: bolt 1, thunder, bolt 2, thunder, three pauses, bolt 2, thunder, two pauses, bolt 1, thunder, two pauses | 6.3 s; a bolt shows for its 0.09–0.10 s draw |
+| 30–50 | the party: per member DRAW 20 (arm) and DRAW P(168) (its own body) at SCALE 2, x = 35 + PM · 180 / PO (120 alone), y 159 | 0.34 s for four |
+| 100 | VTAB 24: [original text]; GET | |
+| 110–120 | Zeus (shape 9, SCALE 4, HCOLOR 5 at 101, 80); twice: HOME, ten flips to hi-res page 2 and back (POKE -16299 / -16300: 6.9 ms page 2, 8.2 ms page 1), the thunder | 1.45 s |
+| 122–125 | [original text] (3 spaces in), FOR 5000 | 4.9 s |
+| 130 | VTAB 23: [original text] / [original text] / [original text] (2, 4, 2 spaces in; the last without a return); GET | |
+| 135 | bolt 1 and its thunder, bolt 2 and its thunder: the erase in HCOLOR 0 cuts black gaps into Zeus and the figures and clears the colour bit of the bytes it crosses (Zeus's orange turns green there) | 1.43 s |
+| 140–175 | items 177–179 to the party's pool, byte 42 := 100 and the divine spell flag (byte 120) per member, the party to OUT19 (13, 18) (Olympus): not used, Core's victory (DOS's rule) goes on | |
+| 160–200 | HGR (cleared), TEXT, INSERT BOOT DISK AND PRESS A KEY, `& RUN "OUTDOORS"` | the replay ends after the HGR |
+
+### 8.3 The speaker (`INFO` at $302, `CALL 770`) `[C]`
+
+`$302 LDA $C030` (a click: the speaker cone flips) · `DEY` · `BNE $30D` · `DEC $301` · `BEQ $316` (RTS) · `$30D DEX` ·
+`BNE $305` · `LDX $300` · `JMP $302`. So $300 (POKE 768) is the pitch: a click every 10 · pitch + 10 cycles (7 more
+when Y wraps); $301 (POKE 769) the length: done after duration · 256 DEYs. FLASH? 1100 READs 15 pairs of DATA 1105
+((1,1), (250,4), (1,1), (1,1), (255,7), (255,7), (1,4), (230,4), (1,5), (1,6), (210,3), (1,7), (1,9), (160,2), (1,9))
+and CALLs 770 for each, entered with X = 157, Y = 2 (what Applesoft's CALL leaves): 7810 clicks in 0.52 s, a crackle
+(pitch 1: a click every 20 cycles) with a few low knocks (pitch 160–255: about 200 Hz). The model's clicks equal the
+emulator's to the cycle (`Apple2EndSceneTests`). The Client renders them as a two-level cone signal, box-filtered to
+44.1 kHz with a DC block `[~]` (the speaker's analogue response is not modelled); the Sound switch silences it.
+OUTDOORS / DUNGON 7570–7575 (combat) use the same routine with four pairs each (P1–P4, D1–D4): decoded by this, not
+played (the combat field, section 7, plays no speaker sound) `[~]`.
+
+### 8.4 In the remaster
+
+- `apple2_scenes.defeat` / `.ending`: steps `{op, …, s}`; `repeat` (the dance), `party` (`xs` by party size, `shapes`
+  with 0 = the member's body from `bodies`, TOWN 2350–2356: races 7+ 26, small races 25, HUMAN / ELF 19 or 27 for a
+  MONK / PRIEST / WIZARD), `fates`, `flash`, `sound` (`sounds.thunder`: the 15 calls with their start times).
+- The Client: the party wipe answers Core's first two prompts at once and runs CEMETARY on the outcome with Core's
+  fates; FLASH? runs on the victory prompt with the party's members (the elemental left out), then Core's ending goes on
+  (Pelnor). A key, a click or the pad's A / D-pad is latched for the next GET, as the Apple's keyboard strobe holds a key
+  (a key pressed during the dance answers the first fate at once). 280 × 192 centred on the 320 × 200 screen; text in
+  the remaster's 5 × 7 font on 7 × 8 cells. Seen on Xvfb: `parity/s224-p1-apple2-endings-live.md`.
+- Text: 13 string ids (`apple2.defeat.*`, `apple2.ending.*`) whose `p1-apple2` alternatives point into CEMETARY /
+  FLASH? (`tools/scripts/p1_apple2_scene_text.json`); the public repo ships them as "...", an Apple import writes them.
+
+### 8.5 Open
+
+- `[~]` Times are the interpreter's for the traced party (names and bodies change them by milliseconds; the name loop
+  of CEMETARY 320–340 by up to a second); a statement's drawing appears at its start, not pixel by pixel.
+- `[~]` Page 2 (FLASH? 2100) is memory $4000–$5FFF: `scenes/page2.bin` holds `SHAPES` at $451F and FLASH? at $5101;
+  the party records ($4001…), the variables and DUNGON's leftovers after FLASH? are not known and stay 0, and the text
+  rows (text page 2) show blank. Each flip lasts 7–8 ms: at 60 frames a second a flash is a frame or two.
+- `[~]` CEMETARY run from DUNGON (text mode until 550) is drawn as from OUTDOORS; DUNGON's / FLASH?'s INSERT BOOT DISK
+  pages are not shown.
+- `[~]` Text in the remaster font, not the Apple's character ROM (not on the disks); no flashing cursor.
+- `[~]` `scenes/shapes.bin` / `page2.bin` exist only in an import's `files/` (the committed extract has no `scenes/`):
+  a dev build that finds the pack in the repo without an Apple import draws the plain end screens.
+- `[U]` FLASH?'s speech promises THREE GIFTS (items 177–179, 140) and the Apple puts the party on Olympus; Core runs
+  DOS's victory (DIVINE I only, then Pelnor). The Apple's ARIVED is printed as spelled. Both for the user.

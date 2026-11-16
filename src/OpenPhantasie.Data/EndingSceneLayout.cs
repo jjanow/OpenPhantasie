@@ -81,6 +81,9 @@ public sealed record EndingSceneLayout(
     /// <summary>s223: the C64's own ending (I: <c>P.END</c>'s steps, <see cref="C64EndingLayout"/>), or null.</summary>
     public C64EndingLayout? C64 { get; init; }
 
+    /// <summary>s224: II C64's own ending (<c>WIN</c>'s steps, <see cref="C64WinLayout"/>), or null.</summary>
+    public C64WinLayout? C64Win { get; init; }
+
     /// <summary>
     /// s223 (II C64 <c>WIN</c>): the presented member's figure is drawn in its attacking pose in this palette colour in its
     /// place in the row (no stage), or null.
@@ -141,6 +144,7 @@ public sealed record EndingSceneLayout(
             IntroPage = dto.IntroPage is { } ip ? EndingPage.FromDto(ip, Bad, manifestPath) : null,
             ClosingPage = dto.ClosingPage is { } cp ? EndingPage.FromDto(cp, Bad, manifestPath) : null,
             C64 = dto.C64 is { } c64 ? C64EndingLayout.FromDto(c64, Bad) : null,
+            C64Win = dto.C64Win is { } win ? C64WinLayout.FromDto(win, Bad) : null,
             PresentColour = dto.PresentColour is int pc ? pc is >= 0 and <= 15 ? pc : throw Bad("present_colour 0..15") : null,
             RowFromStart = dto.RowFromStart,
             RowLeft = dto.RowLeft,
@@ -178,6 +182,7 @@ public sealed record EndingSceneLayout(
         public List<string?>? Speech { get; set; }
         public string? Font { get; set; }
         public C64EndingLayout.Dto? C64 { get; set; }
+        [JsonPropertyName("c64_win")] public C64WinLayout.Dto? C64Win { get; set; }
         [JsonPropertyName("present_colour")] public int? PresentColour { get; set; }
         [JsonPropertyName("row_from_start")] public bool RowFromStart { get; set; }
         [JsonPropertyName("row_left")] public int? RowLeft { get; set; }

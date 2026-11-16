@@ -300,11 +300,13 @@ internal sealed class A2Graphics
     /// the monsters by their MN records (25 fields, <see cref="A2Tables.MonsterFields"/>), party figures and race
     /// portraits, overworld tiles 0–255 (<paramref name="terrains"/>: the file labels of classes 0–11), the dungeon
     /// marks and <paramref name="effectShapes"/>; then <paramref name="title"/> fills the screens and
-    /// <c>extraction-index.json</c> is written.
+    /// <c>extraction-index.json</c> is written. <paramref name="scaledHits"/> (s224, I's combat field): the spell hit is
+    /// also drawn at every other SCALE a monster record holds (4132 XDRAWs it at the monster's SCALE).
     /// </summary>
     internal void RunShapes(ShapeTable table, List<List<byte[]>> recs, IReadOnlyList<string> terrains,
-        IReadOnlyList<(int Shape, string Use)> effectShapes, Action<JsonObject> title, string source)
+        IReadOnlyList<(int Shape, string Use)> effectShapes, Action<JsonObject> title, string source, bool scaledHits = false)
     {
+        var scales = new SortedSet<int>();
         JsonObject shapes = new(), monsters = new(), figures = new(), portraits = new(), tiles = new(), dungeon = new(),
             effects = new(), screens = new();
         for (var n = 1; n <= table.Count; n++)
@@ -320,6 +322,7 @@ internal sealed class A2Graphics
             var file = $"{i:D2}-{Slug(name)}.png";
             var idle = Render(table, [(s, h)], h, c, $"monsters/idle/{file}");
             var act = Render(table, [(s + 1, h)], h, c, $"monsters/attacking/{file}");
+            scales.Add(c);
             monsters[i.ToString()] = J.O(("name", name), ("shape", s), ("scale", c), ("hcolor", h),
                 ("group_height", Field("a2_group_height")), ("idle", idle), ("attacking", act));
         }
@@ -363,6 +366,14 @@ internal sealed class A2Graphics
             var e = Render(table, [(n, 3)], 0, 1, $"effects/{n:D2}-{what}.png");
             e["use"] = what;
             effects[n.ToString()] = e;
+            if (!scaledHits || what != "spell-hit")
+                continue;
+            foreach (var scale in scales.Where(c => c != 1))
+            {
+                var big = Render(table, [(n, 3)], 0, scale, $"effects/{n:D2}-{what}-scale-{scale}.png");
+                big["use"] = what;
+                effects[$"{n}.scale-{scale}"] = big;
+            }
         }
 
         title(screens);

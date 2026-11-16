@@ -21,7 +21,10 @@ public static class P1Apple2Art
     /// <summary>I's programs name no terrain (II's OUTDOORS2 line 120 does): the files are labelled by class.</summary>
     private static readonly string[] TerrainLabels = [.. Enumerable.Range(0, 12).Select(t => $"class-{t:D2}")];
 
-    /// <summary>The effects I draws (OUTDOORS / DUNGON 1762 / 1764 and 4132); there is no shape 59 (II's rock).</summary>
+    /// <summary>
+    /// The effects I draws (OUTDOORS / DUNGON 1762 / 1764 and 4132); there is no shape 59 (II's rock). s224: the spell hit
+    /// also at each monster SCALE (the combat field XDRAWs it at the monster's SCALE, 4132).
+    /// </summary>
     private static readonly (int Shape, string Use)[] Effects = [(23, "spell-sparkle"), (24, "spell-hit")];
 
     public const string TitleFile = "screens/title.png";
@@ -43,7 +46,7 @@ public static class P1Apple2Art
             },
             "Phantasie I Apple II (VERSION 1.0) side A: SHAPES ($451F, 58 shapes), HPIC (hi-res page), MN0..MN9 " +
             "(monster shape / scale / hcolor). The p1-apple2 import (P1Apple2Art); notes " +
-            "reverse-engineering/apple2/phantasie1/GRAPHICS.md.");
+            "reverse-engineering/apple2/phantasie1/GRAPHICS.md.", scaledHits: true);
         return gfx;
     }
 
@@ -51,6 +54,7 @@ public static class P1Apple2Art
     public static void Import(ImportContext context)
     {
         Build(context.Files, context);
+        P1Apple2Scenes.Write(context);
         context.WriteGameDataBytes(GameId, "graphics/apple2.json", PyJson.SerializeUtf8(P1Apple2ArtManifest.Pack(), 2, ensureAscii: true));
     }
 }

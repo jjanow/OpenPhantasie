@@ -55,12 +55,10 @@ public static class P2C64ArtManifest
                 "(TLUM1: 7 expanded green sprites at screen y 110); the whole party in the row from the start (hero band at " +
                 "screen y 75, x 86 + 24 k, yellow); per member: FOR 4000 (4.17 s), the member in light red in its attacking " +
                 "pose in its place while the panel names it (1.09 s) and FOR 4000 (4.17 s), then the cheer: the crowd's " +
-                "second frame for the sound (9.92 s), then the first again (whole cheer 10.22 s). Drawn with the remaster's " +
-                "ending screen (II ST's steps): the titles on text row 21 (the C64 prints name / epithet / homeland on rows " +
-                "20-22) [~]; the header's FOR 4000 and cheer folded into the header lines and the hold (the crowd keeps its " +
-                "first frame there) [~]; the FOR 4000 before each member taken after it (grant_ticks) [~]; the C64 reads no " +
-                "key on these lines (here a key ends one) [~]; the wands prompt not drawn [~]; the closing page black on " +
-                "yellow cells (the hall's inverted characters still loaded). No fade on the C64 (fade_vbl 1); no C64 sounds."),
+                "second frame for the sound (9.92 s), then the first again (whole cheer 10.22 s). s224: drawn by c64_win " +
+                "(WIN's own steps; the remaster's ending screen fields here are its fallback, unused with c64_win). The " +
+                "closing page black on yellow cells (the hall's inverted characters still loaded). No fade on the C64; no " +
+                "C64 sounds: SID playback [?] (I's GRAPHICS.md 9.6)."),
             ("palette", C64PhantasieArtManifest.Pens()),
             ("vbl_hz", 50),
             ("fade_vbl", 1),
@@ -85,7 +83,44 @@ public static class P2C64ArtManifest
             ("intro_page", J.O(
                 ("palette", C64PhantasieArtManifest.Pens()), ("x", 8), ("y", 16), ("line_gap", 8), ("text_pen", 0),
                 ("button_pen", 0), ("background_pen", 7), ("no_button", true), ("seconds", 16.85))),
-            ("closing_page", J.O(("palette", C64PhantasieArtManifest.Pens()), ("x", 8), ("y", 8), ("line_gap", 8), ("text_pen", 0), ("button_pen", 0), ("background_pen", 7), ("no_button", true)))),
+            ("closing_page", J.O(("palette", C64PhantasieArtManifest.Pens()), ("x", 8), ("y", 8), ("line_gap", 8), ("text_pen", 0), ("button_pen", 0), ("background_pen", 7), ("no_button", true))),
+            ("c64_win", J.O(
+                ("_note", "s224 (GRAPHICS.md 8.1, WIN's compiled BASIC, timed in VICE PAL with the true drive [~]): the intro " +
+                    "page, no key, while PH2.END-4 loads (intro_seconds); the hall alone for FOR 2000 (1.74 s) and TLUM1's " +
+                    "load (7.75 s) (hall_seconds); the crowd (frame 0) and the whole party with the header lines (FILMON " +
+                    "SPEAKS - at column 2, row 20; the next PRINT at column 0, row 21); FOR 4000 (for_seconds); a cheer; per " +
+                    "presented member: FOR 4000; the member light red in its attacking pose with name / THE x ONE / FROM y on " +
+                    "rows 20-22 at INT(20 - LEN / 2); FOR 1000 (title_seconds, the prints included); FOR 4000; a cheer; the " +
+                    "member yellow again. A cheer: the panel cleared and THE CROWD GOES WILD! (column 10, row 21); the crowd's " +
+                    "pointers + 8 at cheer_frame_at for the SID cheer (cheer_frame_seconds), - 8, the panel cleared " +
+                    "(cheer_line_seconds), the next step at cheer_seconds. Only WIN's POKEs change the crowd's frame (VICE " +
+                    "s224: no interrupt alternates it). The wands prompt (FILMON SPEAKS - at column 2, row 20, the three wand " +
+                    "lines from column 0, rows 21-23, then (PRESS RET)) and the closing page each until a key. Core presents " +
+                    "the members it titles (records 0..n-1, n = OK members, the ST's rule); the C64 presents every slot [~]."),
+                ("intro_seconds", 16.85),
+                ("hall_seconds", 9.49),
+                ("crowd", J.Strs(["ending.crowd.0", "ending.crowd.1"])),
+                ("crowd_x", 0),
+                ("crowd_y", 110),
+                ("row_left", 110 - 24),
+                ("row_top", 125 - 50),
+                ("slot_size", 24),
+                ("present_colour", 10),
+                ("text_colour", 0),
+                ("header_at", new JsonArray(J.Ints([2, 20]), J.Ints([0, 21]))),
+                ("for_seconds", 4.17),
+                ("title_seconds", 1.09),
+                ("title_row", 20),
+                ("title_centre", 20),
+                ("title_word", "c64.p2.title_the_x_one"),
+                ("title_from", "c64.p2.title_from_x"),
+                ("cheer_line", J.O(("text", "c64.p2.crowd_goes_wild"), ("col", 10), ("row", 21), ("colour", 0), ("seconds", 0))),
+                ("cheer_frame_at", 0.16),
+                ("cheer_frame_seconds", 9.93),
+                ("cheer_line_seconds", 10.15),
+                ("cheer_seconds", 10.23),
+                ("wands_at", new JsonArray(J.Ints([2, 20]), J.Ints([0, 21]), J.Ints([0, 22]), J.Ints([0, 23]))),
+                ("wands_key", "c64.p2.press_ret")))),
         C64Defeat = C64PhantasieArtManifest.DefeatLayout(),
     });
 }

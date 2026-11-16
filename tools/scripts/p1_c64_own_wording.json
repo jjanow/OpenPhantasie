@@ -59,5 +59,87 @@
     ]
    ]
   }
+ },
+ "_note_only": "s224: \"only\" = lines no other version prints (the C64's own screens: \"Zeus  smiles and says\", the text page after the grant, its key prompt); build_string_sources.py adds them as plain p1-c64 alternatives (en.p1-c64.json), so they show whichever version's tables are in use; their en.json value is the C64's text.",
+ "only": {
+  "phantasie1": {
+   "c64.endgame.zeus_smiles": [
+    [
+     "P.END:petscii",
+     1828,
+     21
+    ]
+   ],
+   "c64.endgame.closing_1": [
+    [
+     "P.END:petscii",
+     2374,
+     39
+    ]
+   ],
+   "c64.endgame.closing_2": [
+    [
+     "P.END:petscii",
+     2418,
+     39
+    ]
+   ],
+   "c64.endgame.closing_3": [
+    [
+     "P.END:petscii",
+     2461,
+     39
+    ]
+   ],
+   "c64.endgame.closing_4": [
+    [
+     "P.END:petscii",
+     2504,
+     39
+    ]
+   ],
+   "c64.endgame.closing_5": [
+    [
+     "P.END:petscii",
+     2547,
+     39
+    ]
+   ],
+   "c64.endgame.closing_6": [
+    [
+     "P.END:petscii",
+     2590,
+     39
+    ]
+   ],
+   "c64.endgame.closing_7": [
+    [
+     "P.END:petscii",
+     2633,
+     39
+    ]
+   ],
+   "c64.endgame.closing_8": [
+    [
+     "P.END:petscii",
+     2676,
+     39
+    ]
+   ],
+   "c64.endgame.closing_9": [
+    [
+     "P.END:petscii",
+     2719,
+     24
+    ]
+   ],
+   "c64.endgame.closing_key": [
+    [
+     "P.END:petscii",
+     2755,
+     24
+    ]
+   ]
+  }
  }
 }

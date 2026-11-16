@@ -1,0 +1,20 @@
+{
+ "_note": "Phantasie I, Apple II v1.0 (p1-apple2, s224): the lines of the end scenes (CEMETARY, FLASH?; GRAPHICS.md 8), ids only the Apple's apple2_scenes prints. Parts as in en.sources.json: [file, offset, length] into the raw RDOS program files (the PRINT literals; leading / trailing spaces are the scene's pad / glue). build_string_sources.py gives each a p1-apple2 alternative (the table's value is the Apple's text).",
+ "strings": {
+  "phantasie1": {
+   "apple2.defeat.defeated": [["CEMETARY", 535, 29]],
+   "apple2.defeat.monsters_jump": [["CEMETARY", 568, 26]],
+   "apple2.defeat.astral": [["CEMETARY", 933, 38]],
+   "apple2.defeat.demon": [["CEMETARY", 1023, 35]],
+   "apple2.defeat.you_have_been": [["CEMETARY", 1103, 13]],
+   "apple2.defeat.destroyed": [["CEMETARY", 1192, 9]],
+   "apple2.defeat.resurrected": [["CEMETARY", 1234, 11]],
+   "apple2.defeat.undead": [["CEMETARY", 1296, 21]],
+   "apple2.ending.olympus": [["FLASH?", 298, 40]],
+   "apple2.ending.zeus_appears": [["FLASH?", 395, 26]],
+   "apple2.ending.zeus_1": [["FLASH?", 454, 28]],
+   "apple2.ending.zeus_2": [["FLASH?", 490, 22]],
+   "apple2.ending.zeus_3": [["FLASH?", 518, 28]]
+  }
+ }
+}

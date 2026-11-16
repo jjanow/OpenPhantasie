@@ -6,7 +6,7 @@ namespace OpenPhantasie.Client;
 /// <summary>
 /// s223: Phantasie I C64's ending over time (<c>P.END</c>, GRAPHICS.md 9.4), from the pack's <see cref="C64EndingLayout"/>
 /// and Core's <see cref="VictoryScene"/>. No MonoGame types: tests drive it with seconds. It reads no key (the C64 reads
-/// none until its closing page, whose text is not imported: the screen ends after the grant `[~]`).
+/// none until its closing page).
 /// <list type="number">
 /// <item>The astral line, a <c>TI</c> wait.</item>
 /// <item>A cloud per slot (every slot of the party, its status aside), rising one pixel a step, MC1 flashing.</item>
@@ -15,7 +15,9 @@ namespace OpenPhantasie.Client;
 /// when not), a wait, the hand off, a wait.</item>
 /// <item>"Zeus smiles and says" with the face talking; a wait; the speech typed a character at a time on the rows from
 /// <see cref="C64EndingLayout.SpeechRow"/>, each space a click and 16 + RND · 8 jiffies, each line's end two RND · 8 waits.</item>
-/// <item>The grant: the hand cycling its frames, the face at rest; a wait; then <see cref="Frame.Done"/>.</item>
+/// <item>The grant: the hand cycling its frames, the face at rest; a wait.</item>
+/// <item>s224: the closing page (the screen cleared, the layout's lines and its key prompt) until a key (<see cref="Key"/>);
+/// then <see cref="Frame.Done"/>. Without closing lines the screen is done after the grant.</item>
 /// </list>
 /// </summary>
 public sealed class C64EndingScreen
@@ -29,7 +31,11 @@ public sealed class C64EndingScreen
     /// <see cref="ZeusRows"/>: Zeus's bottom rows drawn. <see cref="Face"/> / <see cref="Hand"/>: the frame shown, or −1.
     /// </summary>
     public readonly record struct Frame(IReadOnlyList<TextRow> Text, int CloudY, int CloudColour, int Figures, int ZeusRows,
-        bool Strike, int Face, int Hand, bool Done);
+        bool Strike, int Face, int Hand, bool Done)
+    {
+        /// <summary>s224: the closing page is up (black screen, its text only; it waits for a key).</summary>
+        public bool Page { get; init; }
+    }
 
     private readonly C64EndingLayout _layout;
     private readonly string _astral;
@@ -37,9 +43,12 @@ public sealed class C64EndingScreen
     private readonly IReadOnlyList<string> _speech;
     private readonly List<(double At, int Line, int Length)> _typed = []; // when each character shows
     private readonly int _slots;
+    private readonly IReadOnlyList<string> _closing;
+    private readonly string _closingKey;
+    private double? _keyAt;
 
     public C64EndingScreen(C64EndingLayout layout, VictoryScene scene, IReadOnlyList<string> speech, string astral,
-        string smiles, Func<double> random)
+        string smiles, Func<double> random, IReadOnlyList<string>? closing = null, string? closingKey = null)
     {
         ArgumentNullException.ThrowIfNull(layout);
         ArgumentNullException.ThrowIfNull(scene);
@@ -50,6 +59,8 @@ public sealed class C64EndingScreen
         _speech = speech;
         _astral = astral ?? "";
         _smiles = smiles ?? "";
+        _closing = closing ?? [];
+        _closingKey = closingKey ?? "";
         _slots = scene.Slots.Count;
         RiseAt = layout.Astral.Seconds;
         WipeAt = RiseAt + RiseSteps * (layout.CloudStepSeconds + layout.CloudStepOverhead) + layout.AfterRiseSeconds;
@@ -81,7 +92,7 @@ public sealed class C64EndingScreen
             t += Click(it);
         }
         GrantAt = t;
-        DoneAt = GrantAt + layout.GrantSeconds;
+        ClosingAt = GrantAt + layout.GrantSeconds;
     }
 
     public VictoryScene Scene { get; }
@@ -99,7 +110,23 @@ public sealed class C64EndingScreen
     public double SmilesAt { get; }
     public double SpeechAt { get; }
     public double GrantAt { get; }
-    public double DoneAt { get; }
+
+    /// <summary>s224: when the closing page comes up (the grant's wait over).</summary>
+    public double ClosingAt { get; }
+
+    /// <summary>When the screen is over: after the grant without a closing page, else at the key that closes it (∞ before).</summary>
+    public double DoneAt => _closing.Count == 0 ? ClosingAt : _keyAt ?? double.PositiveInfinity;
+
+    /// <summary>s224: whether the closing page is waiting for its key at <paramref name="t"/>.</summary>
+    public bool WaitsForKey(double t) => _closing.Count > 0 && _keyAt is null && t >= ClosingAt;
+
+    /// <summary>s224: a key at <paramref name="t"/>: it closes the closing page (P.END <c>0xae1</c> GET); the C64 reads none
+    /// before it.</summary>
+    public void Key(double t)
+    {
+        if (WaitsForKey(t))
+            _keyAt = t;
+    }
 
     /// <summary>
     /// The clouds' x (screen) per slot (P.END 0x538-0x5b3): PL = INT(PO / 2 + 1.1) with PO the last slot's index; slot
@@ -122,6 +149,15 @@ public sealed class C64EndingScreen
     public Frame At(double t)
     {
         var text = new List<TextRow>();
+        if (_closing.Count > 0 && t >= ClosingAt)
+        {
+            // P.END 0x92d-0xabb: CHR$(147), the animator removed, the lines from (col, row) in green, the key prompt.
+            for (var i = 0; i < _closing.Count; i++)
+                text.Add(new(_layout.ClosingCol, _layout.ClosingRow + i, _closing[i], _layout.ClosingColour));
+            if (_layout.ClosingKey is { } key)
+                text.Add(new(key.Col, key.Row, _closingKey, key.Colour));
+            return new Frame(text, -1, _layout.CloudMc1, 0, 0, false, -1, -1, t >= DoneAt) { Page = true };
+        }
         if (t < RiseAt)
             text.Add(new(_layout.Astral.Col, _layout.Astral.Row, _astral, _layout.Astral.Colour));
         int cloudY = -1, colour = _layout.CloudMc1;

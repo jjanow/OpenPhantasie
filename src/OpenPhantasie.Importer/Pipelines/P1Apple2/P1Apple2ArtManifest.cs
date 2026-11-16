@@ -20,8 +20,8 @@ public static class P1Apple2ArtManifest
                   "pictures (280 x 192 hi-res pixels) are drawn 1:1 in it. Map: the Apple draws its 20 x 26 map rotated " +
                   "against the remaster's 26 x 20 grid (FORMAT.md 3.6); here the tiles follow the remaster's grid, 22 x 20 " +
                   "cells of 7 x 6. A tile's colour fringes depend on its screen column on the Apple: the pack uses the " +
-                  "even-column look. No town, item, ending or defeat pictures: the Apple's town is text and CEMETARY / " +
-                  "FLASH? draw in BASIC (not replayed [~]); the Client draws its plain screens there."),
+                  "even-column look. No town, item, ending or defeat pictures: the Apple's town is text; CEMETARY / FLASH? " +
+                  "draw in BASIC, replayed from apple2_scenes (s224)."),
         ("id", "apple2"),
         ("game", P1Apple2Art.GameId),
         ("platform", "apple2"),
@@ -54,11 +54,37 @@ public static class P1Apple2ArtManifest
             ("canvas", J.Ints([280, 192])),
             ("background", "#000000"),
             ("steps", J.A([J.O(("picture", "title.credits"))])))),
+        ("apple2_field", J.O(
+            ("_note", "OUTDOORS / DUNGON (the same lines) 1480-2006, 4100-4145, 4790-4811; GRAPHICS.md section 7. The round " +
+                      "(1560-2005) plays on the mixed hi-res screen (graphics rows 0-159, text rows 20-23: POKE 34,20); the " +
+                      "status, ranks, PARTY OPTIONS and orders (1000-1470) are a TEXT page, the remaster's screen there. " +
+                      "Lines: the set-up's HPLOTs (4810), white; the field is left of x 138, the map right of it (not drawn " +
+                      "here, black [~]). Party: slot k's body + arm at (19k, 158) (1525-1534; dead members not drawn, the " +
+                      "slot kept), arm 22 from a swing (1695), 21 from a cast (1760) or a parry that took (1532), else 20; " +
+                      "bodies by TOWN 2350-2356. Monsters: front rank y 135, next 135 - YS% of the front, third that - " +
+                      "YS% of the second, not below 0 (1480-1500); monster i of n at H% + INT(i * 120 / n) (1550); pose B " +
+                      "(S% + 1) from its swing, cast or breath to the round's end (2006); erased at its DIES (4145). The " +
+                      "sparkle (23) at (19k + 19, 136) during the cast tones (1762-1764), the spell hit (24) at the " +
+                      "monster's SCALE for 500 loops (4132). H%, SCALE, YS% and each picture's DRAW point are the Apple's " +
+                      "data: the import's extraction-index.json (index). Pauses: PA = 120 * TIME LAG loops a line " +
+                      "(361 / 7560); loop_ms is a rule of thumb for an empty Applesoft FOR / NEXT pass [~]; sparkle_ms " +
+                      "the cast tones' length (CALL 770 not decoded) [?]."),
+            ("screen_x", 20), ("screen_y", 4), ("width", 280), ("graphics_rows", 160), ("divider", 138),
+            ("lines", J.A(new[] { new[] { 0, 0, 279, 0 }, [0, 159, 279, 159], [138, 0, 138, 159] }
+                .Select(l => (JsonNode?)J.Ints(l)))),
+            ("party_step", 19), ("party_y", 158), ("rank_y", 135), ("spread", 120), ("sparkle_dx", 19), ("sparkle_y", 136),
+            ("text_top", 20), ("text_rows", 4), ("columns", 40), ("cell_width", 7), ("cell_height", 8),
+            ("index", "extraction-index.json"),
+            ("line_loops_per_time_lag", 120), ("hit_loops", 500), ("loop_ms", 1.0), ("sparkle_ms", 300.0),
+            ("bodies", J.O(("monster_races_from", 7), ("monster_body", 26), ("human_elf", J.Ints([0, 2])),
+                ("small_body", 25), ("plain_body", 19), ("robed_classes", J.Ints([1, 4, 5])), ("robed_body", 27),
+                ("elemental_body", 26))))),
         ("pictures", J.O(
             ("title.cover", P1Apple2Art.TitleFile),
             ("title.credits", P1Apple2Art.TitleFile),
             ("combat.sparkle", "effects/23-spell-sparkle.png"),
             ("overworld.party", "overworld/party.png"))),
+        ("apple2_scenes", P1Apple2Scenes.Manifest()),
         ("_portraits", "portrait.{race}: the party figure (TOWN 2350-2356, record byte 168: races 7+ shape 26, DWARF / " +
                        "HALFLING / GNOME / PIXIE / SPRITE 25, HUMAN / ELF 19, or 27 for a MONK / PRIEST / WIZARD, which a " +
                        "race-keyed picture cannot show [~]) with the arm overlay 20 (idle) or 22 (attacking). The figures by " +

@@ -42,8 +42,8 @@ public class Phantasie1AppleIIPackTests
         }
         foreach (var name in new[] { PictureNames.TitleCover, PictureNames.TitleCredits, PictureNames.OverworldParty })
             Assert.NotNull(pack.Resolve(name));
-        // The Apple's town is a text page and its ending / party wipe are drawn in BASIC (not replayed): the Client's own
-        // screens stand in.
+        // The Apple's town is a text page and its ending / party wipe are drawn in BASIC: no pictures (s224: the scenes are
+        // replayed from apple2_scenes instead, Apple2EndSceneTests).
         foreach (var name in new[] { PictureNames.TownBackdrop, PictureNames.EndingFinal, PictureNames.DefeatTemple, PictureNames.EventTrap })
             Assert.Null(pack.Resolve(name));
     }

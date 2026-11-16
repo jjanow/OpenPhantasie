@@ -17,7 +17,20 @@ public sealed class C64DefeatScreen
     /// 0…Fates−1 show their fate (a figure in the fate's colour, or nothing).
     /// </summary>
     public readonly record struct Frame(bool Temple, int Ghosts, int DoorY, bool Face, int Fates,
-        IReadOnlyList<C64EndingScreen.TextRow> Text, bool Done);
+        IReadOnlyList<C64EndingScreen.TextRow> Text, bool Done)
+    {
+        /// <summary>
+        /// s224: the slot whose ghost is being overwritten with its figure (<c>CEMETARY</c> <c>0x869</c>: 64 BASIC passes, one
+        /// sprite byte each, in the ghost's white; the fate's colour only after the last), or −1.
+        /// </summary>
+        public int MorphSlot { get; init; } = -1;
+
+        /// <summary>s224: how many of the sprite's bytes (0…64, 3 a pixel row) are the figure's yet.</summary>
+        public int MorphBytes { get; init; }
+    }
+
+    /// <summary>s224: a sprite block's bytes (21 rows × 3, and one unused).</summary>
+    public const int SpriteBytes = 64;
 
     private readonly C64DefeatLayout _layout;
     private readonly IReadOnlyList<string> _lines;
@@ -98,10 +111,22 @@ public sealed class C64DefeatScreen
             var into = t - FatesAt - k * FateLength;
             // CEMETARY 0x5a1-0x5a7: the rows cleared, the sound and its wait, then the line and the figure, then 2 s.
             fates = Math.Max(0, k) + (k >= 0 && into >= _layout.FateSoundSeconds + _layout.FateCopySeconds - 1e-9 ? 1 : 0);
+            // CEMETARY 0x58e: an UNDEAD fate's name first, on its own row in cyan, before the sound (s224).
+            if (k >= 0 && Defeat.Fates[k].Fate == DefeatFate.Undead && _layout.UndeadNameRow is int nameRow)
+                text.Add(new(_layout.UndeadNameCol, nameRow, Defeat.Fates[k].Member.Name, _layout.UndeadColour));
             if (into >= _layout.FateSoundSeconds - 1e-9 && k >= 0)
                 text.Add(new(_layout.TextCol, _layout.TextRow, Line(2 + k) ?? "", FateColour(Defeat.Fates[k].Fate)));
             if (t >= FatesAt + n * FateLength)
                 fates = n;
+            // 0x869: FOR I = 0 TO 63, each pass the same BASIC, then POKE DS + I, PEEK(YS + I): a byte at each pass's end.
+            else if (k >= 0 && into >= _layout.FateSoundSeconds - 1e-9
+                     && into < _layout.FateSoundSeconds + _layout.FateCopySeconds - 1e-9 && _layout.FateCopySeconds > 0)
+                return new Frame(true, ghosts, doorY, face, fates, text, false)
+                {
+                    MorphSlot = k,
+                    MorphBytes = Math.Min(SpriteBytes,
+                        (int)Math.Floor((into - _layout.FateSoundSeconds) / _layout.FateCopySeconds * SpriteBytes + 1e-9)),
+                };
         }
         return new Frame(true, ghosts, doorY, face, fates, text, t >= DoneAt);
     }

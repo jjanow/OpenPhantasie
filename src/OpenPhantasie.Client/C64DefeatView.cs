@@ -35,7 +35,7 @@ public sealed class C64DefeatView
     {
         if (_assets.Get(_layout.Temple) is not { } temple)
             return false;
-        var key = (screen, frame.Temple, frame.Ghosts, frame.DoorY, frame.Face, frame.Fates);
+        var key = (screen, frame.Temple, frame.Ghosts, frame.DoorY, frame.Face, frame.Fates, frame.MorphSlot, frame.MorphBytes);
         if (_texture is null || !Equals(_drawnKey, key))
         {
             _texture ??= new Texture2D(_device, Width, Height);
@@ -71,6 +71,13 @@ public sealed class C64DefeatView
         var ghost = _assets.Get(_layout.Ghost);
         for (var k = 0; k < Math.Min(frame.Ghosts, fates.Count); k++)
         {
+            if (k == frame.MorphSlot && ghost is not null)
+            {
+                // s224: the ghost's block overwritten byte by byte with the figure's, still white (every fate, the destroyed too).
+                var figure = _assets.GetPortraitIdle((int)fates[k].Member.BirthRace);
+                Morph(dst, ghost, figure, xs[k], _layout.RowY, frame.MorphBytes);
+                continue;
+            }
             if (k < frame.Fates)
             {
                 var (member, fate) = fates[k];
@@ -86,6 +93,34 @@ public sealed class C64DefeatView
         if (frame.Face && _assets.Get(_layout.Face) is { } face)
             Blit(dst, face, _layout.FaceX, _layout.FaceY, c => c);
         return dst;
+    }
+
+    /// <summary>
+    /// s224: a sprite block half copied: its first <paramref name="bytes"/> bytes (byte i = pixel row i / 3, pixels
+    /// 8 · (i mod 3) … + 7) from <paramref name="figure"/>, the rest from <paramref name="ghost"/>, all in the ghost's colour.
+    /// </summary>
+    private void Morph(Color[] dst, Texture2D ghost, Texture2D? figure, int x0, int y0, int bytes)
+    {
+        var g = PixelsOf(ghost);
+        var f = figure is null ? null : PixelsOf(figure);
+        var ink = Color.Black;
+        foreach (var c in g)
+            if (c.A != 0)
+            {
+                ink = c;
+                break;
+            }
+        for (var y = 0; y < ghost.Height; y++)
+            for (var x = 0; x < ghost.Width; x++)
+            {
+                var copied = y * 3 + x / 8 < bytes;
+                var on = copied
+                    ? f is not null && x < figure!.Width && y < figure.Height && f[y * figure.Width + x].A != 0
+                    : g[y * ghost.Width + x].A != 0;
+                int sx = x0 + x, sy = y0 + y;
+                if (on && sx is >= 0 and < Width && sy is >= 0 and < Height)
+                    dst[sy * Width + sx] = ink;
+            }
     }
 
     private void Blit(Color[] dst, Texture2D art, int x0, int y0, Func<Color, Color> ink)

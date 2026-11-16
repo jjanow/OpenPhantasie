@@ -1,3 +1,4 @@
+using OpenPhantasie.Data;
 using OpenPhantasie.Data.Audio;
 
 namespace OpenPhantasie.Client.Audio;
@@ -227,6 +228,14 @@ public sealed class SoundEffectPlayer : IDisposable
         catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
         {
         }
+    }
+
+    /// <summary>s224: start an Apple II speaker sound now (<see cref="Apple2SpeakerRenderer"/>), ending whatever ran.</summary>
+    public void Play(Apple2SpeakerSound sound, double clockHz)
+    {
+        Trace("apple2", 0);
+        Stop();
+        _player = TunePlayer.TryStart(new Apple2SpeakerRenderer(sound, clockHz));
     }
 
     /// <summary>Keep the stream fed (once a frame).</summary>

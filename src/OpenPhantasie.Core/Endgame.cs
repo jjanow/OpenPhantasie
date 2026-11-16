@@ -45,12 +45,19 @@ public sealed record VictoryScene(IReadOnlyList<VictorySlot> Slots, IReadOnlyLis
     /// </summary>
     public IReadOnlyList<string> Titles { get; init; } = [];
 
+    /// <summary>s224: <see cref="Titles"/>' parts (the member's name, the title word, the homeland), for screens that print
+    /// them on rows of their own (II C64's <c>WIN</c>: name / "THE … ONE" / "FROM …"); empty when <see cref="Titles"/> is.</summary>
+    public IReadOnlyList<VictoryTitle> TitleParts { get; init; } = [];
+
     /// <summary>A page shown after the speech until a key (II: Filmon's 21 closing lines, <c>0x23244</c>); I has none.</summary>
     public IReadOnlyList<string> ClosingPage { get; init; } = [];
 
     /// <summary>Every line in the order the screen shows them (the prompt box shows these without a pack scene).</summary>
     public IReadOnlyList<string> Lines => [.. IntroPage, .. HeaderLines, .. Titles, .. SpeechLines, .. ClosingPage];
 }
+
+/// <summary>s224: one presented member's title in parts (II: <c>"%s - the %s from %s"</c>'s three values).</summary>
+public sealed record VictoryTitle(string Name, string Word, string Origin);
 
 /// <summary>The win (endgame.md §1, §3 [C]).</summary>
 public static class Endgame

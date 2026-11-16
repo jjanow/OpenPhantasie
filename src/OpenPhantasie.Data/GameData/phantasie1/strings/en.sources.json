@@ -15750,6 +15750,294 @@
     ]
    }
   ],
+  "c64.endgame.zeus_smiles": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      1828,
+      21
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_1": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2374,
+      39
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_2": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2418,
+      39
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_3": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2461,
+      39
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_4": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2504,
+      39
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_5": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2547,
+      39
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_6": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2590,
+      39
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_7": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2633,
+      39
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_8": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2676,
+      39
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_9": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2719,
+      24
+     ]
+    ]
+   }
+  ],
+  "c64.endgame.closing_key": [
+   {
+    "from": "p1-c64",
+    "parts": [
+     [
+      "P.END:petscii",
+      2755,
+      24
+     ]
+    ]
+   }
+  ],
+  "apple2.defeat.defeated": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "CEMETARY",
+      535,
+      29
+     ]
+    ]
+   }
+  ],
+  "apple2.defeat.monsters_jump": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "CEMETARY",
+      568,
+      26
+     ]
+    ]
+   }
+  ],
+  "apple2.defeat.astral": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "CEMETARY",
+      933,
+      38
+     ]
+    ]
+   }
+  ],
+  "apple2.defeat.demon": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "CEMETARY",
+      1023,
+      35
+     ]
+    ]
+   }
+  ],
+  "apple2.defeat.you_have_been": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "CEMETARY",
+      1103,
+      13
+     ]
+    ]
+   }
+  ],
+  "apple2.defeat.destroyed": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "CEMETARY",
+      1192,
+      9
+     ]
+    ]
+   }
+  ],
+  "apple2.defeat.resurrected": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "CEMETARY",
+      1234,
+      11
+     ]
+    ]
+   }
+  ],
+  "apple2.defeat.undead": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "CEMETARY",
+      1296,
+      21
+     ]
+    ]
+   }
+  ],
+  "apple2.ending.olympus": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "FLASH?",
+      298,
+      40
+     ]
+    ]
+   }
+  ],
+  "apple2.ending.zeus_appears": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "FLASH?",
+      395,
+      26
+     ]
+    ]
+   }
+  ],
+  "apple2.ending.zeus_1": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "FLASH?",
+      454,
+      28
+     ]
+    ]
+   }
+  ],
+  "apple2.ending.zeus_2": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "FLASH?",
+      490,
+      22
+     ]
+    ]
+   }
+  ],
+  "apple2.ending.zeus_3": [
+   {
+    "from": "p1-apple2",
+    "parts": [
+     [
+      "FLASH?",
+      518,
+      28
+     ]
+    ]
+   }
+  ],
   "core.endgame.black_lord_is_dead": [
    {
     "from": "p1-dos-1987",

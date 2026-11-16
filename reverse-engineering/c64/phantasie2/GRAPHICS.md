@@ -146,7 +146,7 @@ I/O dumps not kept. I's GRAPHICS.md section 9 has the method and the engine's de
    a band (`SYS Q,A2,A1,0`); `WIN` then pokes record byte 13 := 47, `$D010` := 64 (sprite 6 at x 303) and the enable
    mask := `$7F`. **The crowd**: sprites 0–6, x- and y-expanded, green (5), y 160 (screen rows 110–151), x 15, 63, 111,
    159, 207, 255, 303; blocks `$31 $30 $32 $33 $35 $34 $36` and, for the second frame, the same + 8 (`$39` …): two
-   frames alternating under "THE CROWD GOES WILD!" (the ST has three crowd pictures).
+   frames alternating under "[original text]" (the ST has three crowd pictures).
 4. The party in the hall: the hero band `$CFDA` (I's record) at y 125, x 110 + 24 k, yellow; the member being presented
    in light red (10) with its attacking block while the panel names it ("LOUIS / THE MIGHTY ONE / FROM FERRONRAH": one
    of the ten epithets and three homelands in `WIN`'s DATA). Then "FILMON SPEAKS - 'PRESENTING THE HEROES OF FERRONRAH'",
@@ -167,7 +167,7 @@ opcodes) `[C]`:
    `GOSUB 0x9fb`: the panel cleared and the name (row 20), "THE <one of ten epithets, RND> ONE" (row 21) and "FROM
    <homeland by P(40)>" (row 22), centred, then `FOR U = 1 TO 1000`; `FOR I = 1 TO 4000`; the cheer; the pointer − 1 and
    colour 7 again.
-6. The cheer (`0x6ba`): the panel cleared, "THE CROWD GOES WILD!" (column 10, row 21); the crowd's pointers + 8 (the second
+6. The cheer (`0x6ba`): the panel cleared, "[original text]" (column 10, row 21); the crowd's pointers + 8 (the second
    frame); `GOSUB 0x749`, the SID cheer (two pitch sweeps with `FOR T = 1 TO 400` between and a fade with `FOR M = 1 TO
    500` per volume step, 16 steps); the pointers − 8 (the first frame again); the panel cleared. One frame change a cheer.
 7. "FILMON SPEAKS -" / "'THEY WILL EACH RECEIVE A WAND OF FILMON WHICH HAS GREAT POWER BUT CAN ONLY BE USED ONCE' (PRESS
@@ -175,6 +175,28 @@ opcodes) `[C]`:
    "INSERT BOOT DISK AND PRESS A KEY"; `TOWN2`.
 
 The busy loops' times are in I's GRAPHICS.md 9.5.
+
+**s224, the rest of the program** (read and checked in VICE, I's 9.5) `[C]`:
+
+- The start (`0xe6`–`0x352`): the intro page (`0x84a`) while `PH2.END-4` loads; the screen off, the hall copied in, the
+  screen on, `POKE 646,3`, `FOR U = 1 TO 2000`; **then** `TLUM1` loads (`SY+36`) and the bands are set up and started
+  (`0x352`–`0x388`). So the hall stands alone, no crowd and no party, for the `FOR 2000` and the load (1.74 + 7.75 s in
+  VICE, true drive `[~]`); the crowd's first frame and the whole row then appear together, with the header.
+- The header: `SYS Q,2,20,"FILMON SPEAKS -"`, then `PRINT " 'PRESENTING THE HEROES OF FERRONRAH'"`, which goes to the
+  next row at column 0 (VICE: the wands prompt's rows, printed the same way, start at column 0).
+- Each slot 0 … PO is presented (`0x3e9`): name, "THE " V$ " ONE" and R$ at columns 20 − LEN / 2, 16 − LEN(V$) / 2 and
+  20 − LEN / 2, rows 20–22 (`0x9fb`), V$ one of the ten words by `RND`, R$ the homeland by `P(40)`; the member stays light red
+  through the `FOR 1000`, the `FOR 4000` and its cheer.
+- The cheer (`0x6ba`): the panel cleared (`SYS SY+30,0,20,39,23,3,32`), "[original text]" at column 10, row 21, the
+  seven pointers + 8, the SID cheer (`0x749`, I's 9.6), − 8, the panel cleared. No interrupt changes the frame (I's 9.5,
+  s224 watchpoint).
+- The wands (`0x622`): "FILMON SPEAKS -" at column 2, row 20, then three `PRINT`s from column 0, rows 21–23 (their own
+  leading spaces), the last ending "' (PRESS RET)"; `POKE 198,0`, `GET` until a key (`0x9d0`), the panel cleared; `SYS
+  SY+60,0` (the bands off); the closing page (`0xa74`) and its `GET`; "INSERT BOOT DISK AND PRESS A KEY"; `TOWN2`.
+
+The remaster (s224, `ending_scene.c64_win`, `C64WinScreen`) runs these steps. Not as the C64: Core titles records
+0 … n − 1 (n = OK members, the ST's rule, endgame.md 7.1) and draws a title only for those, where the C64 presents every
+slot `[~]`; the closing page is Core's 21 lines (the ST's breaks, as before) `[~]`; no SID sounds `[?]`.
 
 ### 8.2 The party wipe: `CEMETARY2` `[C]`
 
@@ -195,7 +217,7 @@ the demon, rows 0–99) and by palette index against VICE's screenshots in the h
 | PNG | Shows | Slot (s221: wired) |
 |---|---|---|
 | `ending/hall.png` | `PH2.END-4`, the cyan panel empty | `ending.final` |
-| `ending/crowd-0.png`, `crowd-1.png` | the crowd strip, 320 × 42, at screen y 110 | `ending.crowd.0`, `.1` (`crowd` at (0, 110); s223: frame 1 for each cheer's sound, 9.92 s, then frame 0 (I's 9.5); before the first cheer the remaster draws no crowd `[~]`; transparent pixels keep the hall: the ending screen leaves a transparent pixel's pen, s221) |
+| `ending/crowd-0.png`, `crowd-1.png` | the crowd strip, 320 × 42, at screen y 110 | `ending.crowd.0`, `.1` (`crowd` at (0, 110); s223: frame 1 for each cheer's sound, 9.92 s, then frame 0 (I's 9.5); s224: from the hall's band on, as `WIN` (8.1); transparent pixels keep the hall: the ending screen leaves a transparent pixel's pen, s221) |
 | `ending/hall-crowd.png` | the hall + crowd frame 0 | — |
 | `defeat/*` | as I's (`temple`, `temple-door`, `temple-demon`, `ghost`, `door`, `demon-face`, `font`) | `ui.decor` = `temple.png`, `portrait.ghost` = `ghost.png`; no `decor.door` (the ST's defeat scene sinks its door; the C64's rises) |
 | `defeat/temple-demon-doorway.png` | s221: `temple-demon.png`'s (123, 19)–(171, 72), 49 × 54 | `decor.demon-face` (the defeat scene draws it at the ST's (123, 19); the C64's face covers (124, 31)–(171, 72)) |

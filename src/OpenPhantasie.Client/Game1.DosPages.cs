@@ -139,7 +139,7 @@ public partial class Game1
     private IReadOnlyList<string>? _dosDefeatPaletteFor;
 
     /// <summary>Whether I's defeat runs by DOS's clock: I, not the Amiga's screens, and the data names the timing.</summary>
-    private bool P1DosDefeatTimed => _session is { Game: GameId.P1 } && !P1DefeatScreens && !C64DefeatScreens
+    private bool P1DosDefeatTimed => _session is { Game: GameId.P1 } && !P1DefeatScreens && !C64DefeatScreens && !Apple2DefeatScenes
         && DosScreensData?.Defeat is not null;
 
     /// <summary>

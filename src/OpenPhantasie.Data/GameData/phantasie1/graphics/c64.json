@@ -761,7 +761,7 @@
   ],
   "_portraits": "portrait.{race}: HSPRIT blocks 2 race (idle) and 2 race + 1 (attacking), the pair the fight copies for a member of that race (live s218); yellow, the combat row's colour [~]. No UNDEAD pair.",
   "ending_scene": {
-    "_note": "s221 / s223 (GRAPHICS.md 9.1 / 9.4, P.END's compiled BASIC, ZALL's and UTIL-3.O's 6502): the C64's own steps in c64 (the remaster's ending screen fields below are its fallback and unused with c64). Positions are screen pixels (VIC x - 24, y - 50), colours Colodore indices. The closing text page ('Now your party will be transported ...', until a key) is not imported: the screen ends after the grant [~]; the speech is Core's 7 lines on the C64's rows; no C64 sounds.",
+    "_note": "s221 / s223 (GRAPHICS.md 9.1 / 9.4, P.END's compiled BASIC, ZALL's and UTIL-3.O's 6502): the C64's own steps in c64 (the remaster's ending screen fields below are its fallback and unused with c64). Positions are screen pixels (VIC x - 24, y - 50), colours Colodore indices. After the grant the closing text page (s224: P.END's 9 lines from column 0, row 2, green, and its key prompt at column 7, row 24; until a key). The speech is Core's 7 lines on the C64's rows. No C64 sounds: SID playback [?] (GRAPHICS.md 9.6).",
     "palette": [
       "#000000",
       "#FFFFFF",
@@ -881,7 +881,30 @@
         24,
         16
       ],
-      "grant_seconds": 12
+      "grant_seconds": 12,
+      "closing": {
+        "lines": [
+          "c64.endgame.closing_1",
+          "c64.endgame.closing_2",
+          "c64.endgame.closing_3",
+          "c64.endgame.closing_4",
+          "c64.endgame.closing_5",
+          "c64.endgame.closing_6",
+          "c64.endgame.closing_7",
+          "c64.endgame.closing_8",
+          "c64.endgame.closing_9"
+        ],
+        "col": 0,
+        "row": 2,
+        "colour": 5,
+        "key": {
+          "text": "c64.endgame.closing_key",
+          "col": 7,
+          "row": 24,
+          "colour": 5,
+          "seconds": 0
+        }
+      }
     }
   },
   "defeat_pictures": {
@@ -894,7 +917,7 @@
     "text_colour": "#2724C4"
   },
   "c64_defeat": {
-    "_note": "s223 (I's GRAPHICS.md 9.2 / 9.4, CEMETARY's compiled BASIC): runs by itself, no key. 'Your party has been defeated' (red, column 6, row 23), TL = 2; the temple (dark grey) with its door (sprite 7, light grey, x- and y-expanded, behind the characters) and the astral line (blue, column 1, row 23); a ghost per member at VIC y 170, x = INT((220 - 35 PO) / 2) + 35 k, one each TL = 0.3; a sound, TL = 2; the door rises from VIC y 77 to 0, one pixel each TL = 0.1; the face (purple, expanded, in front) and the demon's line, TL = 4; per member the rows cleared, a sound with TL = 1.08, its line in the fate's colour, its ghost turned into CSPRIT block P(145) (its own figure) in that colour, a destroyed member's then switched off (ON DF GOSUB), TL = 2; TL = 6. The interpreter's time around the waits measured in VICE (PAL, s223) [~]: ghosts 0.33 s apart, the fate sound 1.17 s, the copy 4.1 s (the ghost morphs into the figure while it runs; here it changes at the end). The C64's own fate rule and texts are not used: Core's fates and lines.",
+    "_note": "s223 (I's GRAPHICS.md 9.2 / 9.4, CEMETARY's compiled BASIC): runs by itself, no key. 'Your party has been defeated' (red, column 6, row 23), TL = 2; the temple (dark grey) with its door (sprite 7, light grey, x- and y-expanded, behind the characters) and the astral line (blue, column 1, row 23); a ghost per member at VIC y 170, x = INT((220 - 35 PO) / 2) + 35 k, one each TL = 0.3; a sound, TL = 2; the door rises from VIC y 77 to 0, one pixel each TL = 0.1; the face (purple, expanded, in front) and the demon's line, TL = 4; per member the rows cleared (an UNDEAD fate's name on row 21, column 1, cyan: undead_name_row), a sound with TL = 1.08, its line in the fate's colour, its ghost's block overwritten with CSPRIT block P(145) (its own figure) a byte per BASIC pass, still white (64 passes, the 4.1 s copy; s224 morph), then coloured, a destroyed member's then switched off (ON DF GOSUB), TL = 2; TL = 6. The interpreter's time around the waits measured in VICE (PAL, s223) [~]: ghosts 0.33 s apart, the fate sound 1.17 s, the copy 4.1 s. The C64's own fate rule and texts are not used: Core's fates and lines (I's UNDEAD line holds the name too [~]).",
     "temple": "defeat.temple",
     "ghost": "defeat.ghost",
     "door": "defeat.door",
@@ -929,7 +952,9 @@
     "destroyed_colour": 11,
     "resurrected_colour": 7,
     "undead_colour": 3,
-    "end_seconds": 6
+    "end_seconds": 6,
+    "undead_name_row": 21,
+    "undead_name_col": 1
   },
   "picture_sets": [
     {

@@ -495,8 +495,8 @@ Public repo: built fresh, pushed to GitHub as **private** `jjanow/OpenPhantasie`
 |---|---|---|
 | `p1-dos-1987` | `P1DosPipeline` (+ `P1Dos/`) | 11 tables byte-identical (dungeons, elementals, item-descriptions, items, messages, monsters, names, overworld, scrolls, spells, towns); DOS CGA pack: `tiles.json` byte-identical, 44 PNG pixel-equal (tiles, town, and the defeat pictures of `extract_dos_defeat_pictures.py`). Towns from `TWNS.INT`. `spells.json` also checked with the names stripped from the shipped copy (the public overlay) |
 | `p1-amiga-1.0` | `P1AmigaPipeline` | the whole pack root (256 PNG pixel-equal + 5 JSON byte-equal), `amiga-z6font-6.json` byte-equal, `asset-manifest.json` JSON-equal (shipped `map_tiles` + extracted `assets`), raw `tamb.dat` / `game` byte-equal. Map pictures read I's `overworld.json` (this run's, DOS I's or the Amiga's own). Tables (`P1AmigaTables`, no Python counterpart, 7.8): JSON-equal to the DOS GameData but for an allow-list of text and provenance paths (`P1AmigaTablesTests`); the same from a public-repo shipped folder; loads and starts a game |
-| `p1-c64` | `P1C64Pipeline` (+ `P1C64/P1C64Tables`, `P1C64/P1C64Art`, `Containers/D64Volume` with `G64Image`) | tables (7.11; no Python counterpart) and, s218, the `c64` art pack (`P1C64ArtTests`: equal to the committed extract, pixel checksums, the shipped `c64.json`): with `c64-import.json`'s cells, JSON-equal to the DOS GameData but for an allow-list of text, provenance and the C64's shorter files (`P1C64TablesTests`); the same from a public-repo shipped folder; loads and starts a game. Containers: every file of both v1.4 `.g64`s equals `extract_c64_d64.py`'s (`D64VolumeTests`); every held C64 I image decodes all 683 sectors; recipe 5 (s223): the C64 end-screen animations (`ending_scene.c64`, `c64_defeat`, the face / hand / door / demon-face sprite slots; `c64/phantasie1/GRAPHICS.md` 9.4) |
-| `p1-apple2` | `P1Apple2Pipeline` (+ `P1Apple2/P1Apple2Tables`, `Containers/RdosVolume`, `WozImage`) | tables + art (7.14; no Python counterpart): with `apple2-import.json`'s cells, JSON-equal to the DOS GameData but for an allow-list of text, provenance, the Apple's message slots and its shorter level files (`P1Apple2TablesTests`); every shipped cell holds DOS's value and the raw build's; the `.woz` pair imports byte-equal to the `.dsk` pair; the same from a public-repo shipped folder; loads and starts a game; every event menu a level's grid holds has its choices; s223 `P1Apple2ArtTests`: the art equals the committed extract (the `.woz` pair gives the same), I's `SHAPES` is II's but for shapes 45 / 46 / 48, the pack equals the shipped `apple2.json`, a side without `SHAPES` warns and keeps the tables |
+| `p1-c64` | `P1C64Pipeline` (+ `P1C64/P1C64Tables`, `P1C64/P1C64Art`, `Containers/D64Volume` with `G64Image`) | tables (7.11; no Python counterpart) and, s218, the `c64` art pack (`P1C64ArtTests`: equal to the committed extract, pixel checksums, the shipped `c64.json`): with `c64-import.json`'s cells, JSON-equal to the DOS GameData but for an allow-list of text, provenance and the C64's shorter files (`P1C64TablesTests`); the same from a public-repo shipped folder; loads and starts a game. Containers: every file of both v1.4 `.g64`s equals `extract_c64_d64.py`'s (`D64VolumeTests`); every held C64 I image decodes all 683 sectors; recipe 5 (s223): the C64 end-screen animations (`ending_scene.c64`, `c64_defeat`, the face / hand / door / demon-face sprite slots; `c64/phantasie1/GRAPHICS.md` 9.4); recipe 6 (s224): the closing page after the grant (`ending_scene.c64.closing`, P.END's lines as C64-only `c64.endgame.closing_*` strings), the party wipe's UNDEAD name row (`c64_defeat.undead_name_row`) |
+| `p1-apple2` | `P1Apple2Pipeline` (+ `P1Apple2/P1Apple2Tables`, `Containers/RdosVolume`, `WozImage`) | tables + art (7.14; no Python counterpart): with `apple2-import.json`'s cells, JSON-equal to the DOS GameData but for an allow-list of text, provenance, the Apple's message slots and its shorter level files (`P1Apple2TablesTests`); every shipped cell holds DOS's value and the raw build's; the `.woz` pair imports byte-equal to the `.dsk` pair; the same from a public-repo shipped folder; loads and starts a game; every event menu a level's grid holds has its choices; s223 `P1Apple2ArtTests`: the art equals the committed extract (the `.woz` pair gives the same), I's `SHAPES` is II's but for shapes 45 / 46 / 48, the pack equals the shipped `apple2.json`, a side without `SHAPES` warns and keeps the tables; s224 `P1Apple2ScenesTests`: the replayed CEMETARY / FLASH? pages equal the ROM run's (sha1 at eight statements), page 2 holds `SHAPES` / FLASH? where the game keeps them, the import writes the scene files and lines |
 | `kickstart-1.3` | `KickstartFontPipeline` | topaz 8: I's `amiga-topaz-8.json` + preview PNG and III's copy, byte-equal. Its own pipeline so either Amiga game gets it |
 | `p2-st-1.0` | `P2StPipeline` (+ `P2St/`) | 15 GameData files byte-equal (incl. `graphics/atari-st.json`), 262 PNG pixel-equal + 4 JSON byte-equal, raw `START.PRG` / `PHANT.PRG` byte-equal; the TOSEC `.st` pair gives identical output. Needs only I's shipped numbers (no names) |
 | `p2-apple2` | `P2Apple2Pipeline` (+ `P2Apple2/`, `Containers/RdosVolume`) | the 4am crack's two RDOS `.dsk` sides (key files from `extracted/key-files.json`; or the original `.woz` pair (`Containers/WozImage`): every output byte-equal to the `.dsk` pair's; the `.woz` disks are the same played copy (`WozImageTests`); the 4am pair written out as 16-sector 6-and-2 `.woz`, as a Memorial Set disk would be, imports byte-equal too). Art: 545 PNG pixel-equal, `extraction-index.json` and `graphics/apple2.json` byte-equal (the pack's constants live in `A2Manifest`, not read from the shipped file). Raw tables: the 9 `extracted/*.json` of `extract_a2_p2_tables.py` byte-equal. GameData (no Python counterpart, see 7.5): loads through `GameDataRepository.Load` and a new game starts; every number equals the ST build (the ST cells of `apple2-import.json` applied, OUT1's unused feature record 14 included); the shipped cells equal the ST GameData; the scrolls' compass words, turned, equal the ST's. Strings: 217 ids verbatim + 95 in the Apple's own wording from the copy, the rest from the shipped fallbacks (7.6: the common shared / I file + II's 3 ids); under the public "..." mask an Apple-only import leaves no id of II's whole chain on "..." |
@@ -877,7 +877,10 @@ schema. `P2C64Pipeline` (recipe 2, s219: + the art pack; 3, s221: item / feature
   in sprite 0), so I's and II's packs now give all 80 monsters an attacking frame. **Falls back**: UNDEAD's
   portrait, `decor.door` / `decor.sorry-sign`, combat effects (since s221, recipe 3, the ending: the hall, TLUM1's crowd,
   Filmon's pages; the party wipe through II's defeat scene: the temple, the face's doorway, the ghost); the
-  item / feature pictures are drawn as I's since s221 (the same files, rule and slots).
+  item / feature pictures are drawn as I's since s221 (the same files, rule and slots). Recipe 5 (s224): `WIN` as the C64
+  runs it (`ending_scene.c64_win`, `C64WinScreen`; GRAPHICS.md 8.1), with the C64-only lines `c64.p2.crowd_goes_wild`,
+  `title_the_x_one`, `title_from_x`, `press_ret` (the json's `only` ids, plain `p2-c64` alternatives in
+  `en.p2-c64.json`), and the party wipe's UNDEAD name row.
 - **Left:** the C64's bytecode rules (group size, restock, training: not read `[?]`); `MN` fields 14 / 24 `[?]`; the
   art's `[?]` (GRAPHICS.md 6: the panel's text colour, I's open points).
 
@@ -959,7 +962,7 @@ starter rolls). They run after `p3-dos-1988`, `p3-amiga-1.0` and `p3-apple2`.
 `P1Apple2Tables` (`Pipelines/P1Apple2/`, layouts in `reverse-engineering/apple2/phantasie1/FORMAT.md`) writes the
 eleven files `P1DosPipeline` writes from the boot and dungeon sides (the 4am `.dsk` pair or the original `.woz` pair,
 one played copy). As for the C64 (7.11), each Apple table is put into DOS layout and goes through DOS's builders.
-`P1Apple2Pipeline` (recipe 2; 2 = s223's art pack) runs after `p1-dos-1987`, `p1-dos-bonus-1991`, `p1-amiga-1.0` and `p1-c64`.
+`P1Apple2Pipeline` (recipe 4; 2 = s223's art pack, 3 = s224's combat field: the spell hit at every monster SCALE and `apple2_field`, 4 = s224's end scenes) runs after `p1-dos-1987`, `p1-dos-bonus-1991`, `p1-amiga-1.0` and `p1-c64`.
 
 - **Detection:** side A `TOWN`, `OUTDOORS`, `CEMETARY`, `ITEM`, `TINFO` (byte-identical to II's Apple `TINFO`),
   `SCROLL1`; side B `DUNGON`, `DNG1`, `DNG10`, `TF`; name markers `TOWN` + `OUTDOORS`. Mutable files: `TWN1`–`TWN11`,
@@ -986,7 +989,8 @@ one played copy). As for the C64 (7.11), each Apple table is put into DOS layout
   shared 67, II 11, III 2; `build_string_sources.py`); the common fallback and `phantasie1/strings/fallback.p1-apple2.en.json`
   for the rest (32 ids: 23 shared field / map menu words, box titles and sheet labels with the table's text; Zeus's
   speech and the Black Lord line reworded, as the Apple's `FLASH?` words its own short scene). No I line stays "..." in
-  the public repo. The Apple's own Zeus lines (an own-wording file, as the C64's) `[~]`.
+  the public repo. s224: the end scenes' 13 lines (`apple2.defeat.*`, `apple2.ending.*`) from CEMETARY / FLASH?
+  (`p1_apple2_scene_text.json`); Core's Zeus ids keep the remaster's wording (the Apple's scene speaks its own lines).
 - **With DOS I, the Amiga or the C64** (same run or earlier): their tables win; the Apple writes none and warns. The
   Amiga's and the C64's `OwnsTables` take over the Apple's.
 - **Decided (user s223):** D-088 manual (every region in DOS's start state, as built), D-089 fix.
@@ -994,9 +998,17 @@ one played copy). As for the C64 (7.11), each Apple table is put into DOS layout
   (`A2Graphics.RunShapes`; I's engine is II's) on I's `SHAPES` (58 shapes) and `MN0`–`MN9` (shape, SCALE, HCOLOR), plus
   `HPIC` as the title: the pack `phantasie1/graphics/apple2.json` (shipped, layout only), pictures under
   `reverse-engineering/apple2/phantasie1/extracted/graphics` (`GRAPHICS.md`). Third in I's `default_order` (Amiga, C64,
-  Apple). No town / item / ending / defeat pictures (text, or BASIC drawings not replayed `[~]`). Played on Xvfb s223
+  Apple). No town / item / ending / defeat pictures (the town is text). Played on Xvfb s223
   (`parity/s223-p1-apple2-art-live.md`).
-- **Open:** the art's `[~]` / `[?]` (`GRAPHICS.md` section 6).
+- **Combat field (s224, recipe 3):** the pack's `apple2_field` (OUTDOORS / DUNGON 1480–2006, `GRAPHICS.md` section 7)
+  and the spell hit at every monster SCALE; the Client reads H% / SCALE / YS% and the DRAW points from the import's
+  `extraction-index.json`. Played on Xvfb (`parity/s224-p1-apple2-combat-live.md`).
+- **End scenes (s224, recipe 4):** `P1Apple2Scenes` writes `scenes/shapes.bin` (`SHAPES`) and `scenes/page2.bin` (hi-res page 2
+  as FLASH? flashes it, rebuilt from `SHAPES` and FLASH? `[~]`) beside the art; the pack's `apple2_scenes` lists
+  CEMETARY's and FLASH?'s statements with the interpreter's times (the Apple II+ ROM traced in a 6502 emulator,
+  `tools/scripts/a2_basic_trace.py`), replayed by the Client on a ROM-exact hi-res model (`GRAPHICS.md` section 8;
+  `parity/s224-p1-apple2-endings-live.md`).
+- **Open:** the art's `[~]` / `[?]` (`GRAPHICS.md` sections 6–8).
 
 ### 7.7 s160: the III CGA pack, the topaz offer, I's dungeon note
 

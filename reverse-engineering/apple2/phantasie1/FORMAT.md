@@ -179,9 +179,10 @@ copy); the import reads only CHAR's elementals and gives the regions DOS's start
   treasures `QUARTZ`, `CRYSTAL`, ..., `GOLDEN OX`, `GOD RING` where DOS has `EMERALD A`..`DIAMOND E`), town 4
   `HOBBITON` (DOS `HALFLINGOR`), race `LIZARD MAN`, message and scroll wording. The Apple's monster typos `APRENTICE DEVIL`,
   `MASTER ILLUSTIONIST` import as DOS's `APPRENTICE DEVIL`, `MASTER ILLUSIONIST` (`name_fixes`, DIFFERENCES.md D-089).
-- **Ending**: the Apple's `FLASH?` shows a short Zeus scene ("YOU ARE HEROES OF GELNOR !!! I GIVE YOU THREE GIFTS AND
+- **Ending**: the Apple's `FLASH?` shows a short Zeus scene ("[original text] [original text] AND
   YOUR FIRST DIVINE SPELL."), gives items 177–179 and the divine spell, and puts the party on Olympus (OUT19 (13, 18)).
-  The import keeps DOS I's ending (Core's rules); Zeus's lines have no `p1-apple2` text (section 6).
+  The import keeps DOS I's ending (Core's rules); s224: the scene itself is replayed in the Apple pack with its own
+  lines (`GRAPHICS.md` 8; ids `apple2.ending.*`, `apple2.defeat.*`).
 
 ## 6. Strings
 
@@ -190,4 +191,7 @@ copy); the import reads only CHAR's elementals and gives the regions DOS's start
 the common fallback and `phantasie1/strings/fallback.p1-apple2.en.json`: the 32 I ids the Apple lacks verbatim (23 shared
 field / map menu words, box titles and sheet labels with the table's text; Zeus's speech and the Black Lord line in the
 remaster's wording, since the Apple's `FLASH?` words its own short scene). No I line stays "..." in a public build.
-The Apple's own Zeus lines as an own-wording file (as the C64's `P.END`) `[~]`.
+s224: the end scenes' 13 lines (`apple2.defeat.*`, `apple2.ending.*`, printed only by the Apple pack's replay of CEMETARY /
+FLASH?, `GRAPHICS.md` 8) get `p1-apple2` alternatives from `tools/scripts/p1_apple2_scene_text.json`. Core's Zeus ids
+(`core.endgame.zeus_*`, the remaster's ending screen) stay in the remaster's wording for an Apple import: the Apple's
+scene speaks its own three lines instead.

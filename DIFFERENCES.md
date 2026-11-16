@@ -97,6 +97,8 @@ names its presets only where they differ from this.
 | D-087 | C64 import: no spell names on the C64; the fire elemental's name field reads FIRE ELE | **DECIDED: as built** + built (user s217; the manual's spell table + DIVINE I as D2-050; FIRE ELEM as D-083) |
 | D-088 | Apple II: "START A NEW GAME" — manual: characters erased and the dungeons reset; the Apple resets the roster and the towns only | **DECIDED: manual** (user s223; as built: an Apple-only import gives every region DOS's start state) |
 | D-089 | Apple-only import: two monster typos (APRENTICE DEVIL, MASTER ILLUSTIONIST): fix or keep | **DECIDED: fix** + built (user s223; APPRENTICE DEVIL / MASTER ILLUSIONIST; the Apple's other names kept, FIRE ELE → FIRE ELEM as D-087) |
+| D-090 | Apple-only import: FLASH? (the Apple's ending) promises "three gifts", gives items 177–179 and moves the party to Olympus; Core runs DOS's victory (DIVINE I, Pelnor) | **PENDING** (s224: built with the Apple's words and DOS's rules) `[U]` |
+| D-091 | Apple-only import: CEMETARY's "[original text]" typo: fix or keep | **PENDING** (s224: kept as the Apple prints it) `[U]` |
 
 ---
 
@@ -1144,3 +1146,27 @@ names its presets only where they differ from this.
   treasure names and its ring numerals.
 - **Side effects:** none on rules (items, towns and monsters are found by number).
 - **Spec:** `reverse-engineering/apple2/phantasie1/FORMAT.md` sections 3.1–3.5, 5.
+
+## D-090 — Apple-only import: the ending's three gifts and Olympus
+
+- **Manual:** names the Olympic Plane where Zeus dwells (the creation story); says nothing of what the party gets or
+  where it goes after the Black Lord is beaten. Not a manual conflict: a version difference on a manual-silent point.
+- **DOS:** the victory grants DIVINE I and the party goes back to Pelnor (Core's `endgame`, `endgame.md`).
+- **Apple II (v1.0, side B `FLASH?`):** Zeus says "[original text] / [original text] / AND YOUR FIRST
+  DIVINE SPELL."; the program gives items 177–179, sets record bytes 42 / 120 and puts the party on Olympus.
+- **Decision (user):** PENDING. Options: **(a)** as built: the Apple's scene with its words, DOS's rules (the screen
+  promises gifts the player doesn't get); **(b)** an Apple import also grants the three items / Olympus; **(c)** reword
+  the scene line.
+- **Remaster (s224):** (a): `apple2_scenes` replays FLASH? with the Apple's lines (`apple2.ending.*`); Core's victory is
+  DOS's.
+- **Side effects:** (b) would change rules for an Apple import only.
+- **Spec:** `reverse-engineering/apple2/phantasie1/GRAPHICS.md` section 8.
+
+## D-091 — Apple-only import: "ARIVED" in the party wipe
+
+- **Manual:** silent (no party-wipe text).
+- **Apple II (v1.0, side A `CEMETARY`):** "[original text]" (typo; FLASH? spells ARRIVED).
+- **Decision (user):** PENDING: fix to ARRIVED (as D-089 fixed two monster typos) or keep.
+- **Remaster (s224):** kept as printed (`apple2.defeat.astral`).
+- **Side effects:** none.
+- **Spec:** `reverse-engineering/apple2/phantasie1/GRAPHICS.md` section 8.
