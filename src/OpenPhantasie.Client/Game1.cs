@@ -3927,9 +3927,9 @@ public partial class Game1 : Game
         var rows = tiles.ViewRows;
         (int Columns, int Rows)? counters =
             tiles.ViewCounters.TryGetValue(session.Overworld.RegionId, out var counted) ? counted : null;
-        var x0 = Math.Clamp(session.Overworld.X - cols / 2, 0,
+        var x0 = Math.Clamp(session.Overworld.X - tiles.PartyColumn, 0,
             OverworldViewMaxOrigin(region.GridWidth, cols, counters?.Columns, tiles.ViewCentreMargin?.Columns));
-        var y0 = Math.Clamp(session.Overworld.Y - rows / 2, 0,
+        var y0 = Math.Clamp(session.Overworld.Y - tiles.PartyRow, 0,
             OverworldViewMaxOrigin(region.GridHeight, rows, counters?.Rows, tiles.ViewCentreMargin?.Rows));
         HitMapView(left, top, cols, rows, tw, th, x0, y0);
         _spriteBatch!.Draw(pixel, new Rectangle(left, top, cols * tw, rows * th), Color.Black);
@@ -3942,7 +3942,9 @@ public partial class Game1 : Game
             if (!region.InBounds(x, y))
             {
                 // Past the map: the byte the Amiga reads there (the next row's first cell), or black (FORMAT.md §4).
-                if (PastMapTile(region.GridWidth, region.GridHeight, session.Overworld.RegionId, x, y, tiles.PastMap) is
+                // s220: only a pack that declares past_map reads on (the Amiga's); the others (a C64 / Apple 10-column view
+                // over a 9 × 9 plane) draw black past the edge.
+                if (tiles.PastMap.Count > 0 && PastMapTile(region.GridWidth, region.GridHeight, session.Overworld.RegionId, x, y, tiles.PastMap) is
                     { } past)
                 {
                     var b = past.Cell is { } c ? region.GetRaw(c.X, c.Y) : past.Tile;

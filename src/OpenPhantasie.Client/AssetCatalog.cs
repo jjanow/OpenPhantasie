@@ -296,6 +296,19 @@ public sealed class AssetCatalog : IDisposable
 
     public Texture2D? GetPortraitAttacking(int raceId) => Get(PictureNames.PortraitAttacking(raceId));
 
+    /// <summary>
+    /// <paramref name="member"/>'s portrait: its class's (<see cref="PictureNames.PortraitClassIdle"/>, III C64) when the
+    /// pack has one, else its race's.
+    /// </summary>
+    public Texture2D? GetPortraitIdle(OpenPhantasie.Core.Character member) =>
+        Get(PictureNames.PortraitClassIdle((int)member.Class)) ?? GetPortraitIdle((int)member.Race);
+
+    /// <summary><paramref name="member"/>'s attack frame: its class's when the pack has one, else its race's.</summary>
+    public Texture2D? GetPortraitAttacking(OpenPhantasie.Core.Character member) =>
+        Get(PictureNames.PortraitClassIdle((int)member.Class)) is not null
+            ? Get(PictureNames.PortraitClassAttacking((int)member.Class))
+            : GetPortraitAttacking((int)member.Race);
+
     public Texture2D? PortraitElementalAttacking => Get(PictureNames.PortraitElementalAttacking);
 
     /// <summary>III's party-defeat scene, the gates of the Astral Plane (Amiga <c>D/W2.cmp</c>), or null.</summary>

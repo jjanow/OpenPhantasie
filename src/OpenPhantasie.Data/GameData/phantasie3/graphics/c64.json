@@ -1,0 +1,489 @@
+{
+  "_schema": "phantasie.graphics-pack/v1",
+  "_note": "Commodore 64 Phantasie III art (v1.0 / v1.2; the p3-c64 import, P3C64Art; reverse-engineering/c64/phantasie3/GRAPHICS.md). III's own engine, not I / II's. Monsters: MONSTERS' sprite blocks by record byte 27, colours from PHANT.OBJ's tables (multicolour or hires), a giant two sprites high; portraits: HEROSPRITES' sets, a Monk / Ranger / Priest / Wizard by class (portrait.class.*), a Thief / Fighter by race; the title TITLE (Koala); the town strip PTOWN1; the map PSET0's characters by DATA's tile tables; the defeat and the gods' pictures TOT / GUT / SCHLECHT. Colours: Colodore (VICE colodore.vpl). Text: the remaster 5x7 font (the C64's sets are in font/).",
+  "id": "c64",
+  "game": "phantasie3",
+  "platform": "c64",
+  "name": "Commodore 64",
+  "auto_select": true,
+  "root": "reverse-engineering/c64/phantasie3/extracted/graphics",
+  "requires": [
+    "monsters",
+    "overworld/tiles",
+    "dungeon"
+  ],
+  "screen": {
+    "width": 320,
+    "height": 200,
+    "pixel_aspect": [
+      1,
+      1
+    ],
+    "background": "#000000"
+  },
+  "palette": [
+    "#000000",
+    "#FFFFFF",
+    "#96282E",
+    "#5BD6CE",
+    "#9F2DAD",
+    "#41B936",
+    "#2724C4",
+    "#EFF347",
+    "#9F4815",
+    "#5E3500",
+    "#DA5F66",
+    "#474747",
+    "#787878",
+    "#91FF84",
+    "#6864FF",
+    "#AEAEAE"
+  ],
+  "font": "remaster-5x7",
+  "_tile_maps": "PHANT.OBJ's wilderness view (live s220): 10 x 9 cells of 2 x 2 PSET0 characters (16 x 16), the party on view cell (4, 4); tile b = DATA's four character / colour-RAM tables at b, multicolour on black with $D022 1, $D023 5. tile_swaps: Scandor's DOS bytes drawn as the C64 tile found in their cells (P3C64ArtManifest.ScandorSwaps) [~]. Near the map's edges the view stops as the remaster's other packs do (the C64's edge rule not read) [~]. Dungeon (DUNGEON.OBJ, live s220): the whole 24 x 30 level in 6 x 3-pixel cells (3 x 3 multicolour sprite pixels; sprite colour 5, $D025 7, $D026 12, black ground), glyphs from the table at runtime $6E77: 0 blank, 1 grey (walls and cells not yet seen), 2 dot, 3 upright bar, 4 level bar, 5 exit, 6 party (drawn instead of its cell). Bytes 200-214 (doors) and 215 seen live; 185-199 and 221+ by DOS's ranges [~]. The upright bar's fourth row, which the C64 draws into the next cell's top row, is left out.",
+  "tile_maps": {
+    "overworld_tile": [
+      16,
+      16
+    ],
+    "overworld_view": [
+      10,
+      9
+    ],
+    "overworld_party_cell": [
+      4,
+      4
+    ],
+    "dungeon_glyph": [
+      6,
+      3
+    ],
+    "dungeon_unseen": 1,
+    "dungeon_party": 6,
+    "dungeon_default": 0,
+    "dungeon_cells": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        185,
+        199,
+        4
+      ],
+      [
+        200,
+        214,
+        3
+      ],
+      [
+        215,
+        217,
+        5
+      ],
+      [
+        221,
+        255,
+        2
+      ]
+    ],
+    "tile_swaps": [
+      [
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        30,
+        31
+      ],
+      [
+        0,
+        31,
+        30
+      ],
+      [
+        0,
+        32,
+        33
+      ],
+      [
+        0,
+        33,
+        34
+      ],
+      [
+        0,
+        34,
+        35
+      ],
+      [
+        0,
+        35,
+        36
+      ],
+      [
+        0,
+        36,
+        37
+      ],
+      [
+        0,
+        37,
+        38
+      ],
+      [
+        0,
+        38,
+        32
+      ],
+      [
+        0,
+        91,
+        244
+      ],
+      [
+        0,
+        93,
+        100
+      ],
+      [
+        0,
+        95,
+        244
+      ],
+      [
+        0,
+        96,
+        100
+      ],
+      [
+        0,
+        101,
+        100
+      ],
+      [
+        0,
+        104,
+        90
+      ],
+      [
+        0,
+        105,
+        98
+      ],
+      [
+        0,
+        107,
+        111
+      ],
+      [
+        0,
+        112,
+        242
+      ],
+      [
+        0,
+        114,
+        197
+      ],
+      [
+        0,
+        115,
+        133
+      ],
+      [
+        0,
+        116,
+        133
+      ],
+      [
+        0,
+        118,
+        143
+      ],
+      [
+        0,
+        122,
+        146
+      ],
+      [
+        0,
+        123,
+        146
+      ],
+      [
+        0,
+        126,
+        10
+      ],
+      [
+        0,
+        131,
+        139
+      ],
+      [
+        0,
+        132,
+        146
+      ],
+      [
+        0,
+        138,
+        143
+      ],
+      [
+        0,
+        144,
+        143
+      ],
+      [
+        0,
+        155,
+        158
+      ],
+      [
+        0,
+        156,
+        158
+      ],
+      [
+        0,
+        157,
+        158
+      ],
+      [
+        0,
+        159,
+        158
+      ],
+      [
+        0,
+        160,
+        158
+      ],
+      [
+        0,
+        161,
+        158
+      ],
+      [
+        0,
+        162,
+        158
+      ],
+      [
+        0,
+        163,
+        158
+      ],
+      [
+        0,
+        164,
+        158
+      ],
+      [
+        0,
+        165,
+        158
+      ],
+      [
+        0,
+        166,
+        158
+      ],
+      [
+        0,
+        167,
+        158
+      ],
+      [
+        0,
+        168,
+        158
+      ],
+      [
+        0,
+        169,
+        19
+      ],
+      [
+        0,
+        170,
+        158
+      ],
+      [
+        0,
+        171,
+        158
+      ],
+      [
+        0,
+        172,
+        158
+      ],
+      [
+        0,
+        173,
+        158
+      ],
+      [
+        0,
+        174,
+        158
+      ],
+      [
+        0,
+        175,
+        18
+      ],
+      [
+        0,
+        176,
+        158
+      ],
+      [
+        0,
+        177,
+        158
+      ],
+      [
+        0,
+        178,
+        158
+      ],
+      [
+        0,
+        179,
+        158
+      ],
+      [
+        0,
+        180,
+        16
+      ],
+      [
+        0,
+        181,
+        158
+      ],
+      [
+        0,
+        182,
+        19
+      ],
+      [
+        0,
+        183,
+        158
+      ],
+      [
+        0,
+        184,
+        17
+      ],
+      [
+        0,
+        185,
+        17
+      ],
+      [
+        0,
+        186,
+        158
+      ],
+      [
+        0,
+        187,
+        158
+      ],
+      [
+        0,
+        243,
+        237
+      ],
+      [
+        0,
+        249,
+        0
+      ]
+    ]
+  },
+  "title_sequence": {
+    "_note": "PHANTASIE III (boot) loads PHANT.OBJ, which shows TITLE (a Koala picture) while the game loads; shown until a key, as the other C64 packs do.",
+    "canvas": [
+      320,
+      200
+    ],
+    "background": "#000000",
+    "steps": [
+      {
+        "picture": "title.cover"
+      }
+    ]
+  },
+  "pictures": {
+    "title.cover": "screens/title.png",
+    "town.backdrop": "screens/town.png",
+    "overworld.party": "overworld/party.png",
+    "scene.astral-plane": "screens/astral-plane.png",
+    "scene.reward.good": "screens/reward-good.png",
+    "scene.reward.evil": "screens/reward-evil.png",
+    "portrait.elemental.idle": "portraits/elemental/air-idle.png",
+    "portrait.elemental.attacking": "portraits/elemental/air-attacking.png",
+    "portrait.class.1.idle": "portraits/class/idle/1-monk.png",
+    "portrait.class.1.attacking": "portraits/class/attacking/1-monk.png",
+    "portrait.class.2.idle": "portraits/class/idle/2-ranger.png",
+    "portrait.class.2.attacking": "portraits/class/attacking/2-ranger.png",
+    "portrait.class.4.idle": "portraits/class/idle/4-priest.png",
+    "portrait.class.4.attacking": "portraits/class/attacking/4-priest.png",
+    "portrait.class.5.idle": "portraits/class/idle/5-wizard.png",
+    "portrait.class.5.attacking": "portraits/class/attacking/5-wizard.png"
+  },
+  "_portraits": "portrait.{race}: HEROSPRITES set PHANT.OBJ $1DFE[race] in colour $1E0E[race], the figure a Thief or Fighter shows; portrait.class.{class}: set $1DF2[class] in colour $1DF8[class] for a Monk, Ranger, Priest or Wizard (drawn before the race's) [C]. Hires, frames idle / attacking (/ casting, not drawn). The elemental: the Mud Elemental's monster picture ($B2) in its kind's colour (Air 1, Mist 14, Mud 8); the pack shows Air's [~].",
+  "picture_sets": [
+    {
+      "name": "monster.{n}.idle",
+      "dir": "monsters/idle",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "monster.{n}.attacking",
+      "dir": "monsters/attacking",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "portrait.{n}.idle",
+      "dir": "portraits/idle",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "portrait.{n}.attacking",
+      "dir": "portraits/attacking",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "overworld.tile.{n}",
+      "dir": "overworld/tiles",
+      "prefix": "{n:D3}.",
+      "ext": ".png"
+    },
+    {
+      "name": "dungeon.cell.{n}",
+      "dir": "dungeon",
+      "prefix": "glyph-{n}.",
+      "ext": ".png"
+    }
+  ]
+}

@@ -123,6 +123,68 @@ public static class C64Gfx
         return img;
     }
 
+    /// <summary>
+    /// A multicolour sprite (63 bytes, <c>$D01C</c> bit set) at (x, y): each bit pair is two pixels wide, 00 transparent,
+    /// 01 <paramref name="mc1"/> (<c>$D025</c>), 10 the sprite's own <paramref name="colour"/>, 11 <paramref name="mc2"/>
+    /// (<c>$D026</c>).
+    /// </summary>
+    public static void DrawMulticolourSprite(RgbaImage img, int x, int y, ReadOnlySpan<byte> data, int colour, int mc1, int mc2)
+    {
+        for (var row = 0; row < SpriteHeight; row++)
+        for (var pair = 0; pair < SpriteWidth / 2; pair++)
+        {
+            var bits = (data[row * 3 + pair / 4] >> (6 - 2 * (pair % 4))) & 3;
+            if (bits == 0)
+                continue;
+            var c = bits switch { 1 => mc1, 2 => colour, _ => mc2 };
+            for (var dx = 0; dx < 2; dx++)
+            {
+                int px = x + 2 * pair + dx, py = y + row;
+                if (px >= 0 && py >= 0 && px < img.Width && py < img.Height)
+                    Plot(img, px, py, c);
+            }
+        }
+    }
+
+    /// <summary>
+    /// One character cell in the VIC's multicolour text mode (<c>$D016</c> bit 4) at (x, y): a colour-RAM nibble with bit
+    /// 3 set draws the glyph's bit pairs (two pixels wide) as 00 <paramref name="background"/> (<c>$D021</c>), 01
+    /// <paramref name="mc1"/> (<c>$D022</c>), 10 <paramref name="mc2"/> (<c>$D023</c>), 11 the nibble's low three bits;
+    /// with bit 3 clear the cell is hires in colours 0–7. <paramref name="background"/> null leaves the ground transparent.
+    /// </summary>
+    public static void DrawMulticolourChar(RgbaImage img, int x, int y, ReadOnlySpan<byte> glyph, int colourRam, int? background,
+        int mc1, int mc2)
+    {
+        if ((colourRam & 8) == 0)
+        {
+            DrawChar(img, x, y, glyph, colourRam & 7, background);
+            return;
+        }
+        for (var row = 0; row < 8; row++)
+        for (var pair = 0; pair < 4; pair++)
+        {
+            var bits = (glyph[row] >> (6 - 2 * pair)) & 3;
+            int? c = bits switch { 0 => background, 1 => mc1, 2 => mc2, _ => colourRam & 7 };
+            if (c is not { } colour)
+                continue;
+            Plot(img, x + 2 * pair, y + row, colour);
+            Plot(img, x + 2 * pair + 1, y + row, colour);
+        }
+    }
+
+    /// <summary>
+    /// A multicolour text screen: 2,048 bytes of character set, 1,000 screen codes and 1,000 colour-RAM bytes, 40 × 25
+    /// cells (<see cref="DrawMulticolourChar"/>), 320 × 200.
+    /// </summary>
+    public static RgbaImage MulticolourCharScreen(ReadOnlySpan<byte> charset, ReadOnlySpan<byte> screen, ReadOnlySpan<byte> colour,
+        int background, int mc1, int mc2)
+    {
+        var img = new RgbaImage(320, 200);
+        for (var cell = 0; cell < 1000; cell++)
+            DrawMulticolourChar(img, cell % 40 * 8, cell / 40 * 8, charset.Slice(screen[cell] * 8, 8), colour[cell], background, mc1, mc2);
+        return img;
+    }
+
     /// <summary>The bounding box (x, y, w, h) of the non-transparent pixels, or null for an empty picture.</summary>
     public static (int X, int Y, int W, int H)? Bounds(RgbaImage img)
     {

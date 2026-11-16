@@ -403,7 +403,7 @@ public static partial class UiOverlays
 
             DrawPanel(batch, pixel, r, PanelBg, elemental ? ElementalEdge : PanelEdge);
             var portrait = portraitFor?.Invoke(ch) // II's pose on the row (s156)
-                           ?? (elemental ? assets.PortraitElemental : assets.GetPortraitIdle((int)ch.Race));
+                           ?? (elemental ? assets.PortraitElemental : assets.GetPortraitIdle(ch));
             var px = r.X + (r.Width - PartyStripLayout.PortraitSize) / 2;
             var portraitRect = new Rectangle(px, r.Y + 2, PartyStripLayout.PortraitSize, portraitHeight);
             // II: a member dying this round: 0x18a02 first clears the portrait's rectangle (0x19b28, pen 0), then the mark
@@ -521,7 +521,7 @@ public static partial class UiOverlays
         members.Select(m => ShowsBodyFigure(assets, session, m, bodyFigures)
                 ? PartyStripLayout.PortraitSize
                 : PortraitRows(ReferenceEquals(m, session.Party.Elemental) ? assets.PortraitElemental
-                    : assets.GetPortraitIdle((int)m.Race)))
+                    : assets.GetPortraitIdle(m)))
             .Append(PartyStripLayout.PortraitSize)
             .Max();
 

@@ -382,8 +382,8 @@ public static partial class UiOverlays
             var dead = state?.DeadMembers.Contains(member) ?? snapshot.DeadBefore.Contains(member);
             var picture = dead ? assets.PortraitGrave
                 : elemental ? (attacking ? assets.PortraitElementalAttacking ?? assets.PortraitElemental : assets.PortraitElemental)
-                : attacking ? assets.GetPortraitAttacking((int)member.Race) ?? assets.GetPortraitIdle((int)member.Race)
-                : assets.GetPortraitIdle((int)member.Race);
+                : attacking ? assets.GetPortraitAttacking(member) ?? assets.GetPortraitIdle(member)
+                : assets.GetPortraitIdle(member);
             var at = new Point(FieldPortraitX(slot), FieldPortraitY(member.Phantasie3?.Rank ?? P3PartyRank.Front));
             if (picture is not null)
                 batch.Draw(picture, new Rectangle(at.X, at.Y, picture.Width, picture.Height), Color.White);

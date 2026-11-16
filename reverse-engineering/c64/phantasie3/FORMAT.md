@@ -55,7 +55,7 @@ byte-identical to v1.0's `PHANT.OBJ`), plus 3 stray sectors on track 17 and 17 B
 | `DNGIP1` | s2, PRG 5, `$687F` | dungeon-in-progress flag (`DUNGEON.OBJ` names `DNGIP` / `DNGIP1`) | `[~]` |
 | `B` | s2, PRG 3,686, `$0801` | the utility (plain BASIC): 1 play the game, 2 make a dungeon disk, 3 / 4 transfer Phantasie I / II characters to III format; loads `UTILITIES.OBJ`, `P3COPY.OBJ` | `[C]` |
 | `UTILITIES.OBJ`, `P3COPY.OBJ` | s2, PRG 313 `$C100` / 1,841 `$C800` | the utility's machine code (disk copy, transfer) | `[~]` |
-| `TITLE`, `PSET0`, `PTOWN1`, `HEROSPRITES`, `GUT`, `TOT`, `SCHLECHT`, `SND` | s1 / s2 | title picture (10,003 B `$6000`), character sets (2,050 B), hero sprites (3,458 B), the three endgame pictures (4,098 B `$8000`; German file names: good, dead, bad), a sound table (177 B `$126E`) | `[~]` |
+| `TITLE`, `PSET0`, `PTOWN1`, `HEROSPRITES`, `GUT`, `TOT`, `SCHLECHT`, `SND` | s1 / s2 | title picture (10,003 B `$6000`, Koala), character sets (2,050 B: PSET0 the map's, PTOWN1 the town's), hero sprites (3,458 B: 18 sets of 3 blocks), the endgame pictures (4,098 B `$8000`: charset + screen + colour; German file names: GUT good = Zeus, TOT dead = the defeat's demon, SCHLECHT bad = Pluto), a sound table (177 B `$126E`) | `[C]` pictures (`GRAPHICS.md`), `[~]` SND |
 
 **Files play rewrites** `[~]`: `PCHARS0` (the roster), `TOWN A`–`Q` (stock: buying / selling; `TOWN.OBJ` has
 `SAVE(Y/N)? … SAVING...`), `DNGIP`, `DNGIP1`, and maybe `DNGn` (`DUNGEON.OBJ` names `DNG1`). The two C64PP copies have
@@ -84,7 +84,9 @@ DOS's but:**
 
 So the C64 has DOS's numbers everywhere the Apple differs from DOS (attack powers, Goblin gold, Kobold damage, Giant
 Ghost, Dragon King, Spirit, the bosses' packed values) **except these five records, where it has the Apple's fix**.
-How the C64 applies the giant rule with its byte 27 values is not read `[?]`.
+Byte 27 is the fight's VIC sprite pointer (`GRAPHICS.md` 2). The giant pictures are `$A8` and `$BA`–`$CD`
+(PHANT.OBJ `$2836`): when group 1 shows one, the field switches to the giant layout and group 2's picture is cleared, so
+no second group is drawn `[C]`; whether the fight logic also drops the group / caps the count at 2 as DOS does is not read `[?]`.
 
 ### 3.2 Items `[C]`
 
@@ -245,13 +247,13 @@ FERRONRAH`), skills. `DUNGEON.OBJ`: the endgame. Monster names: DOS's mixed case
 ## 5. Rules
 
 Mostly not read (s218 read only the character record's code, 3.5: creation in TOWN.OBJ, the sheet in PHANT.OBJ, with a
-throw-away capstone 6502 disassembly; PHANT.OBJ runs at file address − `$1000`, parts of TOWN.OBJ at + `$4000`). Candidates: the giant rule with byte 27 (3.1), the town-row byte 0, the
+throw-away capstone 6502 disassembly; PHANT.OBJ runs at file address − `$1000`, parts of TOWN.OBJ at + `$4000`). Candidates: the giant rule's fight side (3.1: the picture side is read), the town-row byte 0, the
 training curves (no DOS-shaped table found).
 
 ## 6. Graphics and sound
 
-Not decoded: `MONSTERS` 0–4991 (monster pictures; byte 27 points into them `[~]`), `TITLE`, `PSET0` / `PTOWN1`
-(character sets `[~]`), `HEROSPRITES`, `GUT` / `TOT` / `SCHLECHT` (endgame), `SND`. Palette: the VIC-II's 16 colours.
+Pictures: `GRAPHICS.md` (s220; `TITLE`, `MONSTERS` 0–4991, `HEROSPRITES`, `PSET0` / `PTOWN1`, `DATA`'s tile tables,
+`GUT` / `TOT` / `SCHLECHT`, DUNGEON.OBJ's glyphs; the `c64` art pack). Not decoded: `SND` (177 B, a sound table `[~]`).
 
 ## 7. Importer: `p3-c64` / `p3-c64-1.2` (built s218)
 
@@ -292,6 +294,8 @@ words; key `<file>:low7` = bit 7 cleared), the Apple III's `fallback.p3-apple2.e
 **Decided (user s218):** D3-078 (above) and D3-079 (precedence DOS > Amiga > Apple > C64, played copies, dungeon names by
 content, the mixed text) as built.
 
-**Open:** a `c64` art pack (section 6); the tile → terrain table, the plane-map layouts, the places in code, the item →
-scroll page map, the giant rule with byte 27, town byte 0, the dungeon → file and entrance code, the transfer utility
+**Art (s220):** the `c64` pack, recipe 2 (`GRAPHICS.md`).
+
+**Open:** the tile → terrain table, the plane-map layouts, the places in code, the item →
+scroll page map, the giant rule's fight side, town byte 0, the dungeon → file and entrance code, the transfer utility
 `[?]`; the C64's own wording for lines it prints differently (no own-wording file yet).

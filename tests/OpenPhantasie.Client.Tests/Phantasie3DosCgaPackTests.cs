@@ -41,6 +41,9 @@ public class Phantasie3DosCgaPackTests
             // s212: no Apple II art either (it would be the default before DOS CGA: index default_order).
             File.WriteAllText(Path.Combine(graphics, "apple2.json"), File.ReadAllText(Path.Combine(GameDir, "graphics", "apple2.json"))
                 .Replace("reverse-engineering/apple2/phantasie3/extracted/graphics", "reverse-engineering/no-such-folder"));
+            // s220: nor C64 art (third in default_order).
+            File.WriteAllText(Path.Combine(graphics, "c64.json"), File.ReadAllText(Path.Combine(GameDir, "graphics", "c64.json"))
+                .Replace("reverse-engineering/c64/phantasie3/extracted/graphics", "reverse-engineering/no-such-folder"));
             var catalog = GraphicsPackCatalog.Load(dir);
             Assert.Equal(["dos-cga"], catalog.Available.Select(p => p.Id));
             Assert.Equal("dos-cga", catalog.Default?.Id);

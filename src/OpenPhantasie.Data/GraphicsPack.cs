@@ -67,6 +67,15 @@ public static class PictureNames
     /// <summary>A race portrait's attack frame (III Amiga).</summary>
     public static string PortraitAttacking(int raceId) => Inv($"portrait.{raceId}.attacking");
 
+    /// <summary>
+    /// A class's own portrait, drawn instead of the race's when the pack has one (III C64: a Monk, Ranger, Priest or
+    /// Wizard shows its class's figure, a Thief or Fighter its race's; PHANT.OBJ $1D94).
+    /// </summary>
+    public static string PortraitClassIdle(int classId) => Inv($"portrait.class.{classId}.idle");
+
+    /// <summary>A class portrait's attack frame (<see cref="PortraitClassIdle"/>).</summary>
+    public static string PortraitClassAttacking(int classId) => Inv($"portrait.class.{classId}.attacking");
+
     /// <summary>A summoned elemental's attack frame (III Amiga picture 22's second frame).</summary>
     public const string PortraitElementalAttacking = "portrait.elemental.attacking";
     public static string OverworldRegion(int regionId) => Inv($"overworld.region.{regionId}");
@@ -881,6 +890,16 @@ public sealed record TileMapLayout(
     /// <summary>When true the dungeon's party glyph is drawn over the cell's own glyph (a C64 sprite), not instead of it.</summary>
     public bool DungeonPartyOver { get; init; }
 
+    /// <summary>
+    /// The view cell (column, row) the overworld view keeps the party on away from the map's edges; null: the centre
+    /// cell (<c>ViewColumns / 2</c>, <c>ViewRows / 2</c>). III C64 (s220): the 10 × 9 view keeps the party on (4, 4).
+    /// </summary>
+    public (int Column, int Row)? PartyCell { get; init; }
+
+    /// <summary>The party's view column / row (<see cref="PartyCell"/> or the centre).</summary>
+    public int PartyColumn => PartyCell?.Column ?? ViewColumns / 2;
+    public int PartyRow => PartyCell?.Row ?? ViewRows / 2;
+
     /// <summary>The glyph of a seen dungeon cell holding map byte <paramref name="cell"/>: the first matching range, else the default.</summary>
     public int DungeonGlyphFor(int cell)
     {
@@ -920,6 +939,8 @@ public sealed record TileMapLayout(
             ? new Overlay(lo, hi, t, dx, dy)
             : throw new InvalidDataException($"{manifestPath}: tile_maps overlays entries are [min, max, tile, dx, dy]."))
             .ToList();
+        if (dto.PartyCell is not (null or [>= 0, >= 0]) || dto.PartyCell is [var pc, var pr] && (pc >= view[0] || pr >= view[1]))
+            throw new InvalidDataException($"{manifestPath}: tile_maps overworld_party_cell is [column, row] inside the view.");
         if (dto.PartyOffset is not (null or [_, _]))
             throw new InvalidDataException($"{manifestPath}: tile_maps party_offset is [dx, dy].");
         return new TileMapLayout(tile[0], tile[1], view[0], view[1], glyph[0], glyph[1],
@@ -930,6 +951,7 @@ public sealed record TileMapLayout(
             OddColumnTile = dto.OddColumnTile, Overlays = overlays,
             PartyOffset = dto.PartyOffset is [var px, var py] ? (px, py) : null,
             DungeonPartyOver = dto.DungeonPartyOver,
+            PartyCell = dto.PartyCell is [var cellX, var cellY] ? (cellX, cellY) : null,
         };
     }
 
@@ -949,6 +971,7 @@ public sealed record TileMapLayout(
         [JsonPropertyName("odd_column_tile")] public int OddColumnTile { get; set; }
         [JsonPropertyName("overlays")] public List<int[]>? Overlays { get; set; }
         [JsonPropertyName("party_offset")] public int[]? PartyOffset { get; set; }
+        [JsonPropertyName("overworld_party_cell")] public int[]? PartyCell { get; set; }
         [JsonPropertyName("dungeon_party_over")] public bool DungeonPartyOver { get; set; }
     }
 }

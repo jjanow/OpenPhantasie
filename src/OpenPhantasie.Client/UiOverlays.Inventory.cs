@@ -223,7 +223,7 @@ public static partial class UiOverlays
         var cursor = screen.CursorSpot;
 
         // Paperdoll: the portrait and the worn-item boxes beside it.
-        var portrait = assets.GetPortraitIdle((int)m.Race);
+        var portrait = assets.GetPortraitIdle(m);
         var portraitHeight = assets.PortraitHeight; // III Amiga's 32×48 figures whole (s99)
         var slots = layout.Slots.Count;
         var nameLine = $"{m.Name} {UiText.Name(m.Class).ToUpperInvariant()} {m.Level}";

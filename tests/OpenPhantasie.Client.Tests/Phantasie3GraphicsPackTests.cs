@@ -17,8 +17,8 @@ public class Phantasie3GraphicsPackTests
     public void PhantasieIII_OffersTheAmigaPack_AsItsDefault()
     {
         // s160: the DOS CGA pack is offered too, never by default (auto_select false; index fallback_order); s212: the
-        // Apple II pack too, second in default_order (Phantasie3AppleIIPackTests).
-        Assert.Equal(["amiga", "dos-cga", "apple2"], Catalog.Available.Select(p => p.Id));
+        // Apple II pack too, second in default_order (Phantasie3AppleIIPackTests); s220: the C64's third (Phantasie3C64PackTests).
+        Assert.Equal(["amiga", "dos-cga", "apple2", "c64"], Catalog.Available.Select(p => p.Id));
         Assert.Empty(Catalog.Missing);
         Assert.Same(Amiga, Catalog.Default);
         Assert.Equal(("phantasie3", "amiga"), (Amiga.Game, Amiga.Platform));

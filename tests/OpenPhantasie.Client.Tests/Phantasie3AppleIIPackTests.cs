@@ -81,7 +81,8 @@ public class Phantasie3AppleIIPackTests
             foreach (var f in new[] { "index.json", "apple2.json" })
                 File.Copy(Path.Combine(GameData, "graphics", f), Path.Combine(graphics.FullName, f));
             foreach (var (f, root) in new[] { ("amiga.json", "reverse-engineering/amiga/phantasie3/extracted/graphics"),
-                         ("dos-cga.json", "reverse-engineering/dos/phantasie3/extracted/graphics") })
+                         ("dos-cga.json", "reverse-engineering/dos/phantasie3/extracted/graphics"),
+                         ("c64.json", "reverse-engineering/c64/phantasie3/extracted/graphics") })
                 File.WriteAllText(Path.Combine(graphics.FullName, f),
                     File.ReadAllText(Path.Combine(GameData, "graphics", f)).Replace(root, "no-such-folder/" + f));
 
