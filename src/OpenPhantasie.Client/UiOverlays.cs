@@ -1548,36 +1548,60 @@ public static partial class UiOverlays
         return (rows, spots);
     }
 
-    public static void DrawPrompt(SpriteBatch batch, Texture2D pixel, SessionPrompt prompt, int cursor)
+    /// <summary>
+    /// The prompt panel. s221: <paramref name="picture"/> (the art pack's picture for the moment, <c>event.*</c> /
+    /// <c>find_pictures</c>: C64 I / II's found item, spotted trap, exit) is drawn at its size in a column left of the text,
+    /// which wraps to the narrower column (<see cref="PromptColumns"/>); the panel grows to the picture's height. Null: the
+    /// panel as always.
+    /// </summary>
+    public static void DrawPrompt(SpriteBatch batch, Texture2D pixel, SessionPrompt prompt, int cursor, Texture2D? picture = null)
     {
-        const int maxChars = 48;
-        // A line longer than the panel wraps at a word (III's DOS sentences run to 80 chars), never cut (s98).
-        var lines = PromptLines(prompt.Lines, maxChars);
         var single = prompt.Options.Count == 1;
         var sideBySide = prompt.IsYesNo || prompt.IsShares || prompt.Hotkeys is not null;
         if (!single && !sideBySide && prompt.Options.Count > PromptListRows)
         {
-            DrawPromptGrid(batch, pixel, prompt, cursor, lines, maxChars);
+            DrawPromptGrid(batch, pixel, prompt, cursor, PromptLines(prompt.Lines, 48), 48); // a long menu: no picture
             return;
         }
+        var (_, textX, maxChars) = PromptColumns(picture?.Width);
+        // A line longer than the panel wraps at a word (III's DOS sentences run to 80 chars), never cut (s98).
+        var lines = PromptLines(prompt.Lines, maxChars);
         var (pairRows, pairSpots) = SideBySide(prompt.Options, cursor, maxChars);
         var answers = single ? [PadWording.S("ui.press_enter")] // s193 (pad fix E30): "PRESS A" while the pad is the input
             : sideBySide ? pairRows
             : prompt.Options.Select((o, i) => $"{(i == cursor ? ">" : " ")}{i + 1} {o}").SelectMany(a => Lines(a, maxChars)).ToList();
         var shown = ScrollPromptText(lines, answers.Count, atEnd: prompt.Kind == SessionPromptKind.PartyDefeat);
-        var height = 16 + (shown + answers.Count) * 10 + 4;
+        var height = Math.Max(16 + (shown + answers.Count) * 10 + 4, picture is null ? 0 : picture.Height + 2 * PromptPicturePad);
         var top = PromptPanelTop(shown, height);
         var panel = new Rectangle(8, top, 304, height);
         DrawPanel(batch, pixel, panel, ModalBg, PanelEdge);
+        if (picture is not null)
+            batch.Draw(picture, new Rectangle(14, top + PromptPicturePad, picture.Width, picture.Height), Color.White);
         var y = top + 8 + shown * 10 + 4;
-        HitPrompt(prompt, cursor, single, sideBySide, y, pairSpots); // under the text's scroll bar
-        DrawPromptText(batch, pixel, lines, shown, top);
+        HitPrompt(prompt, cursor, single, sideBySide, y, pairSpots, textX, maxChars); // under the text's scroll bar
+        DrawPromptText(batch, pixel, lines, shown, top, textX);
         for (var i = 0; i < answers.Count; i++)
         {
             var on = !single && !sideBySide && i == cursor;
-            PixelFont.Draw(batch, pixel, 14, y, answers[i], on ? Color.Yellow : BodyText);
+            PixelFont.Draw(batch, pixel, textX, y, answers[i], on ? Color.Yellow : BodyText);
             y += 10;
         }
+    }
+
+    /// <summary>s221: the gap above and below a prompt's picture in its panel (<see cref="DrawPrompt"/>).</summary>
+    public const int PromptPicturePad = 6;
+
+    /// <summary>
+    /// s221: a prompt panel's text column: with no picture x 14 and 48 columns as always; with a picture
+    /// <paramref name="pictureWidth"/> pixels wide the text starts that many character cells plus one cell's gap to the
+    /// right and keeps the rest of the 48 (the panel stays 304 wide; lines wrap narrower).
+    /// </summary>
+    public static (int PictureCells, int TextX, int MaxChars) PromptColumns(int? pictureWidth)
+    {
+        if (pictureWidth is not int w)
+            return (0, 14, 48);
+        var cells = (w + PixelFont.Advance - 1) / PixelFont.Advance + 1;
+        return (cells, 14 + cells * PixelFont.Advance, 48 - cells);
     }
 
     /// <summary>
@@ -1622,14 +1646,15 @@ public static partial class UiOverlays
     }
 
     /// <summary>The scrolled prompt text from the panel's first line (and its bar); the y under the last line shown.</summary>
-    private static int DrawPromptText(SpriteBatch batch, Texture2D pixel, IReadOnlyList<string> lines, int shown, int top)
+    private static int DrawPromptText(SpriteBatch batch, Texture2D pixel, IReadOnlyList<string> lines, int shown, int top,
+        int textX = 14)
     {
         var y = top + 8;
-        var area = new Rectangle(12, y - 1, 296, shown * 10);
+        var area = new Rectangle(textX - 2, y - 1, 310 - textX, shown * 10);
         HitScrollArea(PromptScroll, area);
         for (var i = 0; i < shown && PromptScroll.Offset + i < lines.Count; i++)
         {
-            PixelFont.Draw(batch, pixel, 14, y, lines[PromptScroll.Offset + i], TitleGold);
+            PixelFont.Draw(batch, pixel, textX, y, lines[PromptScroll.Offset + i], TitleGold);
             y += 10;
         }
         DrawScrollBar(batch, pixel, PromptScroll, area);
@@ -2070,7 +2095,7 @@ public static partial class UiOverlays
     /// the way the arrows do (<see cref="PromptMenu"/>), a click adds Return; a one-answer box takes a click anywhere.
     /// </summary>
     private static void HitPrompt(SessionPrompt prompt, int cursor, bool single, bool sideBySide, int answersY,
-        IReadOnlyList<(int Row, int Start, int End)> pairSpots)
+        IReadOnlyList<(int Row, int Start, int End)> pairSpots, int textX = 14, int maxChars = 48)
     {
         if (Hits is not { } hits)
             return;
@@ -2082,12 +2107,12 @@ public static partial class UiOverlays
             for (var i = 0; i < pairSpots.Count; i++)
             {
                 var (row, start, end) = pairSpots[i];
-                HitCursorRow(TextSpan(14, answersY + row * 10, start, Math.Min(end, 47)), cursor, i, Keys.Left, Keys.Right);
+                HitCursorRow(TextSpan(textX, answersY + row * 10, start, Math.Min(end, maxChars - 1)), cursor, i, Keys.Left, Keys.Right);
             }
             return;
         }
         for (var i = 0; i < Math.Min(6, prompt.Options.Count); i++)
-            HitCursorRow(TextSpan(14, answersY + i * 10, 0, 48), cursor, i, Keys.Up, Keys.Down);
+            HitCursorRow(TextSpan(textX, answersY + i * 10, 0, maxChars), cursor, i, Keys.Up, Keys.Down);
         hits.Wheel = (Keys.Up, Keys.Down);
     }
 
@@ -2685,6 +2710,17 @@ public static partial class UiOverlays
         Fill(batch, pixel, box.Thumb(track), ScrollThumb);
         // A slightly wider target than the 3-pixel bar, so it can be hit.
         Hits?.Add(new Rectangle(track.X - 2, track.Y, track.Width + 3, track.Height), new ScrollBarTag(box, track));
+    }
+
+    /// <summary>
+    /// s221: a picture at its own size in a black box with the panels' edge (<see cref="FeaturePictureSlots.BoxBeside"/>
+    /// gives the box: the picture sits <see cref="FeaturePictureSlots.Pad"/> in from its corner).
+    /// </summary>
+    public static void DrawPictureBox(SpriteBatch batch, Texture2D pixel, Texture2D picture, (int X, int Y, int W, int H) box)
+    {
+        DrawPanel(batch, pixel, new Rectangle(box.X, box.Y, box.W, box.H), Color.Black, PanelEdge);
+        batch.Draw(picture, new Rectangle(box.X + FeaturePictureSlots.Pad, box.Y + FeaturePictureSlots.Pad, picture.Width,
+            picture.Height), Color.White);
     }
 
     private static void DrawPanel(SpriteBatch batch, Texture2D pixel, Rectangle r, Color fill, Color edge)

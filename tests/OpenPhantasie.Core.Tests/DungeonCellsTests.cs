@@ -431,6 +431,29 @@ public partial class DungeonCellsTests
         Assert.Equal("H         DIES", log[^1]);
     }
 
+    /// <summary>
+    /// s221: the step's <see cref="FeaturePicture"/> (C64 I / II's pictures, GRAPHICS.md 7): a spotted trap, the stairs, an
+    /// exit, a locked door's pick whatever its outcome; none for an unspotted trap, a jammed door or a listening one.
+    /// </summary>
+    [Fact]
+    public void Steps_NameTheirFeaturePicture()
+    {
+        FeaturePicture Step(byte cell, Party? party = null, IDosRandomSource? rng = null)
+        {
+            var (t, s) = OneCell(cell);
+            return t.TryMove(s, CardinalDirection.East, party ?? PartyOf(Member("A")), rng ?? new Rolls()).Picture;
+        }
+        Assert.Equal(FeaturePicture.Trap, Step(3, PartyOf(Member("A", spot: 50)), new Rolls(50)));
+        Assert.Equal(FeaturePicture.None, Step(5, PartyOf(Member("A", spot: 0, dex: 0)), new Rolls(1, 0, 50)));
+        Assert.Equal(FeaturePicture.Stairs, Step(0xda));
+        Assert.Equal(FeaturePicture.Exit, Step(0xd7));
+        Assert.Equal(FeaturePicture.Lock, Step(0xc6, PartyOf(Member("A", pick: 30)), new Rolls(29))); // picked
+        Assert.Equal(FeaturePicture.Lock, Step(0xc6, PartyOf(Member("A", pick: 30)), new Rolls(30))); // not picked: jams
+        Assert.Equal(FeaturePicture.None, Step(0xc7));                                              // jammed: no roll
+        Assert.Equal(FeaturePicture.None, Step(0xbc, PartyOf(Member("A", listen: 10)), new Rolls(9))); // heard
+        Assert.Equal(FeaturePicture.None, Step(DungeonTraps.SpentCell));
+    }
+
     [Fact]
     public void Trap_Unspotted_SpringsAtOnce()
     {

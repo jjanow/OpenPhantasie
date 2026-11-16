@@ -222,9 +222,14 @@ public sealed class VictoryScreenView
                 Blit(pens, arm, _layout.ArmX, _layout.ArmY);
             var xs = VictoryScreen.SlotXs(slots, _layout.SlotSize);
             var ghost = _layout.Ghost is { } ghostName ? _assets.Get(ghostName) : null;
-            foreach (var (slot, portrait) in VictoryScreen.Drawn(slots, frame.Ghosts, frame.Granted, frame.GhostCount))
-                if ((portrait ? _assets.GetPortraitIdle((int)slots[slot].Race) : ghost) is { } art)
-                    Blit(pens, art, xs[slot], _layout.RowTop);
+            var drawn = VictoryScreen.Drawn(slots, frame.Ghosts, frame.Granted, frame.GhostCount).ToList();
+            // s221: a slot's portrait takes its ghost's place (the Amiga's opaque 32 x 32 portrait covers its ghost; the
+            // C64's cloud sprite becomes the figure), so a transparent figure does not show the ghost through it.
+            var portraits = drawn.Where(d => d.Portrait).Select(d => d.Slot).ToHashSet();
+            foreach (var (slot, portrait) in drawn)
+                if (portrait || !portraits.Contains(slot))
+                    if ((portrait ? _assets.GetPortraitIdle((int)slots[slot].Race) : ghost) is { } art)
+                        Blit(pens, art, xs[slot], _layout.RowTop);
         }
         if (_layout.Crowd is { } crowd && frame.Crowd >= 0 && frame.Crowd < crowd.Frames.Count &&
             _assets.Get(crowd.Frames[frame.Crowd]) is { } cheer)
@@ -261,7 +266,14 @@ public sealed class VictoryScreenView
                 pens[y * Width + x] = 0;
     }
 
-    /// <summary>Copy every pixel of <paramref name="art"/> (all pens: the Amiga's blit is a plain copy), clipped.</summary>
+    /// <summary>A transparent pixel in <see cref="PensOf"/>: <see cref="Blit"/> leaves the pen under it.</summary>
+    private const byte Transparent = 0xFF;
+
+    /// <summary>
+    /// Copy <paramref name="art"/>'s pixels, clipped: every pixel of the Amiga's and ST's art (opaque: their blits are plain
+    /// copies); s221: a transparent pixel leaves what is under it, as a C64 sprite shows the screen behind it (the C64
+    /// pack's clouds, hand, figures and crowd are sprites).
+    /// </summary>
     private void Blit(byte[] pens, Texture2D art, int x0, int y0)
     {
         var src = PensOf(art);
@@ -273,13 +285,13 @@ public sealed class VictoryScreenView
             for (var x = 0; x < art.Width; x++)
             {
                 var sx = x0 + x;
-                if (sx is >= 0 and < Width)
+                if (sx is >= 0 and < Width && src[y * art.Width + x] != Transparent)
                     pens[sy * Width + sx] = src[y * art.Width + x];
             }
         }
     }
 
-    /// <summary>The pens of <paramref name="art"/>: each colour's pen in the table (transparent = 0, else the nearest).</summary>
+    /// <summary>The pens of <paramref name="art"/>: each colour's pen in the table (the nearest; transparent = <see cref="Transparent"/>).</summary>
     private byte[] PensOf(Texture2D art)
     {
         if (_pens.TryGetValue(art, out var hit))
@@ -288,7 +300,7 @@ public sealed class VictoryScreenView
         art.GetData(data);
         var pens = new byte[data.Length];
         for (var i = 0; i < data.Length; i++)
-            pens[i] = data[i].A == 0 ? (byte)0 : Nearest(data[i]);
+            pens[i] = data[i].A == 0 ? Transparent : Nearest(data[i]);
         return _pens[art] = pens;
     }
 

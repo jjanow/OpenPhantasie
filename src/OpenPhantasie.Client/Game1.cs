@@ -413,12 +413,12 @@ public partial class Game1 : Game
             TestParty.Bootstrap(_session, _data.CreateItemCatalog(), level);
             if (game == GameId.P1 && Environment.GetCommandLineArgs().Contains(TestParty.VictorySwitch))
                 TestParty.WinBlackLordFight(_session);
-            else if (game == GameId.P1 && Environment.GetCommandLineArgs().Contains(TestParty.DefeatSwitch))
-                TestParty.Defeat(_session); // s153: the Amiga's defeat screens (AMIGA SCREENS) or the prompts
+            else if (game is GameId.P1 or GameId.P2 && Environment.GetCommandLineArgs().Contains(TestParty.DefeatSwitch))
+                TestParty.Defeat(_session); // s153: the Amiga's defeat screens (AMIGA SCREENS) or the prompts; s221: and II's
             else if (game == GameId.P1 && P1QuestionSwitch(Environment.GetCommandLineArgs()) is { } question)
                 OpenP1Question(_session, question); // s154: a map question's requester on demand
-            else if (game == GameId.P1 && TestParty.DungeonCell(Environment.GetCommandLineArgs()) is { } cell)
-                TestParty.EnterDungeon(_session, cell); // s141: a dungeon step's boxes on demand
+            else if (game is GameId.P1 or GameId.P2 && TestParty.DungeonCell(Environment.GetCommandLineArgs()) is { } cell)
+                TestParty.EnterDungeon(_session, cell); // s141: a dungeon step's boxes on demand; s221: and II's
             else if (game == GameId.P3 && TestParty.DungeonCell(Environment.GetCommandLineArgs()) is { } p3Cell)
                 TestParty.EnterP3Dungeon(_session, p3Cell); // s163: III's dungeon windows (traps, doors) on demand
             else if (game is GameId.P1 or GameId.P2 && TestParty.CombatMonster(Environment.GetCommandLineArgs()) is int monster)
@@ -1728,6 +1728,7 @@ public partial class Game1 : Game
         else
             UiOverlays.DrawHud(_spriteBatch, _pixel, _session, _settings, BandMessage, FieldBandHelp(_session), FieldStatus(_session),
                 messageKeys: _mouseUsed && _combatUi.AwaitingOrders);
+        DrawStepPictureOnMessageLine(); // s221: C64 II's STAIRS / LOCK over the help band while its line is up
         if (TownPictureScreen(_session) && TownBarPlaces(_session) is { } townBar) // s156: III Amiga's town bar
             UiOverlays.DrawTownMenuBar(_spriteBatch, _pixel, _assets, townBar, _townBar, TownBarPalette(_session),
                 TownBarTakesInput(_session), _session);
@@ -1760,7 +1761,10 @@ public partial class Game1 : Game
         else if (DosPageRows() is { } dosRows)
         {
             if (DosPageLayout() is { } dosLayout)
+            {
                 UiOverlays.DrawP1DosPage(_spriteBatch, _pixel, dosLayout); // s156: at DOS's places on its 40 x 25 grid
+                DrawStepPictureBeside(dosLayout, dosRows); // s221: C64 I's STAIRS / LOCK beside the band
+            }
             else
                 UiOverlays.DrawTextPanel(_spriteBatch, _pixel, dosRows); // s154: I DOS's box, one key (scrolls when long)
             UiOverlays.Hits?.Clear(); // a key or a click turns the page
@@ -1977,7 +1981,7 @@ public partial class Game1 : Game
             {
                 _defeatSceneLines = null;
                 _defeatPager.Reset();
-                UiOverlays.DrawPrompt(_spriteBatch, _pixel, shown, _promptMenu.CursorFor(prompt));
+                UiOverlays.DrawPrompt(_spriteBatch, _pixel, shown, _promptMenu.CursorFor(prompt), PromptPicture(prompt)); // s221
             }
         }
         else
@@ -3074,6 +3078,7 @@ public partial class Game1 : Game
         {
             DungeonMoveResult? result = null;
             AfterDungeonMove(s, () => result = s.MoveDungeon(dir));
+            NoteStepPicture(result!); // s221
             (plain, blocked) = (result!.Kind == DungeonMoveKind.Moved, result.Kind == DungeonMoveKind.BlockedWall);
         }
         if (blocked && s.Mode == mode && CurrentPrompt is null && !P1HeldRequesterUp)

@@ -23,6 +23,10 @@ public sealed class P1C64Art(ImportContext? ctx) : C64PhantasieArt(ctx)
     public override IReadOnlyList<int> ClassColour => MapColours;
     public override IReadOnlyList<int> ClassPetscii => MapPetscii;
 
+    /// <summary>s221: <c>P.END</c>'s Zeus (side 1 <c>ZALL</c>) and <c>CEMETARY</c>'s party wipe (side 2).</summary>
+    protected override IEnumerable<(string Rel, RgbaImage Image)> EndScreens(Func<string, byte[]?> read) =>
+        C64EndScreens.P1Ending(read).Concat(C64EndScreens.Defeat(read, doorway: false));
+
     /// <summary>The import step: the art under <see cref="RootPath"/> and the pack <c>graphics/c64.json</c>.</summary>
     public static void Import(ImportContext context)
     {

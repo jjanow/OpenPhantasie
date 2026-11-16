@@ -91,6 +91,42 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ]
    }
   ],
   "core.dungeon.trap_x_dies": [
@@ -127,6 +163,30 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19449,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19451,
+      5
+     ]
+    ]
    }
   ],
   "core.dungeon.x_swims": [
@@ -148,6 +208,30 @@
      [
       "game",
       124096,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19649,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19651,
       5
      ]
     ]
@@ -211,6 +295,54 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19666,
+      5
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      19733,
+      3
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19739,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19668,
+      5
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      19735,
+      3
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19741,
+      6
+     ]
+    ]
    }
   ],
   "core.dungeon.swim_x_dies": [
@@ -232,6 +364,30 @@
      [
       "PhantasieIII",
       98729,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19707,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19709,
       5
      ]
     ]
@@ -289,6 +445,42 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ]
    }
   ],
   "core.script.report_x_dies": [
@@ -323,6 +515,30 @@
       "DUNGON3",
       11568,
       7
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19449,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19451,
+      5
      ]
     ]
    }
@@ -623,6 +839,30 @@
      ],
      "?"
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13641,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13643,
+      5
+     ]
+    ]
    }
   ],
   "p3.reward.press_a_key": [
@@ -678,6 +918,52 @@
       "OUTDOORS3",
       14708,
       8
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      7508,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      7514,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      7518,
+      3
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      7508,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      7514,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      7518,
+      3
      ]
     ]
    }
@@ -757,6 +1043,28 @@
       "TOWN3",
       13265,
       5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
      ]
     ]
    }
@@ -864,6 +1172,28 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      14261,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      14261,
+      17
+     ]
+    ]
    }
   ],
   "core.guild.already_in_party": [
@@ -903,6 +1233,28 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      14231,
+      18
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      14231,
+      18
+     ]
+    ]
    }
   ],
   "core.guild.roster_full": [
@@ -940,6 +1292,28 @@
       "TOWN3",
       5572,
       4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      9127,
+      24
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      9127,
+      24
      ]
     ]
    }
@@ -1003,6 +1377,28 @@
       "TOWN3",
       8536,
       4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      2847,
+      25
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      2847,
+      25
      ]
     ]
    }
@@ -1074,6 +1470,28 @@
       2
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      3612,
+      16
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      3612,
+      16
+     ]
+    ]
    }
   ],
   "guild.no_one_to_drop": [
@@ -1131,6 +1549,28 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ]
    }
   ],
   "guild.add_members_to_a_party_first": [
@@ -1186,6 +1626,28 @@
       "TOWN3",
       13265,
       5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
      ]
     ]
    }
@@ -1249,6 +1711,28 @@
       3
      ],
      "?"
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8306,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8306,
+      10
+     ]
     ]
    }
   ],
@@ -1367,6 +1851,28 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      19276,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      19278,
+      5
+     ]
+    ]
    }
   ],
   "core.p3.river_styx": [
@@ -1410,6 +1916,28 @@
       "OUTDOORS3",
       14214,
       4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      19251,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      19253,
+      10
      ]
     ]
    }
@@ -1460,6 +1988,30 @@
       5
      ],
      "?"
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      20268,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      20270,
+      6
+     ]
     ]
    }
   ],
@@ -1542,6 +2094,40 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      14141,
+      36
+     ],
+     "\r",
+     [
+      "TOWN.OBJ:low7",
+      14178,
+      14
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      14141,
+      36
+     ],
+     "\r",
+     [
+      "TOWN.OBJ:low7",
+      14178,
+      14
+     ]
+    ]
    }
   ],
   "core.magic.monsters_at_level_x": [
@@ -1590,6 +2176,42 @@
      ],
      " {0}"
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      14394,
+      12
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      14407,
+      5
+     ],
+     " {0}"
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      14396,
+      12
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      14409,
+      5
+     ],
+     " {0}"
+    ]
    }
   ],
   "core.magic.not_enough_mp": [
@@ -1633,6 +2255,28 @@
       "OUTDOORS3",
       4041,
       5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      14023,
+      23
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      14025,
+      23
      ]
     ]
    }
@@ -1818,6 +2462,28 @@
       2
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      5187,
+      15
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      5187,
+      15
+     ]
+    ]
    }
   ],
   "core.p3.party_transported": [
@@ -1884,6 +2550,42 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ]
    }
   ],
   "core.p3.x_dies": [
@@ -1918,6 +2620,30 @@
       "DUNGON3",
       11568,
       7
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19449,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19451,
+      5
      ]
     ]
    }
@@ -1999,6 +2725,52 @@
       "OUTDOORS3",
       15859,
       5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      15620,
+      17
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      15638,
+      9
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      15768,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      15622,
+      17
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      15640,
+      9
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      15770,
+      11
      ]
     ]
    }
@@ -2112,6 +2884,64 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      15620,
+      17
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      15638,
+      9
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      15768,
+      11
+     ],
+     ", ",
+     [
+      "PHANT.OBJ:low7",
+      15667,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      15622,
+      17
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      15640,
+      9
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      15770,
+      11
+     ],
+     ", ",
+     [
+      "PHANT.OBJ:low7",
+      15669,
+      10
+     ]
+    ]
    }
   ],
   "core.p3.monsters_surprise_you": [
@@ -2157,6 +2987,28 @@
       3
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      15557,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      15559,
+      17
+     ]
+    ]
    }
   ],
   "core.p3.you_surprise_the_monsters": [
@@ -2200,6 +3052,28 @@
       "OUTDOORS3",
       15449,
       4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      15515,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      15517,
+      17
      ]
     ]
    }
@@ -2346,6 +3220,54 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      5648,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5655,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5659,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      5648,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5655,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5659,
+      4
+     ]
+    ]
    }
   ],
   "core.p3.a_trap": [
@@ -2381,6 +3303,80 @@
       116805,
       24
      ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      6726,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6732,
+      1
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6734,
+      4
+     ],
+     ", ",
+     [
+      "DUNGEON.OBJ:low7",
+      6741,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6748,
+      2
+     ],
+     "?"
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      6726,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6732,
+      1
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6734,
+      4
+     ],
+     ", ",
+     [
+      "DUNGEON.OBJ:low7",
+      6741,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6748,
+      2
+     ],
+     "?"
     ]
    }
   ],
@@ -2425,6 +3421,54 @@
       "DUNGON3",
       15589,
       6
+     ],
+     "?"
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      6752,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6756,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6768,
+      7
+     ],
+     "?"
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      6752,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6756,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6768,
+      7
      ],
      "?"
     ]
@@ -2492,6 +3536,42 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      6777,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6782,
+      3
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      6777,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6782,
+      3
+     ]
+    ]
    }
   ],
   "core.p3.greetings": [
@@ -2531,6 +3611,28 @@
       "OUTDOORS3",
       3162,
       3
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      11280,
+      16
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      11283,
+      16
      ]
     ]
    },
@@ -2601,6 +3703,28 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      11124,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      11127,
+      11
+     ]
+    ]
    }
   ],
   "core.p3.x_finds_x": [
@@ -2624,6 +3748,32 @@
       "PhantasieIII",
       29161,
       5
+     ],
+     " {1}"
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13587,
+      12
+     ],
+     " {1}"
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13589,
+      12
      ],
      " {1}"
     ]
@@ -2666,6 +3816,28 @@
       2
      ],
      "?"
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      13641,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      13643,
+      5
+     ]
     ]
    }
   ],
@@ -2831,6 +4003,28 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      11207,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      11210,
+      11
+     ]
+    ]
    }
   ],
   "core.p3.cant_carry_anymore": [
@@ -2868,6 +4062,28 @@
       "TOWN3",
       10769,
       4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8200,
+      31
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8200,
+      31
      ]
     ]
    }
@@ -2914,6 +4130,28 @@
       "PhantasieIII",
       105662,
       20
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      11255,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      11258,
+      10
      ]
     ]
    }
@@ -2977,6 +4215,28 @@
       3
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      10905,
+      13
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      10908,
+      13
+     ]
+    ]
    }
   ],
   "core.p3.party_finds_gold": [
@@ -3032,6 +4292,28 @@
       "DUNGON3",
       20293,
       4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      7896,
+      24
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      7896,
+      24
      ]
     ]
    }
@@ -3097,6 +4379,28 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      7964,
+      26
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      7964,
+      26
+     ]
+    ]
    }
   ],
   "core.p3.party_is_teleported": [
@@ -3146,6 +4450,28 @@
       "DUNGON3",
       20492,
       5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      8066,
+      18
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      8066,
+      18
      ]
     ]
    }
@@ -3217,6 +4543,28 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      8112,
+      32
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      8112,
+      32
+     ]
+    ]
    }
   ],
   "core.p3.mystic.rank_0": [
@@ -3266,6 +4614,40 @@
       "TOWN3",
       11409,
       11
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8911,
+      18
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8911,
+      18
      ]
     ]
    }
@@ -3319,6 +4701,40 @@
       11
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8929,
+      19
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8929,
+      19
+     ]
+    ]
    }
   ],
   "core.p3.mystic.rank_2": [
@@ -3368,6 +4784,40 @@
       "TOWN3",
       11409,
       11
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8948,
+      23
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8948,
+      23
      ]
     ]
    }
@@ -3421,6 +4871,40 @@
       11
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8971,
+      18
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8971,
+      18
+     ]
+    ]
    }
   ],
   "core.p3.mystic.heroes_of_gelnor": [
@@ -3470,6 +4954,28 @@
       "TOWN3",
       807,
       6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      9031,
+      21
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      9031,
+      21
      ]
     ]
    }
@@ -3523,6 +5029,28 @@
       9
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      9074,
+      24
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      9074,
+      24
+     ]
+    ]
    }
   ],
   "core.p3.mystic.heroes_of_netherworld": [
@@ -3574,6 +5102,28 @@
       11
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8989,
+      25
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      8989,
+      25
+     ]
+    ]
    }
   ],
   "core.p3.mystic.heroes_of_scandor": [
@@ -3607,6 +5157,28 @@
       "TOWN3",
       860,
       7
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      9014,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      9014,
+      17
      ]
     ]
    },
@@ -3737,6 +5309,40 @@
       6
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1233,
+      35
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1272,
+      38
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1233,
+      35
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1272,
+      38
+     ]
+    ]
    }
   ],
   "core.p3.astral_2": [
@@ -3854,6 +5460,28 @@
       12
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1566,
+      79
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1566,
+      79
+     ]
+    ]
    }
   ],
   "core.p3.astral_3": [
@@ -3917,6 +5545,28 @@
       9
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2536,
+      35
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2536,
+      35
+     ]
+    ]
    }
   ],
   "core.p3.x_destroyed": [
@@ -3971,6 +5621,42 @@
       9
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2650,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2650,
+      10
+     ]
+    ]
    }
   ],
   "core.p3.x_resurrected": [
@@ -4023,6 +5709,42 @@
       "CEMETARY3",
       1034,
       11
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2586,
+      12
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2586,
+      12
      ]
     ]
    }
@@ -4089,6 +5811,42 @@
       "CEMETARY3",
       1111,
       6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2613,
+      22
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2613,
+      22
      ]
     ]
    }
@@ -4160,6 +5918,28 @@
       "WIN",
       225,
       6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1338,
+      39
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1338,
+      39
      ]
     ]
    }
@@ -4379,6 +6159,64 @@
       "WIN",
       563,
       4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1378,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1420,
+      36
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1458,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1503,
+      29
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1378,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1420,
+      36
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1458,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1503,
+      29
      ]
     ]
    }
@@ -4733,6 +6571,64 @@
      ],
      "\""
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1723,
+      21
+     ],
+     " {0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      1927,
+      34
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1967,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2007,
+      21
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1723,
+      21
+     ],
+     " {0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      1927,
+      34
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1967,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2007,
+      21
+     ]
+    ]
    }
   ],
   "core.p3.reward_cause_x_title_x": [
@@ -4957,6 +6853,90 @@
       6
      ],
      ", {1}\""
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2048,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2086,
+      8
+     ],
+     " {0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2100,
+      19
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2154,
+      9
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2195,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2236,
+      16
+     ],
+     " {1}"
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2048,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2086,
+      8
+     ],
+     " {0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2100,
+      19
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2154,
+      9
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2195,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2236,
+      16
+     ],
+     " {1}"
     ]
    }
   ],
@@ -5245,6 +7225,76 @@
      ],
      ",\""
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2347,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2385,
+      33
+     ],
+     ". ",
+     [
+      "DUNGEON.OBJ:low7",
+      2419,
+      35
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2455,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2495,
+      13
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2347,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2385,
+      33
+     ],
+     ". ",
+     [
+      "DUNGEON.OBJ:low7",
+      2419,
+      35
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2455,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2495,
+      13
+     ]
+    ]
    }
   ],
   "core.p3.reward_teleport": [
@@ -5371,6 +7421,28 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1847,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1847,
+      6
+     ]
+    ]
    }
   ],
   "core.p3.god_zeus": [
@@ -5402,6 +7474,28 @@
       "WIN",
       929,
       4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1745,
+      5
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      1745,
+      5
      ]
     ]
    }
@@ -5437,6 +7531,28 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2129,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2129,
+      4
+     ]
+    ]
    }
   ],
   "core.p3.cause_good": [
@@ -5467,6 +7583,28 @@
      [
       "WIN",
       1413,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2095,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2095,
       4
      ]
     ]
@@ -5509,6 +7647,28 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2282,
+      10
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2282,
+      10
+     ]
+    ]
    }
   ],
   "core.p3.title_superheroes": [
@@ -5546,6 +7706,28 @@
       "WIN",
       945,
       4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2253,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "DUNGEON.OBJ:low7",
+      2253,
+      11
      ]
     ]
    }
@@ -5625,6 +7807,28 @@
       "TOWN3",
       8226,
       2
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      5393,
+      20
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      5393,
+      20
      ]
     ]
    }
@@ -5740,6 +7944,28 @@
       5
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      12758,
+      16
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      12761,
+      16
+     ]
+    ]
    }
   ],
   "core.p3.dead_or_out": [
@@ -5798,6 +8024,30 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      10049,
+      4
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      10052,
+      4
+     ]
+    ]
    }
   ],
   "core.combat.x_misses": [
@@ -5831,6 +8081,30 @@
      [
       "OUTDOORS3",
       5877,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      5032,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      5032,
       6
      ]
     ]
@@ -5888,6 +8162,42 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ]
    }
   ],
   "core.combat.x_dies": [
@@ -5922,6 +8232,30 @@
       "DUNGON3",
       11568,
       7
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      10221,
+      9
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      10224,
+      9
      ]
     ]
    }
@@ -5960,6 +8294,30 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      4052,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      4052,
+      7
+     ]
+    ]
    }
   ],
   "core.p3.x_casts_x": [
@@ -5995,6 +8353,32 @@
      [
       "OUTDOORS3",
       6098,
+      5
+     ],
+     " {1}"
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13492,
+      5
+     ],
+     " {1}"
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13494,
       5
      ],
      " {1}"
@@ -6369,6 +8753,30 @@
       "OUTDOORS3",
       11284,
       8
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13497,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13499,
+      7
      ]
     ]
    }
@@ -6839,6 +9247,40 @@
       7
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ]
    }
   ],
   "core.p3.report_takes_x_damage_and_dies": [
@@ -6997,6 +9439,40 @@
       2
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      10979,
+      14
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      10994,
+      12
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      10979,
+      14
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      10994,
+      12
+     ]
+    ]
    }
   ],
   "core.armory.ninth_item": [
@@ -7052,6 +9528,40 @@
       "TOWN3",
       4115,
       7
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      11018,
+      13
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      11032,
+      13
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      11018,
+      13
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      11032,
+      13
      ]
     ]
    }

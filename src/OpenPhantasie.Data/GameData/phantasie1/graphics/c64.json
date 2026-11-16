@@ -1,6 +1,6 @@
 {
   "_schema": "phantasie.graphics-pack/v1",
-  "_note": "Commodore 64 Phantasie I art (v1.4; the p1-c64 import, P1C64Art; reverse-engineering/c64/phantasie1/GRAPHICS.md). Monsters are the MX n sprite bands (one figure: the band's first sprites, expanded as the VIC does); portraits the HSPRIT pair of each race (none for UNDEAD); the title PIC.* (multicolour bitmap, doubled pixels); town.backdrop the town screen's six buildings at their places (FONT+HER's town characters); the map from FONT's characters as UTIL-3.O's routine prints them. Colours: Colodore (VICE colodore.vpl). Text: the remaster 5x7 font (the C64's sets are in font/). Not drawn: the item / feature pictures (items/; the Client has no such slot).",
+  "_note": "Commodore 64 Phantasie I art (v1.4; the p1-c64 import, P1C64Art; reverse-engineering/c64/phantasie1/GRAPHICS.md). Monsters are the MX n sprite bands (one figure: the band's first sprites, expanded as the VIC does); portraits the HSPRIT pair of each race (none for UNDEAD); the title PIC.* (multicolour bitmap, doubled pixels); town.backdrop the town screen's six buildings at their places (FONT+HER's town characters); the map from FONT's characters as UTIL-3.O's routine prints them. Colours: Colodore (VICE colodore.vpl). Text: the remaster 5x7 font (the C64's sets are in font/). The item / feature pictures (items/) in the programs' colours, beside the find / trap / stairs / lock / exit texts (event.*, find_pictures; DOOR not shown). s221: the ending (P.END's Zeus from ZALL, the members' cloud, the lightning hand; ending_scene) and the party wipe (CEMETARY's temple, ghost and face; defeat_pictures, DOS's pages, defeat.figure.* = the HSPRIT idle figures in yellow, no UNDEAD figure) in ending/ and defeat/.",
   "id": "c64",
   "game": "phantasie1",
   "platform": "c64",
@@ -144,6 +144,29 @@
     "overworld.tile.1000": "overworld/town.png",
     "overworld.tile.1001": "overworld/inn.png",
     "overworld.tile.1002": "overworld/dungeon.png",
+    "event.find.shield": "items/shield.png",
+    "event.find.armor": "items/armor.png",
+    "event.find.weapon": "items/weapon.png",
+    "event.find.weapon-yellow": "items/weapon-yellow.png",
+    "event.find.good-weapon": "items/good-weapon.png",
+    "event.find.good-weapon-light-blue": "items/good-weapon-light-blue.png",
+    "event.find.mg-weapon": "items/mg-weapon.png",
+    "event.find.mg-weapon-cyan": "items/mg-weapon-cyan.png",
+    "event.find.potion": "items/potion.png",
+    "event.find.scroll": "items/scroll.png",
+    "event.find.treasure": "items/treasure.png",
+    "event.find.good-treasure": "items/good-treasure.png",
+    "event.trap": "items/trap.png",
+    "event.stairs": "items/stairs.png",
+    "event.lock": "items/lock.png",
+    "event.exit": "items/exit.png",
+    "ending.final": "ending/zeus.png",
+    "ending.ghost": "ending/sprites/d0-cloud.png",
+    "ending.arm": "ending/sprites/cf-lightning-hand.png",
+    "defeat.temple": "defeat/temple.png",
+    "defeat.demon": "defeat/temple-demon.png",
+    "defeat.ghost": "defeat/ghost.png",
+    "portrait.ghost": "defeat/ghost.png",
     "overworld.tile.0": "overworld/tiles/class-00-even.png",
     "overworld.tile.256": "overworld/tiles/class-00-odd.png",
     "overworld.tile.1": "overworld/tiles/class-00-even.png",
@@ -657,7 +680,113 @@
     "overworld.tile.255": "overworld/tiles/fog-even.png",
     "overworld.tile.511": "overworld/tiles/fog-odd.png"
   },
+  "_find_pictures": "s221 [C] (I's GRAPHICS.md 7, the compiled BASIC of OUTDOORS / DUNGEON, II's the same): a found item shows I$((IT - 1) / 20) (SHIELD ... GOOD TREASURE) in colour IC = 15, 7 if IX = 2 or IX >= 6, 14 if IX = 3, 3 if IX = 4; IX is a float, so the single-id colours hit ids 41, 61 and 81 only. find_pictures: [first id, last id, picture]. event.trap (light red 10, a spotted trap), event.stairs (grey 12), event.lock (brown 9, a locked door, kind 14, whatever the pick), event.exit (green 5, 8 x 6). DOOR is loaded by no program (no slot). The C64 prints them over the map; the Client draws each beside its text.",
+  "find_pictures": [
+    [
+      1,
+      20,
+      "event.find.shield"
+    ],
+    [
+      21,
+      40,
+      "event.find.armor"
+    ],
+    [
+      41,
+      41,
+      "event.find.weapon-yellow"
+    ],
+    [
+      42,
+      60,
+      "event.find.weapon"
+    ],
+    [
+      61,
+      61,
+      "event.find.good-weapon-light-blue"
+    ],
+    [
+      62,
+      80,
+      "event.find.good-weapon"
+    ],
+    [
+      81,
+      81,
+      "event.find.mg-weapon-cyan"
+    ],
+    [
+      82,
+      100,
+      "event.find.mg-weapon"
+    ],
+    [
+      101,
+      120,
+      "event.find.potion"
+    ],
+    [
+      121,
+      140,
+      "event.find.scroll"
+    ],
+    [
+      141,
+      160,
+      "event.find.treasure"
+    ],
+    [
+      161,
+      180,
+      "event.find.good-treasure"
+    ]
+  ],
   "_portraits": "portrait.{race}: HSPRIT blocks 2 race (idle) and 2 race + 1 (attacking), the pair the fight copies for a member of that race (live s218); yellow, the combat row's colour [~]. No UNDEAD pair.",
+  "ending_scene": {
+    "_note": "s221 (GRAPHICS.md 9.1, P.END live in VICE): Zeus (ZALL's characters, white) on black; one cloud (sprite block $D0, multicolour) per member, the striking hand ($CF, light blue, VIC (202, 62)) and per member its figure in the cloud's place (HSPRIT, the pack's yellow portraits; the C64 takes block 64 + P(168), yellow if P(18) != 0 else light grey [~]); the speech typed in yellow from text row 21. Drawn with the remaster's ending screen: the C64 has no fade (fade_vbl 1, the shortest) and wipes Zeus in from the bottom up over about 13 s, flashes the hand per member, talks with the face sprite and raises the grant hand: not modelled [~]. The clouds rise from y 231 to 150 at x 90, 60, 30 / 240, 270 (VIC) beside Zeus; here the row is centred under him (row_top 128, slot_size 24) [~]. Waits (hold, grant, line) and the VBL rate are not measured [~]; no C64 sounds.",
+    "palette": [
+      "#000000",
+      "#FFFFFF",
+      "#96282E",
+      "#5BD6CE",
+      "#9F2DAD",
+      "#41B936",
+      "#2724C4",
+      "#EFF347",
+      "#9F4815",
+      "#5E3500",
+      "#DA5F66",
+      "#474747",
+      "#787878",
+      "#91FF84",
+      "#6864FF",
+      "#AEAEAE"
+    ],
+    "vbl_hz": 50,
+    "fade_vbl": 1,
+    "hold_ticks": 50,
+    "ghost": "ending.ghost",
+    "arm": "ending.arm",
+    "arm_x": 178,
+    "arm_y": 12,
+    "row_top": 128,
+    "slot_size": 24,
+    "grant_ticks": 100,
+    "text_y": 168,
+    "text_pen": 7,
+    "line_ticks": 200
+  },
+  "defeat_pictures": {
+    "_note": "s221 (GRAPHICS.md 9.2, CEMETARY live in VICE): DOS's pages (P1DosDefeatScene) with CEMETARY's pictures: defeat.temple (FONTO's temple, dark grey, doorway open), defeat.demon (the same with the Great Demon's face, purple), defeat.ghost (SKEL2's ghost, white), defeat.figure.<race> (CSPRIT = HSPRIT's idle figures, yellow: the RESURRECTED colour). The C64 colours each fate's figure (UNDEAD cyan, DESTROYED dark grey) where DOS clears a destroyed slot and draws race 15 for UNDEAD (no C64 picture: fallback) [~]; its door rises out of the doorway (not modelled) [~]. Row: ghosts at VIC y 170 (screen 120) at x 110 - 17.5 n + 35 k; here DOS's gap rule [~]. Lines: text row 23, blue (the C64's astral / demon lines; its fate lines take the fate's colour) [~].",
+    "row_y": 120,
+    "slot_align": 1,
+    "clear_top": 120,
+    "clear_bottom": 143,
+    "text_y": 184,
+    "text_colour": "#2724C4"
+  },
   "picture_sets": [
     {
       "name": "monster.{n}.idle",
@@ -687,6 +816,12 @@
       "name": "dungeon.cell.{n}",
       "dir": "dungeon",
       "prefix": "glyph-{n}.",
+      "ext": ".png"
+    },
+    {
+      "name": "defeat.figure.{n}",
+      "dir": "portraits/idle",
+      "prefix": "{n:D2}-",
       "ext": ".png"
     }
   ]

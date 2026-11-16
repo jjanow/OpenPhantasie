@@ -27,6 +27,11 @@ public sealed class P2C64Art(ImportContext? ctx) : C64PhantasieArt(ctx)
     public override IReadOnlyList<int> ClassColour => MapColours;
     public override IReadOnlyList<int> ClassPetscii => MapPetscii;
 
+    /// <summary>s221: <c>WIN</c>'s hall and crowd and <c>CEMETARY2</c>'s party wipe (side 2), with the face's doorway for
+    /// the ST-placed <c>decor.demon-face</c> slot.</summary>
+    protected override IEnumerable<(string Rel, RgbaImage Image)> EndScreens(Func<string, byte[]?> read) =>
+        C64EndScreens.P2Ending(read).Concat(C64EndScreens.Defeat(read, doorway: true));
+
     /// <summary>The import step: the art under <see cref="RootPath"/> and the pack <c>graphics/c64.json</c>.</summary>
     public static void Import(ImportContext context)
     {

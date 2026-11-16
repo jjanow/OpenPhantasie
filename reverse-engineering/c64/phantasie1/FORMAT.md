@@ -67,13 +67,13 @@ Side 1 (138 files), side 2 (125 files); both sides also hold `MN` and `MX 1`–`
 | `DNG 1`–`DNG 10` (s2) | PRG 1,964–1,966, `$4000` | dungeon levels in DOS's layout (3.7) | `[C]` |
 | `PMES 1`–`PMES 10` (s2) | PRG 1,832–3,882, `$61A8` | dungeon messages = DOS `MESSn` decrypted (3.8) | `[C]` |
 | `%DNG n` / `%DNGSTS n` (s2, played copies only) | PRG 1,257 `$8CA0` / 1,964 `$91B4` | the one-slot dungeon save (DOS `DNG.SAV` / `DNGX.SAV`'s role) | `[~]` |
-| `SHIELD`, `ARMOR`, `WEAPON`, `GOOD WEAPON`, `MG WEAPON`, `POTION`, `SCROLL`, `TREASURE`, `GOOD TREASURE`; s2 also `DOOR`, `TRAP`, `STAIRS`, `LOCK`, `EXIT` (386 B) | PRG 394, `$2200` | 392-byte pictures (49 × 8 bytes, 7 × 7 character cells `[~]`) shown for found treasure and dungeon features; names = `OUTDOORS` / `DUNGEON` DATA | `[~]` |
+| `SHIELD`, `ARMOR`, `WEAPON`, `GOOD WEAPON`, `MG WEAPON`, `POTION`, `SCROLL`, `TREASURE`, `GOOD TREASURE`; s2 also `DOOR`, `TRAP`, `STAIRS`, `LOCK`, `EXIT` (386 B) | PRG 394, `$2200` | 392-byte pictures (49 × 8 bytes, 7 × 7 character cells) shown for found treasure and dungeon features; names = `OUTDOORS` / `DUNGEON` DATA; which moment and colour: GRAPHICS.md 7 (`DOOR` never loaded) | `[C]` |
 | `FONT` | PRG 2,050, `$2000` | 256-glyph character set, loaded to `$E800` (`B` 370) | `[C]` load, `[~]` content |
 | `FONT+HER` | PRG 4,333, `$21DA` | loaded to `$21DA`, 4,330 B copied to `$CFDA` (`B` 380, 400) `[C]`; a 38-byte header + 4,292 B (sprites? `[?]`) | `[?]` |
 | `HSPRIT` | PRG 1,923, `$2000` | loaded to `$F000` by `TOWNR`; hero sprites `[?]` | `[?]` |
 | `PIC.MAP`, `PIC.SCR`, `PIC.CLR` | PRG 8,194 `$A000`, 1,026 `$8400`, 1,026 `$D800` | the title picture: multicolour bitmap, screen RAM, colour RAM (`B` 200–290: MULTI COLOR, bank, BIT mode) | `[C]` |
-| `SKEL2`, `CSPRIT`, `FONTO` (s2) | PRG 514 / 1,027 / 1,970 | `CEMETARY`'s skeleton, sprites, font | `[~]` |
-| `ZALL` (s1) | PRG 3,718, `$4000` | endgame picture data, loaded by `P.END` | `[~]` |
+| `SKEL2`, `CSPRIT`, `FONTO` (s2) | PRG 514 / 1,027 / 1,970 | `CEMETARY`'s ghosts, face and door / the fate figures / the temple and its font (GRAPHICS.md 9.2) | `[C]` |
+| `ZALL` (s1) | PRG 3,718, `$4000` | the ending: font, Zeus's characters, sprite blocks `$C0`–`$D0`, the wipe and sound code (GRAPHICS.md 9.1) | `[C]` |
 | `PATTERN` (s2) | PRG 21,707, `$2000` | **the new-game template** (s216, from II's utility, `../phantasie2/FORMAT.md` 2.1): `CHAR2` 0–4249, `TWN 99` 4260, `TWN t` 4260 + 252 t (t = 1–11), `OUT2`–`OUT19` from 7284 (1,012 / 759 B + 2 each); **no `OUT1`**. Absent on v1.0 / v1.1 side 2 | `[C]` layout |
 
 ### 2.1 Files play rewrites, and how to tell `[C]`
@@ -348,8 +348,8 @@ positions" was wrong.) `FONT+HER`'s first 38 bytes are the same record for the p
 | `PIC.MAP` / `.SCR` / `.CLR` | the title: multicolour bitmap, background black (`B` 200–290, 595) | `[C]` |
 | `FONT` (`$E800`) | upper-case screen font, the map's terrain characters (64–87), the dungeon map's (`$E6`–`$EC`) | `[C]` |
 | `FONT+HER` (`$CFDA`) | the hero band record; a mixed-case font; sprite blocks 91–95 (dungeon party; map party, town, inn, dungeon); the town's character set (the six buildings) | `[C]` |
-| `SHIELD` … `EXIT` | character pictures printed at `$EAC0` on: 7 × 7 characters (`EXIT` 8 × 6), numbered down each column | `[C]` layout, `[?]` colours but EXIT |
-| `CEMETARY`'s `SKEL2`, `CSPRIT`, `FONTO`; `ZALL` | the defeat and ending screens | `[?]` not decoded |
+| `SHIELD` … `EXIT` | character pictures printed at `$EAC0` on: 7 × 7 characters (`EXIT` 8 × 6), numbered down each column; moments and colours GRAPHICS.md 7 | `[C]`, `DOOR`'s colour `[?]` (never shown) |
+| `CEMETARY`'s `SKEL2`, `CSPRIT`, `FONTO`; `ZALL` | the defeat and ending screens | decoded s221 (GRAPHICS.md 9), in the `c64` pack |
 
 The overworld is printed by `UTIL-3.O` `$C5C3` (class = map byte div 10, a character pair by column parity, colours from
 `$C688`); the dungeon map in `FONT`'s `$E6`–`$EC` by DOS's cell ranges, grey (GRAPHICS.md 5, 6). Palette: the VIC-II's

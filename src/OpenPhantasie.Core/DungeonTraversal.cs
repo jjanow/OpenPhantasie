@@ -157,6 +157,7 @@ public sealed class DungeonTraversal
                     Y = state.Y,
                     FeatureByte = feature,
                     FeatureKind = kind,
+                    Picture = FeaturePicture.Exit,
                     // No text of its own (s58 DOSBox): `core.prompt.an_exit_take_it` is the session's prompt and the old message
                     // line stays under it.
                 };
@@ -171,6 +172,7 @@ public sealed class DungeonTraversal
                     Y = state.Y,
                     FeatureByte = feature,
                     FeatureKind = kind,
+                    Picture = FeaturePicture.Stairs,
                     Message = GameText.F("core.dungeon.stairs_from_level_x_to_x", feature - 0xd9, feature - 0xd8).TrimEnd(), // "%-2d"; nothing else happens
                 };
 
@@ -300,6 +302,7 @@ public sealed class DungeonTraversal
                 FeatureByte = feature,
                 FeatureKind = kind,
                 SpotterIndex = spotter,
+                Picture = FeaturePicture.Trap,
                 Message = GameText.F("core.dungeon.x_spots_a_trap", party.Members[spotter].Name), // manual p.10 (D-052); DOS adds ". DISARM IT ?"
             };
         }
@@ -403,7 +406,8 @@ public sealed class DungeonTraversal
                 FeatureByte = feature, FeatureKind = kind,
             };
 
-        DungeonMoveResult Jam()
+        // C64 I / II show LOCK for a locked door before the pick, whatever its outcome; a jammed one jumps past it (s221).
+        DungeonMoveResult Jam(FeaturePicture picture = FeaturePicture.None)
         {
             level.Set(state.X, state.Y, DungeonLocks.JammedCell(feature));
             StepBack(state);
@@ -411,6 +415,7 @@ public sealed class DungeonTraversal
             {
                 Kind = DungeonMoveKind.TriggerLock, LevelId = state.LevelId, X = state.X, Y = state.Y,
                 FeatureByte = feature, FeatureKind = kind, Message = GameText.S("core.dungeon.no_one_can_pick_the_lock"), SteppedBack = true,
+                Picture = picture,
             };
         }
 
@@ -418,12 +423,13 @@ public sealed class DungeonTraversal
         {
             case DungeonDoorKind.Locked:
                 if (DungeonLocks.FindPicker(party, rng, roll) is not int picker)
-                    return Jam();
+                    return Jam(FeaturePicture.Lock);
                 level.Set(state.X, state.Y, DungeonLocks.OpenedCell(feature));
                 return new DungeonMoveResult
                 {
                     Kind = DungeonMoveKind.TriggerLock, LevelId = state.LevelId, X = state.X, Y = state.Y,
-                    FeatureByte = feature, FeatureKind = kind, Message = GameText.F("core.dungeon.x_picks_the_lock", party.Members[picker].Name),
+                    FeatureByte = feature, FeatureKind = kind, Picture = FeaturePicture.Lock,
+                    Message = GameText.F("core.dungeon.x_picks_the_lock", party.Members[picker].Name),
                 };
 
             case DungeonDoorKind.Jammed:

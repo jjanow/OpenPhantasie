@@ -68,8 +68,9 @@ public class P2C64ArtTests
         }
         Assert.Equal(files.Count, n);
         // monsters idle + attacking, portraits (2 x 15), title, town, 13 tile classes x 2, 4 map sprites, 9 dungeon
-        // glyphs, 14 item pictures, 3 character-set sheets: I's count
-        Assert.Equal(80 + 80 + 30 + 1 + 1 + 26 + 4 + 9 + 14 + 3, n);
+        // glyphs, 17 item pictures (s221: WEAPON, GOOD WEAPON, MG WEAPON twice, by colour), 3 character-set sheets: I's count;
+        // s221: the ending (hall, 2 crowd frames, both) and the party wipe (I's 7 and the face's doorway)
+        Assert.Equal(80 + 80 + 30 + 1 + 1 + 26 + 4 + 9 + 17 + 3 + 4 + (7 + 1), n);
     }
 
     [RequiresFilesFact(Side1, Side2)]
@@ -85,6 +86,39 @@ public class P2C64ArtTests
         Assert.Equal("DBDE8DD6EC6E7831", Sum("overworld/tiles/class-04-even.png"));
         Assert.Equal((144, 84), Art.Value.LargestMonster); // PLUTO'S GIANT CONSTR. / FIRE ELEMENTAL / PLUTO'S DRAGON DEMON
         Assert.Equal(80, Art.Value.Attacking.Count);
+    }
+
+    /// <summary>
+    /// s221: WIN's hall and crowd (GRAPHICS.md 8.1): the cyan panel on text rows 20-23, the crowd's two green frames,
+    /// the hall with frame 0 at screen y 110; the face's doorway is temple-demon.png's (123, 19)-(171, 72).
+    /// </summary>
+    [RequiresFilesFact(Side1, Side2)]
+    public void EndScreens_AsWinShowsThem()
+    {
+        var files = Art.Value.Files;
+        RgbaImage P(string rel) => Png.Decode(files[rel]);
+        string Sum(string rel) => Convert.ToHexString(SHA256.HashData(P(rel).Pixels))[..16];
+        Assert.Equal("7AB53AE001912B4A", Sum("ending/hall.png"));
+        Assert.Equal("43EFE60153353ABF", Sum("ending/crowd-1.png"));
+        var hall = P("ending/hall.png");
+        Assert.All(Enumerable.Range(0, 320 * 32), i => Assert.Equal(Vic(3), Px(hall, i % 320, 160 + i / 320)));
+        var crowd = new[] { P("ending/crowd-0.png"), P("ending/crowd-1.png") };
+        Assert.All(crowd, c => Assert.Equal((320, 42), (c.Width, c.Height)));
+        Assert.All(crowd, c => Assert.All(Pixels(c), p => Assert.True(p.Item4 == 0 || p == Vic(5))));
+        Assert.NotEqual(Pixels(crowd[0]), Pixels(crowd[1]));
+        var both = P("ending/hall-crowd.png");
+        for (var y = 0; y < 200; y++)
+        for (var x = 0; x < 320; x++)
+        {
+            var over = y is >= 110 and < 152 && Px(crowd[0], x, y - 110).Item4 != 0;
+            Assert.Equal(over ? Vic(5) : Px(hall, x, y), Px(both, x, y));
+        }
+        var demon = P("defeat/temple-demon.png");
+        var doorway = P("defeat/temple-demon-doorway.png");
+        Assert.Equal((49, 54), (doorway.Width, doorway.Height));
+        for (var y = 0; y < 54; y++)
+        for (var x = 0; x < 49; x++)
+            Assert.Equal(Px(demon, 123 + x, 19 + y), Px(doorway, x, y));
     }
 
     [RequiresFilesFact(Side1, Side2)]
@@ -107,7 +141,8 @@ public class P2C64ArtTests
         Assert.All(Pixels(Tile("fog", "odd")), p => Assert.Equal(Vic(0), p));
     }
 
-    /// <summary>II's FONT+HER, HSPRIT and item pictures are I's byte for byte: the pictures made from them are I's.</summary>
+    /// <summary>II's FONT+HER, HSPRIT, item pictures and (s221) SKEL2 / CSPRIT / FONTO are I's byte for byte: the pictures
+    /// made from them are I's.</summary>
     [RequiresFilesFact(Side1, Side2, IArtRoot)]
     public void SharedFiles_GiveIsPictures()
     {
@@ -115,10 +150,11 @@ public class P2C64ArtTests
         var shared = files.Keys.Where(k => k.StartsWith("portraits/", StringComparison.Ordinal)
                                            || k.StartsWith("items/", StringComparison.Ordinal)
                                            || k.StartsWith("dungeon/", StringComparison.Ordinal)
+                                           || k.StartsWith("defeat/", StringComparison.Ordinal) && k != "defeat/temple-demon-doorway.png"
                                            || k is "screens/town.png" or "overworld/party.png" or "overworld/town.png"
                                                or "overworld/inn.png" or "overworld/dungeon.png"
                                                or "font/font-her-d000.png" or "font/font-her-d800-town.png").ToList();
-        Assert.Equal(30 + 14 + 9 + 5 + 2, shared.Count);
+        Assert.Equal(30 + 17 + 9 + 5 + 2 + 7, shared.Count);
         foreach (var rel in shared)
             Golden.PngEqualsFile(files[rel], $"{IArtRoot}/{rel}");
     }

@@ -2070,6 +2070,28 @@
       4
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      19331,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      19333,
+      7
+     ]
+    ]
    }
   ],
   "combattext.toss": [
@@ -2498,6 +2520,28 @@
       8
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      4697,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      4697,
+      11
+     ]
+    ]
    }
   ],
   "p3town.bank_members_total": [
@@ -2645,6 +2689,40 @@
      ],
      "?"
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      7906,
+      9
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      7916,
+      6
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      7906,
+      9
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      7916,
+      6
+     ]
+    ]
    }
   ],
   "p3town.trade_which": [
@@ -2654,6 +2732,28 @@
      [
       "PhantasieIII",
       63150,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      7949,
+      17
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      7949,
       17
      ]
     ]
@@ -2706,6 +2806,30 @@
       "TOWN3",
       10613,
       6
+     ],
+     "?"
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      7999,
+      12
+     ],
+     "?"
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "TOWN.OBJ:low7",
+      7999,
+      12
      ],
      "?"
     ]
@@ -3389,6 +3513,28 @@
       21
      ]
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      12894,
+      11
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      12897,
+      10
+     ]
+    ]
    }
   ],
   "p3combat.row.0": [
@@ -3950,6 +4096,30 @@
      ],
      "?"
     ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      12674,
+      12
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      12677,
+      12
+     ]
+    ]
    }
   ],
   "p3combat.heal_question": [
@@ -4007,6 +4177,28 @@
       6
      ],
      "?"
+    ]
+   },
+   {
+    "from": "p3-c64",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      13194,
+      7
+     ]
+    ]
+   },
+   {
+    "from": "p3-c64-1.2",
+    "wording": "own",
+    "parts": [
+     [
+      "PHANT.OBJ:low7",
+      13196,
+      7
+     ]
     ]
    }
   ],

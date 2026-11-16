@@ -33,6 +33,27 @@ public enum DungeonMoveKind
     ScriptedEvent,
 }
 
+/// <summary>
+/// s221: the picture a version shows beside a dungeon step's text (C64 I / II, <c>reverse-engineering/c64/phantasie1/
+/// GRAPHICS.md</c> 7): Core names the moment, the front end draws the art pack's picture for it, if the pack has one.
+/// </summary>
+public enum FeaturePicture
+{
+    None,
+
+    /// <summary>A trap someone spotted ("%s SPOTS A TRAP", the disarm question): C64 <c>TRAP</c>.</summary>
+    Trap,
+
+    /// <summary>"STAIRS FROM LEVEL %d TO %d": C64 <c>STAIRS</c>.</summary>
+    Stairs,
+
+    /// <summary>A locked door's pick (kind 14), whatever its outcome; not a jammed door or a listening one: C64 <c>LOCK</c>.</summary>
+    Lock,
+
+    /// <summary>An exit cell ("AN EXIT. TAKE IT?"): C64 <c>EXIT</c>.</summary>
+    Exit,
+}
+
 public enum DungeonFacing
 {
     North = 0,
@@ -74,6 +95,9 @@ public sealed class DungeonMoveResult
     /// (<see cref="DungeonTraversal.ResolveHeardMonsters"/>, session <c>AnswerDungeonLock</c>).
     /// </summary>
     public int? ListenerIndex { get; init; }
+
+    /// <summary>s221: the moment's picture (<see cref="FeaturePicture"/>), <see cref="FeaturePicture.None"/> for most steps.</summary>
+    public FeaturePicture Picture { get; init; }
 
     /// <summary>The party was pushed back to its previous cell (<c>0x29a9</c>).</summary>
     public bool SteppedBack { get; init; }

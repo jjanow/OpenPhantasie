@@ -779,7 +779,7 @@ public static class TestParty
     public const string VictorySwitch = "--p1-victory";
 
     /// <summary>A developer switch to watch I's party defeat (s153): the test party's members all DEAD in the wilderness,
-    /// `core.defeat.your_party_has_been_defeated` waiting (<see cref="Defeat"/>).</summary>
+    /// `core.defeat.your_party_has_been_defeated` waiting (<see cref="Defeat"/>). s221: also II's (with <c>--test-game 2</c>).</summary>
     public const string DefeatSwitch = "--p1-defeat";
 
     /// <summary>Every member DEAD at 0 HP on the wilderness and the defeat pending, as after a lost fight.</summary>

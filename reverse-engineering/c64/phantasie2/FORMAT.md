@@ -45,7 +45,7 @@ Side 1 135 files, side 2 124. Both sides hold `MN` (**not identical**, 3.1), `MX
 | `FAST`, `UTIL-3.O`, `RTL-64` | as I's | fast loader, 6502 helpers (`SYS 49152 + n`: +33 save, +36 load), compiler runtime | `[C]` |
 | `TOWN2` (s1), `OUTDOORS2` (s1), `DUNGEON2` (s2), `CEMETARY2` (s2), `WIN` (s2) | PRG 22,943 / 30,597 / 30,658 / 2,797 / 3,862, `$0801` | compiled programs: town, wilderness, dungeon, party wipe, ending | `[C]` |
 | `MN` (s1 and s2) | **REL, record length 100**, 8,100 B = 81 records | monsters (3.1) | `[C]` |
-| `MX 1`–`MX 80`, `TLUM1` (s2) | PRG 167–360 / 1,019, `$1FDA` | monster sprites (6); `TLUM1` = the ending's sprites (`WIN` loads it) | `[C]` layout, `[~]` TLUM1 |
+| `MX 1`–`MX 80`, `TLUM1` (s2) | PRG 167–360 / 1,019, `$1FDA` | monster sprites (6); `TLUM1` = the ending's crowd band (`WIN` loads it; GRAPHICS.md 8.1) | `[C]` |
 | `ITEM` (s1) | SEQ 1,563 | item names (3.2) | `[C]` |
 | `TINFO` (s1) | PRG 1,733, `$9920` | rule tables (3.3) | `[C]` |
 | **`PATTERN2` (s2)** | PRG 19,566, `$2000` | **the new-game template**: Guild (`CHAR22`), the 10 towns, the 17 regions (2.1) | `[C]` |
@@ -58,11 +58,11 @@ Side 1 135 files, side 2 124. Both sides hold `MN` (**not identical**, 3.1), `MX
 | `DNG 1`–`DNG 8` (s2) | PRG 1,964, `$4000` | dungeon levels in the ST's layout (3.7) | `[C]` |
 | `PMES 1`–`PMES 8` (s2) | PRG 1,873–3,513, `$1F1A` | dungeon messages in the ST's `MESSn` layout (3.8) | `[C]` |
 | `%DNG n` / `%DNGSTS n` (s2, played copies) | PRG 1,257 `$8CA0` / 1,964 `$91B4` | the one-slot dungeon save (as I's) | `[~]` |
-| `SHIELD`, `ARMOR`, `WEAPON`, `GOOD WEAPON`, `MG WEAPON`, `POTION`, `SCROLL`, `TREASURE`, `GOOD TREASURE`; s2 also `DOOR`, `TRAP`, `STAIRS`, `LOCK`, `EXIT` (386 B) | PRG 394, `$2200` | treasure / feature pictures (as I's) | `[~]` |
+| `SHIELD`, `ARMOR`, `WEAPON`, `GOOD WEAPON`, `MG WEAPON`, `POTION`, `SCROLL`, `TREASURE`, `GOOD TREASURE`; s2 also `DOOR`, `TRAP`, `STAIRS`, `LOCK`, `EXIT` (386 B) | PRG 394, `$2200` | treasure / feature pictures (as I's; moments and colours I's GRAPHICS.md 7, the same bytecode in `DUNGEON2` / `OUTDOORS2`) | `[C]` |
 | `FONT`, `FONT+HER`, `HSPRIT` (s1) | PRG 2,050 / 4,333 / 1,923 | as I's (`B` loads `FONT` to 59392, `FONT+HER` to 8704; `TOWN2` `HSPRIT` to 61440) | `[C]` load |
 | `PIC.MAP`, `PIC.SCR`, `PIC.CLR` (s1) | PRG 8,193 `$A000`, 1,025 `$8400`, 1,025 `$D800` | the title picture (multicolour bitmap, screen, colour RAM) | `[C]` |
-| `PH2.END-4` (s2) | PRG 4,097, `$2000` | the ending picture (`WIN` loads it to 32768, copies 1,000 B to colour RAM and 1,023 / 2,047 B to 58368 / 59392) | `[~]` |
-| `SKEL2`, `CSPRIT`, `FONTO` (s2) | PRG 514 / 1,027 / 1,970 | `CEMETARY2`'s skeleton, sprites, font | `[~]` |
+| `PH2.END-4` (s2) | PRG 4,097, `$2000` | the ending picture, the hall (`WIN` loads it to 32768, copies 1,000 B to colour RAM and 1,023 / 2,047 B to 58368 / 59392; GRAPHICS.md 8.1) | `[C]` |
+| `SKEL2`, `CSPRIT`, `FONTO` (s2) | PRG 514 / 1,027 / 1,970 | `CEMETARY2`'s ghosts, face, door, figures, temple (I's files byte for byte; GRAPHICS.md 8.2) | `[C]` |
 
 ### 2.1 The template `PATTERN2`, and files play rewrites `[C]`
 
@@ -283,7 +283,7 @@ Decoded s219: **`GRAPHICS.md`** (beside this file), which also describes the `c6
 (`../phantasie1/GRAPHICS.md`); `FONT+HER`, `HSPRIT` and the item / feature pictures are I's files byte for byte; `MX n` =
 monster n − 1 (I's band record and figure rule), the title `PIC.*` (I's multicolour layout), `FONT` (eight characters
 differ from I's) and `UTIL-3.O`'s map tables (`$C68A` / `$C697`, the dungeon sprite on byte 50 only) are II's own.
-`TLUM1` (the ending's sprite set, 15 blocks `[~]`), `PH2.END-4` and `CEMETARY2`'s files: not decoded. No sound files
+`TLUM1` (the ending's crowd), `PH2.END-4` (the hall) and `CEMETARY2`'s files: decoded s221 (GRAPHICS.md 8). No sound files
 (SID code inside the programs `[?]`).
 
 ## 7. Importer: `p2-c64` (planned s216, built s218)

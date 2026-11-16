@@ -289,7 +289,19 @@ Generator: `tools/scripts/build_c64_p3_import.py` (from the importer's raw build
 party keeps the record's values but v1.0's age clocks (D3-078: Guild New's start age at new game; v1.2's kept).
 
 **Strings:** `p3-c64` and `p3-c64-1.2` alternatives for 16 ids found verbatim in each build's programs (status / class
-words; key `<file>:low7` = bit 7 cleared), the Apple III's `fallback.p3-apple2.en.json` for the rest.
+words; key `<file>:low7` = bit 7 cleared), and (s221) 119 ids per build in the C64's own wording
+(`tools/scripts/p3_c64_own_wording.json`, keyed per build; generator `working/gen_own3_c64.py`, which quotes the lines
+and locates each one in each build). How the programs hold text `[C]`: PHANT.OBJ and TOWN.OBJ print inline strings
+(`JSR $0D46` in PHANT.OBJ, then the text; bit 7 on the last character; a `$0D` inside is a row break; spaces in a row
+are where a number is printed over); DUNGEON.OBJ's event lines are `$0D`-ended and reached by pointer, its dungeon
+window lines use the Apple III's window font (`=` blank, `<` comma, `>` question mark) and its menu row another (`` ` ``
+blank, `i` = `)`), and the Astral Plane / reward texts are 40-column rows padded with spaces. v1.0 and v1.2 (alt)
+give the same text but one line (v1.2's combat rank prompt `WHAT RANK?`, v1.0 `WHICH RANK?`); TOWN.OBJ and
+DUNGEON.OBJ hold it at the same offsets, PHANT.OBJ's v1.2 is shifted. The held v1.1 and cracked pairs carry v1.0's
+three programs (same sha1). Mapped: the monsters' answers, surprise / night watch, combat lines, damage / death /
+swimming / lava, the dungeon's lock / trap / event lines, the Mystic, the Guild / Armory / Trade / Inn / learning
+prompts and refusals, the Astral Plane and its verdicts, the reward speech; the rest keeps the Apple III's
+`fallback.p3-apple2.en.json`. The C64's spellings are kept (`YOU HERE A NOISE`, `BREATHS`, `ATTENDENTS`).
 
 **Decided (user s218):** D3-078 (above) and D3-079 (precedence DOS > Amiga > Apple > C64, played copies, dungeon names by
 content, the mixed text) as built.
@@ -298,4 +310,4 @@ content, the mixed text) as built.
 
 **Open:** the tile → terrain table, the plane-map layouts, the places in code, the item →
 scroll page map, the giant rule's fight side, town byte 0, the dungeon → file and entrance code, the transfer utility
-`[?]`; the C64's own wording for lines it prints differently (no own-wording file yet).
+`[?]`; own-wording lines placed by context only `[~]` (10-importer.md 7.13).

@@ -9,7 +9,8 @@ namespace OpenPhantasie.Importer.Pipelines.P1C64;
 /// <c>MX n</c> sprite bands, the hero sprites (<c>HSPRIT</c>, one pair per race), the title picture (<c>PIC.*</c>), the
 /// town's buildings (<c>FONT+HER</c>'s town character set at the places the town screen prints them), the overworld's
 /// character tiles (<c>FONT</c>, the colours and characters of the game's <c>UTIL-3.O</c> map routine) with the town / inn /
-/// dungeon and party sprites, the dungeon map's characters, the 14 item / feature pictures and the two character sets.
+/// dungeon and party sprites, the dungeon map's characters, the 14 item / feature pictures, the two character sets and
+/// (s221, <see cref="C64EndScreens"/>) the ending and party-wipe pictures.
 /// A game gives its map routine's tables and where its files are read (<see cref="P1C64Art"/>, <c>P2C64Art</c>).
 /// Colours: <see cref="C64Gfx.Colodore"/>.
 /// </summary>
@@ -53,6 +54,36 @@ public abstract class C64PhantasieArt
         ("DOOR", 7, 7), ("TRAP", 7, 7), ("STAIRS", 7, 7), ("LOCK", 7, 7), ("EXIT", 8, 6),
     ];
 
+    /// <summary>
+    /// s221: each item / feature picture as written: its file, the PNG's name under <c>items/</c>, the colour the programs
+    /// print it in (I's GRAPHICS.md section 7, read in the compiled BASIC) and its pack slot (null: none). A found item's
+    /// colour goes by its id (the float test <c>IX = 2</c> etc. hits ids 41, 61 and 81 only), so WEAPON, GOOD WEAPON and MG
+    /// WEAPON are written twice. DOOR is loaded by no program: white, a placeholder (its colour [?]), no slot.
+    /// </summary>
+    public static readonly (string File, string Name, int Colour, string? Slot)[] ItemPictureColours =
+    [
+        ("SHIELD", "shield", 15, "event.find.shield"), ("ARMOR", "armor", 15, "event.find.armor"),
+        ("WEAPON", "weapon", 15, "event.find.weapon"), ("WEAPON", "weapon-yellow", 7, "event.find.weapon-yellow"),
+        ("GOOD WEAPON", "good-weapon", 15, "event.find.good-weapon"),
+        ("GOOD WEAPON", "good-weapon-light-blue", 14, "event.find.good-weapon-light-blue"),
+        ("MG WEAPON", "mg-weapon", 15, "event.find.mg-weapon"), ("MG WEAPON", "mg-weapon-cyan", 3, "event.find.mg-weapon-cyan"),
+        ("POTION", "potion", 15, "event.find.potion"), ("SCROLL", "scroll", 7, "event.find.scroll"),
+        ("TREASURE", "treasure", 7, "event.find.treasure"), ("GOOD TREASURE", "good-treasure", 7, "event.find.good-treasure"),
+        ("DOOR", "door", 1, null), ("TRAP", "trap", 10, "event.trap"), ("STAIRS", "stairs", 12, "event.stairs"),
+        ("LOCK", "lock", 9, "event.lock"), ("EXIT", "exit", 5, "event.exit"),
+    ];
+
+    /// <summary>
+    /// s221: the found item's picture by item id (<c>I$((IT − 1) / 20)</c> in the colour of section 7's id table): first id,
+    /// last id, the <see cref="ItemPictureColours"/> name. The same for II (its programs run the same bytecode on its ids).
+    /// </summary>
+    public static readonly (int First, int Last, string Name)[] FindPictures =
+    [
+        (1, 20, "shield"), (21, 40, "armor"), (41, 41, "weapon-yellow"), (42, 60, "weapon"),
+        (61, 61, "good-weapon-light-blue"), (62, 80, "good-weapon"), (81, 81, "mg-weapon-cyan"), (82, 100, "mg-weapon"),
+        (101, 120, "potion"), (121, 140, "scroll"), (141, 160, "treasure"), (161, 180, "good-treasure"),
+    ];
+
     private readonly ImportContext? _ctx;
     private readonly Dictionary<string, byte[]> _files = new(StringComparer.Ordinal);
 
@@ -66,6 +97,9 @@ public abstract class C64PhantasieArt
 
     /// <summary>The map routine's PETSCII table (per class), before the text column's bit 0 is OR'd in.</summary>
     public abstract IReadOnlyList<int> ClassPetscii { get; }
+
+    /// <summary>s221: the game's ending and party-wipe pictures (<see cref="C64EndScreens"/>), paths under <see cref="Root"/>.</summary>
+    protected abstract IEnumerable<(string Rel, RgbaImage Image)> EndScreens(Func<string, byte[]?> read);
 
     /// <summary>Written files (path under <see cref="Root"/> → bytes); also sent to the context when there is one.</summary>
     public IReadOnlyDictionary<string, byte[]> Files => _files;
@@ -112,6 +146,8 @@ public abstract class C64PhantasieArt
         Dungeon(font, fontHer);
         Items(read);
         Charsets(font, fontHer);
+        foreach (var (rel, img) in EndScreens(read))
+            Save(rel, img);
     }
 
     /// <summary>The monster names (MN field 0, record m = monster m) for the file names.</summary>
@@ -229,16 +265,15 @@ public abstract class C64PhantasieArt
 
     private void Items(Func<string, byte[]?> read)
     {
-        foreach (var (file, cols, rows) in ItemPictures)
+        foreach (var (file, name, colour, _) in ItemPictureColours)
         {
+            var (_, cols, rows) = ItemPictures.Single(p => p.File == file);
             var body = Body(read, file);
             var img = new RgbaImage(cols * 8, rows * 8);
-            // The colour each is shown in is set by the programs: EXIT green (5, live s218); the others are not read [?] (white).
-            var colour = file == "EXIT" ? 5 : 1;
             for (var c = 0; c < cols; c++)
             for (var r = 0; r < rows; r++)
                 C64Gfx.DrawChar(img, c * 8, r * 8, body.AsSpan((c * rows + r) * 8, 8), colour, null);
-            Save($"items/{Slug(file)}.png", img);
+            Save($"items/{name}.png", img);
         }
     }
 

@@ -1,6 +1,6 @@
 {
   "_schema": "phantasie.graphics-pack/v1",
-  "_note": "Commodore 64 Phantasie II art (v1.2; the p2-c64 import, P2C64Art; reverse-engineering/c64/phantasie2/GRAPHICS.md). C64 I's engine: FONT+HER, HSPRIT and the item pictures are I's byte for byte. Monsters are the MX n sprite bands of side 1 (one figure: the band's first sprites, expanded as the VIC does); portraits the HSPRIT pair of each race (none for UNDEAD); the title PIC.* (multicolour bitmap, doubled pixels); town.backdrop the town screen's six buildings at their places (FONT+HER's town characters); the map from II's FONT characters as II's UTIL-3.O routine prints them. Colours: Colodore (VICE colodore.vpl). Text: the remaster 5x7 font (the C64's sets are in font/). Not drawn: the item / feature pictures (items/; the Client has no such slot), the ending (PH2.END-4, TLUM1) and the party-wipe screen (CEMETARY2's files).",
+  "_note": "Commodore 64 Phantasie II art (v1.2; the p2-c64 import, P2C64Art; reverse-engineering/c64/phantasie2/GRAPHICS.md). C64 I's engine: FONT+HER, HSPRIT and the item pictures are I's byte for byte. Monsters are the MX n sprite bands of side 1 (one figure: the band's first sprites, expanded as the VIC does); portraits the HSPRIT pair of each race (none for UNDEAD); the title PIC.* (multicolour bitmap, doubled pixels); town.backdrop the town screen's six buildings at their places (FONT+HER's town characters); the map from II's FONT characters as II's UTIL-3.O routine prints them. Colours: Colodore (VICE colodore.vpl). Text: the remaster 5x7 font (the C64's sets are in font/). The item / feature pictures (items/, I's files and rule) in the programs' colours, beside the find / trap / stairs / lock / exit texts (event.*, find_pictures; DOOR not shown). s221: the ending (WIN's hall from PH2.END-4, TLUM1's crowd; ending_scene) and the party wipe (CEMETARY2's temple, ghost and face through the ST's defeat scene: ui.decor, decor.demon-face, portrait.ghost) in ending/ and defeat/.",
   "id": "c64",
   "game": "phantasie2",
   "platform": "c64",
@@ -144,6 +144,28 @@
     "overworld.tile.1000": "overworld/town.png",
     "overworld.tile.1001": "overworld/inn.png",
     "overworld.tile.1002": "overworld/dungeon.png",
+    "event.find.shield": "items/shield.png",
+    "event.find.armor": "items/armor.png",
+    "event.find.weapon": "items/weapon.png",
+    "event.find.weapon-yellow": "items/weapon-yellow.png",
+    "event.find.good-weapon": "items/good-weapon.png",
+    "event.find.good-weapon-light-blue": "items/good-weapon-light-blue.png",
+    "event.find.mg-weapon": "items/mg-weapon.png",
+    "event.find.mg-weapon-cyan": "items/mg-weapon-cyan.png",
+    "event.find.potion": "items/potion.png",
+    "event.find.scroll": "items/scroll.png",
+    "event.find.treasure": "items/treasure.png",
+    "event.find.good-treasure": "items/good-treasure.png",
+    "event.trap": "items/trap.png",
+    "event.stairs": "items/stairs.png",
+    "event.lock": "items/lock.png",
+    "event.exit": "items/exit.png",
+    "ending.final": "ending/hall.png",
+    "ending.crowd.0": "ending/crowd-0.png",
+    "ending.crowd.1": "ending/crowd-1.png",
+    "ui.decor": "defeat/temple.png",
+    "decor.demon-face": "defeat/temple-demon-doorway.png",
+    "portrait.ghost": "defeat/ghost.png",
     "overworld.tile.0": "overworld/tiles/class-00-even.png",
     "overworld.tile.256": "overworld/tiles/class-00-odd.png",
     "overworld.tile.1": "overworld/tiles/class-00-even.png",
@@ -657,7 +679,144 @@
     "overworld.tile.255": "overworld/tiles/fog-even.png",
     "overworld.tile.511": "overworld/tiles/fog-odd.png"
   },
+  "_find_pictures": "s221 [C] (I's GRAPHICS.md 7, the compiled BASIC of OUTDOORS / DUNGEON, II's the same): a found item shows I$((IT - 1) / 20) (SHIELD ... GOOD TREASURE) in colour IC = 15, 7 if IX = 2 or IX >= 6, 14 if IX = 3, 3 if IX = 4; IX is a float, so the single-id colours hit ids 41, 61 and 81 only. find_pictures: [first id, last id, picture]. event.trap (light red 10, a spotted trap), event.stairs (grey 12), event.lock (brown 9, a locked door, kind 14, whatever the pick), event.exit (green 5, 8 x 6). DOOR is loaded by no program (no slot). The C64 prints them over the map; the Client draws each beside its text.",
+  "find_pictures": [
+    [
+      1,
+      20,
+      "event.find.shield"
+    ],
+    [
+      21,
+      40,
+      "event.find.armor"
+    ],
+    [
+      41,
+      41,
+      "event.find.weapon-yellow"
+    ],
+    [
+      42,
+      60,
+      "event.find.weapon"
+    ],
+    [
+      61,
+      61,
+      "event.find.good-weapon-light-blue"
+    ],
+    [
+      62,
+      80,
+      "event.find.good-weapon"
+    ],
+    [
+      81,
+      81,
+      "event.find.mg-weapon-cyan"
+    ],
+    [
+      82,
+      100,
+      "event.find.mg-weapon"
+    ],
+    [
+      101,
+      120,
+      "event.find.potion"
+    ],
+    [
+      121,
+      140,
+      "event.find.scroll"
+    ],
+    [
+      141,
+      160,
+      "event.find.treasure"
+    ],
+    [
+      161,
+      180,
+      "event.find.good-treasure"
+    ]
+  ],
   "_portraits": "portrait.{race}: HSPRIT (I's file) blocks 2 race (idle) and 2 race + 1 (attacking), the pair the fight copies for a member of that race (C64 I, live s218); yellow, the combat row's colour [~]. No UNDEAD pair.",
+  "ending_scene": {
+    "_note": "s221 (GRAPHICS.md 8.1, WIN live in VICE): a yellow text page; the hall (PH2.END-4) with its cyan text panel (text rows 20-23); the crowd (TLUM1: 7 expanded green sprites at screen y 110, two frames alternating); the party in the hall (hero band at screen y 75, x 86 + 24 k, yellow; the member presented in light red, attacking, not modelled [~]); Filmon's lines in the panel; 'INSERT BOOT DISK'. Drawn with the remaster's ending screen (II ST's steps): the row by record, centred (slot_size 24) [~]; the lines on text row 21 in black over the panel (the C64's panel text colour [?]); the pages in yellow from text row 2 / 1, no OK form (button_pen 0, black) [~]. No fade on the C64 (fade_vbl 1) [~]; waits and the crowd's flashes the ST's (not measured on the C64) [~]; no C64 sounds.",
+    "palette": [
+      "#000000",
+      "#FFFFFF",
+      "#96282E",
+      "#5BD6CE",
+      "#9F2DAD",
+      "#41B936",
+      "#2724C4",
+      "#EFF347",
+      "#9F4815",
+      "#5E3500",
+      "#DA5F66",
+      "#474747",
+      "#787878",
+      "#91FF84",
+      "#6864FF",
+      "#AEAEAE"
+    ],
+    "vbl_hz": 50,
+    "fade_vbl": 1,
+    "tick_hz": 1000,
+    "hold_ticks": 2000,
+    "row_top": 75,
+    "slot_size": 24,
+    "grant_ticks": 0,
+    "row_by_record": true,
+    "crowd": {
+      "frames": [
+        "ending.crowd.0",
+        "ending.crowd.1"
+      ],
+      "x": 0,
+      "y": 110,
+      "flashes": 10,
+      "flash_ticks": 330
+    },
+    "text_y": 168,
+    "text_pen": 0,
+    "line_ticks": 3000,
+    "intro_page": {
+      "palette": [
+        "#000000",
+        "#FFFFFF",
+        "#96282E",
+        "#5BD6CE",
+        "#9F2DAD",
+        "#41B936",
+        "#2724C4",
+        "#EFF347",
+        "#9F4815",
+        "#5E3500",
+        "#DA5F66",
+        "#474747",
+        "#787878",
+        "#91FF84",
+        "#6864FF",
+        "#AEAEAE"
+      ],
+      "x": 8,
+      "y": 16,
+      "line_gap": 8,
+      "text_pen": 7,
+      "button_pen": 0
+    },
+    "closing_page": {
+      "x": 8,
+      "y": 8,
+      "line_gap": 8,
+      "text_pen": 7,
+      "button_pen": 0
+    }
+  },
   "picture_sets": [
     {
       "name": "monster.{n}.idle",

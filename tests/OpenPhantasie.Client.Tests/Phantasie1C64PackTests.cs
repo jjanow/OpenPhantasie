@@ -41,8 +41,11 @@ public class Phantasie1C64PackTests
         Assert.Null(pack.Resolve(PictureNames.PortraitIdle(15))); // no UNDEAD sprite on the C64
         foreach (var name in new[] { PictureNames.TitleCover, PictureNames.TownBackdrop, PictureNames.OverworldParty })
             Assert.NotNull(pack.Resolve(name));
-        // What the C64 has no picture for falls back to the Client's own drawing.
-        foreach (var name in new[] { PictureNames.EndingFinal, PictureNames.DefeatTemple, PictureNames.Decor })
+        // What the C64 has no picture for falls back to the Client's own drawing (s221: the ending and the party wipe
+        // are drawn, C64EndScreenTests; the Amiga's decor screen, its sinking door, sorry sign and grave are not).
+        foreach (var name in new[] { PictureNames.EndingFinal, PictureNames.DefeatTemple })
+            Assert.NotNull(pack.Resolve(name));
+        foreach (var name in new[] { PictureNames.Decor, PictureNames.DecorDoor, PictureNames.DecorSorrySign, "combat.grave" })
             Assert.Null(pack.Resolve(name));
     }
 

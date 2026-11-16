@@ -92,17 +92,23 @@ the dungeon.
 
 ## 6. The `c64` pack (`GameData/phantasie2/graphics/c64.json`)
 
-Written by the `p2-c64` import (recipe 2, `P2C64Art`, `P2C64ArtManifest`; the steps shared with I in
+Written by the `p2-c64` import (recipe 3 since s221, `P2C64Art`, `P2C64ArtManifest`; the steps shared with I in
 `C64PhantasieArt`, the manifest in `C64PhantasieArtManifest`) under `reverse-engineering/c64/phantasie2/extracted/graphics`
-(248 PNGs, the repo's extract of the C64PP v1.2 never_used pair; the held `.d64` pair gives the same pictures). In
+(263 PNGs since s221 with `ending/` and `defeat/`, section 8.3; the repo's extract of the C64PP v1.2 never_used pair; the held `.d64` pair gives the same pictures). In
 `index.json`'s `default_order` after the ST and the Apple II: drawn when neither of those copies is imported. Slots and
-fallbacks as I's pack (I's GRAPHICS.md 8). Not drawn: the item / feature pictures (`items/`), the ending (`PH2.END-4`,
-`TLUM1`), the party-wipe screen (`CEMETARY2`'s files), II's `decor.*` / `ending.*` / `combat.*` slots (the Client's own
-drawing).
+fallbacks as I's pack (I's GRAPHICS.md 8). The item / feature pictures (s221): I's files, I's rule and colours (I's
+GRAPHICS.md 7: `DUNGEON2` / `OUTDOORS2` run the same bytecode; finds by `(id − 1) / 20` on II's ids, so a weapon 61–80
+shows `GOOD WEAPON`, 81–100 `MG WEAPON`; TRAP 10, STAIRS 12, LOCK 9, EXIT 5; DOOR never shown), drawn through the
+same `event.*` slots and `find_pictures` table; sizes EXIT 8 × 6 characters, the others 7 × 7. s221: the ending
+(`ending.final` = the hall, `ending.crowd.0` / `.1` = TLUM1's crowd, with `ending_scene`: Filmon's intro and closing
+pages, the row by record, the lines in the panel) and the party wipe through II's defeat scene (`ui.decor` = the temple,
+`decor.demon-face` = the face's doorway, `portrait.ghost` = the ghost); section 8.3, live in
+`parity/s221-c64-end-screens-live.md`. **Falls back:** `decor.door` (the C64's door rises, the ST's sinks: not modelled
+`[~]`), `decor.sorry-sign` (none on the C64), UNDEAD's portrait, `combat.*`; II's own drawing for those.
 
-`[?]` left: the item picture colours but EXIT (EXIT green, 8 × 6 at text column 10, row 11, live); the hero colour in a
-party of more than two; `PH2.END-4`, `TLUM1` and `CEMETARY2`'s pictures not decoded; the code that prints the town and
-the dungeon map not read. `[~]`: the attack rule for the 29 several-sprite monsters not watched.
+`[?]` left: `DOOR`'s colour (never shown); the hero colour in a party of more than two; the colour `WIN` prints the
+panel's text in (here black on the cyan panel); the code that prints the town and the dungeon map not read. `[~]`: the
+attack rule for the 29 several-sprite monsters not watched.
 
 ## 7. Live check in VICE (s219)
 
@@ -112,3 +118,51 @@ VICE 3.10 `x64sc` (flatpak, Xvfb, sound off, remote monitor) on writable copies 
 equal the routine's output), two fights (BANTIR × 3 at `$CB5A`; VIPER, by poking DNG 1's forced-fight entry 0 from 9
 (KOBOLD) to 6, band records polled while they attacked), DNG 1 (natural cells, then cells next to the party poked to
 213 / 235 / 218 / 200 / 209 / 185 / 220) and the EXIT picture. The dumps and snapshots are not kept in the repo.
+
+## 8. Ending and defeat screens (s221)
+
+Live in VICE 3.10 (as section 7) on the v1.2 never_used pair, from a poked town state (LOUIS and THUNDAR copied into the
+party slots, the last slot's index at `SA + 1203` = 1), `TOWN2`'s `OUTDOORS2` load redirected to `WIN` / `CEMETARY2`; RAM +
+I/O dumps not kept. I's GRAPHICS.md section 9 has the method and the engine's details. This settles section 6's
+`PH2.END-4`, `TLUM1` and `CEMETARY2` `[?]` items; the slots are wired since s221 (section 6).
+
+### 8.1 The ending: `WIN`, `PH2.END-4`, `TLUM1` `[C]`
+
+`DUNGEON2` loads `WIN` (side 2; `DUNGEON2` also still names `P.END`, which II's disks do not hold). `WIN`:
+
+1. A yellow text page on black ("THE PARTY IS SUDDENLY TELEPORTED INTO A SMALL ROOM. FILMON THE SAGE …"). The red ENTER
+   arrow on it in the live run was the town's sprite left on by the redirect, not part of the screen.
+2. `PH2.END-4` (4,095 bytes, loaded to `$8000`): bytes 0–999 → colour RAM, 1,024–2,046 → screen `$E400` (1,023 bytes),
+   2,048–4,094 → character set `$E800` (2,047 bytes); hires text, background black. **The hall**: a grey (12) pediment
+   and two pairs of columns on a grey floor (rows 1–12) and a cyan (3) text panel, rows 20–23.
+3. `TLUM1` (load address `$1FDA`: an `MX`-style band record, I's section 2, + 15 blocks) goes to `$CBDA` and is added as
+   a band (`SYS Q,A2,A1,0`); `WIN` then pokes record byte 13 := 47, `$D010` := 64 (sprite 6 at x 303) and the enable
+   mask := `$7F`. **The crowd**: sprites 0–6, x- and y-expanded, green (5), y 160 (screen rows 110–151), x 15, 63, 111,
+   159, 207, 255, 303; blocks `$31 $30 $32 $33 $35 $34 $36` and, for the second frame, the same + 8 (`$39` …): two
+   frames alternating under "THE CROWD GOES WILD!" (the ST has three crowd pictures).
+4. The party in the hall: the hero band `$CFDA` (I's record) at y 125, x 110 + 24 k, yellow; the member being presented
+   in light red (10) with its attacking block while the panel names it ("LOUIS / THE MIGHTY ONE / FROM FERRONRAH": one
+   of the ten epithets and three homelands in `WIN`'s DATA). Then "FILMON SPEAKS - 'PRESENTING THE HEROES OF FERRONRAH'",
+   the wands of Filmon, "INSERT BOOT DISK AND PRESS A KEY", `TOWN2`.
+
+### 8.2 The party wipe: `CEMETARY2` `[C]`
+
+`SKEL2`, `CSPRIT` and `FONTO` are byte-equal to I's side-2 files, and `CEMETARY2` (2,795 bytes) shows I's screen (I's
+section 9.2): the temple, the ghosts (two, at x `$5C` and `$7F`), the rising door, the face, the fates (LOUIS undead:
+block 0 in cyan; THUNDAR destroyed, dark grey), seen live.
+
+### 8.3 PNGs and the remaster's slots
+
+`tools/scripts/extract_c64_end_screens.py` → `extracted/graphics/{ending,defeat}/` (s221: moved from
+`extracted/end-screens/`; the importer's `C64EndScreens`, recipe 3, writes the same files), from II's own files; checked
+pixel for pixel against renders of the live dumps (the whole hall; hall + each crowd frame, rows 0–159; the temple with
+the demon, rows 0–99) and by palette index against VICE's screenshots in the hall's rows 0–99 and the crowd's rows:
+0 differing pixels.
+
+| PNG | Shows | Slot (s221: wired) |
+|---|---|---|
+| `ending/hall.png` | `PH2.END-4`, the cyan panel empty | `ending.final` |
+| `ending/crowd-0.png`, `crowd-1.png` | the crowd strip, 320 × 42, at screen y 110 | `ending.crowd.0`, `.1` (`crowd` at (0, 110), the ST's flashes and ticks `[~]`; transparent pixels keep the hall: the ending screen leaves a transparent pixel's pen, s221) |
+| `ending/hall-crowd.png` | the hall + crowd frame 0 | — |
+| `defeat/*` | as I's (`temple`, `temple-door`, `temple-demon`, `ghost`, `door`, `demon-face`, `font`) | `ui.decor` = `temple.png`, `portrait.ghost` = `ghost.png`; no `decor.door` (the ST's defeat scene sinks its door; the C64's rises) |
+| `defeat/temple-demon-doorway.png` | s221: `temple-demon.png`'s (123, 19)–(171, 72), 49 × 54 | `decor.demon-face` (the defeat scene draws it at the ST's (123, 19); the C64's face covers (124, 31)–(171, 72)) |

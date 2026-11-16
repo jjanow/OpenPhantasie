@@ -54,6 +54,15 @@ public static class PictureNames
     /// <c>0x188fc</c> mode 0, FORMAT.md §10.3).
     /// </summary>
     public const string PortraitDeathMark = "portrait.death-mark";
+    /// <summary>
+    /// s221: the pictures a version shows beside a moment's text (C64 I / II: the dungeon's spotted trap, stairs, locked door
+    /// and exit). A pack without them draws nothing there. Found items' pictures: <see cref="GraphicsPack.FindPicture"/>.
+    /// </summary>
+    public const string EventTrap = "event.trap";
+    public const string EventStairs = "event.stairs";
+    public const string EventLock = "event.lock";
+    public const string EventExit = "event.exit";
+
     public const string OverworldParty = "overworld.party";
     public const string OverworldFog = "overworld.fog";
     public const string DungeonCompass = "dungeon.compass";
@@ -451,6 +460,16 @@ public sealed class GraphicsPack
     /// <summary>Every fixed picture name the pack maps (picture sets resolve on demand and are not listed).</summary>
     public IEnumerable<string> FixedPictureNames => _pictures.Keys;
 
+    private readonly List<(int First, int Last, string Picture)> _findPictures = [];
+
+    /// <summary>
+    /// s221 (<c>find_pictures</c>: [first id, last id, picture]): the picture a version shows beside "YOU FIND %s. KEEP IT?"
+    /// for item <paramref name="itemId"/> (C64 I / II: the group's picture in the colour the C64's code gives that id), or
+    /// null: none (the pack has no table, or no range holds the id).
+    /// </summary>
+    public string? FindPicture(int itemId) =>
+        _findPictures.FirstOrDefault(f => itemId >= f.First && itemId <= f.Last).Picture;
+
     /// <summary>The full path of picture <paramref name="name"/>, or null when this pack has no such picture or its file is missing.</summary>
     public string? Resolve(string name)
     {
@@ -579,6 +598,14 @@ public sealed class GraphicsPack
         };
         foreach (var (name, rel) in dto.Pictures ?? [])
             pack._pictures[name] = rel;
+        foreach (var row in dto.FindPictures ?? [])
+        {
+            if (row is not [var first, var last, var picture] || first.ValueKind != JsonValueKind.Number
+                || last.ValueKind != JsonValueKind.Number || picture.ValueKind != JsonValueKind.String
+                || !pack._pictures.ContainsKey(picture.GetString()!) || first.GetInt32() > last.GetInt32())
+                throw new InvalidDataException($"{manifestPath}: find_pictures rows are [first id, last id, a picture].");
+            pack._findPictures.Add((first.GetInt32(), last.GetInt32(), picture.GetString()!));
+        }
         foreach (var (scene, parts) in pack.Scenes)
             if (parts.Count == 0 || parts.Any(p => !pack._pictures.ContainsKey(p.Picture) || p.X < 0 || p.Y < 0))
                 throw new InvalidDataException($"{manifestPath}: bad scene '{scene}'.");
@@ -743,6 +770,7 @@ public sealed class GraphicsPack
         [JsonPropertyName("field_sounds")] public FieldSounds.Dto? FieldSounds { get; set; }
         [JsonPropertyName("transport_fade")] public StTransportFade.Dto? TransportFade { get; set; }
         public Dictionary<string, string>? Pictures { get; set; }
+        [JsonPropertyName("find_pictures")] public List<JsonElement[]>? FindPictures { get; set; }
         [JsonPropertyName("picture_sets")] public List<PictureSetDto>? PictureSets { get; set; }
         public Dictionary<string, List<ScenePictureDto>>? Scenes { get; set; }
         [JsonPropertyName("picture_animations")] public PictureAnimationSet.Dto? PictureAnimations { get; set; }

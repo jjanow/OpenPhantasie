@@ -1,0 +1,2547 @@
+{
+ "_note": "Phantasie III, Commodore 64 (p3-c64 = v1.0, p3-c64-1.2 = v1.2 (alt); s221): ids the C64 prints in its own wording, for an import whose III tables are the C64's (as the Apple III's p3_apple2_own_wording.json, D3-077), keyed per build (v1.2's PHANT.OBJ is laid out differently and words one line its own way). Parts as in en.sources.json: our glue (format items, spaces: a row break or a row's padding is one space; DUNGEON.OBJ's dungeon window strings use the Apple's window font, '=' blank, '<' comma, '>' question mark, decoded as glue), or [file, offset, length] into the build's programs with bit 7 cleared (the importer's `<file>:low7` key). build_string_sources.py adds them as alternatives marked \"wording\": \"own\"; --show-c64-3 prints what they resolve to. Generator: reverse-engineering/c64/phantasie3/working/gen_own3_c64.py.",
+ "strings": {
+  "p3-c64": {
+   "shared": {
+    "core.overworld.lava": [
+     [
+      "PHANT.OBJ:low7",
+      19331,
+      7
+     ]
+    ],
+    "p3town.bank_gold_carried": [
+     [
+      "TOWN.OBJ:low7",
+      4697,
+      11
+     ]
+    ],
+    "p3town.trade_whose": [
+     [
+      "TOWN.OBJ:low7",
+      7906,
+      9
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      7916,
+      6
+     ]
+    ],
+    "p3town.trade_which": [
+     [
+      "TOWN.OBJ:low7",
+      7949,
+      17
+     ]
+    ],
+    "p3town.trade_who_gets": [
+     [
+      "TOWN.OBJ:low7",
+      7999,
+      12
+     ],
+     "?"
+    ],
+    "p3combat.select_spell_x": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      12674,
+      12
+     ]
+    ],
+    "p3combat.heal_question": [
+     [
+      "PHANT.OBJ:low7",
+      13194,
+      7
+     ]
+    ],
+    "p3combat.rank_question": [
+     [
+      "PHANT.OBJ:low7",
+      12894,
+      11
+     ]
+    ]
+   },
+   "phantasie1": {
+    "useitem.who_will_use": [
+     [
+      "TOWN.OBJ:low7",
+      4229,
+      13
+     ]
+    ],
+    "guild.whom_do_you_want_to_drop": [
+     [
+      "TOWN.OBJ:low7",
+      14310,
+      18
+     ]
+    ],
+    "guild.who_is_going_to_be_trained": [
+     [
+      "TOWN.OBJ:low7",
+      5300,
+      10
+     ]
+    ],
+    "guild.who_will_learn": [
+     [
+      "TOWN.OBJ:low7",
+      2665,
+      22
+     ]
+    ],
+    "member.whom_do_you_want_to_purge": [
+     [
+      "TOWN.OBJ:low7",
+      13230,
+      10
+     ]
+    ],
+    "member.who_needs_renaming": [
+     [
+      "TOWN.OBJ:low7",
+      13947,
+      20
+     ]
+    ],
+    "inspect.whom_do_you_want_to_inspect": [
+     [
+      "TOWN.OBJ:low7",
+      8306,
+      10
+     ]
+    ],
+    "core.guild.it_will_cost_x_gold": [
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      6223,
+      12
+     ],
+     " {0} ",
+     [
+      "TOWN.OBJ:low7",
+      6236,
+      12
+     ]
+    ],
+    "core.guild.learn_failed": [
+     [
+      "TOWN.OBJ:low7",
+      3669,
+      10
+     ]
+    ],
+    "core.guild.learn_learned": [
+     [
+      "TOWN.OBJ:low7",
+      3691,
+      14
+     ]
+    ],
+    "core.guild.train_cant_afford": [
+     [
+      "TOWN.OBJ:low7",
+      5393,
+      20
+     ]
+    ],
+    "towndlg.you_can_learn_x_more_spells": [
+     [
+      "TOWN.OBJ:low7",
+      2903,
+      13
+     ],
+     " {0} ",
+     [
+      "TOWN.OBJ:low7",
+      2920,
+      8
+     ]
+    ],
+    "core.inn.x_is_resting_x": [
+     "{0,-10} ",
+     [
+      "TOWN.OBJ:low7",
+      3995,
+      5
+     ],
+     " {1}"
+    ],
+    "core.inn.in_peace": [
+     [
+      "TOWN.OBJ:low7",
+      4014,
+      8
+     ]
+    ],
+    "core.inn.magic_increases": [
+     [
+      "TOWN.OBJ:low7",
+      4063,
+      15
+     ]
+    ],
+    "core.dungeon.no_one_can_pick_the_lock": [
+     [
+      "DUNGEON.OBJ:low7",
+      5623,
+      2
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5626,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5630,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5634,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5639,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5643,
+      4
+     ]
+    ],
+    "core.dungeon.x_picks_the_lock": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      5648,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5655,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5659,
+      4
+     ]
+    ],
+    "core.dungeon.x_hears_monsters_go_back": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      5597,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5603,
+      8
+     ],
+     ", ",
+     [
+      "DUNGEON.OBJ:low7",
+      5614,
+      2
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5617,
+      4
+     ],
+     "?"
+    ],
+    "core.prompt.who_will_disarm": [
+     [
+      "DUNGEON.OBJ:low7",
+      6752,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6756,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6768,
+      7
+     ],
+     "?"
+    ],
+    "core.script.smoke_fills_the_air": [
+     [
+      "DUNGEON.OBJ:low7",
+      7674,
+      19
+     ]
+    ],
+    "core.script.monsters_appear": [
+     [
+      "DUNGEON.OBJ:low7",
+      8196,
+      16
+     ]
+    ],
+    "core.encounter.you_surprise_them": [
+     [
+      "PHANT.OBJ:low7",
+      15515,
+      17
+     ]
+    ],
+    "core.encounter.monsters_surprise_you": [
+     [
+      "PHANT.OBJ:low7",
+      15557,
+      17
+     ]
+    ],
+    "core.encounter.an_encounter": [
+     [
+      "PHANT.OBJ:low7",
+      15591,
+      12
+     ]
+    ],
+    "core.dungeon.swimming": [
+     [
+      "PHANT.OBJ:low7",
+      19559,
+      11
+     ]
+    ],
+    "cast.who_will_cast_spell": [
+     [
+      "PHANT.OBJ:low7",
+      13875,
+      14
+     ]
+    ],
+    "guild.transport_to_which_town": [
+     [
+      "PHANT.OBJ:low7",
+      14122,
+      11
+     ]
+    ]
+   },
+   "phantasie3": {
+    "core.dungeon.trap_x_takes_x_damage": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ],
+    "core.script.report_x_takes_x_damage": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ],
+    "core.combat.x_takes_x_damage": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ],
+    "core.p3.damage_report_x_x": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ],
+    "core.dungeon.trap_x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19449,
+      5
+     ]
+    ],
+    "core.script.report_x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19449,
+      5
+     ]
+    ],
+    "core.p3.x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19449,
+      5
+     ]
+    ],
+    "core.combat.x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      10221,
+      9
+     ]
+    ],
+    "core.p3.report_takes_x_damage": [
+     [
+      "PHANT.OBJ:low7",
+      19475,
+      5
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      19484,
+      6
+     ]
+    ],
+    "core.dungeon.x_swims": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19649,
+      5
+     ]
+    ],
+    "core.dungeon.x_sinks_and_takes_x_damage": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19666,
+      5
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      19733,
+      3
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19739,
+      6
+     ]
+    ],
+    "core.dungeon.swim_x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19707,
+      5
+     ]
+    ],
+    "core.p3.ocean": [
+     [
+      "PHANT.OBJ:low7",
+      19276,
+      5
+     ]
+    ],
+    "core.p3.river_styx": [
+     [
+      "PHANT.OBJ:low7",
+      19251,
+      10
+     ]
+    ],
+    "core.p3.will_you_enter": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      20268,
+      6
+     ]
+    ],
+    "core.p3.cannot_afford_stay": [
+     [
+      "PHANT.OBJ:low7",
+      5187,
+      15
+     ]
+    ],
+    "core.p3.you_surprise_the_monsters": [
+     [
+      "PHANT.OBJ:low7",
+      15515,
+      17
+     ]
+    ],
+    "core.p3.monsters_surprise_you": [
+     [
+      "PHANT.OBJ:low7",
+      15557,
+      17
+     ]
+    ],
+    "core.p3.x_is_on_watch": [
+     [
+      "PHANT.OBJ:low7",
+      15620,
+      17
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      15638,
+      9
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      15768,
+      11
+     ]
+    ],
+    "core.p3.x_is_on_watch_and_hears_them": [
+     [
+      "PHANT.OBJ:low7",
+      15620,
+      17
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      15638,
+      9
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      15768,
+      11
+     ],
+     ", ",
+     [
+      "PHANT.OBJ:low7",
+      15667,
+      10
+     ]
+    ],
+    "core.magic.monsters_at_level_x": [
+     [
+      "PHANT.OBJ:low7",
+      14394,
+      12
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      14407,
+      5
+     ],
+     " {0}"
+    ],
+    "core.magic.not_enough_mp": [
+     [
+      "PHANT.OBJ:low7",
+      14023,
+      23
+     ]
+    ],
+    "core.p3.magic_too_low": [
+     [
+      "PHANT.OBJ:low7",
+      12758,
+      16
+     ]
+    ],
+    "core.p3.monsters_flee": [
+     [
+      "PHANT.OBJ:low7",
+      10905,
+      13
+     ]
+    ],
+    "core.p3.no_response": [
+     [
+      "PHANT.OBJ:low7",
+      11124,
+      11
+     ]
+    ],
+    "core.p3.they_take_your_gold": [
+     [
+      "PHANT.OBJ:low7",
+      11207,
+      11
+     ]
+    ],
+    "core.p3.greetings": [
+     [
+      "PHANT.OBJ:low7",
+      11280,
+      16
+     ]
+    ],
+    "core.p3.party_gets_away": [
+     [
+      "PHANT.OBJ:low7",
+      11255,
+      10
+     ]
+    ],
+    "core.p3.x_finds_x": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13587,
+      12
+     ],
+     " {1}"
+    ],
+    "core.p3.will_the_party_keep_it": [
+     [
+      "PHANT.OBJ:low7",
+      13641,
+      5
+     ]
+    ],
+    "core.treasure.you_find_x_keep_it": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13641,
+      5
+     ]
+    ],
+    "core.p3.x_picks_the_lock": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      5648,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5655,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5659,
+      4
+     ]
+    ],
+    "core.p3.who_will_disarm": [
+     [
+      "DUNGEON.OBJ:low7",
+      6752,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6756,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6768,
+      7
+     ],
+     "?"
+    ],
+    "core.p3.x_spots_a_trap": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      6726,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6732,
+      1
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6734,
+      4
+     ],
+     ", ",
+     [
+      "DUNGEON.OBJ:low7",
+      6741,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6748,
+      2
+     ],
+     "?"
+    ],
+    "core.p3.x_disarms_the_trap": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      6777,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6782,
+      3
+     ]
+    ],
+    "core.p3.party_finds_gold": [
+     [
+      "DUNGEON.OBJ:low7",
+      7896,
+      24
+     ]
+    ],
+    "core.p3.some_gold_was_taken": [
+     [
+      "DUNGEON.OBJ:low7",
+      7964,
+      26
+     ]
+    ],
+    "core.p3.party_is_teleported": [
+     [
+      "DUNGEON.OBJ:low7",
+      8066,
+      18
+     ]
+    ],
+    "core.p3.noise_in_the_distance": [
+     [
+      "DUNGEON.OBJ:low7",
+      8112,
+      32
+     ]
+    ],
+    "p3.reward.press_a_key": [
+     [
+      "DUNGEON.OBJ:low7",
+      7508,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      7514,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      7518,
+      3
+     ]
+    ],
+    "core.p3.mystic.rank_0": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8911,
+      18
+     ]
+    ],
+    "core.p3.mystic.rank_1": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8929,
+      19
+     ]
+    ],
+    "core.p3.mystic.rank_2": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8948,
+      23
+     ]
+    ],
+    "core.p3.mystic.rank_3": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8971,
+      18
+     ]
+    ],
+    "core.p3.mystic.heroes_of_gelnor": [
+     [
+      "TOWN.OBJ:low7",
+      9031,
+      21
+     ]
+    ],
+    "core.p3.mystic.heroes_of_ferronrah": [
+     [
+      "TOWN.OBJ:low7",
+      9074,
+      24
+     ]
+    ],
+    "core.p3.mystic.heroes_of_netherworld": [
+     [
+      "TOWN.OBJ:low7",
+      8989,
+      25
+     ]
+    ],
+    "core.p3.mystic.heroes_of_scandor": [
+     [
+      "TOWN.OBJ:low7",
+      9014,
+      17
+     ]
+    ],
+    "core.guild.party_not_assembled": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ],
+    "guild.no_one_to_drop": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ],
+    "guild.add_members_to_a_party_first": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ],
+    "core.guild.party_is_full": [
+     [
+      "TOWN.OBJ:low7",
+      14261,
+      17
+     ]
+    ],
+    "core.guild.already_in_party": [
+     [
+      "TOWN.OBJ:low7",
+      14231,
+      18
+     ]
+    ],
+    "core.guild.roster_full": [
+     [
+      "TOWN.OBJ:low7",
+      9127,
+      24
+     ]
+    ],
+    "core.guild.learn_no_more": [
+     [
+      "TOWN.OBJ:low7",
+      2847,
+      25
+     ]
+    ],
+    "core.guild.learn_cant_afford": [
+     [
+      "TOWN.OBJ:low7",
+      3612,
+      16
+     ]
+    ],
+    "member.who_shall_be_examined": [
+     [
+      "TOWN.OBJ:low7",
+      8306,
+      10
+     ]
+    ],
+    "guild.move_journey_question": [
+     [
+      "TOWN.OBJ:low7",
+      14141,
+      36
+     ],
+     "\r",
+     [
+      "TOWN.OBJ:low7",
+      14178,
+      14
+     ]
+    ],
+    "core.p3.cannot_afford": [
+     [
+      "TOWN.OBJ:low7",
+      5393,
+      20
+     ]
+    ],
+    "core.armory.not_enough_gold": [
+     [
+      "TOWN.OBJ:low7",
+      10979,
+      14
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      10994,
+      12
+     ]
+    ],
+    "core.armory.ninth_item": [
+     [
+      "TOWN.OBJ:low7",
+      11018,
+      13
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      11032,
+      13
+     ]
+    ],
+    "core.p3.cant_carry_anymore": [
+     [
+      "TOWN.OBJ:low7",
+      8200,
+      31
+     ]
+    ],
+    "core.combat.x_hits": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      10049,
+      4
+     ]
+    ],
+    "core.combat.x_misses": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      5032,
+      6
+     ]
+    ],
+    "core.combat.x_awakens": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      4052,
+      7
+     ]
+    ],
+    "core.p3.x_casts_x": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13492,
+      5
+     ],
+     " {1}"
+    ],
+    "core.p3.x_breathes": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13497,
+      7
+     ]
+    ],
+    "core.p3.astral_1": [
+     [
+      "DUNGEON.OBJ:low7",
+      1233,
+      35
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1272,
+      38
+     ]
+    ],
+    "core.p3.astral_2": [
+     [
+      "DUNGEON.OBJ:low7",
+      1566,
+      79
+     ]
+    ],
+    "core.p3.astral_3": [
+     [
+      "DUNGEON.OBJ:low7",
+      2536,
+      35
+     ]
+    ],
+    "core.p3.x_destroyed": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2650,
+      10
+     ]
+    ],
+    "core.p3.x_resurrected": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2586,
+      12
+     ]
+    ],
+    "core.p3.x_undead": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2613,
+      22
+     ]
+    ],
+    "core.p3.reward_noises": [
+     [
+      "DUNGEON.OBJ:low7",
+      1338,
+      39
+     ]
+    ],
+    "core.p3.reward_intensity": [
+     [
+      "DUNGEON.OBJ:low7",
+      1378,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1420,
+      36
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1458,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1503,
+      29
+     ]
+    ],
+    "core.p3.reward_god_x": [
+     [
+      "DUNGEON.OBJ:low7",
+      1723,
+      21
+     ],
+     " {0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      1927,
+      34
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1967,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2007,
+      21
+     ]
+    ],
+    "core.p3.god_zeus": [
+     [
+      "DUNGEON.OBJ:low7",
+      1745,
+      5
+     ]
+    ],
+    "core.p3.god_pluto": [
+     [
+      "DUNGEON.OBJ:low7",
+      1847,
+      6
+     ]
+    ],
+    "core.p3.reward_cause_x_title_x": [
+     [
+      "DUNGEON.OBJ:low7",
+      2048,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2086,
+      8
+     ],
+     " {0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2100,
+      19
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2154,
+      9
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2195,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2236,
+      16
+     ],
+     " {1}"
+    ],
+    "core.p3.cause_good": [
+     [
+      "DUNGEON.OBJ:low7",
+      2095,
+      4
+     ]
+    ],
+    "core.p3.cause_evil": [
+     [
+      "DUNGEON.OBJ:low7",
+      2129,
+      4
+     ]
+    ],
+    "core.p3.title_superheroes": [
+     [
+      "DUNGEON.OBJ:low7",
+      2253,
+      11
+     ]
+    ],
+    "core.p3.title_darklords": [
+     [
+      "DUNGEON.OBJ:low7",
+      2282,
+      10
+     ]
+    ],
+    "core.p3.reward_farewell": [
+     [
+      "DUNGEON.OBJ:low7",
+      2347,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2385,
+      33
+     ],
+     ". ",
+     [
+      "DUNGEON.OBJ:low7",
+      2419,
+      35
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2455,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2495,
+      13
+     ]
+    ]
+   }
+  },
+  "p3-c64-1.2": {
+   "shared": {
+    "core.overworld.lava": [
+     [
+      "PHANT.OBJ:low7",
+      19333,
+      7
+     ]
+    ],
+    "p3town.bank_gold_carried": [
+     [
+      "TOWN.OBJ:low7",
+      4697,
+      11
+     ]
+    ],
+    "p3town.trade_whose": [
+     [
+      "TOWN.OBJ:low7",
+      7906,
+      9
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      7916,
+      6
+     ]
+    ],
+    "p3town.trade_which": [
+     [
+      "TOWN.OBJ:low7",
+      7949,
+      17
+     ]
+    ],
+    "p3town.trade_who_gets": [
+     [
+      "TOWN.OBJ:low7",
+      7999,
+      12
+     ],
+     "?"
+    ],
+    "p3combat.select_spell_x": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      12677,
+      12
+     ]
+    ],
+    "p3combat.heal_question": [
+     [
+      "PHANT.OBJ:low7",
+      13196,
+      7
+     ]
+    ],
+    "p3combat.rank_question": [
+     [
+      "PHANT.OBJ:low7",
+      12897,
+      10
+     ]
+    ]
+   },
+   "phantasie1": {
+    "useitem.who_will_use": [
+     [
+      "TOWN.OBJ:low7",
+      4229,
+      13
+     ]
+    ],
+    "guild.whom_do_you_want_to_drop": [
+     [
+      "TOWN.OBJ:low7",
+      14310,
+      18
+     ]
+    ],
+    "guild.who_is_going_to_be_trained": [
+     [
+      "TOWN.OBJ:low7",
+      5300,
+      10
+     ]
+    ],
+    "guild.who_will_learn": [
+     [
+      "TOWN.OBJ:low7",
+      2665,
+      22
+     ]
+    ],
+    "member.whom_do_you_want_to_purge": [
+     [
+      "TOWN.OBJ:low7",
+      13230,
+      10
+     ]
+    ],
+    "member.who_needs_renaming": [
+     [
+      "TOWN.OBJ:low7",
+      13947,
+      20
+     ]
+    ],
+    "inspect.whom_do_you_want_to_inspect": [
+     [
+      "TOWN.OBJ:low7",
+      8306,
+      10
+     ]
+    ],
+    "core.guild.it_will_cost_x_gold": [
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      6223,
+      12
+     ],
+     " {0} ",
+     [
+      "TOWN.OBJ:low7",
+      6236,
+      12
+     ]
+    ],
+    "core.guild.learn_failed": [
+     [
+      "TOWN.OBJ:low7",
+      3669,
+      10
+     ]
+    ],
+    "core.guild.learn_learned": [
+     [
+      "TOWN.OBJ:low7",
+      3691,
+      14
+     ]
+    ],
+    "core.guild.train_cant_afford": [
+     [
+      "TOWN.OBJ:low7",
+      5393,
+      20
+     ]
+    ],
+    "towndlg.you_can_learn_x_more_spells": [
+     [
+      "TOWN.OBJ:low7",
+      2903,
+      13
+     ],
+     " {0} ",
+     [
+      "TOWN.OBJ:low7",
+      2920,
+      8
+     ]
+    ],
+    "core.inn.x_is_resting_x": [
+     "{0,-10} ",
+     [
+      "TOWN.OBJ:low7",
+      3995,
+      5
+     ],
+     " {1}"
+    ],
+    "core.inn.in_peace": [
+     [
+      "TOWN.OBJ:low7",
+      4014,
+      8
+     ]
+    ],
+    "core.inn.magic_increases": [
+     [
+      "TOWN.OBJ:low7",
+      4063,
+      15
+     ]
+    ],
+    "core.dungeon.no_one_can_pick_the_lock": [
+     [
+      "DUNGEON.OBJ:low7",
+      5623,
+      2
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5626,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5630,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5634,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5639,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5643,
+      4
+     ]
+    ],
+    "core.dungeon.x_picks_the_lock": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      5648,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5655,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5659,
+      4
+     ]
+    ],
+    "core.dungeon.x_hears_monsters_go_back": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      5597,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5603,
+      8
+     ],
+     ", ",
+     [
+      "DUNGEON.OBJ:low7",
+      5614,
+      2
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5617,
+      4
+     ],
+     "?"
+    ],
+    "core.prompt.who_will_disarm": [
+     [
+      "DUNGEON.OBJ:low7",
+      6752,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6756,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6768,
+      7
+     ],
+     "?"
+    ],
+    "core.script.smoke_fills_the_air": [
+     [
+      "DUNGEON.OBJ:low7",
+      7674,
+      19
+     ]
+    ],
+    "core.script.monsters_appear": [
+     [
+      "DUNGEON.OBJ:low7",
+      8196,
+      16
+     ]
+    ],
+    "core.encounter.you_surprise_them": [
+     [
+      "PHANT.OBJ:low7",
+      15517,
+      17
+     ]
+    ],
+    "core.encounter.monsters_surprise_you": [
+     [
+      "PHANT.OBJ:low7",
+      15559,
+      17
+     ]
+    ],
+    "core.encounter.an_encounter": [
+     [
+      "PHANT.OBJ:low7",
+      15593,
+      12
+     ]
+    ],
+    "core.dungeon.swimming": [
+     [
+      "PHANT.OBJ:low7",
+      19561,
+      11
+     ]
+    ],
+    "cast.who_will_cast_spell": [
+     [
+      "PHANT.OBJ:low7",
+      13877,
+      14
+     ]
+    ],
+    "guild.transport_to_which_town": [
+     [
+      "PHANT.OBJ:low7",
+      14124,
+      11
+     ]
+    ]
+   },
+   "phantasie3": {
+    "core.dungeon.trap_x_takes_x_damage": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ],
+    "core.script.report_x_takes_x_damage": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ],
+    "core.combat.x_takes_x_damage": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ],
+    "core.p3.damage_report_x_x": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ],
+    "core.dungeon.trap_x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19451,
+      5
+     ]
+    ],
+    "core.script.report_x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19451,
+      5
+     ]
+    ],
+    "core.p3.x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19451,
+      5
+     ]
+    ],
+    "core.combat.x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      10224,
+      9
+     ]
+    ],
+    "core.p3.report_takes_x_damage": [
+     [
+      "PHANT.OBJ:low7",
+      19477,
+      5
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      19486,
+      6
+     ]
+    ],
+    "core.dungeon.x_swims": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19651,
+      5
+     ]
+    ],
+    "core.dungeon.x_sinks_and_takes_x_damage": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19668,
+      5
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      19735,
+      3
+     ],
+     " {1} ",
+     [
+      "PHANT.OBJ:low7",
+      19741,
+      6
+     ]
+    ],
+    "core.dungeon.swim_x_dies": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      19709,
+      5
+     ]
+    ],
+    "core.p3.ocean": [
+     [
+      "PHANT.OBJ:low7",
+      19278,
+      5
+     ]
+    ],
+    "core.p3.river_styx": [
+     [
+      "PHANT.OBJ:low7",
+      19253,
+      10
+     ]
+    ],
+    "core.p3.will_you_enter": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      20270,
+      6
+     ]
+    ],
+    "core.p3.cannot_afford_stay": [
+     [
+      "PHANT.OBJ:low7",
+      5187,
+      15
+     ]
+    ],
+    "core.p3.you_surprise_the_monsters": [
+     [
+      "PHANT.OBJ:low7",
+      15517,
+      17
+     ]
+    ],
+    "core.p3.monsters_surprise_you": [
+     [
+      "PHANT.OBJ:low7",
+      15559,
+      17
+     ]
+    ],
+    "core.p3.x_is_on_watch": [
+     [
+      "PHANT.OBJ:low7",
+      15622,
+      17
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      15640,
+      9
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      15770,
+      11
+     ]
+    ],
+    "core.p3.x_is_on_watch_and_hears_them": [
+     [
+      "PHANT.OBJ:low7",
+      15622,
+      17
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      15640,
+      9
+     ],
+     " {0} ",
+     [
+      "PHANT.OBJ:low7",
+      15770,
+      11
+     ],
+     ", ",
+     [
+      "PHANT.OBJ:low7",
+      15669,
+      10
+     ]
+    ],
+    "core.magic.monsters_at_level_x": [
+     [
+      "PHANT.OBJ:low7",
+      14396,
+      12
+     ],
+     " ",
+     [
+      "PHANT.OBJ:low7",
+      14409,
+      5
+     ],
+     " {0}"
+    ],
+    "core.magic.not_enough_mp": [
+     [
+      "PHANT.OBJ:low7",
+      14025,
+      23
+     ]
+    ],
+    "core.p3.magic_too_low": [
+     [
+      "PHANT.OBJ:low7",
+      12761,
+      16
+     ]
+    ],
+    "core.p3.monsters_flee": [
+     [
+      "PHANT.OBJ:low7",
+      10908,
+      13
+     ]
+    ],
+    "core.p3.no_response": [
+     [
+      "PHANT.OBJ:low7",
+      11127,
+      11
+     ]
+    ],
+    "core.p3.they_take_your_gold": [
+     [
+      "PHANT.OBJ:low7",
+      11210,
+      11
+     ]
+    ],
+    "core.p3.greetings": [
+     [
+      "PHANT.OBJ:low7",
+      11283,
+      16
+     ]
+    ],
+    "core.p3.party_gets_away": [
+     [
+      "PHANT.OBJ:low7",
+      11258,
+      10
+     ]
+    ],
+    "core.p3.x_finds_x": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13589,
+      12
+     ],
+     " {1}"
+    ],
+    "core.p3.will_the_party_keep_it": [
+     [
+      "PHANT.OBJ:low7",
+      13643,
+      5
+     ]
+    ],
+    "core.treasure.you_find_x_keep_it": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13643,
+      5
+     ]
+    ],
+    "core.p3.x_picks_the_lock": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      5648,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5655,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      5659,
+      4
+     ]
+    ],
+    "core.p3.who_will_disarm": [
+     [
+      "DUNGEON.OBJ:low7",
+      6752,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6756,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6768,
+      7
+     ],
+     "?"
+    ],
+    "core.p3.x_spots_a_trap": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      6726,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6732,
+      1
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6734,
+      4
+     ],
+     ", ",
+     [
+      "DUNGEON.OBJ:low7",
+      6741,
+      6
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6748,
+      2
+     ],
+     "?"
+    ],
+    "core.p3.x_disarms_the_trap": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      6777,
+      4
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      6782,
+      3
+     ]
+    ],
+    "core.p3.party_finds_gold": [
+     [
+      "DUNGEON.OBJ:low7",
+      7896,
+      24
+     ]
+    ],
+    "core.p3.some_gold_was_taken": [
+     [
+      "DUNGEON.OBJ:low7",
+      7964,
+      26
+     ]
+    ],
+    "core.p3.party_is_teleported": [
+     [
+      "DUNGEON.OBJ:low7",
+      8066,
+      18
+     ]
+    ],
+    "core.p3.noise_in_the_distance": [
+     [
+      "DUNGEON.OBJ:low7",
+      8112,
+      32
+     ]
+    ],
+    "p3.reward.press_a_key": [
+     [
+      "DUNGEON.OBJ:low7",
+      7508,
+      5
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      7514,
+      3
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      7518,
+      3
+     ]
+    ],
+    "core.p3.mystic.rank_0": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8911,
+      18
+     ]
+    ],
+    "core.p3.mystic.rank_1": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8929,
+      19
+     ]
+    ],
+    "core.p3.mystic.rank_2": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8948,
+      23
+     ]
+    ],
+    "core.p3.mystic.rank_3": [
+     [
+      "TOWN.OBJ:low7",
+      8746,
+      8
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      8971,
+      18
+     ]
+    ],
+    "core.p3.mystic.heroes_of_gelnor": [
+     [
+      "TOWN.OBJ:low7",
+      9031,
+      21
+     ]
+    ],
+    "core.p3.mystic.heroes_of_ferronrah": [
+     [
+      "TOWN.OBJ:low7",
+      9074,
+      24
+     ]
+    ],
+    "core.p3.mystic.heroes_of_netherworld": [
+     [
+      "TOWN.OBJ:low7",
+      8989,
+      25
+     ]
+    ],
+    "core.p3.mystic.heroes_of_scandor": [
+     [
+      "TOWN.OBJ:low7",
+      9014,
+      17
+     ]
+    ],
+    "core.guild.party_not_assembled": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ],
+    "guild.no_one_to_drop": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ],
+    "guild.add_members_to_a_party_first": [
+     [
+      "TOWN.OBJ:low7",
+      4415,
+      17
+     ]
+    ],
+    "core.guild.party_is_full": [
+     [
+      "TOWN.OBJ:low7",
+      14261,
+      17
+     ]
+    ],
+    "core.guild.already_in_party": [
+     [
+      "TOWN.OBJ:low7",
+      14231,
+      18
+     ]
+    ],
+    "core.guild.roster_full": [
+     [
+      "TOWN.OBJ:low7",
+      9127,
+      24
+     ]
+    ],
+    "core.guild.learn_no_more": [
+     [
+      "TOWN.OBJ:low7",
+      2847,
+      25
+     ]
+    ],
+    "core.guild.learn_cant_afford": [
+     [
+      "TOWN.OBJ:low7",
+      3612,
+      16
+     ]
+    ],
+    "member.who_shall_be_examined": [
+     [
+      "TOWN.OBJ:low7",
+      8306,
+      10
+     ]
+    ],
+    "guild.move_journey_question": [
+     [
+      "TOWN.OBJ:low7",
+      14141,
+      36
+     ],
+     "\r",
+     [
+      "TOWN.OBJ:low7",
+      14178,
+      14
+     ]
+    ],
+    "core.p3.cannot_afford": [
+     [
+      "TOWN.OBJ:low7",
+      5393,
+      20
+     ]
+    ],
+    "core.armory.not_enough_gold": [
+     [
+      "TOWN.OBJ:low7",
+      10979,
+      14
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      10994,
+      12
+     ]
+    ],
+    "core.armory.ninth_item": [
+     [
+      "TOWN.OBJ:low7",
+      11018,
+      13
+     ],
+     " ",
+     [
+      "TOWN.OBJ:low7",
+      11032,
+      13
+     ]
+    ],
+    "core.p3.cant_carry_anymore": [
+     [
+      "TOWN.OBJ:low7",
+      8200,
+      31
+     ]
+    ],
+    "core.combat.x_hits": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      10052,
+      4
+     ]
+    ],
+    "core.combat.x_misses": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      5032,
+      6
+     ]
+    ],
+    "core.combat.x_awakens": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      4052,
+      7
+     ]
+    ],
+    "core.p3.x_casts_x": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13494,
+      5
+     ],
+     " {1}"
+    ],
+    "core.p3.x_breathes": [
+     "{0} ",
+     [
+      "PHANT.OBJ:low7",
+      13499,
+      7
+     ]
+    ],
+    "core.p3.astral_1": [
+     [
+      "DUNGEON.OBJ:low7",
+      1233,
+      35
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1272,
+      38
+     ]
+    ],
+    "core.p3.astral_2": [
+     [
+      "DUNGEON.OBJ:low7",
+      1566,
+      79
+     ]
+    ],
+    "core.p3.astral_3": [
+     [
+      "DUNGEON.OBJ:low7",
+      2536,
+      35
+     ]
+    ],
+    "core.p3.x_destroyed": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2650,
+      10
+     ]
+    ],
+    "core.p3.x_resurrected": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2586,
+      12
+     ]
+    ],
+    "core.p3.x_undead": [
+     "{0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2636,
+      13
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2613,
+      22
+     ]
+    ],
+    "core.p3.reward_noises": [
+     [
+      "DUNGEON.OBJ:low7",
+      1338,
+      39
+     ]
+    ],
+    "core.p3.reward_intensity": [
+     [
+      "DUNGEON.OBJ:low7",
+      1378,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1420,
+      36
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1458,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1503,
+      29
+     ]
+    ],
+    "core.p3.reward_god_x": [
+     [
+      "DUNGEON.OBJ:low7",
+      1723,
+      21
+     ],
+     " {0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      1927,
+      34
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      1967,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2007,
+      21
+     ]
+    ],
+    "core.p3.god_zeus": [
+     [
+      "DUNGEON.OBJ:low7",
+      1745,
+      5
+     ]
+    ],
+    "core.p3.god_pluto": [
+     [
+      "DUNGEON.OBJ:low7",
+      1847,
+      6
+     ]
+    ],
+    "core.p3.reward_cause_x_title_x": [
+     [
+      "DUNGEON.OBJ:low7",
+      2048,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2086,
+      8
+     ],
+     " {0} ",
+     [
+      "DUNGEON.OBJ:low7",
+      2100,
+      19
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2154,
+      9
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2195,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2236,
+      16
+     ],
+     " {1}"
+    ],
+    "core.p3.cause_good": [
+     [
+      "DUNGEON.OBJ:low7",
+      2095,
+      4
+     ]
+    ],
+    "core.p3.cause_evil": [
+     [
+      "DUNGEON.OBJ:low7",
+      2129,
+      4
+     ]
+    ],
+    "core.p3.title_superheroes": [
+     [
+      "DUNGEON.OBJ:low7",
+      2253,
+      11
+     ]
+    ],
+    "core.p3.title_darklords": [
+     [
+      "DUNGEON.OBJ:low7",
+      2282,
+      10
+     ]
+    ],
+    "core.p3.reward_farewell": [
+     [
+      "DUNGEON.OBJ:low7",
+      2347,
+      37
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2385,
+      33
+     ],
+     ". ",
+     [
+      "DUNGEON.OBJ:low7",
+      2419,
+      35
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2455,
+      40
+     ],
+     " ",
+     [
+      "DUNGEON.OBJ:low7",
+      2495,
+      13
+     ]
+    ]
+   }
+  }
+ }
+}

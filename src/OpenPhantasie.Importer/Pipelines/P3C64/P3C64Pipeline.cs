@@ -5,14 +5,15 @@ namespace OpenPhantasie.Importer.Pipelines.P3C64;
 /// (<see cref="P3C64Tables"/>, s218: a C64-only import is a playable III, with DOS III's numbers where the C64's differ
 /// or it has none and the C64's own text; DOS III's, the Amiga's or the Apple's tables win when that copy is imported
 /// too), the pre-generated party of the disk (<see cref="P3C64StarterGuild"/>), the C64's own lines of the string tables
-/// and the remaster's wording for the rest. Then the C64 art pack (<see cref="P3C64Art"/>, s220; <c>graphics/c64.json</c>),
+/// (verbatim, and from s221 the lines it words its own way) and the remaster's wording for the rest. Then the C64 art pack (<see cref="P3C64Art"/>, s220; <c>graphics/c64.json</c>),
 /// written whichever copy's tables win: the Amiga's pack stays III's default, then the Apple's, then the C64's.
 /// </summary>
 public abstract class P3C64PipelineBase : IImportPipeline
 {
     public abstract string ProfileId { get; }
 
-    public int RecipeVersion => 2; // 1 (s218): III's tables and the starter party from the C64; 2 (s220): the C64 art pack
+    public int RecipeVersion => 3; // 1 (s218): III's tables and the starter party from the C64; 2 (s220): the C64 art pack;
+    // 3 (s221): the lines the C64 prints in its own wording (en.own.<profile>.json, tools/scripts/p3_c64_own_wording.json)
 
     /// <summary>DOS III's, the Amiga's and the Apple's tables win when one of them is imported in the same run: they run first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p3-dos-1988", "p3-amiga-1.0", "p3-apple2"];

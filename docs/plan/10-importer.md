@@ -495,7 +495,7 @@ Public repo: built fresh, pushed to GitHub as **private** `jjanow/OpenPhantasie`
 | `p2-apple2-2.1` | `P2Apple2V21Pipeline` (the same `P2Apple2/` code, `P2Apple2PipelineBase`) | the A2CAN RDOS 3.3 pair. Restored (D2-052), every GameData table, art file and resolved string line equals the Memorial Set's v1.0 import but for the version's name (`_source`, `game.json` `profile`, notes) and each region's file length (`P2Apple2V21Tests`); loads and starts a game fogged. Strings: every `p2-apple2` alternative has a `p2-apple2-2.1` twin (326; 155 `OUTDOORS2` references moved by Applesoft line; the test compares the resolved lines of all three tables, shared, I and II) |
 | `p3-dos-1988` | `P3DosPipeline` (+ `P3Dos/`) | 10 tables JSON-equal, 9 byte-identical (rule-tables JSON-equal only: hand-added blocks). WizardWorks 1991 detected by the same profile, identical output. III's spells take only `category` / `effect_summary` from I's shipped spells. The DOS CGA pack (`P3CgaArt`), 512 PNG pixel-equal to `extract_dos_p3_graphics.py`'s (7.7) |
 | `p3-apple2` | `P3Apple2Pipeline` (+ `P3Apple2/P3Apple2Tables`) | tables only (7.10): the C# extract equals `extract_a2_p3_tables.py`'s nine files (`P3Apple2TablesTests`); with `apple2-import.json`'s cells, JSON-equal to the DOS GameData but for provenance and text (`P3Apple2ImportTests`); the same from a public-repo shipped folder; loads and starts a game |
-| `p3-c64`, `p3-c64-1.2` | `P3C64Pipeline` / `P3C64V12Pipeline` (+ `P3C64/P3C64Tables`, `P3C64StarterGuild`) | tables, the starter party and (recipe 2, s220) the `c64` art pack (`P3C64Art`, `P3C64ArtManifest`) (7.13; no Python counterpart): with `c64-import.json`'s cells, JSON-equal to the DOS GameData but for provenance and text (`P3C64ImportTests`); v1.2 gives v1.0's tables; the same from a public-repo shipped folder; loads, starts a game with the disk's six in the Guild, leaves town |
+| `p3-c64`, `p3-c64-1.2` | `P3C64Pipeline` / `P3C64V12Pipeline` (+ `P3C64/P3C64Tables`, `P3C64StarterGuild`) | tables, the starter party, (recipe 2, s220) the `c64` art pack (`P3C64Art`, `P3C64ArtManifest`) and (recipe 3, s221) the C64's own wording, 119 ids per build (`P3StringFallbackTests`) (7.13; tables: no Python counterpart): with `c64-import.json`'s cells, JSON-equal to the DOS GameData but for provenance and text (`P3C64ImportTests`); v1.2 gives v1.0's tables; the same from a public-repo shipped folder; loads, starts a game with the disk's six in the Guild, leaves town |
 | `p3-amiga-1.0` | `P3AmigaPipeline` | 579 PNG pixel-equal, 2 JSON byte-equal, raw `D/m0`, `D/m1`, `PhantasieIII` byte-equal. Without DOS III only `previews/scandor-dos.png` (unused by the pack) is left out. Tables (`P3AmigaTables`, no Python counterpart, 7.9): with `amiga-import.json`'s cells, JSON-equal to the DOS GameData but for provenance (`P3AmigaImportTests`); the same from a public-repo shipped folder; loads and starts a game |
 | `p4-x68000-1.02` | `P4X68kPipeline` (+ `P4X68k/`) | 16 files JSON- and byte-equal (monsters, items, spells, names, overworld, dungeons, scrolls, towns, elementals, rule-tables, `strings/ja.json`, `graphics/x68000-panels.json`, the four `x68k-p4-*` fonts); 382 PNG pixel-equal (every PNG has a generator: 55 PKH, 273 `.pix`, 54 fonts / item icons); raw `P4.X`, `P4.SND`, `VDATA` byte-equal. English by id only (decision 3): `en.json[id]`, else the Japanese from the copy; `translation/en.json` is never read. A test with `en.json` cut to the differing ids and `rule-tables.json` without the copy's fields gives the same tables. `x68k_p4_anim.py` not ported (its numbers live in the shipped `x68000.json`); the panel call sites found by objdump are a fixed table (P4.X is pinned by sha1) |
 
@@ -805,9 +805,12 @@ DOS layout and goes through DOS's builders. `P1C64Pipeline` (recipe 1) runs afte
   Written whichever copy's tables win; `index.json` lists it after the Amiga in `default_order`, so a C64-only (or C64 +
   DOS) player gets it. Played on Xvfb with a player's build (`parity/s218-p1-c64-art-live.md`); the default combat
   screen's rank box now puts a rank's line below a picture too wide to leave room beside it (PYTHON, 144 px). **Falls back** (the
-  Client's own drawing): UNDEAD's portrait, the ending, the defeat screens, `ui.decor`, combat effects; the item / feature pictures are extracted (`items/`) but have no Client slot.
+  Client's own drawing): UNDEAD's portrait (and `defeat.figure.15`), `ui.decor` / `decor.*`, combat effects. Since s221
+  (recipe 4) the ending (`ending_scene`: Zeus, the clouds, the lightning hand) and the party wipe (DOS's pages with
+  `CEMETARY`'s temple, face, ghost and the HSPRIT figures) are drawn (`parity/s221-c64-end-screens-live.md`; not
+  modelled `[~]`: Zeus's wipe, the rising door, the fate colours). The item / feature pictures (`items/`) are drawn beside the find / trap / stairs / lock / exit texts since s221 (`event.*` slots, `find_pictures`; `parity/s221-c64-item-pictures-live.md`).
 - **Left:** v1.0 / v1.3 profiles (other program files; v1.0's `ITEM` / `SCROLLS` / DNG8 byte); the German C64 (German
-  text); the C64's own wording for its town / Guild lines; the art's `[?]` (GRAPHICS.md 8: item picture colours, `ZALL` / `CEMETARY` pictures, the hero colour rule, the moving water).
+  text); the C64's own wording for its town / Guild lines; the art's `[?]` (GRAPHICS.md 8: `DOOR`'s colour (never shown), what sets `P(168)`, the hero colour rule, the moving water).
 
 ### 7.12 What a C64-only II import gives (s218)
 
@@ -863,17 +866,18 @@ schema. `P2C64Pipeline` (recipe 2, s219: + the art pack) runs after `p2-st-1.0`,
   with a player's build (`parity/s219-p2-c64-art-live.md`): title, Guild, Pippacott, the wilderness (II's terrain
   colours, the town / inn / dungeon sprites), a fight (GREEN MUCK), Dungeon 1. Reference: the original in VICE (town,
   overworld, two fights, the dungeon; GRAPHICS.md 7): its VIPER shows a several-sprite monster's attack (the extra block
-  in sprite 0), so I's and II's packs now give all 80 monsters an attacking frame. **Falls back** as I's: UNDEAD's
-  portrait, the ending, the party-wipe screen, `decor.*`, combat effects; the
-  item / feature pictures are extracted but have no Client slot.
+  in sprite 0), so I's and II's packs now give all 80 monsters an attacking frame. **Falls back**: UNDEAD's
+  portrait, `decor.door` / `decor.sorry-sign`, combat effects (since s221, recipe 3, the ending: the hall, TLUM1's crowd,
+  Filmon's pages; the party wipe through II's defeat scene: the temple, the face's doorway, the ghost); the
+  item / feature pictures are drawn as I's since s221 (the same files, rule and slots).
 - **Left:** the C64's bytecode rules (group size, restock, training: not read `[?]`); `MN` fields 14 / 24 `[?]`; the
-  art's `[?]` (GRAPHICS.md 6: `PH2.END-4`, `TLUM1`, `CEMETARY2`'s pictures, I's open points).
+  art's `[?]` (GRAPHICS.md 6: the panel's text colour, I's open points).
 
-### 7.13 What a C64-only III import gives (s218, art s220)
+### 7.13 What a C64-only III import gives (s218, art s220, own wording s221)
 
 `P3C64Tables` (`Pipelines/P3C64/`, layouts in `reverse-engineering/c64/phantasie3/FORMAT.md` sections 3 and 7) reads III's
 tables from the two sides of the C64 disk (C64PP's `.g64` or `.d64`) in `P3Extract`'s shapes; the unchanged `P3Build`
-writes the ten files `P3DosPipeline` writes. Two profiles, one pipeline base (recipe 1): `p3-c64` (v1.0, also the held
+writes the ten files `P3DosPipeline` writes. Two profiles, one pipeline base (recipe 3; 1 tables and starter party, 2 the art, 3 the own wording): `p3-c64` (v1.0, also the held
 v1.1 and cracked pairs, which carry v1.0's programs) and `p3-c64-1.2` (v1.2 (alt): its own `PHANT.OBJ` / `TOWN.OBJ` and
 starter rolls). They run after `p3-dos-1988`, `p3-amiga-1.0` and `p3-apple2`.
 
@@ -900,7 +904,28 @@ starter rolls). They run after `p3-dos-1988`, `p3-amiga-1.0` and `p3-apple2`.
 - **Strings:** `p3-c64` / `p3-c64-1.2` alternatives for 16 ids found verbatim (status / class words; the importer's
   `<file>:low7` key clears bit 7, which ends each C64 string); everything else III shows takes the Apple III's shipped
   fallback (`ImportedStrings.WriteFallback` with extra profile files), so a C64-only III leaves no id on "..."
-  (`P3StringFallbackTests.PublicMask_C64IiiOnly_NoEllipsis`). No own-wording file yet.
+  (`P3StringFallbackTests.PublicMask_C64IiiOnly_NoEllipsis`).
+- **The C64's own wording (s221, recipe 3):** `tools/scripts/p3_c64_own_wording.json`, keyed per build, maps 119 ids
+  per build (shared 8, I 27, III 84; 87 of them in `fallback.p3-apple2.en.json`, 32 from the common fallback) to references into its `PHANT.OBJ` / `TOWN.OBJ` / `DUNGEON.OBJ` (`<file>:low7`),
+  as the Apple III's (D3-077): `build_string_sources.py` adds them as `p3-c64` / `p3-c64-1.2` alternatives marked
+  `"wording": "own"` (`--show-c64-3`), and an import whose III tables are the C64's writes them to
+  `phantasie3/strings/en.own.<profile>.json`, on top of III's chain over the Apple's fallback. Generator (quotes the
+  lines, not exported): `reverse-engineering/c64/phantasie3/working/gen_own3_c64.py`. The two builds give the same
+  text but `p3combat.rank_question` (v1.0 `WHICH RANK?`, v1.2 `WHAT RANK?`). Mapped: the monsters' answers (`MONSTERS
+  RESPOND`, `NO RESPONSE`, `GOLD TAKEN!`, `MONSTERS FLEE`, `YOU ESCAPE`), surprise and night watch, combat (hits,
+  misses, awakens, casts, `BREATHS`, `--DEATH--`, `NOT ENOUGH MAGIC`, `WHICH SPELL?`, `ON WHO?`), damage / death /
+  lava / swimming (`{0} TAKES {1} DAMAGE`, `DIES!`, `SINKS FOR {1} DAMAGE`), ocean / Styx, `{0} ENTER?`, the dungeon's
+  lock / trap / event lines, `PRESS ANY KEY`, the Mystic (`YOU ARE: … ADVENTURERS`, the heroes lines), Guild / Armory /
+  Trade / Inn / learning prompts and refusals, the Astral Plane and its verdicts, the reward speech (from `BEFORE YOU
+  IS THE GOD {0}`: the C64 words each god's room its own way, so the room sentence is left out; `{0}` = `ZEUS.` /
+  `PLUTO.`). Glue we add: one space for a row break or padding, `. ` between the farewell's two sentences, `, ` in the
+  night-watch line, `?` after `GIVE TO WHOM` (the C64's `(7=SELL)` dropped), `\r` in the journey question. Placed by
+  the routine's neighbours only `[~]`: `NOT ENOUGH GOLD` (the field inn), `MONSTERS RESPOND` (Greet), `ON WHO?` (the
+  combat heal), `ALSO HEROES OF FERRONRAH` (of the C64's two Ferronrah lines), `{0} MADE IT!` (trap disarmed),
+  `{0} SPOTS ITEMS: {1}`, `HE HASN'T ENOUGH POINTS` (field casting), `THERE IS NOT ENOUGH ROOM` (roster). Kept on the
+  fallback: prompts whose answer keys differ (`YOU HEAR MONSTERS. F)IGHT OR R)UN?`, `SLEEPING MONSTERS LEAVE?`), the
+  status sheet's fixed-width labels, terms (orders, skills, body areas, statuses), the monster spell lines, the
+  surrender, the reward's teleport line, and lines the C64 lacks. Tests: `P3StringFallbackTests.C64IiiOnly_OwnWording_PerBuild_OverTheFallback`, `C64IiiOwnWording_NotBesideDosIii`.
 - **With DOS III, the Amiga or the Apple** (same run or earlier): their tables win, the C64 writes none and no starter
   party, and a later import of one of them replaces the C64's (their `OwnsTables` take over the C64's label).
 - **Art (s220, recipe 2):** the `c64` pack (`P3C64Art`, `P3C64ArtManifest`; `reverse-engineering/c64/phantasie3/GRAPHICS.md`),
@@ -919,7 +944,7 @@ starter rolls). They run after `p3-dos-1988`, `p3-amiga-1.0` and `p3-apple2`.
   C64's item names, DOS's stock), the Guild's Add lists the six and each joins at once, CHUMLEY's sheet (AGE 13, 12 HP,
   256 gold, MACE / ROBES / SM SHIELD / SELF BOW), leaving town, the overworld, a fight with four Drip Slimes (shown
   "DRIP SLIMES(S)": the C64's plural name gets the remaster's "(S)", D3-079).
-- **Left:** a `c64` art pack; the C64's own wording; the undecoded tables of FORMAT.md section 7 (DOS's used).
+- **Left:** the undecoded tables of FORMAT.md section 7 (DOS's used); the own-wording lines marked `[~]` above.
 
 ### 7.7 s160: the III CGA pack, the topaz offer, I's dungeon note
 
