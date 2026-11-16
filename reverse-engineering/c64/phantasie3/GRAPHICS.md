@@ -157,4 +157,6 @@ flashes, the combat flash, the town doors, the buttons; the found-item pictures 
 5 × 7 font (PSET0 / PTOWN1 as sheets in `font/`).
 
 `[?]` / `[~]` left: the view at the map's edges; the plane maps' tiles; the dungeon's 185–199 / 221+ glyphs and the bar's
-fourth row; which elemental colour the pack shows; the figures' third frame; the C64's sound (`SND`).
+fourth row; which elemental colour the pack shows; the figures' third frame; the C64's sound (`SND`, 177 B of 6502 at
+`$126E` writing voice 1, and `PHANT.OBJ`'s `$D418` store at `$213A`: not decoded, not played; s226 inventory in I's
+GRAPHICS.md 9.6).

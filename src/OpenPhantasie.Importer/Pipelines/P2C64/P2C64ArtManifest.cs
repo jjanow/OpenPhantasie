@@ -57,8 +57,8 @@ public static class P2C64ArtManifest
                 "pose in its place while the panel names it (1.09 s) and FOR 4000 (4.17 s), then the cheer: the crowd's " +
                 "second frame for the sound (9.92 s), then the first again (whole cheer 10.22 s). s224: drawn by c64_win " +
                 "(WIN's own steps; the remaster's ending screen fields here are its fallback, unused with c64_win). The " +
-                "closing page black on yellow cells (the hall's inverted characters still loaded). No fade on the C64; no " +
-                "C64 sounds: SID playback [?] (I's GRAPHICS.md 9.6)."),
+                "closing page black on yellow cells (the hall's inverted characters still loaded). No fade on the C64. s226: " +
+                "the cheer is sid_sounds (I's GRAPHICS.md 9.6)."),
             ("palette", C64PhantasieArtManifest.Pens()),
             ("vbl_hz", 50),
             ("fade_vbl", 1),
@@ -122,5 +122,6 @@ public static class P2C64ArtManifest
                 ("wands_at", new JsonArray(J.Ints([2, 20]), J.Ints([0, 21]), J.Ints([0, 22]), J.Ints([0, 23]))),
                 ("wands_key", "c64.p2.press_ret")))),
         C64Defeat = C64PhantasieArtManifest.DefeatLayout(),
+        SidSounds = C64PhantasieArtManifest.SidSounds(ending: false, win: true),
     });
 }

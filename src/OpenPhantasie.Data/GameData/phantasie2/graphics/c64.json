@@ -748,7 +748,7 @@
   ],
   "_portraits": "portrait.{race}: HSPRIT (I's file) blocks 2 race (idle) and 2 race + 1 (attacking), the pair the fight copies for a member of that race (C64 I, live s218); yellow, the combat row's colour [~]. No UNDEAD pair.",
   "ending_scene": {
-    "_note": "s221 / s223 (GRAPHICS.md 8.1, WIN's compiled BASIC, live in VICE): the intro page, black on yellow, no key: up while PH2.END-4 and TLUM1 load (16.85 s measured with VICE's true drive, PAL [~]); the hall (PH2.END-4) with its cyan panel (the panel's text cyan on inverted characters: black letters); the crowd (TLUM1: 7 expanded green sprites at screen y 110); the whole party in the row from the start (hero band at screen y 75, x 86 + 24 k, yellow); per member: FOR 4000 (4.17 s), the member in light red in its attacking pose in its place while the panel names it (1.09 s) and FOR 4000 (4.17 s), then the cheer: the crowd's second frame for the sound (9.92 s), then the first again (whole cheer 10.22 s). s224: drawn by c64_win (WIN's own steps; the remaster's ending screen fields here are its fallback, unused with c64_win). The closing page black on yellow cells (the hall's inverted characters still loaded). No fade on the C64; no C64 sounds: SID playback [?] (I's GRAPHICS.md 9.6).",
+    "_note": "s221 / s223 (GRAPHICS.md 8.1, WIN's compiled BASIC, live in VICE): the intro page, black on yellow, no key: up while PH2.END-4 and TLUM1 load (16.85 s measured with VICE's true drive, PAL [~]); the hall (PH2.END-4) with its cyan panel (the panel's text cyan on inverted characters: black letters); the crowd (TLUM1: 7 expanded green sprites at screen y 110); the whole party in the row from the start (hero band at screen y 75, x 86 + 24 k, yellow); per member: FOR 4000 (4.17 s), the member in light red in its attacking pose in its place while the panel names it (1.09 s) and FOR 4000 (4.17 s), then the cheer: the crowd's second frame for the sound (9.92 s), then the first again (whole cheer 10.22 s). s224: drawn by c64_win (WIN's own steps; the remaster's ending screen fields here are its fallback, unused with c64_win). The closing page black on yellow cells (the hall's inverted characters still loaded). No fade on the C64. s226: the cheer is sid_sounds (I's GRAPHICS.md 9.6).",
     "palette": [
       "#000000",
       "#FFFFFF",
@@ -948,6 +948,484 @@
     "end_seconds": 6,
     "undead_name_row": 21,
     "undead_name_col": 1
+  },
+  "sid_sounds": {
+    "_note": "s226 (GRAPHICS.md 9.6) [C]: the end screens' sounds as their programs write the SID ($D400 + register), in order; times in seconds from the sound's start (BASIC's TI waits; the VICE-measured interpreter time for the FOR loops, PAL). Played on one 6581 model per screen (Client Sid6581). wind / wind_stop: ZALL $4D40 / $4E46 (P.END step 3 to after the wipe's TD = 2), the IRQ routine $4D73 once a jiffy (zall_wind). thunder: P.END 0xbb6 per strike (its clear loop pokes $D400 only). click / click_off: P.END 0xc43 per space and line end, the gate off after the caller's 16 or RND * 8 jiffies. rumble: CEMETARY 0x90e after the ghosts, its gate never turned off (it sounds until the first fate's clear). fate: CEMETARY 0x97b per member. cheer: WIN 0x749; the sweeps' pass is the measured 9.928 s less the FOR loops at WIN's 1.042 ms a pass [~].",
+    "clock_hz": 985248,
+    "jiffy_hz": 60,
+    "tail_seconds": 2,
+    "sounds": {
+      "rumble": [
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              7,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              9,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              11,
+              0
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              13,
+              0
+            ],
+            [
+              14,
+              0
+            ],
+            [
+              15,
+              0
+            ],
+            [
+              16,
+              0
+            ],
+            [
+              17,
+              0
+            ],
+            [
+              18,
+              0
+            ],
+            [
+              19,
+              0
+            ],
+            [
+              20,
+              0
+            ],
+            [
+              21,
+              7
+            ],
+            [
+              23,
+              242
+            ],
+            [
+              24,
+              31
+            ],
+            [
+              22,
+              0
+            ],
+            [
+              13,
+              240
+            ],
+            [
+              10,
+              4
+            ],
+            [
+              15,
+              48
+            ],
+            [
+              12,
+              245
+            ],
+            [
+              8,
+              8
+            ],
+            [
+              22,
+              0
+            ],
+            [
+              11,
+              135
+            ]
+          ]
+        }
+      ],
+      "fate": [
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              7,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              9,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              11,
+              0
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              13,
+              0
+            ],
+            [
+              14,
+              0
+            ],
+            [
+              15,
+              0
+            ],
+            [
+              16,
+              0
+            ],
+            [
+              17,
+              0
+            ],
+            [
+              18,
+              0
+            ],
+            [
+              19,
+              0
+            ],
+            [
+              20,
+              0
+            ],
+            [
+              21,
+              0
+            ],
+            [
+              22,
+              0
+            ],
+            [
+              23,
+              0
+            ],
+            [
+              24,
+              0
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              5,
+              41
+            ],
+            [
+              15,
+              30
+            ],
+            [
+              3,
+              8
+            ],
+            [
+              24,
+              31
+            ],
+            [
+              23,
+              4
+            ],
+            [
+              21,
+              1
+            ],
+            [
+              4,
+              21
+            ]
+          ]
+        },
+        {
+          "at": 1.08,
+          "poke": [
+            [
+              4,
+              20
+            ]
+          ]
+        }
+      ],
+      "cheer": [
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              7,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              9,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              11,
+              0
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              13,
+              0
+            ],
+            [
+              14,
+              0
+            ],
+            [
+              15,
+              0
+            ],
+            [
+              16,
+              0
+            ],
+            [
+              17,
+              0
+            ],
+            [
+              18,
+              0
+            ],
+            [
+              19,
+              0
+            ],
+            [
+              20,
+              0
+            ],
+            [
+              21,
+              0
+            ],
+            [
+              22,
+              0
+            ],
+            [
+              23,
+              0
+            ],
+            [
+              24,
+              0
+            ],
+            [
+              5,
+              238
+            ],
+            [
+              6,
+              172
+            ],
+            [
+              22,
+              126
+            ],
+            [
+              23,
+              0
+            ],
+            [
+              4,
+              133
+            ],
+            [
+              24,
+              79
+            ]
+          ]
+        },
+        {
+          "at": 0.0,
+          "sweep": {
+            "regs": [
+              0,
+              1
+            ],
+            "from": 11650,
+            "to": 10500,
+            "by": -40,
+            "every": 0.019886
+          }
+        },
+        {
+          "at": 0.576683,
+          "poke": [
+            [
+              4,
+              132
+            ]
+          ]
+        },
+        {
+          "at": 0.994722,
+          "poke": [
+            [
+              4,
+              133
+            ]
+          ]
+        },
+        {
+          "at": 0.994722,
+          "sweep": {
+            "regs": [
+              0,
+              1
+            ],
+            "from": 10500,
+            "to": 11650,
+            "by": 40,
+            "every": 0.019886
+          }
+        },
+        {
+          "at": 1.571405,
+          "sweep": {
+            "regs": [
+              24
+            ],
+            "from": 15,
+            "to": 0,
+            "by": -1,
+            "every": 0.522287
+          }
+        }
+      ]
+    }
   },
   "picture_sets": [
     {

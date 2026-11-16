@@ -306,6 +306,15 @@ public static class RuleOptionRegistry
     /// <summary>D-078: combat orders stay until changed (<c>manual</c>) or reset to PARRY on leaving town and after a defeat (<c>dos</c>, OV1 <c>0xd0</c> / <c>0x84</c>).</summary>
     public static readonly RuleOptionDescriptor OrdersReset = ManualOrDos("p1.orders-reset", "D-078");
 
+    /// <summary>
+    /// D-090 (user s225): what beating the Black Lord gives, in every version of I. <c>apple</c> (the Apple II's
+    /// <c>FLASH?</c>, the default in the Original (manual) and Remaster presets): DIVINE I, items 177–179 to the party's
+    /// found items and the party on Olympus, OUT19 (7, 13); <c>dos</c> (OV1 <c>0x4d5</c>): DIVINE I and back to Pelnor.
+    /// Each version keeps its own ending screens either way (<c>endgame.md</c> section 3.1).
+    /// </summary>
+    public static readonly RuleOptionDescriptor Victory = new(
+        "p1.victory", GameId.P1, ["apple", "dos"], Manual: "apple", Dos: "dos", Remaster: "apple", Difference: "D-090");
+
     private static RuleOptionDescriptor ManualOrDos(string id, string difference) =>
         new(id, GameId.P1, ["manual", "dos"], Manual: "manual", Dos: "dos", Remaster: "manual", Difference: difference);
 
@@ -546,7 +555,7 @@ public static class RuleOptionRegistry
         AddAging, CastFlag, DungeonMapNo,
         HalflingDex, GuildSize, Lifespans, MonkSleep,
         TownHealing, BegMercy, SackSize, Sleep, Charm, Teleport, WildernessTreasure, SummonParty, MonsterSpellTarget,
-        CombatShares, ContinueParty, CastList, TransportList, CombatSpellList, OrdersReset,
+        CombatShares, ContinueParty, CastList, TransportList, CombatSpellList, OrdersReset, Victory,
         TransferSpells, TransferDivine, TransferGold,
         P2TrainingCost, P2HitDice, P2WizardResurrection, P2AutoSave,
         P2GoldCap, P2GuildSize, P2Lifespans, P2DispellUndead, P2Fear, P2FearBosses,

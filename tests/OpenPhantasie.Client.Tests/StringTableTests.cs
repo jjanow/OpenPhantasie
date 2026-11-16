@@ -102,7 +102,8 @@ public partial class StringTableTests
             .Concat(GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("apple2")?.Apple2Scenes?.StringKeys ?? [])
             // s224: I C64's closing page after the grant (pack ending_scene.c64.closing) and II C64's WIN rows (ending_scene.c64_win).
             .Concat(GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("c64")?.EndingScene?.C64 is { } c64
-                ? [.. c64.ClosingLines, .. c64.ClosingKey is { } key ? [key.Text] : Array.Empty<string>()] : Array.Empty<string>())
+                ? [.. c64.ClosingLines, .. c64.ClosingLinesOlympus, .. c64.ClosingKey is { } key ? [key.Text] : Array.Empty<string>()]
+                : Array.Empty<string>())
             .Concat(GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P2)).Find("c64")?.EndingScene?.C64Win is { } win
                 ? [win.TitleWord, win.TitleFrom, win.CheerLine.Text, .. win.WandsKey is { } wk ? [wk] : Array.Empty<string>()]
                 : Array.Empty<string>())

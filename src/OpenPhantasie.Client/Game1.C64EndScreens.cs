@@ -15,6 +15,15 @@ public partial class Game1
     private C64DefeatScreen? _c64Defeat;
     private C64DefeatView? _c64DefeatView;
     private double _c64DefeatStart;
+    private readonly Audio.SoundEffectPlayer _c64Sound = new(); // s226: the C64 end screens' SID sounds
+    private object? _c64SoundFor;
+
+    /// <summary>
+    /// s226 (D-090): the closing page's string ids: the layout's Olympus wording when Core sends the party to Olympus
+    /// (<see cref="VictoryScene.ToOlympus"/>, <c>p1.victory</c> = <c>apple</c>), else the C64's own lines (Pelnor).
+    /// </summary>
+    public static IReadOnlyList<string> C64ClosingLines(C64EndingLayout layout, VictoryScene scene) =>
+        scene.ToOlympus && layout.ClosingLinesOlympus.Count > 0 ? layout.ClosingLinesOlympus : layout.ClosingLines;
 
     /// <summary>s223: I / II's party wipe runs as the C64's <c>CEMETARY</c> (the pack's <c>c64_defeat</c> and its temple,
     /// ORIGINAL SCREENS on): it runs by itself, no key.</summary>
@@ -29,6 +38,37 @@ public partial class Game1
     /// </summary>
     private void UpdateC64EndScreens(double now)
     {
+        UpdateC64EndScreenSteps(now);
+        // s226: the running screen's SID sounds (GRAPHICS.md 9.6), one score on one chip, started with the screen and
+        // stopped when it ends or is left, or when the Sound switch goes off.
+        object? screen = (object?)_c64Ending ?? (object?)_c64Win ?? _c64Defeat;
+        if (screen is null || !_settings.Sound || _assets?.Pack?.SidSounds is not { } sid)
+        {
+            if (_c64SoundFor is not null)
+                _c64Sound.Stop();
+            _c64SoundFor = null;
+        }
+        else if (!ReferenceEquals(screen, _c64SoundFor))
+        {
+            _c64SoundFor = screen;
+            var cues = screen switch
+            {
+                C64EndingScreen e => e.SoundCues(),
+                C64WinScreen w => w.SoundCues(),
+                C64DefeatScreen d => d.SoundCues(),
+                _ => [],
+            };
+            // The screen may have started a frame earlier: the score starts now, so its cues move back by that much.
+            var started = screen switch { C64EndingScreen => _c64EndingStart, C64WinScreen => _c64WinStart, _ => _c64DefeatStart };
+            var late = Math.Max(0, now - started);
+            _c64Sound.Play(sid.Score(cues.Select(c => c with { At = Math.Max(0, c.At - late), Until = c.Until - late }),
+                Random.Shared.NextDouble), sid.ClockHz);
+        }
+        _c64Sound.Update();
+    }
+
+    private void UpdateC64EndScreenSteps(double now)
+    {
         var prompt = _session is not null && _splash is null ? CurrentPrompt : null;
         // The victory.
         if (prompt is { Kind: SessionPromptKind.VictoryScene } && _session!.PendingVictoryScene is { } scene
@@ -39,7 +79,7 @@ public partial class Game1
                 IReadOnlyList<string> speech = ending.SpeechKeys is { } keys && keys.Count == scene.SpeechLines.Count
                     ? [.. keys.Select(GameText.S)] : scene.SpeechLines;
                 _c64Ending = new C64EndingScreen(c64, scene, speech, GameText.S(c64.Astral.Text), GameText.S(c64.Smiles.Text),
-                    Random.Shared.NextDouble, [.. c64.ClosingLines.Select(GameText.S)],
+                    Random.Shared.NextDouble, [.. C64ClosingLines(c64, scene).Select(GameText.S)],
                     c64.ClosingKey is { } closingKey ? GameText.S(closingKey.Text) : null);
                 _c64EndingStart = now;
             }

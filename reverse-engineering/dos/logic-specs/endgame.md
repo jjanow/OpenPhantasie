@@ -378,6 +378,33 @@ remaster's Inn Distribute (D-037), not a town-entry prompt.
 The manual has no DIVINE I spell (its spell table stops at #54 TRANSPORTATION). The text itself says it is for
 Phantasie II.
 
+### 3.1 The outcome in the remaster: `p1.victory` (D-090, built s226)
+
+The user (s225) gave every version of I the Apple II's outcome (`FLASH?` 140–200, Apple `GRAPHICS.md` section 8.2),
+with DOS's above as the rules option `p1.victory` = `dos` (Original (DOS) preset). `apple` (Original (manual) and
+Remaster presets, the default), after the roster write and DIVINE I as above:
+
+```
+sack: items 177, 178, 179 (DIAMOND B / C / D) each in the first free slot   # FLASH? 140: found-item slots 59/58/57
+      (full sack: the last slots not just filled are overwritten [~])
+region 19, (x, y) = (7, 13)                                                   # FLASH? 170: Apple (13, 18), FORMAT 3.6 turn
+tile-class fight flag cleared (a new trip); mode = wilderness                 # & RUN "OUTDOORS": no town entry
+the 3 x 3 round the party unfogged                                            # OUTDOORS 5000-5060 (J1 = 1)
+```
+
+`[~]` OUTDOORS then runs the landing cell's event (5080–5097): tile 75 is class 7, so the Apple fights a GREAT TROLL
+(6120, monster 9 + 12 · 5) at once; Core keeps DOS's rule, the class-7 fight on the first step (OUT19's ground is all 75).
+
+OUT19 is wilderness, not a town (OLYMPIA is OUT18's arg-99 cell (10, 5), section 2.4). So nothing is shared out,
+aged or restocked at the win: the found items (the gifts with the fight's), gold and XP wait in the sack for the next
+town, where they are shared out as after any trip (D-037), most likely OLYMPIA (north across OUT19's row 0; the
+(11, 6) / (11, 5) text cells join the landing area to it). Leaving Olympus needs TRANSPORTATION from a town, as
+reaching it did. Zeus' screen is each version's own and unchanged, except the C64's closing page, whose second line
+names the Olympic Plane instead of the City of Pelnor (`c64.endgame.closing_2.olympus`, `VictoryScene.ToOlympus`).
+`[U]` not built (found s226, D-090): FLASH? 150 sets every member's score (`@70`) to 100 and toggles the Apple's spell
+#60 (the remaster keeps DOS's DIVINE I grant); 170 fills days out (65,535), the XP pool (655,350) and the gold pool
+(65,535). Core: `Phantasie1Campaign.ResolveVictory`, `Endgame.GiveVictoryGifts`; tests `EndgameTests` `D090_*`.
+
 ## 4. Lose — party defeat, Astral Plane, Great Demon, OV1 `0x3bc` [C]
 
 Reached from state 6 (§1). OV1 `0x5ee` sets `[0x64e8] := 2` and calls `0x3bc`:

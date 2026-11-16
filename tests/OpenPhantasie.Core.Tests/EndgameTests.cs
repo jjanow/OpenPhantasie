@@ -362,9 +362,11 @@ public partial class EndgameTests
 
     // --- The win (state 7) ----------------------------------------------------------------
 
-    private static GameSession SessionFacingTheBlackLord(out Character hero)
+    private static GameSession SessionFacingTheBlackLord(out Character hero, string? victory = null)
     {
         var session = GameSessionFactory.Create(Data, new SeededDosRandomSource(9));
+        if (victory is not null)
+            session.StartNewGame(GameOptions.ForPreset(GameId.P1).With(RuleOptionRegistry.Victory.Id, victory));
         session.OpenGuild();
         hero = session.CreateAndEnroll("Victor", Race.Human, CharacterClass.Wizard);
         Assert.True(session.TryAddToParty(hero, out _));
@@ -377,7 +379,7 @@ public partial class EndgameTests
     [OriginalDataFact]
     public void BlackLordKilled_IsVictory_DivineI_AfterTheGuildWrite_PartyToTown1()
     {
-        var session = SessionFacingTheBlackLord(out var hero);
+        var session = SessionFacingTheBlackLord(out var hero, victory: "dos"); // D-090 dos: OV1 0x4d5's Pelnor
         foreach (var m in session.Combat!.AllMonsters)
             m.HitPoints = 0;
         session.ResolveCombatRound();
@@ -392,6 +394,80 @@ public partial class EndgameTests
         Assert.Equal(GameMode.Town, session.Mode);
         Assert.Equal(1, session.CurrentTownId);
         Assert.Null(session.Dungeon);
+    }
+
+    [OriginalDataFact]
+    public void D090_DosVictory_NoGifts_ScenePelnor()
+    {
+        var session = SessionFacingTheBlackLord(out _, victory: "dos");
+        foreach (var m in session.Combat!.AllMonsters)
+            m.HitPoints = 0;
+        session.ResolveCombatRound();
+
+        Assert.False(session.PendingVictoryScene!.ToOlympus);
+        Assert.DoesNotContain(session.Sack.Items, Endgame.VictoryGifts.Contains); // no FLASH? items
+        Assert.Equal((GameMode.Town, (int?)1), (session.Mode, session.CurrentTownId));
+    }
+
+    [OriginalDataFact]
+    public void D090_AppleVictory_IsTheDefault_GiftsInTheSack_PartyOnOlympus()
+    {
+        // FLASH? 140-175 (Apple GRAPHICS.md section 8.2): items 177-179 to the found items, the party to OUT19 Apple
+        // (13, 18) = Core (7, 13), & RUN "OUTDOORS": the wilderness, no town entry; DIVINE I as DOS grants it.
+        var session = SessionFacingTheBlackLord(out var hero);
+        Assert.Equal("apple", session.Options.Values[RuleOptionRegistry.Victory.Id]);
+        session.Overworld.TileClassFightDone = true;
+        foreach (var m in session.Combat!.AllMonsters)
+            m.HitPoints = 0;
+        session.ResolveCombatRound();
+
+        Assert.Equal(EndgameOutcome.Victory, session.LastEndgame);
+        Assert.Equal(1, hero.SpellsKnown[SpellId.DivineI]);
+        Assert.Equal(0, session.VictoryGuildWrite!.Single(c => c?.Name == "Victor")!.SpellsKnown[SpellId.DivineI]);
+        Assert.Equal([177, 178, 179], session.Sack.Items.Where(Endgame.VictoryGifts.Contains));
+        Assert.Equal(GameMode.Overworld, session.Mode);
+        Assert.Null(session.CurrentTownId);
+        Assert.Null(session.Dungeon);
+        Assert.Equal((19, 7, 13), (session.Overworld.RegionId, session.Overworld.X, session.Overworld.Y));
+        Assert.False(session.Overworld.TileClassFightDone);
+        Assert.Equal(75, session.CurrentOverworldRegion.GetRaw(8, 14)); // OUTDOORS 5030: the 3 x 3 round the party unfogged
+        Assert.Equal(195, session.CurrentOverworldRegion.GetRaw(9, 13)); // farther cells stay fogged
+        Assert.Equal(["DIAMOND B", "DIAMOND C", "DIAMOND D"],
+            Endgame.VictoryGifts.Select(id => Data.Items.Single(i => i.Id == id).Name));
+
+        var prompts = new SessionPrompts(session);
+        Assert.Equal(SessionPromptKind.VictoryScene, prompts.Current!.Kind); // Zeus' screen still comes up outdoors
+        Assert.True(session.PendingVictoryScene!.ToOlympus);
+        Assert.Equal(Endgame.ZeusSpeech, prompts.Current.Lines);           // DOS's speech, unchanged
+        prompts.Answer(1);
+        Assert.Null(session.PendingVictoryScene);
+        Assert.Equal(GameMode.Overworld, session.Mode);
+        Assert.Contains(177, session.Sack.Items); // shared out in the next town, as after any trip
+    }
+
+    [OriginalDataFact]
+    public void D091_ApplesAstralLine_IsSpelledArrived() =>
+        Assert.Equal("YOU HAVE ARRIVED ON THE ASTRAL PLANE!!!", GameText.S("apple2.defeat.astral"));
+
+    [Fact]
+    public void D090_Gifts_FillFreeSlots_ThenTheLastSlotsOfAFullSack()
+    {
+        var sack = new LootSack();
+        sack.ItemIds.AddRange([5, 0, 7]);
+        Endgame.GiveVictoryGifts(sack);
+        Assert.Equal([5, 177, 7, 178, 179], sack.ItemIds);
+
+        var full = new LootSack { Capacity = 4 };
+        full.ItemIds.AddRange([1, 2, 3]);
+        Endgame.GiveVictoryGifts(full); // 177 takes the free slot; 178 / 179 overwrite the last slots it didn't take [~]
+        Assert.Equal([1, 179, 178, 177], full.ItemIds);
+    }
+
+    [OriginalDataFact]
+    public void D090_OlympusCell_IsOpenGround()
+    {
+        var region = Data.OverworldRegions.Single(r => r.RegionId == Endgame.OlympusRegion);
+        Assert.Equal(75, region.Tiles[Endgame.OlympusY][Endgame.OlympusX] % 120); // tile 75 (fogged 195): ground, not wall 100
     }
 
     [OriginalDataFact]

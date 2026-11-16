@@ -229,7 +229,8 @@ With ORIGINAL SCREENS off, the party wipe stays on DOS's pages (`defeat_pictures
 seconds and frame counts of section 9.4; the interpreter's own time measured in VICE (section 9.5) `[~]`; `vbl_hz` 50
 (VICE's PAL) `[~]`. Not modelled `[~]`: the closing text page after the grant (not imported: the screen ends after the
 grant); the C64's own speech wording (Core's seven lines on its rows); the undead member's name on row 21; the ghost's
-block being rewritten byte by byte (the figure appears at once after `fate_copy_seconds`); the SID sounds. Live:
+block being rewritten byte by byte (the figure appears at once after `fate_copy_seconds`). The SID sounds play since s226
+(section 9.6). Live:
 `parity/s223-c64-endings-live.md`.
 
 **Falls back (no C64 picture):** UNDEAD's portrait and `defeat.figure.15` (CSPRIT has no UNDEAD figure: the Client
@@ -266,7 +267,7 @@ y + 50).
 | 768–2047 | `$EB00`–`$EFFF`, copied in by the wipe | characters `$60`–`$FB`: **Zeus on his throne**, 12 columns × 13 rows of characters numbered down each column (`$60 + 13 c + r`) |
 | 2048–3263 | `$F000` (`SYS Q,DS+2048,61440,1216`) | sprite blocks `$C0`–`$D0` (below); `$D1`–`$D2` are disk slack (directory entries `TWN 6` … `TWN 9`), copied but never shown |
 | 3264–3391 | `$4CC0` | 6502: the wipe (`$4CC3`, `SYS` with a frame count): 104 steps, each waits that many frames, then copies one byte per column (12 columns, 104 bytes apart) from `ZALL` into the character set, starting at the bottom row (`$EB67`) and moving up: Zeus appears from the bottom up |
-| 3392– | `$4D40` | 6502: a raster-interrupt sound routine (SID `$D400`–`$D418`) `[~]` |
+| 3392– | `$4D40` | 6502: the wind, a sound routine hooked into the KERNAL IRQ (`$0314`; SID `$D400`–`$D41C`), section 9.6 `[C]` |
 
 `P.END` first clears characters `$60`–`$FF` (`SYS Q,60160,60161,1280`), so Zeus is drawn only by the wipe; its copy of the
 character set leaves character `$FF`'s last byte 0 (the file holds 4; `$FF` is not drawn). Zeus's cells: text columns
@@ -292,7 +293,8 @@ Per member Zeus strikes (`$CF` flashing) and the cloud becomes the member's figu
 member also gets `POKE C(118),1` (spell 58, "Your First Divine Spell"). Then "Zeus smiles and says" (row 24) and the speech, typed
 word by word in yellow on rows 18–24 with the face talking (s223: section 9.4; s221's "row 21" was a line part-way down); the hand at the grant; a text page without
 pictures ("Now Your Party will be transported to The City of Pelnor …", green) until a key (s224: imported and drawn, 9.4
-step 10); `FONT` back to `$E800`; `TOWNR`.
+step 10; s226: with `p1.victory` = `apple`, the remaster's default (D-090), the party goes to Olympus and line 2 reads
+"The  Olympic Plane. After arriving the-", `c64.endgame.closing_2.olympus` via the pack's `closing.olympus_lines`); `FONT` back to `$E800`; `TOWNR`.
 
 `P(168)` (record byte 168, in FORMAT.md 3.5's `[?]` range) is the figure's block offset. s223: `TOWNR` `0x2c41`–`0x2c60`
 sets it, for each party slot k, to **12 + 2 k** right after copying the member's `HSPRIT` pair (from `$F000 + 128 · P(145)`,
@@ -381,14 +383,14 @@ waits, whose time is the interpreter's (measured in VICE, PAL, section 9.5).
 1. Setup: sprites 0–5 red (2), MC1 yellow (7), MC2 red (2); sprite 7 = the lightning hand at (HX + 2, HY − 12) = (202, 62),
    light blue (14). "INSERT BOOT DISK AGAIN", a key, `ZALL` loads (disk).
 2. "You have arrived at the astral plane" (yellow, column 3, row 23); TD = 2.
-3. The screen cleared; `SYS $4CC6` starts `ZALL`'s raster-IRQ music (`$4D40`). PO = `PEEK(SA + 1203)` (last slot), PL =
+3. The screen cleared; `SYS $4CC6` starts `ZALL`'s wind (`$4D40`, a KERNAL-IRQ hook, section 9.6). PO = `PEEK(SA + 1203)` (last slot), PL =
    INT(PO / 2 + 1.1); multicolour on for sprites 0–5. Slot m < PL: x = ZL − 30 m = 90 − 30 m; else x = ZR + 30 (m − PL) =
    240 + 30 (m − PL); y 255; pointer `$D0` (the cloud); all slots 0 … PO switched on at once.
 4. The rise: for y = 240 down to 150 (91 steps): MC1 := C, `SYS $4CC3,y` (sprites 0–5 to y), TD = 0.05; every second
    step C := 9 − C (yellow ↔ red). Then MC1 := 7; TD = 2.
 5. Zeus's 156 characters printed (white, still blank); `SYS $4CC0,7`: the wipe, 104 steps; each waits 7 frames, then copies
    one byte into each of Zeus's 12 character columns from the bottom pixel row up, so one pixel row of the 96-wide
-   picture appears every 7 frames (PAL 14.6 s, NTSC 12.2 s). TD = 2. `SYS $4CC9` stops the music `[~]`.
+   picture appears every 7 frames (PAL 14.6 s, NTSC 12.2 s). TD = 2. `SYS $4CC9` stops the music (P.END `0x644`, s226) `[C]`.
 6. Sprite 7's pointer := `$CF`; for each slot m = 0 … PO (every slot, whatever its status): sprite 7 on; `GOSUB 0xbb6`
    (thunder: SID setup, TD = 0.3, TD = 0.2, `FOR I = 1 TO 1400`); multicolour off for sprite m; colour 7 if `P(18)` ≠ 0
    else 15; pointer 64 + `P(168)` (the member's figure, section 9.1); TD = 0.3; sprite 7 off; TD = 0.7; an OK member gets
@@ -495,19 +497,49 @@ to the wands prompt: 7 stores by the KERNAL load (`$F51E`, `TLUM1` itself) and 4
 alternates the crowd**: one frame change a cheer `[C]` (s223's `[~]`). Shots `parity/s224-vice-p2-ending-*.png` (the
 "SEARCHING FOR TLUM1" lines are the harness's, KERNAL messages on in direct mode).
 
-### 9.6 Sounds (SID), s224 `[C]` reads, playback `[?]`
+### 9.6 Sounds (SID): read s224, checked again and played s226 `[C]`
 
-Every end-screen sound is plain SID register writes; none is a sample or a tune table. The remaster has no SID path (the
-packs' sounds are YM / Paula / Dosound players and PCM; `OpenPhantasie.Data.Audio`), so none is played `[?]`.
+Every end-screen sound is plain SID register writes; none is a sample or a tune table. s226 read each again from the
+bytecode (the `POKE` offsets from `S` = 54272) and `ZALL`'s 6502, which corrected three of s224's readings: the thunder's
+clear loop pokes `$D400` only, the defeat's first sound is voice 2 (not 3), and the clear loops differ in range.
 
-| Where | What it writes (`$D400` + n) | Timing |
+| Where | What it writes (`$D400` + n, in order) | Timing |
 |---|---|---|
-| `ZALL` `$4CC6` → `$4D40` (P.END step 3, stopped by `$4CC9` → `$4E46` after the wipe) | the 29 bytes at `$4E65` to `$D400`–`$D41C` (voice 1 noise, voice 2 triangle, freq hi 100, volume 15), then a KERNAL-IRQ hook (`$0314` → `$4D73`): a wind: the pitch (`$D401` and `$D408`) climbs from 100 to 200 a step every N jiffies, random pauses (`$DC04` low bits), falls back to 100, gates toggled (`$D404` = `$80` / `$81`, `$D40B` = `$10` / `$11`) | jiffies (60 Hz on PAL and NTSC) |
-| P.END `0xbb6`, the thunder (each strike) | all 0; `$D418` = 143, AD 10 / 10 and SR 170 / 169 (voices 1, 3), `$D404` = 21, `$D412` = 17, freq hi 68 / 42; TD 0.3; gates off (20, 16); TD 0.2; `FOR 1400` | 1.79 s (9.5) |
-| P.END `0xc43`, a speech click (each space) | `$D400` = 188, `$D401` = 2, `$D418` = 15, `$D407` = 15, `$D408` = 0, AD 0 / SR 244 (voice 2), `$D40B` = 21; `$D400` := 110 + RND · 70; TI to 16 jiffies; `$D40B` = 16 | 16 + RND · 8 jiffies |
-| CEMETARY `0x90e` (step 4) | all 0; `$D415` = 7, `$D417` = 242, `$D418` = 31, AD 245 / SR 240 (voice 3), `$D40A` = 4, freq hi 48 / 8, `$D40B` = 135 (noise, ring, sync, gate) | TL = 2 after it |
-| CEMETARY `0x97b`, a fate's sound | all 0; `$D401` = 3, `$D405` = 41, `$D40F` = 30, `$D403` = 8, `$D418` = 31, `$D417` = 4, `$D415` = 1, `$D404` = 21 (triangle, ring, gate); TL = 1.08; `$D404` = 20 | 1.17 s |
-| WIN `0x749`, a cheer | all 0; AD 238, SR 172, `$D416` = 126, `$D404` = 133 (noise, ring, gate), `$D418` = 79; freq 11650 → 10500 in steps of 40, gate off, `FOR 400`, gate on, 10500 → 11650; volume 15 → 0, `FOR 500` a step | 9.93 s |
+| `ZALL` `$4CC6` → `$4D40` (P.END `0x4f4`, right after the screen is cleared for the rise) | Y = 28 down to 0: n := the byte at `$4E65` + n (`00 64 00 00 80 F0 1E 00 64 00 00 10 F0 C0`, ten 0, `0F`, four 0: voice 1 noise, AD `$F0` SR `$1E`, voice 2 triangle, AD `$F0` SR `$C0`, freq hi 100 both, gates off, volume 15); then `$0314` → `$4D73`, the wind below | once a jiffy (the KERNAL IRQ, 60 Hz on PAL and NTSC) |
+| `ZALL` `$4CC9` → `$4E46` (P.END `0x644`: after the wipe and its TD = 2, s224's `[~]` settled) | Y = 28 down to 0: n := 0; `$0314` back | at the first strike |
+| P.END `0xbb6`, the thunder (first in each strike) | `FOR I = S TO S + 22: POKE S, 0` (S, not I: only `$D400`, 23 times); `$D418` = 143 (volume 15, voice 3 off), AD 10 / 10 (voices 1, 3), SR 170 / 169, `$D404` = 21 (triangle, ring, gate), `$D412` = 17, freq hi 68 / 42 (voices 1, 3); TD 0.3; `$D404` = 20, `$D412` = 16; TD 0.2; `FOR 1400` | 1.79 s (9.5) |
+| P.END `0xc43`, a click (after each space; after each line) | `$D400` = 188, `$D401` = 2, `$D418` = 15, `$D407` = 15, `$D408` = 0, `$D40C` = 0, `$D40D` = 244 (voice 2: freq 15, AD 0, SR `$F4`); `TI$` = "000000"; `$D40B` = 21 (triangle, ring by voice 1, gate); `$D400` = 110 + RND · 70; `TI` to IT; `$D40B` = 16; IT := RND · 8, `TI` to IT | IT = 16 jiffies after a space (the caller), the last RND · 8 after a line |
+| CEMETARY `0x90e` (step 4, after the last ghost) | `FOR V = 0 TO 20: POKE S + V, 0`; `$D415` = 7, `$D417` = 242 (resonance 15, voice 2 filtered), `$D418` = 31 (low-pass, volume 15), `$D416` = 0, `$D40D` = 240, `$D40A` = 4, `$D40F` = 48, `$D40C` = 245, `$D408` = 8, `$D416` = 0, `$D40B` = 135 (voice 2: noise, ring, sync, gate; AD `$F5`, SR `$F0`) | never gated off: it sounds through the TL = 2, the door and the demon until the first fate's clear |
+| CEMETARY `0x97b`, a fate's sound (`CEMETARY2` the same bytes) | `FOR V = 0 TO 24: POKE S + V, 0`; `$D401` = 3, `$D405` = 41, `$D40F` = 30, `$D403` = 8, `$D418` = 31, `$D417` = 4, `$D415` = 1, `$D404` = 21 (voice 1 triangle, ring by voice 3, gate; AD `$29`, SR 0); TL = 1.08; `$D404` = 20 | 1.17 s |
+| WIN `0x749`, a cheer | `FOR V = 0 TO 24: POKE S + V, 0`; AD 238, SR 172, `$D416` = 126, `$D417` = 0, `$D404` = 133 (noise, ring, gate), `$D418` = 79; `FOR F = 11650 TO 10500 STEP -40` (`$D400` low, `$D401` high byte, 29 passes); `$D404` = 132; `FOR 400`; `$D404` = 133; `FOR F = 10500 TO 11650 STEP 40` (29); `FOR V = 15 TO 0 STEP -1: POKE S + 24, V: FOR M = 1 TO 500` (the filter mode bits go with the first step; no voice is filtered) | 9.93 s |
+
+**The wind** (`ZALL` `$4D73`, its state `$4E5F` pitch, `$4E60` period, `$4E61` R, `$4E62` state, `$4E63` count, `$4E64`
+counter; the random bits are CIA 1 timer A's low byte `$DC04`) `[C]`: state 3 (start: counter 2) counts its counter down,
+then both gates on (`$81`, `$11`), R := 1 + (rnd AND 1), the period := 1 + (rnd AND 3), state 0. State 0, the rise: every
+period jiffies the pitch + 1 into both voices' freq hi; at 200 both gates off and a pause of 1 + (rnd AND 7), state 1.
+State 1: the period := 1 + (rnd AND 1), state 2; on the gust's last fall (counter = R) voice 2's freq hi := 0. State 2, the
+fall: every period jiffies the pitch − 1 into voice 1 (and voice 2 unless the last fall); at 100 the counter + 1: while
+≤ R rise again (a new period 1 + (rnd AND 3)), else state 3 with the counter := (rnd AND 127) + 31 jiffies of silence (the
+`ADC #$1E` runs with the carry of the compare before it set). The gates go off at the top of each rise, so every fall is
+the release (voice 1: release 14, so the noise dies slowly; voice 2: release 0). `$DC04` is read as uniform `[~]`; the
+hook runs at the KERNAL IRQ's 60 Hz (no raster IRQ is running before P.END's step 7) `[~]`.
+
+**Played (s226).** The pack's `sid_sounds` (both C64 packs; `C64PhantasieArtManifest.SidSounds`) holds these writes as
+data, rendered on the Client's 6581 model (`Sid6581`, PAL 985,248 Hz: three oscillators, the four waveforms, the noise
+register, ring modulation and sync, the envelope's rate counters with the exponential divider and the 15-bit wrap; the
+filter an approximate 6581 curve `[~]`; combined waveforms as an AND `[~]` (none used here); no DC offsets `[~]`). Each
+screen builds its whole score when it starts (`SoundCues`: I's wind from the rise to the first strike, a thunder per
+strike, a click per space and line end; the defeat's sound after the ghosts, a fate's sound per member; II's cheer per
+cheer) and plays it on one chip, so phases and envelopes carry over as on the C64; it stops when the screen ends or the
+Sound switch is off. Times: the `TI` waits as written; the cheer's sweep pass `[~]` = its measured 9.928 s less its
+`FOR 400` and 16 × `FOR 500` at `WIN`'s 1.042 ms a pass, over its 58 passes. Live: `parity/s226-c64-sid-live.md`.
+
+**Other SID sites, not decoded `[?]`** (s226 byte search of the v1.4 / v1.2 PRGs for the float 54272 and 6502 stores to
+`$D4xx`): I `OUTDOORS` (`0x283`–`0x2ab` the base variables `$D400`, `$D401`, `$D404`–`$D406`, `$D418`; code near
+`0x6703` / `0x6710`) and `DUNGEON` (`0x230`–`0x258`, `0x66a5` / `0x66b2`): the fights' sounds; I `TOWNR` `0x5041`–`0x5154`
+(`$D400`–`$D406`, `$D40F`, `$D418`): a town sound; II's `OUTDOORS2` (`0x2e1`, `0x6c4f`), `DUNGEON2` (`0x22c`, `0x6c16`) and
+`TOWN2` (`0x5527`–`0x563a`) the same. III: `SND` (177 B at `$126E`, 6502 writing voice 1) and `PHANT.OBJ`'s stores to
+`$D40E`, `$D40F`, `$D412` (`$1EDE`–`$1EE4`: voice 3 noise, the usual random-number source) and `$D418` (`$213A`).
 
 ### 9.7 PAL or NTSC `[~]` (s224)
 

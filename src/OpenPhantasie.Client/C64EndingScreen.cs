@@ -42,6 +42,7 @@ public sealed class C64EndingScreen
     private readonly string _smiles;
     private readonly IReadOnlyList<string> _speech;
     private readonly List<(double At, int Line, int Length)> _typed = []; // when each character shows
+    private readonly List<(double On, double Off)> _clicks = []; // s226: each GOSUB 0xc43's gate on / off
     private readonly int _slots;
     private readonly IReadOnlyList<string> _closing;
     private readonly string _closingKey;
@@ -73,6 +74,7 @@ public sealed class C64EndingScreen
         var it = 0.0;
         double Click(double first)
         {
+            _clicks.Add((t, t + first / layout.JiffyHz));
             var next = random() * layout.RandomJiffies;
             var wait = (first + next) / layout.JiffyHz;
             it = next;
@@ -144,6 +146,29 @@ public sealed class C64EndingScreen
 
     /// <summary>The figure's colour of a slot: OK (granted) members yellow, the others light grey (P.END 0x67b).</summary>
     public int FigureColour(int slot) => Scene.Slots[slot].Granted ? _layout.OkColour : _layout.DeadColour;
+
+    /// <summary>
+    /// s226: the screen's SID sounds (the pack's <c>sid_sounds</c>, GRAPHICS.md 9.6) at their moments: P.END's wind
+    /// (<c>SYS $4CC6</c> right after the screen is cleared for the rise, stopped by <c>SYS $4CC9</c> after the wipe's TD = 2,
+    /// P.END <c>0x644</c>), the thunder at each strike (<c>GOSUB 0xbb6</c> first), and a click per space and line end
+    /// (<c>GOSUB 0xc43</c>, its gate off after the caller's wait).
+    /// </summary>
+    public IReadOnlyList<OpenPhantasie.Data.Audio.SidCue> SoundCues()
+    {
+        var cues = new List<OpenPhantasie.Data.Audio.SidCue>
+        {
+            new(RiseAt, "wind", StrikesAt),
+            new(StrikesAt, "wind_stop"),
+        };
+        for (var k = 0; k < _slots; k++)
+            cues.Add(new(StrikesAt + k * StrikeSeconds, "thunder"));
+        foreach (var (on, off) in _clicks)
+        {
+            cues.Add(new(on, "click"));
+            cues.Add(new(off, "click_off"));
+        }
+        return cues;
+    }
 
     /// <summary>The screen <paramref name="t"/> seconds from the start.</summary>
     public Frame At(double t)

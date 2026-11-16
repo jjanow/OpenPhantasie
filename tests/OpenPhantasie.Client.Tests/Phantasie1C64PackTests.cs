@@ -126,4 +126,14 @@ public class Phantasie1C64PackTests
         Assert.Equal("amiga", catalog.Default?.Id);
         Assert.NotNull(catalog.Find("c64"));
     }
+
+    /// <summary>s226: the end screens' SID sounds load with the pack (<c>sid_sounds</c>, I's GRAPHICS.md 9.6).</summary>
+    [OriginalDataFact]
+    public void C64Pack_HasTheEndScreensSidSounds()
+    {
+        var sid = C64.SidSounds;
+        Assert.NotNull(sid);
+        Assert.Equal(["click", "click_off", "fate", "rumble", "thunder", "wind", "wind_stop"], sid.Names.Order(StringComparer.Ordinal));
+        Assert.Equal(985248.0, sid.ClockHz);
+    }
 }

@@ -120,6 +120,15 @@ public sealed class C64WinScreen
             _keys[i] = t;
     }
 
+    /// <summary>
+    /// s226: the screen's SID sounds (the pack's <c>sid_sounds</c>, I's GRAPHICS.md 9.6): WIN's cheer (<c>GOSUB 0x749</c>)
+    /// at each cheer, when the crowd's second frame goes up (<see cref="C64WinLayout.CheerFrameAt"/>). The cheers all come
+    /// before the first key, so their times are fixed.
+    /// </summary>
+    public IReadOnlyList<OpenPhantasie.Data.Audio.SidCue> SoundCues() =>
+        [.. Enumerable.Range(0, _steps.Count).Where(i => _steps[i].Kind == Kind.Cheer)
+            .Select(i => new OpenPhantasie.Data.Audio.SidCue(Start(i) + _layout.CheerFrameAt, "cheer"))];
+
     /// <summary>Whether a key-waiting step is up at <paramref name="t"/>.</summary>
     public bool WaitsForKey(double t) => Current(t) is int i && _steps[i].Key;
 

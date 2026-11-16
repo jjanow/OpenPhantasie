@@ -185,6 +185,9 @@ request) never reads as "Custom".
   (Continue reads the file's own rules before it asks), and the lists
   `p1.cast-list` D-035, `p1.transport-list` D-062, `p1.combat-spell-list` D-063, plus `p1.orders-reset` D-078 (the
   Client's combat presenter clears its kept orders when `GameSession.OrdersResets` changes).
+- **I's ending (D-090, s226):** `p1.victory`: `apple` (Original (manual) and Remaster: the Apple II's FLASH? outcome,
+  items 177–179 to the found items and the party on Olympus, OUT19 (7, 13)) or `dos` (Original (DOS): back to Pelnor);
+  DIVINE I either way (`endgame.md` section 3.1).
 - **Phantasie II (T3, I → II transfer, `TransferIToII`):** `p2.transfer-spells` (D2-002): `manual` (Original (manual)) or
   `st` (Original (Atari ST)); Remaster plays `manual` (user: the ST unless the manual contradicts it).
   `p2.transfer-divine` (D2-004): `p27` in every preset, or `p14`.

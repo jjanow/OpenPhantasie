@@ -206,6 +206,16 @@ public class C64EndScreenStepsTests
         var p1 = GraphicsPackCatalog.Load(GameDataRepository.DefaultPhantasie1Path).Find("c64")!;
         var c64 = p1.EndingScene!.C64!;
         Assert.Equal([.. Enumerable.Range(1, 9).Select(i => $"c64.endgame.closing_{i}")], c64.ClosingLines);
+        // s226 (D-090): the Olympus outcome rewords line 2 only, at the C64's 39 columns, and keeps "the-" for line 3's "re,".
+        var scene = new VictoryScene([new VictorySlot(Race.Human, true)], ["AB"]);
+        Assert.Same(c64.ClosingLines, Game1.C64ClosingLines(c64, scene));
+        var olympus = Game1.C64ClosingLines(c64, scene with { ToOlympus = true });
+        Assert.Equal([.. c64.ClosingLines.Select(id => id == "c64.endgame.closing_2" ? "c64.endgame.closing_2.olympus" : id)],
+            olympus);
+        var table = StringTable.ForGame(GameId.P1);
+        Assert.Equal(table.Get("c64.endgame.closing_2").Length, table.Get("c64.endgame.closing_2.olympus").Length);
+        Assert.Contains("Olympic Plane", table.Get("c64.endgame.closing_2.olympus"));
+        Assert.EndsWith("the-", table.Get("c64.endgame.closing_2.olympus"));
         Assert.Equal((0, 2, 5), (c64.ClosingCol, c64.ClosingRow, c64.ClosingColour));
         Assert.Equal(("c64.endgame.closing_key", 7, 24), (c64.ClosingKey!.Text, c64.ClosingKey.Col, c64.ClosingKey.Row));
         Assert.Equal((21, 1), (p1.C64Defeat!.UndeadNameRow, p1.C64Defeat.UndeadNameCol));

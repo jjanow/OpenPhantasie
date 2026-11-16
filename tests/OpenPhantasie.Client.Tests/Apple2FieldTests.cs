@@ -5,7 +5,7 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Client.Tests;
 
 /// <summary>
-/// s224: Phantasie I Apple II's combat field (<see cref="Apple2FieldRun"/>, the pack's <c>apple2_field</c>;
+/// s224: Phantasie I Apple II's combat field (II's s226: the same field plus the tossed rock) (<see cref="Apple2FieldRun"/>, the pack's <c>apple2_field</c>;
 /// <c>reverse-engineering/apple2/phantasie1/GRAPHICS.md</c> section 7): the places OUTDOORS / DUNGON 1480–1550 give, poses
 /// that stay to the round's end, a slain monster erased at its line while a dying member stays drawn, the sparkle and the
 /// spell hit, the text window's HOMEs, and the presenter's routing (the Amiga's field unchanged).
@@ -248,5 +248,141 @@ public class Apple2FieldTests
         both.Update(t, 1, fastForward: false);
         Assert.NotNull(both.P1Run);                              // the Amiga's field keeps its route
         Assert.Null(both.AppleRun);
+    }
+
+    // ---- II (s226): the same field, plus the tossed rock (OUTDOORS2 / DUNGON2 1623-1628, 4132) -------------------------
+
+    private static readonly Apple2FieldLayout P2Layout = Layout with { Rock = new Apple2FieldRock(70, 20, 250, 500) };
+
+    private static readonly Apple2FieldArt P2Art = Art with
+    {
+        RockHits = new Dictionary<int, Apple2FieldPicture> { [1] = new("rock-1.png", 1, 3), [2] = new("rock-2.png", 2, 6) },
+    };
+
+    /// <summary>A throws a rock and misses; B throws one that hits the ant (SCALE 2); C swings and misses.</summary>
+    private static Apple2FieldRun RockRound(Apple2FieldLayout layout)
+    {
+        string[] log =
+        [
+            GameText.F("core.combat.x_throws_a_rock", "A"), GameText.F("core.combat.x_misses", "A"),
+            GameText.F("core.combat.x_throws_a_rock", "B"), GameText.F("core.combat.x_takes_x_damage", "GIANT ANT", 3),
+            GameText.F("core.combat.x_misses", "C"),
+        ];
+        CombatLineTag[] tags = [new(4, C, null), new(4, C, null, CombatSwing.Miss)];
+        CombatHit[] hits = [new(DamageSource.PartyRock, B, Ant, Line: 3, SpellDamage: 3)];
+        return Apple2FieldRun.Plan(layout, log, tags, hits, [], Snapshot(), 5, true);
+    }
+
+    [OriginalDataFact]
+    public void P2_Rock_ThrowIsATurnWithArm21_AMissFliesAtTheMissPoint_AHitOnTheMonsterAtItsScale()
+    {
+        var run = RockRound(P2Layout);
+        Assert.Equal(0, run.Lines[0].EndMs - run.Lines[0].StartMs);        // 1623: no pause before the roll
+        Assert.Equal(250 + 600, run.Lines[1].EndMs - run.Lines[1].StartMs); // 1628: 250 loops, then 4150's PA
+        Assert.Equal(0, run.Lines[2].EndMs - run.Lines[2].StartMs);
+        Assert.Equal(500 + 600, run.Lines[3].EndMs - run.Lines[3].StartMs); // 4132: 500 loops (SP = 2), then PA
+        Assert.Equal(600, run.Lines[4].EndMs - run.Lines[4].StartMs);       // C's melee miss: only PA, no rock
+
+        var thrown = run.At(run.Lines[0].StartMs);
+        Assert.Contains(A, thrown.Cast);                                    // GOSUB 1760: arm 21
+        Assert.Null(thrown.Sparkle);                                        // 1760 RETURNs: no sparkle for a rock
+        Assert.Equal(GameText.F("core.combat.x_throws_a_rock", "A"), thrown.Window[0]); // 1610 HOME (its MISSES follows at once)
+
+        var miss = run.At(run.Lines[1].StartMs + 1);
+        Assert.True(miss.RockMiss);
+        Assert.Contains(new UiOverlays.Apple2FieldPlace("rock-1.png", 20 + 70 - 1, 4 + 20 - 3),
+            UiOverlays.Apple2FieldPlaces(P2Layout, P2Art, Snapshot(), miss));
+        Assert.False(run.At(run.Lines[1].StartMs + 251).RockMiss);
+
+        var hit = run.At(run.Lines[3].StartMs + 1);
+        Assert.Same(Ant, hit.Hit);
+        Assert.True(hit.HitRock);
+        var places = UiOverlays.Apple2FieldPlaces(P2Layout, P2Art, Snapshot(), hit);
+        Assert.Contains(new UiOverlays.Apple2FieldPlace("rock-2.png", 20 + 10 - 2, 4 + 113 - 6), places); // ant: H% 10, rank 2
+        Assert.DoesNotContain(places, p => p.File.StartsWith("hit-", StringComparison.Ordinal));
+        Assert.Contains(B, run.At(run.LengthMs + 1).Cast);                  // arm 21 to the round's end
+        Assert.False(run.At(run.Lines[4].StartMs + 1).RockMiss);            // a melee MISSES is not a rock
+    }
+
+    [OriginalDataFact]
+    public void I_HasNoRock_TheThrowLineIsPlainText()
+    {
+        var run = RockRound(Layout); // I's layout: no rock block
+        Assert.All(run.Lines.Select(l => run.At(l.StartMs + 1)), st => Assert.False(st.RockMiss || st.HitRock));
+        Assert.DoesNotContain(A, run.At(run.LengthMs + 1).Cast);
+    }
+
+    [OriginalDataFact]
+    public void P2_ApplePack_HasTheFieldWithTheRock_AndItsIndexCoversEveryMonsterAndScale()
+    {
+        var packs = GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P2));
+        var pack = packs.Find("apple2")!;
+        var layout = pack.Apple2Field!;
+        var i = GraphicsPackCatalog.Load(GameDataRepository.DefaultPhantasie1Path).Find("apple2")!.Apple2Field!;
+        Assert.Equal(new Apple2FieldRock(70, 20, 250, 500), layout.Rock);
+        Assert.Null(i.Rock);
+        Assert.Equal((i.ScreenX, i.ScreenY, i.Divider, i.PartyStep, i.PartyY, i.RankY, i.Spread, i.SparkleDx, i.SparkleY, i.HitLoops),
+            (layout.ScreenX, layout.ScreenY, layout.Divider, layout.PartyStep, layout.PartyY, layout.RankY, layout.Spread,
+                layout.SparkleDx, layout.SparkleY, layout.HitLoops));                   // I's numbers but the rock
+        Assert.Equal(i.Lines, layout.Lines);
+        Assert.Equal(i.Bodies.RobedClasses, layout.Bodies.RobedClasses);
+        Assert.Equal(i.Bodies.ElementalBody, layout.Bodies.ElementalBody);             // CHAR2 37-39: 26
+        var art = pack.LoadApple2FieldArt()!;
+        Assert.Equal(80, art.Monsters.Count);
+        var data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P2));
+        Assert.All(data.Monsters, m => Assert.True(art.Monsters.ContainsKey(m.Id), $"monster {m.Id} has no field art"));
+        Assert.Equal(("SKELETON", 22), (data.Monsters[0].Name, art.Monsters[0].RankHeight)); // MN20 record 0: YS% 22
+        foreach (var body in new[] { 19, 25, 26, 27 })
+            foreach (var pose in new[] { Apple2FieldArt.Idle, Apple2FieldArt.Attacking, Apple2FieldArt.Casting })
+                Assert.True(File.Exists(pack.ResolveFile(art.Figures[(body, pose)].File)));
+        Assert.NotNull(art.Sparkle);
+        Assert.All(art.Monsters.Values, m => Assert.True(art.Hits.ContainsKey(m.Scale) && art.RockHits.ContainsKey(m.Scale),
+            $"no hit / rock at SCALE {m.Scale}"));
+        Assert.All(art.Hits.Values.Concat(art.RockHits.Values), h => Assert.True(File.Exists(pack.ResolveFile(h.File))));
+        Assert.Null(packs.Find("atari-st")?.Apple2Field);
+    }
+
+    [OriginalDataFact]
+    public void P2_Presenter_PlaysTossRoundsOnTheAppleField_ToTheFightsEnd()
+    {
+        var data = GameDataRepository.Load(GameDataRepository.DefaultPathFor(GameId.P2));
+        var s = GameSessionFactory.Create(data, new SeededDosRandomSource(7));
+        s.StartNewGame(null);
+        s.OpenGuild();
+        foreach (var (name, cls) in new[] { ("HERO0", CharacterClass.Fighter), ("HERO1", CharacterClass.Thief) })
+            Assert.True(s.TryAddToParty(s.CreateAndEnroll(name, Race.Human, cls), out var err), err);
+        s.LeaveGuild();
+        s.LeaveTown();
+        s.BeginCombat(0, SurpriseFlags.Normal);
+        var ui = new CombatPresenter(new ClientSettings()) { AppleField = () => P2Layout };
+        ui.Start(s);
+        var toss = CombatPresenter.MenuChoices(s).ToList().IndexOf(CombatChoice.Toss) + 1;
+        Assert.True(toss > 0);
+        var thrown = false;
+        var ended = false;
+        var rounds = 0;
+        for (var step = 0; step < 2000 && !ended; step++)
+        {
+            if (ui.AppleRun is { } run)
+            {
+                rounds++;
+                thrown |= run.Lines.Any(l => l.Text.EndsWith("THROWS A ROCK", StringComparison.Ordinal))
+                          && run.Lines.Any(l => run.At(l.StartMs + 1) is { } st && (st.RockMiss || st.HitRock));
+                ended = ui.Update(s, run.LengthMs + 1, fastForward: false) && s.Mode != GameMode.Combat;
+            }
+            else if (ui.Phase == CombatPhase.PartyOptions)
+                ui.HandleKey(s, Keys.Enter);                     // FIGHT
+            else if (ui.AsksRank)
+                ui.HandleKey(s, Keys.D1);
+            else if (ui.AwaitingOrders)
+                ui.HandleKey(s, Keys.D0 + toss);                 // TOSS
+            else
+                ended |= ui.Update(s, 1, fastForward: false) && s.Mode != GameMode.Combat;
+        }
+        Assert.True(rounds > 0);
+        Assert.True(thrown);
+        Assert.True(ended);
+        Assert.NotEqual(GameMode.Combat, s.Mode);
+        Assert.Null(ui.P2Run);                                   // II's ST line run does not take the Apple's rounds
     }
 }

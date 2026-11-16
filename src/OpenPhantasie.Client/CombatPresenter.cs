@@ -687,7 +687,7 @@ public sealed partial class CombatPresenter
     public CombatFieldRun? FieldRun { get; private set; }
 
     /// <summary>
-    /// s224: I Apple II's combat field (<see cref="Apple2FieldRun"/>; GRAPHICS.md section 7): the layout when each round
+    /// s224 / s226: I and II Apple II's combat field (<see cref="Apple2FieldRun"/>; GRAPHICS.md section 7): the layout when each round
     /// plays on the Apple's field (the game's ORIGINAL SCREENS switch and a pack with <c>apple2_field</c>), else null (the
     /// remaster's screen). Set by the front end. The orders stay on the remaster's screen (the Apple's are a text page).
     /// </summary>
@@ -1014,8 +1014,9 @@ public sealed partial class CombatPresenter
         var onField = AmigaField?.Invoke() == true;
         var onP1Field = !onField && OnP1Field;
         var p2Lines = onField || onP1Field ? null : P2Lines?.Invoke();
-        // s224: I Apple II's field (its own TIME LAG pause comes after each line, Apple2FieldRun).
-        var appleField = onField || onP1Field || p2Lines is not null || session.Game != GameId.P1 ? null : AppleField?.Invoke();
+        // s224 / s226: I / II Apple II's field (its own TIME LAG pause comes after each line, Apple2FieldRun).
+        var appleField = onField || onP1Field || p2Lines is not null || session.Game is not (GameId.P1 or GameId.P2)
+            ? null : AppleField?.Invoke();
         // T)IME LAG (D-073); the Amiga's field has no such pause, its Speed paces the lines instead (II ST: its Speed menu,
         // manual: no Time lag for Atari users).
         var delay = onField || onP1Field || p2Lines is not null || appleField is not null ? 0 : ClientSettings.RoundDelayMs(_settings.TimeLag);
@@ -2119,7 +2120,7 @@ public sealed partial class CombatPresenter
     }
 
     /// <summary>
-    /// s224: put the round just resolved on I Apple II's field: its lines with their tags and hits, then what the session
+    /// s224 / s226: put the round just resolved on I / II Apple II's field: its lines with their tags and hits, then what the session
     /// noted after them (and the victory line on a win), each paced by the game's TIME LAG.
     /// </summary>
     private void StartAppleField(GameSession session, Apple2FieldLayout layout, Apple2FieldSnapshot snapshot,

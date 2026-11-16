@@ -6,10 +6,10 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Client;
 
 /// <summary>
-/// s224: Phantasie I Apple II's combat field (<see cref="Apple2FieldRun"/>, the pack's <c>apple2_field</c>;
+/// s224 (II s226): the Apple II engine's combat field (I and II) (<see cref="Apple2FieldRun"/>, the pack's <c>apple2_field</c>;
 /// <c>reverse-engineering/apple2/phantasie1/GRAPHICS.md</c> section 7), drawn while a round plays: the mixed hi-res screen
-/// at the pack's place, its white lines (4810), the monster ranks and the party row at their DRAW points, the sparkle and
-/// the spell hit, and the four text rows in the Apple's 7-px cells. Right of the divider the Apple keeps the map: left
+/// at the pack's place, its white lines (4810), the monster ranks and the party row at their DRAW points, the sparkle,
+/// the spell hit and II's rock, and the four text rows in the Apple's 7-px cells. Right of the divider the Apple keeps the map: left
 /// black here `[~]`.
 /// </summary>
 public static partial class UiOverlays
@@ -19,7 +19,7 @@ public static partial class UiOverlays
 
     /// <summary>
     /// The pictures of the Apple field at <paramref name="state"/>, in drawing order: monsters (rank by rank, idle or pose B,
-    /// the slain left out), the spell hit, the party figures (body by race and class; arm 22 after a swing, 21 after a cast
+    /// the slain left out), the spell hit or II's rock on a monster, II's missed rock, the party figures (body by race and class; arm 22 after a swing, 21 after a cast
     /// or with a parry, else 20; the members dead at the round's start left out), the sparkle.
     /// </summary>
     public static IReadOnlyList<Apple2FieldPlace> Apple2FieldPlaces(Apple2FieldLayout layout, Apple2FieldArt art,
@@ -47,16 +47,19 @@ public static partial class UiOverlays
                 if (!art.Monsters.TryGetValue(monster.Id, out var a))
                     continue;
                 var x = layout.MonsterX(a.X, i, rank.Count);
+                var shown = state.HitRock ? art.RockHits : art.Hits;
                 if (ReferenceEquals(state.Hit, monster)
-                    && (art.Hits.GetValueOrDefault(a.Scale) ?? art.Hits.GetValueOrDefault(1)) is { } h)
+                    && (shown.GetValueOrDefault(a.Scale) ?? shown.GetValueOrDefault(1)) is { } h)
                     hit = (h, x, ys[r]);
                 if (state.Gone.Contains(monster))
                     continue;
                 Put(state.Posed.Contains(monster) ? a.Attacking : a.Idle, x, ys[r]);
             }
         }
-        if (hit is { } shown)
-            Put(shown.Picture, shown.X, shown.Y);
+        if (hit is { } on)
+            Put(on.Picture, on.X, on.Y);
+        if (state.RockMiss && layout.Rock is { } rock)
+            Put(art.RockHits.GetValueOrDefault(1), rock.MissX, rock.MissY); // 1628: SCALE 1 at the miss point
         for (var k = 0; k < snapshot.Party.Count; k++)
         {
             var member = snapshot.Party[k];

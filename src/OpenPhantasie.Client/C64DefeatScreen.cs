@@ -80,6 +80,19 @@ public sealed class C64DefeatScreen
         _ => _layout.DestroyedColour,
     };
 
+    /// <summary>
+    /// s226: the screen's SID sounds (the pack's <c>sid_sounds</c>, GRAPHICS.md 9.6): CEMETARY <c>0x90e</c> after the last
+    /// ghost (its gate stays on: it sounds through the door and the demon until the first fate's sound clears the chip)
+    /// and <c>0x97b</c> at each fate (first in the fate's steps, before its line).
+    /// </summary>
+    public IReadOnlyList<OpenPhantasie.Data.Audio.SidCue> SoundCues()
+    {
+        var cues = new List<OpenPhantasie.Data.Audio.SidCue> { new(DoorAt - _layout.AfterGhostsSeconds, "rumble") };
+        for (var k = 0; k < Defeat.Fates.Count; k++)
+            cues.Add(new(FatesAt + k * FateLength, "fate"));
+        return cues;
+    }
+
     /// <summary>The screen <paramref name="t"/> seconds from the start.</summary>
     public Frame At(double t)
     {

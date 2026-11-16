@@ -109,7 +109,7 @@ public class GameOptionsTests
             "p1.halfling-dex", "p1.guild-size", "p1.lifespans", "p1.monk-sleep",
             "p1.town-healing", "p1.beg-mercy", "p1.sack-size", "p1.sleep", "p1.charm", "p1.teleport", "p1.wild-treasure",
             "p1.summon-party", "p1.monster-spell-target", "p1.combat-shares", "p1.continue",
-            "p1.cast-list", "p1.transport-list", "p1.combat-spell-list", "p1.orders-reset",
+            "p1.cast-list", "p1.transport-list", "p1.combat-spell-list", "p1.orders-reset", "p1.victory",
             "elemental-load", "elemental-drop", "elemental-purge", "shared-aging", "modern-inventory", "unified-town-menu", "treasury", "guild-limit"],
             RuleOptionRegistry.For(GameId.P1).Select(d => d.Id));
         Assert.Equal(ElementalPrepRule.Prepared, GameOptions.ForPreset(GameId.P1).ElementalPrep);

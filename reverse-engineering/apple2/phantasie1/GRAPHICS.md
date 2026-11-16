@@ -3,8 +3,9 @@
 How I's Apple II pictures are stored and drawn, and how the `p1-apple2` import turns them into the `apple2` graphics
 pack (s223). Disks, files and tables: `FORMAT.md`. I's Apple engine is II's: the drawing lines below (OUTDOORS / DUNGON
 1480–1550, 1695, 1760–1764, 2006, 4132, 5035–5062, 5040, 5175; TOWN 2350–2356) were compared with II's `OUTDOORS2` /
-`DUNGON2` / `TOWN2` (4am sides) and are the same text but for two: 1760 (II adds a RETURN: flow, not drawing) and 4132
-(I always XDRAWs shape 24; II XDRAWs `SP·35 − 11`, 24 for a spell or 59 for a rock). So the format and colour notes of
+`DUNGON2` / `TOWN2` (4am sides) and are the same text but for two: 1760 (II adds a RETURN, so its rock throw, 1623,
+can draw arm 21 without the cast's sparkle) and 4132 (I always XDRAWs shape 24; II XDRAWs `SP·35 − 11`, 24 for a spell
+or 59 for a rock). II's whole combat field is compared line by line in `../phantasie2/GRAPHICS.md` section 7 (s226). So the format and colour notes of
 `../phantasie2/GRAPHICS.md` apply as they stand; this file gives I's evidence and what differs. Tags: `[C]` read in the
 code or data, `[~]` probable, `[?]` not known.
 
@@ -145,8 +146,9 @@ Differences, all `[~]` / `[?]`:
 - 2065's page flip for the fire spells is not shown.
 - Not compared with an Apple II emulator (none is set up: MAME is not installed and needs the Apple II ROMs).
 
-II's Apple pack (same field code) and III's (its own field: `MONSTER PLOT` sprites, arms at (19·slot + 147, 198 − 8·row),
-`../phantasie3/GRAPHICS.md` sections 2–3) still play combat on the remaster's screen.
+II's Apple pack plays its rounds on the same field since s226 (`../phantasie2/GRAPHICS.md` section 7: I's numbers plus
+the tossed rock). III's (its own field: `MONSTER PLOT` sprites, arms at (19·slot + 147, 198 − 8·row),
+`../phantasie3/GRAPHICS.md` sections 2–3) still plays combat on the remaster's screen.
 ## 8. End scenes: `CEMETARY` and `FLASH?` (s224)
 
 Both are short Applesoft programs that draw with HPLOT / DRAW / XDRAW, print in the four text rows under the graphics
@@ -187,7 +189,7 @@ lists the statements with the interpreter's time for each, and the Client runs t
 | 550–580 | POKE -16304 (graphics); 70 passes of XDRAW 6 at y 40 and DRAW 5 at y 50 for X = 100, 130, 160, then XDRAW 5 and DRAW 6. The first pass shows both; from then on 5 (y 50) and 6 (y 40) take turns: the monsters jump | 21.3 s (0.304 s a pass) |
 | 600 | CALL 62450, TEXT, HOME: a blank text page while 610–660 draw unseen | 0.55 s |
 | 610–665 | the temple (HPLOT), the party row (shape 19 + 20 at X = 65 TO 185 STEP 120 / (PO + (PO = 0)): every member as the fighter body, a lone member twice), the gargoyles (shape 11, SCALE 3, HCOLOR 6, each twice a pixel apart), then POKE -16304: the whole picture at once | |
-| 667–670 | [original text] (the Apple's spelling), FOR 9000 | 8.96 s |
+| 667–670 | YOU HAVE AR[original text] (the Apple's spelling; the remaster prints ARRIVED, D-091), FOR 9000 | 8.96 s |
 | 680–700 | the demon (shape 18, SCALE 4, HCOLOR 2); HOME, [original text], FOR 7000 | 7.06 s |
 | 710–1500 | per member: name YOU HAVE BEEN, then DESTROYED (750: and 54 record bytes zeroed), RESURRECTED (900) or a return and [original text] (1100); GET; HOME; VTAB 24 | 0.67 / 0.10 / 0.15 s before the GET, 0.02 s after |
 | 1550–1560 | the party state reset, HGR, `& RUN "OUTDOORS"` (Pelnor) | 0.36 s |
@@ -208,8 +210,34 @@ path, as the C64's replay does.
 | 122–125 | [original text] (3 spaces in), FOR 5000 | 4.9 s |
 | 130 | VTAB 23: [original text] / [original text] / [original text] (2, 4, 2 spaces in; the last without a return); GET | |
 | 135 | bolt 1 and its thunder, bolt 2 and its thunder: the erase in HCOLOR 0 cuts black gaps into Zeus and the figures and clears the colour bit of the bytes it crosses (Zeus's orange turns green there) | 1.43 s |
-| 140–175 | items 177–179 to the party's pool, byte 42 := 100 and the divine spell flag (byte 120) per member, the party to OUT19 (13, 18) (Olympus): not used, Core's victory (DOS's rule) goes on | |
+| 140–175 | the outcome (below) | |
 | 160–200 | HGR (cleared), TEXT, INSERT BOOT DISK AND PRESS A KEY, `& RUN "OUTDOORS"` | the replay ends after the HGR |
+
+**FLASH?'s outcome (140–200) `[C]`** (s226; record bytes are `FN P(X) = PEEK(SA + 170 · PM + X)`, SA = 16385):
+
+- 140: `POKE SA + 1269, 177: POKE SA + 1268, 178: POKE SA + 1267, 179`: the last three slots (59, 58, 57) of the
+  party's found-item list `SA + 1210..1269` (60 slots; OUTDOORS 7410 lists it, TOWN 8165 sorts and hands it out at
+  D)ISTRIBUTE), written whatever they held. So the gifts go to the party, to be handed out in town.
+- 150: for PM = 0 TO PO (every member, no status test): byte 42 := 100 and byte 120 := NOT byte 120. Byte 42 is the
+  score (TOWN 4660–4663 the Mystic: raised to SC when lower; 6010 the party's highest to `SA + 1201`; 7452 printed as
+  SCORE), DOS's field 42 / `@70`; 100 is tier 6, "SUPREME BEINGS" (TOWN 4656). Bytes 61..120 are the known flags of
+  spells 1..60 (TOWN 3060 / 6885, OUTDOORS 7445: 1 = known), so byte 120 is spell #60, the Apple's divine spell; NOT
+  makes 0 → 1 and anything else → 0 (a second win takes it away). #60 is cast only in the dungeon (DUNGON 6930 →
+  5500: every member with byte 4 = 0 and byte 1 > 0 IS REVIVED, status 1, byte 4 := 3 + RND · 9; then the caster's
+  byte 120 and MP (byte 11) := 0); TOWN 6930 refuses it ("YOU CAN NOT CAST THAT NOW").
+- 170: `SA + 1194..1200` := 255, then 175 `SA + 1196` := 0: days out (`1194..1195`, OUTDOORS 7500–7520) 65,535, the
+  XP pool (`1197..1198`, in tens) 655,350 XP, the gold pool (`1199..1200`) 65,535; `SA + 1196` = 0 is a plain town entry
+  next time (TOWN 306). Region (`1191`) 19, cell (`1192`, `1193`) = (CX, CY) = (13, 18) (OUTDOORS 5000), DOS / Core
+  (x, y) = (25 − CY, CX) = **(7, 13)** (FORMAT.md section 3.6; the same turn takes CEMETARY 1550's (5, 5) on OUT1 to
+  DOS's wake cell (20, 5)): tile 75 ground, joined to OUT19's row 0 (OUT18, OLYMPIA) through the (11, 6) / (11, 5) text
+  cells and to DNG10's entrance (20, 10).
+- 200: `& RUN "OUTDOORS"`: the party stands in the wilderness; nothing is shared out, aged or restocked until the next
+  town entry (TOWN 490 ages each member by days out / 7, about 36; 600–690 splits the pools by shares).
+
+In the remaster (D-090, built s226): `p1.victory` = `apple` (default) gives 140's items (`Endgame.GiveVictoryGifts`:
+the first free slots of Core's sack; a full sack's last slots `[~]`), 170's place (`Endgame.OlympusRegion / X / Y`) and
+DOS's DIVINE I grant (status-OK members, after the roster write) for 150's toggle; 150's score and 170's pools and days
+are **not built** (found s226, for the user: D-090). `dos` keeps DOS's Pelnor.
 
 ### 8.3 The speaker (`INFO` at $302, `CALL 770`) `[C]`
 
@@ -230,8 +258,8 @@ played (the combat field, section 7, plays no speaker sound) `[~]`.
   with 0 = the member's body from `bodies`, TOWN 2350–2356: races 7+ 26, small races 25, HUMAN / ELF 19 or 27 for a
   MONK / PRIEST / WIZARD), `fates`, `flash`, `sound` (`sounds.thunder`: the 15 calls with their start times).
 - The Client: the party wipe answers Core's first two prompts at once and runs CEMETARY on the outcome with Core's
-  fates; FLASH? runs on the victory prompt with the party's members (the elemental left out), then Core's ending goes on
-  (Pelnor). A key, a click or the pad's A / D-pad is latched for the next GET, as the Apple's keyboard strobe holds a key
+  fates; FLASH? runs on the victory prompt with the party's members (the elemental left out), then Core's outcome goes
+  on (`p1.victory`: Olympus by default, D-090; Pelnor under `dos`). A key, a click or the pad's A / D-pad is latched for the next GET, as the Apple's keyboard strobe holds a key
   (a key pressed during the dance answers the first fate at once). 280 × 192 centred on the 320 × 200 screen; text in
   the remaster's 5 × 7 font on 7 × 8 cells. Seen on Xvfb: `parity/s224-p1-apple2-endings-live.md`.
 - Text: 13 string ids (`apple2.defeat.*`, `apple2.ending.*`) whose `p1-apple2` alternatives point into CEMETARY /
@@ -249,6 +277,6 @@ played (the combat field, section 7, plays no speaker sound) `[~]`.
 - `[~]` Text in the remaster font, not the Apple's character ROM (not on the disks); no flashing cursor.
 - `[~]` `scenes/shapes.bin` / `page2.bin` exist only in an import's `files/` (the committed extract has no `scenes/`):
   a dev build that finds the pack in the repo without an Apple import draws the plain end screens.
-- FLASH?'s speech promises THREE GIFTS (items 177–179, 140) and the Apple puts the party on Olympus; Core still runs
-  DOS's victory (DIVINE I only, then Pelnor). Decided s225 (D-090): the Apple's outcome in every version, DOS's as an
-  option; not built yet. The Apple's ARIVED is still printed as spelled; decided s225 (D-091): fix to ARRIVED, not built.
+- `[U]` FLASH? 150's score := 100 and 170's pools (655,350 XP, 65,535 gold) and days out (65,535) are not built (found
+  s226, D-090: the decision named the gifts, the divine spell and Olympus only); the Apple's spell #60 (a dungeon mass
+  revive) is DOS's DIVINE I in the remaster.

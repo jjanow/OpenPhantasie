@@ -97,8 +97,8 @@ names its presets only where they differ from this.
 | D-087 | C64 import: no spell names on the C64; the fire elemental's name field reads FIRE ELE | **DECIDED: as built** + built (user s217; the manual's spell table + DIVINE I as D2-050; FIRE ELEM as D-083) |
 | D-088 | Apple II: "START A NEW GAME" — manual: characters erased and the dungeons reset; the Apple resets the roster and the towns only | **DECIDED: manual** (user s223; as built: an Apple-only import gives every region DOS's start state) |
 | D-089 | Apple-only import: two monster typos (APRENTICE DEVIL, MASTER ILLUSTIONIST): fix or keep | **DECIDED: fix** + built (user s223; APPRENTICE DEVIL / MASTER ILLUSIONIST; the Apple's other names kept, FIRE ELE → FIRE ELEM as D-087) |
-| D-090 | The ending: the Apple's FLASH? gives three gifts (items 177–179) and moves the party to Olympus; DOS / Amiga / C64 send it to Pelnor with no items | **DECIDED** (user s225): the Apple's outcome in every version, DOS's as option `p1.victory`; not built yet |
-| D-091 | Apple-only import: CEMETARY's "[original text]" typo: fix or keep | **DECIDED** (user s225): fix to ARRIVED; not built yet |
+| D-090 | The ending: the Apple's FLASH? gives three gifts (items 177–179) and moves the party to Olympus; DOS / Amiga / C64 send it to Pelnor with no items | **DECIDED** (user s225) + built s226: the Apple's outcome in every version (diamonds to the found items, DIVINE I, OUT19 (7, 13)), DOS's as option `p1.victory`; FLASH?'s pool / days / score writes found s226, not built (open for the user) |
+| D-091 | Apple-only import: CEMETARY's "YOU HAVE AR[original text]" typo: fix or keep | **DECIDED** (user s225): fix to ARRIVED; built s226 |
 
 ---
 
@@ -1147,7 +1147,7 @@ names its presets only where they differ from this.
 - **Side effects:** none on rules (items, towns and monsters are found by number).
 - **Spec:** `reverse-engineering/apple2/phantasie1/FORMAT.md` sections 3.1–3.5, 5.
 
-## D-090 — Apple-only import: the ending's three gifts and Olympus
+## D-090 — I's ending outcome: the Apple's three gifts and Olympus
 
 - **Manual:** names the Olympic Plane where Zeus dwells (the creation story); says nothing of what the party gets or
   where it goes after the Black Lord is beaten. Not a manual conflict: a version difference on a manual-silent point.
@@ -1160,17 +1160,46 @@ names its presets only where they differ from this.
   (OUT19 (13, 18)). Each version keeps its own ending screens and speech; only the outcome changes, except the C64's
   "transported to The City of Pelnor" line, reworded to Olympus. DOS's ending (no items, back to Pelnor) stays
   selectable as a rules option (`p1.victory`, Apple default), locked per save.
-- **Remaster:** not built yet (s224 build: the Apple's scene with DOS's rules). Before building, trace FLASH?'s record
-  byte 42 := 100 (not guessed) and how Olympus arrival interacts with DOS's town-entry share split.
-- **Side effects:** a DOS / Amiga / C64 player now ends on Olympus with three diamonds; DOS's speech doesn't mention the
-  gifts.
-- **Spec:** `reverse-engineering/apple2/phantasie1/GRAPHICS.md` section 8.
+- **What FLASH? does (traced s226, `[C]`):** line 140 POKEs 177 / 178 / 179 into `SA + 1269 / 1268 / 1267`, the last
+  three slots of the party's 60-slot found-item list (`SA + 1210..1269`, handed out by TOWN 8100's D)ISTRIBUTE): the
+  gifts go to the party, not to members. Line 150, per member 0..PO with no status test: record byte 42 := 100 (byte 42
+  is the SCORE, TOWN 4663 / 6010 / 7452, = DOS field 42 / `@70`: tier 6, "SUPREME BEINGS") and byte 120 := NOT byte 120
+  (the known flag of the Apple's spell #60, bytes 61..120 = spells 1..60: a toggle, so a member who knew it loses it;
+  #60 is cast in DUNGON 6930 → 5500: every member whose byte 4 is 0 (CEMETARY 725's "destroyed" byte) and byte 1 > 0 is REVIVED (status OK, byte 4 := 3 + RND · 9), then the caster's #60 and MP are cleared). Line
+  170: `SA + 1194..1200` := 255 (days out 65,535 (`1194..1195`), the XP pool 65,535 · 10 = 655,350 XP (`1197..1198`),
+  the gold pool 65,535 (`1199..1200`)), then 1196 := 0, region 19, cell (CX, CY) = (13, 18) = DOS / Core (x, y) =
+  (7, 13) (FORMAT.md section 3.6's turn; CEMETARY 1550's (5, 5) on OUT1 is DOS's wake cell (20, 5) by the same turn);
+  200 `& RUN "OUTDOORS"`: the wilderness, no town entry. The pools wait for the next town: TOWN 490 ages each member by
+  days out / 7 (about 36) and 600–690 splits the XP and gold by shares.
+- **Remaster (s226):** option `p1.victory`: `apple` (Original (manual) and Remaster presets, the default) or `dos`
+  (Original (DOS) preset), locked per save. Under `apple`: DIVINE I as DOS grants it (status-OK members, after the
+  roster write; the Apple's toggle on every member not used), items 177–179 (DOS's DIAMOND B / C / D, the Apple's own
+  names) into the found items (first free slots; with a full sack they overwrite its last slots, as the Apple writes its
+  last three `[~]`), the party on OUT19 (7, 13) in the wilderness (a new trip: the tile-class fight flag cleared; the
+  3 x 3 round it unfogged, OUTDOORS 5030; the Apple's at-once GREAT TROLL fight on the landing tile is DOS's first-step
+  fight in Core `[~]`), the
+  found items, gold and XP shared out in the next town as after any trip (OLYMPIA, north through OUT18; leaving Olympus needs
+  TRANSPORTATION, as before the win). Zeus' screen still shows (every version's own); the C64's closing page reads
+  "transported to The Olympic Plane" (`c64.endgame.closing_2.olympus`). Under `dos`: DIVINE I and Pelnor, as before.
+  Code: `Phantasie1Campaign.ResolveVictory`, `Endgame.GiveVictoryGifts` / `Olympus*`, `VictoryScene.ToOlympus`; tests
+  `EndgameTests` D090_*.
+- **Found s226, not built (for the user):** FLASH?'s line 170 pool writes (655,350 XP and 65,535 gold to share out, and
+  65,535 days out, which ages every member about 36 years at the next town) and line 150's score := 100 are part of
+  the Apple's outcome but were not in the decision; the Apple's divine spell (#60) also differs from DOS's DIVINE I (a
+  dungeon mass revive vs nothing). Built without them until the user decides.
+- **Side effects:** a DOS / Amiga / C64 player now ends on Olympus with three diamonds; DOS's and the Amiga's speech
+  ("now go and rest") doesn't mention the gifts; a party without TRANSPORTATION is stuck on Olympus until a caster
+  learns it (it needed TRANSPORTATION to reach Olympus before the win).
+- **Spec:** `reverse-engineering/apple2/phantasie1/GRAPHICS.md` section 8.2; `reverse-engineering/dos/logic-specs/endgame.md`
+  section 3.1.
 
 ## D-091 — Apple-only import: "ARIVED" in the party wipe
 
 - **Manual:** silent (no party-wipe text).
-- **Apple II (v1.0, side A `CEMETARY`):** "[original text]" (typo; FLASH? spells ARRIVED).
+- **Apple II (v1.0, side A `CEMETARY`):** "YOU HAVE AR[original text]" (typo; FLASH? spells ARRIVED).
 - **Decision (user, s225, 2026-11-16):** fix to ARRIVED (as D-089).
-- **Remaster:** not built yet (s224: kept as printed, `apple2.defeat.astral`).
+- **Remaster (s226):** `apple2.defeat.astral` reads "YOU HAVE ARR[original text]": its `p1-apple2` source is
+  the Apple's bytes around a remaster "R" (`tools/scripts/p1_apple2_scene_text.json`, en.sources.json), so an Apple
+  import writes the fixed line.
 - **Side effects:** none.
 - **Spec:** `reverse-engineering/apple2/phantasie1/GRAPHICS.md` section 8.

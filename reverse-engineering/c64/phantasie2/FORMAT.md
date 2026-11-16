@@ -284,7 +284,8 @@ Decoded s219: **`GRAPHICS.md`** (beside this file), which also describes the `c6
 monster n − 1 (I's band record and figure rule), the title `PIC.*` (I's multicolour layout), `FONT` (eight characters
 differ from I's) and `UTIL-3.O`'s map tables (`$C68A` / `$C697`, the dungeon sprite on byte 50 only) are II's own.
 `TLUM1` (the ending's crowd), `PH2.END-4` (the hall) and `CEMETARY2`'s files: decoded s221 (GRAPHICS.md 8). No sound files
-(SID code inside the programs `[?]`).
+(SID code inside the programs: the end screens' sounds decoded and played s226, I's GRAPHICS.md 9.6; the fights' and the
+town's listed there `[?]`).
 
 ## 7. Importer: `p2-c64` (planned s216, built s218)
 

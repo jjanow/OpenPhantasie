@@ -46,7 +46,7 @@ public static class P1Apple2Art
             },
             "Phantasie I Apple II (VERSION 1.0) side A: SHAPES ($451F, 58 shapes), HPIC (hi-res page), MN0..MN9 " +
             "(monster shape / scale / hcolor). The p1-apple2 import (P1Apple2Art); notes " +
-            "reverse-engineering/apple2/phantasie1/GRAPHICS.md.", scaledHits: true);
+            "reverse-engineering/apple2/phantasie1/GRAPHICS.md.", scaledUses: ["spell-hit"]);
         return gfx;
     }
 

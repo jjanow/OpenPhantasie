@@ -630,8 +630,8 @@ public partial class Game1 : Game
     /// <summary>
     /// I's victory screen, once a frame (s127, Amiga h32 <c>+0x6d0</c>): with a pack that has an
     /// <see cref="EndingSceneLayout"/> and the picture, the screen runs by its clock and answers Core's
-    /// <see cref="SessionPromptKind.VictoryScene"/> itself when its fade-out is over (the Amiga goes back to Pelnor with no
-    /// key). Without one the prompt box shows the speech and waits for a key, as DOS does.
+    /// <see cref="SessionPromptKind.VictoryScene"/> itself when its fade-out is over (the Amiga goes on with no key; to
+    /// Olympus or Pelnor by <c>p1.victory</c>, D-090). Without one the prompt box shows the speech and waits for a key, as DOS does.
     /// </summary>
     private void UpdateVictoryScreen(double now)
     {
@@ -774,8 +774,9 @@ public partial class Game1 : Game
         _combatUi.AmigaP1Field = () => _session is { Game: GameId.P1 } && CurrentGameSettings.OriginalScreens
                                        && assets?.Pack?.CombatField is not null;
         _combatUi.P1SoundSeconds = P1SoundSeconds;
-        // s224: I Apple II's combat field (the ORIGINAL SCREENS switch and a pack with apple2_field and its index).
-        _combatUi.AppleField = () => _session is { Game: GameId.P1 } && CurrentGameSettings.OriginalScreens
+        // s224 / s226: the Apple II engine's combat field, I's and II's packs (the ORIGINAL SCREENS switch and a pack with
+        // apple2_field and its index).
+        _combatUi.AppleField = () => _session is { Game: GameId.P1 or GameId.P2 } && CurrentGameSettings.OriginalScreens
                                      && assets?.Apple2FieldArt is not null ? assets.Pack?.Apple2Field : null;
         _combatUi.P1ClockMs = () => Environment.TickCount64; // the Amiga's CurrentTime runs from boot (h80 +0xd2a's wrap, s136)
         // s136: II ST's round line by line with its sounds (the pack's combat_lines), paced by the game's COMBAT SPEED.
@@ -1786,7 +1787,7 @@ public partial class Game1 : Game
         else if (_combatUi.FieldRun is not null)
             UiOverlays.DrawCombatField(_spriteBatch, _pixel, _assets, _combatUi); // III Amiga: the whole screen (s117)
         else if (_combatUi.AppleRun is not null && !_showInventory && !_showBestiary)
-            UiOverlays.DrawApple2Field(_spriteBatch, _pixel, _assets, _combatUi); // I Apple II's round (s224)
+            UiOverlays.DrawApple2Field(_spriteBatch, _pixel, _assets, _combatUi); // I / II Apple II's round (s224, s226)
         else if (_combatUi.AmigaOrdersShown && !_showInventory && !_showBestiary)
             UiOverlays.DrawCombatOrders(_spriteBatch, _pixel, _assets, _session, _data, _combatUi,
                 _mouse.LeftDown ? _mouse.Position : null); // III Amiga's orders screen (s118)

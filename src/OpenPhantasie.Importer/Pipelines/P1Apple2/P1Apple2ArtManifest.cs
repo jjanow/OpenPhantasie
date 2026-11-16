@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using OpenPhantasie.Importer.Pipelines.P2Apple2;
 using OpenPhantasie.Importer.Pipelines.P2St;
 
 namespace OpenPhantasie.Importer.Pipelines.P1Apple2;
@@ -54,8 +55,8 @@ public static class P1Apple2ArtManifest
             ("canvas", J.Ints([280, 192])),
             ("background", "#000000"),
             ("steps", J.A([J.O(("picture", "title.credits"))])))),
-        ("apple2_field", J.O(
-            ("_note", "OUTDOORS / DUNGON (the same lines) 1480-2006, 4100-4145, 4790-4811; GRAPHICS.md section 7. The round " +
+        ("apple2_field", A2Manifest.Field(
+            "OUTDOORS / DUNGON (the same lines) 1480-2006, 4100-4145, 4790-4811; GRAPHICS.md section 7. The round " +
                       "(1560-2005) plays on the mixed hi-res screen (graphics rows 0-159, text rows 20-23: POKE 34,20); the " +
                       "status, ranks, PARTY OPTIONS and orders (1000-1470) are a TEXT page, the remaster's screen there. " +
                       "Lines: the set-up's HPLOTs (4810), white; the field is left of x 138, the map right of it (not drawn " +
@@ -68,17 +69,7 @@ public static class P1Apple2ArtManifest
                       "monster's SCALE for 500 loops (4132). H%, SCALE, YS% and each picture's DRAW point are the Apple's " +
                       "data: the import's extraction-index.json (index). Pauses: PA = 120 * TIME LAG loops a line " +
                       "(361 / 7560); loop_ms is a rule of thumb for an empty Applesoft FOR / NEXT pass [~]; sparkle_ms " +
-                      "the cast tones' length (CALL 770 not decoded) [?]."),
-            ("screen_x", 20), ("screen_y", 4), ("width", 280), ("graphics_rows", 160), ("divider", 138),
-            ("lines", J.A(new[] { new[] { 0, 0, 279, 0 }, [0, 159, 279, 159], [138, 0, 138, 159] }
-                .Select(l => (JsonNode?)J.Ints(l)))),
-            ("party_step", 19), ("party_y", 158), ("rank_y", 135), ("spread", 120), ("sparkle_dx", 19), ("sparkle_y", 136),
-            ("text_top", 20), ("text_rows", 4), ("columns", 40), ("cell_width", 7), ("cell_height", 8),
-            ("index", "extraction-index.json"),
-            ("line_loops_per_time_lag", 120), ("hit_loops", 500), ("loop_ms", 1.0), ("sparkle_ms", 300.0),
-            ("bodies", J.O(("monster_races_from", 7), ("monster_body", 26), ("human_elf", J.Ints([0, 2])),
-                ("small_body", 25), ("plain_body", 19), ("robed_classes", J.Ints([1, 4, 5])), ("robed_body", 27),
-                ("elemental_body", 26))))),
+                      "the cast tones' length (CALL 770 not decoded) [?].", rock: false)),
         ("pictures", J.O(
             ("title.cover", P1Apple2Art.TitleFile),
             ("title.credits", P1Apple2Art.TitleFile),

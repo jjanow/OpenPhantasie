@@ -4,8 +4,9 @@ using System.Text.Json.Serialization;
 namespace OpenPhantasie.Data;
 
 /// <summary>
-/// Manifest <c>apple2_field</c> (s224): Phantasie I Apple II's combat field, as OUTDOORS / DUNGON 1480–2006, 4100–4145
-/// and 4790–4811 draw it (<c>reverse-engineering/apple2/phantasie1/GRAPHICS.md</c> section 7). The round plays on the
+/// Manifest <c>apple2_field</c> (s224, II s226): the Apple II engine's combat field (I and II), as OUTDOORS / DUNGON
+/// (II: OUTDOORS2 / DUNGON2) 1480–2006, 4100–4145 and 4790–4811 draw it (<c>reverse-engineering/apple2/phantasie1/GRAPHICS.md</c>
+/// section 7; II's differences <c>../phantasie2/GRAPHICS.md</c> section 7: the tossed rock, <see cref="Rock"/>). The round plays on the
 /// mixed hi-res screen: graphics rows 0 … <see cref="GraphicsRows"/> − 1, the field left of the divider x
 /// <see cref="Divider"/> (the map stays right of it), four text rows below. Everything is in Apple hi-res pixels; the
 /// screen's (0, 0) sits at (<see cref="ScreenX"/>, <see cref="ScreenY"/>) of the remaster's 320 × 200 screen.
@@ -62,6 +63,9 @@ public sealed record Apple2FieldLayout
     /// <summary>TOWN 2350–2356's body rule (record byte 168).</summary>
     public required Apple2FieldBodies Bodies { get; init; }
 
+    /// <summary>II's tossed rock (OUTDOORS2 / DUNGON2 1623–1628, 4132), or null (I has no TOSS order).</summary>
+    public Apple2FieldRock? Rock { get; init; }
+
     /// <summary>A line's pause at the game's TIME LAG <paramref name="timeLag"/> (0–9), ms.</summary>
     public double LinePauseMs(int timeLag) => LineLoopsPerTimeLag * Math.Clamp(timeLag, 0, 9) * LoopMs;
 
@@ -105,6 +109,11 @@ public sealed record Apple2FieldLayout
             LoopMs = dto.LoopMs, SparkleMs = dto.SparkleMs,
             Bodies = new Apple2FieldBodies(b.MonsterRacesFrom, b.MonsterBody, b.HumanElf, b.SmallBody, b.PlainBody,
                 b.RobedClasses, b.RobedBody, b.ElementalBody),
+            Rock = dto.Rock is { } r
+                ? r.MissLoops >= 0 && r.HitLoops >= 0 && r.Miss is [var mx, var my]
+                    ? new Apple2FieldRock(mx, my, r.MissLoops, r.HitLoops)
+                    : throw Bad("rock: miss needs x, y and loops not below 0")
+                : null,
         };
     }
 
@@ -133,6 +142,14 @@ public sealed record Apple2FieldLayout
         [JsonPropertyName("loop_ms")] public double LoopMs { get; set; } = 1.0;
         [JsonPropertyName("sparkle_ms")] public double SparkleMs { get; set; }
         [JsonPropertyName("bodies")] public BodiesDto? Bodies { get; set; }
+        [JsonPropertyName("rock")] public RockDto? Rock { get; set; }
+    }
+
+    internal sealed class RockDto
+    {
+        [JsonPropertyName("miss")] public int[]? Miss { get; set; }
+        [JsonPropertyName("miss_loops")] public int MissLoops { get; set; }
+        [JsonPropertyName("hit_loops")] public int HitLoops { get; set; }
     }
 
     internal sealed class BodiesDto
@@ -164,6 +181,14 @@ public sealed record Apple2FieldBodies(int MonsterRacesFrom, int MonsterBody, IR
         : RobedClasses.Contains(cls) ? RobedBody : PlainBody;
 }
 
+/// <summary>
+/// II's tossed rock on the Apple field (s226; OUTDOORS2 / DUNGON2): "X THROWS A ROCK" draws the thrower's arm 21 (1623
+/// GOSUB 1760, no sparkle); a miss (1628) XDRAWs shape 59 at SCALE 1 at (<see cref="MissX"/>, <see cref="MissY"/>) for
+/// <see cref="MissLoops"/> empty loops, then the line's PA pause (4150); a hit (1627, SP = 2) XDRAWs 59 on the monster at
+/// its SCALE for <see cref="HitLoops"/> loops after "TAKES n DAMAGE" (4132: shape SP·35 − 11).
+/// </summary>
+public sealed record Apple2FieldRock(int MissX, int MissY, int MissLoops, int HitLoops);
+
 /// <summary>A picture of the field: its file under the pack root and where the DRAW point sits in it.</summary>
 public sealed record Apple2FieldPicture(string File, int OriginX, int OriginY);
 
@@ -172,13 +197,17 @@ public sealed record Apple2FieldMonster(int X, int Scale, int RankHeight, Apple2
 
 /// <summary>
 /// The Apple's own numbers the field needs (s224), from the import's <c>extraction-index.json</c> (written by
-/// <c>P1Apple2Art</c>): each monster's H% / SCALE / YS% and DRAW points, the figures by body and pose, the sparkle and
-/// the spell hit at each SCALE the monsters use.
+/// <c>P1Apple2Art</c> / II's <c>A2Graphics</c>): each monster's H% / SCALE / YS% and DRAW points, the figures by body and
+/// pose, the sparkle and the spell hit at each SCALE the monsters use; II (s226) also the rock (shape 59) at each SCALE
+/// (<see cref="RockHits"/>; SCALE 1 is the miss's).
 /// </summary>
 public sealed record Apple2FieldArt(IReadOnlyDictionary<int, Apple2FieldMonster> Monsters,
     IReadOnlyDictionary<(int Body, string Pose), Apple2FieldPicture> Figures, Apple2FieldPicture? Sparkle,
     IReadOnlyDictionary<int, Apple2FieldPicture> Hits)
 {
+    /// <summary>The rock (II) by SCALE; empty when the index has none (I).</summary>
+    public IReadOnlyDictionary<int, Apple2FieldPicture> RockHits { get; init; } = new Dictionary<int, Apple2FieldPicture>();
+
     public const string Idle = "idle", Attacking = "attacking", Casting = "casting";
 
     /// <summary>Reads the index at <paramref name="path"/>; null when it is missing or has no monsters.</summary>
@@ -208,6 +237,7 @@ public sealed record Apple2FieldArt(IReadOnlyDictionary<int, Apple2FieldMonster>
                     figures[(b, pose)] = p;
         Apple2FieldPicture? sparkle = null;
         var hits = new Dictionary<int, Apple2FieldPicture>();
+        var rocks = new Dictionary<int, Apple2FieldPicture>();
         if (root.TryGetProperty("effects", out var fx))
             foreach (var e in fx.EnumerateObject())
             {
@@ -217,7 +247,9 @@ public sealed record Apple2FieldArt(IReadOnlyDictionary<int, Apple2FieldMonster>
                     sparkle = Pic(e.Value);
                 else if (use == "spell-hit" && Pic(e.Value) is { } hit)
                     hits[scale] = hit;
+                else if (use == "rock" && Pic(e.Value) is { } rock)
+                    rocks[scale] = rock;
             }
-        return new Apple2FieldArt(monsters, figures, sparkle, hits);
+        return new Apple2FieldArt(monsters, figures, sparkle, hits) { RockHits = rocks };
     }
 }

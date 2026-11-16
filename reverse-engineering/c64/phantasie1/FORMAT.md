@@ -353,7 +353,8 @@ positions" was wrong.) `FONT+HER`'s first 38 bytes are the same record for the p
 
 The overworld is printed by `UTIL-3.O` `$C5C3` (class = map byte div 10, a character pair by column parity, colours from
 `$C688`); the dungeon map in `FONT`'s `$E6`–`$EC` by DOS's cell ranges, grey (GRAPHICS.md 5, 6). Palette: the VIC-II's
-16 colours as Colodore. No sound or music files: SID code is inside the programs / `UTIL-3.O` `[?]`.
+16 colours as Colodore. No sound or music files: the SID code is inside the programs; the end screens' sounds are decoded
+and played (GRAPHICS.md 9.6, s226), the fights' and the town's are listed there `[?]`.
 
 ## 7. The importer: `p1-c64` (built s216; plan s214)
 

@@ -52,8 +52,8 @@ public static class P1C64ArtManifest
                 "own steps in c64 (the remaster's ending screen fields below are its fallback and unused with c64). " +
                 "Positions are screen pixels (VIC x - 24, y - 50), colours Colodore indices. After the grant the closing " +
                 "text page (s224: P.END's 9 lines from column 0, row 2, green, and its key prompt at column 7, row 24; " +
-                "until a key). The speech is Core's 7 lines on the C64's rows. No C64 sounds: SID playback [?] " +
-                "(GRAPHICS.md 9.6)."),
+                "until a key). The speech is Core's 7 lines on the C64's rows. s226: the sounds are sid_sounds " +
+                "(the wind, the thunder, the clicks; GRAPHICS.md 9.6)."),
             ("palette", C64PhantasieArtManifest.Pens()),
             ("vbl_hz", 50),
             ("fade_vbl", 1),
@@ -127,6 +127,9 @@ public static class P1C64ArtManifest
                 ("grant_seconds", 12),
                 ("closing", J.O(
                     ("lines", J.Strs(Enumerable.Range(1, 9).Select(i => $"c64.endgame.closing_{i}"))),
+                    // s226 (D-090): with p1.victory = apple the party goes to Olympus; line 2 names it instead of Pelnor.
+                    ("olympus_lines", J.Strs(Enumerable.Range(1, 9)
+                        .Select(i => i == 2 ? "c64.endgame.closing_2.olympus" : $"c64.endgame.closing_{i}"))),
                     ("col", 0),
                     ("row", 2),
                     ("colour", 5),
@@ -147,5 +150,6 @@ public static class P1C64ArtManifest
             ("text_y", 184),
             ("text_colour", C64PhantasieArtManifest.Pens()[6]!.GetValue<string>())),
         C64Defeat = C64PhantasieArtManifest.DefeatLayout(),
+        SidSounds = C64PhantasieArtManifest.SidSounds(ending: true, win: false),
     });
 }

@@ -357,9 +357,19 @@ def main(argv: list[str]) -> None:
 
     # 6. combat effects: 23 spell sparkle over a member (1762), 24 = spell hit on a monster (4132: SP 1 -> 35 - 11),
     #    59 = the tossed rock (1628 miss at 70,20; 4132 SP 2 -> 59). All XDRAW in the game, drawn here in white.
+    #    s226 (the combat field): 24 and 59 also at every other SCALE a monster record holds (4132 XDRAWs them at the
+    #    monster's SCALE C%).
+    scales = sorted({m["scale"] for m in index["monsters"].values()})
     for n, what in ((23, "spell-sparkle"), (24, "spell-hit"), (59, "rock")):
         index["effects"][n] = render_shape(table, [(n, 3)], 0, 1, OUT / "effects" / f"{n:02d}-{what}.png")
         index["effects"][n]["use"] = what
+        if what == "spell-sparkle":
+            continue
+        for c in (c for c in scales if c != 1):
+            key = f"{n}.scale-{c}"
+            index["effects"][key] = render_shape(table, [(n, 3)], 0, c,
+                                                 OUT / "effects" / f"{n:02d}-{what}-scale-{c}.png")
+            index["effects"][key]["use"] = what
 
     # 7. the title picture: ICE DRAGON is one 8 KB hi-res page (PHANTASIE II lines 20 / 30 load it into pages 1 and 2).
     page = HiresPage.from_apple(disk.read("ICE DRAGON"))

@@ -141,15 +141,41 @@ public class P2Apple2PipelineTests
                 json++;
             }
         }
-        Assert.Equal(545, png);
+        Assert.Equal(557, png); // s226: + the spell hit and the rock at SCALE 2–6 and 8
         Assert.Equal(1, json);
-        Assert.Equal(546, outputs.Keys.Count(k => k.StartsWith("files/", StringComparison.Ordinal)));
+        Assert.Equal(558, outputs.Keys.Count(k => k.StartsWith("files/", StringComparison.Ordinal)));
     }
 
     [RequiresFilesFact(SideA, SideB, StGameData)]
     public void Pack_IsByteEqualToApple2Json()
     {
         Assert.True(Golden.BytesEqualFile(Run().Outputs["GameData/phantasie2/graphics/apple2.json"], $"{StGameData}/graphics/apple2.json"));
+    }
+
+    /// <summary>
+    /// s226: the pack's <c>apple2_field</c> is I's (the same OUTDOORS2 / DUNGON2 drawing lines) but the rock (1623–1628,
+    /// 4132), and the index holds the spell hit (24) and the rock (59) at every SCALE a monster record holds.
+    /// </summary>
+    [RequiresFilesFact(SideA, SideB)]
+    public void Pack_HasIsFieldPlusTheRock_IndexHasHitAndRockAtEveryScale()
+    {
+        var field = (JsonObject)Out("graphics/apple2.json")["apple2_field"]!;
+        var rock = field["rock"]!.ToJsonString();
+        Assert.Equal("{\"miss\":[70,20],\"miss_loops\":250,\"hit_loops\":500}", rock);
+        var i = JsonNode.Parse(PyJson.SerializeUtf8(OpenPhantasie.Importer.Pipelines.P1Apple2.P1Apple2ArtManifest.Pack(), 2, ensureAscii: true))!["apple2_field"]!.AsObject();
+        Assert.Null(i["rock"]);
+        foreach (var (key, value) in i)
+            if (key != "_note")
+                Assert.Equal(value!.ToJsonString(), field[key]!.ToJsonString());
+        var index = JsonNode.Parse(Run().Outputs[$"files/{ArtRoot}/extraction-index.json"])!;
+        var scales = index["monsters"]!.AsObject().Select(m => (int)m.Value!["scale"]!).Where(c => c != 1).Distinct().Order().ToList();
+        Assert.Equal([2, 3, 4, 5, 6, 8], scales);
+        foreach (var (shape, use) in new[] { (24, "spell-hit"), (59, "rock") })
+            foreach (var c in scales)
+            {
+                var e = index["effects"]![$"{shape}.scale-{c}"]!;
+                Assert.Equal((use, c, $"effects/{shape}-{use}-scale-{c}.png"), ((string)e["use"]!, (int)e["scale"]!, (string)e["file"]!));
+            }
     }
 
     // ---- layer B --------------------------------------------------------------------------------------------------

@@ -98,6 +98,12 @@ public sealed record C64EndingLayout
     /// <see cref="ClosingKey"/>; up until a key), as string ids; empty: the screen ends after the grant.
     /// </summary>
     public IReadOnlyList<string> ClosingLines { get; init; } = [];
+
+    /// <summary>
+    /// s226 (D-090): <see cref="ClosingLines"/> when the party goes to Olympus (<c>p1.victory</c> = <c>apple</c>): the
+    /// same ids with "transported to The City of Pelnor" reworded; empty = <see cref="ClosingLines"/> either way.
+    /// </summary>
+    public IReadOnlyList<string> ClosingLinesOlympus { get; init; } = [];
     public int ClosingCol { get; init; }
     public int ClosingRow { get; init; }
     public int ClosingColour { get; init; }
@@ -117,7 +123,8 @@ public sealed record C64EndingLayout
             || (dto.CloudFlash ?? []).Any(c => c is < 0 or > 15)
             || new[] { dto.CloudMc1, dto.OkColour, dto.DeadColour, dto.SpeechColour }.Any(c => c is < 0 or > 15)
             || dto.Closing is { } cl && (cl.Lines is not { Count: > 0 } || cl.Lines.Any(string.IsNullOrWhiteSpace)
-                || cl.Col is < 0 or > 39 || cl.Row is < 0 or > 24 || cl.Colour is < 0 or > 15))
+                || cl.Col is < 0 or > 39 || cl.Row is < 0 or > 24 || cl.Colour is < 0 or > 15
+                || cl.OlympusLines is { } ol && (ol.Count != cl.Lines.Count || ol.Any(string.IsNullOrWhiteSpace))))
             throw Bad("bad numbers or pictures");
         return new C64EndingLayout
         {
@@ -138,7 +145,7 @@ public sealed record C64EndingLayout
             LetterSeconds = dto.LetterSeconds, SpaceJiffies = dto.SpaceJiffies, RandomJiffies = dto.RandomJiffies,
             Hand = [.. hand!], HandX = dto.HandX, HandY = dto.HandY, HandBlank = [.. dto.HandBlank], GrantSeconds = dto.GrantSeconds,
             ClosingLines = [.. dto.Closing?.Lines ?? []], ClosingCol = dto.Closing?.Col ?? 0, ClosingRow = dto.Closing?.Row ?? 0,
-            ClosingColour = dto.Closing?.Colour ?? 0,
+            ClosingColour = dto.Closing?.Colour ?? 0, ClosingLinesOlympus = [.. dto.Closing?.OlympusLines ?? []],
             ClosingKey = dto.Closing?.Key is { } key ? C64TextLine.FromDto(key, "c64.closing.key", bad) : null,
         };
     }
@@ -146,6 +153,7 @@ public sealed record C64EndingLayout
     internal sealed class ClosingDto
     {
         public List<string>? Lines { get; set; }
+        [JsonPropertyName("olympus_lines")] public List<string>? OlympusLines { get; set; }
         public int Col { get; set; }
         public int Row { get; set; }
         public int Colour { get; set; }

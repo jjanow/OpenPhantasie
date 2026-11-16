@@ -37,6 +37,7 @@ public static class C64PhantasieArtManifest
         public JsonObject? EndingScene { get; init; }
         public JsonObject? DefeatPictures { get; init; }
         public JsonObject? C64Defeat { get; init; }
+        public JsonObject? SidSounds { get; init; }
     }
 
     /// <summary>
@@ -123,6 +124,111 @@ public static class C64PhantasieArtManifest
         ("undead_name_row", 21),
         ("undead_name_col", 1));
 
+    /// <summary>
+    /// s226: the empty <c>FOR</c> loop's pass in <c>WIN</c> (the band IRQ running): its <c>FOR 4000</c> took 4.171 s in VICE
+    /// (PAL, I's GRAPHICS.md 9.5, s224), 4001 passes.
+    /// </summary>
+    public const double WinForPass = 4.171 / 4001;
+
+    /// <summary>s226: <c>WIN</c>'s cheer (<c>GOSUB 0x749</c>): 9.928 s in VICE (s224).</summary>
+    public const double WinCheerSeconds = 9.928;
+
+    /// <summary>
+    /// s226 `[~]`: one pass of the cheer's pitch sweeps, the cheer's measured time less its <c>FOR 400</c> and 16 ×
+    /// <c>FOR 500</c> at <see cref="WinForPass"/>, over its 58 sweep passes (the POKEs' own time folded in).
+    /// </summary>
+    public static double WinSweepPass => (WinCheerSeconds - 401 * WinForPass - 16 * 501 * WinForPass) / 58;
+
+    private static JsonNode Poke(int register, int value) => J.Ints([register, value]);
+
+    private static JsonArray Zeros(int first, int last, bool down = false) =>
+        J.A((down ? Enumerable.Range(first, last - first + 1).Reverse() : Enumerable.Range(first, last - first + 1))
+            .Select(r => (JsonNode?)Poke(r, 0)));
+
+    private static JsonArray Pokes(JsonArray head, params int[][] pokes)
+    {
+        foreach (var p in pokes)
+            head.Add(Poke(p[0], p[1]));
+        return head;
+    }
+
+    private static JsonObject PokeStep(double at, JsonArray pokes) => J.O(("at", Math.Round(at, 6)), ("poke", pokes));
+
+    /// <summary>
+    /// s226: the end screens' SID sounds (I's GRAPHICS.md 9.6, read again s226 from the bytecode and <c>ZALL</c>'s 6502)
+    /// `[C]`: <paramref name="ending"/> = P.END's (I: the wind, the thunder, the speech click), <paramref name="win"/> =
+    /// WIN's cheer (II); both packs have CEMETARY's two (the same bytes in <c>CEMETARY2</c>).
+    /// </summary>
+    public static JsonObject SidSounds(bool ending, bool win)
+    {
+        var sounds = new JsonObject();
+        if (ending)
+        {
+            // ZALL $4D40: Y = $1C down to 0: $D400 + Y := $4E65[Y]; then the IRQ hook $4D73.
+            byte[] table = [0x00, 0x64, 0x00, 0x00, 0x80, 0xF0, 0x1E, 0x00, 0x64, 0x00, 0x00, 0x10, 0xF0, 0xC0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x0F, 0, 0, 0, 0];
+            sounds["wind"] = J.A([
+                PokeStep(0, J.A(Enumerable.Range(0, 29).Reverse().Select(r => (JsonNode?)Poke(r, table[r])))),
+                J.O(("at", 0), ("zall_wind", J.O(("low", 100), ("high", 200), ("start_wait", 2), ("freq_regs", J.Ints([1, 8])),
+                    ("control_regs", J.Ints([4, 11])), ("gates_on", J.Ints([0x81, 0x11])), ("gates_off", J.Ints([0x80, 0x10]))))),
+            ]);
+            // ZALL $4E46: Y = $1C down to 0: $D400 + Y := 0; the IRQ vector back.
+            sounds["wind_stop"] = J.A([PokeStep(0, Zeros(0, 28, down: true))]);
+            // P.END 0xbb6: FOR I = S TO S + 22: POKE S, 0 (S, not I: only $D400 is cleared, 23 times).
+            sounds["thunder"] = J.A([
+                PokeStep(0, Pokes(J.A([Poke(0, 0)]), [24, 143], [5, 10], [19, 10], [6, 170], [20, 169], [4, 21], [18, 17],
+                    [1, 68], [15, 42])),
+                PokeStep(0.3, Pokes(new JsonArray(), [4, 20], [18, 16])),
+            ]);
+            // P.END 0xc43: the setup, TI$ = "000000", the gate, voice 1's low byte := 110 + RND * 70; the caller's wait.
+            var click = Pokes(new JsonArray(), [0, 188], [1, 2], [24, 15], [7, 15], [8, 0], [12, 0], [13, 244], [11, 21]);
+            click.Add(J.A([JsonValue.Create(0), J.O(("rnd", J.Ints([110, 70])))]));
+            sounds["click"] = J.A([PokeStep(0, click)]);
+            sounds["click_off"] = J.A([PokeStep(0, Pokes(new JsonArray(), [11, 16]))]);
+        }
+        // CEMETARY 0x90e: FOR V = 0 TO 20: POKE S + V, 0; voice 2's noise through the low-pass, gate left on.
+        sounds["rumble"] = J.A([PokeStep(0, Pokes(Zeros(0, 20), [21, 7], [23, 242], [24, 31], [22, 0], [13, 240], [10, 4],
+            [15, 48], [12, 245], [8, 8], [22, 0], [11, 135]))]);
+        // CEMETARY 0x97b: FOR V = 0 TO 24: POKE S + V, 0; ...; TL = 1.08; the gate off.
+        sounds["fate"] = J.A([
+            PokeStep(0, Pokes(Zeros(0, 24), [1, 3], [5, 41], [15, 30], [3, 8], [24, 31], [23, 4], [21, 1], [4, 21])),
+            PokeStep(1.08, Pokes(new JsonArray(), [4, 20])),
+        ]);
+        if (win)
+        {
+            // WIN 0x749: the clear, the setup; FOR F = 11650 TO 10500 STEP -40 (low, high); gate off; FOR 400; gate on;
+            // FOR F = 10500 TO 11650 STEP 40; FOR V = 15 TO 0 STEP -1: POKE S + 24, V: FOR M = 1 TO 500.
+            var d = WinSweepPass;
+            var down = 29 * d;
+            var gap = 401 * WinForPass;
+            sounds["cheer"] = J.A([
+                PokeStep(0, Pokes(Zeros(0, 24), [5, 238], [6, 172], [22, 126], [23, 0], [4, 133], [24, 79])),
+                Sweep(0, [0, 1], 11650, 10500, -40, d),
+                PokeStep(down, Pokes(new JsonArray(), [4, 132])),
+                PokeStep(down + gap, Pokes(new JsonArray(), [4, 133])),
+                Sweep(down + gap, [0, 1], 10500, 11650, 40, d),
+                Sweep(down + gap + down, [24], 15, 0, -1, 501 * WinForPass),
+            ]);
+        }
+        return J.O(
+            ("_note", "s226 (GRAPHICS.md 9.6) [C]: the end screens' sounds as their programs write the SID ($D400 + register), " +
+                "in order; times in seconds from the sound's start (BASIC's TI waits; the VICE-measured interpreter time " +
+                "for the FOR loops, PAL). Played on one 6581 model per screen (Client Sid6581). wind / wind_stop: ZALL $4D40 " +
+                "/ $4E46 (P.END step 3 to after the wipe's TD = 2), the IRQ routine $4D73 once a jiffy (zall_wind). thunder: " +
+                "P.END 0xbb6 per strike (its clear loop pokes $D400 only). click / click_off: P.END 0xc43 per space and " +
+                "line end, the gate off after the caller's 16 or RND * 8 jiffies. rumble: CEMETARY 0x90e after the ghosts, " +
+                "its gate never turned off (it sounds until the first fate's clear). fate: CEMETARY 0x97b per member. cheer: " +
+                "WIN 0x749; the sweeps' pass is the measured 9.928 s less the FOR loops at WIN's 1.042 ms a pass [~]."),
+            ("clock_hz", 985248),
+            ("jiffy_hz", 60),
+            ("tail_seconds", 2),
+            ("sounds", sounds));
+
+        static JsonObject Sweep(double at, int[] regs, int from, int to, int by, double every) =>
+            J.O(("at", Math.Round(at, 6)), ("sweep", J.O(("regs", J.Ints(regs)), ("from", from), ("to", to), ("by", by),
+                ("every", Math.Round(every, 6)))));
+    }
+
     /// <summary>s221: the Colodore palette as the 16 pens of an <c>ending_scene</c> (each art colour is one pen).</summary>
     public static JsonArray Pens() => J.Strs(C64Gfx.ColodoreHex);
 
@@ -205,6 +311,8 @@ public static class C64PhantasieArtManifest
             pack["defeat_pictures"] = spec.DefeatPictures;
         if (spec.C64Defeat is not null)
             pack["c64_defeat"] = spec.C64Defeat;
+        if (spec.SidSounds is not null)
+            pack["sid_sounds"] = spec.SidSounds;
         pack["picture_sets"] = J.A(sets.Select(s => (JsonNode?)J.O(("name", s.Name), ("dir", s.Dir), ("prefix", s.Prefix), ("ext", ".png"))));
         return pack;
     }

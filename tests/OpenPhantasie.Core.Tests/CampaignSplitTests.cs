@@ -160,7 +160,7 @@ public class CampaignSplitTests
 
         Assert.Equal(1, campaign.Calls[nameof(ICampaign.AfterCombatSurvived)]);
         Assert.Equal(EndgameOutcome.Victory, session.LastEndgame);
-        Assert.Equal(GameMode.Town, session.Mode);
+        Assert.Equal(GameMode.Overworld, session.Mode); // D-090: p1.victory = apple (the default) ends on Olympus
         Assert.Null(session.Dungeon);
     }
 

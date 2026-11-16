@@ -238,6 +238,19 @@ public sealed class SoundEffectPlayer : IDisposable
         _player = TunePlayer.TryStart(new Apple2SpeakerRenderer(sound, clockHz));
     }
 
+    /// <summary>
+    /// s226: start a C64 screen's SID score now (<see cref="SidRenderer"/>, one chip for the screen), ending whatever ran.
+    /// Silent when the score is empty.
+    /// </summary>
+    public void Play(SidScore score, double clockHz)
+    {
+        ArgumentNullException.ThrowIfNull(score);
+        Trace("c64sid", score.Writes.Count);
+        Stop();
+        if (score.Writes.Count > 0)
+            _player = TunePlayer.TryStart(new SidRenderer(score, clockHz));
+    }
+
     /// <summary>Keep the stream fed (once a frame).</summary>
     public void Update() => _player?.Update();
 

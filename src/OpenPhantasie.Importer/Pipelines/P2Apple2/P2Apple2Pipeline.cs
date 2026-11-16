@@ -53,7 +53,7 @@ public sealed class P2Apple2Pipeline : P2Apple2PipelineBase
 
     public override string ProfileId => Id;
 
-    public override int RecipeVersion => 3; // 3 (s163): the common shared / I fallback
+    public override int RecipeVersion => 4; // 3 (s163): the common shared / I fallback; 4 (s226): the combat field
 
     /// <summary>The ST's tables win when both copies are imported in one run: the ST runs first. So do v2.1's (s212).</summary>
     public override IReadOnlyList<string> RunsAfter => ["p2-st-1.0", P2Apple2V21Pipeline.Id];
@@ -72,7 +72,7 @@ public sealed class P2Apple2V21Pipeline : P2Apple2PipelineBase
 
     public override string ProfileId => Id;
 
-    public override int RecipeVersion => 1;
+    public override int RecipeVersion => 2; // 2 (s226): the combat field (apple2_field, scaled hits and rocks)
 
     /// <summary>The ST's tables win when both copies are imported in one run: the ST runs first.</summary>
     public override IReadOnlyList<string> RunsAfter => ["p2-st-1.0"];

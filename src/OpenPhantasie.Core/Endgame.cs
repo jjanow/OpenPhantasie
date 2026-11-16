@@ -29,7 +29,8 @@ public sealed record VictorySlot(Race Race, bool Granted);
 /// <summary>
 /// Phantasie I's victory screen (DOS OV1 <c>0x4d5</c>, Amiga h32 <c>+0x6d0</c>; <c>endgame.md</c> §3): Zeus' picture,
 /// <see cref="SpeechLines"/>, then a key. <see cref="Slots"/>: the party in slot order, the summoned elemental left out
-/// (DOS copies at most 6 records). The front end shows it once after the Black Lord's fight; the game goes on in Pelnor.
+/// (DOS copies at most 6 records). The front end shows it once after the Black Lord's fight; the game goes on (on
+/// Olympus or in Pelnor: <c>p1.victory</c>, D-090).
 /// </summary>
 public sealed record VictoryScene(IReadOnlyList<VictorySlot> Slots, IReadOnlyList<string> SpeechLines)
 {
@@ -54,6 +55,12 @@ public sealed record VictoryScene(IReadOnlyList<VictorySlot> Slots, IReadOnlyLis
 
     /// <summary>Every line in the order the screen shows them (the prompt box shows these without a pack scene).</summary>
     public IReadOnlyList<string> Lines => [.. IntroPage, .. HeaderLines, .. Titles, .. SpeechLines, .. ClosingPage];
+
+    /// <summary>
+    /// s226 (D-090): I's victory under <c>p1.victory</c> = <c>apple</c>: the party goes to Olympus, not Pelnor. A screen
+    /// that names the destination words it so (the C64's closing page); the others don't change.
+    /// </summary>
+    public bool ToOlympus { get; init; }
 }
 
 /// <summary>s224: one presented member's title in parts (II: <c>"%s - the %s from %s"</c>'s three values).</summary>
@@ -78,6 +85,52 @@ public static class Endgame
     ];
 
     /// <summary>
+    /// D-090 <c>apple</c>: the Apple II's <c>FLASH?</c> line 140 puts items 177, 178, 179 (DOS's DIAMOND B / C / D; the
+    /// Apple's own names) in the party's found-item list (<c>SA + 1269 / 1268 / 1267</c>, slots 59 / 58 / 57 of 60), handed
+    /// out in the next town like any find.
+    /// </summary>
+    public static IReadOnlyList<int> VictoryGifts { get; } = [177, 178, 179];
+
+    /// <summary>D-090 <c>apple</c>: <c>FLASH?</c> 170 region byte <c>SA + 1191</c> := 19 (OUT19, south of OLYMPIA's OUT18).</summary>
+    public const int OlympusRegion = 19;
+
+    /// <summary>
+    /// D-090 <c>apple</c>: <c>FLASH?</c> 170 cell (CX, CY) = (13, 18), which is DOS / Core (x, y) = (25 − CY, CX) = (7, 13)
+    /// (Apple FORMAT.md section 3.6; the same turn takes CEMETARY 1550's (5, 5) on OUT1 to DOS's wake cell (20, 5)).
+    /// </summary>
+    public const int OlympusX = 7;
+
+    /// <summary>D-090 <c>apple</c>: see <see cref="OlympusX"/>.</summary>
+    public const int OlympusY = 13;
+
+    /// <summary>
+    /// D-090 <c>apple</c>: put <see cref="VictoryGifts"/> in <paramref name="sack"/>, each in the first free slot. The
+    /// Apple writes its last three slots whatever they hold; with a full sack the remaster does the same with its last
+    /// slots (the items there are lost) `[~]` (Core's sack is 90 or DOS's 60 slots with holes, not the Apple's list).
+    /// </summary>
+    public static void GiveVictoryGifts(LootSack sack)
+    {
+        ArgumentNullException.ThrowIfNull(sack);
+        var placed = new HashSet<int>(); // slots a gift took in this call: never overwritten by the next gift
+        foreach (var id in VictoryGifts)
+        {
+            var before = sack.ItemIds.ToArray();
+            if (sack.TryAdd(id))
+            {
+                var slot = Enumerable.Range(0, sack.ItemIds.Count)
+                    .First(i => i >= before.Length || before[i] != sack.ItemIds[i]);
+                placed.Add(slot);
+                continue;
+            }
+            var last = Enumerable.Range(0, sack.ItemIds.Count).Reverse().FirstOrDefault(i => !placed.Contains(i), -1);
+            if (last < 0)
+                return;
+            sack.ItemIds[last] = id;
+            placed.Add(last);
+        }
+    }
+
+    /// <summary>
     /// End of combat OV2 <c>0x4202..0x4214</c>: state 7 iff the first monster is the BLACK LORD and the "all monsters killed"
     /// flag <c>[0x74aa]</c> is set — by the living recount reaching 0 or by DISSOLVE (<c>0x087b</c>). Escapes (TELEPORTATION,
     /// flee, BEG) leave it 0. The party-wipe test runs first, so a mutual kill is a defeat.
@@ -94,7 +147,7 @@ public static class Endgame
     /// <summary>
     /// Zeus' victory screen OV1 <c>0x4d5</c>: the GUILD.DAT written there is the roster <b>before</b> DIVINE I is granted
     /// (quirk [C]: it is set on OK party members after the party → roster copy), returned as clones. Then every OK member
-    /// learns DIVINE I. The caller moves the party to town 1; the game goes on.
+    /// learns DIVINE I. The caller places the party (D-090: Olympus, or town 1 under <c>dos</c>); the game goes on.
     /// </summary>
     public static IReadOnlyList<Character?> GrantVictory(Party party, GuildRoster roster)
     {

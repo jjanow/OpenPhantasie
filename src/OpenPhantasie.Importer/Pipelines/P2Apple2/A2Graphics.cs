@@ -293,18 +293,26 @@ internal sealed class A2Graphics
             screens => P2Title(src, screens),
             "Phantasie II Apple II (4am crack v2/5/86) side A: SHAPES ($451F, 59 shapes), ICE DRAGON " +
             "(hi-res page), MN20..MN29 (monster shape / scale / hcolor). tools/scripts/" +
-            "extract_a2_p2_graphics.py; notes reverse-engineering/apple2/phantasie2/GRAPHICS.md.");
+            "extract_a2_p2_graphics.py; notes reverse-engineering/apple2/phantasie2/GRAPHICS.md.", ScaledP2);
+
+    /// <summary>
+    /// s226, II's combat field: OUTDOORS2 / DUNGON2 4132 XDRAWs shape <c>SP·35 − 11</c> at the monster's SCALE, the spell
+    /// hit (24, SP = 1) or the rock (59, SP = 2).
+    /// </summary>
+    internal static readonly string[] ScaledP2 = ["spell-hit", "rock"];
 
     /// <summary>
     /// The shape-table art I and II draw the same way (s223: I's OUTDOORS / DUNGON / TOWN lines are II's): every shape,
     /// the monsters by their MN records (25 fields, <see cref="A2Tables.MonsterFields"/>), party figures and race
     /// portraits, overworld tiles 0–255 (<paramref name="terrains"/>: the file labels of classes 0–11), the dungeon
     /// marks and <paramref name="effectShapes"/>; then <paramref name="title"/> fills the screens and
-    /// <c>extraction-index.json</c> is written. <paramref name="scaledHits"/> (s224, I's combat field): the spell hit is
-    /// also drawn at every other SCALE a monster record holds (4132 XDRAWs it at the monster's SCALE).
+    /// <c>extraction-index.json</c> is written. <paramref name="scaledUses"/> (s224 I's, s226 II's combat field): the
+    /// effects of these uses are also drawn at every other SCALE a monster record holds (4132 XDRAWs them at the monster's
+    /// SCALE).
     /// </summary>
     internal void RunShapes(ShapeTable table, List<List<byte[]>> recs, IReadOnlyList<string> terrains,
-        IReadOnlyList<(int Shape, string Use)> effectShapes, Action<JsonObject> title, string source, bool scaledHits = false)
+        IReadOnlyList<(int Shape, string Use)> effectShapes, Action<JsonObject> title, string source,
+        IReadOnlyCollection<string>? scaledUses = null)
     {
         var scales = new SortedSet<int>();
         JsonObject shapes = new(), monsters = new(), figures = new(), portraits = new(), tiles = new(), dungeon = new(),
@@ -366,7 +374,7 @@ internal sealed class A2Graphics
             var e = Render(table, [(n, 3)], 0, 1, $"effects/{n:D2}-{what}.png");
             e["use"] = what;
             effects[n.ToString()] = e;
-            if (!scaledHits || what != "spell-hit")
+            if (scaledUses is null || !scaledUses.Contains(what))
                 continue;
             foreach (var scale in scales.Where(c => c != 1))
             {

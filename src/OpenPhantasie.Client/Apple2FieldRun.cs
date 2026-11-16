@@ -4,9 +4,9 @@ using OpenPhantasie.Data;
 namespace OpenPhantasie.Client;
 
 /// <summary>
-/// One combat round played on Phantasie I Apple II's combat field (s224; OUTDOORS / DUNGON 1560–2005, 4000–4150,
-/// <c>reverse-engineering/apple2/phantasie1/GRAPHICS.md</c> section 7), line by line. No MonoGame types: tests drive it
-/// with milliseconds.
+/// One combat round played on the Apple II engine's combat field (s224 I, s226 II; OUTDOORS / DUNGON and II's OUTDOORS2 /
+/// DUNGON2 1560–2005, 4000–4150, <c>reverse-engineering/apple2/phantasie1/GRAPHICS.md</c> section 7, II's rock
+/// <c>../phantasie2/GRAPHICS.md</c> section 7), line by line. No MonoGame types: tests drive it with milliseconds.
 /// <list type="bullet">
 /// <item>Poses stay until the round ends (the next round's 1525 / 1550 redraw them): a member's swing shows arm 22 from
 /// that swing on (1695), a cast arm 21 (1760); a monster that swings, casts or breathes shows pose B from then on (2006
@@ -15,6 +15,10 @@ namespace OpenPhantasie.Client;
 /// none with the sound off: 7570 returns at once).</item>
 /// <item>A party damage spell's hit (<see cref="CombatHit.SpellDamage"/>): after its "TAKES n DAMAGE" line, shape 24 on
 /// the monster at its SCALE for 500 loops (4132).</item>
+/// <item>II's tossed rock (<see cref="Apple2FieldLayout.Rock"/>; none for I): "X THROWS A ROCK" opens the thrower's turn
+/// (HOME) with arm 21 and no pause (1623 GOSUB 1760); its "X MISSES" shows the rock at the miss point for its loops, then
+/// the line's pause (1628, 4150); a rock's hit (<see cref="DamageSource.PartyRock"/>) shows the rock on the monster at its
+/// SCALE after "TAKES n DAMAGE" (1627 SP = 2, 4132).</item>
 /// <item>A monster's "DIES" erases it at once (4145); a member's leaves the figure drawn until the round's end (4020 draws
 /// nothing; 1530 skips the dead at the next set-up).</item>
 /// <item>The text window (rows 20–23) is cleared (HOME) at each member's and monster's turn and at each swing (1610 / 1690
@@ -30,10 +34,13 @@ public sealed class Apple2FieldRun
     public sealed record Line(string Text, bool Home, double StartMs, double EndMs);
 
     /// <summary>What the field shows at a moment.</summary>
+    /// <param name="HitRock">The <see cref="Hit"/> is II's rock (shape 59), not the spell hit (24).</param>
+    /// <param name="RockMiss">II's missed rock is up at the layout's miss point (1628).</param>
     public sealed record State(IReadOnlyList<string> Window, IReadOnlySet<Character> Swung, IReadOnlySet<Character> Cast,
-        Character? Sparkle, IReadOnlySet<Monster> Posed, IReadOnlySet<Monster> Gone, Monster? Hit);
+        Character? Sparkle, IReadOnlySet<Monster> Posed, IReadOnlySet<Monster> Gone, Monster? Hit, bool HitRock = false,
+        bool RockMiss = false);
 
-    private enum Kind { Swing, Cast, Sparkle, Pose, Gone, Hit }
+    private enum Kind { Swing, Cast, Sparkle, Pose, Gone, Hit, RockHit, RockMiss }
 
     private sealed record Event(double StartMs, double EndMs, Kind Kind, Character? Member, Monster? Monster);
 
@@ -74,6 +81,7 @@ public sealed class Apple2FieldRun
         var unclaimed = snapshot.Ranks.SelectMany(r => r).Where(m => !m.IsAlive).ToList();
         var standing = snapshot.Party.Where(m => !snapshot.DeadBefore.Contains(m)).ToList();
         var at = 0.0;
+        Character? thrower = null; // II: the member whose rock is in the air (1623 until its MISSES / damage line)
         void Add(Kind kind, double start, Character? member = null, Monster? monster = null, double end = double.PositiveInfinity) =>
             run._events.Add(new Event(start, end, kind, member, monster));
         var all = log.Select((text, i) => (text, i)).Concat(after.Select(text => (text, -1)));
@@ -84,6 +92,9 @@ public sealed class Apple2FieldRun
             var tag = i < 0 ? null : tags.LastOrDefault(t => t.Line == i);
             var home = tag is not null;
             var hold = pause;
+            var rockMiss = thrower is { } t0 && tag is null && text == GameText.F("core.combat.x_misses", t0.Name);
+            if (tag is not null)
+                thrower = null;
             if (tag is { Swing: CombatSwing.Hit })
                 hold = 0; // its damage line follows at once (1710 -> 4120, 1925 -> 4005)
             if (tag is { Member: { } swinger, Swing: not CombatSwing.None })
@@ -102,17 +113,44 @@ public sealed class Apple2FieldRun
                 if (hold > 0)
                     Add(Kind.Sparkle, at, caster, end: at + hold);
             }
+            else if (layout.Rock is not null && tag is null
+                     && standing.FirstOrDefault(m => text == GameText.F("core.combat.x_throws_a_rock", m.Name)) is { } tosser)
+            {
+                // 1610 HOME opens the turn; 1623 GOSUB 1760: arm 21, then straight on to the hit roll (no pause).
+                home = true;
+                thrower = tosser;
+                Add(Kind.Cast, at, tosser);
+                hold = 0;
+            }
+            else if (rockMiss && layout.Rock is { } rock)
+            {
+                // 1628: XDRAW 59 at the miss point, 250 loops, XDRAW off, then 4150's PA pause.
+                var flight = rock.MissLoops * layout.LoopMs;
+                Add(Kind.RockMiss, at, end: at + flight);
+                hold = flight + pause;
+                thrower = null;
+            }
             if (unclaimed.FirstOrDefault(m => text == GameText.F("core.combat.x_dies", m.Name)) is { } slain)
             {
                 unclaimed.Remove(slain);
                 Add(Kind.Gone, at, monster: slain);
             }
             if (i >= 0)
+            {
                 foreach (var hit in hits.Where(h => h.Line == i && h is { Source: DamageSource.PartySpell, SpellDamage: >= 0, Monster: not null }))
                 {
                     Add(Kind.Hit, at, monster: hit.Monster, end: at + layout.HitMs);
                     hold += layout.HitMs;
                 }
+                if (layout.Rock is { } rock)
+                    foreach (var hit in hits.Where(h => h.Line == i && h is { Source: DamageSource.PartyRock, Monster: not null }))
+                    {
+                        var ms = rock.HitLoops * layout.LoopMs; // 4132 with SP = 2: shape 59 at the monster's SCALE
+                        Add(Kind.RockHit, at, monster: hit.Monster, end: at + ms);
+                        hold += ms;
+                        thrower = null;
+                    }
+            }
             lines.Add(new Line(text, home, at, at + hold));
             at += hold;
         }
@@ -126,6 +164,7 @@ public sealed class Apple2FieldRun
         HashSet<Monster> posed = new(ReferenceEqualityComparer.Instance), gone = new(ReferenceEqualityComparer.Instance);
         Character? sparkle = null;
         Monster? hit = null;
+        bool hitRock = false, rockMiss = false;
         foreach (var e in _events.Where(e => e.StartMs <= ms))
         {
             var on = ms < e.EndMs;
@@ -150,10 +189,18 @@ public sealed class Apple2FieldRun
                     break;
                 case Kind.Hit when on:
                     hit = e.Monster;
+                    hitRock = false;
+                    break;
+                case Kind.RockHit when on:
+                    hit = e.Monster;
+                    hitRock = true;
+                    break;
+                case Kind.RockMiss when on:
+                    rockMiss = true;
                     break;
             }
         }
-        return new State(Window(ms), swung, cast, sparkle, posed, gone, hit);
+        return new State(Window(ms), swung, cast, sparkle, posed, gone, hit, hitRock, rockMiss);
     }
 
     /// <summary>The text window's rows <paramref name="ms"/> into the run: the lines since the last HOME, the last rows.</summary>
@@ -203,7 +250,7 @@ public sealed class Apple2FieldRun
 }
 
 /// <summary>
-/// Who stands on I Apple II's field when a round begins (s224): the party in slot order (slot k at x 19·k, 1525; the
+/// Who stands on the Apple II field (I and II) when a round begins (s224): the party in slot order (slot k at x 19·k, 1525; the
 /// members dead then are not drawn, their slot stays empty), the parrying members (arm 21 from the set-up, 1532: Core's
 /// order holds PARRY only when the parry roll at the orders succeeded, as 1430–1435), the elemental (its body), and each
 /// rank's living monsters, front rank first (1480–1550; Core's ranks stand for the Apple's size order, 1047).

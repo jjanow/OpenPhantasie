@@ -9,6 +9,30 @@ namespace OpenPhantasie.Importer.Pipelines.P2Apple2;
 /// </summary>
 internal static class A2Manifest
 {
+    /// <summary>
+    /// The pack's <c>apple2_field</c> (s224 I, s226 II): the Apple engine's combat field, the same numbers in I's OUTDOORS /
+    /// DUNGON and II's OUTDOORS2 / DUNGON2 (1480–2006, 4100–4145, 4790–4811; TOWN / TOWN2 2350–2356). <paramref name="rock"/>:
+    /// II's tossed rock (1623–1628, 4132), which I lacks.
+    /// </summary>
+    internal static JsonObject Field(string note, bool rock)
+    {
+        var field = J.O(
+            ("_note", note),
+            ("screen_x", 20), ("screen_y", 4), ("width", 280), ("graphics_rows", 160), ("divider", 138),
+            ("lines", J.A(new[] { new[] { 0, 0, 279, 0 }, [0, 159, 279, 159], [138, 0, 138, 159] }
+                .Select(l => (JsonNode?)J.Ints(l)))),
+            ("party_step", 19), ("party_y", 158), ("rank_y", 135), ("spread", 120), ("sparkle_dx", 19), ("sparkle_y", 136),
+            ("text_top", 20), ("text_rows", 4), ("columns", 40), ("cell_width", 7), ("cell_height", 8),
+            ("index", "extraction-index.json"),
+            ("line_loops_per_time_lag", 120), ("hit_loops", 500), ("loop_ms", 1.0), ("sparkle_ms", 300.0),
+            ("bodies", J.O(("monster_races_from", 7), ("monster_body", 26), ("human_elf", J.Ints([0, 2])),
+                ("small_body", 25), ("plain_body", 19), ("robed_classes", J.Ints([1, 4, 5])), ("robed_body", 27),
+                ("elemental_body", 26))));
+        if (rock)
+            field["rock"] = J.O(("miss", J.Ints([70, 20])), ("miss_loops", 250), ("hit_loops", 500));
+        return field;
+    }
+
     public static JsonObject Pack(JsonObject index)
     {
         foreach (var need in new[] { "monsters", "portraits", "tiles", "dungeon", "effects", "screens" })
@@ -57,6 +81,24 @@ internal static class A2Manifest
                 ("canvas", J.Ints([280, 192])),
                 ("background", "#000000"),
                 ("steps", J.A([J.O(("picture", "title.credits"))])))),
+            ("apple2_field", Field(
+                "OUTDOORS2 / DUNGON2 (the same lines) 1480-2006, 4100-4145, 4790-4811: I's field (phantasie1/GRAPHICS.md " +
+                "section 7) line for line but the tossed rock (phantasie2/GRAPHICS.md section 7). The round (1560-2005) " +
+                "plays on the mixed hi-res screen (graphics rows 0-159, text rows 20-23: POKE 34,20); the status, ranks, " +
+                "PARTY OPTIONS and orders (1000-1470) are a TEXT page, the remaster's screen there. Lines: the set-up's " +
+                "HPLOTs (4810), white; the field is left of x 138, the map right of it (not drawn here, black [~]). Party: " +
+                "slot k's body + arm at (19k, 158) (1525-1534; dead members not drawn, the slot kept), arm 22 from a swing " +
+                "(1695), 21 from a cast or a rock throw (1760, from 1750 / 1623) or a parry that took (1532), else 20; " +
+                "bodies by TOWN2 2350-2356 (CHAR2's elementals 37-39 hold 26). Monsters: front rank y 135, next 135 - YS% " +
+                "of the front, third that - YS% of the second, not below 0 (1480-1500); monster i of n at H% + " +
+                "INT(i * 120 / n) (1550); pose B (S% + 1) from its swing, cast or breath to the round's end (2006); erased " +
+                "at its DIES (4145). The sparkle (23) at (19k + 19, 136) during the cast tones (1762-1764); 4132 XDRAWs " +
+                "shape SP * 35 - 11 on the monster at its SCALE for 500 loops: the spell hit (24, SP = 1) or the rock " +
+                "(59, SP = 2, a hit at 1627). rock: a miss (1628) XDRAWs 59 at SCALE 1 at (70, 20) for 250 loops, then " +
+                "the PA pause (4150). H%, SCALE, YS% and each picture's DRAW point are the Apple's data: the import's " +
+                "extraction-index.json (index). Pauses: PA = 120 * TIME LAG loops a line (361 / 7560); loop_ms is a rule " +
+                "of thumb for an empty Applesoft FOR / NEXT pass [~]; sparkle_ms the cast tones' length (CALL 770 not " +
+                "timed here) [?].", rock: true)),
             ("pictures", J.O(
                 ("title.cover", File("screens", "ice-dragon")),
                 ("title.credits", File("screens", "title")),
