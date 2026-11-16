@@ -249,5 +249,6 @@ played (the combat field, section 7, plays no speaker sound) `[~]`.
 - `[~]` Text in the remaster font, not the Apple's character ROM (not on the disks); no flashing cursor.
 - `[~]` `scenes/shapes.bin` / `page2.bin` exist only in an import's `files/` (the committed extract has no `scenes/`):
   a dev build that finds the pack in the repo without an Apple import draws the plain end screens.
-- `[U]` FLASH?'s speech promises THREE GIFTS (items 177–179, 140) and the Apple puts the party on Olympus; Core runs
-  DOS's victory (DIVINE I only, then Pelnor). The Apple's ARIVED is printed as spelled. Both for the user.
+- FLASH?'s speech promises THREE GIFTS (items 177–179, 140) and the Apple puts the party on Olympus; Core still runs
+  DOS's victory (DIVINE I only, then Pelnor). Decided s225 (D-090): the Apple's outcome in every version, DOS's as an
+  option; not built yet. The Apple's ARIVED is still printed as spelled; decided s225 (D-091): fix to ARRIVED, not built.

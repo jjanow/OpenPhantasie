@@ -181,7 +181,7 @@ copy); the import reads only CHAR's elementals and gives the regions DOS's start
   `MASTER ILLUSTIONIST` import as DOS's `APPRENTICE DEVIL`, `MASTER ILLUSIONIST` (`name_fixes`, DIFFERENCES.md D-089).
 - **Ending**: the Apple's `FLASH?` shows a short Zeus scene ("[original text] [original text] AND
   YOUR FIRST DIVINE SPELL."), gives items 177–179 and the divine spell, and puts the party on Olympus (OUT19 (13, 18)).
-  The import keeps DOS I's ending (Core's rules); s224: the scene itself is replayed in the Apple pack with its own
+  The import keeps DOS I's ending (Core's rules; D-090, decided s225: the Apple's outcome in every version, not built yet); s224: the scene itself is replayed in the Apple pack with its own
   lines (`GRAPHICS.md` 8; ids `apple2.ending.*`, `apple2.defeat.*`).
 
 ## 6. Strings
