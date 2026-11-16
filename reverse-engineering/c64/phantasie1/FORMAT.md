@@ -336,7 +336,8 @@ Monster n − 1. Loaded at `$1FDA` (in play: to a group's slot, e.g. `$CB5A`): a
 raster interrupt `$C529` loads it into the VIC: y base, 8 (x, y) byte pairs, 8 colours, block base, 8 block indices,
 x / y expand and enable masks, next raster line; GRAPHICS.md 2), then k = MN field 13 + 1 hires sprite blocks. The record
 lays out the whole group; one monster = its first sprites up to the first repeated block `[~]`. A one-sprite monster
-attacks in block 1 `[C]`; the extra block of a several-sprite monster is not placed `[?]`. (s214's reading "8 × 16-bit x
+attacks in block 1 `[C]`; a several-sprite monster's extra block replaces sprite 0 (II's VIPER live, s219; taken for all
+`[~]`). (s214's reading "8 × 16-bit x
 positions" was wrong.) `FONT+HER`'s first 38 bytes are the same record for the party's sprites in a fight.
 
 ### 6.2 Other pictures

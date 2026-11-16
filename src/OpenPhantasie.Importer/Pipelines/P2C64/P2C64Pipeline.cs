@@ -7,8 +7,9 @@ namespace OpenPhantasie.Importer.Pipelines.P2C64;
 /// Phantasie II, Commodore 64 v1.2 (SSI 1986; both disk sides, <c>.d64</c> or C64PP's <c>.g64</c>): II's tables
 /// (<see cref="P2C64Tables"/>, s218: a C64-only import is a playable II, with the C64's text and the Atari ST's
 /// numbers, as the Apple import; the ST's and the Apple's tables win when that copy is imported too) and the C64's own
-/// lines of the string tables. No art yet: the C64 pictures (<c>reverse-engineering/c64/phantasie2/FORMAT.md</c>
-/// section 6) are not a pack. v1.0 is recognised and not imported (user s217).
+/// lines of the string tables. Then the C64 art pack (<see cref="P2C64Art"/>, s219; <c>graphics/c64.json</c>), written
+/// whichever copy's tables win: the ST's pack stays II's default, then the Apple's, then the C64's. v1.0 is recognised
+/// and not imported (user s217).
 /// </summary>
 public sealed class P2C64Pipeline : IImportPipeline
 {
@@ -16,7 +17,7 @@ public sealed class P2C64Pipeline : IImportPipeline
 
     public string ProfileId => Id;
 
-    public int RecipeVersion => 1; // 1 (s218): II's tables from the C64
+    public int RecipeVersion => 2; // 1 (s218): II's tables from the C64; 2 (s219): the C64 art pack
 
     /// <summary>The ST's and the Apple's tables win when one of them is imported in the same run: they run first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p2-st-1.0", "p2-apple2", "p2-apple2-2.1"];
@@ -31,6 +32,16 @@ public sealed class P2C64Pipeline : IImportPipeline
         ctx.Progress("text");
         ImportedStrings.Write(ctx, ownWordingGame: tables ? P2C64Tables.Game : null);
         ImportedStrings.WriteFallback(ctx, ImportedStrings.CommonFallbackGame, P2C64Tables.Game);
+
+        ctx.Progress("art");
+        try
+        {
+            P2C64Art.Import(ctx);
+        }
+        catch (FileNotFoundException e)
+        {
+            ctx.Warn($"No C64 art: {e.Message}.");
+        }
     }
 }
 
@@ -55,6 +66,11 @@ internal sealed class P2C64Source
 
     /// <summary>A side 2 file as stored (a PRG with its load address).</summary>
     public byte[] Side2(string name) => Read(_s2, name);
+
+    /// <summary>A file as stored, side 1's when both sides hold one, else side 2's; null when neither does.</summary>
+    public byte[]? Either(string name) => Find(_s1, name) ?? Find(_s2, name);
+
+    private static byte[]? Find(Container c, string name) => c.Files.FirstOrDefault(f => f.Path == name)?.Data;
 
     private static byte[] Read(Container c, string name) =>
         (c.Files.FirstOrDefault(f => f.Path == name) ?? throw new FileNotFoundException($"{name} not found on {c.Description}", name)).Data;

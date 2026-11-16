@@ -17,8 +17,8 @@ public class Phantasie2GraphicsPackTests
     [OriginalDataFact]
     public void PhantasieII_OffersTheAtariStPack_AsItsDefault()
     {
-        // s158: the Apple II pack sits beside it; the ST stays first in default_order.
-        Assert.Equal(["atari-st", "apple2"], Catalog.Available.Select(p => p.Id));
+        // s158 / s219: the Apple II and C64 packs sit beside it; the ST stays first in default_order.
+        Assert.Equal(["atari-st", "apple2", "c64"], Catalog.Available.Select(p => p.Id));
         Assert.Empty(Catalog.Missing);
         Assert.Same(St, Catalog.Default);
         Assert.Equal(("phantasie2", "atari-st"), (St.Game, St.Platform));

@@ -27,6 +27,7 @@ public class P2StPipelineTests
         ["strings/en.sources.json"] = "where the table's original lines sit in each copy (build_string_sources.py), ships",
         ["graphics/index.json"] = "class (a), hand-written pack list",
         ["graphics/apple2.json"] = "the Apple II pack: p2-apple2's output (P2Apple2PipelineTests)",
+        ["graphics/c64.json"] = "the C64 pack (s219): p2-c64's output (P2C64ArtTests)",
         ["apple2-import.json"] = "class (a), shipped: the ST cells, compass map and manual spell names an Apple-only import takes (D2-046..050)",
         ["strings/fallback.en.json"] = "class (a), shipped: the remaster's wording for lines the Apple II lacks (D2-050)",
         ["c64-import.json"] = "class (a), shipped (s218): the ST cells, sprite sizes and manual spell names a C64-only import takes (D2-054..056)",

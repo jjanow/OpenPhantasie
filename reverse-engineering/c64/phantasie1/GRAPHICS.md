@@ -17,7 +17,8 @@ rendered back from the dumps (the rendering matches VICE's own screenshot). The 
 
 `B` (lines 370–410) loads `FONT` to `$E800`, `FONT+HER` to `$21DA` and copies its 4,330 bytes to `$CFDA`; copies the 200
 bytes at `$E000` (three sprites: the town's ENTER arrow, a moon, a sparkle) to `$CA40`. The VIC runs in bank 3
-(`$DD00` = `%00`): screen `$E400`, character set `$E800` (`$D018` = `$97` on the map, `$9x` = `$D800` in town),
+(`$DD00` = `%00`): screen `$E400`, character set `$E800` (`$D018` = `$9B` on the map, in fights and in the dungeon,
+`$97` = `$D800` in town; II's live values, s219, the same engine),
 sprite pointers `$E7F8`.
 
 | Address | From | Holds |
@@ -25,7 +26,7 @@ sprite pointers `$E7F8`.
 | `$CFDA`–`$CFFF` | `FONT+HER` 0–37 | the hero band's record (section 2), the party's sprites in a fight |
 | `$D000`–`$D7FF` | `FONT+HER` 38–2085 | a mixed-case font (characters 0–95), then sprite blocks: 91 (`$D6C0`) the dungeon's party, 92–95 (`$D700`) the map's party, town, inn, dungeon |
 | `$D800`–`$DFFF` | `FONT+HER` 2086– | the town's character set: the six buildings (section 4) |
-| `$E800`–`$EFFF` | `FONT` | the screen font (upper case, 0–63), the map's terrain characters (64–87), the dungeon's characters (`$E6`–`$EC`); characters 84 / 85 (water) are rewritten while the map is up (the water moves `[~]`; the pack keeps the file's frame) |
+| `$E800`–`$EFFF` | `FONT` | the screen font (upper case, 0–63), the map's terrain characters (64–87), the dungeon's characters (`$E6`–`$EC`); characters 84 / 85 (water) are rewritten while the map is up: in II (live s219) `UTIL-3.O` `$C6E0`, from the raster interrupt every 4 frames, rotates both characters' rows right by one bit (a sideways drift; I's `[~]`); the pack keeps the file's frame |
 | `$F000`– | `HSPRIT` (TOWNR) | 30 hero sprite blocks (block 192 on) |
 | `$CB5A`, … | `MX n` (`$1FDA` in the file) | a monster group's band record + its blocks, loaded per group (`$CB5A`, `$CCDA`, `$CE5A` seen) |
 
@@ -55,10 +56,12 @@ j = up to the first block index that repeats** `[~]` (data rule; it holds for al
 sprites touch), drawn at their (x, y) with their expansion and colour. The pack's `monster.N.idle` is that figure cut to
 its sprites' box: 24 × 21 (one plain sprite) up to 144 wide (PYTHON) and 126 tall (BLACK KNIGHT).
 
-**Attacking `[C]` for one-sprite monsters:** while STING BEETLES attacked (live, en copy), single block offsets in the
-group's record went 0 → 1 and back: a one-sprite monster's attacking frame is block 1 (`monster.N.attacking`, 50
-monsters). A monster of j > 1 sprites has one block more than it shows (k = j + 1): which sprite it replaces is not seen
-`[?]`, so those have no attacking picture and the Client keeps the idle one.
+**Attacking:** while STING BEETLES attacked (live, en copy), single block offsets in the group's record went 0 → 1
+and back: a one-sprite monster's attacking frame is block 1 `[C]` (50 monsters). A monster of j > 1 sprites has one
+block more than it shows (k = j + 1); in II (live s219, the same engine) VIPER's two sprites went from blocks 0 1 to
+2 1 while it attacked: the extra block replaces **sprite 0** `[C]` for VIPER. The pack takes that rule for all 30
+several-sprite monsters `[~]`: `monster.N.attacking` = the figure with sprite 0 showing block j (for one sprite, block 1),
+80 monsters. In every `MX` file the figure shows blocks 0 … j − 1 and the file holds j + 1: block j is the spare one.
 
 ### 2.2 Heroes
 
@@ -120,7 +123,7 @@ The dungeon map is printed in `FONT`'s characters, all in grey (12) on black (co
 level's cell (x, y) at text column x, row y + 3 (33 × 38 levels; seen on DNG 1). Correlated with the `DNG 1` file:
 wall 0 → `$E6` (solid), 2–184 → `$E7` (blank), 185 → `$EA`, 200 / 209 / 213 → `$E9`, 215 → `$EB` (the exit
 triangle), 235 → `$E8` (dot): DOS's ranges (OV2 `0x21df`), which the pack uses whole, `$EC` (stripes) for 218–220
-`[~]` (not seen). A cell not yet seen is `$20` (solid grey, like a wall). The party is sprite 0, block 91, yellow, on its
+(seen in II with poked cells, s219, the same characters). A cell not yet seen is `$20` (solid grey, like a wall). The party is sprite 0, block 91, yellow, on its
 cell (`$D6C0`'s face fits the cell's top-left 8 × 8; drawn over the cell's glyph, `dungeon_party_over`). The code that
 prints it is in `DUNGEON`'s bytecode (not read).
 
@@ -133,14 +136,15 @@ drawn**: the Client has no slot for a found-treasure or dungeon-feature picture.
 
 ## 8. The `c64` pack (`GameData/phantasie1/graphics/c64.json`)
 
-Written by the `p1-c64` import (recipe 2, `P1C64Art`, `P1C64ArtManifest`) under
-`reverse-engineering/c64/phantasie1/extracted/graphics` (218 PNGs; the repo holds the extract of the C64PP v1.4 pair).
+Written by the `p1-c64` import (recipe 2, `P1C64Art`, `P1C64ArtManifest`; since s219 the steps and the manifest's
+layout are shared with II's pack in `C64PhantasieArt` / `C64PhantasieArtManifest`, `../phantasie2/GRAPHICS.md`) under
+`reverse-engineering/c64/phantasie1/extracted/graphics` (248 PNGs since s219; the repo holds the extract of the C64PP v1.4 pair).
 In `index.json`'s `default_order` after the Amiga: the Amiga stays I's default; with no Amiga copy imported (a C64-only
 or C64 + DOS player) the C64's art is drawn, DOS CGA stays pick-only.
 
 | Slot | C64 picture |
 |---|---|
-| `monster.N.idle` / `.attacking` | section 2.1 (attacking: 50 one-sprite monsters) |
+| `monster.N.idle` / `.attacking` | section 2.1 (attacking: all 80; the 30 several-sprite ones by II's rule `[~]`) |
 | `portrait.R.idle` / `.attacking` | `HSPRIT` pair R, R = 0–14 |
 | `title.cover` | `PIC.*` |
 | `town.backdrop` | section 4 |
@@ -148,12 +152,12 @@ or C64 + DOS player) the C64's art is drawn, DOS CGA stays pick-only.
 | `dungeon.cell.*` | section 6 |
 
 **Falls back (no C64 picture):** UNDEAD's portrait (none: the Client draws no figure, as for any missing portrait);
-the monsters' attacking frame for the 30 several-sprite monsters (the idle one); the title's credits screen, the ending
+the title's credits screen, the ending
 (`ending.*`: `ZALL` / `P.END` not decoded), the defeat screens (`CEMETARY`'s `SKEL2` / `CSPRIT` / `FONTO` not
 decoded), `ui.decor` / `decor.*`, combat effects (`combat.grave` / `.sparkle`; the `$E000` sparkle sprite is not
 mapped), the town doors; these slots draw the Client's own default (black / text), as III's Apple pack does. Text: the
 remaster 5 × 7 font (the C64 sets are written as sheets under `font/`).
 
-`[?]` left: the extra block of several-sprite monsters; the colours of the item / feature pictures but EXIT; the hero
-colour rule (yellow / light blue); the water's moving characters; `ZALL`, `CEMETARY`'s files; the code printing the
+`[?]` left: the colours of the item / feature pictures but EXIT; the hero colour rule (yellow / light blue); the water's
+moving characters (not drawn); `ZALL`, `CEMETARY`'s files; the code printing the
 town buildings and the dungeon map.

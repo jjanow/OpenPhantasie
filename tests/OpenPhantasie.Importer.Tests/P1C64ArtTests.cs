@@ -17,7 +17,7 @@ public class P1C64ArtTests
     private const string Images = "reverse-engineering/c64/original-images/phantasie1/c64pp/";
     private const string Side1 = Images + "phantasie_s1[ssi_1985](v1_4).g64";
     private const string Side2 = Images + "phantasie_s2[ssi_1985](v1_4).g64";
-    private const string ArtRoot = P1C64Art.Root;
+    private const string ArtRoot = P1C64Art.RootPath;
     private const string Shipped = "src/OpenPhantasie.Data/GameData/phantasie1/graphics/c64.json";
 
     private static Func<string, byte[]?> Lookup()
@@ -123,9 +123,9 @@ public class P1C64ArtTests
             n++;
         }
         Assert.Equal(files.Count, n);
-        // monsters idle + attacking, portraits (2 x 15), title, town, 13 tile classes x 2, 4 map sprites, 9 dungeon
+        // monsters idle + attacking (s219: every monster), portraits (2 x 15), title, town, 13 tile classes x 2, 4 map sprites, 9 dungeon
         // glyphs, 14 item pictures, 3 character-set sheets
-        Assert.Equal(80 + 50 + 30 + 1 + 1 + 26 + 4 + 9 + 14 + 3, n);
+        Assert.Equal(80 + 80 + 30 + 1 + 1 + 26 + 4 + 9 + 14 + 3, n);
     }
 
     [RequiresFilesFact(Side1, Side2)]

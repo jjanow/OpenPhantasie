@@ -198,9 +198,10 @@ public sealed record SpriteBand(
     /// <summary>
     /// The first figure of the band drawn as the VIC shows it, cut to its sprites' box: sprites 0 ..
     /// <see cref="PartsPerFigure"/> − 1 at their (x, y), expanded as their bits say, each showing block
-    /// <c>Blocks[i]</c> of <paramref name="blocks"/> (or <paramref name="swap"/>'s replacement) in its colour.
+    /// <c>Blocks[i]</c> of <paramref name="blocks"/> in its colour; <paramref name="replace"/> shows another block in one
+    /// sprite (the attacking frame).
     /// </summary>
-    public RgbaImage Figure(ReadOnlySpan<byte> blocks, Func<int, int>? swap = null)
+    public RgbaImage Figure(ReadOnlySpan<byte> blocks, (int Sprite, int Block)? replace = null)
     {
         var parts = PartsPerFigure;
         int x0 = int.MaxValue, y0 = int.MaxValue, x1 = int.MinValue, y1 = int.MinValue;
@@ -215,7 +216,7 @@ public sealed record SpriteBand(
         var img = new RgbaImage(x1 - x0, y1 - y0);
         for (var i = 0; i < parts; i++)
         {
-            var block = swap?.Invoke(Blocks[i]) ?? Blocks[i];
+            var block = replace is { } r && r.Sprite == i ? r.Block : Blocks[i];
             if (block < 0 || block * C64Gfx.SpriteBlock + 63 > blocks.Length)
                 throw new InvalidDataException($"sprite band: block {block} past the file's sprite data");
             C64Gfx.DrawSprite(img, Positions[i].X - x0, Positions[i].Y - y0,

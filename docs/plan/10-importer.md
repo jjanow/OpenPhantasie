@@ -236,7 +236,7 @@ come from, and I's 682 ids and the shared `p3*` / `p4` areas are not tagged.
 | II | **Atari ST v1.0** (Pasti `.stx`; TOSEC `.st` has byte-identical program and data files) | every II table + ST pack + title tune | `stx_to_st`, FAT12 unpack (mtools today), `st_prg`, `extract_st_phantasie2`, `extract_st_p2_maps` / `_dungeons` / `_scrolls` / `_towns`, `build_p2_gamedata`, `extract_st_p2_graphics`, `build_st_p2_asset_manifest` | supported |
 | II | **Apple II** v1.0 2/5/86 (4am `.dsk`, or the original `.woz` pair): the Memorial Set's II | reference extract: monsters, items, names, creation tables, towns, wilderness, dungeons + messages, scrolls; Apple II art pack | `a2_rdos`, `a2_applesoft`, `extract_a2_p2_tables`, `diff_a2_p2_vs_st`, `extract_a2_p2_graphics`, `build_a2_p2_asset_manifest` (`reverse-engineering/apple2/phantasie2/FORMAT.md`) | supported (C# port, `p2-apple2`, 7.2 / 7.5): the Apple's text, the ST's numbers (D2-046…050, user s159). No spell names on the Apple: the manual's list is shipped; divine #57 / #58, unnamed there, take the ST's names (D2-050, user s170, 7.5). The Memorial Set's disks (unplayed, shipped fog) are in DOS 3.3 sector order; the reader tries both orders and finds them (their save files are the profile's pristine sha1s) |
 | II | Apple II v2.1 8/19/86 (RDOS 3.3 `.dsk` pair; the A2CAN original, played) | as v1.0: every II table + Apple II art pack (the same data files, `apple2/phantasie2/FORMAT.md` section 4) | `a2_rdos` (reads RDOS 3.3), `build_string_sources.py` (its own string offsets) | supported (`p2-apple2-2.1`, `P2Apple2V21Pipeline`; 7.5). Restored, its import equals the Memorial Set's v1.0 import but for the version's name. With v1.0 in the same run (or an earlier import), v2.1's tables win. Its DUNGON2 gold-op fix changes nothing here (Core plays the ST's script; D2-053) |
-| II | **C64 v1.2** (C64PP `.g64` pair, or the held `.d64` pair, a played v1.2) | every II table (7.12: the C64's text, the ST's numbers); no art pack yet | `extract_c64_d64.py`, `c64_g64.py`, `build_c64_p2_import.py` (the shipped cells) | supported (`p2-c64`, `P2C64Tables`, s218; towns / regions / elementals from side 2's `PATTERN2`, so a played copy imports as fresh; formats `reverse-engineering/c64/phantasie2/FORMAT.md`; the ST's or the Apple's tables win when imported too) |
+| II | **C64 v1.2** (C64PP `.g64` pair, or the held `.d64` pair, a played v1.2) | every II table (7.12: the C64's text, the ST's numbers) + C64 art pack (s219) | `extract_c64_d64.py`, `c64_g64.py`, `build_c64_p2_import.py` (the shipped cells) | supported (`p2-c64`, `P2C64Tables`, s218; towns / regions / elementals from side 2's `PATTERN2`, so a played copy imports as fresh; formats `reverse-engineering/c64/phantasie2/FORMAT.md`; the ST's or the Apple's tables win when imported too) |
 | II | C64 v1.0 (C64PP `.g64`) | — | — | recognised (`p2-c64-1.0`, its own key files; user s217: v1.2 only) |
 | II | Atari 8-bit, MSX2, PC-88, PC-98 | — | — | recognised by hash only |
 | III | **DOS SSI 1988** (`.ima`) | every III table + DOS CGA pack (drawn when no Amiga III pack is imported) | `extract_dos_p3_common` (EXEPACK unpack), `extract_dos_p3_tables` / `_dungeons` / `_rules` / `_scrolls` / `_towns` / `_world`, `build_p3_gamedata` | supported |
@@ -798,18 +798,16 @@ DOS layout and goes through DOS's builders. `P1C64Pipeline` (recipe 1) runs afte
   coloured cells, an empty portrait box): a player with only the C64 copy gets no I art.
 - **Art (s218):** the `c64` pack (`P1C64Art`, `P1C64ArtManifest`, recipe 2; `reverse-engineering/c64/phantasie1/GRAPHICS.md`,
   generic decoders `Formats/C64Gfx.cs`: palette, characters, sprites, multicolour bitmap, the `MX` sprite-band record
-  for II's `MX` too): the 80 monsters (50 with an attacking frame), hero sprites by race 0–14, the title, the town's six
+  for II's `MX` too): the 80 monsters (with an attacking frame each; s219, recipe 3: the 30 several-sprite ones by II's live sprite-0 rule `[~]`), hero sprites by race 0–14, the title, the town's six
   buildings as `town.backdrop`, the overworld from `FONT`'s characters as `UTIL-3.O` prints them (a character pair by
   column parity, `odd_column_tile`; the town / inn / dungeon sprites as `overlays` and the party at their size,
   `party_offset`; 19 × 18 cells around the party), the dungeon map's characters (`dungeon_party_over`). Colodore colours.
   Written whichever copy's tables win; `index.json` lists it after the Amiga in `default_order`, so a C64-only (or C64 +
   DOS) player gets it. Played on Xvfb with a player's build (`parity/s218-p1-c64-art-live.md`); the default combat
   screen's rank box now puts a rank's line below a picture too wide to leave room beside it (PYTHON, 144 px). **Falls back** (the
-  Client's own drawing): UNDEAD's portrait, the 30 several-sprite monsters' attacking frame (idle), the ending, the
-  defeat screens, `ui.decor`, combat effects; the item / feature pictures are extracted (`items/`) but have no Client slot.
+  Client's own drawing): UNDEAD's portrait, the ending, the defeat screens, `ui.decor`, combat effects; the item / feature pictures are extracted (`items/`) but have no Client slot.
 - **Left:** v1.0 / v1.3 profiles (other program files; v1.0's `ITEM` / `SCROLLS` / DNG8 byte); the German C64 (German
-  text); the C64's own wording for its town / Guild lines; the art's `[?]` (GRAPHICS.md 8: several-sprite monsters' attack
-  block, item picture colours, `ZALL` / `CEMETARY` pictures, the hero colour rule, the moving water).
+  text); the C64's own wording for its town / Guild lines; the art's `[?]` (GRAPHICS.md 8: item picture colours, `ZALL` / `CEMETARY` pictures, the hero colour rule, the moving water).
 
 ### 7.12 What a C64-only II import gives (s218)
 
@@ -817,7 +815,7 @@ DOS layout and goes through DOS's builders. `P1C64Pipeline` (recipe 1) runs afte
 and its build in section 7) writes every table `P2StPipeline` writes, from the two v1.2 disk sides. As the Apple
 import (7.5): **the C64's text, the ST's numbers** (DIFFERENCES-II D2-054…D2-056). Each C64 table is put into the
 shape of the ST's extract and goes through the ST's builders (`P2GameDataBuilder`), so the GameData keeps the ST
-schema. `P2C64Pipeline` (recipe 1) runs after `p2-st-1.0`, `p2-apple2` and `p2-apple2-2.1`.
+schema. `P2C64Pipeline` (recipe 2, s219: + the art pack) runs after `p2-st-1.0`, `p2-apple2` and `p2-apple2-2.1`.
 
 - **Containers:** `D64Volume` / `G64Image` as I's (7.11). Each side is read on its own (`P2C64Source`): `MN` and `B`
   differ between the sides.
@@ -855,11 +853,21 @@ schema. `P2C64Pipeline` (recipe 1) runs after `p2-st-1.0`, `p2-apple2` and `p2-a
   Apple-over-C64 order is the user's (s218), as III's.
 - Played in the Client on Xvfb (s218, a dev build, the import in a throwaway home): new game, PIPPACOTT, Guild (new
   member OKAY, Add lists the C64's elemental names), the Mystic in the C64's wording, EXIT to the wilderness, a step.
-  No II art from the C64: the dev build drew its built-in ST art. Again with a no-built-in-data build
-  (`-p:OpenPhantasieBuiltInGameData=false`, as a release): new game, Guild, EXIT, a step, no errors; it plays without
-  pictures (the town menu over black, the map as coloured cells, an empty portrait box), as I's (7.11).
-- **Left:** a `c64` art pack (FORMAT.md section 6); the C64's bytecode rules (group size, restock, training: not read
-  `[?]`); `MN` fields 14 / 24 `[?]`.
+  Again with a no-built-in-data build (`-p:OpenPhantasieBuiltInGameData=false`, as a release): new game, Guild, EXIT,
+  a step, no errors (then without pictures; the art pack came in s219, below).
+- **Art (s219):** the `c64` pack (`P2C64Art`, `P2C64ArtManifest`, recipe 2; `reverse-engineering/c64/phantasie2/GRAPHICS.md`).
+  I's steps, moved into the shared `P1C64/C64PhantasieArt` (+ `C64PhantasieArtManifest`), with II's own monsters, title,
+  `FONT` and map routine tables (`UTIL-3.O` `$C68A` / `$C697`; the dungeon sprite on byte 50 only); the portraits, town
+  buildings, map sprites and dungeon characters are I's (the same files). Files from side 1 first, then side 2
+  (`P2C64Source.Either`). `index.json` lists it after the ST and the Apple, so a C64-only player gets it. Played on Xvfb
+  with a player's build (`parity/s219-p2-c64-art-live.md`): title, Guild, Pippacott, the wilderness (II's terrain
+  colours, the town / inn / dungeon sprites), a fight (GREEN MUCK), Dungeon 1. Reference: the original in VICE (town,
+  overworld, two fights, the dungeon; GRAPHICS.md 7): its VIPER shows a several-sprite monster's attack (the extra block
+  in sprite 0), so I's and II's packs now give all 80 monsters an attacking frame. **Falls back** as I's: UNDEAD's
+  portrait, the ending, the party-wipe screen, `decor.*`, combat effects; the
+  item / feature pictures are extracted but have no Client slot.
+- **Left:** the C64's bytecode rules (group size, restock, training: not read `[?]`); `MN` fields 14 / 24 `[?]`; the
+  art's `[?]` (GRAPHICS.md 6: `PH2.END-4`, `TLUM1`, `CEMETARY2`'s pictures, I's open points).
 
 ### 7.13 What a C64-only III import gives (s218)
 

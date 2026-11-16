@@ -76,10 +76,13 @@ public class Phantasie2AppleIIPackTests
             var st = File.ReadAllText(Path.Combine(GameData, "graphics", "atari-st.json"))
                 .Replace("reverse-engineering/atari-st/phantasie2/extracted/graphics", "no-such-folder/st-graphics");
             File.WriteAllText(Path.Combine(graphics.FullName, "atari-st.json"), st);
+            var c64 = File.ReadAllText(Path.Combine(GameData, "graphics", "c64.json"))
+                .Replace("reverse-engineering/c64/phantasie2/extracted/graphics", "no-such-folder/c64-graphics");
+            File.WriteAllText(Path.Combine(graphics.FullName, "c64.json"), c64);
 
             var catalog = GraphicsPackCatalog.Load(Path.Combine(temp.FullName, "phantasie2"));
             Assert.Equal(["apple2"], catalog.Available.Select(p => p.Id));
-            Assert.Equal(["atari-st"], catalog.Missing);
+            Assert.Equal(["atari-st", "c64"], catalog.Missing);
             Assert.Equal("apple2", catalog.Default?.Id);
         }
         finally

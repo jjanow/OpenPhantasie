@@ -32,7 +32,7 @@ public class Phantasie1C64PackTests
         for (var id = 0; id < 80; id++)
             Assert.NotNull(pack.Resolve(PictureNames.MonsterIdle(id)));
         Assert.NotNull(pack.Resolve(PictureNames.MonsterAttacking(0)));   // SKELETON: one sprite, a second block
-        Assert.Null(pack.Resolve(PictureNames.MonsterAttacking(76)));     // BLACK KNIGHT: the extra block is not placed [?]
+        Assert.NotNull(pack.Resolve(PictureNames.MonsterAttacking(76)));  // BLACK KNIGHT: the extra block in sprite 0 (s219) [~]
         for (var race = 0; race < 15; race++)
         {
             Assert.NotNull(pack.Resolve(PictureNames.PortraitIdle(race)));

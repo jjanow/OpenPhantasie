@@ -279,10 +279,12 @@ and the Apple differ in rules (restock 4 vs 9 items, D2-045) the C64 is not read
 
 ## 6. Graphics and sound
 
-As C64 I (`../phantasie1/FORMAT.md` section 6): `MX n` = monster n − 1 (38-byte header + k 64-byte hardware sprites,
-k = `MN` field 13 + 1; a group = up to 8 VIC sprites); `TLUM1` the ending's sprite set (15 blocks `[~]`); the title
-(`PIC.*`), the item / feature pictures, `FONT`, `FONT+HER`, `HSPRIT`, `PH2.END-4`, `CEMETARY2`'s files: not decoded.
-No sound files (SID code inside the programs `[?]`).
+Decoded s219: **`GRAPHICS.md`** (beside this file), which also describes the `c64` art pack. In short: C64 I's engine
+(`../phantasie1/GRAPHICS.md`); `FONT+HER`, `HSPRIT` and the item / feature pictures are I's files byte for byte; `MX n` =
+monster n − 1 (I's band record and figure rule), the title `PIC.*` (I's multicolour layout), `FONT` (eight characters
+differ from I's) and `UTIL-3.O`'s map tables (`$C68A` / `$C697`, the dungeon sprite on byte 50 only) are II's own.
+`TLUM1` (the ending's sprite set, 15 blocks `[~]`), `PH2.END-4` and `CEMETARY2`'s files: not decoded. No sound files
+(SID code inside the programs `[?]`).
 
 ## 7. Importer: `p2-c64` (planned s216, built s218)
 
@@ -360,11 +362,11 @@ from `PATTERN2`; played = loads at `$81C3` / `$9448` / `$898A` (a warning only, 
    "THE UNDEAD SERVANTS DOOR ON THE SOUTHEAST", a short `SCROLLS` on the plain copy) is recognised and refused as
    unsupported.
 
-**Graphics pack (`c64`).** As I's plan: `MX` sprites (80 sets + `TLUM1`), title, item / feature pictures, font; map
-tiles, hero sprites, `PH2.END-4` not decoded.
+**Graphics pack (`c64`, built s219, `GRAPHICS.md` section 6):** the 80 monsters, hero sprites, title, town buildings,
+the overworld's characters and sprites, the dungeon's characters, as I's pack. `TLUM1`, `PH2.END-4` and `CEMETARY2`'s
+pictures not decoded.
 
-**Not done here:** the bytecode rules (group size, restock, training), the C64-only `MN` fields 14 / 24, the
-graphics pack. **Live check (s218):** a C64-only import (CLI, never_used pair) played in a dev Client on Xvfb: new
+**Not done here:** the bytecode rules (group size, restock, training), the C64-only `MN` fields 14 / 24. **Live check (s218):** a C64-only import (CLI, never_used pair) played in a dev Client on Xvfb: new
 game, PIPPACOTT, Guild (new member: status OKAY; Add lists FIRE / WATER / EARTH ELEM), the Mystic ("YOUR SCORE IS 0.
 YOU ARE NOVICE ADVENTURERS", the C64's own wording), EXIT to the wilderness and a step; the dev build's built-in ST art. A no-built-in-data build plays the same without
 pictures.
