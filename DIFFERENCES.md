@@ -95,8 +95,8 @@ names its presets only where they differ from this.
 | D-085 | C64 import: scroll 5's third pool NORTH of the star (fits the map) vs DOS's SOUTH | DECIDED: C64's NORTH in the C64 import; DOS keeps SOUTH · built (s216) |
 | D-086 | C64 import: three reachable dungeon squares differ (DNG3 (2, 14), DNG6 (12, 11), DNG7 (19, 11)) | DECIDED: DOS's cells · built (s216) |
 | D-087 | C64 import: no spell names on the C64; the fire elemental's name field reads FIRE ELE | **DECIDED: as built** + built (user s217; the manual's spell table + DIVINE I as D2-050; FIRE ELEM as D-083) |
-| D-088 | Apple II: "START A NEW GAME" — manual: characters erased and the dungeons reset; the Apple resets the roster and the towns only | **PENDING** (Apple-only import built with DOS's start state for the regions) |
-| D-089 | Apple-only import: two monster typos (APRENTICE DEVIL, MASTER ILLUSTIONIST): fix or keep | **PENDING** (built as the Apple spells them; its other names kept, FIRE ELE → FIRE ELEM as D-087) |
+| D-088 | Apple II: "START A NEW GAME" — manual: characters erased and the dungeons reset; the Apple resets the roster and the towns only | **DECIDED: manual** (user s223; as built: an Apple-only import gives every region DOS's start state) |
+| D-089 | Apple-only import: two monster typos (APRENTICE DEVIL, MASTER ILLUSTIONIST): fix or keep | **DECIDED: fix** + built (user s223; APPRENTICE DEVIL / MASTER ILLUSIONIST; the Apple's other names kept, FIRE ELE → FIRE ELEM as D-087) |
 
 ---
 
@@ -1114,11 +1114,11 @@ names its presets only where they differ from this.
   spent fixed fights) or the dungeon save (`DNGSAV` / `DNGCHK`: a saved level is loaded again on entering that dungeon,
   `DNGLD` 30–60).
 - **DOS:** the reset is decoded and built (`docs/plan/16-reset-game.md`); not concerned here.
-- **Decision:** PENDING (user). The question only shapes the Apple-only import (no unplayed Apple copy is known, so its
+- **Decision (user, s223):** (a), the manual. The question only shapes the Apple-only import (no unplayed Apple copy is known, so its
   regions are a played copy's). Options: **(a)** as built: every region gets the start state, as the manual promises
   for a new game; **(b)** follow the Apple's code: import the played regions as they are (fog lifted, fights spent, as
   DOS I's played-copy import without the restore).
-- **Remaster (built s222, unchanged until decided):** an Apple-only import gives every region DOS I's start state (DOS's
+- **Remaster (built s222, kept):** an Apple-only import gives every region DOS I's start state (DOS's
   Reset rule on all but OUT1 / OUT5: fog back, fixed fights armed), which is what the manual promises; towns from `TF`;
   the dungeon save is not read. Core's own new game / reset is DOS's and unchanged.
 - **Side effects:** none on rules.
@@ -1133,13 +1133,14 @@ names its presets only where they differ from this.
 - **Apple II (v1.0):** town 4 `HOBBITON`; rings `RING I`..`RING IX`; treasures `QUARTZ`, `CRYSTAL`, `KEY`, `BRONZE`, ...,
   `GOLDEN OX` (the manual's ox statue), `GOLD FOX`, `GOD RING`; monster names `APRENTICE DEVIL` and `MASTER
   ILLUSTIONIST` (typos); `SH SWORD`, `HEAL POT1..9`, `LIZARD MAN`, `--WAND--` as the C64 / Amiga spell some of them.
-- **Decision:** PENDING (user), only for the two typos: fix them to `APPRENTICE DEVIL` / `MASTER ILLUSIONIST` (as D-082
+- **Decision (user, s223):** fix. The question was only the two typos: fix them to `APPRENTICE DEVIL` / `MASTER ILLUSIONIST` (as D-082
   fixed the Amiga's `SROLL 19` and D-083 / D-087 the cut fire elemental) or keep them as the Apple prints them. The
   Apple's other names are its own text and stay (the rule of the Amiga, C64 and Apple imports: the copy supplies the
   text).
-- **Remaster (built s222, unchanged until decided):** the Apple's names and spellings as they are (typos kept); `FIRE
-  ELE` → `FIRE ELEM` (D-087's rule); the spell names from the manual's table (D-087's rule). A fix would be a
-  `name_fixes` row in `phantasie1/apple2-import.json`. Item descriptions (remaster-written) got texts for the Apple's
+- **Remaster (s223):** the Apple's names and spellings, except monsters 12 / 58 read `APPRENTICE DEVIL` / `MASTER
+  ILLUSIONIST` (`name_fixes` rows in `phantasie1/apple2-import.json`, monsters.json and names.json); `FIRE ELE` →
+  `FIRE ELEM` (D-087's rule); the spell names from the manual's table (D-087's rule). II's Apple import keeps the
+  same two typos (D2-050, user s159). Item descriptions (remaster-written) got texts for the Apple's
   treasure names and its ring numerals.
 - **Side effects:** none on rules (items, towns and monsters are found by number).
 - **Spec:** `reverse-engineering/apple2/phantasie1/FORMAT.md` sections 3.1–3.5, 5.

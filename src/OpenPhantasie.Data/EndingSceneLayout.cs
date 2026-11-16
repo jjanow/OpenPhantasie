@@ -78,6 +78,22 @@ public sealed record EndingSceneLayout(
     public string? Font { get; init; }
     public string? FontFile { get; init; }
 
+    /// <summary>s223: the C64's own ending (I: <c>P.END</c>'s steps, <see cref="C64EndingLayout"/>), or null.</summary>
+    public C64EndingLayout? C64 { get; init; }
+
+    /// <summary>
+    /// s223 (II C64 <c>WIN</c>): the presented member's figure is drawn in its attacking pose in this palette colour in its
+    /// place in the row (no stage), or null.
+    /// </summary>
+    public int? PresentColour { get; init; }
+
+    /// <summary>s223 (II C64): every member stands in the row from the start (the band switched on at once), not one by one.</summary>
+    public bool RowFromStart { get; init; }
+
+    /// <summary>s223 (II C64 <c>WIN</c>: x 110 + 24 k on the VIC): slot k's x is this + <see cref="SlotSize"/> · k instead
+    /// of the centred gap rule, or null.</summary>
+    public int? RowLeft { get; init; }
+
     /// <summary>The page before the picture / after the speech (II), or null.</summary>
     public EndingPage? IntroPage { get; init; }
     public EndingPage? ClosingPage { get; init; }
@@ -124,6 +140,10 @@ public sealed record EndingSceneLayout(
             FontFile = CombatFieldLayout.FontFileFor(dto.Font, manifestPath),
             IntroPage = dto.IntroPage is { } ip ? EndingPage.FromDto(ip, Bad, manifestPath) : null,
             ClosingPage = dto.ClosingPage is { } cp ? EndingPage.FromDto(cp, Bad, manifestPath) : null,
+            C64 = dto.C64 is { } c64 ? C64EndingLayout.FromDto(c64, Bad) : null,
+            PresentColour = dto.PresentColour is int pc ? pc is >= 0 and <= 15 ? pc : throw Bad("present_colour 0..15") : null,
+            RowFromStart = dto.RowFromStart,
+            RowLeft = dto.RowLeft,
         };
     }
 
@@ -157,6 +177,10 @@ public sealed record EndingSceneLayout(
         public EndingDiskWaits.Dto? Disk { get; set; }
         public List<string?>? Speech { get; set; }
         public string? Font { get; set; }
+        public C64EndingLayout.Dto? C64 { get; set; }
+        [JsonPropertyName("present_colour")] public int? PresentColour { get; set; }
+        [JsonPropertyName("row_from_start")] public bool RowFromStart { get; set; }
+        [JsonPropertyName("row_left")] public int? RowLeft { get; set; }
     }
 
     internal sealed class SoundsDto
@@ -211,6 +235,15 @@ public sealed record EndingPage(IReadOnlyList<string>? Palette, int X, int Y, in
     /// does not hold the screen.</summary>
     public int? Sound { get; init; }
 
+    /// <summary>s223: the page stays this long and reads no key (II C64's intro: up while the hall loads), or null (a key).</summary>
+    public double? Seconds { get; init; }
+
+    /// <summary>s223: the page's background colour (II C64's intro: yellow), or null (black).</summary>
+    public int? BackgroundPen { get; init; }
+
+    /// <summary>s223: no OK form (the C64's pages), only the text.</summary>
+    public bool NoButton { get; init; }
+
     /// <summary>
     /// s160: the page's font (II ST: <c>v_gtext</c> in the 8×8 system font, italic: EmuTOS's, the pack's
     /// <c>fonts/&lt;id&gt;.json</c>), or null for the pack's own; <see cref="FontFile"/> is its file next to the manifest.
@@ -236,11 +269,15 @@ public sealed record EndingPage(IReadOnlyList<string>? Palette, int X, int Y, in
     internal static EndingPage FromDto(Dto dto, Func<string, InvalidDataException> bad, string manifestPath)
     {
         if (dto.Palette is { } p && (p.Count != 16 || p.Any(c => !HexColourOk(c))) || dto.LineGap <= 0 ||
-            dto.TextPen is < 0 or > 15 || dto.ButtonPen is < 0 or > 15 || dto.Sound is < 0)
+            dto.TextPen is < 0 or > 15 || dto.ButtonPen is < 0 or > 15 || dto.Sound is < 0 || dto.Seconds is < 0 ||
+            dto.BackgroundPen is < 0 or > 15)
             throw bad("page: 16 #RRGGBB colours, line_gap > 0, pens 0..15, sound >= 0");
         return new EndingPage(dto.Palette is { } pal ? [.. pal!] : null, dto.X, dto.Y, dto.LineGap, dto.TextPen, dto.ButtonPen)
         {
             Sound = dto.Sound,
+            Seconds = dto.Seconds,
+            BackgroundPen = dto.BackgroundPen,
+            NoButton = dto.NoButton,
             Font = dto.Font,
             FontFile = CombatFieldLayout.FontFileFor(dto.Font, manifestPath),
             FontDx = dto.FontDx,
@@ -263,6 +300,9 @@ public sealed record EndingPage(IReadOnlyList<string>? Palette, int X, int Y, in
         public string? Font { get; set; }
         [JsonPropertyName("font_dx")] public int FontDx { get; set; }
         [JsonPropertyName("button_font")] public string? ButtonFont { get; set; }
+        public double? Seconds { get; set; }
+        [JsonPropertyName("background_pen")] public int? BackgroundPen { get; set; }
+        [JsonPropertyName("no_button")] public bool NoButton { get; set; }
     }
 }
 

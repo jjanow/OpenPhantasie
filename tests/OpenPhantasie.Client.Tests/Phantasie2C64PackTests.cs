@@ -40,11 +40,11 @@ public class Phantasie2C64PackTests
         Assert.Null(pack.Resolve(PictureNames.PortraitIdle(15)));
         foreach (var name in new[] { PictureNames.TitleCover, PictureNames.TownBackdrop, PictureNames.OverworldParty })
             Assert.NotNull(pack.Resolve(name));
-        // s221: the ending and the party wipe are drawn (C64EndScreenTests); the sinking door, sorry sign and DOS's
-        // defeat pages are not.
-        foreach (var name in new[] { PictureNames.EndingFinal, PictureNames.Decor })
+        // s221: the ending and the party wipe are drawn (C64EndScreenTests); the sinking door and the sorry sign are not.
+        // s223: defeat.temple for the C64's own party wipe (c64_defeat), not DOS's pages (I only).
+        foreach (var name in new[] { PictureNames.EndingFinal, PictureNames.Decor, PictureNames.DefeatTemple })
             Assert.NotNull(pack.Resolve(name));
-        foreach (var name in new[] { PictureNames.DecorDoor, PictureNames.DecorSorrySign, PictureNames.DefeatTemple })
+        foreach (var name in new[] { PictureNames.DecorDoor, PictureNames.DecorSorrySign })
             Assert.Null(pack.Resolve(name));
     }
 

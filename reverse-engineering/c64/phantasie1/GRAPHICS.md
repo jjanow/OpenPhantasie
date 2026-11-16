@@ -216,15 +216,21 @@ or C64 + DOS player) the C64's art is drawn, DOS CGA stays pick-only.
 | `ending.final`, `ending.ghost`, `ending.arm` + `ending_scene` | s221, section 9.1: `ending/zeus.png`, the cloud (`sprites/d0-cloud.png`), the lightning hand (`sprites/cf-lightning-hand.png`) at (178, 12) |
 | `defeat.temple`, `defeat.demon`, `defeat.ghost`, `defeat.figure.N` + `defeat_pictures`; `portrait.ghost` | s221, section 9.2: the temple, the temple with the face, the ghost; the figures = `portraits/idle` (CSPRIT = HSPRIT's idle blocks, yellow) |
 
-**The ending and the party wipe (s221, section 9.3):** the ending runs on the remaster's ending screen
-(`ending_scene`, the Amiga's steps: picture, the row of clouds, the hand, a figure per member, the speech in yellow on
-text row 21); the party wipe on DOS's pages (`defeat_pictures`, `P1DosDefeatScene`: the art follows the pack, whichever
-layout is on). Live: `parity/s221-c64-end-screens-live.md`. Not modelled `[~]`: Zeus's bottom-up wipe (13 s; here the
-shortest fade, `fade_vbl` 1), the rising clouds beside him (here a row centred under him), the hand flashing per strike,
-the talking face and the grant hand (their states are written: `zeus-speech.png`, `zeus-grant.png`, sprites `c0`–`ce`),
-the figure's light grey for a member with status 0, the rising door (`temple-door.png`, `door.png`: no slot; the Amiga's
-door sinks), the fate colours (UNDEAD cyan, DESTROYED dark grey: DOS's rule clears a destroyed slot), the C64's slot
-positions and its line colours (one colour, blue); waits and VBL rate not measured.
+**The ending and the party wipe (s221, section 9.3; s223, section 9.4):** since s223 both run as the C64's programs do.
+The ending: `ending_scene.c64` (`C64EndingLayout`, the Client's `C64EndingScreen` / `C64EndingView`): the astral line,
+the clouds rising beside Zeus at the C64's places, Zeus wiped in from the bottom up, a strike per slot (the lightning hand,
+then the member's own figure in the cloud's place, yellow or light grey), "Zeus smiles and says" with the face cycling
+`ending.face.0`–`7`, the speech typed a word at a time on rows 18–24, the grant hand cycling `ending.hand.0`–`5`; sprites
+at their own 24 × 21 (not scaled). The party wipe: `c64_defeat` (`C64DefeatLayout`, `C64DefeatScreen` / `C64DefeatView`,
+the same for II) under ORIGINAL SCREENS: the defeated line, the temple with the door behind it, the ghosts one by one at
+the C64's places, the door rising (`defeat.door`), the face (`defeat.face`), each fate's line in its colour and the
+member's own figure (`P(145)`: `BirthRace`) in cyan (UNDEAD) or yellow, a destroyed member's slot empty; it runs by itself.
+With ORIGINAL SCREENS off, the party wipe stays on DOS's pages (`defeat_pictures`, `P1DosDefeatScene`). Waits: the `TI`
+seconds and frame counts of section 9.4; the interpreter's own time measured in VICE (section 9.5) `[~]`; `vbl_hz` 50
+(VICE's PAL) `[~]`. Not modelled `[~]`: the closing text page after the grant (not imported: the screen ends after the
+grant); the C64's own speech wording (Core's seven lines on its rows); the undead member's name on row 21; the ghost's
+block being rewritten byte by byte (the figure appears at once after `fate_copy_seconds`); the SID sounds. Live:
+`parity/s223-c64-endings-live.md`.
 
 **Falls back (no C64 picture):** UNDEAD's portrait and `defeat.figure.15` (CSPRIT has no UNDEAD figure: the Client
 draws none, as for any missing portrait); the title's credits screen, `ui.decor` / `decor.*` (the Amiga's own defeat
@@ -234,8 +240,8 @@ III's Apple pack does. Text: the remaster 5 × 7 font (the C64 sets are written 
 the defeat's as `ending/font.png`, `defeat/font.png`).
 
 `[?]` left: `DOOR`'s colour (no program shows it); the hero colour rule (yellow / light blue); the water's
-moving characters (not drawn); what sets `P(168)` (the ending's figure); sprite blocks `$C8`, `$CA`, `$CB`, `$CD`,
-`$CE` not seen live; the code printing the town buildings and the dungeon map.
+moving characters (not drawn); the code printing the town buildings and the dungeon map. (s223: `P(168)` and the sprite
+blocks `$C8`–`$CE` are settled in section 9.1.)
 
 ## 9. Ending and defeat screens (s221)
 
@@ -270,25 +276,30 @@ character set leaves character `$FF`'s last byte 0 (the file holds 4; `$FF` is n
 
 | Block | Picture | Live use |
 |---|---|---|
-| `$C0`–`$C5` | Zeus's right hand, six frames | sprite 7 at (200, 74), white, while P.END prints spaces over the hand's six cells (rows 3–4, columns 22–24): seen with `$C5` at the grant `[C]`; the order of the frames `[~]` |
-| `$C6`–`$CD` | Zeus's face, eight frames | sprite 6 at (161, 77), white, over the face's four cells (rows 4–5, columns 18–19, printed as spaces): while the speech is typed it cycles `$C7`, `$CC`, `$C9`, `$C6` `[C]`; `$C8`, `$CA`, `$CB`, `$CD` not seen |
-| `$CE` | a striped ball | not seen `[?]` |
+| `$C0`–`$C5` | Zeus's right hand, six frames | sprite 7 at (200, 74), white, while P.END prints spaces over the hand's six cells (rows 3–4, columns 22–24): the grant, cycled `$C0`, `$C1` … `$C5`, `$C0` … by `UTIL-3.O`'s animator, 10 frames each (s223, section 9.4) `[C]` |
+| `$C6`–`$CD` | Zeus's face, eight frames | sprite 6 at (161, 77), white, over the face's four cells (rows 4–5, columns 18–19, printed as spaces): cycled `$C6` … `$CD` in order, 10 frames each, from "Zeus smiles and says" to the end of the speech (s223, section 9.4) `[C]`. s221's once-a-second dumps caught every fifth frame (`$C7`, `$CC`, `$C9`, `$C6`: 50 frames = 5 steps mod 8), so all eight are used |
+| `$CE` | a striped ball | no pointer in `P.END` reaches it (blocks used: `$C0`–`$C5`, `$C6`–`$CD`, `$CF`, `$D0`): unused (s223) `[C]` |
 | `$CF` | the hand sending lightning | sprite 7 at (202, 62), light blue (14), switched on and off while each member is struck `[C]` |
 | `$D0` | the members' cloud (multicolour) | sprites 0 … n, colour 2, `$D025` (MC1) flashing 7 / 2, `$D026` (MC2) 2 `[C]` |
 
 **Sequence** (live, `PEEK(SA + 1203)` poked to 0 and to 4): the "INSERT BOOT DISK AGAIN" box; `ZALL` loads; a black
 screen with "You have arrived at the astral plane" (yellow, row 23) and **one cloud per slot** `0 … PEEK(SA + 1203)`
 (P.END tests no slot; with 4 poked over a four-member party, slot 4 was empty and its figure came out as junk, block
-`$40`: a state the game itself would not make): sprites 0–2 at x 90, 60, 30 and 3–4 at 240, 270, rising from y 231 to 150. The wipe (about 13 s).
+`$40`: a state the game itself would not make): sprites 0–2 at x 90, 60, 30 and 3–4 at 240, 270, rising from y 240 to 150 (s223: they start at y 255, off the screen; s221 read 231 from a dump taken during the rise). The wipe (104 × 7 frames, section 9.4).
 Per member Zeus strikes (`$CF` flashing) and the cloud becomes the member's figure: **pointer `64 + P(168)`** (`P.END`
 `0x6a0`: `POKE screen + $3F8 + member, FN P(168) + 64`), a block of `FONT+HER`'s copy at `$D000` (blocks `$4C`, `$4E`,
 `$52`, `$54` seen = `HSPRIT` blocks 0, 4, 12, 16), multicolour off, colour 7 if `P(18)` (status) ≠ 0, else 15; an OK
-member also gets `POKE C(118),1` (spell 58, "Your First Divine Spell"). Then "Zeus smiles and says" and the speech, typed
-a letter at a time in yellow from row 21 with the face talking; the hand at the grant; a key; a text page without
+member also gets `POKE C(118),1` (spell 58, "Your First Divine Spell"). Then "Zeus smiles and says" (row 24) and the speech, typed
+word by word in yellow on rows 18–24 with the face talking (s223: section 9.4; s221's "row 21" was a line part-way down); the hand at the grant; a key; a text page without
 pictures ("Now Your Party will be transported to The City of Pelnor …", green); `FONT` back to `$E800`; `TOWNR`.
 
-`P(168)` (record byte 168, in FORMAT.md 3.5's `[?]` range) is the figure's block offset: GRUNT 12, HIT 20, SCOTT 18,
-BORACK 14 with races 0 / 3 / 2 / 2, so it is not the race; what sets it `[?]`.
+`P(168)` (record byte 168, in FORMAT.md 3.5's `[?]` range) is the figure's block offset. s223: `TOWNR` `0x2c41`–`0x2c60`
+sets it, for each party slot k, to **12 + 2 k** right after copying the member's `HSPRIT` pair (from `$F000 + 128 · P(145)`,
+`SYS SY+27`) to `$D300 + 128 k` (block `$4C + 2 k`); `0x170d` sets it the same way for a member joining, slot 6 gets 25, and
+the fights (`OUTDOORS` / `DUNGEON`) add 1 for the attack frame and take it back `[~]`. So in a state the game made, the
+ending's figure is the member's own idle figure, `HSPRIT` block 2 · `P(145)` (the pack's `portrait.N.idle`) `[C]`. s221's
+GRUNT 12, HIT 20, SCOTT 18, BORACK 14 (races 0 / 3 / 2 / 2) came from roster records poked into other slots, whose old
+offsets pointed at other members' copies.
 
 ### 9.2 The party wipe: `CEMETARY`, `SKEL2`, `CSPRIT`, `FONTO` `[C]`
 
@@ -308,7 +319,11 @@ characters** (`$D01B` = `$80`), at (148, 77), filling the doorway; its y then fa
 at (148, 81), in the doorway; "A GREAT DEMON APPEARS AND SPEAKS..." (blue). Per member with a level (`P(54)` ≠ 0): its
 name (row 21), then its ghost block is rewritten in place into `CSPRIT` block `P(145)` (`CEMETARY` `0x877`: from
 `8192 + 64 · P(145)`; seen: GRUNT block 0, HIT 3, SCOTT and BORACK 2), coloured as the fate's line: **GRANTED UNDEAD
-STATUS 3 (cyan)**, **DESTROYED 11 (dark grey)** (both seen), RESURRECTED 7 (yellow: the code's value, not seen) `[~]`. A
+STATUS 3 (cyan)**, RESURRECTED 7 (yellow), **DESTROYED 11 (dark grey) and then switched off**: s223, `CEMETARY` `0x905`
+is `ON DF GOSUB 0x863, 0x869` (opcode `$4E`, RTL-64 `$B528`: ON … GOSUB, the targets read in order); DF = 1 (destroyed)
+runs `0x863` = the copy and the colour (`0x869`), then `0x80c` turns the sprite off, so a destroyed member's slot is
+empty as on DOS; DF = 2 (resurrected, undead) keeps it `[C]`. s221's "dark grey, seen" was the colour register `$D027 + k`
+in a dump, which keeps 11 with the sprite off. A
 member whose race `P(161)` is already 15 (UNDEAD) takes the undead branch again. Then "PLEASE INSERT YOUR BOOT DISK
 AGAIN".
 
@@ -340,6 +355,113 @@ speech, grant and strike states; the temple, door and demon), and by palette ind
 The fate figures are `HSPRIT`'s idle blocks (already the pack's `portrait.N.idle`, section 2.2), so `defeat.figure.N`
 can take those in the fate's colour; but DOS picks `defeat.figure.N` by race (15 = UNDEAD) and the C64 by `P(145)`
 (equal to the race for these members), and `CSPRIT` holds no UNDEAD figure, so `defeat.figure.15` stays a fallback. The
-two scenes pick differently: the ending by `P(168)`, the defeat by `P(145)` (HIT and SCOTT showed other figures in each). Not found on the C64: a grave (`combat.grave`) and a sorry sign
+two scenes pick the same figure in a state the game made (s223: `P(168)` = 12 + 2 · slot points at the copy of
+`HSPRIT` pair `P(145)`, section 9.1); s221's HIT and SCOTT showed other figures only because of the poked records. An
+UNDEAD fate keeps `P(145)` (only the race `P(161)` becomes 15), so the C64 draws the member's own figure in cyan. Not found on the C64: a grave (`combat.grave`) and a sorry sign
 (`decor.sorry-sign`); they stay fallbacks. The ending's cloud and the defeat's ghost are different pictures (the Amiga
 uses one ghost for both).
+
+### 9.4 The programs step by step (s223) `[C]`
+
+Read in s223 from the compiled BASIC of `P.END` (code `0x197`–`0xcc5`, variables from `0xccd`) and `CEMETARY` (`0x102`–
+`0x9de`, variables from `0x9e4`) with a scratch disassembler of the opcodes in `../bytecode-notes.md` (new there: `$4E` /
+`$4D` ON … GOSUB / GOTO, `$42` / `$43` FOR, `$46` NEXT, `$4C` RETURN, word operands big-endian, a statement's BASIC
+token `$87` READ, `$99` PRINT, `$9F` OPEN, `$A0` CLOSE, `$A1` GET, `$84` INPUT# followed by its plain text), `ZALL`'s
+6502 at `$4CC0` and `UTIL-3.O`'s at `$C86E` / `$C4D1` (side 1's copy: side 2's ends before `$C86E`).
+
+**Three kinds of wait.** (a) `TI` waits: `GOSUB 0xb99` (`P.END`) / `0x8c2` (`CEMETARY`) set `TI$ = "000000"` and loop
+until `TI` ≥ 60 · TD (TL), so TD seconds of the 60 Hz jiffy clock (60 Hz on PAL and NTSC: the KERNAL sets the CIA for
+1/60 s on both), less up to one jiffy (the clock is reset mid-jiffy). (b) VIC frames: `ZALL`'s wipe and `UTIL-3.O`'s
+animator count raster frames (PAL 50, NTSC 60 a second). (c) Busy loops: empty `FOR … NEXT`s and the BASIC around the
+waits, whose time is the interpreter's (measured in VICE, PAL, section 9.5).
+
+**`P.END`** (ZX = 13, ZY = 2, HB = `$C0`, FB = `$C6`; SC = `$E400`; positions VIC):
+
+1. Setup: sprites 0–5 red (2), MC1 yellow (7), MC2 red (2); sprite 7 = the lightning hand at (HX + 2, HY − 12) = (202, 62),
+   light blue (14). "INSERT BOOT DISK AGAIN", a key, `ZALL` loads (disk).
+2. "You have arrived at the astral plane" (yellow, column 3, row 23); TD = 2.
+3. The screen cleared; `SYS $4CC6` starts `ZALL`'s raster-IRQ music (`$4D40`). PO = `PEEK(SA + 1203)` (last slot), PL =
+   INT(PO / 2 + 1.1); multicolour on for sprites 0–5. Slot m < PL: x = ZL − 30 m = 90 − 30 m; else x = ZR + 30 (m − PL) =
+   240 + 30 (m − PL); y 255; pointer `$D0` (the cloud); all slots 0 … PO switched on at once.
+4. The rise: for y = 240 down to 150 (91 steps): MC1 := C, `SYS $4CC3,y` (sprites 0–5 to y), TD = 0.05; every second
+   step C := 9 − C (yellow ↔ red). Then MC1 := 7; TD = 2.
+5. Zeus's 156 characters printed (white, still blank); `SYS $4CC0,7`: the wipe, 104 steps; each waits 7 frames, then copies
+   one byte into each of Zeus's 12 character columns from the bottom pixel row up, so one pixel row of the 96-wide
+   picture appears every 7 frames (PAL 14.6 s, NTSC 12.2 s). TD = 2. `SYS $4CC9` stops the music `[~]`.
+6. Sprite 7's pointer := `$CF`; for each slot m = 0 … PO (every slot, whatever its status): sprite 7 on; `GOSUB 0xbb6`
+   (thunder: SID setup, TD = 0.3, TD = 0.2, `FOR I = 1 TO 1400`); multicolour off for sprite m; colour 7 if `P(18)` ≠ 0
+   else 15; pointer 64 + `P(168)` (the member's figure, section 9.1); TD = 0.3; sprite 7 off; TD = 0.7; an OK member gets
+   spell 58. One hand on / off per member (no flashing).
+7. Multicolour off; sprite 7 to (200, 74), white; "Zeus smiles and says" (yellow, column 8, row 24); sprite 6 (the face)
+   at (161, 77), white, pointer `$C6`, on; spaces over the face's cells; `SYS SY+51,6,$C6,10×8,0`: the animator cycles
+   sprite 6 through `$C6` … `$CD`, 10 frames each. TD = 3.
+8. Rows 18–24 cleared; the seven `DATA` lines, line I at column 1, row 18 + I, yellow, all left on screen. Each line is
+   printed a character at a time (`MID$`, `PRINT X$;`); after each space `GOSUB 0xc43`: a SID click (gate on, a random
+   pitch), `TI` from 0 until it reaches IT = 16 (16 jiffies), gate off, `TI` from 0 until IT := RND · 8 (0–8 jiffies). After
+   each line the same `GOSUB` with IT still RND · 8 from the last click (so two short random waits). So the text appears a
+   word at a time, ~0.3–0.4 s a word.
+9. Sprite 7's pointer := `$C0`, on; spaces over the hand's cells; `SYS SY+51,7,$C0,10×6,0`: the animator now cycles the
+   hand `$C0` … `$C5` (it has one slot, so the face stops), the face set back to `$C6`. TD = 12.
+10. Zeus printed again, sprites 6–7 off, Zeus's cells cleared, all sprites off; `SYS SY+60,0` removes the animator. A text
+    page in green from row 2 ("Now your party will be transported to the City of Pelnor …", 9 lines) and "(PRESS A KEY WHEN
+    READY)" on row 24 until a key; `TOWNR` loads.
+
+**`CEMETARY`** (`CEMETARY2` is the same program but for its file names and the record writes after the fates, s223
+diff): sprites 6–7 expanded, sprite 7 behind the characters. SS = INT((220 − 35 · PO) / 2): ghost k at (SS + 35 k, 170),
+block `$84 + k`, white; the door (sprite 7, `$8B`, light grey) at (148, 77); the face (sprite 6, `$8A`, purple) at
+(148, 81).
+
+1. "[original text]" (red, column 6, row 23); TL = 2.
+2. The temple printed (dark grey); the door on; "YOU HAVE ARRIVED ON THE ASTRAL PLANE !!" (blue, column 1, row 23).
+3. For each slot with a level (`P(54)` ≠ 0): TL = 0.3, then its ghost on (one at a time).
+4. A SID sound; TL = 2.
+5. The door rises: y = 77 down to 0 (78 steps), TL = 0.1 each (behind the temple's characters, so it shows only in the
+   doorway). Then the face on; "A GREAT DEMON APPEARS AND SPEAKS..." (blue, row 23); TL = 4.
+6. For each slot with a level: rows 21–24 cleared; the fate; for UNDEAD the name in cyan on row 21 and the line "YOU HAVE
+   BEEN [original text]"; the others "name-YOU HAVE BEEN RESURRECTED / DESTROYED" — all on row 23 in the fate's colour
+   (cyan 3, yellow 7, dark grey 11); a SID sound with TL = 1.08; then `ON DF GOSUB`: the ghost's block is overwritten
+   byte by byte (64 iterations of BASIC) with `CSPRIT` block `P(145)` and coloured; a destroyed member's sprite is then
+   switched off; TL = 2.
+7. With no member left: "ALL MEMBERS ARE DESTROYED" (red); TL = 2. The record writes; TL = 6; the screen cleared, "PLEASE
+   INSERT YOUR BOOT DISK AGAIN" until a key.
+
+The fate rule itself (CON, level, `RND`) is the C64's: not the remaster's, which keeps DOS's (Core); only the pictures
+follow it.
+
+### 9.5 Measured in VICE (s223) `[C]`
+
+VICE 3.10 `x64sc`, PAL (50.125 frames a second, CPU 985,248 Hz), true drive, sound off, no warp; `.d64` images built with
+`c1541` from the v1.4 (I) and v1.2 (II) PRGs, `UTIL-3.O` and `FONT` loaded and a party poked at `SA` = `$9A24` through
+the monitor (I: GRUNT OK, HIT dead with CON 0, SCOTT race 15, BORACK OK; II: LOUIS, THUNDAR), then `P.END`, `CEMETARY` or
+`WIN` run. Times: the monitor's stopwatch at conditional breakpoints on the bytecode dispatch (`$A090` with `$39` / `$3A`,
+written `(@cpu:$39 == $xx) && (@cpu:$3a == $yy)`), so emulated time; two runs each of `P.END` and `CEMETARY`. Logs and
+the harness are not kept in the repo.
+
+| What | Seconds | The pack |
+|---|---|---|
+| A cloud step (TD = 0.05) | 0.0606 mean (0.050–0.069); the rise 5.46–5.53 | `cloud_step_overhead` 0.0106 |
+| The wipe | 14.521 = 728 frames (PAL; NTSC 12.17) | `vbl_hz` 50, `wipe_frames` 7 |
+| `GOSUB 0xbb6` (thunder: TD 0.3 + 0.2, `FOR 1400` 1.231) | 1.79; a strike 2.82–2.86 | `thunder_seconds` 1.79 |
+| A speech character | ~0.0064 (+ ~0.012 at a line start) | `letter_seconds` 0.0064 |
+| A space's click to the next word | 0.342 mean (0.286–0.403) = (16 + RND · 8) / 60 | `space_jiffies`, `random_jiffies` |
+| A line's end | 0.105–0.225 | (two RND · 8 waits) |
+| The speech, seven lines | 17.5–18.4 | |
+| The grant | 12.02 | `grant_seconds` 12 |
+| A ghost (TL = 0.3) | 0.33 apart | `ghost_seconds` 0.33 |
+| A door step (TL = 0.1) | 0.0999 (0.097–0.101); the door 7.80 | `door_step_seconds` 0.1 |
+| A fate's sound (TL = 1.08) | 1.17 | `fate_sound_seconds` 1.17 |
+| A fate's figure copy (`GOSUB 0x869`) | 4.04–4.14: the ghost morphs while it runs | `fate_copy_seconds` 4.1 |
+| A fate, whole | 7.4–7.7 (0.12–0.41 of BASIC before the sound) | |
+| `WIN`'s empty `FOR 4000` | 4.169 (1.04 ms a pass, the band IRQ running) | II `grant_ticks` 4170 |
+| `WIN`'s name routine `0x9fb` (prints + `FOR 1000`) | 1.087 | II `line_ticks` 5260 (+ `FOR 4000`) |
+| `WIN`'s cheer `0x6ba` (its sound `0x749` 9.92) | 10.22 | II crowd `flash_ticks` 9920 |
+| `WIN`'s intro page (the hall's load) | 16.85 (true drive) `[~]` | II `intro_page.seconds` |
+
+Seen and confirmed: the rows 18–24 speech, word by word, with the face on; the clouds switched on at y 255, then 91 steps
+240 → 150, before the wipe (Zeus absent while they rise); the cloud places (4 members: x 90 / 60 left, 240 / 270 right);
+light grey for a status-0 member; the rising light-grey door; the fates: UNDEAD figure and line cyan with its name on row
+21, RESURRECTED yellow, DESTROYED's line dark grey and its slot empty (the sprite goes off ~0.035 s after the colour);
+II's presented member light red in its attacking pose in its own place; II's intro and closing pages black letters on
+yellow (the closing page prints with the hall's inverted characters still loaded). Not watched: whether a band IRQ
+alternates the crowd's frames during the cheer (one shot showed the second frame) `[~]`. Screenshots:
+`parity/s223-vice-*.png`.

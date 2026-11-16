@@ -1,0 +1,133 @@
+{
+  "_schema": "phantasie.graphics-pack/v1",
+  "_note": "Apple II Phantasie I art (VERSION 1.0; the p1-apple2 import, P1Apple2Art; reverse-engineering/apple2/phantasie1/GRAPHICS.md). Every picture is an Applesoft shape (SHAPES, 58 shapes) drawn at the game's SCALE / HCOLOR and turned into colour by an NTSC artifact model [~], except the title picture (HPIC). I's engine is II's Apple engine, so the pack is laid out as II's. The Apple's text is the ROM font (not on the disks): the remaster 5x7 font stands in. Screen kept at the remaster's 320 x 200 layout: Apple pictures (280 x 192 hi-res pixels) are drawn 1:1 in it. Map: the Apple draws its 20 x 26 map rotated against the remaster's 26 x 20 grid (FORMAT.md 3.6); here the tiles follow the remaster's grid, 22 x 20 cells of 7 x 6. A tile's colour fringes depend on its screen column on the Apple: the pack uses the even-column look. No town, item, ending or defeat pictures: the Apple's town is text and CEMETARY / FLASH? draw in BASIC (not replayed [~]); the Client draws its plain screens there.",
+  "id": "apple2",
+  "game": "phantasie1",
+  "platform": "apple2",
+  "name": "Apple II",
+  "auto_select": true,
+  "root": "reverse-engineering/apple2/phantasie1/extracted/graphics",
+  "requires": [
+    "monsters",
+    "overworld/tiles",
+    "dungeon"
+  ],
+  "screen": {
+    "width": 320,
+    "height": 200,
+    "pixel_aspect": [
+      1,
+      1
+    ],
+    "background": "#000000"
+  },
+  "font": "remaster-5x7",
+  "_tile_maps": "OUTDOORS 5030-5040: map byte b < 120 draws shape 37 + b / 10 (7 x 6 cell) in HCOLOR INT(1 + .51 * class); b >= 120 is fog, not drawn (black tiles 120-255); the party is the XDRAW block 43 (5175). DUNGON 5025-5062: only cells next to the party are drawn; 4 x 4 marks: bytes 0-1 wall (31), 185-199 (32), 200-214 (33), 215-217 drawn in HCOLOR 0 (nothing: glyph 0), 218-220 (35), 221-255 (36), every other byte erases the cell (glyph 0); the party is the XDRAW cursor 30. Glyph numbers are the shape numbers.",
+  "tile_maps": {
+    "overworld_tile": [
+      7,
+      6
+    ],
+    "overworld_view": [
+      22,
+      20
+    ],
+    "dungeon_glyph": [
+      4,
+      4
+    ],
+    "dungeon_unseen": 0,
+    "dungeon_party": 30,
+    "dungeon_default": 0,
+    "dungeon_cells": [
+      [
+        0,
+        1,
+        31
+      ],
+      [
+        185,
+        199,
+        32
+      ],
+      [
+        200,
+        214,
+        33
+      ],
+      [
+        215,
+        217,
+        0
+      ],
+      [
+        218,
+        220,
+        35
+      ],
+      [
+        221,
+        255,
+        36
+      ]
+    ]
+  },
+  "title_sequence": {
+    "_note": "HELLO prints STRATEGIC SIMULATIONS PRESENTS / VERSION 1.0 (text page, ROM font) and runs INTRO, which loads SHAPES and INFO, RECALLs HPIC onto hi-res page 1, shows it full-screen (lines 1000-1010) and waits for a key (1276); then the PHANTASIE / 1 - START IN PELNOR / 2 - CONTINUE text menu. Shown: HPIC until a key.",
+    "canvas": [
+      280,
+      192
+    ],
+    "background": "#000000",
+    "steps": [
+      {
+        "picture": "title.credits"
+      }
+    ]
+  },
+  "pictures": {
+    "title.cover": "screens/title.png",
+    "title.credits": "screens/title.png",
+    "combat.sparkle": "effects/23-spell-sparkle.png",
+    "overworld.party": "overworld/party.png"
+  },
+  "_portraits": "portrait.{race}: the party figure (TOWN 2350-2356, record byte 168: races 7+ shape 26, DWARF / HALFLING / GNOME / PIXIE / SPRITE 25, HUMAN / ELF 19, or 27 for a MONK / PRIEST / WIZARD, which a race-keyed picture cannot show [~]) with the arm overlay 20 (idle) or 22 (attacking). The figures by body and pose are in figures/.",
+  "picture_sets": [
+    {
+      "name": "monster.{n}.idle",
+      "dir": "monsters/idle",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "monster.{n}.attacking",
+      "dir": "monsters/attacking",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "portrait.{n}.idle",
+      "dir": "portraits/idle",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "portrait.{n}.attacking",
+      "dir": "portraits/attacking",
+      "prefix": "{n:D2}-",
+      "ext": ".png"
+    },
+    {
+      "name": "overworld.tile.{n}",
+      "dir": "overworld/tiles",
+      "prefix": "{n:D3}.",
+      "ext": ".png"
+    },
+    {
+      "name": "dungeon.cell.{n}",
+      "dir": "dungeon",
+      "prefix": "glyph-{n}.",
+      "ext": ".png"
+    }
+  ]
+}

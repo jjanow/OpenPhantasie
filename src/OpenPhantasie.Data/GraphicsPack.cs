@@ -418,6 +418,9 @@ public sealed class GraphicsPack
     /// <summary>Where I DOS's party-defeat pictures put the row and the line (<c>defeat_pictures</c>, s157), or null.</summary>
     public DefeatPicturesLayout? DefeatPictures { get; init; }
 
+    /// <summary>s223: I / II C64's party wipe (<c>c64_defeat</c>, <c>CEMETARY</c>'s steps), or null.</summary>
+    public C64DefeatLayout? C64Defeat { get; init; }
+
     /// <summary>I Amiga's sounds at moments outside its screens (<c>cue_sounds</c>, s153), or null.</summary>
     public CueSounds? CueSounds { get; init; }
     /// <summary>The original's combat screen (Phantasie I Amiga, s132), or null when the pack has none.</summary>
@@ -575,6 +578,7 @@ public sealed class GraphicsPack
             EndingScene = dto.EndingScene is { } es ? EndingSceneLayout.FromDto(es, cycle?.VblHz, manifestPath) : null,
             DefeatScreen = dto.DefeatScreen is { } ds ? DefeatScreenLayout.FromDto(ds, manifestPath) : null,
             DefeatPictures = dto.DefeatPictures is { } dp ? DefeatPicturesLayout.FromDto(dp, manifestPath) : null,
+            C64Defeat = dto.C64Defeat is { } c64d ? C64DefeatLayout.FromDto(c64d, manifestPath) : null,
             CueSounds = dto.CueSounds is { } cs ? Data.CueSounds.FromDto(cs, manifestPath) : null,
             CombatField = combatField,
             MapMessage = dto.MapMessage is { } mm ? MapMessageLayout.FromDto(mm, dto.Palettes, combatField, manifestPath) : null,
@@ -761,6 +765,7 @@ public sealed class GraphicsPack
         [JsonPropertyName("ending_scene")] public EndingSceneLayout.Dto? EndingScene { get; set; }
         [JsonPropertyName("defeat_screen")] public DefeatScreenLayout.Dto? DefeatScreen { get; set; }
         [JsonPropertyName("defeat_pictures")] public DefeatPicturesLayout.Dto? DefeatPictures { get; set; }
+        [JsonPropertyName("c64_defeat")] public C64DefeatLayout.Dto? C64Defeat { get; set; }
         [JsonPropertyName("cue_sounds")] public CueSounds.Dto? CueSounds { get; set; }
         [JsonPropertyName("combat_field")] public CombatFieldLayout.Dto? CombatField { get; set; }
         [JsonPropertyName("map_message")] public MapMessageLayout.Dto? MapMessage { get; set; }

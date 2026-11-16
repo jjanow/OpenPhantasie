@@ -59,7 +59,7 @@ Text files read with `& READ "MN"+MF` and `INPUT` (OUTDOORS 900–915, DUNGON 90
 `EX` xp · `SL%` special chance · `SP%(0..2)` specials · `DM` hp base · `PW%` combat rating · `WG`, `ML` companions ·
 **`C%` SCALE, `H%` HCOLOR** (drawing) · `PM` reaction · `PL` next-group chance · `D%` defense · `X` gold · `Y` group size
 factor · **`YS%`** (DOS byte 0x34) · `IA`, `IB` treasure items · `AK%` attack power · **`S%` shape**. Put into DOS's
-0x39-byte record; fields 13, 14 and 24 are not used. DOS's sprite (width, height) table has no Apple counterpart: the
+0x39-byte record; fields 13, 14 and 24 are the art's (`GRAPHICS.md` 2.1), not the tables'. DOS's sprite (width, height) table has no Apple counterpart: the
 shipped `sprite_sizes` (DOS's).
 
 ### 3.2 Items: `ITEM` + `TINFO` `[C]`
@@ -149,7 +149,8 @@ the Apple = DOS's SOUTH (the C64 says NORTH, D-085; the Apple agrees with DOS he
 
 `CHAR` records 0–36 (the roster), `TWNn`, `DNGSAV`, `DNGCHK` (play state); `SHAPES` (2930 B at $451F, shape table),
 `HPIC` (title picture), `INFO` (238 B at $302, byte-identical to II's `INFO`, sha1 `af28cae4…`), `QWERTY`, `SSI.INIT` (RDOS init, cracked on
-the 4am pair), `RDOS 2.1` / `SYSTEMBOOT`. The art (`SHAPES`, `HPIC`, the hi-res screens) is not imported yet `[~]`.
+the 4am pair), `RDOS 2.1` / `SYSTEMBOOT`. The art (`SHAPES`, `HPIC`; the only hi-res files) is the `apple2` graphics
+pack (s223): `GRAPHICS.md`.
 
 ## 4. Key files (importer detection)
 
@@ -176,8 +177,8 @@ copy); the import reads only CHAR's elementals and gives the regions DOS's start
 - **Items**: all 180 values equal. **Scrolls / messages**: text only.
 - **Text kept as the Apple's**: item names (`SH SWORD`, `HEAL POT1..9`, rings `RING I`..`RING IX`, `--WAND--`, the
   treasures `QUARTZ`, `CRYSTAL`, ..., `GOLDEN OX`, `GOD RING` where DOS has `EMERALD A`..`DIAMOND E`), town 4
-  `HOBBITON` (DOS `HALFLINGOR`), race `LIZARD MAN`, monster spellings `APRENTICE DEVIL`, `MASTER ILLUSTIONIST`
-  (DIFFERENCES.md D-089), message and scroll wording.
+  `HOBBITON` (DOS `HALFLINGOR`), race `LIZARD MAN`, message and scroll wording. The Apple's monster typos `APRENTICE DEVIL`,
+  `MASTER ILLUSTIONIST` import as DOS's `APPRENTICE DEVIL`, `MASTER ILLUSIONIST` (`name_fixes`, DIFFERENCES.md D-089).
 - **Ending**: the Apple's `FLASH?` shows a short Zeus scene ("YOU ARE HEROES OF GELNOR !!! I GIVE YOU THREE GIFTS AND
   YOUR FIRST DIVINE SPELL."), gives items 177–179 and the divine spell, and puts the party on Olympus (OUT19 (13, 18)).
   The import keeps DOS I's ending (Core's rules); Zeus's lines have no `p1-apple2` text (section 6).

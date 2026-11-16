@@ -422,7 +422,11 @@
    ],
    "apple": "FIRE ELE",
    "fixed": "FIRE ELEM"
-  }
+  },
+  {"why": "monster 12's typo (MN1 record 4; D-089, user s223)", "file": "monsters.json", "path": ["monsters", 12, "name"], "apple": "APRENTICE DEVIL", "fixed": "APPRENTICE DEVIL"},
+  {"why": "the same name in the name table", "file": "names.json", "path": ["monsters", 12, "name"], "apple": "APRENTICE DEVIL", "fixed": "APPRENTICE DEVIL"},
+  {"why": "monster 58's typo (MN7 record 2; D-089, user s223)", "file": "monsters.json", "path": ["monsters", 58, "name"], "apple": "MASTER ILLUSTIONIST", "fixed": "MASTER ILLUSIONIST"},
+  {"why": "the same name in the name table", "file": "names.json", "path": ["monsters", 58, "name"], "apple": "MASTER ILLUSTIONIST", "fixed": "MASTER ILLUSIONIST"}
  ],
  "_sprite_sizes": "DOS's monster sprite (width, height) per monster (PHANTASI.COM DS:0x2c3e): the encounter build's group fit reads the width. The Apple has no such table (it draws shapes at a SCALE).",
  "sprite_sizes": [

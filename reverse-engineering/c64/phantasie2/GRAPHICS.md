@@ -103,11 +103,16 @@ same `event.*` slots and `find_pictures` table; sizes EXIT 8 × 6 characters, th
 (`ending.final` = the hall, `ending.crowd.0` / `.1` = TLUM1's crowd, with `ending_scene`: Filmon's intro and closing
 pages, the row by record, the lines in the panel) and the party wipe through II's defeat scene (`ui.decor` = the temple,
 `decor.demon-face` = the face's doorway, `portrait.ghost` = the ghost); section 8.3, live in
-`parity/s221-c64-end-screens-live.md`. **Falls back:** `decor.door` (the C64's door rises, the ST's sinks: not modelled
-`[~]`), `decor.sorry-sign` (none on the C64), UNDEAD's portrait, `combat.*`; II's own drawing for those.
+`parity/s221-c64-end-screens-live.md`. s223: the party wipe runs as `CEMETARY2` under ORIGINAL SCREENS (`c64_defeat`,
+I's GRAPHICS.md 8 / 9.4: the rising door `defeat.door`, the face `defeat.face`, the fates' colours; `defeat.temple` /
+`defeat.ghost` added for it); the ending's row is `WIN`'s (all members from the start at x 86 + 24 k, `row_left`; the
+presented one in its attacking pose in light red, `present_colour` 10); the intro page black on yellow without an OK
+form; `parity/s223-c64-endings-live.md`. **Falls back:** `decor.door` (II's own defeat scene, ORIGINAL SCREENS off),
+`decor.sorry-sign` (none on the C64), UNDEAD's portrait, `combat.*`; II's own drawing for those.
 
-`[?]` left: `DOOR`'s colour (never shown); the hero colour in a party of more than two; the colour `WIN` prints the
-panel's text in (here black on the cyan panel); the code that prints the town and the dungeon map not read. `[~]`: the
+`[?]` left: `DOOR`'s colour (never shown); the hero colour in a party of more than two; the code that prints the town and
+the dungeon map not read. (s223: the panel's text is cyan on `PH2.END-4`'s inverted characters, so black on cyan as
+drawn, section 8.1.) `[~]`: the
 attack rule for the 29 several-sprite monsters not watched.
 
 ## 7. Live check in VICE (s219)
@@ -130,8 +135,10 @@ I/O dumps not kept. I's GRAPHICS.md section 9 has the method and the engine's de
 
 `DUNGEON2` loads `WIN` (side 2; `DUNGEON2` also still names `P.END`, which II's disks do not hold). `WIN`:
 
-1. A yellow text page on black ("THE PARTY IS SUDDENLY TELEPORTED INTO A SMALL ROOM. FILMON THE SAGE …"). The red ENTER
-   arrow on it in the live run was the town's sprite left on by the redirect, not part of the screen.
+1. A text page ("THE PARTY IS SUDDENLY TELEPORTED INTO A SMALL ROOM. FILMON THE SAGE …"; s223: `GOSUB 0x84a` sets the
+   background `$D021` to yellow 7 and prints in black, border black). No key: it stays while `PH2.END-4` and `TLUM1` load
+   and a `FOR U = 1 TO 2000` runs (s223). The red ENTER arrow on it in the live run was the town's sprite left on by the
+   redirect, not part of the screen.
 2. `PH2.END-4` (4,095 bytes, loaded to `$8000`): bytes 0–999 → colour RAM, 1,024–2,046 → screen `$E400` (1,023 bytes),
    2,048–4,094 → character set `$E800` (2,047 bytes); hires text, background black. **The hall**: a grey (12) pediment
    and two pairs of columns on a grey floor (rows 1–12) and a cyan (3) text panel, rows 20–23.
@@ -145,11 +152,37 @@ I/O dumps not kept. I's GRAPHICS.md section 9 has the method and the engine's de
    of the ten epithets and three homelands in `WIN`'s DATA). Then "FILMON SPEAKS - 'PRESENTING THE HEROES OF FERRONRAH'",
    the wands of Filmon, "INSERT BOOT DISK AND PRESS A KEY", `TOWN2`.
 
+**s223, `WIN` step by step** (compiled BASIC, code `0xb9`–`0xe3d`, variables from `0xe44`; I's GRAPHICS.md 9.4 has the
+opcodes) `[C]`:
+
+1. The text page above (yellow background, black text), no key.
+2. `PH2.END-4` copied in (colour RAM, screen, characters), screen on; `POKE 646,3`: the panel's text is printed in cyan
+   (3). `PH2.END-4`'s characters are drawn inverted (character 32 is solid, each letter a hole), so the text shows as black
+   letters on the cyan panel: the s221 `[?]` "the colour `WIN` prints the panel's text in" is settled. `FOR U = 1 TO 2000`.
+3. `TLUM1` added as a band; the hero band set up: slots 0–5 at x 110 + 24 k, y 125, colour 7, pointer `P(168)` (I's
+   GRAPHICS.md 9.1: the member's own idle figure), the enable mask 2^(PO + 1) − 1, so **every member stands in the row
+   from the start** (in slot order, whatever its status). `SYS SY+57` starts the band IRQ.
+4. "FILMON SPEAKS -" / " 'PRESENTING THE HEROES OF FERRONRAH'" in the panel; `FOR U = 1 TO 4000`; `GOSUB 0x6ba`, the cheer.
+5. For each slot m = 0 … PO: `FOR I = 1 TO 4000`; member m's pointer + 1 (its attacking block) and colour 10 (light red);
+   `GOSUB 0x9fb`: the panel cleared and the name (row 20), "THE <one of ten epithets, RND> ONE" (row 21) and "FROM
+   <homeland by P(40)>" (row 22), centred, then `FOR U = 1 TO 1000`; `FOR I = 1 TO 4000`; the cheer; the pointer − 1 and
+   colour 7 again.
+6. The cheer (`0x6ba`): the panel cleared, "THE CROWD GOES WILD!" (column 10, row 21); the crowd's pointers + 8 (the second
+   frame); `GOSUB 0x749`, the SID cheer (two pitch sweeps with `FOR T = 1 TO 400` between and a fade with `FOR M = 1 TO
+   500` per volume step, 16 steps); the pointers − 8 (the first frame again); the panel cleared. One frame change a cheer.
+7. "FILMON SPEAKS -" / "'THEY WILL EACH RECEIVE A WAND OF FILMON WHICH HAS GREAT POWER BUT CAN ONLY BE USED ONCE' (PRESS
+   RET)", until a key; `SYS SY+60,0`; the closing page (22 lines + "(PRESS RETURN)", printed in yellow 7 with the hall's inverted characters still loaded, so black letters on yellow cells, VICE s223) until a key;
+   "INSERT BOOT DISK AND PRESS A KEY"; `TOWN2`.
+
+The busy loops' times are in I's GRAPHICS.md 9.5.
+
 ### 8.2 The party wipe: `CEMETARY2` `[C]`
 
 `SKEL2`, `CSPRIT` and `FONTO` are byte-equal to I's side-2 files, and `CEMETARY2` (2,795 bytes) shows I's screen (I's
 section 9.2): the temple, the ghosts (two, at x `$5C` and `$7F`), the rising door, the face, the fates (LOUIS undead:
-block 0 in cyan; THUNDAR destroyed, dark grey), seen live.
+block 0 in cyan), seen live. s223: `CEMETARY2` is `CEMETARY`'s program but for the file names and the record writes after
+the fates (bytecode diff); a destroyed member's figure is switched off right after it is coloured dark grey (I's 9.2 /
+9.4), so THUNDAR's "dark grey" was the colour register of a sprite already off.
 
 ### 8.3 PNGs and the remaster's slots
 
@@ -162,7 +195,7 @@ the demon, rows 0–99) and by palette index against VICE's screenshots in the h
 | PNG | Shows | Slot (s221: wired) |
 |---|---|---|
 | `ending/hall.png` | `PH2.END-4`, the cyan panel empty | `ending.final` |
-| `ending/crowd-0.png`, `crowd-1.png` | the crowd strip, 320 × 42, at screen y 110 | `ending.crowd.0`, `.1` (`crowd` at (0, 110), the ST's flashes and ticks `[~]`; transparent pixels keep the hall: the ending screen leaves a transparent pixel's pen, s221) |
+| `ending/crowd-0.png`, `crowd-1.png` | the crowd strip, 320 × 42, at screen y 110 | `ending.crowd.0`, `.1` (`crowd` at (0, 110); s223: frame 1 for each cheer's sound, 9.92 s, then frame 0 (I's 9.5); before the first cheer the remaster draws no crowd `[~]`; transparent pixels keep the hall: the ending screen leaves a transparent pixel's pen, s221) |
 | `ending/hall-crowd.png` | the hall + crowd frame 0 | — |
 | `defeat/*` | as I's (`temple`, `temple-door`, `temple-demon`, `ghost`, `door`, `demon-face`, `font`) | `ui.decor` = `temple.png`, `portrait.ghost` = `ghost.png`; no `decor.door` (the ST's defeat scene sinks its door; the C64's rises) |
 | `defeat/temple-demon-doorway.png` | s221: `temple-demon.png`'s (123, 19)–(171, 72), 49 × 54 | `decor.demon-face` (the defeat scene draws it at the ST's (123, 19); the C64's face covers (124, 31)–(171, 72)) |

@@ -45,37 +45,47 @@ public static class P2C64ArtManifest
             ("ending.final", "ending/hall.png"), ("ending.crowd.0", "ending/crowd-0.png"), ("ending.crowd.1", "ending/crowd-1.png"),
             ("ui.decor", "defeat/temple.png"), ("decor.demon-face", "defeat/temple-demon-doorway.png"),
             ("portrait.ghost", "defeat/ghost.png"),
+            ("defeat.temple", "defeat/temple.png"), ("defeat.ghost", "defeat/ghost.png"),
+            .. C64PhantasieArtManifest.C64EndSprites(ending: false),
         ],
         EndingScene = J.O(
-            ("_note", "s221 (GRAPHICS.md 8.1, WIN live in VICE): a yellow text page; the hall (PH2.END-4) with its cyan " +
-                "text panel (text rows 20-23); the crowd (TLUM1: 7 expanded green sprites at screen y 110, two frames " +
-                "alternating); the party in the hall (hero band at screen y 75, x 86 + 24 k, yellow; the member presented " +
-                "in light red, attacking, not modelled [~]); Filmon's lines in the panel; 'INSERT BOOT DISK'. Drawn with " +
-                "the remaster's ending screen (II ST's steps): the row by record, centred (slot_size 24) [~]; the lines " +
-                "on text row 21 in black over the panel (the C64's panel text colour [?]); the pages in yellow from text " +
-                "row 2 / 1, no OK form (button_pen 0, black) [~]. No fade on the C64 (fade_vbl 1) [~]; waits and the " +
-                "crowd's flashes the ST's (not measured on the C64) [~]; no C64 sounds."),
+            ("_note", "s221 / s223 (GRAPHICS.md 8.1, WIN's compiled BASIC, live in VICE): the intro page, black on yellow, " +
+                "no key: up while PH2.END-4 and TLUM1 load (16.85 s measured with VICE's true drive, PAL [~]); the hall " +
+                "(PH2.END-4) with its cyan panel (the panel's text cyan on inverted characters: black letters); the crowd " +
+                "(TLUM1: 7 expanded green sprites at screen y 110); the whole party in the row from the start (hero band at " +
+                "screen y 75, x 86 + 24 k, yellow); per member: FOR 4000 (4.17 s), the member in light red in its attacking " +
+                "pose in its place while the panel names it (1.09 s) and FOR 4000 (4.17 s), then the cheer: the crowd's " +
+                "second frame for the sound (9.92 s), then the first again (whole cheer 10.22 s). Drawn with the remaster's " +
+                "ending screen (II ST's steps): the titles on text row 21 (the C64 prints name / epithet / homeland on rows " +
+                "20-22) [~]; the header's FOR 4000 and cheer folded into the header lines and the hold (the crowd keeps its " +
+                "first frame there) [~]; the FOR 4000 before each member taken after it (grant_ticks) [~]; the C64 reads no " +
+                "key on these lines (here a key ends one) [~]; the wands prompt not drawn [~]; the closing page black on " +
+                "yellow cells (the hall's inverted characters still loaded). No fade on the C64 (fade_vbl 1); no C64 sounds."),
             ("palette", C64PhantasieArtManifest.Pens()),
             ("vbl_hz", 50),
             ("fade_vbl", 1),
             ("tick_hz", 1000),
-            ("hold_ticks", 2000),
+            ("hold_ticks", 3870),
             ("row_top", 75),
             ("slot_size", 24),
-            ("grant_ticks", 0),
+            ("grant_ticks", 4170),
             ("row_by_record", true),
+            ("row_from_start", true),
+            ("row_left", 110 - 24),
+            ("present_colour", 10),
             ("crowd", J.O(
-                ("frames", J.Strs(["ending.crowd.0", "ending.crowd.1"])),
+                ("frames", J.Strs(["ending.crowd.1", "ending.crowd.0"])),
                 ("x", 0),
                 ("y", 110),
-                ("flashes", 10),
-                ("flash_ticks", 330))),
+                ("flashes", 1),
+                ("flash_ticks", 9920))),
             ("text_y", 168),
             ("text_pen", 0),
-            ("line_ticks", 3000),
+            ("line_ticks", 5260),
             ("intro_page", J.O(
-                ("palette", C64PhantasieArtManifest.Pens()), ("x", 8), ("y", 16), ("line_gap", 8), ("text_pen", 7),
-                ("button_pen", 0))),
-            ("closing_page", J.O(("x", 8), ("y", 8), ("line_gap", 8), ("text_pen", 7), ("button_pen", 0)))),
+                ("palette", C64PhantasieArtManifest.Pens()), ("x", 8), ("y", 16), ("line_gap", 8), ("text_pen", 0),
+                ("button_pen", 0), ("background_pen", 7), ("no_button", true), ("seconds", 16.85))),
+            ("closing_page", J.O(("palette", C64PhantasieArtManifest.Pens()), ("x", 8), ("y", 8), ("line_gap", 8), ("text_pen", 0), ("button_pen", 0), ("background_pen", 7), ("no_button", true)))),
+        C64Defeat = C64PhantasieArtManifest.DefeatLayout(),
     });
 }

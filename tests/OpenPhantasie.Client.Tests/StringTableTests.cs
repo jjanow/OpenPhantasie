@@ -95,6 +95,9 @@ public partial class StringTableTests
             .Concat(P1MapReports.StringKeys(GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")?.MapMessage?.Window))
             // I Amiga's victory speech in its own line breaks (pack ending_scene.speech, VictoryScreen.SpeechLines).
             .Concat(GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")?.EndingScene?.SpeechKeys ?? [])
+            // s223: I C64's "Zeus smiles and says" (pack ending_scene.c64.smiles, C64EndingScreen).
+            .Concat(GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("c64")?.EndingScene?.C64?.Smiles.Text
+                is { } smiles ? [smiles] : Array.Empty<string>())
             // s155: I Amiga's map menu bar (pack map_message.menu_bar).
             .Concat(UiOverlays.P1MapBarStringKeys(GraphicsPackCatalog.Load(GameDataRepository.DefaultPathFor(GameId.P1)).Find("amiga")?.MapMessage))
             // s157: I Amiga's own requester-23 texts (pack map_message.texts).

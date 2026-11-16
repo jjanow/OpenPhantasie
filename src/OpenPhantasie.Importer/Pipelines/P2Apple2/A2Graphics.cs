@@ -194,7 +194,9 @@ internal sealed class ShapeTable
 /// <summary>
 /// The Apple II art of Phantasie II (port of <c>extract_a2_p2_graphics.py</c>): every shape of <c>SHAPES</c>, the 80
 /// monsters in both poses, the party figures and portraits, the overworld tiles, the dungeon marks, three effects and
-/// the title pictures, plus <c>extraction-index.json</c>.
+/// the title pictures, plus <c>extraction-index.json</c>. s223: Phantasie I's Apple art runs the same shape steps
+/// (<see cref="RunShapes"/>; I's engine is II's, <c>reverse-engineering/apple2/phantasie1/GRAPHICS.md</c>) with its own
+/// root, terrain labels, effects and title.
 /// </summary>
 internal sealed class A2Graphics
 {
@@ -203,6 +205,7 @@ internal sealed class A2Graphics
 
     private static readonly string[] Terrains = ["GRASS", "FOREST", "HILLS", "MOUNTAINS", "BUILDINGS", "DUNGEON", "PATHWAY", "NETHERWORLD", "LAVA",
         "DESERT", "WATER", "MIST", "ASTRAL PLANE"];
+    private static readonly (int Shape, string Use)[] P2Effects = [(23, "spell-sparkle"), (24, "spell-hit"), (59, "rock")];
     private static readonly string[] Races = ["HUMAN", "DWARF", "ELF", "HALFLING", "GNOME", "PIXIE", "SPRITE", "OGRE", "GNOLL", "TROLL", "KOBOLD", "ORC",
         "GOBLIN", "LIZARD MAN", "MINOTAUR", "UNDEAD"];
     private static readonly (int Shape, string Label)[] Bodies = [(19, "human-elf-fighter"), (25, "small-races"), (26, "monster-races"), (27, "human-elf-robed")];
@@ -210,20 +213,27 @@ internal sealed class A2Graphics
         [(31, "wall"), (32, "cells-185-199"), (33, "cells-200-214"), (34, "cells-215-217"), (35, "cells-218-220"), (36, "cells-221-up"), (30, "party-cursor")];
 
     private readonly ImportContext? _ctx;
+    private readonly string _root;
     private readonly Dictionary<string, byte[]> _files = new(StringComparer.Ordinal);
 
-    public A2Graphics(ImportContext? ctx) => _ctx = ctx;
+    /// <param name="ctx">The import (null in tests: the files stay in <see cref="Files"/>).</param>
+    /// <param name="root">Where the pictures go (II's <see cref="Root"/>; I's <c>P1Apple2Art.Root</c>).</param>
+    public A2Graphics(ImportContext? ctx, string root = Root)
+    {
+        _ctx = ctx;
+        _root = root;
+    }
 
     public JsonObject Index { get; private set; } = new();
 
     /// <summary>Written files (path under the root -> PNG bytes); also sent to the context when there is one.</summary>
     public IReadOnlyDictionary<string, byte[]> Files => _files;
 
-    private void Save(string rel, RgbaImage img)
+    internal void Save(string rel, RgbaImage img)
     {
         var bytes = Png.Encode(img, forceAlpha: true);
         _files[rel] = bytes;
-        _ctx?.WriteFile($"{Root}/{rel}", bytes);
+        _ctx?.WriteFile($"{_root}/{rel}", bytes);
     }
 
     private JsonObject Render(ShapeTable table, (int Shape, int Hcolor)[] parts, int x, int scale, string rel, (int W, int H)? cell = null)
@@ -267,7 +277,7 @@ internal sealed class A2Graphics
         return J.O(("file", rel), ("size", J.Ints([w, h])));
     }
 
-    private static string Slug(string name)
+    internal static string Slug(string name)
     {
         var sb = new StringBuilder();
         foreach (var c in name.ToLowerInvariant())
@@ -278,15 +288,28 @@ internal sealed class A2Graphics
     private static int PartyBodyShape(int race, int cls) =>
         race > 6 ? 26 : race is not (0 or 2) ? 25 : cls == 1 || cls > 3 ? 27 : 19;
 
-    public void Run(A2Source src)
+    public void Run(A2Source src) =>
+        RunShapes(new ShapeTable(src.A("SHAPES")), A2Tables.MonsterRecords(src), Terrains, P2Effects,
+            screens => P2Title(src, screens),
+            "Phantasie II Apple II (4am crack v2/5/86) side A: SHAPES ($451F, 59 shapes), ICE DRAGON " +
+            "(hi-res page), MN20..MN29 (monster shape / scale / hcolor). tools/scripts/" +
+            "extract_a2_p2_graphics.py; notes reverse-engineering/apple2/phantasie2/GRAPHICS.md.");
+
+    /// <summary>
+    /// The shape-table art I and II draw the same way (s223: I's OUTDOORS / DUNGON / TOWN lines are II's): every shape,
+    /// the monsters by their MN records (25 fields, <see cref="A2Tables.MonsterFields"/>), party figures and race
+    /// portraits, overworld tiles 0–255 (<paramref name="terrains"/>: the file labels of classes 0–11), the dungeon
+    /// marks and <paramref name="effectShapes"/>; then <paramref name="title"/> fills the screens and
+    /// <c>extraction-index.json</c> is written.
+    /// </summary>
+    internal void RunShapes(ShapeTable table, List<List<byte[]>> recs, IReadOnlyList<string> terrains,
+        IReadOnlyList<(int Shape, string Use)> effectShapes, Action<JsonObject> title, string source)
     {
-        var table = new ShapeTable(src.A("SHAPES"));
         JsonObject shapes = new(), monsters = new(), figures = new(), portraits = new(), tiles = new(), dungeon = new(),
             effects = new(), screens = new();
         for (var n = 1; n <= table.Count; n++)
             shapes[n.ToString()] = Render(table, [(n, 3)], 0, 1, $"shapes/{n:D2}.png");
 
-        var recs = A2Tables.MonsterRecords(src);
         for (var i = 0; i < recs.Count; i++)
         {
             var rec = recs[i];
@@ -318,7 +341,7 @@ internal sealed class A2Graphics
         for (var t = 0; t < 12; t++)
         {
             var hc = (int)(1 + 0.51 * t);
-            var slug = Slug(Terrains[t]);
+            var slug = Slug(terrains[t]);
             tiles[$"class.{t}.odd"] = Render(table, [(37 + t, hc)], 147, 1, $"overworld/odd/{t:D2}-{slug}.png", (7, 6));
             for (var b = t * 10; b < t * 10 + 10; b++)
                 tiles[b.ToString()] = Render(table, [(37 + t, hc)], 140, 1, $"overworld/tiles/{b:D3}.{slug}.png", (7, 6));
@@ -335,13 +358,29 @@ internal sealed class A2Graphics
         }
         dungeon["0"] = Blank("dungeon/glyph-0.blank.png", 4, 4);
 
-        foreach (var (n, what) in new[] { (23, "spell-sparkle"), (24, "spell-hit"), (59, "rock") })
+        foreach (var (n, what) in effectShapes)
         {
             var e = Render(table, [(n, 3)], 0, 1, $"effects/{n:D2}-{what}.png");
             e["use"] = what;
             effects[n.ToString()] = e;
         }
 
+        title(screens);
+
+        Index = J.O(
+            ("_source", source),
+            ("origin_note", "origin = where the DRAW point sits inside the PNG (x, y); screen_x = the in-game x " +
+                            "the colour phase was taken from."),
+            ("shapes", shapes), ("monsters", monsters), ("figures", figures), ("portraits", portraits), ("tiles", tiles),
+            ("dungeon", dungeon), ("effects", effects), ("screens", screens));
+        var bytes = PyJson.SerializeUtf8(Index, 1, ensureAscii: true);
+        _files["extraction-index.json"] = bytes;
+        _ctx?.WriteFile($"{_root}/extraction-index.json", bytes);
+    }
+
+    /// <summary>II's title: <c>ICE DRAGON</c>, then with the boot program's prompt rows.</summary>
+    private void P2Title(A2Source src, JsonObject screens)
+    {
         var page = HiresPage.FromApple(src.A("ICE DRAGON"));
         Save("screens/ice-dragon.png", page.ToImage(0, 0, 280, 192, transparentBlack: false));
         screens["ice-dragon"] = J.O(("file", "screens/ice-dragon.png"), ("size", J.Ints([280, 192])));
@@ -359,18 +398,6 @@ internal sealed class A2Graphics
         Save("screens/title.png", page.ToImage(0, 0, 280, 192, transparentBlack: false));
         screens["title"] = J.O(("file", "screens/title.png"), ("size", J.Ints([280, 192])),
             ("note", "ICE DRAGON + the boot program's POKE rows (lines 243-257); the HPLOT lightning (lines 50-94, random) is not drawn."));
-
-        Index = J.O(
-            ("_source", "Phantasie II Apple II (4am crack v2/5/86) side A: SHAPES ($451F, 59 shapes), ICE DRAGON " +
-                        "(hi-res page), MN20..MN29 (monster shape / scale / hcolor). tools/scripts/" +
-                        "extract_a2_p2_graphics.py; notes reverse-engineering/apple2/phantasie2/GRAPHICS.md."),
-            ("origin_note", "origin = where the DRAW point sits inside the PNG (x, y); screen_x = the in-game x " +
-                            "the colour phase was taken from."),
-            ("shapes", shapes), ("monsters", monsters), ("figures", figures), ("portraits", portraits), ("tiles", tiles),
-            ("dungeon", dungeon), ("effects", effects), ("screens", screens));
-        var bytes = PyJson.SerializeUtf8(Index, 1, ensureAscii: true);
-        _files["extraction-index.json"] = bytes;
-        _ctx?.WriteFile($"{Root}/extraction-index.json", bytes);
     }
 
     /// <summary>The numbers of the boot program's DATA lines 260-290, in order.</summary>

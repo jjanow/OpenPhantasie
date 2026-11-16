@@ -637,7 +637,8 @@ public partial class Game1 : Game
     {
         var scene = _session is not null && _splash is null && CurrentPrompt is { Kind: SessionPromptKind.VictoryScene }
             ? _session.PendingVictoryScene : null;
-        if (scene is null || _assets?.Pack?.EndingScene is not { } layout || _assets.Get(PictureNames.EndingFinal) is null)
+        if (scene is null || _assets?.Pack?.EndingScene is not { } layout || _assets.Get(PictureNames.EndingFinal) is null
+            || layout.C64 is not null) // s223: the C64's own ending (UpdateC64EndScreens)
         {
             if (_victory is not null)
                 StopEffects();
@@ -1125,6 +1126,7 @@ public partial class Game1 : Game
             _input.AnyRealKeyPressed(keys) || _mouse.AnyPressed || _mouse.Moved && _pointerMoved || _mouse.WheelSteps != 0);
         _updateSeconds = gameTime.TotalGameTime.TotalSeconds;
         UpdateRewardScene(_updateSeconds);
+        UpdateC64EndScreens(_updateSeconds); // s223: the C64's ending and party wipe run by themselves
         UpdateVictoryScreen(_updateSeconds);
         UpdateP1DefeatScreen(_updateSeconds); // s153: I Amiga's defeat screens run by themselves
         UpdateP1DosDefeat(_updateSeconds); // s154: I DOS's defeat lines run by themselves (5.00 s each)
@@ -1825,7 +1827,14 @@ public partial class Game1 : Game
             var scene = false;
             if (_confirm.Owns(prompt))
                 UiOverlays.Hits?.Clear(); // s160: III's Are-you-sure question over the street / Guild: only its answers click
-            if (DrawP1DefeatScreen(prompt))
+            if (DrawC64EndScreens(prompt))
+            {
+                scene = true; // s223: the C64's ending / party wipe, no box
+                _defeatSceneLines = null;
+                _defeatSceneHeld = false;
+                _defeatPager.Reset();
+            }
+            else if (DrawP1DefeatScreen(prompt))
             {
                 scene = true; // s153: I Amiga's defeat screens (P1DefeatScreen), no box
                 _defeatSceneLines = null;
@@ -2389,6 +2398,8 @@ public partial class Game1 : Game
     /// </summary>
     private void HandlePrompt(KeyboardState keys, GamePadState pad, SessionPrompt prompt)
     {
+        if (HandleC64EndScreenKeys(prompt)) // s223: the C64's end screens read no key
+            return;
         if (HandleP1DefeatKeys(keys, pad, prompt))
             return;
         if (HandleP1DosDefeatKeys(keys, pad, prompt)) // s183: a key ends the DOS defeat's current line only

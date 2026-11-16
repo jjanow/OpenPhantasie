@@ -11,7 +11,7 @@ public sealed class P1C64Pipeline : IImportPipeline
 {
     public string ProfileId => "p1-c64";
 
-    public int RecipeVersion => 4; // 1 (s216): I's tables from the C64; 2 (s218): the C64 art pack; 3 (s219): attacking frames for every monster; 4 (s221): item / feature pictures, the ending and party-wipe pictures
+    public int RecipeVersion => 5; // 1 (s216): I's tables from the C64; 2 (s218): the C64 art pack; 3 (s219): attacking frames for every monster; 4 (s221): item / feature pictures, the ending and party-wipe pictures; 5 (s223): the C64 end-screen animations (ending_scene.c64, c64_defeat, face / hand / door sprites)
 
     /// <summary>DOS I's and the Amiga's tables win when one of them is imported in the same run: they run first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p1-dos-1987", "p1-dos-bonus-1991", "p1-amiga-1.0"];

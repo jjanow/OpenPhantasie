@@ -139,7 +139,8 @@ public partial class Game1
     private IReadOnlyList<string>? _dosDefeatPaletteFor;
 
     /// <summary>Whether I's defeat runs by DOS's clock: I, not the Amiga's screens, and the data names the timing.</summary>
-    private bool P1DosDefeatTimed => _session is { Game: GameId.P1 } && !P1DefeatScreens && DosScreensData?.Defeat is not null;
+    private bool P1DosDefeatTimed => _session is { Game: GameId.P1 } && !P1DefeatScreens && !C64DefeatScreens
+        && DosScreensData?.Defeat is not null;
 
     /// <summary>
     /// s154: once a frame on I's DOS path: the defeat box and the outcome's lines each hold the data's line time (5.00 s),

@@ -78,3 +78,17 @@ Any other known spell: MP spent, nothing happens. Same flow as DOS OV1 `0x254e`.
   C64: that part is DOS's RNG scaling. So the town/combat split is in **both** ports → likely inherited from the
   original, not a DOS-port slip (`DIFFERENCES.md` D-010 evidence).
 - Wilderness / dungeon cast: on the C64 the wilderness has no floor and the dungeon has one.
+
+## More opcodes (s223, read on `P.END` / `CEMETARY` / `WIN`, RTL-64 handler table)
+
+- `8d hh ll` word constant is **big-endian** (`8d 04 b3` = 1203). `88` + 5 bytes = a CBM float (`88 90 50 18 00 00` = 53272).
+- Variables: `90 vv` / `91 vv` / `92 vv` push (numeric / string), `d0`–`d2 vv` store; vv = the entry's offset in the
+  program's variable table (7-byte entries: 2 name bytes, 5 value bytes; the table follows `4c 5e 03 00 80 00 00 00`).
+  `b4 00 vv` calls `DEF FN` vv; `a2 vv` reads string array vv.
+- `42 00 vv` FOR vv (start stored first, limit pushed) · `43 00 vv` FOR with STEP (step pushed last) · `46` NEXT ·
+  `4c` RETURN · `19` NOT · `05` power · `b8 18` TI · `f8 1b` TI$ := · `b8 0f` LEN · `b8 16` MID$.
+- `4e nn t1 t2 …` **ON … GOSUB** (RTL-64 `$B528`), `4d` ON … GOTO (`$B52C`): nn = 2 × the number of targets; value v
+  takes the v-th target (v = 1 the first), out of range falls through. `48` GOTO is `$B4AF`, `4a` GOSUB `$B4A6`.
+- Plain-text statements: after a statement break, a BASIC token runs as tokenised text to the next `:` or `00`:
+  `87` READ, `99` PRINT, `9f` OPEN, `a0` CLOSE, `a1` GET, `84` INPUT#, `93` LOAD; `51` is SYS with a computed address
+  (pushed first) and its plain-text arguments.

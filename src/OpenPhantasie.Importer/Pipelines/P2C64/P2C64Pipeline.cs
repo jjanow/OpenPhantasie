@@ -17,7 +17,7 @@ public sealed class P2C64Pipeline : IImportPipeline
 
     public string ProfileId => Id;
 
-    public int RecipeVersion => 3; // 1 (s218): II's tables from the C64; 2 (s219): the C64 art pack; 3 (s221): item / feature pictures, the ending and party-wipe pictures
+    public int RecipeVersion => 4; // 1 (s218): II's tables from the C64; 2 (s219): the C64 art pack; 3 (s221): item / feature pictures, the ending and party-wipe pictures; 4 (s223): the C64 party wipe (c64_defeat) and WIN's row / presented member / pages
 
     /// <summary>The ST's and the Apple's tables win when one of them is imported in the same run: they run first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p2-st-1.0", "p2-apple2", "p2-apple2-2.1"];

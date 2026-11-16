@@ -15,9 +15,9 @@ public class GraphicsPackTests
     private static GraphicsPack Cga => Catalog.Find("dos-cga") ?? throw new InvalidOperationException("DOS extracts missing");
 
     [OriginalDataFact]
-    public void PhantasieI_OffersAmigaCgaAndC64_AmigaIsTheDefault()
+    public void PhantasieI_OffersAmigaCgaC64AndAppleII_AmigaIsTheDefault()
     {
-        Assert.Equal(["amiga", "dos-cga", "c64"], Catalog.Available.Select(p => p.Id));
+        Assert.Equal(["amiga", "dos-cga", "c64", "apple2"], Catalog.Available.Select(p => p.Id));
         Assert.Empty(Catalog.Missing);
         Assert.Same(Amiga, Catalog.Default);
         Assert.True(Amiga.AutoSelect);

@@ -1,8 +1,8 @@
 {
   "_schema": "phantasie.graphics-index/v1",
-  "_note": "T1.5 graphics packs of Phantasie I. A pack is offered only when its original files (extracts) are present. default_order: the packs that may become the default, first available wins (Amiga; user 2026-10-25). DOS CGA is never drawn by default: it has auto_select false and is not listed in default_order; only an explicit choice (the later T5 option) selects it. fallback_order (user, s158): when no default_order pack is present (a DOS-only import), the first available of these is drawn, so art follows what was imported. C64 (s218, reverse-engineering/c64/phantasie1/GRAPHICS.md) is second in default_order, as III's Apple II: the Amiga stays the default; with no Amiga copy imported the C64's art is drawn (before DOS CGA, which stays pick-only).",
+  "_note": "T1.5 graphics packs of Phantasie I. A pack is offered only when its original files (extracts) are present. default_order: the packs that may become the default, first available wins (Amiga; user 2026-10-25). DOS CGA is never drawn by default: it has auto_select false and is not listed in default_order; only an explicit choice (the later T5 option) selects it. fallback_order (user, s158): when no default_order pack is present (a DOS-only import), the first available of these is drawn, so art follows what was imported. C64 (s218, reverse-engineering/c64/phantasie1/GRAPHICS.md) is second in default_order, as III's Apple II: the Amiga stays the default; with no Amiga copy imported the C64's art is drawn (before DOS CGA, which stays pick-only). Apple II (s223, reverse-engineering/apple2/phantasie1/GRAPHICS.md) is third: drawn when neither the Amiga nor the C64 copy is imported.",
   "game": "phantasie1",
-  "default_order": ["amiga", "c64"],
+  "default_order": ["amiga", "c64", "apple2"],
   "fallback_order": ["dos-cga"],
-  "packs": ["amiga.json", "dos-cga.json", "c64.json"]
+  "packs": ["amiga.json", "dos-cga.json", "c64.json", "apple2.json"]
 }

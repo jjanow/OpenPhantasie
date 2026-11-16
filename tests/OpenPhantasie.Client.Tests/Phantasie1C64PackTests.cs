@@ -102,7 +102,8 @@ public class Phantasie1C64PackTests
             foreach (var f in new[] { "index.json", "c64.json" })
                 File.Copy(Path.Combine(GameData, "graphics", f), Path.Combine(graphics.FullName, f));
             foreach (var (f, root) in new[] { ("amiga.json", "reverse-engineering/amiga/extracted"),
-                         ("dos-cga.json", "reverse-engineering/dos/extracted") })
+                         ("dos-cga.json", "reverse-engineering/dos/extracted"),
+                         ("apple2.json", "reverse-engineering/apple2/phantasie1/extracted") })
                 File.WriteAllText(Path.Combine(graphics.FullName, f),
                     File.ReadAllText(Path.Combine(GameData, "graphics", f)).Replace(root, "no-such-folder/" + f));
 

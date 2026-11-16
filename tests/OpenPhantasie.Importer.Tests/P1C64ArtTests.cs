@@ -264,7 +264,8 @@ public class P1C64ArtTests
         Assert.Equal("items/stairs.png", (string?)pictures["event.stairs"]);
         Assert.Equal("items/lock.png", (string?)pictures["event.lock"]);
         Assert.Equal("items/exit.png", (string?)pictures["event.exit"]);
-        Assert.False(pictures.Any(p => ((string?)p.Value)!.EndsWith("door.png", StringComparison.Ordinal))); // never shown
+        // DOOR's item picture is never shown (s223: defeat/door.png is CEMETARY's door sprite, another picture)
+        Assert.False(pictures.Any(p => ((string?)p.Value)!.EndsWith("items/door.png", StringComparison.Ordinal)));
         var rows = pack["find_pictures"]!.AsArray().Select(r => ((int)r![0]!, (int)r[1]!, (string)r[2]!)).ToList();
         // Every id 1..180 in exactly one row, in order; each row's picture is a slot of the pack.
         Assert.Equal(Enumerable.Range(1, 180), rows.SelectMany(r => Enumerable.Range(r.Item1, r.Item2 - r.Item1 + 1)));

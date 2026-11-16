@@ -56,7 +56,9 @@ public class C64EndScreenTests
         Assert.NotNull(ending);
         Assert.EndsWith("ending/hall.png", pack.Resolve(PictureNames.EndingFinal));
         Assert.NotNull(ending.Crowd);
-        Assert.Equal(["ending.crowd.0", "ending.crowd.1"], ending.Crowd.Frames);
+        // s223: WIN's cheer shows the second frame for its sound, then the first again (one change a cheer).
+        Assert.Equal(["ending.crowd.1", "ending.crowd.0"], ending.Crowd.Frames);
+        Assert.Equal((1, 9920), (ending.Crowd.Flashes, ending.Crowd.FlashTicks));
         Assert.All(ending.Crowd.Frames, f => Assert.NotNull(pack.Resolve(f)));
         Assert.Equal((0, 110), (ending.Crowd.X, ending.Crowd.Y)); // TLUM1's band at VIC y 160
         // Filmon's pages are kept (without them the screen would drop their lines); no OK form on the C64 (black).
@@ -71,7 +73,7 @@ public class C64EndScreenTests
         Assert.EndsWith("defeat/temple.png", pack.Resolve(PictureNames.Decor));
         Assert.EndsWith("defeat/temple-demon-doorway.png", pack.Resolve(PictureNames.DecorDemonFace));
         Assert.EndsWith("defeat/ghost.png", pack.Resolve(PictureNames.PortraitGhost));
-        Assert.Null(pack.Resolve(PictureNames.DecorDoor)); // the C64's door rises: not modelled
+        Assert.Null(pack.Resolve(PictureNames.DecorDoor)); // the C64's door rises: c64_defeat's defeat.door (s223)
         Assert.Null(pack.Resolve(PictureNames.DecorSorrySign));
         Assert.Null(pack.DefeatPictures);
     }

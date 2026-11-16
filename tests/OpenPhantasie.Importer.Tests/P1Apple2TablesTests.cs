@@ -303,6 +303,11 @@ public class P1Apple2TablesTests
         Assert.Equal("DIVINE I", (string)Apple("spells.json")["spells"]![54]!["name"]!);
         Assert.Equal("FIRE ELEM", (string)Apple("elementals.json")["elementals"]![0]!["name"]!);
         Assert.Equal("FIRE ELEM", (string)Apple("names.json")["town_labels"]![12]!["name"]!);
+        // D-089 (user s223): the Apple's two monster typos take DOS's spelling.
+        Assert.Equal("APPRENTICE DEVIL", (string)Apple("monsters.json")["monsters"]![12]!["name"]!);
+        Assert.Equal("APPRENTICE DEVIL", (string)Apple("names.json")["monsters"]![12]!["name"]!);
+        Assert.Equal("MASTER ILLUSIONIST", (string)Apple("monsters.json")["monsters"]![58]!["name"]!);
+        Assert.Equal("MASTER ILLUSIONIST", (string)Apple("names.json")["monsters"]![58]!["name"]!);
         var pages = Apple("overworld.json")["regions"]!["OUT1.DAT"]!["text_pages"]!.AsArray().Select(p => (string)p!["text"]!).ToList();
         Assert.Contains(pages, p => p.StartsWith("TO THE WEST IS A BUILDING", StringComparison.Ordinal));
         Assert.Contains(pages, p => p.Contains("TO THE EAST", StringComparison.Ordinal));

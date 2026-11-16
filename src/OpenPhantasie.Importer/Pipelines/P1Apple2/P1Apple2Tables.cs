@@ -79,7 +79,7 @@ internal static class P1Apple2Tables
 
     /// <summary>The two sides: side A holds <c>TOWN</c>, side B <c>DUNGON</c> (both carry <c>MN0</c>..<c>MN9</c>,
     /// <c>HELLO</c>, <c>QWERTY</c>).</summary>
-    private sealed class Sides(FileSet files)
+    internal sealed class Sides(FileSet files)
     {
         private readonly Container _a = files.Containers.FirstOrDefault(c => Has(c, "TOWN"))
                                         ?? throw new FileNotFoundException("side A (TOWN) not found");
@@ -185,6 +185,36 @@ internal static class P1Apple2Tables
         [.. raw.Select(b => (byte)(b & 0x7F)).Where(b => b is >= 0x20 or 0x0D or 0x08 or 0x00)];
 
     // ---- monsters -----------------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// s223 (the art, <see cref="P1Apple2Art"/>): MN0..MN9's 80 records as their 25 CR-ended fields (side A's copy; the
+    /// field order is II's, <see cref="A2Tables.MonsterFields"/>: 13 SCALE, 14 HCOLOR, 20 rank height, 24 shape), the
+    /// name's backspaces applied as in <see cref="MonstersInDosLayout"/>.
+    /// </summary>
+    internal static List<List<byte[]>> MonsterRecords(FileSet files)
+    {
+        var s = new Sides(files);
+        var recs = new List<List<byte[]>>(Monsters);
+        for (var f = 0; f < Monsters / MnPerFile; f++)
+        {
+            var data = Low7(s.A($"MN{f}"));
+            var nul = Array.IndexOf(data, (byte)0);
+            var fields = Encoding.Latin1.GetString(data, 0, nul < 0 ? data.Length : nul).Split('\r');
+            if (fields.Length < MnPerFile * MnFields)
+                throw Py.Bad($"MN{f}: {fields.Length} fields, expected {MnPerFile * MnFields}");
+            for (var r = 0; r < MnPerFile; r++)
+            {
+                var rec = fields.AsSpan(r * MnFields, MnFields).ToArray();
+                // The drawing fields must be numbers here, so a bad one is an InvalidDataException the art step's
+                // TryOptional catches (the tables never read 13, 14 and 24).
+                foreach (var k in new[] { 13, 14, 20, 24 })
+                    if (!int.TryParse(rec[k], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out _))
+                        throw Py.Bad($"MN{f}: record {r} field {k} '{rec[k]}' is not a number");
+                recs.Add([.. rec.Select((v, k) => Encoding.Latin1.GetBytes(k == 0 ? v.Replace("\b", "", StringComparison.Ordinal) : v))]);
+            }
+        }
+        return recs;
+    }
 
     /// <summary>
     /// MN0..MN9's 80 records in DOS layout (0x39 bytes): monster m is record m mod 8 of <c>MN&lt;m div 8&gt;</c>, 25

@@ -5,13 +5,14 @@ namespace OpenPhantasie.Importer.Pipelines.P1Apple2;
 /// original <c>.woz</c> pair): I's tables (<see cref="P1Apple2Tables"/>, s222: an Apple-only import is a playable I, with
 /// the Apple's text and DOS I's numbers; DOS I's, the Amiga's or the C64's tables win when that copy is imported too) and
 /// the string-table lines: the Apple's own where its programs hold them verbatim, the remaster's wording for the lines
-/// only another copy holds. No art pack yet.
+/// only another copy holds. Then the Apple II art pack (<see cref="P1Apple2Art"/>, s223; <c>graphics/apple2.json</c>),
+/// written whichever copy's tables win: the Amiga's pack stays I's default, then the C64's, then the Apple's.
 /// </summary>
 public sealed class P1Apple2Pipeline : IImportPipeline
 {
     public string ProfileId => "p1-apple2";
 
-    public int RecipeVersion => 1; // 1 (s222): I's tables from the Apple II
+    public int RecipeVersion => 2; // 1 (s222): I's tables from the Apple II; 2 (s223): the Apple II art pack
 
     /// <summary>DOS I's, the Amiga's and the C64's tables win when one of them is imported in the same run: they run first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p1-dos-1987", "p1-dos-bonus-1991", "p1-amiga-1.0", "p1-c64"];
@@ -28,5 +29,8 @@ public sealed class P1Apple2Pipeline : IImportPipeline
         ImportedStrings.Write(ctx, ownWordingGame: tables ? P1DosPipeline.Game : null);
         if (tables)
             ImportedStrings.WriteFallback(ctx, ImportedStrings.CommonFallbackGame);
+
+        ctx.Progress("art");
+        ctx.TryOptional("No Apple II art", () => P1Apple2Art.Import(ctx));
     }
 }

@@ -21,7 +21,7 @@ public sealed class VictoryScreenView
     private readonly Color[] _palette;
     private readonly Dictionary<Texture2D, byte[]> _pens = new(ReferenceEqualityComparer.Instance);
     private Texture2D? _texture;
-    private (int, int, bool, int, int, bool, int, bool, bool, int)? _drawnKey;
+    private (int, int, bool, int, int, bool, int, bool, bool, int, int)? _drawnKey;
     private VictoryScreen? _drawnFor;
 
     public VictoryScreenView(GraphicsDevice device, AssetCatalog assets, EndingSceneLayout layout)
@@ -43,7 +43,7 @@ public sealed class VictoryScreenView
             return true;
         }
         var key = (frame.LitPens, frame.DarkPens, frame.Ghosts, frame.GhostCount, frame.Granted, frame.Arm, frame.Stage, frame.StagePose,
-            frame.StageCleared, frame.Crowd);
+            frame.StageCleared, frame.Crowd, frame.Presented);
         if (_texture is null || _drawnKey != key || !ReferenceEquals(_drawnFor, screen))
         {
             _texture ??= new Texture2D(_device, Width, Height);
@@ -186,10 +186,14 @@ public sealed class VictoryScreenView
         Color[] palette = page.Palette is { } own ? [.. own.Select(VirtualScreen.ParseColor)] : _palette;
         Color Pen(int pen) => page.Palette is not null || frame.Shows(pen) ? palette[pen] : Color.Black;
         batch.Draw(pixel, new Rectangle(0, 0, Width, UiOverlays.ScreenBottom), Color.Black);
+        if (page.BackgroundPen is int back) // s223: II C64's intro, black on yellow ($D021 = 7)
+            batch.Draw(pixel, new Rectangle(0, 0, Width, Height), Pen(back));
         using (PixelFont.With(PageFont(page))) // s160: EmuTOS's 8×8 italic, its cell 4 px left of the v_gtext point
             for (var i = 0; i < lines.Count; i++)
                 PixelFont.Draw(batch, pixel, page.X + page.FontDx, page.Y + i * page.LineGap, lines[i].TrimEnd(),
                     Pen(page.TextPen));
+        if (page.NoButton)
+            return; // s223: the C64's pages have no OK form
         // The OK form (GEM tree 18 at (319 − w, 199 − h)), measured on the s80 shots: frame 247…318 × 175…198, button
         // 262…303 × 182…191.
         var button = Pen(page.ButtonPen);
@@ -236,10 +240,19 @@ public sealed class VictoryScreenView
             Blit(pens, cheer, crowd.X, crowd.Y);
         if (_layout.RowByRecord)
         {
-            var xs = VictoryScreen.SlotXs(slots, _layout.SlotSize);
-            foreach (var (slot, _) in VictoryScreen.DrawnByRecord(slots, frame.Granted))
-                if (_assets.GetPortraitIdle((int)slots[slot].Race) is { } art)
+            IReadOnlyList<int> xs = _layout.RowLeft is int left
+                ? [.. Enumerable.Range(0, slots.Count).Select(k => left + _layout.SlotSize * k)]
+                : VictoryScreen.SlotXs(slots, _layout.SlotSize);
+            // s223 (II C64 WIN): the whole band is on from the start; the presented member in its attacking pose, light red.
+            foreach (var (slot, _) in VictoryScreen.DrawnByRecord(slots, _layout.RowFromStart ? slots.Count : frame.Granted))
+            {
+                var race = (int)slots[slot].Race;
+                if (slot == frame.Presented && _layout.PresentColour is int red
+                    && (_assets.GetPortraitAttacking(race) ?? _assets.GetPortraitIdle(race)) is { } pose)
+                    Blit(pens, pose, xs[slot], _layout.RowTop, (byte)red);
+                else if (_assets.GetPortraitIdle(race) is { } art)
                     Blit(pens, art, xs[slot], _layout.RowTop);
+            }
         }
         if (_layout.StageX is int sx && _layout.StageY is int sy)
         {
@@ -274,7 +287,7 @@ public sealed class VictoryScreenView
     /// copies); s221: a transparent pixel leaves what is under it, as a C64 sprite shows the screen behind it (the C64
     /// pack's clouds, hand, figures and crowd are sprites).
     /// </summary>
-    private void Blit(byte[] pens, Texture2D art, int x0, int y0)
+    private void Blit(byte[] pens, Texture2D art, int x0, int y0, byte? ink = null)
     {
         var src = PensOf(art);
         for (var y = 0; y < art.Height; y++)
@@ -286,7 +299,7 @@ public sealed class VictoryScreenView
             {
                 var sx = x0 + x;
                 if (sx is >= 0 and < Width && src[y * art.Width + x] != Transparent)
-                    pens[sy * Width + sx] = src[y * art.Width + x];
+                    pens[sy * Width + sx] = ink ?? src[y * art.Width + x]; // s223: a sprite in another colour
             }
         }
     }

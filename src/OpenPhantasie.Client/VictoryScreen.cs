@@ -75,6 +75,9 @@ public sealed class VictoryScreen
 
         /// <summary>The crowd frame drawn over the picture, or −1 (the picture's own pixels).</summary>
         public int Crowd { get; init; } = -1;
+
+        /// <summary>s223 (II C64): the slot being presented (its title and the cheer after it), or −1.</summary>
+        public int Presented { get; init; } = -1;
     }
 
     /// <summary>A text page that replaces the picture (II ST).</summary>
@@ -133,7 +136,10 @@ public sealed class VictoryScreen
             });
         if (layout.IntroPage is not null && scene.IntroPage.Count > 0)
         {
-            _steps.Add(new(StepKind.IntroPage, 0, double.PositiveInfinity, true));
+            // s223: II C64's intro reads no key: it stays while the hall loads (EndingPage.Seconds).
+            _steps.Add(layout.IntroPage.Seconds is double shown
+                ? new(StepKind.IntroPage, 0, shown, false)
+                : new(StepKind.IntroPage, 0, double.PositiveInfinity, true));
             if (stSounds && layout.IntroPage.Sound is int click)
                 _steps.Add(new(StepKind.Sound, -1, 0, false, click) { Overlaps = true });
         }
@@ -346,7 +352,7 @@ public sealed class VictoryScreen
     public Frame At(double t)
     {
         var vbl = _layout.VblHz / _layout.FadeVbl; // fade steps a second
-        int lit = 0, dark = 0, granted = 0, line = -1, stage = -1, crowd = -1, ghosts = int.MaxValue;
+        int lit = 0, dark = 0, granted = 0, line = -1, stage = -1, crowd = -1, ghosts = int.MaxValue, presented = -1;
         bool pose = false, cleared = false, done = true;
         string? text = null;
         var page = EndingPageKind.None;
@@ -374,13 +380,13 @@ public sealed class VictoryScreen
                     break;
                 case StepKind.Title:
                     text = Scene.Titles[step.Index];
-                    (stage, pose) = (step.Index, false);
+                    (stage, pose, presented) = (step.Index, false, step.Index);
                     break;
                 case StepKind.CheerWait: // the other pose shows; the crowd keeps its last frame
-                    (stage, pose) = (step.Index, true);
+                    (stage, pose, presented) = (step.Index, true, step.Index);
                     break;
                 case StepKind.Cheer:
-                    (stage, pose) = (step.Index, true);
+                    (stage, pose, presented) = (step.Index, true, step.Index);
                     var c = _layout.Crowd!;
                     crowd = current
                         ? (int)Math.Floor(into * _layout.TickHz / c.FlashTicks + 1e-9) % 2
@@ -392,6 +398,7 @@ public sealed class VictoryScreen
                 case StepKind.PortraitBlit:
                 case StepKind.Grant:
                     granted = step.Index + 1;
+                    presented = -1;
                     break;
                 case StepKind.Speech:
                     line = step.Index;
@@ -420,7 +427,7 @@ public sealed class VictoryScreen
         return new Frame(lit, dark, art && t >= GhostsAt, granted, line, done)
         {
             Arm = art && t >= ArmAt, Text = text, Page = page, Stage = stage, StagePose = pose, StageCleared = cleared,
-            Crowd = crowd, GhostCount = ghosts,
+            Crowd = crowd, GhostCount = ghosts, Presented = _layout.PresentColour is null ? -1 : presented,
         };
     }
 
