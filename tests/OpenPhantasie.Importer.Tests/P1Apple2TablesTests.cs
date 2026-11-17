@@ -121,7 +121,7 @@ public class P1Apple2TablesTests
         foreach (var f in Tables)
             Assert.True(r.Outputs.ContainsKey($"GameData/phantasie1/{f}"), f);
         // Every shipped DOS cell matched the Apple's value (no "neither" warning), and nothing else was warned.
-        Assert.Empty(r.Warnings.Where(w => !w.StartsWith("This copy of", StringComparison.Ordinal)));
+        Assert.DoesNotContain(r.Warnings, w => !w.StartsWith("This copy of", StringComparison.Ordinal));
         Assert.Contains("GameData/phantasie1/strings/en.fallback.p1-apple2.json", r.AllOutputs.Keys);
     }
 
@@ -357,7 +357,7 @@ public class P1Apple2TablesTests
             Strip("asset-manifest.json", d => d.Remove("assets"));
 
             var masked = PipelineHarness.RunWithShipped(shipped, "p1-apple2", DskA, DskB);
-            Assert.Empty(masked.Warnings.Where(w => !w.StartsWith("This copy of", StringComparison.Ordinal)));
+            Assert.DoesNotContain(masked.Warnings, w => !w.StartsWith("This copy of", StringComparison.Ordinal));
             foreach (var f in Tables)
                 Assert.True(masked.Outputs[$"GameData/phantasie1/{f}"].AsSpan().SequenceEqual(Run().Outputs[$"GameData/phantasie1/{f}"]), f);
         }
