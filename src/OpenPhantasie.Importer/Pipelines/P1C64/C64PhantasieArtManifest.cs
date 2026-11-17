@@ -197,6 +197,7 @@ public static class C64PhantasieArtManifest
         // s228: the fights' sounds (both terrains), I's ring tune (C64PlaySounds, GRAPHICS.md 9.8).
         C64PlaySounds.AddFight(sounds, p2: win, dungeon: false);
         C64PlaySounds.AddFight(sounds, p2: win, dungeon: true);
+        C64PlaySounds.AddClicks(sounds); // s229: the key click (TOWNR / OUTDOORS / DUNGEON, II's the same)
         if (ending)
             C64PlaySounds.AddRing(sounds);
         if (win)
@@ -229,7 +230,8 @@ public static class C64PhantasieArtManifest
                 "encounter, wound, monster_hit, dies, mark), the statements and FOR passes at the times VICE measured " +
                 "(II's routines forced on its fight screen" + (win ? "" : "; I's are the same bytecode [~]") + "); the " +
                 "TI waits as written. marks: MN field 13 (C%) of monsters 0-79, the marks (each a mark sound) a damage " +
-                "spell draws on that monster." + (ending ? " town.ring: TOWNR 0x503f, U)SE of an item 141-150 in town." : "")),
+                "spell draws on that monster. s229: key_click.{town,outdoors,dungeon}: TOWNR 0x510d / OUTDOORS 0x6198 / DUNGEON 0x6a1a " +
+                "(II the same), the input routines' click on each key GET and stick move." + (ending ? " town.ring: TOWNR 0x503f, U)SE of an item 141-150 in town." : "")),
             ("clock_hz", 985248),
             ("jiffy_hz", 60),
             ("tail_seconds", 2),

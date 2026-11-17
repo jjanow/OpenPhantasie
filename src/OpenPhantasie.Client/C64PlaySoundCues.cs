@@ -27,6 +27,26 @@ namespace OpenPhantasie.Client;
 /// </summary>
 public static class C64PlaySoundCues
 {
+    /// <summary>
+    /// s229: the key click for a key read in <paramref name="mode"/> (I's GRAPHICS.md 9.8), or null (III, IV, a pack
+    /// without it): the town and the Guild are <c>TOWNR</c>'s (<c>key_click.town</c>), the map <c>OUTDOORS</c>'s, the
+    /// dungeon <c>DUNGEON</c>'s, a fight the program of the terrain it was met on (<paramref name="combatReturn"/>).
+    /// </summary>
+    public static string? ClickKey(SidSounds? sid, GameId game, GameMode mode, GameMode combatReturn)
+    {
+        if (sid is null || game is not (GameId.P1 or GameId.P2))
+            return null;
+        var place = mode switch
+        {
+            GameMode.Town or GameMode.Guild => "town",
+            GameMode.Overworld => "outdoors",
+            GameMode.Dungeon => "dungeon",
+            GameMode.Combat => combatReturn == GameMode.Dungeon ? "dungeon" : "outdoors",
+            _ => null,
+        };
+        return place is not null && sid.Has("key_click." + place) ? "key_click." + place : null;
+    }
+
     /// <summary>The sound name for <paramref name="sound"/> on the terrain (I / II) or III's fight.</summary>
     public static string Key(GameId game, bool dungeon, string sound) =>
         game == GameId.P3 ? "fight." + sound : "fight." + (dungeon ? "dungeon." : "outdoors.") + sound;

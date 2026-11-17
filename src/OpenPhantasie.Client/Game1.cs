@@ -1146,7 +1146,7 @@ public partial class Game1 : Game
             CutDelayedCues(); // s141: a key or a click ends a timed box's hold; s192 (pad fix C23): a pad button too
         UpdateGameSounds();
         UpdateP4Sounds();
-        UpdateC64PlaySounds(); // s228: the C64's fight / swim / script / ring sounds
+        UpdateC64PlaySounds(keys, pad); // s228 (s229: the key click): the C64's fight / swim / script / ring sounds
         UpdateCarriedTune();
         if (_session?.Mode != GameMode.Town)
             _doorFlash = null; // a load or a fight mid-flash drops the pending entry

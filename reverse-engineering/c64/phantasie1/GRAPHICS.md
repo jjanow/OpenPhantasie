@@ -581,14 +581,17 @@ overworld screen runs the same loops 3–4 % slower (its interrupt). I's routine
 | `dies` | `0x6752` / `0x6a91` | freq hi 3, AD 10 SR 2, `$D40F` 4, volume 15, `$D417` 240, `$D416` 31; `FOR 1 TO 3`: control 21, `TI` 50 jiffies (`OUTDOORS`; `OUTDOORS2` 70, both dungeons 61); control 20. Freq lo not set: as left | a member DIES: in a fight 3 times (`0x2f20`: `FOR 1 TO 3: GOSUB`), after the swim once (`0x60dd`) |
 | `mark` | `0x6792` / `0x6a5a` | outdoors: `hit`'s body for 16 jiffies; dungeon: the 25 registers cleared, freq $7E97 noise, AD 57, volume 15, gate, 16 jiffies, the gate left on | a damage spell's hit on a monster (`0x2fd6` with SP set): `FOR II = 0 TO C%(WG) − 1`, one each; `C%` = `MN` field 13 (sprite blocks − 1, 1–4). II's rock: one (`SP` = 2) |
 | (unused) | `0x6af9` (`OUTDOORS`) | `DUNGEON`'s `mark` | no caller |
-| (click) | `0x6198` / `0x6a1a` | volume 10, triangle gate, AD 20 SR 9, freq $1464, `TI` 3 jiffies, gate off, SR 9 (`OUTDOORS`: volume 4) | every key or stick move the input routine reads (`0x61e6`) |
+| `key_click` (s229) | `0x6198` / `0x6a1a` | volume 10, triangle gate (control 17), AD 20, SR 9, freq $1464 (hi 20, lo 100), `TI` 3 jiffies, gate off, AD 9; `OUTDOORS` then the volume 4 (`DUNGEON` leaves 10) | every key the input routine (`0x61e6` / entry `0x61dc`: `POKE 198,0`, wait for the fire button's release, `GET`) reads, and every stick move; the program's only `GET` |
 
 `TOWNR` (I): `0x503f`, **U)SE of an item 141–150** (RING A–I, WAND; `0x2fa7`), then the menu again: `$D400`–`$D418`
 cleared; `FOR I = 1 TO 6`: volume 15, AD 0 SR 240, control 21, `$D403` 1, then the notes `MZ%(0…7)` = 4050, 4291, 3215,
 2145, 2145, 2408, 2703, 2861 (DATA, −1 ends): A = MZ% / 2 · I, `L% = A / 256` to voice 1's freq hi, `H% = A − 256 · L%`
 to voice 3's (the ring), a note every 2 jiffies (`TI ≥ TM + 2`, `TM = TI`); volume 0 33 jiffies after the last. 48 notes,
-2.15 s. `0x510d` is `OUTDOORS`'s click (AD 9), on the menus' N / S and the disk prompt. II's `TOWN2` keeps both routines
-(`0x5525`, `0x55f3`); nothing calls its tune.
+2.15 s. `0x510d` is the town's click (s229): volume 10, control 17, AD 9 (no SR write), freq $1464, 3 jiffies, gate off,
+AD 9, with the addresses as float constants; played by the input routine `0x4ea1` (entry `0x41f3`, called from the Guild's
+and the shops' menus) and the key wait `0x41fe`; `TOWNR`'s two other `GET`s have none: the typed line `0x45f7` / `0x464e`
+(names, amounts) and `0x48b7` (the key after the Mystic's rank). II's `TOWN2` keeps both routines (`0x5525`, `0x55f3`);
+nothing calls its tune. II's `OUTDOORS2` `0x6707` and `DUNGEON2` `0x6f8b` hold I's clicks unchanged.
 
 **Played (s228).** The pack's `sid_sounds` (`fight.outdoors.*`, `fight.dungeon.*`, I's `town.ring`, `marks` = `MN` field 13
 by monster; `C64PlaySounds` in the importer, numbers only) on the Client's `Sid6581`: the fight's start, each round shown
@@ -597,5 +600,12 @@ fights the swim's lines, `DUNGEON`'s script lines and a Resurrection on the map 
 or wand used in town. `[~]`: the remaster shows a round's lines at once, so its sounds play in turn, each from the last
 write of the one before (the C64 prints, waits, sounds line by line); a sound that comes while one plays waits for it;
 each run starts on a fresh chip (registers 0), where the C64 keeps what the last routine left (`dies` and `alive` do not
-set every register); `DUNGEON`'s `cast` without its stray clear. Not played: the click (`0x6198`, `0x510d`; every key);
-the C64's message waits around the sounds.
+set every register); `DUNGEON`'s `cast` without its stray clear. Not played: the C64's message waits around the sounds.
+
+**The key click (s229, `key_click.town` / `.outdoors` / `.dungeon`).** The Client plays it for each new key (the mouse's keys
+too; not Shift / Ctrl / Alt alone) or pad button in the town and the Guild (`TOWNR`), on the map (`OUTDOORS`), in the
+dungeon (`DUNGEON`) and in a fight (its terrain's program), I and II; III's `PHANT.OBJ` has none. None while a name is
+typed (the typed line has no click; the remaster's typed amounts are not marked as typed text and still click `[~]`) or while another C64 sound runs (the input routine's `POKE 198,0` drops
+keys pressed during a sound). `[~]`: the Mystic's key wait clicks in the remaster; keys the remaster takes that the C64
+screen would not read still click; each click starts on a fresh chip (the C64's gate-on uses the AD 9 the last click
+left); the statements' times as the fights' (VICE).

@@ -97,7 +97,7 @@ names its presets only where they differ from this.
 | D-087 | C64 import: no spell names on the C64; the fire elemental's name field reads FIRE ELE | **DECIDED: as built** + built (user s217; the manual's spell table + DIVINE I as D2-050; FIRE ELEM as D-083) |
 | D-088 | Apple II: "START A NEW GAME" — manual: characters erased and the dungeons reset; the Apple resets the roster and the towns only | **DECIDED: manual** (user s223; as built: an Apple-only import gives every region DOS's start state) |
 | D-089 | Apple-only import: two monster typos (APRENTICE DEVIL, MASTER ILLUSTIONIST): fix or keep | **DECIDED: fix** + built (user s223; APPRENTICE DEVIL / MASTER ILLUSIONIST; the Apple's other names kept, FIRE ELE → FIRE ELEM as D-087) |
-| D-090 | The ending: the Apple's FLASH? gives three gifts (items 177–179) and moves the party to Olympus; DOS / Amiga / C64 send it to Pelnor with no items | **DECIDED** (user s225) + built s226: the Apple's outcome in every version (diamonds to the found items, OUT19 (7, 13)), DOS's as option `p1.victory`; FLASH?'s further effects decided (user s227) and built s228: score 100, XP / gold pools and spell #60 (DIVINE REVIVAL) as the Apple in place of DIVINE I, days out kept; #60's rejuvenation and HP left at 0 found s228, built as the Apple's (user to confirm) |
+| D-090 | The ending: the Apple's FLASH? gives three gifts (items 177–179) and moves the party to Olympus; DOS / Amiga / C64 send it to Pelnor with no items | **DECIDED** (user s225) + built s226: the Apple's outcome in every version (diamonds to the found items, OUT19 (7, 13)), DOS's as option `p1.victory`; FLASH?'s further effects decided (user s227) and built s228: score 100, XP / gold pools and spell #60 (DIVINE REVIVAL) as the Apple in place of DIVINE I, days out kept; #60's rejuvenation and HP left at 0 found s228, built as the Apple's, confirmed (user s229) |
 | D-091 | Apple-only import: CEMETARY's "YOU HAVE AR[original text]" typo: fix or keep | **DECIDED** (user s225): fix to ARRIVED; built s226 |
 
 ---
@@ -1204,8 +1204,8 @@ names its presets only where they differ from this.
   Cast outside a fight in a dungeon, it does what DUNGON 5500 does, read in full for the build (s228): each member with
   CON 0 and STR ≥ 1 (no status test; the Apple's "byte 4 = 0, byte 1 > 0") is revived: status OK, CON := 3 + a 0..8 draw,
   the age clock's high byte × 0.6 (Core's `AgeClock` is the Apple's 1/26-year unit), HP untouched; for each, the caster
-  loses #60 and all MP; nobody: NO USELESS BODIES HERE, #60 kept. **Found s228, built as part of "the Apple's #60" (for
-  the user to confirm): the rejuvenation (age × about 0.6) and the HP left at 0** (in Core a member at 0 HP doesn't act
+  loses #60 and all MP; nobody: NO USELESS BODIES HERE, #60 kept. **Found s228, built as part of "the Apple's #60",
+  confirmed by the user s229: the rejuvenation (age × about 0.6) and the HP left at 0** (in Core a member at 0 HP doesn't act
   in a fight until healed, DOS's rule). `[~]`: town / wilderness casts are refused before any MP under the manual cast
   list (the Apple charges 4 MP there; `p1.cast-list` = `dos` charges and does nothing); DOS export keeps the flag at
   `@214` but DOS can't show or cast it; the I → II transfer drops it (II's index 55 is DIVINE II). Code:

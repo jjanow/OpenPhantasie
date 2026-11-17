@@ -227,6 +227,31 @@ public static class C64PlaySounds
         .Poke(0.0018, 23, 0).Poke(0.0017, 21, 1).Poke(P, 4, 133).Poke(jiffies * Jiffy, 4, 20);
 
     /// <summary>
+    /// s229: the key click `[C]`, which every program's input routine plays for each key it GETs and each stick move it
+    /// reads (I's GRAPHICS.md 9.8). Three bodies, the same in I and II: <c>key_click.outdoors</c> (<c>OUTDOORS</c>
+    /// <c>0x6198</c>, <c>OUTDOORS2</c> <c>0x6707</c>), <c>key_click.dungeon</c> (<c>DUNGEON</c> <c>0x6a1a</c>,
+    /// <c>DUNGEON2</c> <c>0x6f8b</c>) and <c>key_click.town</c> (<c>TOWNR</c> <c>0x510d</c>, <c>TOWN2</c> <c>0x55f3</c>): volume 10,
+    /// triangle gate, then the envelope (outdoors / dungeon AD 20 SR 9, the town AD 9 and no SR), frequency $1464,
+    /// <c>TI$ = "000000"</c> and 3 jiffies, gate off, AD 9; <c>OUTDOORS</c> also sets the volume to 4 after it (the
+    /// dungeon and the town leave 10). Statement times as the fights' (VICE) `[~]`.
+    /// </summary>
+    public static void AddClicks(JsonObject sounds)
+    {
+        Seq Body(Seq s, bool town)
+        {
+            s.Poke(0, 24, 10).Poke(town ? Q : P, 4, 17);
+            if (town)
+                s.Poke(Q, 5, 9);
+            else
+                s.Poke(Q, 5, 20).Poke(Q, 6, 9);
+            return s.Poke(town ? Q : P, 1, 20).Poke(town ? Q : P, 0, 100).Poke(3 * Jiffy + 0.002, 4, 16).Poke(town ? Q : P, 5, 9);
+        }
+        sounds["key_click.outdoors"] = Body(new Seq(), false).Poke(P, 24, 4).Steps;
+        sounds["key_click.dungeon"] = Body(new Seq(), false).Steps;
+        sounds["key_click.town"] = Body(new Seq(), true).Steps;
+    }
+
+    /// <summary>
     /// I's <c>TOWNR</c> <c>0x503f</c> `[C]`: U)SE of an item 141–150 (RING A–I, WAND) plays this and returns to the menu.
     /// The 25 registers cleared, then six passes I = 1…6 of the eight notes: A = MZ% / 2 · I, L% = INT(A / 256) to voice
     /// 1's frequency high byte, H% = A − 256 · L% to voice 3's (the ring), a note every 2 jiffies (<c>TI</c>); the

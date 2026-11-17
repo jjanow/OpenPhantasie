@@ -950,7 +950,7 @@
     "undead_name_col": 1
   },
   "sid_sounds": {
-    "_note": "s226 (GRAPHICS.md 9.6) [C]: the end screens' sounds as their programs write the SID ($D400 + register), in order; times in seconds from the sound's start (BASIC's TI waits; the VICE-measured interpreter time for the FOR loops, PAL). Played on one 6581 model per screen (Client Sid6581). wind / wind_stop: ZALL $4D40 / $4E46 (P.END step 3 to after the wipe's TD = 2), the IRQ routine $4D73 once a jiffy (zall_wind). thunder: P.END 0xbb6 per strike (its clear loop pokes $D400 only). click / click_off: P.END 0xc43 per space and line end, the gate off after the caller's 16 or RND * 8 jiffies. rumble: CEMETARY 0x90e after the ghosts, its gate never turned off (it sounds until the first fate's clear). fate: CEMETARY 0x97b per member. cheer: WIN 0x749; the sweeps' pass is the measured 9.928 s less the FOR loops at WIN's 1.042 ms a pass [~]. s228 (GRAPHICS.md 9.8) [C]: fight.{outdoors,dungeon}.* = the fights' SID routines of OUTDOORS2 / DUNGEON2 (cast, monster_cast, awakens, alive, miss, hit, encounter, wound, monster_hit, dies, mark), the statements and FOR passes at the times VICE measured (II's routines forced on its fight screen); the TI waits as written. marks: MN field 13 (C%) of monsters 0-79, the marks (each a mark sound) a damage spell draws on that monster.",
+    "_note": "s226 (GRAPHICS.md 9.6) [C]: the end screens' sounds as their programs write the SID ($D400 + register), in order; times in seconds from the sound's start (BASIC's TI waits; the VICE-measured interpreter time for the FOR loops, PAL). Played on one 6581 model per screen (Client Sid6581). wind / wind_stop: ZALL $4D40 / $4E46 (P.END step 3 to after the wipe's TD = 2), the IRQ routine $4D73 once a jiffy (zall_wind). thunder: P.END 0xbb6 per strike (its clear loop pokes $D400 only). click / click_off: P.END 0xc43 per space and line end, the gate off after the caller's 16 or RND * 8 jiffies. rumble: CEMETARY 0x90e after the ghosts, its gate never turned off (it sounds until the first fate's clear). fate: CEMETARY 0x97b per member. cheer: WIN 0x749; the sweeps' pass is the measured 9.928 s less the FOR loops at WIN's 1.042 ms a pass [~]. s228 (GRAPHICS.md 9.8) [C]: fight.{outdoors,dungeon}.* = the fights' SID routines of OUTDOORS2 / DUNGEON2 (cast, monster_cast, awakens, alive, miss, hit, encounter, wound, monster_hit, dies, mark), the statements and FOR passes at the times VICE measured (II's routines forced on its fight screen); the TI waits as written. marks: MN field 13 (C%) of monsters 0-79, the marks (each a mark sound) a damage spell draws on that monster. s229: key_click.{town,outdoors,dungeon}: TOWNR 0x510d / OUTDOORS 0x6198 / DUNGEON 0x6a1a (II the same), the input routines' click on each key GET and stick move.",
     "clock_hz": 985248,
     "jiffy_hz": 60,
     "tail_seconds": 2,
@@ -6301,6 +6301,228 @@
         {
           "at": 0.334967,
           "poke": []
+        }
+      ],
+      "key_click.outdoors": [
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              24,
+              10
+            ]
+          ]
+        },
+        {
+          "at": 0.0007,
+          "poke": [
+            [
+              4,
+              17
+            ]
+          ]
+        },
+        {
+          "at": 0.0026,
+          "poke": [
+            [
+              5,
+              20
+            ]
+          ]
+        },
+        {
+          "at": 0.0045,
+          "poke": [
+            [
+              6,
+              9
+            ]
+          ]
+        },
+        {
+          "at": 0.0052,
+          "poke": [
+            [
+              1,
+              20
+            ]
+          ]
+        },
+        {
+          "at": 0.0059,
+          "poke": [
+            [
+              0,
+              100
+            ]
+          ]
+        },
+        {
+          "at": 0.0579,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 0.0586,
+          "poke": [
+            [
+              5,
+              9
+            ]
+          ]
+        },
+        {
+          "at": 0.0593,
+          "poke": [
+            [
+              24,
+              4
+            ]
+          ]
+        }
+      ],
+      "key_click.dungeon": [
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              24,
+              10
+            ]
+          ]
+        },
+        {
+          "at": 0.0007,
+          "poke": [
+            [
+              4,
+              17
+            ]
+          ]
+        },
+        {
+          "at": 0.0026,
+          "poke": [
+            [
+              5,
+              20
+            ]
+          ]
+        },
+        {
+          "at": 0.0045,
+          "poke": [
+            [
+              6,
+              9
+            ]
+          ]
+        },
+        {
+          "at": 0.0052,
+          "poke": [
+            [
+              1,
+              20
+            ]
+          ]
+        },
+        {
+          "at": 0.0059,
+          "poke": [
+            [
+              0,
+              100
+            ]
+          ]
+        },
+        {
+          "at": 0.0579,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 0.0586,
+          "poke": [
+            [
+              5,
+              9
+            ]
+          ]
+        }
+      ],
+      "key_click.town": [
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              24,
+              10
+            ]
+          ]
+        },
+        {
+          "at": 0.0019,
+          "poke": [
+            [
+              4,
+              17
+            ]
+          ]
+        },
+        {
+          "at": 0.0038,
+          "poke": [
+            [
+              5,
+              9
+            ]
+          ]
+        },
+        {
+          "at": 0.0057,
+          "poke": [
+            [
+              1,
+              20
+            ]
+          ]
+        },
+        {
+          "at": 0.0076,
+          "poke": [
+            [
+              0,
+              100
+            ]
+          ]
+        },
+        {
+          "at": 0.0596,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 0.0615,
+          "poke": [
+            [
+              5,
+              9
+            ]
+          ]
         }
       ],
       "cheer": [

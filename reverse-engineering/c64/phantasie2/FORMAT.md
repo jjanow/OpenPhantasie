@@ -313,8 +313,7 @@ below, with these details:
   the C64's own wording (`tools/scripts/p2_c64_own_wording.json`: Pluto's speech, the Filmon ending, the Mystic, three
   field lines); `fallback.p2-c64.en.json` for `{0} SWIMS`.
 - Precedence: the ST's, then the Apple's tables win (same run or earlier; an Apple import after a C64 one replaces the
-  C64's tables, `A2GameData.Write`) `[U]` (not in the decisions: the order Apple over C64 was chosen to keep Apple
-  imports unchanged).
+  C64's tables, `A2GameData.Write`); Apple over C64 confirmed by the user s229 (keeps Apple imports unchanged).
 
 **Containers.** `.d64` / `.g64` as `p1-c64` (the G64 decoder and D64 / REL reader are shared).
 

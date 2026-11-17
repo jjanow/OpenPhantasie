@@ -169,6 +169,40 @@ public class C64PlaySoundTests
         }
     }
 
+    [Theory]
+    [InlineData(1, "outdoors", 20, 4)] // OUTDOORS 0x6198: AD 20, the volume 4 after
+    [InlineData(1, "dungeon", 20, 10)] // DUNGEON 0x6a1a: the volume left at 10
+    [InlineData(1, "town", 9, 10)] // TOWNR 0x510d: AD 9, no SR
+    [InlineData(2, "outdoors", 20, 4)]
+    [InlineData(2, "town", 9, 10)]
+    public void KeyClick_GatesATriangleAt1464_ForThreeJiffies(int game, string place, int ad, int volumeAfter)
+    {
+        var score = (game == 1 ? I : II).Score("key_click." + place, () => 0.5);
+        var on = score.Writes.First(w => w.Register == 4 && w.Value == 17);
+        var off = score.Writes.First(w => w.Register == 4 && w.Value == 16);
+        Assert.InRange(off.Seconds - on.Seconds, 3 / 60.0, 3 / 60.0 + 0.012);
+        Assert.Equal(ad, score.Writes.First(w => w.Register == 5).Value);
+        Assert.Equal(place != "town", score.Writes.Any(w => w.Register == 6));
+        Assert.Equal(0x1464, score.Writes.Last(w => w.Register == 1).Value * 256 + score.Writes.Last(w => w.Register == 0).Value);
+        Assert.Equal((5, 9), (score.Writes.Last(w => w.Register is 4 or 5 or 6).Register, score.Writes.Last(w => w.Register == 5).Value));
+        Assert.Equal(volumeAfter, score.Writes.Last(w => w.Register == 24).Value);
+        Assert.True(Rms(Render(score), 0.005, 0.05) > 0.002);
+    }
+
+    [Fact]
+    public void KeyClick_ByScreen_TownGuildMapDungeonAndTheFightsTerrain_NotIII()
+    {
+        Assert.Equal("key_click.town", C64PlaySoundCues.ClickKey(I, GameId.P1, GameMode.Town, GameMode.Overworld));
+        Assert.Equal("key_click.town", C64PlaySoundCues.ClickKey(II, GameId.P2, GameMode.Guild, GameMode.Overworld));
+        Assert.Equal("key_click.outdoors", C64PlaySoundCues.ClickKey(I, GameId.P1, GameMode.Overworld, GameMode.Overworld));
+        Assert.Equal("key_click.dungeon", C64PlaySoundCues.ClickKey(I, GameId.P1, GameMode.Dungeon, GameMode.Overworld));
+        Assert.Equal("key_click.dungeon", C64PlaySoundCues.ClickKey(I, GameId.P1, GameMode.Combat, GameMode.Dungeon));
+        Assert.Equal("key_click.outdoors", C64PlaySoundCues.ClickKey(II, GameId.P2, GameMode.Combat, GameMode.Overworld));
+        Assert.Null(C64PlaySoundCues.ClickKey(I, GameId.P1, GameMode.Title, GameMode.Overworld));
+        Assert.Null(C64PlaySoundCues.ClickKey(III, GameId.P3, GameMode.Town, GameMode.Overworld)); // III's PHANT.OBJ: none
+        Assert.Null(C64PlaySoundCues.ClickKey(null, GameId.P1, GameMode.Town, GameMode.Overworld));
+    }
+
     private static readonly Character Ann = new() { Name = "ANN" }, Bob = new() { Name = "BOB", Status = CharacterStatus.Dead },
         Cid = new() { Name = "CID", Status = CharacterStatus.Dead };
     private static readonly Monster Orc = new() { Name = "ORC", Id = 45 }, Rat = new() { Name = "RAT", Id = 0 };

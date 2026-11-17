@@ -50,6 +50,26 @@ public class C64PlaySoundsTests
         Assert.True(Contains(DataNumbers(Read(II1, "OUTDOORS2")), C64PlaySounds.AwakeNotes));
     }
 
+    /// <summary>
+    /// s229: the key click's statements in the compiled BASIC: <c>POKE D2,10: POKE D4,17: POKE D5,16+4: POKE D5+1,9:
+    /// POKE D3,20: POKE DO,100: TI$="000000"</c> (OUTDOORS / DUNGEON, their own variable ids) or the town's with float
+    /// addresses (<c>POKE 54296,10: POKE 54276,17: POKE 54277,9: POKE 54273,20: POKE 54272,100</c>).
+    /// </summary>
+    [RequiresFilesFact(I1, II1)]
+    public void KeyClick_IsInEveryInputProgram()
+    {
+        static byte[] V(byte var, byte value) => [0x90, var, 0x89, value, 0x50];
+        static byte[] F(byte low, byte value) => [0x88, 0x90, 0x54, low, 0, 0, 0x89, value, 0x50];
+        byte[] outdoors = [.. V(0x41, 10), .. V(0x4F, 17), 0x90, 0x56, 0x89, 16, 0x84, 0x01, 0x50, 0x90, 0x56, 0x81, 0x01, 0x89, 9, 0x50,
+            .. V(0x48, 20), .. V(0x3A, 100)];
+        byte[] town = [.. F(0x18, 10), .. F(0x04, 17), .. F(0x05, 9), .. F(0x01, 20), .. F(0x00, 100)];
+        static int Find(byte[] prg, byte[] run) => prg.AsSpan().IndexOf(run);
+        Assert.Equal(0x6198, Find(Read(I1, "OUTDOORS"), outdoors));
+        Assert.Equal(0x510d, Find(Read(I1, "TOWNR"), town));
+        Assert.Equal(0x55f3, Find(Read(II1, "TOWN2"), town));
+        Assert.True(Find(Read(II1, "OUTDOORS2"), outdoors) > 0);
+    }
+
     [RequiresFilesFact(III1)]
     public void III_SndIsTheRoutinesRead()
     {

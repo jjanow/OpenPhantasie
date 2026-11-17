@@ -38,7 +38,8 @@ public class C64SidSoundTests
     public void Packs_HaveTheDecodedSounds()
     {
         static IEnumerable<string> EndScreens(SidSounds sid) => sid.Names.Where(n => !n.StartsWith("fight.", StringComparison.Ordinal)
-            && !n.StartsWith("town.", StringComparison.Ordinal)).Order(StringComparer.Ordinal); // s228: and the play sounds
+            && !n.StartsWith("town.", StringComparison.Ordinal) && !n.StartsWith("key_click.", StringComparison.Ordinal))
+            .Order(StringComparer.Ordinal); // s228 / s229: and the play sounds
         Assert.Equal(["click", "click_off", "fate", "rumble", "thunder", "wind", "wind_stop"], EndScreens(I));
         Assert.Equal(["cheer", "fate", "rumble"], EndScreens(II));
         Assert.Equal((985248.0, 60.0), (I.ClockHz, I.JiffyHz));

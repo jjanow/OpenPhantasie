@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework.Input;
 using OpenPhantasie.Core;
 using OpenPhantasie.Data.Audio;
 
@@ -21,7 +22,7 @@ public partial class Game1
     /// town. The C64 waits for each sound, so sounds that come while one plays wait for its last write, then play in turn
     /// on one chip; the end screens' sounds stop them.
     /// </summary>
-    private void UpdateC64PlaySounds()
+    private void UpdateC64PlaySounds(KeyboardState keys, GamePadState pad)
     {
         var session = _session;
         var sid = _assets?.Pack?.SidSounds;
@@ -82,6 +83,10 @@ public partial class Game1
             _c64PlayBusyUntil = 0;
             return;
         }
+        // s229: the key click (C64PlaySoundCues.ClickKey): each key the game reads, on a chip with no sound running (the C64's
+        // input routine empties the key buffer first, so keys pressed during a sound get no click).
+        if (_c64PlayQueue.Count == 0 && _updateSeconds >= _c64PlayBusyUntil && ClickKeyNow(session, sid!, keys, pad) is { } click)
+            _c64PlayQueue.Enqueue(click);
         if (_c64PlayQueue.Count > 0 && _updateSeconds >= _c64PlayBusyUntil)
         {
             var cues = C64PlaySoundCues.InTurn(sid!, _c64PlayQueue);
@@ -94,4 +99,25 @@ public partial class Game1
         }
         _c64Play.Update();
     }
+
+    /// <summary>
+    /// s229: the click for this frame's keys, or null: a new key (the mouse's keys too) or pad button while the game's own
+    /// screens read keys (no splash, Options, slot, import or reset screen), not while a name is typed (the C64
+    /// GETs typed lines with no click); typed amounts still click `[~]`.
+    /// </summary>
+    private string? ClickKeyNow(GameSession session, SidSounds sid, KeyboardState keys, GamePadState pad)
+    {
+        if (_splash is not null || _options.IsOpen || _import.IsOpen || _update.IsOpen || _slotScreen.IsOpen || _reset.IsOpen
+            || _dosDialog.IsOpen // the remaster's save-path dialog
+            || OpenModal is ITypedEntry { TypingAlphabet: not null })
+            return null;
+        if (!_input.NewKeys(keys).Any(k => !IsModifierKey(k)) && !_input.NewButtons(pad).Any())
+            return null;
+        return C64PlaySoundCues.ClickKey(sid, session.Game, session.Mode, session.CombatReturnMode);
+    }
+
+    /// <summary>Shift, Ctrl, Alt and the system keys alone: the C64's GET returns nothing for them.</summary>
+    private static bool IsModifierKey(Keys key) => key is Keys.LeftShift or Keys.RightShift or Keys.LeftControl
+        or Keys.RightControl or Keys.LeftAlt or Keys.RightAlt or Keys.LeftWindows or Keys.RightWindows or Keys.CapsLock
+        or Keys.NumLock or Keys.Scroll;
 }
