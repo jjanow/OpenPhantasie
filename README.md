@@ -38,17 +38,22 @@ and DOS pictures, for example), Options → the game's tab → GRAPHICS switches
 | Phantasie I | DOS, SSI 1987 or the WizardWorks Bonus Edition, including the Steam / GOG "Phantasie Memorial Set" (360K disk image or the game's folder) | the game (tables, text, maps) and the DOS CGA pictures |
 | Phantasie I | Amiga v1.0, 1987 (`.adf`) | the game itself, and the Amiga pictures, title music and sounds (with the DOS copy imported too, the game data is DOS's) |
 | | Amiga Kickstart 1.3 ROM | the Amiga screen font (optional, for the Amiga look) |
+| Phantasie I | Commodore 64 v1.4 (`.d64` or `.g64` pair) | the game (the C64's text with DOS's numbers) and the C64 pictures, animated end screens and sounds |
+| Phantasie I | Apple II v1.0 (`.dsk` or `.woz` pair) | the game (the Apple's text with DOS's numbers) and the Apple II pictures, combat field and end screens |
 | Phantasie II | Atari ST v1.0 (two `.stx` or `.st` disks) | the game and the Atari ST pictures and music |
-| Phantasie II | Apple II v1.0 (two-sided `.dsk` pair, including the Steam / GOG "Phantasie Memorial Set" disks) or v2.1 | the game (with the Atari ST version's numbers where they differ) and the Apple II pictures |
+| Phantasie II | Apple II v1.0 (two-sided `.dsk` pair, including the Steam / GOG "Phantasie Memorial Set" disks) or v2.1 | the game (with the Atari ST version's numbers where they differ) and the Apple II pictures and combat field |
+| Phantasie II | Commodore 64 v1.2 (`.d64` or `.g64` pair) | the game (the C64's text with the Atari ST version's numbers) and the C64 pictures, end screens and sounds |
 | Phantasie III | DOS, SSI 1988, WizardWorks 1991 or the "Phantasie Memorial Set" (disk image or folder) | the game and the DOS CGA pictures |
 | Phantasie III | Amiga v1.0, 1987 (`.adf`) | the game itself, and the Amiga pictures, music and sounds (with the DOS copy imported too, the game data is DOS's) |
-| Phantasie III | Apple II v3.0 (`.woz` pair) or v1.0 (`.dsk`) | the game itself (with DOS's numbers where they differ) and the Apple II pictures |
+| Phantasie III | Apple II v3.0 (`.woz` pair) or v1.0 (`.dsk`) | the game itself (with DOS's numbers where they differ) and the Apple II pictures and combat field |
+| Phantasie III | Commodore 64 v1.0, v1.1 or v1.2 (`.d64` or `.g64` pair) | the game (the C64's text with DOS's numbers, and its six ready-made characters in the Guild) and the C64 pictures and sounds |
 | Phantasie IV | X68000 Ver.1.02 (two `.dim` disks) | the game, its pictures, music and voices, with the English translation |
 
 Copies are recognised by their content (checksums of the program and data files), not by file or folder names, so
 an installed store version can be pointed at directly. A copy that has been played is imported as it is; the import
 report says what that changes (for DOS Phantasie I: map regions already explored and fixed fights already won).
-Other versions (C64, Apple II Phantasie I, PC-88, PC-98, MSX2, …) are recognised but cannot be imported yet.
+Other versions (the German C64 Phantasie I, C64 Phantasie II v1.0, Sharp X1, PC-88, PC-98, MSX2, …) are recognised but
+cannot be imported yet.
 
 ## Planned source-platform support
 
@@ -58,12 +63,12 @@ playable imports and their own graphics, fonts and audio where available, with n
 
 | Game | Platforms still to add | Existing support to extend |
 |---|---|---|
-| Phantasie I | Apple II, Commodore 64, Atari 8-bit, Atari ST, MSX2, NEC PC-88, NEC PC-98, Sharp X1 | DOS and Amiga imports already work (the Amiga copy alone too) |
-| Phantasie II | Commodore 64, Atari 8-bit, MSX2, NEC PC-88, NEC PC-98 | Atari ST and Apple II imports already work |
-| Phantasie III | Commodore 64, Atari ST, MSX2, NEC PC-88, NEC PC-98 | DOS, Amiga and Apple II imports already work (the Amiga or Apple II copy alone too) |
+| Phantasie I | Atari 8-bit, Atari ST, MSX2, NEC PC-88, NEC PC-98, Sharp X1 | DOS, Amiga, Commodore 64 and Apple II imports already work (each copy alone too) |
+| Phantasie II | Atari 8-bit, MSX2, NEC PC-88, NEC PC-98 | Atari ST, Apple II and Commodore 64 imports already work |
+| Phantasie III | Atari ST, MSX2, NEC PC-88, NEC PC-98 | DOS, Amiga, Apple II and Commodore 64 imports already work (each copy alone too) |
 | Phantasie IV | NEC PC-88, NEC PC-98, MSX2 (including the existing DJANGO English patch) | X68000 import already works |
 
-That is 21 additional game/platform combinations. Reference disk images are available for this backlog, but
+That is 17 additional game/platform combinations. Reference disk images are available for this backlog, but
 recognising an image does not mean it can be imported yet. Original game files will continue to come from the
 player's own copy.
 
@@ -155,7 +160,7 @@ Tests that need the original games' data are skipped when it is not present, so 
 src/OpenPhantasie.Core/          rules: combat, magic, movement, towns, dungeons (no rendering)
 src/OpenPhantasie.Data/          JSON schemas and loaders; GameData/ holds our own data (rules, numbers, layouts, text)
 src/OpenPhantasie.Client/        the MonoGame front end
-src/OpenPhantasie.Importer/      reads the player's copies (FAT12, AmigaDOS, Human68k, Apple RDOS, Pasti, zip) and builds the import
+src/OpenPhantasie.Importer/      reads the player's copies (FAT12, AmigaDOS, Human68k, Apple RDOS / DOS 3.3 and WOZ, C64 D64 / G64, Pasti, zip) and builds the import
 src/OpenPhantasie.Importer.Cli/  openphantasie-import, the command-line importer
 tests/                           xUnit tests
 tools/scripts/                   the Python reverse-engineering and extraction tools the importer was ported from
