@@ -130,6 +130,43 @@ public static class Endgame
         }
     }
 
+    /// <summary>D-090 <c>apple</c>: <c>FLASH?</c> 150 sets record byte 42 (the score, DOS <c>@70</c>) to 100 on every member: tier 6,
+    /// "SUPREME BEINGS" (Apple TOWN 4656).</summary>
+    public const int AppleVictoryScore = 100;
+
+    /// <summary>D-090 <c>apple</c>: <c>FLASH?</c> 170's XP pool (<c>SA + 1197..1198</c> := 65,535, in tens): 655,350 XP, Core's
+    /// whole-XP sack (D-053), which is also its pool cap (<see cref="CombatEncounter.XpPoolCap"/>).</summary>
+    public const long AppleVictoryXpPool = 65535L * 10;
+
+    /// <summary>D-090 <c>apple</c>: <c>FLASH?</c> 170's gold pool (<c>SA + 1199..1200</c> := 65,535).</summary>
+    public const long AppleVictoryGoldPool = 65535;
+
+    /// <summary>
+    /// D-090 <c>apple</c>: <c>FLASH?</c> 170 sets the trip's pools (set, not added): the sack's XP := 655,350 and its gold :=
+    /// 65,535, held to the sack's gold cap (D-048: found gold is carried, so the purse cap holds it, 65,000 by default) as
+    /// any found gold. They are shared out at the next town as after any trip. Days out (<c>1194..1195</c> := 65,535 there)
+    /// are not changed (user s227).
+    /// </summary>
+    public static void SetAppleVictoryPools(LootSack sack)
+    {
+        ArgumentNullException.ThrowIfNull(sack);
+        sack.Experience = AppleVictoryXpPool;
+        sack.Gold = Math.Min(AppleVictoryGoldPool, sack.GoldCap);
+    }
+
+    /// <summary>D-090: <paramref name="m"/> knows the Apple's #60 (the spell array grown to I's layout when shorter).</summary>
+    public static void LearnAppleDivine(Character m)
+    {
+        ArgumentNullException.ThrowIfNull(m);
+        if (m.SpellsKnown.Length <= SpellId.AppleDivine)
+        {
+            var grown = m.SpellsKnown;
+            Array.Resize(ref grown, SpellId.AppleDivine + 1);
+            m.SpellsKnown = grown;
+        }
+        m.SpellsKnown[SpellId.AppleDivine] = 1;
+    }
+
     /// <summary>
     /// End of combat OV2 <c>0x4202..0x4214</c>: state 7 iff the first monster is the BLACK LORD and the "all monsters killed"
     /// flag <c>[0x74aa]</c> is set — by the living recount reaching 0 or by DISSOLVE (<c>0x087b</c>). Escapes (TELEPORTATION,
@@ -149,7 +186,17 @@ public static class Endgame
     /// (quirk [C]: it is set on OK party members after the party → roster copy), returned as clones. Then every OK member
     /// learns DIVINE I. The caller places the party (D-090: Olympus, or town 1 under <c>dos</c>); the game goes on.
     /// </summary>
-    public static IReadOnlyList<Character?> GrantVictory(Party party, GuildRoster roster)
+    public static IReadOnlyList<Character?> GrantVictory(Party party, GuildRoster roster) =>
+        GrantVictory(party, roster, apple: false);
+
+    /// <summary>
+    /// <see cref="GrantVictory(Party, GuildRoster)"/> with D-090's choice: <paramref name="apple"/> (<c>p1.victory</c> =
+    /// <c>apple</c>, user s227) gives the Apple's <c>FLASH?</c> 150 instead of DIVINE I: every adventurer, dead included,
+    /// gets score (<c>@70</c>, the Apple's byte 42) := <see cref="AppleVictoryScore"/> and learns the Apple's spell #60
+    /// (<see cref="SpellId.AppleDivine"/>; the Apple's NOT toggle is not copied, so a second win never takes it away).
+    /// Both after the roster write, as DOS's DIVINE I.
+    /// </summary>
+    public static IReadOnlyList<Character?> GrantVictory(Party party, GuildRoster roster, bool apple)
     {
         ArgumentNullException.ThrowIfNull(party);
         ArgumentNullException.ThrowIfNull(roster);
@@ -161,6 +208,12 @@ public static class Endgame
         var guildWrite = roster.Slots.Select(c => c?.Clone()).ToArray();
         foreach (var m in party.Adventurers) // n := partySize == 7 ? 6 : partySize — the summon slot is skipped
         {
+            if (apple)
+            {
+                m.Score = AppleVictoryScore; // FLASH? 150, PM = 0 TO PO, no status test
+                LearnAppleDivine(m);
+                continue;
+            }
             if (m.Status == CharacterStatus.Ok)
                 m.SpellsKnown[SpellId.DivineI] = 1; // DOS @210 = slot 57; remaster index 54 (data-tables.md, P0.6)
         }

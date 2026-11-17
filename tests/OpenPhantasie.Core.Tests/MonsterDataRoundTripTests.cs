@@ -76,16 +76,17 @@ public class MonsterDataRoundTripTests
     {
         var data = GameDataRepository.LoadPhantasie1();
 
-        Assert.Equal(GameDataRepository.ExpectedSpellCount, data.Spells.Count);
+        Assert.Equal(GameDataRepository.ExpectedSpellCount + 1, data.Spells.Count); // + D-090's #60 (extra_spells)
         Assert.All(data.Spells, s =>
-            Assert.Equal(GameDataRepository.SpellMagicPointCost(s.Id), s.MagicPointCost));
+            Assert.Equal(SpellSlots.PhantasieI.MagicPointCost(s.Id), s.MagicPointCost));
 
         Assert.Equal(1, data.GetSpell(0).MagicPointCost); // HEALING I
         Assert.Equal(4, data.GetSpell(3).MagicPointCost); // HEALING IV
         Assert.Equal(1, data.GetSpell(40).MagicPointCost); // CHARM
         Assert.Equal(2, data.GetSpell(54).MagicPointCost); // DIVINE I = DOS slot 57 (s41)
         Assert.Equal(57, data.GetSpell(54).DosSlot);
-        Assert.All(data.Spells, s => Assert.Equal(SpellId.DosSlot(s.Id), s.DosSlot));
+        Assert.All(data.Spells, s => Assert.Equal(SpellSlots.PhantasieI.DosSlot(s.Id), s.DosSlot));
+        Assert.Equal((4, 59), (data.GetSpell(SpellId.AppleDivine).MagicPointCost, data.GetSpell(SpellId.AppleDivine).DosSlot));
         Assert.All(data.Spells, s => Assert.DoesNotContain("[?]", s.EffectCoefficientsNote ?? ""));
         Assert.Equal("HEALING I", data.Spells[0].Name);
         Assert.Equal("E", data.Spells[0].Category);

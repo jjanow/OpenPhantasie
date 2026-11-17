@@ -413,7 +413,7 @@ public partial class EndgameTests
     public void D090_AppleVictory_IsTheDefault_GiftsInTheSack_PartyOnOlympus()
     {
         // FLASH? 140-175 (Apple GRAPHICS.md section 8.2): items 177-179 to the found items, the party to OUT19 Apple
-        // (13, 18) = Core (7, 13), & RUN "OUTDOORS": the wilderness, no town entry; DIVINE I as DOS grants it.
+        // (13, 18) = Core (7, 13), & RUN "OUTDOORS": the wilderness, no town entry; 150's #60 (not DIVINE I) and score.
         var session = SessionFacingTheBlackLord(out var hero);
         Assert.Equal("apple", session.Options.Values[RuleOptionRegistry.Victory.Id]);
         session.Overworld.TileClassFightDone = true;
@@ -422,8 +422,12 @@ public partial class EndgameTests
         session.ResolveCombatRound();
 
         Assert.Equal(EndgameOutcome.Victory, session.LastEndgame);
-        Assert.Equal(1, hero.SpellsKnown[SpellId.DivineI]);
-        Assert.Equal(0, session.VictoryGuildWrite!.Single(c => c?.Name == "Victor")!.SpellsKnown[SpellId.DivineI]);
+        Assert.Equal(0, hero.SpellsKnown[SpellId.DivineI]);
+        Assert.Equal(1, hero.SpellsKnown[SpellId.AppleDivine]);
+        var written = session.VictoryGuildWrite!.Single(c => c?.Name == "Victor")!;
+        Assert.True(written.SpellsKnown.Length <= SpellId.AppleDivine || written.SpellsKnown[SpellId.AppleDivine] == 0);
+        Assert.NotEqual(Endgame.AppleVictoryScore, written.Score); // granted after the roster write, as DOS's DIVINE I
+        Assert.Equal(Endgame.AppleVictoryScore, hero.Score);
         Assert.Equal([177, 178, 179], session.Sack.Items.Where(Endgame.VictoryGifts.Contains));
         Assert.Equal(GameMode.Overworld, session.Mode);
         Assert.Null(session.CurrentTownId);
@@ -443,6 +447,62 @@ public partial class EndgameTests
         Assert.Null(session.PendingVictoryScene);
         Assert.Equal(GameMode.Overworld, session.Mode);
         Assert.Contains(177, session.Sack.Items); // shared out in the next town, as after any trip
+    }
+
+    [OriginalDataFact]
+    public void D090_AppleVictory_ScoreAndSpell60_EveryMember_DeadIncluded_PoolsSet_DaysOutKept()
+    {
+        // FLASH? 150: PM = 0 TO PO, no status test: byte 42 := 100 and #60 (byte 120) known; the NOT toggle not copied, so
+        // a member who knew #60 keeps it. 170: the XP pool := 655,350, the gold pool := 65,535 (held to the purse cap,
+        // D-048), set, not added; days out unchanged (user s227).
+        var session = SessionFacingTheBlackLord(out var hero);
+        var fallen = session.CreateAndEnroll("Fallen", Race.Elf, CharacterClass.Priest);
+        Assert.True(session.TryAddToParty(fallen, out _));
+        fallen.Status = CharacterStatus.Dead;
+        fallen.HpCur = 0;
+        Endgame.LearnAppleDivine(hero); // knew it already (a second win): kept
+        session.Sack.Experience = 1234;
+        session.Sack.Gold = 99;
+        session.TravelTime = 17;
+        foreach (var m in session.Combat!.AllMonsters)
+            m.HitPoints = 0;
+        session.ResolveCombatRound();
+
+        foreach (var m in new[] { hero, fallen })
+        {
+            Assert.Equal(Endgame.AppleVictoryScore, m.Score);
+            Assert.Equal(1, m.SpellsKnown[SpellId.AppleDivine]);
+            Assert.Equal(0, m.SpellsKnown[SpellId.DivineI]);
+        }
+        Assert.Equal(CharacterStatus.Dead, fallen.Status);
+        Assert.Equal(655_350, session.Sack.Experience);
+        Assert.Equal(Math.Min(65_535, session.Sack.GoldCap), session.Sack.Gold);
+        Assert.Equal(17, session.TravelTime);
+    }
+
+    [OriginalDataFact]
+    public void D090_DosVictory_NoScoreNoPoolsNoSpell60()
+    {
+        var session = SessionFacingTheBlackLord(out var hero, victory: "dos");
+        session.Sack.Experience = 1234;
+        foreach (var m in session.Combat!.AllMonsters)
+            m.HitPoints = 0;
+        session.ResolveCombatRound();
+
+        Assert.NotEqual(Endgame.AppleVictoryScore, hero.Score);
+        Assert.False(Magic.KnowsSpell(hero, SpellId.AppleDivine));
+        Assert.Equal(1, hero.SpellsKnown[SpellId.DivineI]);
+    }
+
+    [Fact]
+    public void D090_ApplePools_SetNotAdded_GoldHeldToTheSackCap()
+    {
+        var sack = new LootSack { Experience = 10, Gold = 20 };
+        Endgame.SetAppleVictoryPools(sack);
+        Assert.Equal((655_350L, 65_000L), (sack.Experience, sack.Gold)); // D-048's 65,000 purse cap by default
+        var open = new LootSack { GoldCap = 100_000 };
+        Endgame.SetAppleVictoryPools(open);
+        Assert.Equal(65_535L, open.Gold);
     }
 
     [OriginalDataFact]

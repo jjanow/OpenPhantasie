@@ -14,7 +14,7 @@ public class GameDataLoadTests
 
         Assert.Equal(GameDataRepository.ExpectedMonsterCount, data.Monsters.Count);
         Assert.Equal(GameDataRepository.ExpectedItemCount, data.Items.Count);
-        Assert.Equal(GameDataRepository.ExpectedSpellCount, data.Spells.Count);
+        Assert.Equal(GameDataRepository.ExpectedSpellCount + 1, data.Spells.Count); // + D-090's #60 (extra_spells)
         Assert.Equal(GameDataRepository.ExpectedDungeonLevelCount, data.Dungeons.Count);
         Assert.Equal(GameDataRepository.ExpectedOverworldRegionCount, data.OverworldRegions.Count);
         Assert.Equal(GameDataRepository.ExpectedMessageAreaCount, data.MessageAreas.Count);

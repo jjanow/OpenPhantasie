@@ -31,9 +31,11 @@ public sealed class CombatResult
 /// h53 <c>+0xab8</c>, s133): FIREFLASH its damage, MINDBLAST / FLAMEBOLT the roll before a monster's armour and the floor;
 /// −1 = none. II ST (s156) uses it for its sparkle the same way (<c>0x18b16</c>, FORMAT.md 7.3) and, on a
 /// <see cref="DamageSource.PartyRock"/> hit, for the thrown rock's damage before the 1-point floor (the rock sprite).
+/// <see cref="Spell"/> (s228): a <see cref="DamageSource.PartySpell"/> hit's spell (<see cref="SpellId"/> index), else null
+/// (III C64's pings ring for FIREFLASH, MINDBLAST and FLAMEBOLT only).
 /// </summary>
 public sealed record CombatHit(DamageSource Source, Character? Member, Monster? Monster, bool Touch = false, int Line = -1,
-    int SpellDamage = -1);
+    int SpellDamage = -1, int? Spell = null);
 
 /// <summary>A melee swing's outcome on a round line (<see cref="CombatLineTag"/>).</summary>
 public enum CombatSwing
@@ -713,7 +715,7 @@ public sealed class CombatResolver : ICombatResolver
         CombatEncounter encounter, Monster target, int dmg, DamageSource source, IRandomSource rng, List<string> log,
         int? spellIndex = null, int spellDamage = -1)
     {
-        encounter.NoteHit(new CombatHit(source, null, target, SpellDamage: spellDamage), log);
+        encounter.NoteHit(new CombatHit(source, null, target, SpellDamage: spellDamage, Spell: spellIndex), log);
         var modules = encounter.Modules;
         if (!modules.HasDamageModules)
         {

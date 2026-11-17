@@ -194,6 +194,11 @@ public static class C64PhantasieArtManifest
             PokeStep(0, Pokes(Zeros(0, 24), [1, 3], [5, 41], [15, 30], [3, 8], [24, 31], [23, 4], [21, 1], [4, 21])),
             PokeStep(1.08, Pokes(new JsonArray(), [4, 20])),
         ]);
+        // s228: the fights' sounds (both terrains), I's ring tune (C64PlaySounds, GRAPHICS.md 9.8).
+        C64PlaySounds.AddFight(sounds, p2: win, dungeon: false);
+        C64PlaySounds.AddFight(sounds, p2: win, dungeon: true);
+        if (ending)
+            C64PlaySounds.AddRing(sounds);
         if (win)
         {
             // WIN 0x749: the clear, the setup; FOR F = 11650 TO 10500 STEP -40 (low, high); gate off; FOR 400; gate on;
@@ -218,10 +223,17 @@ public static class C64PhantasieArtManifest
                 "P.END 0xbb6 per strike (its clear loop pokes $D400 only). click / click_off: P.END 0xc43 per space and " +
                 "line end, the gate off after the caller's 16 or RND * 8 jiffies. rumble: CEMETARY 0x90e after the ghosts, " +
                 "its gate never turned off (it sounds until the first fate's clear). fate: CEMETARY 0x97b per member. cheer: " +
-                "WIN 0x749; the sweeps' pass is the measured 9.928 s less the FOR loops at WIN's 1.042 ms a pass [~]."),
+                "WIN 0x749; the sweeps' pass is the measured 9.928 s less the FOR loops at WIN's 1.042 ms a pass [~]. " +
+                "s228 (GRAPHICS.md 9.8) [C]: fight.{outdoors,dungeon}.* = the fights' SID routines of " +
+                (win ? "OUTDOORS2 / DUNGEON2" : "OUTDOORS / DUNGEON") + " (cast, monster_cast, awakens, alive, miss, hit, " +
+                "encounter, wound, monster_hit, dies, mark), the statements and FOR passes at the times VICE measured " +
+                "(II's routines forced on its fight screen" + (win ? "" : "; I's are the same bytecode [~]") + "); the " +
+                "TI waits as written. marks: MN field 13 (C%) of monsters 0-79, the marks (each a mark sound) a damage " +
+                "spell draws on that monster." + (ending ? " town.ring: TOWNR 0x503f, U)SE of an item 141-150 in town." : "")),
             ("clock_hz", 985248),
             ("jiffy_hz", 60),
             ("tail_seconds", 2),
+            ("marks", J.Ints(win ? C64PlaySounds.MarksP2 : C64PlaySounds.MarksP1)),
             ("sounds", sounds));
 
         static JsonObject Sweep(double at, int[] regs, int from, int to, int by, double every) =>

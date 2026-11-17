@@ -133,7 +133,9 @@ public class Phantasie1C64PackTests
     {
         var sid = C64.SidSounds;
         Assert.NotNull(sid);
-        Assert.Equal(["click", "click_off", "fate", "rumble", "thunder", "wind", "wind_stop"], sid.Names.Order(StringComparer.Ordinal));
+        Assert.Equal(["click", "click_off", "fate", "rumble", "thunder", "wind", "wind_stop"],
+            sid.Names.Where(n => !n.StartsWith("fight.", StringComparison.Ordinal) && !n.StartsWith("town.", StringComparison.Ordinal))
+                .Order(StringComparer.Ordinal)); // s228: the play sounds besides (C64PlaySoundTests)
         Assert.Equal(985248.0, sid.ClockHz);
     }
 }

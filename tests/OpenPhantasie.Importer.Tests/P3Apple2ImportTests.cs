@@ -218,7 +218,7 @@ public class P3Apple2ImportTests
             Assert.Empty(report.Versions.Single().Warnings);
             var manifest = Manifest(root);
             Assert.Equal("p3-apple2", (string?)manifest["games"]!["phantasie3"]!["tables"]);
-            Assert.Equal(3, (int)manifest["games"]!["phantasie3"]!["versions"]!["p3-apple2"]!["recipe"]!);
+            Assert.Equal(4, (int)manifest["games"]!["phantasie3"]!["versions"]!["p3-apple2"]!["recipe"]!);
             Assert.StartsWith(P3Apple2Tables.Label, MonstersSource(root));
             Assert.True(File.Exists(Path.Combine(root, "GameData", "phantasie3", ImportedStrings.FallbackFile("p3-apple2"))));
 

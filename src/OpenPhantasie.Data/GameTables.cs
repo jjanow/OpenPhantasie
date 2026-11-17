@@ -168,7 +168,9 @@ public sealed partial class GameDataRepository
             Manifest = m,
             Monsters = monsters,
             Items = items,
-            Spells = spells,
+            // D-090: the remaster's extra spells (I: the Apple's #60) follow the copy's; the checks against names.json and
+            // the manifest's count read the copy's alone.
+            Spells = WithExtraSpells(spells, RequireFile(dir, "spells.json"), costFromSlotRule: m.SpellCostRule is not null),
             Names = names,
             // T6: a town's stock has one slot per item of the folder (IV: 157); I-III keep the 181 slots they ship.
             Towns = LoadTowns(RequireFile(dir, "towns.json"), m.Count("towns"),
@@ -193,7 +195,7 @@ public sealed partial class GameDataRepository
                 ? LoadTravelTime(Path.Combine(dir, "travel-time.json"))
                 : null,
         };
-        ValidateTables(tables, dir);
+        ValidateTables(tables, dir, spells);
         return tables;
     }
 
@@ -226,7 +228,7 @@ public sealed partial class GameDataRepository
         };
     }
 
-    private static void ValidateTables(GameTables t, string dir)
+    private static void ValidateTables(GameTables t, string dir, IReadOnlyList<SpellDefinition> copySpells)
     {
         var m = t.Manifest;
         void Expect(string table, int actual)
@@ -237,24 +239,24 @@ public sealed partial class GameDataRepository
 
         Expect("monsters", t.Monsters.Count);
         Expect("items", t.Items.Count);
-        Expect("spells", t.Spells.Count);
+        Expect("spells", copySpells.Count);
         Expect("classes", t.Names.Classes.Count);
         Expect("races", t.Names.Races.Count);
         Expect("elementals", t.Elementals.Count);
-        if (t.Names.Spells.Count != t.Spells.Count || t.Names.Monsters.Count != t.Monsters.Count)
+        if (t.Names.Spells.Count != copySpells.Count || t.Names.Monsters.Count != t.Monsters.Count)
             throw new InvalidDataException($"{dir}: names.json spell/monster lists do not match spells.json / monsters.json.");
 
         // One folder, one game: every id and the rules profile name the manifest's game.
         var ids = t.Monsters.Select(x => x.ContentId).Concat(t.Items.Select(x => x.ContentId))
-            .Concat(t.Spells.Select(x => x.ContentId)).Concat(t.Dungeons.Select(x => x.ContentId));
+            .Concat(copySpells.Select(x => x.ContentId)).Concat(t.Dungeons.Select(x => x.ContentId));
         var game = SingleGame(ids);
         if (game != m.Game || t.Rules.Game != m.Game)
             throw new InvalidDataException(
                 $"{dir}: game.json says {m.Game.Prefix()}, ids say {game.Prefix()}, rules.json says {t.Rules.Game.Prefix()}.");
 
-        for (var i = 0; i < t.Spells.Count; i++)
+        for (var i = 0; i < copySpells.Count; i++)
         {
-            var s = t.Spells[i];
+            var s = copySpells[i];
             if (!string.Equals(s.Name, t.Names.Spells[i].Name, StringComparison.Ordinal))
                 throw new InvalidDataException($"{dir}: spell {i} is {s.Name} in spells.json, {t.Names.Spells[i].Name} in names.json.");
             if (m.SpellCostRule == GameManifest.DosSlotCostRule && s.MagicPointCost != s.DosSlot % 4 + 1)

@@ -448,6 +448,593 @@
     "portrait.class.5.attacking": "portraits/class/attacking/5-wizard.png"
   },
   "_portraits": "portrait.{race}: HEROSPRITES set PHANT.OBJ $1DFE[race] in colour $1E0E[race], the figure a Thief or Fighter shows; portrait.class.{class}: set $1DF2[class] in colour $1DF8[class] for a Monk, Ranger, Priest or Wizard (drawn before the race's) [C]. Hires, frames idle / attacking (/ casting, not drawn). The elemental: the Mud Elemental's monster picture ($B2) in its kind's colour (Air 1, Mist 14, Mud 8); the pack shows Air's [~].",
+  "sid_sounds": {
+    "_note": "s228 (GRAPHICS.md, the sound) [C]: SND ($126E, 6502) as PHANT.OBJ's fights call it, every write at its CPU cycle (PAL). fight.miss: entry1 ($12A8), a member's or a monster's miss (noise, the gate left on). fight.hit: entry2 ($12C2) with A = $42, any damaging hit, then 10 jiffies. fight.ping: entry0 ($127D) with A = $90, $B0, $90, 13 frames apart, before each hit of FIREFLASH, MINDBLAST or FLAMEBOLT. fight.death: entry4 ($12E2), a member's --DEATH--. entry0's gate is on for 6 cycles (attack 0): near silent [~]. Read on v1.0's PHANT.OBJ; v1.2's SND is the same and its PHANT.OBJ makes the same calls 3 bytes later, so its hit's A is $45 (this pack keeps v1.0's $42) [~].",
+    "clock_hz": 985248,
+    "jiffy_hz": 60,
+    "tail_seconds": 2,
+    "sounds": {
+      "fight.miss": [
+        {
+          "at": 0,
+          "poke": [
+            [
+              24,
+              15
+            ]
+          ]
+        },
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              4,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 6.09e-06,
+          "poke": [
+            [
+              1,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 1.218e-05,
+          "poke": [
+            [
+              5,
+              113
+            ]
+          ]
+        },
+        {
+          "at": 1.827e-05,
+          "poke": [
+            [
+              6,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 2.4358999999999997e-05,
+          "poke": [
+            [
+              4,
+              129
+            ]
+          ]
+        }
+      ],
+      "fight.hit": [
+        {
+          "at": 0,
+          "poke": [
+            [
+              24,
+              15
+            ]
+          ]
+        },
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              1,
+              66
+            ]
+          ]
+        },
+        {
+          "at": 8.120000000000001e-06,
+          "poke": [
+            [
+              4,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 1.4209999999999998e-05,
+          "poke": [
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 2.0299e-05,
+          "poke": [
+            [
+              2,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 2.4358999999999997e-05,
+          "poke": [
+            [
+              3,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 3.0448999999999997e-05,
+          "poke": [
+            [
+              5,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 3.6538999999999997e-05,
+          "poke": [
+            [
+              6,
+              246
+            ]
+          ]
+        },
+        {
+          "at": 4.2629e-05,
+          "poke": [
+            [
+              4,
+              129
+            ]
+          ]
+        },
+        {
+          "at": 4.8719e-05,
+          "poke": [
+            [
+              4,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 0.166715,
+          "poke": []
+        }
+      ],
+      "fight.ping": [
+        {
+          "at": 0,
+          "poke": [
+            [
+              24,
+              15
+            ]
+          ]
+        },
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              1,
+              144
+            ]
+          ]
+        },
+        {
+          "at": 8.120000000000001e-06,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 1.4209999999999998e-05,
+          "poke": [
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 2.0299e-05,
+          "poke": [
+            [
+              2,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 2.4358999999999997e-05,
+          "poke": [
+            [
+              3,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 3.0448999999999997e-05,
+          "poke": [
+            [
+              5,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 3.6538999999999997e-05,
+          "poke": [
+            [
+              6,
+              246
+            ]
+          ]
+        },
+        {
+          "at": 4.2629e-05,
+          "poke": [
+            [
+              4,
+              17
+            ]
+          ]
+        },
+        {
+          "at": 4.8719e-05,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 0.26,
+          "poke": [
+            [
+              1,
+              176
+            ]
+          ]
+        },
+        {
+          "at": 0.26000812,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 0.26001421,
+          "poke": [
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 0.260020299,
+          "poke": [
+            [
+              2,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 0.260024359,
+          "poke": [
+            [
+              3,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 0.260030449,
+          "poke": [
+            [
+              5,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 0.260036539,
+          "poke": [
+            [
+              6,
+              246
+            ]
+          ]
+        },
+        {
+          "at": 0.260042629,
+          "poke": [
+            [
+              4,
+              17
+            ]
+          ]
+        },
+        {
+          "at": 0.260048719,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 0.52,
+          "poke": [
+            [
+              1,
+              144
+            ]
+          ]
+        },
+        {
+          "at": 0.52000812,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 0.52001421,
+          "poke": [
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 0.520020299,
+          "poke": [
+            [
+              2,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 0.520024359,
+          "poke": [
+            [
+              3,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 0.520030449,
+          "poke": [
+            [
+              5,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 0.520036539,
+          "poke": [
+            [
+              6,
+              246
+            ]
+          ]
+        },
+        {
+          "at": 0.520042629,
+          "poke": [
+            [
+              4,
+              17
+            ]
+          ]
+        },
+        {
+          "at": 0.520048719,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        }
+      ],
+      "fight.death": [
+        {
+          "at": 0,
+          "poke": [
+            [
+              24,
+              15
+            ]
+          ]
+        },
+        {
+          "at": 0.0,
+          "poke": [
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "at": 8.120000000000001e-06,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 1.4209999999999998e-05,
+          "poke": [
+            [
+              0,
+              180
+            ]
+          ]
+        },
+        {
+          "at": 2.0299e-05,
+          "poke": [
+            [
+              2,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 2.4358999999999997e-05,
+          "poke": [
+            [
+              3,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 3.0448999999999997e-05,
+          "poke": [
+            [
+              5,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 3.6538999999999997e-05,
+          "poke": [
+            [
+              6,
+              250
+            ]
+          ]
+        },
+        {
+          "at": 4.2629e-05,
+          "poke": [
+            [
+              4,
+              17
+            ]
+          ]
+        },
+        {
+          "at": 4.8719e-05,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 0.927126977,
+          "poke": [
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "at": 0.927135097,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        },
+        {
+          "at": 0.927141187,
+          "poke": [
+            [
+              0,
+              48
+            ]
+          ]
+        },
+        {
+          "at": 0.927147277,
+          "poke": [
+            [
+              2,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 0.927151337,
+          "poke": [
+            [
+              3,
+              128
+            ]
+          ]
+        },
+        {
+          "at": 0.927157426,
+          "poke": [
+            [
+              5,
+              0
+            ]
+          ]
+        },
+        {
+          "at": 0.927163516,
+          "poke": [
+            [
+              6,
+              250
+            ]
+          ]
+        },
+        {
+          "at": 0.927169606,
+          "poke": [
+            [
+              4,
+              17
+            ]
+          ]
+        },
+        {
+          "at": 0.927175696,
+          "poke": [
+            [
+              4,
+              16
+            ]
+          ]
+        }
+      ]
+    }
+  },
   "picture_sets": [
     {
       "name": "monster.{n}.idle",

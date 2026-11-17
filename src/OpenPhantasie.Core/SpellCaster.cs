@@ -117,7 +117,7 @@ public static class SpellCaster
         if (P3Spells.NotOnTheSharedCaster(rules, spellIndex)) // T4: III's own spells do nothing outside a fight here
             return MagicResult.Fail(GameText.S("core.p3.spell_not_built"));
 
-        if (!dosList && !IsCastableAt(spellIndex, location))
+        if (!dosList && !IsCastableAt(spellIndex, location, rules))
             return MagicResult.Fail(GameText.S("core.magic.cant_cast_here"));
 
         var cost = Magic.TrySpendMp(caster, spellIndex, out var reason, SpellSlots.For(rules));
@@ -130,8 +130,12 @@ public static class SpellCaster
             caster.CastSinceRest = true;
 
         // D-035 dos: the MP is spent before the switch; a spell with no case there does nothing, no message.
-        if (dosList && !HasDosOutOfCombatEffect(spellIndex, location))
+        var appleDivine = IsAppleDivine(spellIndex, rules);
+        if (dosList && !(appleDivine ? location == CastLocation.Dungeon : HasDosOutOfCombatEffect(spellIndex, location)))
             return MagicResult.Ok("", mpSpent: cost, log: Array.Empty<string>());
+
+        if (appleDivine)
+            return CastAppleDivine(party, caster, cost, rng);
 
         if (spellIndex <= SpellId.HealingIv)
         {
@@ -263,6 +267,48 @@ public static class SpellCaster
     }
 
     /// <summary>
+    /// D-090 (user s227): the Apple II's spell #60 (DUNGON 6930 → 5500 <c>[C]</c>; Apple <c>GRAPHICS.md</c> section 8.2).
+    /// The MP (4) is already spent (6887). Every member whose CON (Apple record byte 4) is 0 and STR (byte 1) is 1 or more
+    /// IS REVIVED: status OK (byte 18 := 1), CON := 3 + INT(RND · 9) (3..11), and the age clock's high byte (byte 16) ×
+    /// 0.6, truncated (the low byte stays); HP (byte 13) is not touched. For each one revived the caster loses #60 (byte
+    /// 120) and all MP (byte 11). No one revived: NO USELESS BODIES HERE, #60 kept. No status test: the Apple reads only
+    /// CON and STR (a member is dead with CON 0 only after deaths have worn it down, OUTDOORS / DUNGON 4020, and then
+    /// RESURRECTION can't raise it, 2820's <c>W(4) &lt; 1</c>). One draw (0..8) per member revived.
+    /// </summary>
+    private static MagicResult CastAppleDivine(Party party, Character caster, int cost, IRandomSource rng)
+    {
+        var lines = new List<string>();
+        foreach (var m in party.Members)
+        {
+            if (m.Stats.Con > 0 || m.Stats.Str < 1)
+                continue;
+            m.Status = CharacterStatus.Ok;
+            m.Stats = m.Stats with { Con = 3 + rng.Next(0, 9) };
+            m.AgeClock = (int)(m.AgeClock / 256 * 0.6) * 256 + m.AgeClock % 256;
+            caster.SpellsKnown[SpellId.AppleDivine] = 0;
+            caster.MagicCur = 0;
+            lines.Add(GameText.F("core.magic.x_is_revived", m.Name));
+        }
+        if (lines.Count == 0)
+            return MagicResult.Ok(GameText.S("core.magic.no_useless_bodies_here"), mpSpent: cost);
+        party.DosLiving.Recount(party.Members);
+        // The first line is the result's message; the others go to the log (the session notes both, once each).
+        return MagicResult.Ok(lines[0], mpSpent: cost, log: lines.Skip(1).ToList());
+    }
+
+    /// <summary>D-090: <paramref name="spellIndex"/> is Phantasie I's <see cref="SpellId.AppleDivine"/> (index 55 is II's
+    /// DIVINE II in II's layout).</summary>
+    public static bool IsAppleDivine(int spellIndex, GameOptions? rules) =>
+        spellIndex == SpellId.AppleDivine && (rules?.Game ?? GameId.P1) == GameId.P1;
+
+    /// <summary>
+    /// <see cref="IsCastableAt(int, CastLocation)"/> for the game <paramref name="rules"/> play: in I the Apple's #60
+    /// (D-090) only in a dungeon (Apple TOWN 6930 refuses it, OUTDOORS has no case for it).
+    /// </summary>
+    public static bool IsCastableAt(int spellIndex, CastLocation location, GameOptions? rules) =>
+        IsAppleDivine(spellIndex, rules) ? location == CastLocation.Dungeon : IsCastableAt(spellIndex, location);
+
+    /// <summary>
     /// D-035 (manual p.12–13, spell table p.20): town casting only takes town (N/T) and everywhere (E) spells;
     /// MONSTER EVALUATE is N/WD (wilderness or dungeon), VISION N/W (wilderness), TRANSPORTATION N/T (town).
     /// Combat spells are handled by <see cref="IsCombatOnly"/>; anything else (E, DIVINE I) is allowed everywhere.
@@ -294,7 +340,7 @@ public static class SpellCaster
         ArgumentNullException.ThrowIfNull(caster);
         var dos = (rules ?? GameOptions.ManualPhantasieI).IsDos(RuleOptionRegistry.CastList);
         return Enumerable.Range(0, caster.SpellsKnown.Length)
-            .Where(id => Magic.KnowsSpell(caster, id) && (dos || (!IsCombatOnly(id, rules) && IsCastableAt(id, location))))
+            .Where(id => Magic.KnowsSpell(caster, id) && (dos || (!IsCombatOnly(id, rules) && IsCastableAt(id, location, rules))))
             .ToList();
     }
 
@@ -629,6 +675,11 @@ public static class SpellCaster
 
             case SpellId.DivineI:
                 // [C] (s41) cast_id = slot 57 − 3 = 54: no tier range, fails the special bound (0x9e7) → only the MP deduct.
+                return MagicResult.Ok("", mpSpent: cost, log: log);
+
+            case SpellId.AppleDivine when encounter.Rules.Game == GameId.P1:
+                // D-090: the Apple's combat picker takes #1–#51 only (DUNGON 1310), so #60 is never cast in a fight there;
+                // offered only by p1.combat-spell-list = dos (every known spell), where it spends its MP and does nothing.
                 return MagicResult.Ok("", mpSpent: cost, log: log);
 
             case SpellId.DivineIi when encounter.Rules.Game == GameId.P2:

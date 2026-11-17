@@ -70,6 +70,17 @@ public static class SpellId
     /// <summary>[C] (ST <c>magic-divine.md</c> §1) DIVINE II's spell slot.</summary>
     public const int DivineIiSlot = 56;
 
+    /// <summary>
+    /// D-090 (user s227): Phantasie I's second divine spell, the Apple II's #60 (record byte 120; Apple <c>GRAPHICS.md</c>
+    /// section 8.2): remaster index 55 in I's layout only (<see cref="SpellSlots.PhantasieI"/>; II's index 55 is DIVINE II),
+    /// granted by the victory under <c>p1.victory</c> = <c>apple</c>. Remaster name DIVINE REVIVAL (the Apple names no spells).
+    /// </summary>
+    public const int AppleDivine = 55;
+
+    /// <summary>[C] The Apple's #60 is slot 59 of the 60-slot table (DOS I's slot 59 is empty: flag word <c>@214</c>), so
+    /// <c>(59 % 4) + 1</c> = 4 MP, the Apple's own cost (DUNGON 6886: <c>WS − 4·INT((WS − 1) / 3.95)</c> = 4 for #60).</summary>
+    public const int AppleDivineDosSlot = 59;
+
     /// <summary>Remaster index of a DOS slot, or -1 for an unnamed slot (54–56, 58, 59).</summary>
     public static int FromDosSlot(int slot) => slot switch
     {
@@ -81,7 +92,7 @@ public static class SpellId
 
 /// <summary>
 /// A game's spell layout (T4, shared): how many spells it has (remaster indices <c>0 … Count − 1</c>) and each index's DOS
-/// spell slot, which sets the MP cost <c>(slot % 4) + 1</c>. Phantasie I has 55 (DIVINE I, index 54, is slot 57); II adds
+/// spell slot, which sets the MP cost <c>(slot % 4) + 1</c>. Phantasie I has 56 (DIVINE I, index 54, is slot 57; the Apple's #60, index 55, slot 59, D-090); II adds
 /// DIVINE II (index 55, slot 56); III's 57 sit in their own slots (index = slot: #55 / #56 Accuracy / Party Accuracy are
 /// slots 54 / 55, 3 / 4 MP; <c>FORMAT.md</c> §4.2). Game-neutral: a later game adds its layout here or builds one from
 /// its data's <c>dos_slot</c> column (<see cref="FromDosSlots"/>).
@@ -98,9 +109,9 @@ public sealed class SpellSlots
     /// <summary>Number of spells (indices <c>0 … Count − 1</c>).</summary>
     public int Count => _slots.Length;
 
-    /// <summary>Phantasie I: 0–53 in their slots, DIVINE I (54) in slot 57.</summary>
+    /// <summary>Phantasie I: 0–53 in their slots, DIVINE I (54) in slot 57, the Apple's #60 (55, D-090) in slot 59.</summary>
     public static SpellSlots PhantasieI { get; } =
-        new([.. Enumerable.Range(0, SpellId.DivineI), SpellId.DivineIDosSlot]);
+        new([.. Enumerable.Range(0, SpellId.DivineI), SpellId.DivineIDosSlot, SpellId.AppleDivineDosSlot]);
 
     /// <summary>Phantasie II: I's, then DIVINE II (55) in slot 56 (ST <c>magic-divine.md</c> §1).</summary>
     public static SpellSlots PhantasieII { get; } =

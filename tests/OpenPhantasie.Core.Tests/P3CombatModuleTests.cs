@@ -634,9 +634,10 @@ public class P3CombatModuleTests
     [Fact]
     public void SpellSlots_PerGame_ExtendPastIs55()
     {
-        Assert.Equal(55, SpellSlots.PhantasieI.Count);
+        Assert.Equal(56, SpellSlots.PhantasieI.Count); // D-090: the Apple's #60 (index 55, slot 59)
         Assert.Equal(2, SpellSlots.PhantasieI.MagicPointCost(SpellId.DivineI)); // slot 57
-        Assert.False(SpellSlots.PhantasieI.Contains(55));
+        Assert.Equal(4, SpellSlots.PhantasieI.MagicPointCost(SpellId.AppleDivine)); // slot 59
+        Assert.False(SpellSlots.PhantasieI.Contains(56));
         Assert.Equal(56, SpellSlots.PhantasieII.Count);
         Assert.Equal(1, SpellSlots.PhantasieII.MagicPointCost(SpellId.DivineIi)); // slot 56
         Assert.Equal(57, SpellSlots.For(GameId.P3).Count);
@@ -650,13 +651,13 @@ public class P3CombatModuleTests
         Assert.True(SpellCaster.IsCombatOnly(P3Spells.Accuracy, Manual));
         Assert.False(SpellCaster.IsCombatOnly(SpellId.DivineI));
 
-        // A I-rules spend refuses index 55; III's layout takes it.
+        // A I-rules spend refuses index 56 (I's layout ends at 55, the Apple's #60, D-090); III's layout takes it.
         var c = Hero("C", CharacterClass.Wizard);
         c.SpellsKnown = new int[57];
-        c.SpellsKnown[55] = 1;
+        c.SpellsKnown[56] = 1;
         c.MagicCur = c.MagicMax = 10;
-        Assert.Equal(-1, Magic.TrySpendMp(c, 55, out _));
-        Assert.Equal(4, Magic.TrySpendMp(c, 55, out _, SpellSlots.PhantasieIII));
+        Assert.Equal(-1, Magic.TrySpendMp(c, 56, out _));
+        Assert.Equal(1, Magic.TrySpendMp(c, 56, out _, SpellSlots.PhantasieIII));
     }
 
     [Fact]

@@ -26,6 +26,39 @@ public class CastDialogTests
     }
 
     /// <summary>
+    /// D-090: the Apple's #60 (DIVINE REVIVAL, I's index 55) is listed and cast in a dungeon (4 MP), not in the wilderness.
+    /// </summary>
+    [OriginalDataFact]
+    public void AppleDivine_ListedAndCastInADungeonOnly()
+    {
+        var s = ClientSessions.Overworld();
+        var priest = s.Party.Members[1];
+        Endgame.LearnAppleDivine(priest);
+        priest.MagicCur = priest.MagicMax = 10;
+        var fallen = s.Party.Members[0];
+        fallen.Status = CharacterStatus.Dead;
+        fallen.HpCur = 0;
+        fallen.Stats = fallen.Stats with { Con = 0 };
+        var dialog = new CastDialog();
+        dialog.Open(s);
+        dialog.HandleKeys([Keys.D2], s);
+        Assert.DoesNotContain(dialog.Lines(s, ClientSessions.Data), l => l.Contains("DIVINE REVIVAL"));
+
+        s.EnterDungeon(1, 20, 0);
+        dialog.Open(s);
+        dialog.HandleKeys([Keys.D2], s);
+        var lines = dialog.Lines(s, ClientSessions.Data);
+        var row = Assert.Single(lines, l => l.Contains("DIVINE REVIVAL"));
+        Assert.Contains("4", row);
+        var index = SpellCaster.OutOfCombatChoices(priest, CastLocation.Dungeon, s.Options).ToList().IndexOf(SpellId.AppleDivine);
+        var pick = (Keys)((int)Keys.D1 + index);
+        Assert.Equal("Fighto IS REVIVED", dialog.HandleKeys([pick], s));
+        Assert.Equal(CharacterStatus.Ok, fallen.Status);
+        Assert.Equal(0, priest.MagicCur);
+        Assert.False(Magic.KnowsSpell(priest, SpellId.AppleDivine));
+    }
+
+    /// <summary>
     /// s158: a caster who knows no spell at all gets the no-spells line (III: S443, DOS root 0x8d8a, Amiga 0x84e0); one whose
     /// known spells are none castable here keeps the castable-here line.
     /// </summary>

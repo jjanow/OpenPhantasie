@@ -157,6 +157,29 @@ flashes, the combat flash, the town doors, the buttons; the found-item pictures 
 5 × 7 font (PSET0 / PTOWN1 as sheets in `font/`).
 
 `[?]` / `[~]` left: the view at the map's edges; the plane maps' tiles; the dungeon's 185–199 / 221+ glyphs and the bar's
-fourth row; which elemental colour the pack shows; the figures' third frame; the C64's sound (`SND`, 177 B of 6502 at
-`$126E` writing voice 1, and `PHANT.OBJ`'s `$D418` store at `$213A`: not decoded, not played; s226 inventory in I's
-GRAPHICS.md 9.6).
+fourth row; which elemental colour the pack shows; the figures' third frame. The sound: below.
+
+## The sound: `SND` (s228) `[C]`
+
+`PHANTASIE III` loads `PHANT.OBJ` at `$0400` (its PRG header says `$1400`: run-time addresses are `$1000` below the
+file's); `PHANT.OBJ` then loads `SND` (177 B, 6502) at `$126E`, over its own copy routine (the two `JSR $126E` at file
+`$217C` / `$2196` run before, copying character sets: not sounds). `SND`'s jump table:
+
+| Entry | Writes (voice 1) | Called (file address) | When |
+|---|---|---|---|
+| 0 `$127D` | freq hi A, control `[$12A3]` ($10), freq lo `[$1287]` (0), pulse $8080, AD 0, SR `[$1299]` ($F6), control `[$129E]` ($11, triangle gate) and 6 cycles later `[$12A3]` (gate off) | `$4129`, `$4136`, `$4140` (A = $90, $B0, $90, 13 frames apart, `$30B6` with X = 2) | a party attack spell's flight to each monster it strikes: FIREFLASH 1–4, MINDBLAST 1–4 (a monster that fails its check), FLAMEBOLT 1–4; then the hit |
+| 1 `$12A8` | control $80, freq hi $80, AD $71, SR 0, control $81 (noise; the gate left on) | `$2794`, `$3C21` | a member's miss (PARTY MISSES: THRUST / ATTACK / SLASH / LUNGE per swing, AIM BLOW, BOW) and a monster's (MONSTER MISSED) |
+| 2 `$12C2` | entry 0 as noise ($81 / $80) | `$3B43` (A = $42: never loaded; the print routine `$0D46` leaves the low byte of "AND HITS"'s last text byte, `$2B42`), then 10 jiffies | any damaging hit (party melee, BOW, attack spells, a monster's attack or spell) |
+| 3 `$12D9` | freq 0 | none | unreachable |
+| 4 `$12E2` | SR $FA, freq lo $B4, entry 0 with A = 4; `$1310` twice (X = $FF: 255 × 1,791 cycles, 0.46 s each); freq lo $30, entry 0 with A = 4; then lo 0, SR $F6 again | `$4071` | a member's --DEATH-- (target slots 1–7) |
+
+Each result line then waits 82 jiffies (`$1BB9`). `$D418` = 15 once at boot (`$213A`); nothing else writes the volume.
+Voice 3 noise (`$D40E`, `$D40F`, `$D412` = $81 at `$1EDE`, `DUNGEON.OBJ` `$441F`) is the random-number source: its AD/SR
+are never set and its gate never cleared, so it sounds at most once after power-on `[~]`. Entry 0's gate is on for 6
+cycles with attack 0 (a step every 9 cycles): the spell pings, the hit and the death are a faint tick or silent unless an
+interrupt falls inside the window `[~]` (not heard in VICE). v1.2: the same `SND`; `PHANT.OBJ` makes the same calls 3
+bytes later, so its hit's A is $45 `[~]` (the pack keeps v1.0's $42).
+
+**Played (s228):** the pack's `sid_sounds` (`fight.miss`, `fight.hit`, `fight.ping`, `fight.death`; each write at its CPU
+cycle, the boot volume first) on `Sid6581`, from each round shown on the remaster's combat screen (I's GRAPHICS.md 9.8,
+`C64PlaySoundCues`), in turn `[~]`.

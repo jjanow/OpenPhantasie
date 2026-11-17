@@ -156,6 +156,7 @@ public sealed partial class GameDataRepository
         var wildernessEncounters = LoadWildernessEncounters(RequireFile(gameDataDirectory, "wilderness-encounters.json"));
 
         ValidateCrossRefs(monsters, spells, names, items);
+        spells = WithExtraSpells(spells, RequireFile(gameDataDirectory, "spells.json"));
 
         return new GameDataRepository(
             monsters, items, spells, dungeons, overworld, messages, scrolls, names, guild, creation, towns, sprites,
@@ -386,14 +387,35 @@ public sealed partial class GameDataRepository
         return towns;
     }
 
-    private static IReadOnlyList<SpellDefinition> LoadSpells(string path, bool costFromSlotRule = true)
+    /// <summary>
+    /// D-090: <paramref name="spells"/> (the copy's table, already checked against names.json) followed by the file's
+    /// <c>extra_spells</c>, which must continue the index run.
+    /// </summary>
+    private static IReadOnlyList<SpellDefinition> WithExtraSpells(IReadOnlyList<SpellDefinition> spells, string path,
+        bool costFromSlotRule = true)
+    {
+        var extra = LoadSpellList(path, costFromSlotRule, extra: true);
+        for (var i = 0; i < extra.Count; i++)
+        {
+            if (extra[i].Id != spells.Count + i)
+                throw new InvalidDataException($"{path}: extra spell {extra[i].Id} does not follow spell {spells.Count + i - 1}.");
+            if (costFromSlotRule && extra[i].MagicPointCost != extra[i].DosSlot % 4 + 1)
+                throw new InvalidDataException($"{path}: extra spell {extra[i].Id} costs {extra[i].MagicPointCost}, the slot rule says otherwise.");
+        }
+        return extra.Count == 0 ? spells : [.. spells, .. extra];
+    }
+
+    private static IReadOnlyList<SpellDefinition> LoadSpells(string path, bool costFromSlotRule = true) =>
+        LoadSpellList(path, costFromSlotRule, extra: false);
+
+    private static IReadOnlyList<SpellDefinition> LoadSpellList(string path, bool costFromSlotRule, bool extra)
     {
         var dto = JsonSerializer.Deserialize<SpellsFileDto>(File.ReadAllText(path), JsonOptions)
                   ?? throw new InvalidDataException($"Failed to parse {path}");
-        if (dto.Spells is null || dto.Spells.Count == 0)
+        if (!extra && (dto.Spells is null || dto.Spells.Count == 0))
             throw new InvalidDataException($"{path} contains no spells.");
 
-        return dto.Spells
+        return (extra ? dto.ExtraSpells ?? [] : dto.Spells!)
             .Select(s => new SpellDefinition(
                 s.Index,
                 s.Name ?? $"SPELL_{s.Index}",
@@ -964,6 +986,14 @@ public sealed partial class GameDataRepository
     private sealed class SpellsFileDto
     {
         public List<SpellDto>? Spells { get; set; }
+
+        /// <summary>
+        /// D-090: spells the remaster adds after the copy's table (I: the Apple II's #60, index 55). Their names are the
+        /// remaster's (the importer names only <see cref="Spells"/> from the copy), and names.json / the manifest's counts
+        /// cover only <see cref="Spells"/>.
+        /// </summary>
+        [JsonPropertyName("extra_spells")]
+        public List<SpellDto>? ExtraSpells { get; set; }
     }
 
     private sealed class SpellDto

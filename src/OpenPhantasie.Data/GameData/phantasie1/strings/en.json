@@ -770,6 +770,8 @@
     "core.magic.only_in_combat": "That spell can only be cast in combat.",
     "core.magic.cant_cast_here": "That spell can't be cast here.",
     "core.magic.x_is_resurrected": "{0} ...",
+    "core.magic.x_is_revived": "{0} IS REVIVED",
+    "core.magic.no_useless_bodies_here": "NO USELESS BODIES HERE",
     "core.magic.monsters_at_level_x": "... {0}",
     "core.magic.cast_spell_x": "... #{0}.",
     "core.magic.x_is_healed": "{0} ...",

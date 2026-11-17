@@ -175,8 +175,14 @@ public static class TransferIToII
         var first = FirstKeptSlot(rules.Divine);
         var spells = new int[fromI.SpellsKnown.Length];
         for (var i = 0; i < spells.Length; i++)
+        {
+            // D-090: I's index 55 is the Apple's #60 (slot 59), not II's DIVINE II (index 55, slot 56): II has no #60, so it
+            // stays behind [~] (the Apple II's own transfer clears only bytes 61..114 and would carry byte 120).
+            if (i == SpellId.AppleDivine)
+                continue;
             if (SpellId.DosSlot(i) >= first)
                 spells[i] = fromI.SpellsKnown[i];
+        }
 
         var st = rules.Spells == TransferSpellRule.St;
         if (fromI.Class == CharacterClass.Priest || (st && fromI.Class == CharacterClass.Ranger))

@@ -534,12 +534,8 @@ cheer) and plays it on one chip, so phases and envelopes carry over as on the C6
 Sound switch is off. Times: the `TI` waits as written; the cheer's sweep pass `[~]` = its measured 9.928 s less its
 `FOR 400` and 16 × `FOR 500` at `WIN`'s 1.042 ms a pass, over its 58 passes. Live: `parity/s226-c64-sid-live.md`.
 
-**Other SID sites, not decoded `[?]`** (s226 byte search of the v1.4 / v1.2 PRGs for the float 54272 and 6502 stores to
-`$D4xx`): I `OUTDOORS` (`0x283`–`0x2ab` the base variables `$D400`, `$D401`, `$D404`–`$D406`, `$D418`; code near
-`0x6703` / `0x6710`) and `DUNGEON` (`0x230`–`0x258`, `0x66a5` / `0x66b2`): the fights' sounds; I `TOWNR` `0x5041`–`0x5154`
-(`$D400`–`$D406`, `$D40F`, `$D418`): a town sound; II's `OUTDOORS2` (`0x2e1`, `0x6c4f`), `DUNGEON2` (`0x22c`, `0x6c16`) and
-`TOWN2` (`0x5527`–`0x563a`) the same. III: `SND` (177 B at `$126E`, 6502 writing voice 1) and `PHANT.OBJ`'s stores to
-`$D40E`, `$D40F`, `$D412` (`$1EDE`–`$1EE4`: voice 3 noise, the usual random-number source) and `$D418` (`$213A`).
+**The other SID sites** (s226's byte search: `OUTDOORS`, `DUNGEON`, `TOWNR`, II's `OUTDOORS2`, `DUNGEON2`, `TOWN2`,
+III's `SND` and `PHANT.OBJ`) are the sounds in play: 9.8 (s228).
 
 ### 9.7 PAL or NTSC `[~]` (s224)
 
@@ -549,3 +545,57 @@ on both. C64PP tags some copies `(ntsc)` (I v1.0, v1.2), but v1.2 `(ntsc)` and t
 files, so the disks hold no region: the held v1.4 pair's untagged name says where that copy came from, not what it runs
 on. The waits counted in frames (the wipe, the face / hand animator) are a PAL machine's (`vbl_hz` 50, as measured in
 VICE); an NTSC C64 runs them 6/5 faster. Kept PAL; which machine a player had is not knowable from the images `[~]`.
+
+### 9.8 Sounds in play (SID): the fights, the swim, the dungeon scripts, the rings (s228) `[C]`
+
+Read in the bytecode of I's `OUTDOORS` / `DUNGEON` / `TOWNR` and II's `OUTDOORS2` / `DUNGEON2` / `TOWN2` (offsets are file
+offsets with the 2-byte load address, as `../bytecode-notes.md`; s226's inventory gave them without it). Each program sets
+SID base variables at its start (`OUTDOORS`: `DO` = 54272, `D2` = `$D418`, `D3` = `$D401`, `D4` = `$D404`, `D5` = `$D405`,
+`D6` = `$D406`; `DUNGEON` the same values as `DO`, `U2`…`U6`) and keeps its sound routines at the end of its code, each a
+`GOSUB` target. Bytecode notes: variable names come from the table after the code (both name bytes' bit 7 = an integer
+`%`, the first's alone = `DEF FN`); `47 hh ll` is `NEXT` with its variable; `word 65535` is −1 as a `STEP`; array ids
+follow the `DIM`s' order (`DIM C%(2)` is array `$20`, `SU(11)` `$5A`).
+
+**Timing (VICE, s228).** Every routine of II's `DUNGEON2` (the VIPER fight snapshot of s219) and `OUTDOORS2` (the
+overworld) was forced in VICE 3.10 `x64sc` (PAL, 6581, sound to its `dump` device only, on Xvfb): the bytecode pointer
+`$39`/`$3A` set at the dispatch `$A090` to the routine's address (file offset + `$7FF`), the SID writes dumped with their
+clocks. Measured on the fight screen: a `POKE var, n` 670–760 cycles, a `POKE S + n, m` 1,700–2,100, a statement with
+`RND` about 11.9 ms, an empty `FOR` pass 0.93 ms (`NEXT` with its variable about 1.0 ms), the 25-register clear 2.4 ms a
+pass; the `TI` waits as written (`TI$ = "000000"` then until `TI` reaches n: n jiffies less the first's phase). The
+overworld screen runs the same loops 3–4 % slower (its interrupt). I's routines are the same bytecode on the same
+`RTL-64`, so they take II's times `[~]`.
+
+**The routines** (I `OUTDOORS` / `DUNGEON`; II's are the same unless the table says):
+
+| Sound (`sid_sounds`) | I `OUTDOORS` / `DUNGEON` | What it writes (`$D400` + n) | Called when |
+|---|---|---|---|
+| `encounter` | `0x69c5` / `0x68e6` | AD 9 SR 153, volume 15, voice 2 AD 153 (twice; its SR not set), saw gates on both; `FOR O = 5 TO 15`: freq hi O (voice 1), 25 − O (voice 2), `FOR 0 TO 32` empty (37.5 ms a pass); gates off, voice 2's control 0, `$D412` 0; `FOR 0 TO 100` (outdoors) / `200` (dungeon) empty; volume 0 | the fight's start (`OUTDOORS 0x0edf`, `DUNGEON 0x0f0f` after AN ENCOUNTER) and a monster's DIES (`0x30f1` → `0x0cdc`) |
+| `cast` | `0x66fc` / `0x669e` | the 25 registers cleared (`DUNGEON`: `POKE 54272 + M, 0` with `I` as the loop variable, so one unknown register 25 times; `DUNGEON2` fixed it), `$D414` 1, `$D411` 8; AD 4 SR 196; `FOR O = 1 TO 15`: volume O, triangle gate, `FOR 0 TO 5`: freq hi 50 + INT(RND · 6 · O), gate off; AD 9 SR 9, noise gate, `FOR O = 42 TO 10 STEP −1`: freq hi O (`DUNGEON`) or 0 (`OUTDOORS`: `POKE D3, 0`), gate off, volume 0; back in the caller `$D400`–`$D418` cleared (`DUNGEON`: then volume 0) | a member CASTS A SPELL (`0x1fcd`) |
+| `monster_cast` | `0x6845` / `0x6766` | AD 204 SR 11, volume 15, freq lo 0, noise gate; `FOR O = 37 TO 12 STEP −1`: freq hi O, `FOR 0 TO 40` empty (42.7 ms a pass); gate off, volume 0 | a monster CASTS A SPELL (`0x24b5`) or BREATHES (`0x2e08`); `DUNGEON`'s scripts: [original text] (`0x4d5d`), A SPELL IS CAST (`0x4d86`), [original text] (`0x4ee6`) |
+| `awakens` | `0x6889` / `0x67aa` | AD 5 SR 69, volume 15; `FOR O = 0 TO 10`: a note `SU(INT(RND · 10))` (hi, lo; `GOSUB` splits it), triangle gate, `FOR 0 TO 70` empty, gate off; volume 0. `SU(0…10)` = 17167, 21629, 25721, 34334, 19269, 22915, 28871, 32407, 38539, 43258, 45830 (the BASIC DATA line, `FOR I = 0 TO 10: READ SU(I)`): C6 E6 G6 C7 D6 F6 A6 B6 D7 E7 F7 in NTSC units; F7 is never drawn | a member AWAKENS (`0x1de2`; a monster's AWAKENS has no sound) |
+| `alive` | `0x68f7` / `0x6818` | `$D40F` 67, AD 9 SR 9, volume 15, freq hi INT(1 + RND · 3), control 21 (triangle, ring, gate), `FOR 1 TO INT(250 + RND · 300)` (`DUNGEON`: `· 400`) empty, control 20, volume 0 | IS ALIVE: a Resurrection, in a fight or on the map (`0x2ae1` → `0x6569`) |
+| `miss` | `0x6964` / `0x6885` | the same body (`GOTO 0x6916`) with AD 6 SR 13, freq hi INT(240 + RND · 14), noise; no `$D40F` | a member's MISSES (`0x1f1e`) and a monster's (`0x234a`); II also the tossed rock's miss |
+| `hit` | `0x697f` / `0x68a0` | freq hi 4, AD 9, `$D40F` 30, `$D418` 31 (low-pass, volume 15; no voice filtered), `$D417` 0, `$D415` 1, control 133 (noise, ring, gate); `TI` 40 jiffies; control 20 | a member HITS (`0x1f5f`); the swim's TAKES DAMAGE (`OUTDOORS 0x6072`) |
+| `monster_hit` | `0x6a81` / `0x69a2` | AD 10 SR 42, freq $010C noise; voice 2 AD 10 SR 42, freq $025A saw; both gates; `FOR 1 TO 9`: `RND` drawn, volume 15 (10.3 ms a pass); gates off; `FOR V = 15 TO 0 STEP −.1`: volume V (151 writes, 2.33 ms a pass) | a monster HITS (`0x2394`) |
+| `wound` | `0x6a40` / `0x6961` | freq $0606 then hi 7, AD 9 SR 15, `$D40F` 30, volume 15, `FOR 1 TO 200`: saw gate on (1.72 ms a pass), gate off, volume 0 | `0x2e11`: a member hurt by a monster (its swing, spell or breath), after TAKES n DAMAGE and a 16-jiffy wait, who lives |
+| `dies` | `0x6752` / `0x6a91` | freq hi 3, AD 10 SR 2, `$D40F` 4, volume 15, `$D417` 240, `$D416` 31; `FOR 1 TO 3`: control 21, `TI` 50 jiffies (`OUTDOORS`; `OUTDOORS2` 70, both dungeons 61); control 20. Freq lo not set: as left | a member DIES: in a fight 3 times (`0x2f20`: `FOR 1 TO 3: GOSUB`), after the swim once (`0x60dd`) |
+| `mark` | `0x6792` / `0x6a5a` | outdoors: `hit`'s body for 16 jiffies; dungeon: the 25 registers cleared, freq $7E97 noise, AD 57, volume 15, gate, 16 jiffies, the gate left on | a damage spell's hit on a monster (`0x2fd6` with SP set): `FOR II = 0 TO C%(WG) − 1`, one each; `C%` = `MN` field 13 (sprite blocks − 1, 1–4). II's rock: one (`SP` = 2) |
+| (unused) | `0x6af9` (`OUTDOORS`) | `DUNGEON`'s `mark` | no caller |
+| (click) | `0x6198` / `0x6a1a` | volume 10, triangle gate, AD 20 SR 9, freq $1464, `TI` 3 jiffies, gate off, SR 9 (`OUTDOORS`: volume 4) | every key or stick move the input routine reads (`0x61e6`) |
+
+`TOWNR` (I): `0x503f`, **U)SE of an item 141–150** (RING A–I, WAND; `0x2fa7`), then the menu again: `$D400`–`$D418`
+cleared; `FOR I = 1 TO 6`: volume 15, AD 0 SR 240, control 21, `$D403` 1, then the notes `MZ%(0…7)` = 4050, 4291, 3215,
+2145, 2145, 2408, 2703, 2861 (DATA, −1 ends): A = MZ% / 2 · I, `L% = A / 256` to voice 1's freq hi, `H% = A − 256 · L%`
+to voice 3's (the ring), a note every 2 jiffies (`TI ≥ TM + 2`, `TM = TI`); volume 0 33 jiffies after the last. 48 notes,
+2.15 s. `0x510d` is `OUTDOORS`'s click (AD 9), on the menus' N / S and the disk prompt. II's `TOWN2` keeps both routines
+(`0x5525`, `0x55f3`); nothing calls its tune.
+
+**Played (s228).** The pack's `sid_sounds` (`fight.outdoors.*`, `fight.dungeon.*`, I's `town.ring`, `marks` = `MN` field 13
+by monster; `C64PlaySounds` in the importer, numbers only) on the Client's `Sid6581`: the fight's start, each round shown
+on the remaster's combat screen (`C64PlaySoundCues`: its line tags, hits and lines, in the program's order), and outside
+fights the swim's lines, `DUNGEON`'s script lines and a Resurrection on the map (not in town: `TOWNR` has none), I's ring
+or wand used in town. `[~]`: the remaster shows a round's lines at once, so its sounds play in turn, each from the last
+write of the one before (the C64 prints, waits, sounds line by line); a sound that comes while one plays waits for it;
+each run starts on a fresh chip (registers 0), where the C64 keeps what the last routine left (`dies` and `alive` do not
+set every register); `DUNGEON`'s `cast` without its stray clear. Not played: the click (`0x6198`, `0x510d`; every key);
+the C64's message waits around the sounds.

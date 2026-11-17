@@ -92,3 +92,14 @@ Any other known spell: MP spent, nothing happens. Same flow as DOS OV1 `0x254e`.
 - Plain-text statements: after a statement break, a BASIC token runs as tokenised text to the next `:` or `00`:
   `87` READ, `99` PRINT, `9f` OPEN, `a0` CLOSE, `a1` GET, `84` INPUT#, `93` LOAD; `51` is SYS with a computed address
   (pushed first) and its plain-text arguments.
+
+## More opcodes (s228, read on `OUTDOORS` / `DUNGEON` / `TOWNR`, II's `…2`)
+
+- Variable names: in the table after the code, both name bytes' bit 7 = an integer variable (`%`), the first's alone =
+  `DEF FN`, the second's = a string (CBM's rule; `FN P(X)` is a `DEF FN`, `L%` / `H%` integers).
+- `47 hh ll` NEXT with its variable (`46` without). `94` / `d4 hh ll` push / store a variable whose id is ≥ 256.
+- `a0` / `a1` / `a2 vv` read float / integer / string array vv; `e0`–`e2` store. Array ids follow the `DIM`s in order
+  (`DIM C%(2)` → `$20`, `SU(11)` → `$5A` in `OUTDOORS`).
+- `8d ff ff` (word 65535) is −1 (a `STEP −1`, the ring tune's end mark).
+- The SID sounds: `GRAPHICS.md` 9.8 (`phantasie1/`).
+

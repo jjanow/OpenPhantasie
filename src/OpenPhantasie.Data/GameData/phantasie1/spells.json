@@ -6,7 +6,8 @@
     "[C] FIREFLASH\u2026FLAMEBOLT tier params recovered from OV2 cast switch (magic-spells.md); remaster FIREFLASH = D-029",
     "[C] HEALING heal = ((6*tier^2+4)*rng0_99)/100, floor 1 in combat (0x027d) and field (0x4930); town OV1 0x261a has no floor (D-010: manual everywhere)",
     "[C] CHARM\u2026AWAKEN combat effects decoded s31/s33 (OV2 jump table 0x9d1, combat-resolution.md \u00a7Combat spell effects); values live in Core CombatSpells; `core.spell.summon_elemental` templates in elementals.json",
-    "[C] MONSTER EVAL. / VISION / DIVINE I decoded s41 (OV2 0x4790, magic-spells.md \u00a7Wilderness/dungeon cast dispatch, \u00a7DIVINE I)"
+    "[C] MONSTER EVAL. / VISION / DIVINE I decoded s41 (OV2 0x4790, magic-spells.md \u00a7Wilderness/dungeon cast dispatch, \u00a7DIVINE I)",
+    "[C] extra_spells (D-090, s228): the remaster's spells after the copy's table, named here (not by the importer): I's index 55 = the Apple II's #60"
   ],
   "spells": [
     {
@@ -449,6 +450,18 @@
       "magic_point_cost": 2,
       "effect_coefficients_note": "[C] DOS slot 57 (known flag @210), 2 MP; no effect in town (OV1 0x254e), field (OV2 0x4790) or combat (cast_id 54 has no handler) (s41)",
       "dos_slot": 57
+    }
+  ],
+  "extra_spells": [
+    {
+      "id": "p1:55",
+      "index": 55,
+      "name": "DIVINE REVIVAL",
+      "category": "N/D",
+      "effect_summary": "In a dungeon: every member worn down to CON 0 is revived (OK, CON 3-11, younger); the caster then loses this spell and all MP. Given to every member by the victory under p1.victory = apple.",
+      "magic_point_cost": 4,
+      "effect_coefficients_note": "[C] D-090 (user s227): the Apple II's spell #60 (record byte 120), FLASH? 150 / DUNGON 6930 to 5500; Apple GRAPHICS.md section 8.2. Name: the remaster's (the Apple names no spells). Slot 59 (DOS I's empty slot, flag @214), 4 MP as the Apple's 6886. Dungeon only (TOWN 6930 refuses, OUTDOORS has no case, combat takes #1-51). Per member with CON 0 and STR >= 1: status OK, CON := 3 + INT(RND*9), age clock high byte * 0.6, HP untouched; `core.magic.x_is_revived`; then the caster's #60 and MP := 0. None: `core.magic.no_useless_bodies_here`, #60 kept.",
+      "dos_slot": 59
     }
   ]
 }

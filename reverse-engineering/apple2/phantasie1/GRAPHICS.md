@@ -147,8 +147,8 @@ Differences, all `[~]` / `[?]`:
 - Not compared with an Apple II emulator (none is set up: MAME is not installed and needs the Apple II ROMs).
 
 II's Apple pack plays its rounds on the same field since s226 (`../phantasie2/GRAPHICS.md` section 7: I's numbers plus
-the tossed rock). III's (its own field: `MONSTER PLOT` sprites, arms at (19·slot + 147, 198 − 8·row),
-`../phantasie3/GRAPHICS.md` sections 2–3) still plays combat on the remaster's screen.
+the tossed rock). III's has its own field since s228 (`../phantasie3/GRAPHICS.md` section 9: the whole hi-res
+screen, `MONSTER PLOT` sprites, the party at (147 + 19·slot, 198 − 8·(row + 1))).
 ## 8. End scenes: `CEMETARY` and `FLASH?` (s224)
 
 Both are short Applesoft programs that draw with HPLOT / DRAW / XDRAW, print in the four text rows under the graphics
@@ -222,9 +222,16 @@ path, as the C64's replay does.
   score (TOWN 4660–4663 the Mystic: raised to SC when lower; 6010 the party's highest to `SA + 1201`; 7452 printed as
   SCORE), DOS's field 42 / `@70`; 100 is tier 6, "SUPREME BEINGS" (TOWN 4656). Bytes 61..120 are the known flags of
   spells 1..60 (TOWN 3060 / 6885, OUTDOORS 7445: 1 = known), so byte 120 is spell #60, the Apple's divine spell; NOT
-  makes 0 → 1 and anything else → 0 (a second win takes it away). #60 is cast only in the dungeon (DUNGON 6930 →
-  5500: every member with byte 4 = 0 and byte 1 > 0 IS REVIVED, status 1, byte 4 := 3 + RND · 9; then the caster's
-  byte 120 and MP (byte 11) := 0); TOWN 6930 refuses it ("YOU CAN NOT CAST THAT NOW").
+  makes 0 → 1 and anything else → 0 (a second win takes it away). #60 costs 4 MP (6886: `WS − 4 · INT((WS − 1) /
+  3.95)`), spent first (6887). It works only in the dungeon's command menu (DUNGON 6930 → 5500; the dungeon's combat
+  takes #1–#51 only, 1310): for each member WG with **CON** (byte 4, TOWN 7440) = 0 and **STR** (byte 1, 7414) ≥ 1, no
+  status test: "<name> IS REVIVED", status (byte 18) := 1 (OK), CON := 3 + RND · 9 (POKE truncates: 3..11), the age
+  clock's high byte (byte 16; age = (byte 16 · 256 + byte 17) / 26, 7414) := byte 16 · 0.6 (truncated), HP (byte 13)
+  untouched, and the caster's byte 120 and MP (byte 11) := 0; GET. Nobody: "NO USELESS BODIES HERE", #60 kept (s228,
+  read for the build; the s226 reading named only bytes 4 and 1). CON 0 is how deaths wear a member down (4020: each
+  death takes 1, or 2 with LUCK < 11) and RESURRECTION refuses it (2820: `W(4) < 1`); a CEMETARY record "destroyed"
+  is CON 0 too (725), with its 54 bytes zeroed (STR 0), so #60 skips it. TOWN 6930 spends the 4 MP and refuses it
+  ("YOU CAN NOT CAST THAT NOW"); OUTDOORS has no case for #60 (the 4 MP, nothing).
 - 170: `SA + 1194..1200` := 255, then 175 `SA + 1196` := 0: days out (`1194..1195`, OUTDOORS 7500–7520) 65,535, the
   XP pool (`1197..1198`, in tens) 655,350 XP, the gold pool (`1199..1200`) 65,535; `SA + 1196` = 0 is a plain town entry
   next time (TOWN 306). Region (`1191`) 19, cell (`1192`, `1193`) = (CX, CY) = (13, 18) (OUTDOORS 5000), DOS / Core
@@ -234,10 +241,25 @@ path, as the C64's replay does.
 - 200: `& RUN "OUTDOORS"`: the party stands in the wilderness; nothing is shared out, aged or restocked until the next
   town entry (TOWN 490 ages each member by days out / 7, about 36; 600–690 splits the pools by shares).
 
-In the remaster (D-090, built s226): `p1.victory` = `apple` (default) gives 140's items (`Endgame.GiveVictoryGifts`:
-the first free slots of Core's sack; a full sack's last slots `[~]`), 170's place (`Endgame.OlympusRegion / X / Y`) and
-DOS's DIVINE I grant (status-OK members, after the roster write) for 150's toggle; 150's score and 170's pools and days
-are **not built** (found s226, for the user: D-090). `dos` keeps DOS's Pelnor.
+In the remaster (D-090: built s226, the rest decided s227 and built s228): `p1.victory` = `apple` (default) gives 140's
+items (`Endgame.GiveVictoryGifts`: the first free slots of Core's sack; a full sack's last slots `[~]`), 150 on every
+adventurer, dead included, after the roster write (score `@70` := 100 and #60 learnt, no toggle:
+`Endgame.GrantVictory(…, apple: true)`; no DIVINE I), 170's pools (`Endgame.SetAppleVictoryPools`: the sack's XP :=
+655,350, its gold := 65,535 held to the sack's gold cap, D-048, 65,000 by default; set, not added; days out unchanged)
+and 170's place (`Endgame.OlympusRegion / X / Y`). `dos` keeps DOS's DIVINE I and Pelnor.
+
+#60 in the remaster: **DIVINE REVIVAL** (a remaster name: the Apple names no spells), Phantasie I's spell index 55 in
+DOS slot 59 (empty in DOS I; flag word `@214`), so 4 MP by DOS's `(slot % 4) + 1` as by the Apple's 6886. Data:
+`spells.json` `extra_spells` (after the copy's table, named there, not by the importer); text
+`core.magic.x_is_revived` / `core.magic.no_useless_bodies_here` (the Apple's lines). Code: `SpellCaster.CastAppleDivine`
+(CON = Core `Stats.Con`, STR = `Stats.Str`, the age clock = Core `AgeClock`, the same 1/26-year unit; status OK; the
+RND · 9 is one `Next(0, 9)` draw per member revived), `SpellCaster.IsCastableAt(…, rules)` (dungeon only). Under D-035's
+manual cast list (the default) the town and the wilderness don't list it and refuse it before any MP is spent `[~]`
+(the Apple charges 4 MP there); under `p1.cast-list` = `dos` it is listed everywhere and charged, with an effect only in
+a dungeon. Never offered in a fight (D-063: not a combat spell); under `p1.combat-spell-list` = `dos` a combat cast
+spends the 4 MP and does nothing. Saves keep it (the spell array); a DOS export writes `@214`, which DOS keeps but
+can't show or cast (a blank list line, 4 MP, nothing) `[~]`; the I → II transfer leaves it behind (II's index 55 is
+DIVINE II) `[~]`.
 
 ### 8.3 The speaker (`INFO` at $302, `CALL 770`) `[C]`
 
@@ -277,5 +299,7 @@ played (the combat field, section 7, plays no speaker sound) `[~]`.
 - `[~]` Text in the remaster font, not the Apple's character ROM (not on the disks); no flashing cursor.
 - `[~]` `scenes/shapes.bin` / `page2.bin` exist only in an import's `files/` (the committed extract has no `scenes/`):
   a dev build that finds the pack in the repo without an Apple import draws the plain end screens.
-- FLASH? 150's score := 100, 170's pools (655,350 XP, 65,535 gold) and the Apple's spell #60 (every member, no toggle)
-  in place of DIVINE I: decided s227 (D-090), not yet built; 170's days out (65,535) dropped by the decision.
+- #60 (8.2, built s228): a revived member keeps its HP (0 after a death), as the Apple leaves byte 13 `[C]`; Core's fight
+  skips a member at 0 HP and it can't cast (DOS's rules), so it acts only once healed (the Inn, HEALING) `[~]`. `[~]` the
+  town / wilderness refusal costs no MP under the manual cast list; DOS can't show or cast `@214`; II doesn't take it.
+  170's days out (65,535) dropped by the decision (D-090).

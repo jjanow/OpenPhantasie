@@ -28,19 +28,27 @@ namespace OpenPhantasie.Client;
 /// the Apple pauses after a swing's or a turn's lines, not after each).</item>
 /// </list>
 /// </summary>
-public sealed class Apple2FieldRun
+public sealed partial class Apple2FieldRun
 {
     /// <summary>One printed line on the round's timeline (ms from the run's start); <see cref="Home"/>: the window cleared first.</summary>
     public sealed record Line(string Text, bool Home, double StartMs, double EndMs);
 
     /// <summary>What the field shows at a moment.</summary>
-    /// <param name="HitRock">The <see cref="Hit"/> is II's rock (shape 59), not the spell hit (24).</param>
-    /// <param name="RockMiss">II's missed rock is up at the layout's miss point (1628).</param>
+    /// <param name="HitRock">The <see cref="Hit"/> is the missile (II's rock, shape 59; III's arrow, shape 1), not the spell
+    /// hit (24).</param>
+    /// <param name="RockMiss">The missed missile is up at the layout's miss point (II 1628: the rock; III 1628: the arrow).</param>
     public sealed record State(IReadOnlyList<string> Window, IReadOnlySet<Character> Swung, IReadOnlySet<Character> Cast,
         Character? Sparkle, IReadOnlySet<Monster> Posed, IReadOnlySet<Monster> Gone, Monster? Hit, bool HitRock = false,
-        bool RockMiss = false);
+        bool RockMiss = false)
+    {
+        /// <summary>III: archers whose bow has loosed this round (shape 3, 1624).</summary>
+        public IReadOnlySet<Character> Fired { get; init; } = new HashSet<Character>();
 
-    private enum Kind { Swing, Cast, Sparkle, Pose, Gone, Hit, RockHit, RockMiss }
+        /// <summary>III: members erased at their death (4025 GOSUB 9100).</summary>
+        public IReadOnlySet<Character> MembersGone { get; init; } = new HashSet<Character>();
+    }
+
+    private enum Kind { Swing, Cast, Sparkle, Pose, Gone, Hit, RockHit, RockMiss, Fire, MemberGone }
 
     private sealed record Event(double StartMs, double EndMs, Kind Kind, Character? Member, Monster? Monster);
 
@@ -162,6 +170,7 @@ public sealed class Apple2FieldRun
     {
         HashSet<Character> swung = new(ReferenceEqualityComparer.Instance), cast = new(ReferenceEqualityComparer.Instance);
         HashSet<Monster> posed = new(ReferenceEqualityComparer.Instance), gone = new(ReferenceEqualityComparer.Instance);
+        HashSet<Character> fired = new(ReferenceEqualityComparer.Instance), membersGone = new(ReferenceEqualityComparer.Instance);
         Character? sparkle = null;
         Monster? hit = null;
         bool hitRock = false, rockMiss = false;
@@ -198,9 +207,18 @@ public sealed class Apple2FieldRun
                 case Kind.RockMiss when on:
                     rockMiss = true;
                     break;
+                case Kind.Fire:
+                    fired.Add(e.Member!);
+                    break;
+                case Kind.MemberGone:
+                    membersGone.Add(e.Member!);
+                    break;
             }
         }
-        return new State(Window(ms), swung, cast, sparkle, posed, gone, hit, hitRock, rockMiss);
+        return new State(Window(ms), swung, cast, sparkle, posed, gone, hit, hitRock, rockMiss)
+        {
+            Fired = fired, MembersGone = membersGone,
+        };
     }
 
     /// <summary>The text window's rows <paramref name="ms"/> into the run: the lines since the last HOME, the last rows.</summary>
@@ -253,11 +271,57 @@ public sealed class Apple2FieldRun
 /// Who stands on the Apple II field (I and II) when a round begins (s224): the party in slot order (slot k at x 19·k, 1525; the
 /// members dead then are not drawn, their slot stays empty), the parrying members (arm 21 from the set-up, 1532: Core's
 /// order holds PARRY only when the parry roll at the orders succeeded, as 1430–1435), the elemental (its body), and each
-/// rank's living monsters, front rank first (1480–1550; Core's ranks stand for the Apple's size order, 1047).
+/// rank's living monsters, front rank first (1480–1550; Core's ranks stand for the Apple's size order, 1047). III (s228,
+/// <see cref="OfP3"/>) adds each member's row (<see cref="Rows"/>), the archers (a FIRE order), the kneeling (Down), the
+/// party columns' values (<see cref="Boxes"/>) and whether the fight is in a dungeon (the arrow's miss point).
 /// </summary>
 public sealed record Apple2FieldSnapshot(IReadOnlyList<Character> Party, IReadOnlySet<Character> DeadBefore,
     IReadOnlySet<Character> Parrying, Character? Elemental, IReadOnlyList<IReadOnlyList<Monster>> Ranks)
 {
+    /// <summary>III: each member's row, 0 back, 1 middle, 2 front (record byte 0; 9100).</summary>
+    public IReadOnlyDictionary<Character, int> Rows { get; init; } = new Dictionary<Character, int>();
+
+    /// <summary>III: members whose order is FIRE (IN% &lt; 0: shape 2 for the figure, 9200).</summary>
+    public IReadOnlySet<Character> Archers { get; init; } = new HashSet<Character>();
+
+    /// <summary>III: members kneeling (Down: a hurt leg, PC% = 2; shape 6, 9205).</summary>
+    public IReadOnlySet<Character> Kneeling { get; init; } = new HashSet<Character>();
+
+    /// <summary>III: each member's party column at the round's start (OUTDOORS3 600–635), slot order.</summary>
+    public IReadOnlyList<Apple2FieldMemberBox> Boxes { get; init; } = [];
+
+    /// <summary>III: the fight is in a dungeon (DUNGON3: the missed arrow at (220, 105)).</summary>
+    public bool InDungeon { get; init; }
+
+    /// <summary>
+    /// III (s228): the snapshot of a III fight. The parries are not known yet (Core rolls them in the round, as the Apple's
+    /// 1527 after the orders): the caller sets <see cref="Parrying"/> from <see cref="P3Fight.Parried"/> after the round.
+    /// </summary>
+    public static Apple2FieldSnapshot OfP3(Party party, CombatEncounter combat, bool inDungeon)
+    {
+        var plain = Of(party, combat);
+        var members = plain.Party;
+        var archers = new HashSet<Character>(ReferenceEqualityComparer.Instance);
+        for (var i = 0; i < members.Count && i < combat.Prep.Length; i++)
+            if (P3CombatModule.TryUnpack(combat.Prep[i].PackedAction, out var choice) && choice.Action == P3Action.FireBow)
+                archers.Add(members[i]);
+        return plain with
+        {
+            Parrying = new HashSet<Character>(ReferenceEqualityComparer.Instance),
+            Rows = members.ToDictionary(m => m, m => (int)(m.Phantasie3?.Rank ?? P3PartyRank.Front),
+                (IEqualityComparer<Character>)ReferenceEqualityComparer.Instance),
+            Archers = archers,
+            Kneeling = new HashSet<Character>(members.Where(m => P3Fight.StatusOf(m) == P3Status.Down), ReferenceEqualityComparer.Instance),
+            Boxes = members.Select(m =>
+            {
+                var body = P3BodyAreas.Of(m);
+                return new Apple2FieldMemberBox(m.MagicCur, m.MagicMax, m.HpCur, m.HpMax, P3Fight.StatusOf(m),
+                    Enum.GetValues<P3BodyArea>().Select(a => (int)body[a]).ToList());
+            }).ToList(),
+            InDungeon = inDungeon,
+        };
+    }
+
     public static Apple2FieldSnapshot Of(Party party, CombatEncounter combat)
     {
         ArgumentNullException.ThrowIfNull(party);
@@ -273,3 +337,10 @@ public sealed record Apple2FieldSnapshot(IReadOnlyList<Character> Party, IReadOn
         return new Apple2FieldSnapshot(members, dead, parrying, party.Elemental, ranks);
     }
 }
+
+/// <summary>
+/// III: one member's party column at a round's start (OUTDOORS3 600–635): magic and hits, the status, and each body
+/// area's state (0 OK … 3 gone) in <see cref="P3BodyArea"/> order.
+/// </summary>
+public sealed record Apple2FieldMemberBox(int MagicCur, int MagicMax, int HpCur, int HpMax, P3Status Status,
+    IReadOnlyList<int> Areas);

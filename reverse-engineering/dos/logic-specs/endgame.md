@@ -378,15 +378,21 @@ remaster's Inn Distribute (D-037), not a town-entry prompt.
 The manual has no DIVINE I spell (its spell table stops at #54 TRANSPORTATION). The text itself says it is for
 Phantasie II.
 
-### 3.1 The outcome in the remaster: `p1.victory` (D-090, built s226)
+### 3.1 The outcome in the remaster: `p1.victory` (D-090, built s226 / s228)
 
-The user (s225) gave every version of I the Apple II's outcome (`FLASH?` 140–200, Apple `GRAPHICS.md` section 8.2),
+The user (s225, s227) gave every version of I the Apple II's outcome (`FLASH?` 140–200, Apple `GRAPHICS.md` section 8.2),
 with DOS's above as the rules option `p1.victory` = `dos` (Original (DOS) preset). `apple` (Original (manual) and
-Remaster presets, the default), after the roster write and DIVINE I as above:
+Remaster presets, the default), after the roster write (no DIVINE I):
 
 ```
+for every adventurer (the summon left out), dead included:                   # FLASH? 150: PM = 0 TO PO, no status test
+    score @70 := 100                                                          # byte 42; tier 6, SUPREME BEINGS
+    learns the Apple's #60 (DIVINE REVIVAL, index 55, slot 59)                # byte 120; the NOT toggle not copied
 sack: items 177, 178, 179 (DIAMOND B / C / D) each in the first free slot   # FLASH? 140: found-item slots 59/58/57
       (full sack: the last slots not just filled are overwritten [~])
+sack XP := 655,350; sack gold := min(65,535, sack gold cap)                   # FLASH? 170 (set, not added); D-048 cap
+(treasury "safe": the gold banked at once, as any found gold)
+days out unchanged                                                            # 170's 65,535 dropped (user s227)
 region 19, (x, y) = (7, 13)                                                   # FLASH? 170: Apple (13, 18), FORMAT 3.6 turn
 tile-class fight flag cleared (a new trip); mode = wilderness                 # & RUN "OUTDOORS": no town entry
 the 3 x 3 round the party unfogged                                            # OUTDOORS 5000-5060 (J1 = 1)
@@ -401,9 +407,25 @@ town, where they are shared out as after any trip (D-037), most likely OLYMPIA (
 (11, 6) / (11, 5) text cells join the landing area to it). Leaving Olympus needs TRANSPORTATION from a town, as
 reaching it did. Zeus' screen is each version's own and unchanged, except the C64's closing page, whose second line
 names the Olympic Plane instead of the City of Pelnor (`c64.endgame.closing_2.olympus`, `VictoryScene.ToOlympus`).
-Decided s227, not yet built (D-090): under `apple`, every member's score (`@70`) := 100, the XP pool := 655,350 and
-the gold pool := 65,535 (FLASH? 150 / 170), days out unchanged (the Apple's 65,535 dropped), and the Apple's spell #60
-(every member, never toggled off) in place of DOS's DIVINE I. Core: `Phantasie1Campaign.ResolveVictory`, `Endgame.GiveVictoryGifts`; tests `EndgameTests` `D090_*`.
+Zeus' screen keeps DOS's slots (a ghost per status-OK member), as each version's screen is its own.
+
+**#60, DIVINE REVIVAL** (the Apple's DUNGON 6930 → 5500, `[C]`; the name is the remaster's: the Apple names no spells):
+4 MP (slot 59), cast only in a dungeon outside a fight:
+```
+for each member m (the caster included), no status test:
+    if m.CON == 0 and m.STR >= 1:                 # bytes 4 / 1; a destroyed Apple record has STR 0
+        m.status := OK; m.CON := 3 + draw(0..8); m.ageClock := floor(hi(ageClock) * 0.6) * 256 + lo(ageClock)
+        m.HP unchanged                            # byte 13 not touched (a dead member's 0)
+        "<name> IS REVIVED"; caster loses #60 and all MP
+none: "NO USELESS BODIES HERE" (the 4 MP spent, #60 kept)
+```
+CON 0 is the case RESURRECTION refuses (D-009's CON loss at each death wears it down). Town / wilderness: not listed
+and refused before any MP under D-035's manual list `[~]` (the Apple charges 4 MP, TOWN 6930 / OUTDOORS); listed and
+charged with no effect under `p1.cast-list` = `dos`. A member at 0 HP doesn't act in Core's fight (DOS's rule) until
+healed `[~]`. DOS export: the flag at `@214` (DOS slot 59, empty in DOS) `[~]`; the I → II transfer drops it `[~]`.
+Core: `Phantasie1Campaign.ResolveVictory`, `Endgame.GrantVictory(…, apple)` / `GiveVictoryGifts` /
+`SetAppleVictoryPools`, `SpellCaster.CastAppleDivine`; data `spells.json` `extra_spells`; tests `EndgameTests`
+`D090_*`, `MagicSpellTests` `AppleDivine_*`.
 
 ## 4. Lose — party defeat, Astral Plane, Great Demon, OV1 `0x3bc` [C]
 

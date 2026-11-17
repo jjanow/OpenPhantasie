@@ -197,7 +197,10 @@ The busy loops' times are in I's GRAPHICS.md 9.5.
 The remaster (s224, `ending_scene.c64_win`, `C64WinScreen`) runs these steps. Not as the C64: Core titles records
 0 … n − 1 (n = OK members, the ST's rule, endgame.md 7.1) and draws a title only for those, where the C64 presents every
 slot `[~]`; the closing page is Core's 21 lines (the ST's breaks, as before) `[~]`. s226: the SID cheer plays at each cheer (I's
-GRAPHICS.md 9.6), and `CEMETARY2`'s two sounds as I's.
+GRAPHICS.md 9.6), and `CEMETARY2`'s two sounds as I's. s228: the fights' sounds of `OUTDOORS2` / `DUNGEON2` (I's 9.8, timed in
+VICE on these programs): I's routines but a member's death waits 70 jiffies (`OUTDOORS2` `0x6c1d`), `DUNGEON2`'s cast
+clears all 25 registers, the rock's miss (`0x3934`) and hit (one mark, `SP` = 2, `0x3304`) sound; `TOWN2`'s ring tune
+(`0x5525`) is not called.
 
 ### 8.2 The party wipe: `CEMETARY2` `[C]`
 

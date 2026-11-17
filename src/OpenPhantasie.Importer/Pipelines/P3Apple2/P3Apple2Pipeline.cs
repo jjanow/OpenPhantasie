@@ -12,8 +12,9 @@ public sealed class P3Apple2Pipeline : IImportPipeline
     public string ProfileId => "p3-apple2";
 
     // 1 (s212): III's tables and the Apple II art pack; 2 (s212): the remaster's wording for the lines it lacks;
-    // 3 (s216, D3-077): the lines v3.0 prints in its own words (en.own.p3-apple2.json, tools/scripts/p3_apple2_own_wording.json)
-    public int RecipeVersion => 3;
+    // 3 (s216, D3-077): the lines v3.0 prints in its own words (en.own.p3-apple2.json, tools/scripts/p3_apple2_own_wording.json);
+    // 4 (s228): the pack's apple2_field (III's combat field, GRAPHICS.md section 9)
+    public int RecipeVersion => 4;
 
     /// <summary>DOS III's and the Amiga's tables win when both copies are imported in one run: they run first.</summary>
     public IReadOnlyList<string> RunsAfter => ["p3-dos-1988", "p3-amiga-1.0"];

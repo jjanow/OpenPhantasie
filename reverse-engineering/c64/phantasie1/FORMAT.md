@@ -112,7 +112,7 @@ order); record 81 is the REL end marker (`0xFF`). A record is 24 CR-ended decima
 
 | Field | DOS (`data-tables.md`, record `+0x..`) | Field | DOS |
 |---|---|---|---|
-| 0 | name `+0x00` | 13 | **C64 only:** sprite blocks − 1 (= `(MX file size − 40) / 64 − 1`, all 80 `[C]`) |
+| 0 | name `+0x00` | 13 | **C64 only:** sprite blocks − 1 (= `(MX file size − 40) / 64 − 1`, all 80 `[C]`); read as `C%`, also the marks a damage spell draws (GRAPHICS.md 9.8) |
 | 1 | armor `+0x14` | 14 | **C64 only** `[?]` (20, 45, 47, 85, 87, 90, 100, 120; not DOS's byte_34 or sprite size) |
 | 2 | damage `+0x16` | 15 | reaction modifier `+0x29` |
 | 3 | level `+0x18` | 16 | next-group chance `+0x2B` |

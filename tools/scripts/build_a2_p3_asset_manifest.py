@@ -95,7 +95,49 @@ def pack(index: dict) -> dict:
         {"name": "overworld.tile.{n}", "dir": "overworld/tiles", "prefix": "{n:D3}.", "ext": ".png"},
         {"name": "dungeon.cell.{n}", "dir": "dungeon", "prefix": "glyph-{n}.", "ext": ".png"},
     ]
+    out["apple2_field"] = field()
     return out
+
+
+FIELD_NOTE = (
+    "OUTDOORS3 / DUNGON3 (the same drawing lines, v1.0 and v3.0) 1540-2006, 4000-4160, 9100-9220 (GRAPHICS.md section 9): "
+    "the round plays on the game's one hi-res screen (SCREEN, the index's screens.frame): the field box bottom right, the "
+    "message box (650: columns 17-38, rows 9-11) above it, the party columns (600-635) on top; the options and orders "
+    "(1068-1470) are the remaster's screen. monster_plot: MONSTER PLOT sprites (whole bytes) with their top-left at byte "
+    "column 21 + 4 * INT(5 * (i + .5) / n) (1550), the front rank (the larger group, 1047) at y 120 (99 for S% 21, a giant), "
+    "the second at 96 (1540); pose B from a swing, spell or breath to the round's end (2006); blanked at the death (4145). "
+    "Party slot k at (147 + 19k, 198 - 8 * (row + 1)) (9100: back 190, middle 182, front 174): a FIRE order draws shape 2 "
+    "for the figure, 3 once it shot (9200, 1624); a hurt leg kneels (shape 6 + the arm); else the body (TOWN3 2350-2360, "
+    "social class 3: shape 4 but over 25) with arm 20, 22 from a swing (1695), 5 from a cast (1760), 21 for a parry that "
+    "took (1527 / 9210); a member's death erases the figure (4025). The sparkle (23) at the figure's point + (14, -23) "
+    "during the cast tones (1762-1764); 4132 XDRAWs shape 47 - 23 * SP at (7 * X% + 3, Y% + 20) for 500 loops: the spell "
+    "hit (24, SP = 1) or the arrow of a bow hit (1, SP = 2); a bow miss (1628) the arrow at (220, 104), (220, 105) in "
+    "DUNGON3, for 250 loops, then the PA pause. Pauses: PA = 120 * TIME LAG loops a line (STARTER 361, 7560); loop_ms a "
+    "rule of thumb for an empty Applesoft FOR / NEXT pass [~]; sparkle_ms the cast tones' length (CALL 770 not timed) [?]. "
+    "The elemental (slot 6: its byte 168 is not known [?]) is not drawn.")
+
+
+def field() -> dict:
+    """The pack's apple2_field for III (s228): GRAPHICS.md section 9 (P3Apple2ArtManifest.Field)."""
+    return {
+        "_note": FIELD_NOTE,
+        "screen_x": 20, "screen_y": 4, "width": 280, "graphics_rows": 192, "divider": 0,
+        "lines": [],
+        "party_step": 19,
+        "text_top": 9, "text_rows": 3, "text_left": 17, "columns": 22, "cell_width": 7, "cell_height": 8,
+        "index": "extraction-index.json",
+        "line_loops_per_time_lag": 120, "hit_loops": 500, "loop_ms": 1.0, "sparkle_ms": 300.0,
+        "bodies": {"monster_races_from": 7, "monster_body": 26, "human_elf": [0, 2], "small_body": 25, "plain_body": 19,
+                   "robed_classes": [1, 4, 5], "robed_body": 27, "elemental_body": 0, "noble_class": 3, "noble_body": 4},
+        "monster_plot": {
+            "party_x": 147, "party_base_y": 198, "rank_step": 8, "rank_ys": [120, 96], "giant_y": 99, "giant_shape": 21,
+            "column": 21, "column_step": 4, "slots": 5, "byte_pixels": 7, "hit": [3, 20], "sparkle": [14, -23],
+            "arrow_miss": [220, 104], "arrow_miss_dungeon": [220, 105], "arrow_miss_loops": 250, "arrow_hit_loops": 500,
+            "frame": True,
+            "boxes": {"column": 4, "step": 6, "width": 5, "name_row": 0, "class_row": 1, "magic_row": 2, "hits_row": 3,
+                      "body_row": 5, "status_dx": 4, "marks": "OIBG"},
+        },
+    }
 
 
 def main() -> None:

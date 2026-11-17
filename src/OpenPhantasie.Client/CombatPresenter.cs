@@ -687,9 +687,10 @@ public sealed partial class CombatPresenter
     public CombatFieldRun? FieldRun { get; private set; }
 
     /// <summary>
-    /// s224 / s226: I and II Apple II's combat field (<see cref="Apple2FieldRun"/>; GRAPHICS.md section 7): the layout when each round
-    /// plays on the Apple's field (the game's ORIGINAL SCREENS switch and a pack with <c>apple2_field</c>), else null (the
-    /// remaster's screen). Set by the front end. The orders stay on the remaster's screen (the Apple's are a text page).
+    /// s224 / s226 / s228: I, II and III Apple II's combat field (<see cref="Apple2FieldRun"/>; GRAPHICS.md section 7, III's
+    /// section 9): the layout when each round plays on the Apple's field (the game's ORIGINAL SCREENS switch and a pack with
+    /// <c>apple2_field</c>; III's has <see cref="Apple2FieldLayout.Plot"/>), else null (the remaster's screen). Set by the
+    /// front end. The orders stay on the remaster's screen (I / II: the Apple's are a text page).
     /// </summary>
     public Func<Apple2FieldLayout?>? AppleField { get; set; }
 
@@ -707,6 +708,16 @@ public sealed partial class CombatPresenter
 
     /// <summary>Counts the field runs started, so the front end starts each run's sounds once.</summary>
     public int FieldRunSerial { get; private set; }
+
+    /// <summary>
+    /// s228: the last round shown on the remaster's own combat screen (no field, no line-by-line run), with the party's
+    /// members as they stood before it, and a count of such rounds, so the front end plays each round's sounds once
+    /// (the C64's, <see cref="C64PlaySoundCues"/>).
+    /// </summary>
+    public (CombatResult Round, IReadOnlyList<Character> Before)? ShownRound { get; private set; }
+
+    /// <summary>s228: counts <see cref="ShownRound"/>.</summary>
+    public int ShownRoundSerial { get; private set; }
 
     private double _fieldStartMs;
     private CombatResult? _fieldRound;
@@ -1014,8 +1025,8 @@ public sealed partial class CombatPresenter
         var onField = AmigaField?.Invoke() == true;
         var onP1Field = !onField && OnP1Field;
         var p2Lines = onField || onP1Field ? null : P2Lines?.Invoke();
-        // s224 / s226: I / II Apple II's field (its own TIME LAG pause comes after each line, Apple2FieldRun).
-        var appleField = onField || onP1Field || p2Lines is not null || session.Game is not (GameId.P1 or GameId.P2)
+        // s224 / s226 / s228: I / II / III Apple II's field (its own TIME LAG pause comes after each line, Apple2FieldRun).
+        var appleField = onField || onP1Field || p2Lines is not null || session.Game is not (GameId.P1 or GameId.P2 or GameId.P3)
             ? null : AppleField?.Invoke();
         // T)IME LAG (D-073); the Amiga's field has no such pause, its Speed paces the lines instead (II ST: its Speed menu,
         // manual: no Time lag for Atari users).
@@ -1028,8 +1039,11 @@ public sealed partial class CombatPresenter
         var living = session.Party.Members.Where(m => m.Status != CharacterStatus.Dead).ToList();
         var snapshot = onField && session.Combat is { } before ? CombatFieldSnapshot.Of(session.Party, before) : null;
         var p1Snapshot = onP1Field && session.Combat is { } p1Before ? P1CombatFieldSnapshot.Of(session.Party, p1Before) : null;
-        var appleSnapshot = appleField is not null && session.Combat is { } appleBefore
-            ? Apple2FieldSnapshot.Of(session.Party, appleBefore) : null;
+        var appleBefore = appleField is not null ? session.Combat : null;
+        var appleSnapshot = appleBefore is null ? null
+            : appleField!.Plot is not null
+                ? Apple2FieldSnapshot.OfP3(session.Party, appleBefore, session.CombatReturnMode == GameMode.Dungeon)
+                : Apple2FieldSnapshot.Of(session.Party, appleBefore);
         _p2RanksBefore = p2Lines is not null && session.Combat is { } p2Before
             ? p2Before.Ranks.Select(r => (IReadOnlyList<Monster>)r.Members.Where(m => m.IsAlive).ToList()).ToList()
             : null;
@@ -1048,6 +1062,11 @@ public sealed partial class CombatPresenter
         }
         if (appleField is not null && appleSnapshot is not null)
         {
+            if (appleField.Plot is not null && appleBefore is not null && P3Fight.Of(appleBefore) is { } p3Fight)
+                appleSnapshot = appleSnapshot with // III: the parries Core rolled in the round (as the Apple's 1527)
+                {
+                    Parrying = new HashSet<Character>(appleSnapshot.Party.Where(p3Fight.Parried), ReferenceEqualityComparer.Instance),
+                };
             StartAppleField(session, appleField, appleSnapshot, round, mark);
             DrainLog(session);
             if (round.EncounterOver && round.PartyWon)
@@ -1074,6 +1093,8 @@ public sealed partial class CombatPresenter
             return false;
         }
         DrainLog(session);
+        ShownRound = (round, living);
+        ShownRoundSerial++;
         StartFlashes(round.Hits);
         foreach (var m in living.Where(m => m.Status == CharacterStatus.Dead))
             _deathMarks[m] = _clockMs + DeathMarkMs; // "%s DIES" (ST 0x9894 → 0x188fc mode 0)
@@ -2133,8 +2154,9 @@ public sealed partial class CombatPresenter
             after.Add(UiText.S("combat.victory"));
         var log = round.Log.Select(l => scene is not null && scene.Contains(l) ? "" : l).ToList();
         AppleSnapshot = snapshot;
-        AppleRun = Apple2FieldRun.Plan(layout, log, round.LineTags, round.Hits, after, snapshot, _settings.TimeLag,
-            _settings.Sound);
+        AppleRun = layout.Plot is not null
+            ? Apple2FieldRun.PlanPlot(layout, log, round.LineTags, round.Hits, after, snapshot, _settings.TimeLag, _settings.Sound)
+            : Apple2FieldRun.Plan(layout, log, round.LineTags, round.Hits, after, snapshot, _settings.TimeLag, _settings.Sound);
         _fieldRound = round;
         _fieldStartMs = _clockMs;
     }

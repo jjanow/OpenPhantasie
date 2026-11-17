@@ -121,6 +121,9 @@ public sealed class UseItemDialog : IModalDialog, IPagedDialog, IPadWheel
     /// <summary>s163: counts the potions drunk (the Amiga's "D O N E !" after each, h8 <c>+0x14ba</c> / <c>+0x1540</c>).</summary>
     public int PotionsDrunk { get; private set; }
 
+    /// <summary>s228: counts the rings and wands (ids 141–150) used (I C64's ring tune, <c>TOWNR</c> <c>0x503f</c>).</summary>
+    public int RingUses { get; private set; }
+
     private int? _scrollItem;
 
     public string Help => _step switch
@@ -259,6 +262,8 @@ public sealed class UseItemDialog : IModalDialog, IPagedDialog, IPadWheel
                         _step = Step.Target;
                         return null;
                     }
+                    if (row.ItemId is >= 141 and <= 150)
+                        RingUses++; // s228: I C64's TOWNR plays its ring tune for these (0x503f)
                     ShowText(row.ItemId is >= 121 and <= 140 ? ScrollLines(row.ItemId) : session.DescribeItem(row.ItemId));
                     _pictureItem = _data.ScrollItemRecords.TryGetValue(row.ItemId, out var records) && records.Count == 0
                         ? row.ItemId : null;

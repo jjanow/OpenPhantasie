@@ -86,7 +86,7 @@ public static class GuildCodec
     }
 
     /// <summary>[C] Record offset of a spell's known-flag word: <c>@96 + 2·DOS slot</c> (DIVINE I → <c>@210</c>, s41).</summary>
-    public static int SpellFlagOffset(int spellIndex) => Field.SpellFlags + 2 * SpellId.DosSlot(spellIndex);
+    public static int SpellFlagOffset(int spellIndex) => Field.SpellFlags + 2 * SpellSlots.PhantasieI.DosSlot(spellIndex);
 
     public static Character? ParseRecord(ReadOnlySpan<byte> r, CharacterCreationTables tables)
     {
@@ -107,6 +107,13 @@ public static class GuildCodec
         var spells = new int[CharacterCreation.SpellCount];
         for (var i = 0; i < spells.Length; i++)
             spells[i] = ReadU16(r, SpellFlagOffset(i));
+        // D-090: slot 59 (@214), empty in DOS, holds the Apple's #60 (index 55) when it reads 1 (known); the array grows
+        // only then, so a DOS record reads as before (any other value stays in the raw record carry).
+        if (ReadU16(r, SpellFlagOffset(SpellId.AppleDivine)) == 1)
+        {
+            Array.Resize(ref spells, SpellId.AppleDivine + 1);
+            spells[SpellId.AppleDivine] = 1;
+        }
 
         var character = new Character
         {
@@ -237,7 +244,9 @@ public static class GuildCodec
         U16(r, Field.ShieldSoak, ch.ShieldSoak, "@242 shield");
         U16(r, Field.ArmorSoak, ch.ArmorSoak, "@244 armor");
 
-        for (var i = 0; i < ch.SpellsKnown.Length && i < CharacterCreation.SpellCount; i++)
+        // D-090: I's layout, the Apple's #60 (index 55) in DOS's empty slot 59 (@214): DOS keeps the flag but has no name
+        // or effect for it (its list shows a blank line; a cast spends 4 MP and does nothing) [~].
+        for (var i = 0; i < ch.SpellsKnown.Length && i < SpellSlots.PhantasieI.Count; i++)
             U16(r, SpellFlagOffset(i), ch.SpellsKnown[i], $"spell {i}");
 
         r[Field.BirthRace] = (byte)ch.BirthRace;

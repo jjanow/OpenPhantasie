@@ -32,6 +32,28 @@ public static class P3C64ArtManifest
     /// <summary>The remaster's region id of Scandor (the swaps apply there only).</summary>
     public const int ScandorRegion = 0;
 
+    /// <summary>
+    /// s228: the fights' sounds (III's GRAPHICS.md, the sound): <c>PHANT.OBJ</c>'s calls of <c>SND</c> as SID register
+    /// writes at their cycles (<see cref="P1C64.C64PlaySounds.AddP3"/>).
+    /// </summary>
+    public static JsonObject SidSounds()
+    {
+        var sounds = new JsonObject();
+        P1C64.C64PlaySounds.AddP3(sounds);
+        return J.O(
+            ("_note", "s228 (GRAPHICS.md, the sound) [C]: SND ($126E, 6502) as PHANT.OBJ's fights call it, every write at " +
+                "its CPU cycle (PAL). fight.miss: entry1 ($12A8), a member's or a monster's miss (noise, the gate left on). " +
+                "fight.hit: entry2 ($12C2) with A = $42, any damaging hit, then 10 jiffies. fight.ping: entry0 ($127D) with " +
+                "A = $90, $B0, $90, 13 frames apart, before each hit of FIREFLASH, MINDBLAST or FLAMEBOLT. fight.death: " +
+                "entry4 ($12E2), a member's --DEATH--. entry0's gate is on for 6 cycles (attack 0): near silent [~]. " +
+                "Read on v1.0's PHANT.OBJ; v1.2's SND is the same and its PHANT.OBJ makes the same calls 3 bytes later, so its " +
+                "hit's A is $45 (this pack keeps v1.0's $42) [~]."),
+            ("clock_hz", 985248),
+            ("jiffy_hz", 60),
+            ("tail_seconds", 2),
+            ("sounds", sounds));
+    }
+
     public static JsonObject Pack()
     {
         var pictures = new JsonObject
@@ -95,6 +117,7 @@ public static class P3C64ArtManifest
                 "Priest or Wizard (drawn before the race's) [C]. Hires, frames idle / attacking (/ casting, not drawn). The " +
                 "elemental: the Mud Elemental's monster picture ($B2) in its kind's colour (Air 1, Mist 14, Mud 8); the " +
                 "pack shows Air's [~]."),
+            ("sid_sounds", SidSounds()),
             ("picture_sets", J.A(new[]
             {
                 ("monster.{n}.idle", "monsters/idle", "{n:D2}-"), ("monster.{n}.attacking", "monsters/attacking", "{n:D2}-"),

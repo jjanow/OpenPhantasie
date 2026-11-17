@@ -97,7 +97,7 @@ names its presets only where they differ from this.
 | D-087 | C64 import: no spell names on the C64; the fire elemental's name field reads FIRE ELE | **DECIDED: as built** + built (user s217; the manual's spell table + DIVINE I as D2-050; FIRE ELEM as D-083) |
 | D-088 | Apple II: "START A NEW GAME" — manual: characters erased and the dungeons reset; the Apple resets the roster and the towns only | **DECIDED: manual** (user s223; as built: an Apple-only import gives every region DOS's start state) |
 | D-089 | Apple-only import: two monster typos (APRENTICE DEVIL, MASTER ILLUSTIONIST): fix or keep | **DECIDED: fix** + built (user s223; APPRENTICE DEVIL / MASTER ILLUSIONIST; the Apple's other names kept, FIRE ELE → FIRE ELEM as D-087) |
-| D-090 | The ending: the Apple's FLASH? gives three gifts (items 177–179) and moves the party to Olympus; DOS / Amiga / C64 send it to Pelnor with no items | **DECIDED** (user s225) + built s226: the Apple's outcome in every version (diamonds to the found items, DIVINE I, OUT19 (7, 13)), DOS's as option `p1.victory`; FLASH?'s further effects decided (user s227): score 100, XP / gold pools and spell #60 as the Apple, days out kept; not yet built |
+| D-090 | The ending: the Apple's FLASH? gives three gifts (items 177–179) and moves the party to Olympus; DOS / Amiga / C64 send it to Pelnor with no items | **DECIDED** (user s225) + built s226: the Apple's outcome in every version (diamonds to the found items, OUT19 (7, 13)), DOS's as option `p1.victory`; FLASH?'s further effects decided (user s227) and built s228: score 100, XP / gold pools and spell #60 (DIVINE REVIVAL) as the Apple in place of DIVINE I, days out kept; #60's rejuvenation and HP left at 0 found s228, built as the Apple's (user to confirm) |
 | D-091 | Apple-only import: CEMETARY's "YOU HAVE AR[original text]" typo: fix or keep | **DECIDED** (user s225): fix to ARRIVED; built s226 |
 
 ---
@@ -1165,15 +1165,17 @@ names its presets only where they differ from this.
   gifts go to the party, not to members. Line 150, per member 0..PO with no status test: record byte 42 := 100 (byte 42
   is the SCORE, TOWN 4663 / 6010 / 7452, = DOS field 42 / `@70`: tier 6, "SUPREME BEINGS") and byte 120 := NOT byte 120
   (the known flag of the Apple's spell #60, bytes 61..120 = spells 1..60: a toggle, so a member who knew it loses it;
-  #60 is cast in DUNGON 6930 → 5500: every member whose byte 4 is 0 (CEMETARY 725's "destroyed" byte) and byte 1 > 0 is REVIVED (status OK, byte 4 := 3 + RND · 9), then the caster's #60 and MP are cleared). Line
+  #60 is cast in DUNGON 6930 → 5500: every member whose byte 4 is 0 (CEMETARY 725's "destroyed" byte) and byte 1 > 0 is REVIVED (status OK, byte 4 := 3 + RND · 9), then the caster's #60 and MP are cleared;
+  s228: byte 4 is CON and byte 1 STR (TOWN 7440 / 7414), and 5510 also sets the age clock's high byte (byte 16) to
+  0.6 × itself, leaves HP (byte 13) alone and costs 4 MP (6886); see GRAPHICS.md 8.2). Line
   170: `SA + 1194..1200` := 255 (days out 65,535 (`1194..1195`), the XP pool 65,535 · 10 = 655,350 XP (`1197..1198`),
   the gold pool 65,535 (`1199..1200`)), then 1196 := 0, region 19, cell (CX, CY) = (13, 18) = DOS / Core (x, y) =
   (7, 13) (FORMAT.md section 3.6's turn; CEMETARY 1550's (5, 5) on OUT1 is DOS's wake cell (20, 5) by the same turn);
   200 `& RUN "OUTDOORS"`: the wilderness, no town entry. The pools wait for the next town: TOWN 490 ages each member by
   days out / 7 (about 36) and 600–690 splits the XP and gold by shares.
 - **Remaster (s226):** option `p1.victory`: `apple` (Original (manual) and Remaster presets, the default) or `dos`
-  (Original (DOS) preset), locked per save. Under `apple`: DIVINE I as DOS grants it (status-OK members, after the
-  roster write; the Apple's toggle on every member not used), items 177–179 (DOS's DIAMOND B / C / D, the Apple's own
+  (Original (DOS) preset), locked per save. Under `apple`: the Apple's #60 and score (s228, below; DIVINE I until s228),
+  items 177–179 (DOS's DIAMOND B / C / D, the Apple's own
   names) into the found items (first free slots; with a full sack they overwrite its last slots, as the Apple writes its
   last three `[~]`), the party on OUT19 (7, 13) in the wilderness (a new trip: the tile-class fight flag cleared; the
   3 x 3 round it unfogged, OUTDOORS 5030; the Apple's at-once GREAT TROLL fight on the landing tile is DOS's first-step
@@ -1183,7 +1185,7 @@ names its presets only where they differ from this.
   "transported to The Olympic Plane" (`c64.endgame.closing_2.olympus`). Under `dos`: DIVINE I and Pelnor, as before.
   Code: `Phantasie1Campaign.ResolveVictory`, `Endgame.GiveVictoryGifts` / `Olympus*`, `VictoryScene.ToOlympus`; tests
   `EndgameTests` D090_*.
-- **Further decision (user, s227, 2026-11-16), on FLASH?'s effects found s226 (not yet built):** under `p1.victory` =
+- **Further decision (user, s227, 2026-11-16), on FLASH?'s effects found s226 (built s228):** under `p1.victory` =
   `apple` only (`dos` unchanged):
   1. score (byte 42) := 100 on **every** member, dead included, as the Apple;
   2. the trip's XP pool := 655,350 and gold pool := 65,535 (set, as the Apple writes them, not added), shared out at
@@ -1194,9 +1196,27 @@ names its presets only where they differ from this.
      revives every member the Apple marks destroyed (byte 4 = 0, byte 1 > 0) to OK with byte 4 := 3 + RND · 9, then
      the caster loses #60 and all MP;
   5. #60 goes to **every** member, dead included, and is never taken away (the Apple's NOT toggle not copied).
+- **Remaster (s228), points 1–5:** under `apple`, after the roster write, every adventurer (dead included, the summon
+  left out) gets score `@70` := 100 and learns #60 in place of DIVINE I; the sack's XP := 655,350 and its gold :=
+  65,535 held to the sack's gold cap (D-048: 65,000 by default; the treasury's "safe" banks it at once), days out
+  untouched. #60 is **DIVINE REVIVAL** (a remaster name; the Apple names no spells), I's spell index 55 in DOS slot 59
+  (empty in DOS I, flag `@214`), 4 MP (DOS's slot rule and the Apple's 6886 agree); data `spells.json` `extra_spells`.
+  Cast outside a fight in a dungeon, it does what DUNGON 5500 does, read in full for the build (s228): each member with
+  CON 0 and STR ≥ 1 (no status test; the Apple's "byte 4 = 0, byte 1 > 0") is revived: status OK, CON := 3 + a 0..8 draw,
+  the age clock's high byte × 0.6 (Core's `AgeClock` is the Apple's 1/26-year unit), HP untouched; for each, the caster
+  loses #60 and all MP; nobody: NO USELESS BODIES HERE, #60 kept. **Found s228, built as part of "the Apple's #60" (for
+  the user to confirm): the rejuvenation (age × about 0.6) and the HP left at 0** (in Core a member at 0 HP doesn't act
+  in a fight until healed, DOS's rule). `[~]`: town / wilderness casts are refused before any MP under the manual cast
+  list (the Apple charges 4 MP there; `p1.cast-list` = `dos` charges and does nothing); DOS export keeps the flag at
+  `@214` but DOS can't show or cast it; the I → II transfer drops it (II's index 55 is DIVINE II). Code:
+  `Endgame.GrantVictory(…, apple)` / `SetAppleVictoryPools` / `LearnAppleDivine`, `SpellCaster.CastAppleDivine`; tests
+  `EndgameTests` `D090_*`, `MagicSpellTests` `AppleDivine_*`.
 - **Side effects:** a DOS / Amiga / C64 player now ends on Olympus with three diamonds; DOS's and the Amiga's speech
   ("now go and rest") doesn't mention the gifts; a party without TRANSPORTATION is stuck on Olympus until a caster
-  learns it (it needed TRANSPORTATION to reach Olympus before the win).
+  learns it (it needed TRANSPORTATION to reach Olympus before the win). Under `apple` (s228) every winner's score is 100,
+  dead members included, so each carries the wand of Nikademus into II (the I → II transfer's score > 99 test, as the
+  Apple's own byte 42 does); under `dos` only the members whose own
+  score passed 99 do.
 - **Spec:** `reverse-engineering/apple2/phantasie1/GRAPHICS.md` section 8.2; `reverse-engineering/dos/logic-specs/endgame.md`
   section 3.1.
 

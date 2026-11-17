@@ -161,7 +161,113 @@ remaster's text needs; the pack uses the remaster 5 × 7 font as II's does.
   speech page, `UiOverlays.DrawRewardScene`), so with this pack the reward is the plain text box and
   `scene.reward.*` is not shown yet; III's AUTO-MAP BOX (QoL, Tab) overlaps the small 72 × 90 dungeon map.
 
-## 9. Open
+## 9. Combat field (s228)
+
+Read from v3.0's `OUTDOORS3` / `DUNGON3` (the WOZ pair, `detok_apple2_p3.py` on the decoded sides) against the `[cr]`
+v1.0 listings: every drawing line below has the same text in the four (two programs × two versions) but where noted.
+Line numbers are the listing's. III's field is not I / II's (`../phantasie1/GRAPHICS.md` section 7): no mixed-mode
+round, no TEXT status page, its own sprite routine.
+
+### 9.1 The screen `[C]`
+
+The whole game runs on one hi-res page (STARTER 600-610: `SCREEN` loaded, full screen, page 1), text drawn by
+`IMPTEXT` / `IMPREVERSE` (section 7). A fight draws on it too, in its boxes:
+
+| Box | Where | What a fight puts there |
+|---|---|---|
+| Party columns | text rows 0-8, columns 4 + 6·slot (5 wide; `HTAB HT`, `HT = 6·WG + 5`, 1-based) | 600-635 (GOSUB 600 after a member changes): row 0 the name (STARTER 620, `IMPREVERSE`: inverse), row 1 the class (`Z$`, 640), row 2 magic `cur@max` (`@` shows ':'; one column right when the maximum is below 10), row 3 hits `cur@max` (a maximum of 100 or more: the current at column + 1 on row 3, `@max` on row 4), rows 5-8 the body letters `C$` (O / I / B / G for OK / injured / broken / gone: head at +1 on row 5, left arm at +0 and right arm at +2 on row 6, torso +1 row 7, left leg +0 and right leg +2 row 8) and the status word `S$` down column +4 (DEAD, OUT, SLEP, DOWN, OKAY = byte 18 + PC%) |
+| Message box | text rows 9-11, columns 17-38 (650: `POKE 33,22: POKE 32,17: POKE 34,9: POKE 35,12`) | the round's lines; HOMEd at each member slot of each pass (1610), each swing (1690), each monster slot (1860), each further monster swing (1932), each target of a party-wide special (3130) or an area spell (2550); 4005 / 4120 put the "TO ..." part at `VTAB 11` and 4020 / 4140 the death at `VTAB 12: HTAB 14` (fixed rows, not scrolled) |
+| Order box | text rows 12-23, columns 12-19 (550) | the options and orders (1068-1470); HOMEd (blank) at 1520 for the round |
+| Map box | x 0-82, y 95-191 | the region map (line 30) or the dungeon marks (section 4), untouched by a fight |
+| Field | x 147-279, y 96-190 (inside the frame's box, x 145-146 its left edge) | sprites and figures, below |
+
+The fight's text before and after the round (1051 the ranks, 1062-1160 the monsters' answers, 4260-4400 the reward)
+goes to the message and order boxes too.
+
+### 9.2 Monsters `[C]`
+
+- `MONSTER PLOT` (section 2): a sprite's top-left at byte column X%, row Y%; the bytes are stored with `STA`, so a sprite
+  covers its 21-pixel-wide box whole (black where it has no pixels), and shape 0 blanks a box.
+- Ranks: 1047-1050 make the group with more living monsters RN%(0) (the second group on a tie; a group with none never
+  leads). 1540: `GOSUB 500` blanks every slot (byte columns 21, 25 … 37 at rows 96, 109, 123), then Y%(RN%(0)) = 120,
+  or 99 when its S% is 21 (a 42-row giant), and Y%(RN%(1)) = 96.
+- Monster Y of a group of GN% + 1 living (the dead are dropped at 1020-1046, each round): X% = 21 + 4·INT(5·(Y + .5) /
+  (GN% + 1)) (1550), so five even slots 28 pixels apart from x 147; a group has at most 5 (`DIM HP%(1,4)`) and 2 groups.
+- 1540 runs at 1068, before the options: the field shows every living monster in pose A while the orders are given.
+- Pose B (S% + 1, or 23 for S% 21) at 2006, from 1895 (before a melee) and 1940 (before a spell, a special touch or a
+  breath); it stays until the next 1540.
+- A death (4140-4145): ":IT=DIES:" then shape 0 at the monster's box (and again at row 120 for a giant: both halves).
+
+### 9.3 The party `[C]`
+
+- Slot k (PM) at Q = 147 + 19·k, PP = 198 − 8·PP%(k) (9100 / 1610), PP% = record byte 0 + 1 (STARTER 330; 9040 stores
+  J − 1): back (0) at y 190, middle (1) 182, front (2) 174 (DEMO 210 / 480 / 550 draws the middle at 182 and steps to
+  174 and 190). SCALE 1 (STARTER 300; never changed in a fight).
+- 1525 (each round, after the orders): for each member not dead (byte 18 ≠ 0) 9100 erases every shape the slot may hold
+  (arms 20-22, body, shapes 2, 3, 5, 6), then 9200:
+  - a FIRE order (IN% < 0): shape 2 (LD, an archer with a drawn bow) XDRAWn, **instead of** the body;
+  - a member with a hurt leg (PC% = 2, 8210): shape 6 (kneeling) and arm 20;
+  - else the body (byte 168, section 3) and arm 21 for a parry that took (1527: IN% 5 → 3 when `RND·100 < byte 22`, or
+    with a hurt shield arm, PA%(5) > 1), else arm 20.
+- A swing (1695, each of the member's swings): arm 20 erased, arm 22 drawn; stays to the next 1525.
+- A shot (1624): XDRAW 2, XDRAW 3 (FR): the archer turns into shape 3 (bow loosed); stays.
+- A cast (1750-1764): "X=CASTS" (with "=A=SPELL" and 250 loops for spell orders 109-199), arm 20 erased, **arm 5**
+  drawn (stays), the sparkle 23 XDRAWn at (Q + 14, PP − 23), the four cast tones (7570; none with the sound off), XDRAW
+  23 again (off).
+- A member's death (4020-4025): ":DEATH:" at row 12, the death tones, then 9100: **the figure is erased at once**.
+- The summoned elemental is slot 6 (2870: PO = 6, 9100 / 9200 at x 261), drawn with its record's byte 168: what that
+  holds is not known `[?]` (section 10).
+
+### 9.4 Effects `[C]`
+
+- 4132 (after "=DOING=n ... TO=name", the tones and the HP step, before the death check): `D = 47 − SP·23`, XDRAW D at
+  (3 + 7·X%, 20 + Y%) at SCALE 1 (HCOLOR 3), 500 empty loops, XDRAW again (off). SP = 1 for a party spell's damage
+  (2050 Fireflash, 2580 the area spells) → **shape 24**; SP = 2 for a bow hit (1627) → **shape 1, the arrow**, on the
+  monster. A melee hit leaves SP = 0: 4131 skips 4132, so nothing is drawn (shape 47 is never reached).
+- A bow miss (1628): "X=FIRES=AND / MISSES", the arrow (shape 1) XDRAWn at (220, 104) in `OUTDOORS3`, (220, 105) in
+  `DUNGON3` (both versions), two speaker clicks, 250 loops, XDRAW off, then the PA pause (750).
+- 2065 (party Fireflash): page 2 / page 1 flipped `SQR(damage)` times with a click each (`POKE -16299 / -16300`), as I's.
+
+### 9.5 Pauses `[C]`
+
+PA = 120 × TIME LAG (STARTER 361, 7560) loops after most lines (GOSUB 750); a swing's "HITS" goes straight to its damage
+(1710 → 4100); the cast and death tones (`CALL 770`, 7575) are skipped with the sound off (NS = 1). The fight's end
+(4260): 2000 loops, `GOSUB 500` (the monsters blanked), the reward in the order box, 6000 loops.
+
+### 9.6 In the remaster
+
+The pack's `apple2_field` with a `monster_plot` block (`Apple2FieldLayout.Plot`, `P3Apple2ArtManifest`; `p3-apple2`
+recipe 4: the pack only, the extract is unchanged): behind ORIGINAL SCREENS each round of III plays on the Apple's
+screen (280 × 192 at (20, 4) of the remaster's 320 × 200): `SCREEN` (`screens/frame.png`), the party columns from the
+round's start, the field and the message box (`Apple2FieldRun.PlanPlot`, `UiOverlays.Apple2PlotPlaces` /
+`DrawApple2Field`); the options and orders stay the remaster's screen (as I / II). The pictures are the index's
+(`monsters/`, `figures/`, `effects/`, `shapes/20-22, 5`): nothing new is extracted. Core's tags drive it: a member's
+swing tag (arm 22, or for a FIRE order the loosed bow), a member's cast tag (sound 21: arm 5 and the sparkle), a
+monster's swing or cast tag or its breath line (pose B), a `PartySpell` hit (shape 24) and an archer's `PartyMelee` hit
+(the arrow) after the damage line, an archer's MISSES (the arrow at the miss point, 250 loops, then the pause), a death
+line after a hit on that monster or member (erased; a same-named monster is told apart by the hit before its line).
+Parries that took (Core rolls them in the round, `P3Fight.Parried`) show arm 21 from the round's start. Tests:
+`Apple2PlotTests`. Live: `parity/s228-p3-apple2-combat-live.md`.
+
+`[~]` / `[?]`:
+
+- `[~]` the map box is drawn empty (the Apple keeps its map there); the order box is blank during the round, as 1520.
+- `[~]` the party columns show the round's start values (the Apple updates a member's column at each change, GOSUB
+  600); names cut to 5 letters, the class word is the remaster's (cut to 5), the status word the remaster's III combat
+  status (`p3combat.status.*`); the remaster's 5 × 7 font, not `IMPTEXT`.
+- `[~]` Core's rank order stands for the Apple's size order (1047), Core's round order and texts are DOS III's (one action
+  a turn, not 1600's three passes); the message box wraps Core's lines to 22 columns and keeps the last 3 rows (the
+  Apple places "TO ..." and the death at fixed rows).
+- `[~]` one pause a line at `loop_ms` (I's rule of thumb); `[?]` `sparkle_ms`; no speaker sound (tones, the miss
+  clicks); 2065's page flip not shown; XDRAWs drawn over, not XORed (a second shot by one archer would toggle 2 / 3 on
+  the Apple).
+- `[~]` a kneeling member's arm is `shapes/` art (drawn at x 0's colour phase); every figure keeps the colour phase of
+  x 147 (the index's), the Apple's varies with the slot.
+- `[~]` the noble body (social class 3 → shape 4) uses the remaster's social class now (the Apple sets byte 168 once,
+  at creation).
+- `[?]` the elemental (slot 6) is not drawn: its byte 168 is not known.
+
+## 10. Open
 
 - [?] Sound: `CALL 770` (INFO, the tone routine at $302) and the `PEEK(-16336)` clicks are not decoded (as II).
 - [?] The BASIC pauses (FOR loops: title, effects, the ending's walk) have no decoded time.

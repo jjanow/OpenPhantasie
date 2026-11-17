@@ -719,7 +719,7 @@ before the art steps (the portraits read `core_race`).
 `P3Apple2Tables` (`Pipelines/P3Apple2/`, the C# port of `tools/scripts/extract_a2_p3_tables.py`; layouts in
 `reverse-engineering/apple2/phantasie3/FORMAT.md`) reads III's tables from the two sides of disk 1 (the v3.0 `.woz`
 pair or the [cr] `.dsk` sides) in `P3Extract`'s shapes; the unchanged `P3Build` writes the ten files `P3DosPipeline`
-writes. `P3Apple2Pipeline` (recipe 3; 1 had no fallback wording, 2 not the own wording) runs after `p3-dos-1988` and `p3-amiga-1.0`.
+writes. `P3Apple2Pipeline` (recipe 4; 1 had no fallback wording, 2 not the own wording, 3 not the combat field) runs after `p3-dos-1988` and `p3-amiga-1.0`.
 
 - **From the Apple:** `MN30`–`MN39` (monster records, text), `ITEM` + `TINFO` (items, HP / magic / skill / spell
   tables), `TF3` (armory stock, price index, town names), `OT1`–`OT43` (Scandor in 25 sections, the plane maps, the
@@ -760,6 +760,10 @@ writes. `P3Apple2Pipeline` (recipe 3; 1 had no fallback wording, 2 not the own w
 - **Played copy:** none of the files read is rewritten by play (3.3); a [cr] copy imports the same.
 - Played in the Client on Xvfb from a player's build (s214, `parity/s214-p3-apple2-live.md`): new game, Guild,
   town, overworld, a dungeon, fights, save / load. Wording review: `p3-apple2-fallback-review.md`.
+- **Combat field (s228, recipe 4):** the pack's `apple2_field` with III's `monster_plot` block
+  (`P3Apple2ArtManifest.Field`, mirrored in `build_a2_p3_asset_manifest.py`; OUTDOORS3 / DUNGON3, `GRAPHICS.md` section
+  9). Nothing new is extracted: the field draws the index's sprites, figures, shapes, effects and `screens/frame.png`.
+  Live: `parity/s228-p3-apple2-combat-live.md`.
 
 ### 7.11 What a C64-only I import gives (s216)
 

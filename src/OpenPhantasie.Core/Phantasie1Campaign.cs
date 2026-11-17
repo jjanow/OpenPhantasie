@@ -270,28 +270,31 @@ public sealed class Phantasie1Campaign : ICampaign
     /// <summary>
     /// OV1 <c>0x4d5</c>: GUILD.DAT written, DIVINE I granted, Zeus' speech waiting for a key (<see cref="VictoryScene"/>,
     /// shown by the front end). Then D-090 (<c>p1.victory</c>): <c>apple</c> (the default) gives the Apple's
-    /// <c>FLASH?</c> outcome: items 177–179 to the party's found items and the party on Olympus, OUT19 (7, 13), in the
-    /// wilderness (no town entry: the found items, gold and XP wait for the next town); <c>dos</c>: the party goes to
+    /// <c>FLASH?</c> outcome instead of DIVINE I: score 100 and spell #60 on every member (150), items 177–179 to the
+    /// party's found items (140), the XP / gold pools set (170) and the party on Olympus, OUT19 (7, 13), in the wilderness
+    /// (no town entry: the found items, gold and XP wait for the next town); <c>dos</c>: DIVINE I, and the party goes to
     /// town 1 (Pelnor) and its town entry.
     /// </summary>
     private static void ResolveVictory(GameSession session)
     {
         var access = session.CampaignAccess;
         session.Note(GameText.S("core.endgame.black_lord_is_dead"));
-        // The slots before GrantVictory: who stands OK is who gets DIVINE I (DOS 0x4d5, Amiga h32 +0x83e: status 1).
-        // FLASH? 150 toggles the Apple's spell #60 (byte 120) on every member instead; DOS's grant is kept (D-090).
+        // The slots before GrantVictory: who stands OK is who gets DIVINE I (DOS 0x4d5, Amiga h32 +0x83e: status 1). Each
+        // version's screen is its own, so the slots stay DOS's under `apple` too.
+        // D-090 apple (user s227): FLASH? 150 instead: every member's score := 100 and the Apple's spell #60 (no toggle).
         var slots = session.Party.Adventurers.Select(m => new VictorySlot(m.Race, m.Status == CharacterStatus.Ok)).ToList();
-        access.VictoryGuildWrite = Endgame.GrantVictory(session.Party, session.Roster);
         var toOlympus = !session.Options.IsDos(RuleOptionRegistry.Victory);
+        access.VictoryGuildWrite = Endgame.GrantVictory(session.Party, session.Roster, apple: toOlympus);
         access.PendingVictoryScene = new VictoryScene(slots, Endgame.ZeusSpeech) { ToOlympus = toOlympus };
         access.LastEndgame = EndgameOutcome.Victory;
         access.ClearDungeonState();
         if (toOlympus)
         {
-            // FLASH? 140: the three gifts; 170-175: region 19, cell (13, 18) = Core (7, 13), & RUN "OUTDOORS" (no town).
-            // [U] not built (D-090, found s226): 170 also fills days out, the XP and the gold pool with 255s (65,535 days,
-            // 655,350 XP, 65,535 gold) and 150 sets every member's score (byte 42 = @70) to 100.
+            // FLASH? 140: the three gifts; 170: the XP and gold pools (655,350 XP, 65,535 gold; days out left alone, user
+            // s227); 170-175: region 19, cell (13, 18) = Core (7, 13), & RUN "OUTDOORS" (no town).
             Endgame.GiveVictoryGifts(session.Sack);
+            Endgame.SetAppleVictoryPools(session.Sack);
+            session.BankFieldGoldIfSafe(); // s175 treasury "safe": found gold is banked at once, as event gold
             session.Overworld.RegionId = Endgame.OlympusRegion;
             session.Overworld.X = Endgame.OlympusX;
             session.Overworld.Y = Endgame.OlympusY;
