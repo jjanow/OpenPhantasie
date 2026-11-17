@@ -97,7 +97,7 @@ names its presets only where they differ from this.
 | D-087 | C64 import: no spell names on the C64; the fire elemental's name field reads FIRE ELE | **DECIDED: as built** + built (user s217; the manual's spell table + DIVINE I as D2-050; FIRE ELEM as D-083) |
 | D-088 | Apple II: "START A NEW GAME" — manual: characters erased and the dungeons reset; the Apple resets the roster and the towns only | **DECIDED: manual** (user s223; as built: an Apple-only import gives every region DOS's start state) |
 | D-089 | Apple-only import: two monster typos (APRENTICE DEVIL, MASTER ILLUSTIONIST): fix or keep | **DECIDED: fix** + built (user s223; APPRENTICE DEVIL / MASTER ILLUSIONIST; the Apple's other names kept, FIRE ELE → FIRE ELEM as D-087) |
-| D-090 | The ending: the Apple's FLASH? gives three gifts (items 177–179) and moves the party to Olympus; DOS / Amiga / C64 send it to Pelnor with no items | **DECIDED** (user s225) + built s226: the Apple's outcome in every version (diamonds to the found items, DIVINE I, OUT19 (7, 13)), DOS's as option `p1.victory`; FLASH?'s pool / days / score writes found s226, not built (open for the user) |
+| D-090 | The ending: the Apple's FLASH? gives three gifts (items 177–179) and moves the party to Olympus; DOS / Amiga / C64 send it to Pelnor with no items | **DECIDED** (user s225) + built s226: the Apple's outcome in every version (diamonds to the found items, DIVINE I, OUT19 (7, 13)), DOS's as option `p1.victory`; FLASH?'s further effects decided (user s227): score 100, XP / gold pools and spell #60 as the Apple, days out kept; not yet built |
 | D-091 | Apple-only import: CEMETARY's "YOU HAVE AR[original text]" typo: fix or keep | **DECIDED** (user s225): fix to ARRIVED; built s226 |
 
 ---
@@ -1183,10 +1183,17 @@ names its presets only where they differ from this.
   "transported to The Olympic Plane" (`c64.endgame.closing_2.olympus`). Under `dos`: DIVINE I and Pelnor, as before.
   Code: `Phantasie1Campaign.ResolveVictory`, `Endgame.GiveVictoryGifts` / `Olympus*`, `VictoryScene.ToOlympus`; tests
   `EndgameTests` D090_*.
-- **Found s226, not built (for the user):** FLASH?'s line 170 pool writes (655,350 XP and 65,535 gold to share out, and
-  65,535 days out, which ages every member about 36 years at the next town) and line 150's score := 100 are part of
-  the Apple's outcome but were not in the decision; the Apple's divine spell (#60) also differs from DOS's DIVINE I (a
-  dungeon mass revive vs nothing). Built without them until the user decides.
+- **Further decision (user, s227, 2026-11-16), on FLASH?'s effects found s226 (not yet built):** under `p1.victory` =
+  `apple` only (`dos` unchanged):
+  1. score (byte 42) := 100 on **every** member, dead included, as the Apple;
+  2. the trip's XP pool := 655,350 and gold pool := 65,535 (set, as the Apple writes them, not added), shared out at
+     the next town as after any trip (D-048's purse cap still applies);
+  3. days out **not** changed (the Apple's 65,535, about 36 years' aging at the next town, is a side effect of its
+     byte fill; dropped);
+  4. the divine spell is the Apple's #60, not DOS's DIVINE I (a no-op): cast only in a dungeon (refused in town), it
+     revives every member the Apple marks destroyed (byte 4 = 0, byte 1 > 0) to OK with byte 4 := 3 + RND · 9, then
+     the caster loses #60 and all MP;
+  5. #60 goes to **every** member, dead included, and is never taken away (the Apple's NOT toggle not copied).
 - **Side effects:** a DOS / Amiga / C64 player now ends on Olympus with three diamonds; DOS's and the Amiga's speech
   ("now go and rest") doesn't mention the gifts; a party without TRANSPORTATION is stuck on Olympus until a caster
   learns it (it needed TRANSPORTATION to reach Olympus before the win).

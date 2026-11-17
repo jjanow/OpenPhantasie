@@ -277,6 +277,5 @@ played (the combat field, section 7, plays no speaker sound) `[~]`.
 - `[~]` Text in the remaster font, not the Apple's character ROM (not on the disks); no flashing cursor.
 - `[~]` `scenes/shapes.bin` / `page2.bin` exist only in an import's `files/` (the committed extract has no `scenes/`):
   a dev build that finds the pack in the repo without an Apple import draws the plain end screens.
-- `[U]` FLASH? 150's score := 100 and 170's pools (655,350 XP, 65,535 gold) and days out (65,535) are not built (found
-  s226, D-090: the decision named the gifts, the divine spell and Olympus only); the Apple's spell #60 (a dungeon mass
-  revive) is DOS's DIVINE I in the remaster.
+- FLASH? 150's score := 100, 170's pools (655,350 XP, 65,535 gold) and the Apple's spell #60 (every member, no toggle)
+  in place of DIVINE I: decided s227 (D-090), not yet built; 170's days out (65,535) dropped by the decision.

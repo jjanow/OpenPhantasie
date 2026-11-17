@@ -401,9 +401,9 @@ town, where they are shared out as after any trip (D-037), most likely OLYMPIA (
 (11, 6) / (11, 5) text cells join the landing area to it). Leaving Olympus needs TRANSPORTATION from a town, as
 reaching it did. Zeus' screen is each version's own and unchanged, except the C64's closing page, whose second line
 names the Olympic Plane instead of the City of Pelnor (`c64.endgame.closing_2.olympus`, `VictoryScene.ToOlympus`).
-`[U]` not built (found s226, D-090): FLASH? 150 sets every member's score (`@70`) to 100 and toggles the Apple's spell
-#60 (the remaster keeps DOS's DIVINE I grant); 170 fills days out (65,535), the XP pool (655,350) and the gold pool
-(65,535). Core: `Phantasie1Campaign.ResolveVictory`, `Endgame.GiveVictoryGifts`; tests `EndgameTests` `D090_*`.
+Decided s227, not yet built (D-090): under `apple`, every member's score (`@70`) := 100, the XP pool := 655,350 and
+the gold pool := 65,535 (FLASH? 150 / 170), days out unchanged (the Apple's 65,535 dropped), and the Apple's spell #60
+(every member, never toggled off) in place of DOS's DIVINE I. Core: `Phantasie1Campaign.ResolveVictory`, `Endgame.GiveVictoryGifts`; tests `EndgameTests` `D090_*`.
 
 ## 4. Lose — party defeat, Astral Plane, Great Demon, OV1 `0x3bc` [C]
 
